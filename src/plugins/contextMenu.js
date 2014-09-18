@@ -1,181 +1,190 @@
 (function (Handsontable) {
   'use strict';
 
-  function prepareVerticalAlignClass (className, alignment) {
-    if (className.indexOf(alignment)!= -1){
+  function prepareVerticalAlignClass(className, alignment) {
+    if (className.indexOf(alignment) != -1) {
       return className;
     }
 
-    className =  className
-      .replace('htTop','')
-      .replace('htMiddle','')
-      .replace('htBottom','')
-      .replace('  ','');
+    className = className
+      .replace('htTop', '')
+      .replace('htMiddle', '')
+      .replace('htBottom', '')
+      .replace('  ', '');
 
     className += " " + alignment;
     return className;
   }
 
-  function prepareHorizontalAlignClass (className, alignment) {
-    if (className.indexOf(alignment)!= -1){
+  function prepareHorizontalAlignClass(className, alignment) {
+    if (className.indexOf(alignment) != -1) {
       return className;
     }
 
-    className =  className
-      .replace('htLeft','')
-      .replace('htCenter','')
-      .replace('htRight','')
-      .replace('htJustify','')
-      .replace('  ','');
+    className = className
+      .replace('htLeft', '')
+      .replace('htCenter', '')
+      .replace('htRight', '')
+      .replace('htJustify', '')
+      .replace('  ', '');
 
     className += " " + alignment;
     return className;
   }
 
-  function doAlign (row, col, type, alignment) {
-      var cellMeta = this.getCellMeta(row, col),
-        className = alignment;
+  function doAlign(row, col, type, alignment) {
+    var cellMeta = this.getCellMeta(row, col),
+      className = alignment;
 
-      if (cellMeta.className) {
-        if(type === 'vertical') {
-          className = prepareVerticalAlignClass(cellMeta.className, alignment);
-        } else {
-          className = prepareHorizontalAlignClass(cellMeta.className, alignment);
-        }
+    if (cellMeta.className) {
+      if (type === 'vertical') {
+        className = prepareVerticalAlignClass(cellMeta.className, alignment);
+      } else {
+        className = prepareHorizontalAlignClass(cellMeta.className, alignment);
       }
+    }
 
-      this.setCellMeta(row, col, 'className',className);
-      this.render();
+    this.setCellMeta(row, col, 'className', className);
+    this.render();
   }
 
-  function align (range, type, alignment) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
-      doAlign.call(this,range.from.row, range.from.col, type, alignment);
+  function align(range, type, alignment) {
+    if (range.from.row == range.to.row && range.from.col == range.to.col) {
+      doAlign.call(this, range.from.row, range.from.col, type, alignment);
     } else {
-      for(var row = range.from.row; row<= range.to.row; row++) {
+      for (var row = range.from.row; row <= range.to.row; row++) {
         for (var col = range.from.col; col <= range.to.col; col++) {
-          doAlign.call(this,row, col, type, alignment);
+          doAlign.call(this, row, col, type, alignment);
         }
       }
     }
   }
 
-  function ContextMenu(instance, customOptions){
+  function ContextMenu(instance, customOptions) {
     this.instance = instance;
     var contextMenu = this;
-		contextMenu.menus = [];
-		contextMenu.triggerRows = [];
+    contextMenu.menus = [];
+    contextMenu.triggerRows = [];
 
     this.enabled = true;
 
     this.instance.addHook('afterDestroy', function () {
-       contextMenu.destroy();
+      contextMenu.destroy();
     });
 
     this.defaultOptions = {
-      items: {
-        'row_above': {
+      items: [
+        {
+          key: 'row_above',
           name: 'Insert row above',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
             return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
-				'row_below': {
+        {
+          key: 'row_below',
           name: 'Insert row below',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
             return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
-        "hsep1": ContextMenu.SEPARATOR,
-        'col_left': {
+        ContextMenu.SEPARATOR,
+        {
+          key: 'col_left',
           name: 'Insert column on the left',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
-        'col_right': {
+        {
+          key: 'col_right',
           name: 'Insert column on the right',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
-        "hsep2": ContextMenu.SEPARATOR,
-        'remove_row': {
+        ContextMenu.SEPARATOR,
+        {
+          key: 'remove_row',
           name: 'Remove row',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             var amount = selection.end.row - selection.start.row + 1;
             this.alter("remove_row", selection.start.row, amount);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
             return (selected[0] < 0 || columnSelected);
           }
         },
-        'remove_col': {
+        {
+          key: 'remove_col',
           name: 'Remove column',
-          callback: function(key, selection){
+          callback: function (key, selection) {
             var amount = selection.end.col - selection.start.col + 1;
             this.alter("remove_col", selection.start.col, amount);
           },
-          disabled: function (){
+          disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
             return (selected[1] < 0 || rowSelected);
           }
         },
-        "hsep3": ContextMenu.SEPARATOR,
-        'undo': {
+        ContextMenu.SEPARATOR,
+        {
+          key: 'undo',
           name: 'Undo',
-          callback: function(){
+          callback: function () {
             this.undo();
           },
           disabled: function () {
             return this.undoRedo && !this.undoRedo.isUndoAvailable();
           }
         },
-        'redo': {
+        {
+          key: 'redo',
           name: 'Redo',
-          callback: function(){
+          callback: function () {
             this.redo();
           },
           disabled: function () {
             return this.undoRedo && !this.undoRedo.isRedoAvailable();
           }
         },
-        "hsep4": ContextMenu.SEPARATOR,
-        'make_read_only': {
-          name: function() {
+        ContextMenu.SEPARATOR,
+        {
+          key: 'make_read_only',
+          name: function () {
             var label = "Read only";
             var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
             if (atLeastOneReadOnly) {
@@ -183,153 +192,151 @@
             }
             return label;
           },
-          callback: function() {
+          callback: function () {
             var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
 
             var that = this;
-            this.getSelectedRange().forAll(function(r, c) {
+            this.getSelectedRange().forAll(function (r, c) {
               that.getCellMeta(r, c).readOnly = atLeastOneReadOnly ? false : true;
             });
 
             this.render();
           }
         },
-        "hsep5": ContextMenu.SEPARATOR,
-        'aligment':{
+        ContextMenu.SEPARATOR,
+        {
+          key: 'alignment',
           name: 'Alignment',
           submenu: {
-            items: {
-							left: {
-								name: function () {
-									var label = "Left";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htLeft');
+            items: [
+              {
+                name: function () {
+                  var label = "Left";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htLeft');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function (){
-									align.call(this, this.getSelectedRange(),'horizontal','htLeft');
-								},
-								disabled: false
-							},
-							center: {
-								name: function () {
-									var label = "Center";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htCenter');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'horizontal', 'htLeft');
+                },
+                disabled: false
+              },
+              {
+                name: function () {
+                  var label = "Center";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htCenter');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function () {
-									align.call(this, this.getSelectedRange(),'horizontal','htCenter');
-								},
-								disabled: false
-							},
-							right: {
-								name: function () {
-									var label = "Right";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htRight');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'horizontal', 'htCenter');
+                },
+                disabled: false
+              },
+              {
+                name: function () {
+                  var label = "Right";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htRight');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function () {
-									align.call(this, this.getSelectedRange(),'horizontal','htRight');
-								},
-								disabled: false
-							},
-							justify: {
-								name: function () {
-									var label = "Justify";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htJustify');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'horizontal', 'htRight');
+                },
+                disabled: false
+              },
+              {
+                name: function () {
+                  var label = "Justify";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htJustify');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function () {
-									align.call(this, this.getSelectedRange(),'horizontal','htJustify');
-								},
-								disabled: false
-							},
-							"hsep1": ContextMenu.SEPARATOR,
-							top: {
-								name: function () {
-									var label = "Top";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htTop');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'horizontal', 'htJustify');
+                },
+                disabled: false
+              },
+              ContextMenu.SEPARATOR,
+              {
+                name: function () {
+                  var label = "Top";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htTop');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function() {
-									align.call(this, this.getSelectedRange(),'vertical','htTop');
-								},
-								disabled: false
-							},
-							middle:{
-								name: function () {
-									var label = "Middle";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htMiddle');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'vertical', 'htTop');
+                },
+                disabled: false
+              },
+              {
+                name: function () {
+                  var label = "Middle";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htMiddle');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function() {
-									align.call(this, this.getSelectedRange(),'vertical','htMiddle');
-								},
-								disabled: false
-							},
-							bottom: {
-								name: function () {
-									var label = "Bottom";
-									var hasClass = contextMenu.checkSelectionAlignment(this,'htBottom');
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'vertical', 'htMiddle');
+                },
+                disabled: false
+              },
+              {
+                name: function () {
+                  var label = "Bottom";
+                  var hasClass = contextMenu.checkSelectionAlignment(this, 'htBottom');
 
-									if (hasClass){
-										label = contextMenu.markSelected(label);
-									}
-									return label;
-								},
-								callback: function() {
-									align.call(this, this.getSelectedRange(),'vertical','htBottom');
-								},
-								disabled: false
-							}
-
-            }
+                  if (hasClass) {
+                    label = contextMenu.markSelected(label);
+                  }
+                  return label;
+                },
+                callback: function () {
+                  align.call(this, this.getSelectedRange(), 'vertical', 'htBottom');
+                },
+                disabled: false
+              }
+            ]
           }
         }
-      }
+      ]
     };
 
-		contextMenu.options = {};
+    contextMenu.options = {};
 
-		Handsontable.helper.extend(contextMenu.options, this.defaultOptions);
+    Handsontable.helper.extend(contextMenu.options, this.options);
 
-		this.updateOptions(customOptions, this.options);
-
-		this.bindMouseEvents();
+    this.bindMouseEvents();
 
     this.markSelected = function (label) {
       return "<span class='selected'>✓</span>" + label;
     };
 
-    this.checkSelectionAlignment = function (hot, className){
+    this.checkSelectionAlignment = function (hot, className) {
       var hasAlignment = false;
 
-      hot.getSelectedRange().forAll(function(r, c) {
+      hot.getSelectedRange().forAll(function (r, c) {
         var metaClassName = hot.getCellMeta(r, c).className;
-        if (metaClassName && metaClassName.indexOf(className)!= -1) {
+        if (metaClassName && metaClassName.indexOf(className) != -1) {
           hasAlignment = true;
           return false;
         }
@@ -338,11 +345,11 @@
       return hasAlignment;
     };
 
-    this.checkSelectionReadOnlyConsistency = function(hot) {
+    this.checkSelectionReadOnlyConsistency = function (hot) {
       var atLeastOneReadOnly = false;
 
-      hot.getSelectedRange().forAll(function(r, c) {
-        if(hot.getCellMeta(r, c).readOnly) {
+      hot.getSelectedRange().forAll(function (r, c) {
+        if (hot.getCellMeta(r, c).readOnly) {
           atLeastOneReadOnly = true;
           return false; //breaks forAll
         }
@@ -353,64 +360,69 @@
 
     Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
-	}
+  }
 
-	ContextMenu.prototype.createMenu = function (menuName, row) {
-		if (menuName) {
+  ContextMenu.prototype.createMenu = function (menuName, row) {
+    if (menuName) {
       menuName = menuName.replace(/ /g, '_'); // replace all spaces in name
-			menuName = 'htContextSubMenu_' + menuName;
-		}
+      menuName = 'htContextSubMenu_' + menuName;
+    }
 
-		var menu;
-		if (menuName) {
-			menu = $('body > .htContextMenu.' + menuName)[0];
-		} else {
-			menu = $('body > .htContextMenu')[0];
-		}
+    var menu;
+    if (menuName) {
+      menu = $('body > .htContextMenu.' + menuName)[0];
+    } else {
+      menu = $('body > .htContextMenu')[0];
+    }
 
-		if(!menu){
-			menu = document.createElement('DIV');
-			Handsontable.Dom.addClass(menu, 'htContextMenu');
-			if(menuName) {
-				Handsontable.Dom.addClass(menu, menuName);
-			}
-			document.getElementsByTagName('body')[0].appendChild(menu);
-		}
+    if (!menu) {
+      menu = document.createElement('DIV');
+      Handsontable.Dom.addClass(menu, 'htContextMenu');
+      if (menuName) {
+        Handsontable.Dom.addClass(menu, menuName);
+      }
+      document.getElementsByTagName('body')[0].appendChild(menu);
+    }
 
-		if(this.menus.indexOf(menu) < 0){
-			this.menus.push(menu);
-			row = row || 0;
-			this.triggerRows.push(row);
-		}
+    if (this.menus.indexOf(menu) < 0) {
+      this.menus.push(menu);
+      row = row || 0;
+      this.triggerRows.push(row);
+    }
 
-		return menu;
-	};
+    return menu;
+  };
 
-	ContextMenu.prototype.bindMouseEvents = function (){
-    function contextMenuOpenListener(event){
-			this.closeAll();
+  ContextMenu.prototype.bindMouseEvents = function () {
+    function contextMenuOpenListener(event) {
+      var settings = this.instance.getSettings();
+//      if(!settings.contextMenu) {
+//        return;
+//      }
 
-			event.preventDefault();
+      this.closeAll();
+
+      event.preventDefault();
       event.stopPropagation();
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
-          showColHeaders = this.instance.getSettings().colHeaders;
+        showColHeaders = this.instance.getSettings().colHeaders;
 
-      if(!(showRowHeaders || showColHeaders)) {
-        if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
+      if (!(showRowHeaders || showColHeaders)) {
+        if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
           return;
         }
       }
-			var menu = this.createMenu();
-      var items = this.getItems(this.options);
+      var menu = this.createMenu();
+      var items = this.getItems(settings.contextMenu);
 
       this.show(menu, items);
-			this.setMenuPosition(event, menu);
+      this.setMenuPosition(event, menu);
 
-			$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
+      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
 
-		this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
@@ -425,34 +437,33 @@
   };
 
   ContextMenu.prototype.unbindTableEvents = function () {
-    if(this._afterScrollCallback){
+    if (this._afterScrollCallback) {
       this.instance.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
     }
   };
 
-  ContextMenu.prototype.performAction = function (event, menu){
-		var contextMenu = this;
-		var hot = $(menu).handsontable('getInstance');
-		var selectedItemIndex = hot.getSelected()[0];
+  ContextMenu.prototype.performAction = function (event, menu) {
+    var contextMenu = this;
+    var hot = $(menu).handsontable('getInstance');
+    var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
-		if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
-			return;
-		}
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)) {
+      return;
+    }
 
-		if (!selectedItem.hasOwnProperty('submenu')) {
-			if(typeof selectedItem.callback != 'function'){
-				return;
-			}
-			var selRange = this.instance.getSelectedRange();
-			var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+    if (!selectedItem.hasOwnProperty('submenu')) {
+      if (typeof selectedItem.callback != 'function') {
+        return;
+      }
+      var selRange = this.instance.getSelectedRange();
+      var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
-			selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
-			contextMenu.closeAll();
-      this.instance.deselectCell();
-		}
+      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+      contextMenu.closeAll();
+    }
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -460,18 +471,19 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function(menu, items){
-		menu.style.display = 'block';
+  ContextMenu.prototype.show = function (menu, items) {
+    menu.removeAttribute('style');
+    menu.style.display = 'block';
 
-		var that = this;
-		$(menu)
-			.off('mousedown.htContextMenu')
-			.on('mousedown.htContextMenu',  function (event) {
-				that.performAction(event, menu)
-			});
+    var that = this;
+    $(menu)
+      .off('mousedown.htContextMenu')
+      .on('mousedown.htContextMenu', function (event) {
+        that.performAction(event, menu)
+      });
 
-		$(menu).handsontable({
-      data: ContextMenu.utils.convertItemsToArray(items),
+    $(menu).handsontable({
+      data: items,
       colHeaders: false,
       colWidths: [200],
       readOnly: true,
@@ -483,72 +495,72 @@
         }
       ],
       beforeKeyDown: function (event) {
-				that.onBeforeKeyDown(event, menu);
-			},
-			afterOnCellMouseOver: function (event, coords, TD) {
-				that.onCellMouseOver(event, coords, TD, menu);
-			},
+        that.onBeforeKeyDown(event, menu);
+      },
+      afterOnCellMouseOver: function (event, coords, TD) {
+        that.onCellMouseOver(event, coords, TD, menu);
+      },
 
-			renderAllRows: true
+      renderAllRows: true
     });
 
-		this.bindTableEvents();
+    this.bindTableEvents();
 
     $(menu).handsontable('listen');
 
   };
 
   ContextMenu.prototype.close = function (menu) {
-		this.hide(menu);
+    this.hide(menu);
     $(document).off('mousedown.htContextMenu');
     this.unbindTableEvents();
     this.instance.listen();
   };
 
-	ContextMenu.prototype.closeAll = function () {
-		while(this.menus.length > 0) {
-			var menu = this.menus.pop();
-			if (menu) {
-				this.close(menu);
-			}
+  ContextMenu.prototype.closeAll = function () {
+    while (this.menus.length > 0) {
+      var menu = this.menus.pop();
+      if (menu) {
+        this.close(menu);
+      }
 
-		}
-		this.triggerRows = [];
-	};
-
-	ContextMenu.prototype.closeLastOpenedSubMenu = function (){
-		var menu = this.menus.pop();
-		if (menu) {
-			this.hide(menu);
-//			this.close(menu);
-		}
-
-	};
-
-  ContextMenu.prototype.hide = function(menu){
-		menu.style.display = 'none';
-		$(menu).handsontable('destroy');
+    }
+    this.triggerRows = [];
   };
 
-  ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value){
+  ContextMenu.prototype.closeLastOpenedSubMenu = function () {
+    var menu = this.menus.pop();
+    if (menu) {
+      this.hide(menu);
+//			this.close(menu);
+    }
+
+  };
+
+  ContextMenu.prototype.hide = function (menu) {
+    menu.style.display = 'none';
+    $(menu).handsontable('destroy');
+  };
+
+  ContextMenu.prototype.renderer = function (instance, TD, row, col, prop, value) {
     var contextMenu = this;
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
 
-    if(typeof value === 'function') {
+    if (typeof value === 'function') {
       value = value.call(this.instance);
     }
 
     Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
 
-    if(itemIsSeparator(item)){
+    if (itemIsSeparator(item)) {
       Handsontable.Dom.addClass(TD, 'htSeparator');
     } else {
       Handsontable.Dom.fastInnerHTML(wrapper, value);
     }
 
-    if (itemIsDisabled(item)){
+    if (itemIsDisabled(item)) {
       Handsontable.Dom.addClass(TD, 'htDisabled');
 
       $(wrapper).on('mouseenter', function () {
@@ -556,55 +568,54 @@
       });
 
     } else {
-			if (isSubMenu(item)) {
-				Handsontable.Dom.addClass(TD, 'htSubmenu');
+      if (isSubMenu(item)) {
+        Handsontable.Dom.addClass(TD, 'htSubmenu');
 
-				$(wrapper).on('mouseenter', function () {
-					instance.selectCell(row, col);
-				});
+        $(wrapper).on('mouseenter', function () {
+          instance.selectCell(row, col);
+        });
 
-			} else {
-				Handsontable.Dom.removeClass(TD, 'htSubmenu');
-				Handsontable.Dom.removeClass(TD, 'htDisabled');
+      } else {
+        Handsontable.Dom.removeClass(TD, 'htSubmenu');
+        Handsontable.Dom.removeClass(TD, 'htDisabled');
 
-				$(wrapper).on('mouseenter', function () {
-					instance.selectCell(row, col);
-				});
-			}
+        $(wrapper).on('mouseenter', function () {
+          instance.selectCell(row, col);
+        });
+      }
     }
 
 
-		function isSubMenu(item) {
-			return item.hasOwnProperty('submenu');
-		}
-
-    function itemIsSeparator(item){
-      return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
+    function isSubMenu(item) {
+      return item.hasOwnProperty('submenu');
     }
 
-    function itemIsDisabled(item){
+    function itemIsSeparator(item) {
+      return new RegExp(ContextMenu.SEPARATOR.name, 'i').test(item.name);
+    }
+
+    function itemIsDisabled(item) {
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
 
 
-
   };
 
-	ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, menu) {
+  ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, menu) {
 
-		var hot = $(menu).handsontable('getInstance');
+    var hot = $(menu).handsontable('getInstance');
     var menusLength = this.menus.length;
 
     if (menusLength > 0) {
-      var lastMenu = this.menus[menusLength-1];
-      if(lastMenu.id != menu.id) {
+      var lastMenu = this.menus[menusLength - 1];
+      if (lastMenu.id != menu.id) {
         this.closeLastOpenedSubMenu();
       }
-    }else {
+    } else {
       this.closeLastOpenedSubMenu();
     }
 
-    if(TD.className.indexOf('htSubmenu')!=-1){
+    if (TD.className.indexOf('htSubmenu') != -1) {
       var selectedItem = hot.getData()[coords.row];
       var items = this.getItems(selectedItem.submenu);
 
@@ -615,14 +626,14 @@
       this.setSubMenuPosition(tdCoords, subMenu);
 
     }
-	};
+  };
 
   ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
-		var contextMenu = this;
-		var instance = $(menu).handsontable('getInstance');
-		var selection = instance.getSelected();
+    var contextMenu = this;
+    var instance = $(menu).handsontable('getInstance');
+    var selection = instance.getSelected();
 
-    switch(event.keyCode){
+    switch (event.keyCode) {
 
       case Handsontable.helper.keyCode.ESCAPE:
         contextMenu.closeAll();
@@ -631,14 +642,14 @@
         break;
 
       case Handsontable.helper.keyCode.ENTER:
-        if(selection){
-					contextMenu.performAction(event, menu);
+        if (selection) {
+          contextMenu.performAction(event, menu);
         }
         break;
 
       case Handsontable.helper.keyCode.ARROW_DOWN:
 
-				if(!selection){
+        if (!selection) {
 
           selectFirstCell(instance, contextMenu);
 
@@ -654,11 +665,11 @@
         break;
 
       case Handsontable.helper.keyCode.ARROW_UP:
-        if(!selection){
+        if (!selection) {
 
           selectLastCell(instance, contextMenu);
 
-        }  else {
+        } else {
 
           selectPrevCell(selection[0], selection[1], instance, contextMenu);
 
@@ -668,49 +679,49 @@
         event.stopImmediatePropagation();
 
         break;
-			case Handsontable.helper.keyCode.ARROW_RIGHT:
-				if(selection){
-					var row = selection[0];
-					var cell = instance.getCell(selection[0], 0);
+      case Handsontable.helper.keyCode.ARROW_RIGHT:
+        if (selection) {
+          var row = selection[0];
+          var cell = instance.getCell(selection[0], 0);
 
-					if(ContextMenu.utils.hasSubMenu(cell)) {
-						openSubMenu(instance, contextMenu, cell, row);
-					}
-				}
-				event.preventDefault();
-				event.stopImmediatePropagation();
+          if (ContextMenu.utils.hasSubMenu(cell)) {
+            openSubMenu(instance, contextMenu, cell, row);
+          }
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
 
-				break;
+        break;
 
-			case Handsontable.helper.keyCode.ARROW_LEFT:
-				if (selection) {
+      case Handsontable.helper.keyCode.ARROW_LEFT:
+        if (selection) {
 
-					if (menu.className.indexOf('htContextSubMenu_')!= -1) {
-						contextMenu.closeLastOpenedSubMenu();
-						var index = contextMenu.menus.length;
+          if (menu.className.indexOf('htContextSubMenu_') != -1) {
+            contextMenu.closeLastOpenedSubMenu();
+            var index = contextMenu.menus.length;
 
-						if (index > 0){
-							menu = contextMenu.menus[index - 1];
-							var triggerRow = contextMenu.triggerRows.pop();
-							instance = $(menu).handsontable('getInstance');
-							instance.selectCell(triggerRow,0);
-						}
+            if (index > 0) {
+              menu = contextMenu.menus[index - 1];
+              var triggerRow = contextMenu.triggerRows.pop();
+              instance = $(menu).handsontable('getInstance');
+              instance.selectCell(triggerRow, 0);
+            }
 
-					}
+          }
 
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				}
-				break;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+        break;
 
 
     }
 
     function selectFirstCell(instance) {
 
-			var firstCell = instance.getCell(0, 0);
+      var firstCell = instance.getCell(0, 0);
 
-      if(ContextMenu.utils.isSeparator(firstCell) || ContextMenu.utils.isDisabled(firstCell)){
+      if (ContextMenu.utils.isSeparator(firstCell) || ContextMenu.utils.isDisabled(firstCell)) {
         selectNextCell(0, 0, instance);
       } else {
         instance.selectCell(0, 0);
@@ -724,7 +735,7 @@
       var lastRow = instance.countRows() - 1;
       var lastCell = instance.getCell(lastRow, 0);
 
-      if(ContextMenu.utils.isSeparator(lastCell) || ContextMenu.utils.isDisabled(lastCell)){
+      if (ContextMenu.utils.isSeparator(lastCell) || ContextMenu.utils.isDisabled(lastCell)) {
         selectPrevCell(lastRow, 0, instance);
       } else {
         instance.selectCell(lastRow, 0);
@@ -732,15 +743,15 @@
 
     }
 
-    function selectNextCell(row, col, instance){
+    function selectNextCell(row, col, instance) {
       var nextRow = row + 1;
-      var nextCell =  nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
+      var nextCell = nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
 
-      if(!nextCell){
+      if (!nextCell) {
         return;
       }
 
-      if(ContextMenu.utils.isSeparator(nextCell) || ContextMenu.utils.isDisabled(nextCell)){
+      if (ContextMenu.utils.isSeparator(nextCell) || ContextMenu.utils.isDisabled(nextCell)) {
         selectNextCell(nextRow, col, instance);
       } else {
         instance.selectCell(nextRow, col);
@@ -756,7 +767,7 @@
         return;
       }
 
-      if(ContextMenu.utils.isSeparator(prevCell) || ContextMenu.utils.isDisabled(prevCell)){
+      if (ContextMenu.utils.isSeparator(prevCell) || ContextMenu.utils.isDisabled(prevCell)) {
         selectPrevCell(prevRow, col, instance);
       } else {
         instance.selectCell(prevRow, col);
@@ -764,112 +775,138 @@
 
     }
 
-		function openSubMenu (instance, contextMenu, cell, row) {
-			var selectedItem = instance.getData()[row];
-			var items = contextMenu.getItems(selectedItem.submenu);
-			var subMenu = contextMenu.createMenu(selectedItem.name, row);
-			var coords = cell.getBoundingClientRect();
+    function openSubMenu(instance, contextMenu, cell, row) {
+      var selectedItem = instance.getData()[row];
+      var items = contextMenu.getItems(selectedItem.submenu);
+      var subMenu = contextMenu.createMenu(selectedItem.name, row);
+      var coords = cell.getBoundingClientRect();
 
-			contextMenu.show(subMenu, items);
-			contextMenu.setSubMenuPosition(coords,subMenu);
-			var subMenuInstance = $(subMenu).handsontable('getInstance');
-			subMenuInstance.selectCell(0,0);
-		}
+      contextMenu.show(subMenu, items);
+      contextMenu.setSubMenuPosition(coords, subMenu);
+      var subMenuInstance = $(subMenu).handsontable('getInstance');
+      subMenuInstance.selectCell(0, 0);
+    }
 
   };
 
-  ContextMenu.prototype.getItems = function (options) {
-		var items = {};
-    function Item(rawItem){
-      if(typeof rawItem == 'string'){
+  function findByKey(items, key) {
+    for (var i = 0, ilen = items.length; i < ilen; i++) {
+      if (items[i].key === key) {
+        return items[i];
+      }
+    }
+  }
+
+  ContextMenu.prototype.getItems = function (items) {
+    var menu, item;
+
+    function ContextMenuItem(rawItem) {
+      if (typeof rawItem == 'string') {
         this.name = rawItem;
       } else {
         Handsontable.helper.extend(this, rawItem);
       }
     }
-    Item.prototype = options;
 
-    for(var itemName in options.items){
-      if(options.items.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
-        items[itemName] = new Item(options.items[itemName]);
-      }
+    ContextMenuItem.prototype = items;
+
+    if (items && items.items) {
+      items = items.items;
     }
-    return items;
 
-  };
-
-  ContextMenu.prototype.updateOptions = function(newOptions, options){
-    newOptions = newOptions || {};
-
-    if(newOptions.items){
-      for(var itemName in newOptions.items){
-        var item = {};
-
-        if(newOptions.items.hasOwnProperty(itemName)) {
-          if(this.defaultOptions.items.hasOwnProperty(itemName)
-            && Handsontable.helper.isObject(newOptions.items[itemName])){
-            Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
-            Handsontable.helper.extend(item, newOptions.items[itemName]);
-            newOptions.items[itemName] = item;
+    if (items === true) {
+      items = this.defaultOptions.items;
+    }
+    /*else if (Handsontable.helper.isArray(items)) {
+     menu = [];
+     for (var i = 0, ilen = items.length; i < ilen; i++) {
+     if (typeof items[i] === 'string') {
+     item = findByKey(this.defaultOptions.items, items[i]);
+     }
+     else {
+     item = items[i];
+     }
+     menu.push(new ContextMenuItem(item || items[i]));
+     }
+     }*/
+    if (1 == 1) {
+      menu = [];
+      for (var key in items) {
+        if (items.hasOwnProperty(key)) {
+          if (typeof items[key] === 'string') {
+            item = findByKey(this.defaultOptions.items, items[key]);
           }
+          else {
+            item = findByKey(this.defaultOptions.items, key);
+          }
+          if (!item) {
+            item = items[key];
+          }
+          item = new ContextMenuItem(item);
+          if (typeof items[key] === 'object') {
+            Handsontable.helper.extend(item, items[key]);
+          }
+          if (!item.key) {
+            item.key = key;
+          }
+          menu.push(item);
         }
-
       }
     }
 
-		Handsontable.helper.extend(options, newOptions);
+    return menu;
   };
 
-	ContextMenu.prototype.setSubMenuPosition = function (coords, menu) {
-		var scrollTop = Handsontable.Dom.getWindowScrollTop();
-		var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
-
-		var cursor = {
-			top: scrollTop + coords.top,
-			topRelative: coords.top ,
-			left: coords.left,
-			leftRelative: coords.left - scrollLeft,
-			scrollTop: scrollTop,
-			scrollLeft: scrollLeft,
-			cellHeight: coords.height,
-			cellWidth: coords.width
-		};
-
-		if(this.menuFitsBelowCursor(cursor, menu)){
-			this.positionMenuBelowCursor(cursor, menu, true);
-		} else {
-			if (this.menuFitsAboveCursor(cursor, menu)) {
-				this.positionMenuAboveCursor(cursor, menu, true);
-			} else {
-				this.positionMenuBelowCursor(cursor, menu, true);
-			}
-		}
-
-		if(this.menuFitsOnRightOfCursor(cursor, menu)){
-			this.positionMenuOnRightOfCursor(cursor, menu, true);
-		} else {
-			this.positionMenuOnLeftOfCursor(cursor, menu, true);
-		}
-	};
-
-  ContextMenu.prototype.setMenuPosition = function (event, menu) {
-    var cursorY = event.pageY;
-		var cursorX = event.pageX;
-		var scrollTop = Handsontable.Dom.getWindowScrollTop();
+  ContextMenu.prototype.setSubMenuPosition = function (coords, menu) {
+    var scrollTop = Handsontable.Dom.getWindowScrollTop();
     var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
     var cursor = {
-      top:  cursorY,
-      topRelative: cursorY - scrollTop,
-      left: cursorX,
-      leftRelative:cursorX - scrollLeft,
+      top: scrollTop + coords.top,
+      topRelative: coords.top,
+      left: coords.left,
+      leftRelative: coords.left - scrollLeft,
       scrollTop: scrollTop,
       scrollLeft: scrollLeft,
-			cellHeight: event.target.clientHeight,
-			cellWidth: event.target.clientWidth
+      cellHeight: coords.height,
+      cellWidth: coords.width
     };
 
-    if(this.menuFitsBelowCursor(cursor, menu)){
+    if (this.menuFitsBelowCursor(cursor, menu)) {
+      this.positionMenuBelowCursor(cursor, menu, true);
+    } else {
+      if (this.menuFitsAboveCursor(cursor, menu)) {
+        this.positionMenuAboveCursor(cursor, menu, true);
+      } else {
+        this.positionMenuBelowCursor(cursor, menu, true);
+      }
+    }
+
+    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
+      this.positionMenuOnRightOfCursor(cursor, menu, true);
+    } else {
+      this.positionMenuOnLeftOfCursor(cursor, menu, true);
+    }
+  };
+
+  ContextMenu.prototype.setMenuPosition = function (event, menu) {
+    var cursorY = event.pageY;
+    var cursorX = event.pageX;
+    var scrollTop = Handsontable.Dom.getWindowScrollTop();
+    var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+
+    var cursor = {
+      top: cursorY,
+      topRelative: cursorY - scrollTop,
+      left: cursorX,
+      leftRelative: cursorX - scrollLeft,
+      scrollTop: scrollTop,
+      scrollLeft: scrollLeft,
+      cellHeight: event.target.clientHeight,
+      cellWidth: event.target.clientWidth
+    };
+
+    if (this.menuFitsBelowCursor(cursor, menu)) {
       this.positionMenuBelowCursor(cursor, menu);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
@@ -879,7 +916,7 @@
       }
     }
 
-    if(this.menuFitsOnRightOfCursor(cursor, menu)){
+    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
       this.positionMenuOnRightOfCursor(cursor, menu);
     } else {
       this.positionMenuOnLeftOfCursor(cursor, menu);
@@ -900,56 +937,36 @@
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
-		menu.style.top = cursor.top + 'px';
+    menu.style.top = cursor.top + 'px';
   };
 
   ContextMenu.prototype.positionMenuAboveCursor = function (cursor, menu, subMenu) {
     if (subMenu) {
-			menu.style.top = (cursor.top + cursor.cellHeight  - menu.offsetHeight) + 'px';
-		} else {
-			menu.style.top = (cursor.top - menu.offsetHeight) + 'px';
-		}
+      menu.style.top = (cursor.top + cursor.cellHeight - menu.offsetHeight) + 'px';
+    } else {
+      menu.style.top = (cursor.top - menu.offsetHeight) + 'px';
+    }
   };
 
   ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor, menu, subMenu) {
     if (subMenu) {
-			menu.style.left = cursor.left + cursor.cellWidth  + 'px';
-		} else {
-			menu.style.left = cursor.left + 'px';
-		}
+      menu.style.left = 1 + cursor.left + cursor.cellWidth + 'px';
+    } else {
+      menu.style.left = 1 + cursor.left + 'px';
+    }
   };
 
   ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor, menu, subMenu) {
     if (subMenu) {
-			menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
-		} else {
-			menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
-		}
+      menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
+    } else {
+      menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
+    }
   };
 
   ContextMenu.utils = {};
-  ContextMenu.utils.convertItemsToArray = function (items) {
-    var itemArray = [];
-    var item;
-    for(var itemName in items){
-      if(items.hasOwnProperty(itemName)){
-        if(typeof items[itemName] == 'string'){
-          item = {name: items[itemName]};
-        } else if (items[itemName].visible !== false) {
-          item = items[itemName];
-        } else {
-          continue;
-        }
 
-        item.key = itemName;
-        itemArray.push(item);
-      }
-    }
-
-    return itemArray;
-  };
-
-  ContextMenu.utils.normalizeSelection = function(selRange){
+  ContextMenu.utils.normalizeSelection = function (selRange) {
     return {
       start: selRange.getTopLeftCorner(),
       end: selRange.getBottomRightCorner()
@@ -960,23 +977,23 @@
     return Handsontable.Dom.hasClass(cell, 'htSeparator');
   };
 
-	ContextMenu.utils.hasSubMenu = function (cell){
-		return Handsontable.Dom.hasClass(cell, 'htSubmenu');
-	};
+  ContextMenu.utils.hasSubMenu = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htSubmenu');
+  };
 
   ContextMenu.utils.isDisabled = function (cell) {
     return Handsontable.Dom.hasClass(cell, 'htDisabled');
   };
 
   ContextMenu.prototype.enable = function () {
-    if(!this.enabled){
+    if (!this.enabled) {
       this.enabled = true;
       this.bindMouseEvents();
     }
   };
 
   ContextMenu.prototype.disable = function () {
-    if(this.enabled){
+    if (this.enabled) {
       this.enabled = false;
       this.closeAll();
       this.unbindMouseEvents();
@@ -986,16 +1003,16 @@
 
   ContextMenu.prototype.destroy = function () {
     this.closeAll();
-		while(this.menus.length > 0) {
-			var menu = this.menus.pop();
-			this.triggerRows.pop();
-			if (menu) {
-				this.close(menu);
-				if(!this.isMenuEnabledByOtherHotInstance()){
-					this.removeMenu(menu);
-				}
-			}
-		}
+    while (this.menus.length > 0) {
+      var menu = this.menus.pop();
+      this.triggerRows.pop();
+      if (menu) {
+        this.close(menu);
+        if (!this.isMenuEnabledByOtherHotInstance()) {
+          this.removeMenu(menu);
+        }
+      }
+    }
 
     this.unbindMouseEvents();
     this.unbindTableEvents();
@@ -1006,9 +1023,9 @@
     var hotContainers = $('.handsontable');
     var menuEnabled = false;
 
-    for(var i = 0, len = hotContainers.length; i < len; i++){
+    for (var i = 0, len = hotContainers.length; i < len; i++) {
       var instance = $(hotContainers[i]).handsontable('getInstance');
-      if(instance && instance.getSettings().contextMenu){
+      if (instance && instance.getSettings().contextMenu) {
         menuEnabled = true;
         break;
       }
@@ -1018,29 +1035,25 @@
   };
 
   ContextMenu.prototype.removeMenu = function (menu) {
-		if(menu.parentNode){
+    if (menu.parentNode) {
       this.menu.parentNode.removeChild(menu);
     }
   };
 
-  ContextMenu.prototype.filterItems = function(itemsToLeave){
-    this.itemsFilter = itemsToLeave;
-  };
-
-  ContextMenu.SEPARATOR = "---------";
+  ContextMenu.SEPARATOR = {name: "---------"};
 
   function updateHeight() {
 
-    if(this.rootElement[0].className.indexOf('htContextMenu')) {
+    if (this.rootElement[0].className.indexOf('htContextMenu')) {
       return;
     }
 
     var realSeparatorHeight = 0,
-        realEntrySize = 0,
-        dataSize = this.getSettings().data.length;
+      realEntrySize = 0,
+      dataSize = this.getSettings().data.length;
 
-    for(var i = 0; i < dataSize; i++) {
-      if(this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
+    for (var i = 0; i < dataSize; i++) {
+      if (this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
         realSeparatorHeight += 2;
       } else {
         realEntrySize += 26;
@@ -1050,38 +1063,27 @@
     this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
   }
 
-  function init(){
+  function init() {
     var instance = this;
     var contextMenuSetting = instance.getSettings().contextMenu;
     var customOptions = Handsontable.helper.isObject(contextMenuSetting) ? contextMenuSetting : {};
 
-    if(contextMenuSetting){
-      if(!instance.contextMenu){
+    if (contextMenuSetting) {
+      if (!instance.contextMenu) {
         instance.contextMenu = new ContextMenu(instance, customOptions);
       }
-
       instance.contextMenu.enable();
-
-      if(Handsontable.helper.isArray(contextMenuSetting)){
-        instance.contextMenu.filterItems(contextMenuSetting);
-      }
-
-    }  else if(instance.contextMenu){
+    } else if (instance.contextMenu) {
       instance.contextMenu.destroy();
       delete instance.contextMenu;
     }
-
   }
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
-  Handsontable.hooks.add('afterInit',updateHeight);
+  Handsontable.hooks.add('afterInit', updateHeight);
 
-  if(Handsontable.PluginHooks.register) { //HOT 0.11+
-    Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
-  }
-
-
+  Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
 
   Handsontable.ContextMenu = ContextMenu;
 

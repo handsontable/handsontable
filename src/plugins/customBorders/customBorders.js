@@ -4,50 +4,80 @@
 
   }
 
-  /***
-   * Array for all custom border objects (for redraw)
-   * @type {{}}
-   */
-  var bordersArray = {},
-    /***
-     * Flag for prevent redraw borders after each AfterRender hook
-     * @type {boolean}
-     */
-    initialDraw = false,
-
-    /***
+//  /***
+//   * Array for all custom border objects (for redraw)
+//   * @type {{}}
+//   */
+//  var bordersArray = {},
+        /***
      * Current instance (table where borders should be placed)
      */
-    instance;
+  var instance;
 
 
   /***
    * Check if plugin should be enabled
    */
-  var init = function () {
-
-    var customBorders = this.getSettings().customBorders;
-    var enable = false;
-
+  var checkEnable = function (customBorders) {
     if(typeof customBorders === "boolean"){
       if (customBorders == true){
-        enable = true;
+        return true;
       }
     }
 
     if(typeof customBorders === "object"){
       if(customBorders.length > 0) {
-        initialDraw = true;
-        enable = true;
+        return true;
       }
     }
+    return false;
+  };
 
-    if(enable){
+
+  /***
+   * Initialize plugin
+    */
+  var init = function () {
+
+    if(checkEnable(this.getSettings().customBorders)){
       if(!this.customBorders){
         instance = this;
         this.customBorders = new CustomBorders();
       }
     }
+  };
+
+	/***
+	 * get index of border setting
+	 * @param className
+	 * @returns {number}
+	 */
+	var getSettingIndex = function (className) {
+		for (var i = 0; i < instance.view.wt.selections.length; i++){
+			if (instance.view.wt.selections[i].settings.className == className){
+				return i;
+			}
+		}
+		return -1;
+	};
+
+  /***
+   * Insert WalkontableSelection instance into Walkontable.settings
+   * @param border
+   */
+  var insertBorderIntoSettings = function (border) {
+    var coordinates = {
+      row: border.row,
+      col: border.col
+    };
+    var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
+		var index = getSettingIndex(border.className);
+
+		if(index >=0) {
+			instance.view.wt.selections[index] = selection;
+		} else {
+			instance.view.wt.selections.push(selection);
+		}
   };
 
   /***
@@ -61,7 +91,8 @@
     var border = createEmptyBorders(row, col);
     border = extendDefaultBorder(border, borderObj);
     this.setCellMeta(row, col, 'borders', border);
-    insertBorderToArray(border);
+
+    insertBorderIntoSettings(border);
   };
 
   /***
@@ -109,7 +140,7 @@
 
         if(add>0){
           this.setCellMeta(row, col, 'borders', border);
-          insertBorderToArray(border);
+          insertBorderIntoSettings(border);
         }
       }
     }
@@ -207,37 +238,21 @@
   };
 
   /***
-   * Insert object with borders for each cell to bordersArray
-   *
-   * @param bordersObj
-   */
-  var insertBorderToArray = function (bordersObj) {
-    bordersArray[bordersObj.className] = bordersObj;
-  };
-
-  /***
-   * Clean bordersArray for cell when custom border has been removed
-   *
-   * @param className
-   */
-  var removeBorderFromArray = function (className) {
-    delete bordersArray[className];
-  };
-
-
-  /***
    * Remove borders divs from DOM
    *
    * @param borderClassName
    */
   var removeBordersFromDom = function (borderClassName) {
-    var borders = document.getElementsByClassName(borderClassName)[0];
+	  var borders = document.getElementsByClassName(borderClassName);
 
-    if(borders){
-      var parent = borders.parentNode;
-      parent.parentNode.removeChild(parent);
-    }
-
+		for(var i = 0; i< borders.length; i++) {
+			if (borders[i]) {
+				if(borders[i].nodeName != 'TD') {
+					var parent = borders[i].parentNode;
+      		parent.parentNode.removeChild(parent);
+				}
+			}
+		}
   };
 
 
@@ -250,28 +265,8 @@
   var removeAllBorders = function(row,col) {
     var borderClassName = createClassName(row,col);
     removeBordersFromDom(borderClassName);
-    removeBorderFromArray(borderClassName);
-
     this.removeCellMeta(row, col, 'borders');
   };
-
-  /***
-   * Draw borders for single cell
-   *
-   * @param borderObj
-   */
-  var drawBorders = function (borderObj) {
-    var bordersInDOM = document.getElementsByClassName(createClassName(borderObj.row,borderObj.col)),
-      bordersExist = bordersInDOM.length > 0;
-
-    if(bordersExist){
-      removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
-    }
-
-    var border = new WalkontableBorder(this.view.wt,borderObj);
-    border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
-  };
-
 
   /***
    * Set borders for each cell re. to border position
@@ -282,6 +277,7 @@
    * @param remove
    */
   var setBorder = function (row, col,place, remove){
+
     var bordersMeta = this.getCellMeta(row, col).borders;
     if (!bordersMeta || bordersMeta.border == undefined){
       bordersMeta = createEmptyBorders(row, col);
@@ -293,10 +289,12 @@
       bordersMeta[place] = createDefaultCustomBorder();
     }
 
-
     this.setCellMeta(row, col, 'borders', bordersMeta);
-    insertBorderToArray(bordersMeta);
-//    doDraw = true;
+
+    var borderClassName = createClassName(row,col);
+    removeBordersFromDom(borderClassName);
+		insertBorderIntoSettings(bordersMeta);
+
     this.render();
   };
 
@@ -309,7 +307,8 @@
    * @param remove
    */
   var prepareBorder = function (range, place, remove) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
+
+		if (range.from.row == range.to.row && range.from.col == range.to.col){
       if(place == "noBorders"){
         removeAllBorders.call(this, range.from.row, range.from.col);
       } else {
@@ -396,9 +395,10 @@
       return;
     }
 
-    defaultOptions.items.bordersCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
+    defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
 
-    defaultOptions.items.borders = {
+    defaultOptions.items.push({
+      key: 'borders',
       name: 'Borders',
       submenu: {
         items: {
@@ -459,7 +459,7 @@
               return label
             },
             callback: function () {
-              var hasBorder = checkSelectionBorders(this, 'bottom');
+              var hasBorder = checkSelectionBorders(this, 'left');
               prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
             },
             disabled: false
@@ -475,15 +475,18 @@
           }
         }
       }
-    };
+    });
   };
 
   Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-  Handsontable.hooks.add('afterRender', function () {
+
+
+  Handsontable.hooks.add('afterInit', function () {
     var customBorders = this.getSettings().customBorders;
 
-    if (initialDraw){
+    if (customBorders){
+
       for(var i = 0; i< customBorders.length; i++) {
         if(customBorders[i].range){
           prepareBorderFromCustomAddedRange.call(this,customBorders[i]);
@@ -491,17 +494,13 @@
           prepareBorderFromCustomAdded.call(this,customBorders[i].row, customBorders[i].col, customBorders[i]);
         }
       }
-      initialDraw = false;
-    }
 
-    for (var key in bordersArray) {
-      if (bordersArray.hasOwnProperty(key)) {
-
-        drawBorders.call(this,bordersArray[key])
-      }
+			this.render();
+      this.view.wt.draw(true);
     }
 
   });
+
   Handsontable.CustomBorders = CustomBorders;
 
 }());

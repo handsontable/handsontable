@@ -80,7 +80,7 @@ describe("handsontable.MergeCells", function () {
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3\n");
+      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3");
     })
   });
 
@@ -157,6 +157,33 @@ describe("handsontable.MergeCells", function () {
 
       expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
 
+
+    });
+
+    it("should not add an area class to the selected cell if a single merged cell is selected", function() {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(6, 6),
+        mergeCells: [
+          {
+            row: 1,
+            col: 1,
+            colspan: 3,
+            rowspan: 2
+          }
+        ]
+      });
+
+      selectCell(1,1);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
+
+      selectCell(1,1,4,4);
+      expect(getCell(1,1).className.indexOf('area')).toNotEqual(-1);
+
+      selectCell(1,1);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
+
+      selectCell(0,0);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
 
     });
 
@@ -299,5 +326,57 @@ describe("handsontable.MergeCells", function () {
     });
 
   });
-})
-;
+
+  describe("merged cells scroll", function () {
+    it("getCell should return merged cell parent", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      var mergedCellParent = hot.getCell(0, 0);
+      var mergedCellHidden = hot.getCell(1, 1);
+
+      expect(mergedCellHidden).toBe(mergedCellParent);
+    });
+
+    it("should scroll viewport to beginning of a merged cell when it's clicked", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 5, col: 0, rowspan: 2, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      hot.rootElement[0].scrollTop = 130;
+      hot.render();
+
+      expect(hot.rootElement[0].scrollTop).toBe(130);
+
+      var TD = hot.getCell(5, 0);
+      mouseDown(TD);
+      mouseUp(TD);
+      var mergedCellScrollTop = hot.rootElement[0].scrollTop;
+      expect(mergedCellScrollTop).toBeLessThan(130);
+      expect(mergedCellScrollTop).toBeGreaterThan(0);
+
+      hot.rootElement[0].scrollTop = 0;
+      hot.render();
+
+      hot.rootElement[0].scrollTop = 130;
+      hot.render();
+
+      TD = hot.getCell(5, 2);
+      mouseDown(TD);
+      mouseUp(TD);
+      var regularCellScrollTop = hot.rootElement[0].scrollTop;
+      expect(mergedCellScrollTop).toBe(regularCellScrollTop);
+    });
+  });
+});

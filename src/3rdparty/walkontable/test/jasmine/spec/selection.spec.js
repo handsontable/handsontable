@@ -27,9 +27,9 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 100,
       selections: [
-        {
+        new WalkontableSelection({
           className: 'current'
-        }
+        })
       ],
       onCellMouseDown: function (event, coords, TD) {
         wt.selections[0].clear();
@@ -59,9 +59,9 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 100,
       selections: [
-        {
+        new WalkontableSelection({
           className: 'current'
-        }
+        })
       ]
     });
     wt.draw();
@@ -84,13 +84,13 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 100,
       selections: [
-        {
+        new WalkontableSelection({
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
-        }
+        })
       ],
       onCellMouseDown: function (event, coords, TD) {
         wt.selections[0].clear();
@@ -102,7 +102,7 @@ describe('WalkontableSelection', function () {
 
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
     var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $top = $(wt.selections[0].border.top);
+    var $top = $(wt.selections[0].getBorder(wt).top); //cheat... get border for ht_master
     $td1.mousedown();
     var pos1 = $top.position();
     expect(pos1.top).toBeGreaterThan(0);
@@ -124,13 +124,13 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 150,
       selections: [
-        {
+        new WalkontableSelection({
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
-        }
+        })
       ]
     });
     wt.draw();
@@ -149,13 +149,13 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 150,
       selections: [
-        {
+        new WalkontableSelection({
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
-        }
+        })
       ]
     });
     wt.draw();
@@ -179,13 +179,13 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 150,
       selections: [
-        {
+        new WalkontableSelection({
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
-        }
+        })
       ]
     });
     wt.draw();
@@ -210,10 +210,10 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 300,
       selections: [
-        {
+        new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        }
+        })
       ]
     });
     wt.draw();
@@ -239,14 +239,14 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 300,
       selections: [
-        {
+        new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        },
-        {
+        }),
+        new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        }
+        })
       ]
     });
     wt.draw();
@@ -268,10 +268,10 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 300,
       selections: [
-        {
+        new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        }
+        })
       ]
     });
     wt.draw();
@@ -305,10 +305,10 @@ describe('WalkontableSelection', function () {
       height: 200,
       width: 300,
       selections: [
-        {
+        new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        }
+        })
       ]
     });
     wt.draw();
@@ -351,13 +351,13 @@ describe('WalkontableSelection', function () {
         offsetRow: 0,
         height: 200,
         selections: [
-          {
+          new WalkontableSelection({
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
-          }
+          })
         ]
       });
 

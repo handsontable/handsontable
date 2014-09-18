@@ -1,7 +1,7 @@
 {
   "name": "walkontable",
   "description": "Table view engine that will enable virtual rendering in HTML/JavaScript",
-  "author": "Marcin Warpechowski <marcin@nextgen.pl>",
+  "author": "Marcin Warpechowski <hello@handsontable.com>",
   "version": "0.2.0",
   "devDependencies": {
     "grunt": "~0.4.0",

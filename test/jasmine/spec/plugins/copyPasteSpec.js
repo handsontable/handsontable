@@ -116,7 +116,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
 
     });
 
@@ -132,7 +132,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.keyCode.COMMAND_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
 
     });
 
@@ -148,7 +148,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.keyCode.COMMAND_RIGHT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
 
     });
 
@@ -164,7 +164,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0, 1, 0);
       keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
+      expect(copyPasteTextarea.val()).toEqual('A1\nA2');
 
     });
 
@@ -186,7 +186,7 @@ describe('CopyPaste plugin', function () {
       runs(function () {
         expect(getSelected()).toEqual([0, 0, 1, 1]);
 
-        expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2\n');
+        expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2');
       });
 
     });
@@ -230,7 +230,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0, 1, 1);
       keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
+      expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2');
 
     });
 

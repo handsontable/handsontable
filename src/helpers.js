@@ -66,7 +66,6 @@ Handsontable.helper.stringify = function (value) {
     case 'string':
     case 'number':
       return value + '';
-      break;
 
     case 'object':
       if (value === null) {
@@ -75,11 +74,9 @@ Handsontable.helper.stringify = function (value) {
       else {
         return value.toString();
       }
-      break;
 
     case 'undefined':
       return '';
-      break;
 
     default:
       return value.toString();
@@ -284,6 +281,7 @@ Handsontable.helper.keyCode = {
   MOUSE_MIDDLE: 2,
   BACKSPACE: 8,
   COMMA: 188,
+  INSERT: 45,
   DELETE: 46,
   END: 35,
   ENTER: 13,

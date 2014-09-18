@@ -70,10 +70,34 @@
 
           <h2>Handsontable cell type</h2>
 
-          <p>This page shows very specific example of using Handsontable as a cell editor in Handsontable (sometimes
-            referred as <strong>Handsontable in Handsontable</strong>).</p>
+          <p>This page shows using Handsontable as a cell editor in Handsontable (sometimes
+            referred as <strong>HOT-in-HOT</strong>).</p>
 
-          <p>This is a work in progress started in HT version 0.8.16. Use at your own risk!</p>
+          <p>HOT-in-HOT opens by any of the following:</p>
+
+          <ul>
+            <li><kbd>F2</kbd> or <kbd>ENTER</kbd> key is pressed while the cell is selected,</li>
+            <li>the triangle icon is clicked,</li>
+            <li>the cell content is double clicked.</li>
+          </ul>
+
+          <p>While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.</p>
+
+          <p>Keyboard bindings while the HOT-in-HOT is opened:</p>
+
+          <ul>
+            <li><kbd>ESC</kbd> - close editor (cancel change),</li>
+            <li><kbd>ENTER</kbd> - close editor (apply change*), move the selection in the main HOT downwards (or according to <code>enterMoves</code> setting)</li>
+            <li><kbd>TAB</kbd> - behave as the ENTER key, but move the selection in the main HOT to the right (or according to <code>tabMoves</code> setting)</li>
+            <li><kbd>Arrow down</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, has no effect.</li>
+            <li><kbd>Arrow up</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the ENTER key but move the selection in the main HOT upwards</li>
+            <li><kbd>Arrow right</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the ENTER key but move the selection in the main HOT to the left</li>
+            <li><kbd>Arrow left</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key</li>
+          </ul>
+
+          <p>Mouse click outside of the editor or on one of the cells in HOT-in-HOT applies change.</p>
+
+          <p><strong>*apply change</strong> means: The value of the cell highlighted or clicked in HOT-in-HOT is applied as new cell value in the main HOT. If no cell in HOT-in-HOT is selected, the value of the text field is used instead.</p>
 
           <div id="example1"></div>
 

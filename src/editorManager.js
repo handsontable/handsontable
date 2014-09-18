@@ -35,8 +35,7 @@
 
             if (!activeEditor.isWaiting()) {
               if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-                that.openEditor('');
-                event.stopPropagation(); //required by HandsontableEditor
+                that.openEditor("");
                 return;
               }
             }
@@ -51,8 +50,8 @@
 
                     event.preventDefault();
                     event.stopPropagation();
-                    break;
                   }
+                  break;
 
                 case keyCodes.ARROW_UP:
 
@@ -189,9 +188,6 @@
                   instance.view.render();
                   event.preventDefault(); //don't page down the window
                   event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                default:
                   break;
               }
 

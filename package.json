@@ -5,8 +5,8 @@
   "bugs": {
     "url": "https://github.com/handsontable/jquery-handsontable/issues"
   },
-  "author": "Marcin Warpechowski <marcin@nextgen.pl>",
-  "version": "0.11.0-beta3",
+  "author": "Marcin Warpechowski <hello@handsontable.com>",
+  "version": "0.11.2",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-replace": "~0.7.8",

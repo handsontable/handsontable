@@ -298,6 +298,7 @@ describe('TextEditor', function () {
     var hot2 = handsontable2.call(this);
 
     this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
+    this.$container.find('tbody tr:eq(0) td:eq(0)').mouseup();
 
     //Open editor in HOT1
     keyDown('enter');
@@ -311,6 +312,7 @@ describe('TextEditor', function () {
 
 
     this.$container2.find('tbody tr:eq(0) td:eq(0)').mousedown();
+    this.$container2.find('tbody tr:eq(0) td:eq(0)').mouseup();
 
     expect(hot1.getSelected()).toBeUndefined();
     expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);
@@ -597,5 +599,17 @@ describe('TextEditor', function () {
     expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
   });
 
+  it("should display editor with the proper size, when the edited column is beyond the tables container", function() {
+    var hot = handsontable({
+      data: createSpreadsheetData(3, 8)
+    });
+
+    this.$container.css('overflow','');
+
+    selectCell(0,7);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(Handsontable.Dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toEqual(Handsontable.Dom.outerWidth(hot.getCell(0,7)));
+  });
 
 });

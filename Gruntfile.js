@@ -108,7 +108,8 @@ module.exports = function (grunt) {
         'src/plugins/mergeCells/mergeCells.js',
         'src/plugins/customBorders/customBorders.js',
         'src/plugins/manualRowMove.js',
-        'src/plugins/autofill.js'
+        'src/plugins/autofill.js',
+        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
@@ -256,6 +257,7 @@ module.exports = function (grunt) {
     },
     uglify: {
       options: {
+        preserveComments: 'some'
       },
       "dist/jquery.handsontable.full.min.js": ["dist/jquery.handsontable.full.js" ]
     },

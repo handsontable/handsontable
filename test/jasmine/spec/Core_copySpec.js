@@ -29,7 +29,7 @@ describe('Core_copy', function () {
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
     keyDownUp('ctrl');
-    expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n'); //should prepare 2 rows for copying
+    expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13'); //should prepare 2 rows for copying
   });
 
   it('should set copiable text until copyColsLimit is reached', function () {
@@ -40,7 +40,7 @@ describe('Core_copy', function () {
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
     keyDownUp('ctrl');
-    expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
+    expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30'); //should prepare 2 columns for copying
   });
 
   it('should call onCopyLimit callback when copy limit was reached', function () {

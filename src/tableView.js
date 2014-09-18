@@ -4,7 +4,6 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this
-    , $window = $(window)
     , $documentElement = $(document.documentElement);
 
   this.instance = instance;
@@ -42,7 +41,7 @@ Handsontable.TableView = function (instance) {
   var isMouseDown;
   this.isMouseDown = function() {
     return isMouseDown;
-  }
+  };
 
   $documentElement.on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
@@ -59,8 +58,8 @@ Handsontable.TableView = function (instance) {
   $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
-    if (next.shadowRoot) {
-      return; //click inside Web Component
+    if (isMouseDown) {
+      return; //it must have been started in a cell
     }
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
@@ -108,6 +107,48 @@ Handsontable.TableView = function (instance) {
     }
   };
 
+  var selections = [
+    new WalkontableSelection({
+      className: 'current',
+      border: {
+        width: 2,
+        color: '#5292F7',
+        //style: 'solid', //not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'area',
+      border: {
+        width: 1,
+        color: '#89AFF9',
+        //style: 'solid', // not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'highlight',
+      highlightRowClassName: that.settings.currentRowClassName,
+      highlightColumnClassName: that.settings.currentColClassName
+    }),
+    new WalkontableSelection({
+      className: 'fill',
+      border: {
+        width: 1,
+        color: 'red'
+        //style: 'solid' // not used
+      }
+    })
+  ];
+  selections.current = selections[0];
+  selections.area = selections[1];
+  selections.highlight = selections[2];
+  selections.fill = selections[3];
+
   var walkontableConfig = {
     debug: function () {
       return that.settings.debug;
@@ -149,43 +190,7 @@ Handsontable.TableView = function (instance) {
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: [
-      {
-        className: 'current',
-        border: {
-          width: 2,
-          color: '#5292F7',
-          //style: 'solid', //not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'area',
-        border: {
-          width: 1,
-          color: '#89AFF9',
-          //style: 'solid', // not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'highlight',
-        highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName
-      },
-      {
-        className: 'fill',
-        border: {
-          width: 1,
-          color: 'red'
-          //style: 'solid' // not used
-        }
-      }
-    ],
+    selections: selections,
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },
@@ -254,6 +259,9 @@ Handsontable.TableView = function (instance) {
     },
     onScrollHorizontally: function () {
       instance.runHooks('afterScrollHorizontally');
+    },
+    onBeforeDrawBorders: function (corners, borderClassName) {
+      instance.runHooks('beforeDrawBorders', corners, borderClassName);
     }
   };
 
@@ -291,14 +299,6 @@ Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
 Handsontable.TableView.prototype.isCellEdited = function () {
   var activeEditor = this.instance.getActiveEditor();
   return activeEditor && activeEditor.isOpened();
-};
-
-Handsontable.TableView.prototype.getWidth = function () {
-  return this.wt.wtViewport.getWorkspaceActualWidth();
-};
-
-Handsontable.TableView.prototype.getHeight = function () {
-  return this.wt.wtViewport.getWorkspaceActualHeight();
 };
 
 Handsontable.TableView.prototype.beforeRender = function (force) {
@@ -389,7 +389,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
 
 /**
  * Given a element's left position relative to the viewport, returns maximum element width until the right edge of the viewport (before scrollbar)
- * @param {Number} left
+ * @param {Number} leftOffset
  * @return {Number}
  */
 Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {

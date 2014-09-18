@@ -69,8 +69,9 @@
       case keyCodes.V:
         if(ctrlDown){
           event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-          break;
         }
+        break;
+
       case keyCodes.BACKSPACE:
       case keyCodes.DELETE:
       case keyCodes.HOME:
@@ -237,8 +238,10 @@
       }
     }
 
-    this.autoResize.init(this.$textarea[0], {
-      fontSize: parseInt( window.getComputedStyle($td[0]).fontSize,10),
+    this.TEXTAREA.style.fontSize = Handsontable.Dom.getComputedStyle(this.TD).fontSize;
+    this.TEXTAREA.style.fontFamily = Handsontable.Dom.getComputedStyle(this.TD).fontFamily;
+
+    this.autoResize.init(this.TEXTAREA, {
       minHeight: Math.min(height, maxHeight),
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
