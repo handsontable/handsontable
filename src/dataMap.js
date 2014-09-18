@@ -432,6 +432,10 @@
       var sliced = prop.split(".");
       var out = this.dataSource[row];
       for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+
+        if (typeof out[sliced[i]] === 'undefined'){
+          out[sliced[i]] = {};
+        }
         out = out[sliced[i]];
       }
       out[sliced[i]] = value;
