@@ -404,27 +404,29 @@ describe('Core_loadData', function () {
   it('should correct behave with cell with no nested object data source corresponding to column mapping', function () {
 
     var objectData = [
-      {id: 1, user: {firstName: "Ted", lastName: "Right"}},
-      {id: 2, user: {firstName: "Frank"}},
-      {id: 3, user: {}}
+      {id: 1, user: {name: {first: "Ted", last: "Right"}}},
+      {id: 2, user: {name: {}}},
+      {id: 3}
     ];
 
     handsontable({
       data: objectData,
       columns: [
         {data: 'id'},
-        {data: 'user.firstName'},
-        {data: 'user.lastName'}
+        {data: 'user.name.first'},
+        {data: 'user.name.last'}
       ]
     });
 
     mouseDoubleClick(getCell(1, 1));
-    var editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+    document.activeElement.value = 'Harry';
+    deselectCell();
+    expect(objectData[1].user.name.first).toEqual('Harry');
 
-    selectCell(0, 0);
-    expect(editor.is(':visible')).toBe(false);
-
+    mouseDoubleClick(getCell(2, 1));
+    document.activeElement.value = 'Barry';
+    deselectCell();
+    expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
 });
