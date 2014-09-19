@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.11.2
+ * Handsontable 0.11.3
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 11 2014 23:41:54 GMT+0200 (CEST)
+ * Date: Fri Sep 19 2014 19:04:29 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -527,7 +527,8 @@ Comment For Cell
   color: #323232;
 }
 
-.htContextMenu table tbody tr td.current{
+.htContextMenu table tbody tr td.current,
+.htContextMenu table tbody tr td.zeroclipboard-is-hover {
   background: rgb(233, 233, 233);
 }
 
