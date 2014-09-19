@@ -661,7 +661,7 @@ Cell borders
   height: 100%;
 }
 
-.htVerticalGroup:not(.htCollapseGroup):after {
+.htVerticalGroup:not(.htCollapseButton):after {
   content: "";
   height: 100%;
   width: 1px;
@@ -670,7 +670,7 @@ Cell borders
   margin-left: 5px;
 }
 
-.htHorizontalGroup:not(.htCollapseGroup):after {
+.htHorizontalGroup:not(.htCollapseButton):after {
   content: "";
   width: 100%;
   height: 1px;
@@ -679,7 +679,7 @@ Cell borders
   margin-top: 20%;
 }
 
-.htCollapseGroup {
+.htCollapseButton {
   width: 10px;
   height: 10px;
   line-height: 10px;
@@ -693,7 +693,7 @@ Cell borders
   position: relative;
 }
 
-.htCollapseGroup:after {
+.htCollapseButton:after {
   content: "";
   height: 300%;
   width: 1px;
@@ -706,14 +706,14 @@ Cell borders
 }
 
 
-thead .htCollapseGroup {
+thead .htCollapseButton {
   right: 5px;
   position: absolute;
   top: 5px;
   background: #fff;
 }
 
-thead .htCollapseGroup:after {
+thead .htCollapseButton:after {
   height: 1px;
   width: 700%;
   right: 10px;
@@ -740,9 +740,18 @@ thead .htCollapseGroup:after {
   left: 50%;
 }
 
+.handsontable .htGroupLevelTrigger {
+  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  width: 15px;
+  height: 15px;
+  margin: 4px auto;
+  padding: 0px;
+  line-height: 15px;
+  cursor: pointer;
+}
 
-
-.handsontable tr th .htExpandGroup {
+.handsontable tr th .htExpandButton {
   position: absolute;
   width: 10px;
   height: 10px;
@@ -757,12 +766,12 @@ thead .htCollapseGroup:after {
   display: none;
 }
 
-.handsontable thead tr th .htExpandGroup {
+.handsontable thead tr th .htExpandButton {
   /*left: 5px;*/
   top: 5px;
 }
 
-.handsontable tr th .htExpandGroup.clickable {
+.handsontable tr th .htExpandButton.clickable {
   display: block;
 }
 

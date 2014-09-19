@@ -2107,7 +2107,8 @@ DefaultSettings.prototype = {
   manualColumnMove: void 0,
   manualColumnResize: void 0,
   manualRowMove: void 0,
-  manualRowResize: void 0
+  manualRowResize: void 0,
+  groups: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 

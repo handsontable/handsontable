@@ -401,7 +401,11 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   DIV.className = 'relative';
   SPAN.className = 'colHeader';
 
-  Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
+  if (col > -1) {
+    Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
+  } else {
+    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
+  }
   DIV.appendChild(SPAN);
 
   Handsontable.Dom.empty(TH);
