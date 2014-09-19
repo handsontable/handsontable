@@ -27,12 +27,8 @@ function WalkontableTableRenderer(wtTable){
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , displayTds
-    , TR
-    , TD
-    , TH
     , adjusted = false
-    , workspaceWidth
-    , res;
+    , workspaceWidth;
 
   if (totalColumns > 0) {
     var cloneLimit;
@@ -272,6 +268,8 @@ WalkontableTableRenderer.prototype.createRow = function() {
 };
 
 WalkontableTableRenderer.prototype.renderRowHeader = function(row, col, TH){
+  TH.className = '';
+  TH.removeAttribute('style');
   this.rowHeaders[col](row, TH);
 };
 
@@ -369,8 +367,10 @@ WalkontableTableRenderer.prototype.getTrForColumnHeaders = function () {
   return TR;
 };
 
-WalkontableTableRenderer.prototype.renderColumnHeader = function (col, TR) {
-  return this.columnHeaders[0](col, TR);
+WalkontableTableRenderer.prototype.renderColumnHeader = function (col, TH) {
+  TH.className = '';
+  TH.removeAttribute('style');
+  return this.columnHeaders[0](col, TH);
 };
 
 WalkontableTableRenderer.prototype.getColumnCount = function () {

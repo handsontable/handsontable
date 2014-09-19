@@ -298,6 +298,7 @@ describe('TextEditor', function () {
     var hot2 = handsontable2.call(this);
 
     this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
+    this.$container.find('tbody tr:eq(0) td:eq(0)').mouseup();
 
     //Open editor in HOT1
     keyDown('enter');
@@ -311,6 +312,7 @@ describe('TextEditor', function () {
 
 
     this.$container2.find('tbody tr:eq(0) td:eq(0)').mousedown();
+    this.$container2.find('tbody tr:eq(0) td:eq(0)').mouseup();
 
     expect(hot1.getSelected()).toBeUndefined();
     expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);

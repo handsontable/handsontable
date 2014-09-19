@@ -76,9 +76,6 @@ function WalkontableTable(instance, table) {
   this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
 
-  this.oldCellCache = new WalkontableClassNameCache();
-  this.currentCellCache = new WalkontableClassNameCache();
-
   this.rowFilter = null;
   this.columnFilter = null;
 
@@ -166,81 +163,34 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
   this.refreshSelections(selectionsOnly);
 };
 
+WalkontableTable.prototype.removeClassFromCells = function (className) {
+  var nodes = this.TABLE.querySelectorAll('.' + className);
+  for (var i = 0, ilen = nodes.length; i < ilen; i++) {
+    Handsontable.Dom.removeClass(nodes[i], className);
+  }
+};
+
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
-  var vr
-    , r
-    , vc
-    , c
-    , s
-    , slen
-    , classNames = []
-    , visibleRows = this.getRowStrategy().countVisible()
-    , renderedCells = this.getColumnStrategy().cellCount
-    , cacheLength;
-
-
-  this.oldCellCache = this.currentCellCache;
-  this.currentCellCache = new WalkontableClassNameCache(this.instance);
-
   if (this.instance.selections) {
+    if(selectionsOnly) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw(this.instance);
-
-      if (this.instance.selections[i].settings.className) {
-        classNames.push(this.instance.selections[i].settings.className);
-      }
-      if (this.instance.selections[i].settings.highlightRowClassName) {
-        classNames.push(this.instance.selections[i].settings.highlightRowClassName);
-      }
-      if (this.instance.selections[i].settings.highlightColumnClassName) {
-        classNames.push(this.instance.selections[i].settings.highlightColumnClassName);
+        //there was no rerender, so we need to remove classNames by ourselves
+        if (this.instance.selections[i].settings.className) {
+          this.removeClassFromCells(this.instance.selections[i].settings.className);
+        }
+        if (this.instance.selections[i].settings.highlightRowClassName) {
+          this.removeClassFromCells(this.instance.selections[i].settings.highlightRowClassName);
+        }
+        if (this.instance.selections[i].settings.highlightColumnClassName) {
+          this.removeClassFromCells(this.instance.selections[i].settings.highlightColumnClassName);
+        }
       }
     }
-  }
 
-  slen = classNames.length;
-
-  for (vr = 0; vr < visibleRows; vr++) {
-    for (vc = 0; vc < renderedCells; vc++) {
-      r = this.rowFilter.visibleToSource(vr);
-      c = this.columnFilter.visibleToSource(vc);
-
-      for (s = 0; s < slen; s++) {
-        var cell;
-        if (this.currentCellCache.test(vr, vc, classNames[s])) {
-          cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell, classNames[s]);
-        }
-        else if (selectionsOnly && this.oldCellCache.test(vr, vc, classNames[s])) {
-          cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell, classNames[s]);
-
-        }
-
-        // for headers:
-        // column headers
-        cacheLength = this.currentCellCache.cache ? visibleRows : 0;
-        cell = this.getColumnHeader(vc);
-        if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
-          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
-        } else {
-          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
-        }
-
-        // row headers
-        cacheLength = this.currentCellCache.cache[vr] ? renderedCells : 0;
-        cell = this.getRowHeader(vr) != -1 ? this.getRowHeader(vr) : undefined;
-
-        if (this.currentCellCache.test(vr, cacheLength, classNames[s])) {
-          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
-        } else {
-          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
-       }
-
-      }
+    for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
+      this.instance.selections[i].draw(this.instance, selectionsOnly);
     }
   }
-
 };
 
 /**
@@ -259,11 +209,11 @@ WalkontableTable.prototype.getCell = function (coords) {
     return -2; //row after viewport
   }
 
-  var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)];
+    var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)];
 
-  if (TR) {
-    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
-  }
+    if (TR) {
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+    }
 };
 
 /**
@@ -283,12 +233,12 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
  * getRowHeader
  * @param row
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
- *  -1 table doesn't have row headers
+ *  null table doesn't have row headers
  *
  */
 WalkontableTable.prototype.getRowHeader = function(row) {
   if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) == 0) {
-    return -1;
+    return null;
   }
 
   var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)];

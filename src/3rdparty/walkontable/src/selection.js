@@ -6,14 +6,14 @@ function WalkontableSelection(settings, cellRange) {
 
 /**
  * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection borders per instance
- * @param {Walkotnable}
+ * @param {Walkontable} instance
  * @returns {WalkontableBorder}
  */
 WalkontableSelection.prototype.getBorder = function (instance) {
   if (this.instanceBorders[instance.guid]) {
     return this.instanceBorders[instance.guid];
   }
-  this.instanceBorders[instance.guid] = new WalkontableBorder(instance, this.settings);
+  this.instanceBorders[instance.guid] = new WalkontableBorder(instance, this.settings); //where is this returned?
 };
 
 /**
@@ -71,39 +71,56 @@ WalkontableSelection.prototype.getCorners = function () {
   return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
 };
 
+WalkontableSelection.prototype.addClassAtCoords = function (instance, source_r, source_c, cls) {
+  var TD = instance.wtTable.getCell(new WalkontableCellCoords(source_r, source_c));
+  if(typeof TD === 'object') {
+    Handsontable.Dom.addClass(TD, cls);
+  }
+};
+
 WalkontableSelection.prototype.draw = function (instance) {
   var corners, r, c, source_r, source_c,
     visibleRows = instance.wtTable.getRowStrategy().countVisible(),
     renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
 
-
   if (!this.isEmpty()) {
     corners = this.getCorners();
 
     for (r = 0; r < visibleRows; r++) {
+      source_r = instance.wtTable.rowFilter.visibleToSource(r);
+
       for (c = 0; c < renderedColumns; c++) {
-        source_r = instance.wtTable.rowFilter.visibleToSource(r);
         source_c = instance.wtTable.columnFilter.visibleToSource(c);
 
         if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
           if (this.settings.className) {
-            instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+            this.addClassAtCoords(instance, source_r, source_c, this.settings.className);
+          }
+
+          // selected row headers
+          if(source_c === corners[1]) {
+            var TH = instance.wtTable.getRowHeader(source_r);
+            if (TH) {
+              Handsontable.Dom.addClass(TH, this.settings.highlightRowClassName);
+            }
+          }
+
+          // selected column headers
+          if(source_r === corners[0] || (source_r > corners[0] && r == 0)) {
+            var TH = instance.wtTable.getColumnHeader(source_c);
+            if (TH) {
+              Handsontable.Dom.addClass(TH, this.settings.highlightColumnClassName);
+            }
           }
         }
         else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
-          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
-
-          // selected row headers
-          instance.wtTable.currentCellCache.add(r,renderedColumns,this.settings.highlightRowClassName);
+          this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightRowClassName);
         }
         else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
-          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
-
-          // selected column headers
-          instance.wtTable.currentCellCache.add(visibleRows,c,this.settings.highlightColumnClassName);
+          this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightColumnClassName);
         }
       }
     }
