@@ -160,6 +160,58 @@ describe("handsontable.MergeCells", function () {
 
     });
 
+    it("should not switch the selection start point when selecting from non-merged cells to merged cells", function() {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 10),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 3, colspan: 3},
+          {row: 3, col: 4, rowspan: 2, colspan: 2}
+        ]
+      });
+
+      $(hot.getCell(6,6)).trigger('mousedown');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+      $(hot.getCell(1,1)).trigger('mouseenter');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+      $(hot.getCell(3,3)).trigger('mouseenter');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+      $(hot.getCell(4,4)).trigger('mouseenter');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+    });
+
+    it("should select cells in the correct direction when changing selections around a merged range", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 10),
+        mergeCells: [
+          {row: 4, col: 4, rowspan: 2, colspan: 2}
+        ]
+      });
+
+      hot.selectCell(5,5,5,2);
+      expect(hot.getSelectedRange().getDirection()).toEqual("SE-NW");
+
+      hot.selectCell(4,4,2,5);
+      expect(hot.getSelectedRange().getDirection()).toEqual("SW-NE");
+
+      hot.selectCell(4,4,5,7);
+      expect(hot.getSelectedRange().getDirection()).toEqual("NW-SE");
+
+      hot.selectCell(4,5,7,5);
+      expect(hot.getSelectedRange().getDirection()).toEqual("NE-SW");
+    });
+
     it("should not add an area class to the selected cell if a single merged cell is selected", function() {
       var hot = handsontable({
         data: createSpreadsheetObjectData(6, 6),

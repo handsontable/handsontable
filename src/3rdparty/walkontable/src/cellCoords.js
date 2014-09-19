@@ -53,4 +53,12 @@ WalkontableCellCoords.prototype.isNorthWestOf = function (testedCoords) {
   return this.row <= testedCoords.row && this.col <= testedCoords.col;
 };
 
+WalkontableCellCoords.prototype.isSouthWestOf = function (testedCoords) {
+  return this.row >= testedCoords.row && this.col <= testedCoords.col;
+};
+
+WalkontableCellCoords.prototype.isNorthEastOf = function (testedCoords) {
+  return this.row <= testedCoords.row && this.col >= testedCoords.col;
+};
+
 window.WalkontableCellCoords = WalkontableCellCoords; //export
