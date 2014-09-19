@@ -58,8 +58,8 @@ Handsontable.TableView = function (instance) {
   $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
-    if (next.shadowRoot) {
-      return; //click inside Web Component
+    if (isMouseDown) {
+      return; //it must have been started in a cell
     }
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar

@@ -119,6 +119,12 @@ var handsontableKeyTriggerFactory = function (type) {
         key = key.substring(6);
         ev.shiftKey = true;
       }
+
+      if (key.indexOf('ctrl+') > -1) {
+        key = key.substring(5);
+        ev.ctrlKey = true;
+      }
+
       switch (key) {
         case 'tab':
           ev.keyCode = 9;
