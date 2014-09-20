@@ -1,18 +1,19 @@
 /*
- [v] 1) TODOne: lining up expander buttons, when multiple groups collapse to the same slot
- 2) TODO: displaying expander buttons, when all rows are collapsed
- [v] 3) TODOne: clicking the collapse/expand button shouldn't select the whole row
- [v] 4) TODOne: expanding a collapsed group, which contains another collapsed group should expand the parent group, but not the child group
- [v] 6) TODOne : Fix scrolling issue (when a row group is collapsed, scrolling past it is real choppy)
+ [v] TODOne: lining up expander buttons, when multiple groups collapse to the same slot
+ [v] TODOne: displaying expander buttons (when visible indicator length changed, when all rows are collapsed)
+ [v] TODOne: clicking the collapse/expand button shouldn't select the whole row
+ [v] TODOne: expanding a collapsed group, which contains another collapsed group should expand the parent group, but not the child group
+ [v] TODOne : Fix scrolling issue (when a row group is collapsed, scrolling past it is real choppy)
  7) TODO: Error / Warning handling
- [v] 8) TODOne: Keyboard control (skipping grouped cols/rows)
+ 8) TODO: tests
+ [v] TODOne: Keyboard control (skipping grouped cols/rows)
  [v] TODOne: Unable user to select cell in merged column
 
  [v] TODOne: change level order, render one additional column/row for level triggers
 
  [v] TODOne: check why top headers are off by a few pixels
-    >> IN PROGRESS 9) TODO: col group starting at index 0 removes all rows on collapse
- [v] 10) TODOne: Move row level triggers to column headers section + level triggers for col groups
+ [v] TODOne: col group starting at index 0 removes all rows on collapse
+ [v] TODOne: Move row level triggers to column headers section + level triggers for col groups
  */
 
 var Grouping = function (instance) {
@@ -755,6 +756,42 @@ var Grouping = function (instance) {
   };
 
   /**
+   * Check if all rows/cols are hidden
+   * @param dataType
+   */
+  var areAllHidden = function (dataType) {
+    var count
+      , levelsHidden
+      , levelAmount;
+
+    switch (dataType) {
+      case 'rows':
+        count = instance.countRows();
+        for (var i = 0; i < count; i++) {
+          levelsHidden = 0;
+          levelAmount = levels.rows;
+          for (var j = 0; j < levelAmount; j++) {
+            if (hiddenRows[j] && hiddenRows[j][i]) levelsHidden++;
+          }
+          if (levelsHidden == 0) return false;
+        }
+        break;
+      case 'cols':
+        count = instance.countCols();
+        for (var i = 0; i < count; i++) {
+          levelsHidden = 0;
+          levelAmount = levels.cols;
+          for (var j = 0; j < levelAmount; j++) {
+            if (hiddenCols[j] && hiddenCols[j][i]) levelsHidden++;
+          }
+          if (levelsHidden == 0) return false;
+        }
+        break;
+    }
+    return true;
+  };
+
+  /**
    * Check if the provided index is at the beginning of the group indicator line
    * @param dimension
    * @param index
@@ -827,10 +864,10 @@ var Grouping = function (instance) {
    * @param elem
    * @returns {*}
    */
-  var addGroupExpander = function (dimension, index, level, id, elem) {
+  var addGroupExpander = function (dataType, index, level, id, elem) {
     var previousIndexGroupId;
 
-    switch (dimension) {
+    switch (dataType) {
       case 'rows':
         previousIndexGroupId = Handsontable.Grouping.getRowGroupId(index - 1, level);
         break;
@@ -842,20 +879,17 @@ var Grouping = function (instance) {
     if (!previousIndexGroupId) return null;
 
     if (index > 0) {
-      if (previousIndexSharesLevel(dimension, index - 1, level, previousIndexGroupId) && previousIndexGroupId != id) {
+      if (previousIndexSharesLevel(dataType, index - 1, level, previousIndexGroupId) && previousIndexGroupId != id) {
+
         var expanderButton = document.createElement('DIV');
         Handsontable.Dom.addClass(expanderButton, classes.expandButton);
         expanderButton.id = 'htExpand-' + previousIndexGroupId;
         expanderButton.appendChild(document.createTextNode('+'));
         expanderButton.setAttribute('data-level', level);
-        expanderButton.setAttribute('data-type', dimension);
+        expanderButton.setAttribute('data-type', dataType);
         expanderButton.setAttribute('data-hidden', "1");
 
         elem.appendChild(expanderButton);
-
-        if(Handsontable.Dom.hasClass(elem,classes.groupStart)) { // remove starter class if it shares the same cell
-          Handsontable.Dom.removeClass(elem,classes.groupStart);
-        }
 
         return expanderButton;
       }
@@ -878,6 +912,10 @@ var Grouping = function (instance) {
       }
     }
 
+    if (currentPosition.col === null) { // if col is set to null, check only rows
+      return false;
+    }
+
     for (var i = 0, colGroupsCount = colGroups.length; i < colGroupsCount; i++) {
       if (colGroups[i].cols.indexOf(currentPosition.col) > -1 && colGroups[i].hidden) {
         return true;
@@ -895,6 +933,8 @@ var Grouping = function (instance) {
     groups: groups,
     levels: levels,
     instance: instance,
+    baseSpareRows: instance.getSettings().minSpareRows,
+    baseSpareCols: instance.getSettings().minSpareCols,
 
     /**
      * init group
@@ -1184,7 +1224,7 @@ var Grouping = function (instance) {
           headersType = "rowHeaders";
           currentHeaderModifier = function (headerRenderers) {
             return headerRenderers;
-          }
+          };
           break;
       }
 
@@ -1222,7 +1262,9 @@ var Grouping = function (instance) {
             collapseButton = createButton(elem);
             collapseButton.addClass(classes.groupIndicator(directionClassname));
 
-
+            if (isFirstIndexOfTheLine(dataType, index, level, currentGroupId)) { // add a little thingy and the top of the group indicator
+              collapseButton.addClass(classes.groupStart);
+            }
 
             if (isLastIndexOfTheLine(dataType, index, level, currentGroupId)) { // add [+]/[-] button at the end of the line
               collapseButton.button.appendChild(document.createTextNode('-'));
@@ -1230,8 +1272,6 @@ var Grouping = function (instance) {
               collapseButton.button.id = classes.collapseGroupId(currentGroupId);
               collapseButton.button.setAttribute('data-level', level);
               collapseButton.button.setAttribute('data-type', dataType);
-            } else if (isFirstIndexOfTheLine(dataType, index, level, currentGroupId)) { // add a little thingy and the top of the group indicator
-              collapseButton.addClass(classes.groupStart);
             }
 
           }
@@ -1324,6 +1364,9 @@ var Grouping = function (instance) {
           , elemIdSplit = element.id.split('-');
 
         var groups = []
+          , id
+          , level
+          , type
           , hidden;
 
         var prepareGroupData = function (componentElement) {
@@ -1331,9 +1374,9 @@ var Grouping = function (instance) {
 
           elemIdSplit = element.id.split('-');
 
-          var id = elemIdSplit[1]
-            , level = parseInt(element.getAttribute('data-level'), 10)
-            , type = element.getAttribute('data-type');
+          id = elemIdSplit[1]
+          level = parseInt(element.getAttribute('data-level'), 10)
+          type = element.getAttribute('data-type');
           hidden = parseInt(element.getAttribute('data-hidden'));
 
           if (isNaN(hidden)) {
@@ -1376,6 +1419,25 @@ var Grouping = function (instance) {
           showHideGroups(hidden, groups);
         }
 
+
+        // add the expander button to a dummy spare row/col, if no longer needed -> remove it
+        type = type || levelType;
+        var allHidden = areAllHidden(type)
+          , typeUppercase = type.charAt(0).toUpperCase() + type.slice(1)
+          , spareElements = Handsontable.Grouping['baseSpare' + typeUppercase];
+
+        if (allHidden) {
+          if (spareElements == 0) {
+            instance.getSettings()['minSpare' + typeUppercase] = 1;
+            instance.updateSettings({});
+          }
+        } else {
+          if (spareElements == 0) {
+            instance.getSettings()['minSpare' + typeUppercase] = spareElements;
+            instance.updateSettings({});
+            instance.alter('remove_' + type.slice(0, -1), instance['count'+typeUppercase]() - 1);
+          }
+        }
 
         instance.render();
 
@@ -1462,7 +1524,7 @@ var Grouping = function (instance) {
       }
     },
     modifyRowHeight: function (height, row) {
-      if (instance.view.wt.wtTable.rowFilter && isCollapsed({row: row, col: 0})) {
+      if (instance.view.wt.wtTable.rowFilter && isCollapsed({row: row, col: null})) {
         return 0;
       }
     },
