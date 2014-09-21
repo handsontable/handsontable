@@ -1,19 +1,6 @@
 /*
- [v] TODOne: lining up expander buttons, when multiple groups collapse to the same slot
- [v] TODOne: displaying expander buttons (when visible indicator length changed, when all rows are collapsed)
- [v] TODOne: clicking the collapse/expand button shouldn't select the whole row
- [v] TODOne: expanding a collapsed group, which contains another collapsed group should expand the parent group, but not the child group
- [v] TODOne : Fix scrolling issue (when a row group is collapsed, scrolling past it is real choppy)
  7) TODO: Error / Warning handling
  8) TODO: tests
- [v] TODOne: Keyboard control (skipping grouped cols/rows)
- [v] TODOne: Unable user to select cell in merged column
-
- [v] TODOne: change level order, render one additional column/row for level triggers
-
- [v] TODOne: check why top headers are off by a few pixels
- [v] TODOne: col group starting at index 0 removes all rows on collapse
- [v] TODOne: Move row level triggers to column headers section + level triggers for col groups
  */
 
 var Grouping = function (instance) {
@@ -45,7 +32,7 @@ var Grouping = function (instance) {
   };
 
   /**
-   * group levels
+   * Number of group levels in each dimension
    * @type {{rows: number, cols: number}}
    */
   var levels = {
@@ -65,13 +52,13 @@ var Grouping = function (instance) {
    */
   var hiddenCols = [];
 
-  /**
-   * default css class
-   * @type {string}
-   */
-  var cssClass = 'group';
-
-  //TODO: refactor this
+//  /**
+//   * default css class
+//   * @type {string}
+//   */
+//  var cssClass = 'group';
+//
+//
 
   var classes = {
     'groupIndicatorContainer': 'htGroupIndicatorContainer',
@@ -91,31 +78,31 @@ var Grouping = function (instance) {
     'levelTrigger': 'htGroupLevelTrigger'
   };
 
-  /**
-   * create group element
-   * @param item
-   * @returns {HTMLElement}
-   */
-  var createGroupElement = function (item) {
-    var li = document.createElement('li');
-
-    li.innerHTML = item.id;
-    li.className = cssClass;
-
-    var type = '';
-
-    if (item.cols instanceof Array) {
-      type = 'cols';
-    } else {
-      type = 'rows';
-    }
-
-    li.setAttribute('id', item.id);
-    li.setAttribute('level', item.level.toString());
-    li.setAttribute('type', type);
-
-    return li;
-  };
+//  /**
+//   * create group element
+//   * @param item
+//   * @returns {HTMLElement}
+//   */
+//  var createGroupElement = function (item) {
+//    var li = document.createElement('li');
+//
+//    li.innerHTML = item.id;
+//    li.className = cssClass;
+//
+//    var type = '';
+//
+//    if (item.cols instanceof Array) {
+//      type = 'cols';
+//    } else {
+//      type = 'rows';
+//    }
+//
+//    li.setAttribute('id', item.id);
+//    li.setAttribute('level', item.level.toString());
+//    li.setAttribute('type', type);
+//
+//    return li;
+//  };
 
   /**
    * compare object properties
@@ -511,7 +498,7 @@ var Grouping = function (instance) {
 
           var cellGroup = cellGroups[0],
             cellGroupLevel = cellGroup.level,
-            decrementLevel = getColGroupsByLevel(cellGroupLevel).length > 1 ? false : true;
+            decrementLevel = getColGroupsByLevel(cellGroupLevel).length <= 1;
 
           // remove value from sorted by level array of objects
           groups.filter(function (item, i) {
@@ -588,7 +575,7 @@ var Grouping = function (instance) {
         if (cellGroups.length) {
           var cellGroup = cellGroups[0],
             cellGroupLevel = cellGroup.level,
-            decrementLevel = getRowGroupsByLevel(cellGroupLevel).length > 1 ? false : true;
+            decrementLevel = getRowGroupsByLevel(cellGroupLevel).length <= 1;
 
           // remove value from sorted by level array of objects
           groups.filter(function (item, j) {
@@ -651,7 +638,7 @@ var Grouping = function (instance) {
   };
 
   /**
-   * Check if the next cell of the dimension (row / column) shares the same level
+   * Check if the next cell of the dimension (row / column) contains a group at the same level
    * @param dimension
    * @param currentPosition
    * @param level
@@ -664,21 +651,21 @@ var Grouping = function (instance) {
 
     switch (dimension) {
       case 'rows':
-        nextCellGroupId = Handsontable.Grouping.getRowGroupId(currentPosition + 1, level);
+        nextCellGroupId = getGroupByRowAndLevel(currentPosition + 1, level).id;
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByRows();
         break;
       case 'cols':
-        nextCellGroupId = Handsontable.Grouping.getColGroupId(currentPosition + 1, level);
+        nextCellGroupId = getGroupByColAndLevel(currentPosition + 1, level).id;
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByCols();
         break;
     }
 
-    if (levelsByOrder[currentPosition + 1] && levelsByOrder[currentPosition + 1].indexOf(level) > -1 && currentGroupId == nextCellGroupId) return true;
-    return false;
+    return !!(levelsByOrder[currentPosition + 1] && levelsByOrder[currentPosition + 1].indexOf(level) > -1 && currentGroupId == nextCellGroupId);
+
   };
 
   /**
-   * Check if the previous cell of the dimension (row / column) shares the same level
+   * Check if the previous cell of the dimension (row / column) contains a group at the same level
    * @param dimension
    * @param currentPosition
    * @param level
@@ -691,17 +678,17 @@ var Grouping = function (instance) {
 
     switch (dimension) {
       case 'rows':
-        previousCellGroupId = Handsontable.Grouping.getRowGroupId(currentPosition - 1, level);
+        previousCellGroupId = getGroupByRowAndLevel(currentPosition - 1, level).id;
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByRows();
         break;
       case 'cols':
-        previousCellGroupId = Handsontable.Grouping.getColGroupId(currentPosition - 1, level);
+        previousCellGroupId = getGroupByColAndLevel(currentPosition - 1, level).id;
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByCols();
         break;
     }
 
-    if (levelsByOrder[currentPosition - 1] && levelsByOrder[currentPosition - 1].indexOf(level) > -1 && currentGroupId == previousCellGroupId) return true;
-    return false;
+    return !!(levelsByOrder[currentPosition - 1] && levelsByOrder[currentPosition - 1].indexOf(level) > -1 && currentGroupId == previousCellGroupId);
+
   };
 
   /**
@@ -723,7 +710,7 @@ var Grouping = function (instance) {
     switch (dimension) {
       case 'rows':
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByRows();
-        entriesLength = instance.countCols();
+        entriesLength = instance.countRows();
         for (var i = 0; i <= levels.rows; i++) {
           if (hiddenRows[i] && hiddenRows[i][index + 1]) {
             nextIsHidden = true;
@@ -733,7 +720,7 @@ var Grouping = function (instance) {
         break;
       case 'cols':
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByCols();
-        entriesLength = instance.countRows();
+        entriesLength = instance.countCols();
         for (var i = 0; i <= levels.cols; i++) {
           if (hiddenCols[i] && hiddenCols[i][index + 1]) {
             nextIsHidden = true;
@@ -810,11 +797,7 @@ var Grouping = function (instance) {
         for (var i = 0; i <= levels[dimension]; i++) {
           tempInd = index;
           while (currentGroup[dimension].indexOf(tempInd) > -1) {
-            if (hiddenArr[i] && hiddenArr[i][tempInd]) {
-              hidden = true;
-            } else {
-              hidden = false;
-            }
+            hidden = !!(hiddenArr[i] && hiddenArr[i][tempInd]);
             tempInd--;
           }
           if (hidden) break;
@@ -828,12 +811,12 @@ var Grouping = function (instance) {
     switch (dimension) {
       case 'rows':
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByRows();
-        entriesLength = instance.countCols();
+        entriesLength = instance.countRows();
         previousAreHidden = arePreviousHidden(dimension);
         break;
       case 'cols':
         levelsByOrder = Handsontable.Grouping.getGroupLevelsByCols();
-        entriesLength = instance.countRows();
+        entriesLength = instance.countCols();
         previousAreHidden = arePreviousHidden(dimension);
         break;
     }
@@ -869,10 +852,10 @@ var Grouping = function (instance) {
 
     switch (dataType) {
       case 'rows':
-        previousIndexGroupId = Handsontable.Grouping.getRowGroupId(index - 1, level);
+        previousIndexGroupId = getGroupByRowAndLevel(index - 1, level).id;
         break;
       case 'cols':
-        previousIndexGroupId = Handsontable.Grouping.getColGroupId(index - 1, level);
+        previousIndexGroupId = getGroupByColAndLevel(index - 1, level).id;
         break;
     }
 
@@ -931,9 +914,21 @@ var Grouping = function (instance) {
      * all groups for ht instance
      */
     groups: groups,
+    /**
+     * All levels for rows and cols respectively
+     */
     levels: levels,
+    /**
+     * Current instance
+     */
     instance: instance,
+    /**
+     * Initial setting for minSpareRows
+     */
     baseSpareRows: instance.getSettings().minSpareRows,
+    /**
+     * Initial setting for minSpareCols
+     */
     baseSpareCols: instance.getSettings().minSpareCols,
 
     /**
@@ -1013,7 +1008,7 @@ var Grouping = function (instance) {
     group: function (start, end, isInit) {
       instance.selection.selectedHeader.rows ? groupRows(start.row, end.row) : groupCols(start.col, end.col);
       if (!isInit) {
-        this.render();
+        instance.render();
       }
     },
     /**
@@ -1023,7 +1018,7 @@ var Grouping = function (instance) {
      */
     ungroup: function (start, end) {
       instance.selection.selectedHeader.rows ? ungroupRows(start.row, end.row) : ungroupCols(start.col, end.col);
-      this.render();
+      instance.render();
     },
     /**
      * check if grouping is allowed
@@ -1081,7 +1076,7 @@ var Grouping = function (instance) {
 
       var _groups = getRangeGroups(start, end);
 
-      return  (instance.selection.selectedHeader.cols) ? (_groups.total.cols > 0 ? true : false) : (_groups.total.rows > 0 ? true : false);
+      return  (instance.selection.selectedHeader.cols) ? (_groups.total.cols > 0) : (_groups.total.rows > 0);
     },
 
     /**
@@ -1167,6 +1162,11 @@ var Grouping = function (instance) {
         }
       }
     },
+    /**
+     * Create a renderer for additional row/col headers, acting as group indicators
+     * @param walkontableConfig
+     * @param direction
+     */
     groupIndicatorsFactory: function (walkontableConfig, direction) {
       var groupsLevelsList
         , getCurrentLevel
@@ -1184,7 +1184,7 @@ var Grouping = function (instance) {
             return Array.prototype.indexOf.call(elem.parentNode.parentNode.childNodes, elem.parentNode) + 1;
           };
           getCurrentGroupId = function (col, level) {
-            return Handsontable.Grouping.getColGroupId(col, level);
+            return getGroupByColAndLevel(col, level).id;
           };
           dataType = 'cols';
           getGroupByIndexAndLevel = function (col, level) {
@@ -1215,7 +1215,7 @@ var Grouping = function (instance) {
             return Handsontable.Dom.index(elem) + 1;
           };
           getCurrentGroupId = function (row, level) {
-            return Handsontable.Grouping.getRowGroupId(row, level);
+            return getGroupByRowAndLevel(row, level).id;
           };
           dataType = 'rows';
           getGroupByIndexAndLevel = function (row, level) {
@@ -1314,6 +1314,10 @@ var Grouping = function (instance) {
         walkontableConfig[headersType].unshift(makeGroupIndicatorsForLevel());
       }
     },
+    /**
+     * Get group levels array arranged by rows
+     * @returns {Array}
+     */
     getGroupLevelsByRows: function () {
       var rowGroups = getRowGroups()
         , result = [];
@@ -1321,13 +1325,17 @@ var Grouping = function (instance) {
       for (var i = 0, groupsLength = rowGroups.length; i < groupsLength; i++) {
         if (rowGroups[i].rows) {
           for (var j = 0, groupRowsLength = rowGroups[i].rows.length; j < groupRowsLength; j++) {
-            if (!!!result[rowGroups[i].rows[j]]) result[rowGroups[i].rows[j]] = [];
+            if (!result[rowGroups[i].rows[j]]) result[rowGroups[i].rows[j]] = [];
             result[rowGroups[i].rows[j]].push(rowGroups[i].level);
           }
         }
       }
       return result;
     },
+    /**
+     * Get group levels array arranged by cols
+     * @returns {Array}
+     */
     getGroupLevelsByCols: function () {
       var colGroups = getColGroups()
         , result = [];
@@ -1335,27 +1343,19 @@ var Grouping = function (instance) {
       for (var i = 0, groupsLength = colGroups.length; i < groupsLength; i++) {
         if (colGroups[i].cols) {
           for (var j = 0, groupColsLength = colGroups[i].cols.length; j < groupColsLength; j++) {
-            if (!!!result[colGroups[i].cols[j]]) result[colGroups[i].cols[j]] = [];
+            if (!result[colGroups[i].cols[j]]) result[colGroups[i].cols[j]] = [];
             result[colGroups[i].cols[j]].push(colGroups[i].level);
           }
         }
       }
       return result;
     },
-    getRowGroupId: function (row, level) {
-      for (var i in this.groups) {
-        if (!this.groups[i].rows) continue;
-        if (this.groups[i].level === level && this.groups[i].rows.indexOf(row) > -1) return this.groups[i].id;
-      }
-      return false;
-    },
-    getColGroupId: function (col, level) {
-      for (var i in this.groups) {
-        if (!this.groups[i].cols) continue;
-        if (this.groups[i].level === level && this.groups[i].cols.indexOf(col) > -1) return this.groups[i].id;
-      }
-      return false;
-    },
+    /**
+     * Toggle the group visibility ( + / - event handler)
+     * @param event
+     * @param coords
+     * @param TD
+     */
     toggleGroupVisibility: function (event, coords, TD) {
       if (Handsontable.Dom.hasClass(event.target, classes.expandButton)
         || Handsontable.Dom.hasClass(event.target, classes.collapseButton)
@@ -1374,8 +1374,8 @@ var Grouping = function (instance) {
 
           elemIdSplit = element.id.split('-');
 
-          id = elemIdSplit[1]
-          level = parseInt(element.getAttribute('data-level'), 10)
+          id = elemIdSplit[1];
+          level = parseInt(element.getAttribute('data-level'), 10);
           type = element.getAttribute('data-type');
           hidden = parseInt(element.getAttribute('data-hidden'));
 
@@ -1433,9 +1433,12 @@ var Grouping = function (instance) {
           }
         } else {
           if (spareElements == 0) {
+            var hasChanged = instance.getSettings()['minSpare' + typeUppercase] != spareElements;
             instance.getSettings()['minSpare' + typeUppercase] = spareElements;
             instance.updateSettings({});
-            instance.alter('remove_' + type.slice(0, -1), instance['count'+typeUppercase]() - 1);
+            if(hasChanged) {
+              instance.alter('remove_' + type.slice(0, -1), instance['count'+typeUppercase]() - 1);
+            }
           }
         }
 
@@ -1444,6 +1447,11 @@ var Grouping = function (instance) {
         event.stopImmediatePropagation();
       }
     },
+    /**
+     * Modify the delta when changing cells using keyobard
+     * @param position
+     * @returns {Function}
+     */
     modifySelectionFactory: function (position) {
       var instance = this.instance;
       var currentlySelected
@@ -1590,7 +1598,7 @@ var updateHeaderWidths = function () {
  */
 var beforeInitWOT = function (walkontableConfig) {
   var instance = this;
-  if (!!!instance.getSettings().groups) {
+  if (!instance.getSettings().groups) {
     return;
   }
 

@@ -242,7 +242,7 @@ function HandsontableColumnSorting() {
   };
 
   this.getColHeader = function (col, TH) {
-    if (this.getSettings().columnSorting) {
+    if (this.getSettings().columnSorting && col >= 0) {
       Handsontable.Dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
     }
   };

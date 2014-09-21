@@ -378,7 +378,7 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
 
 WalkontableTableRenderer.prototype.adjustThead = function () {
   var columnCount = this.getColumnCount();
-  var TR;
+  var TR = this.THEAD.firstChild;
   if (this.columnHeaders.length) {
 
     for (var i = 0, columnHeadersLength = this.columnHeaders.length; i < columnHeadersLength; i++) {
@@ -399,9 +399,9 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
     }
   }
 
-//  else if (TR) {
-//    Handsontable.Dom.empty(TR);
-//  }
+  else if (TR) {
+    Handsontable.Dom.empty(TR);
+  }
 };
 
 WalkontableTableRenderer.prototype.getTrForColumnHeaders = function (index) {
