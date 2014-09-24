@@ -1278,14 +1278,14 @@ var Grouping = function (instance) {
 
           if (createLevelTriggers) {
             var rowInd = Handsontable.Dom.index(elem.parentNode);
-            if (index === -1 || (index < -1 && rowInd === Handsontable.Grouping.levels.rows + 1)) {
+            if (index === -1 || (index < -1 && rowInd === Handsontable.Grouping.levels.cols + 1)) {
               collapseButton = createButton(elem);
               collapseButton.addClass(classes.levelTrigger);
 
               if (index === -1) {
                 collapseButton.button.id = classes.collapseFromLevel("Cols", level);
                 collapseButton.button.appendChild(document.createTextNode(level));
-              } else if (index < -1 && rowInd === Handsontable.Grouping.levels.rows + 1) {
+              } else if (index < -1 && rowInd === Handsontable.Grouping.levels.cols + 1) {
                 var colInd = Handsontable.Dom.index(elem) + 1;
                 collapseButton.button.id = classes.collapseFromLevel("Rows", colInd);
                 collapseButton.button.appendChild(document.createTextNode(colInd));
