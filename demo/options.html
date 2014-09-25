@@ -98,6 +98,20 @@
               <option value="false">false</option>
             </select></label>
           </p>
+
+          <p>
+            <label><span>wordWrap:</span> <select class="handsontableOption" name="wordWrap">
+              <option value="true">true (default)</option>
+              <option value="false">false</option>
+            </select></label>
+          </p>
+
+          <p>
+            <label><span>autoWrapRow:</span> <select class="handsontableOption" name="autoWrapRow">
+              <option value="true">true</option>
+              <option value="false" selected>false (default)</option>
+            </select></label>
+          </p>
         </div>
       </div>
 
@@ -109,7 +123,7 @@
 
           <script data-jsfiddle="example1">
             var data = [
-              ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+              ["", "Maserati", "Mazda", "Mercedes-Benz", "Mini", "Mitsubishi"],
               ["2009", 0, 2941, 4303, 354, 5814],
               ["2010", 5, 2905, 2867, 412, 5284],
               ["2011", 4, 2517, 4822, 552, 6127],
@@ -121,10 +135,10 @@
               minRows: 5,
               minCols: 6,
               minSpareRows: 1,
-              minSpareCols: 1,
-              autoWrapRow: true,
+              autoWrapRow: false,
               colHeaders: true,
-              contextMenu: true
+              contextMenu: true,
+              colWidths: 80
             });
 
             var HOT = $('#example1').handsontable('getInstance');
