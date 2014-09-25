@@ -55,6 +55,7 @@ module.exports = function (grunt) {
         'tmp/core.js',
         'src/multiMap.js',
         'src/dom.js',
+        'src/eventManager.js',
         'src/tableView.js',
         'src/editors.js',
         'src/editorManager.js',

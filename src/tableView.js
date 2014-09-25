@@ -4,10 +4,12 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this
-    , $documentElement = $(document.documentElement);
+    , eventManager = Handsontable.eventManager(instance);
+//    , $documentElement = $(document.documentElement);
 
   this.instance = instance;
   this.settings = instance.getSettings();
+
 
   instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
@@ -24,7 +26,7 @@ Handsontable.TableView = function (instance) {
   instance.$table = $(table);
   instance.container.prepend(instance.$table);
 
-  instance.rootElement.on('mousedown.handsontable', function (event) {
+  eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
@@ -32,18 +34,28 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $documentElement.on('keyup.' + instance.guid, function (event) {
+  eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
+    console.log(event);
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
   });
+
+
+//  $documentElement.on('keyup.' + instance.guid, function (event) {
+//    console.log(event);
+//    if (instance.selection.isInProgress() && !event.shiftKey) {
+//      instance.selection.finish();
+//    }
+//  });
 
   var isMouseDown;
   this.isMouseDown = function() {
     return isMouseDown;
   };
 
-  $documentElement.on('mouseup.' + instance.guid, function (event) {
+//  $documentElement.on('mouseup.' + instance.guid, function (event) {
+  eventManager.addEventListener(document.documentElement, 'mouseup', function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -55,7 +67,9 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $documentElement.on('mousedown.' + instance.guid, function (event) {
+  eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
+    console.log(event);
+//  $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
     if (isMouseDown) {
@@ -84,7 +98,8 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  instance.$table.on('selectstart', function (event) {
+  eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
+//  instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
     }
@@ -270,13 +285,27 @@ Handsontable.TableView = function (instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
+  eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
 
-  $documentElement.on('click.' + instance.guid, function () {
+  eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
+    if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+      event.stopPropagation();
+    }
+  });
+
+
+//  $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
+//    if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+//      event.stopPropagation();
+//    }
+//  });
+
+  eventManager.addEventListener(document.documentElement, 'click', function () {
+//  $documentElement.on('click.' + instance.guid, function () {
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
         that.instance.forceFullRender = true;
