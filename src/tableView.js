@@ -167,14 +167,25 @@ Handsontable.TableView = function (instance) {
     },
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function () {
-      return instance.hasRowHeaders() ? [function (index, TH) {
-        that.appendRowHeader(index, TH);
-      }] : []
+      var arr = [];
+      if(instance.hasRowHeaders()) {
+        arr.push(function (index, TH) {
+          that.appendRowHeader(index, TH);
+        });
+      }
+      Handsontable.hooks.run(instance, 'afterGetRowHeaderRenderers', arr);
+      return arr;
     },
     columnHeaders: function () {
-      return instance.hasColHeaders() ? [function (index, TH) {
-        that.appendColHeader(index, TH);
-      }] : []
+
+      var arr = [];
+      if(instance.hasColHeaders()) {
+        arr.push(function (index, TH) {
+          that.appendColHeader(index, TH);
+        });
+      }
+      Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', arr);
+      return arr;
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,

@@ -109,7 +109,7 @@ module.exports = function (grunt) {
         'src/plugins/customBorders/customBorders.js',
         'src/plugins/manualRowMove.js',
         'src/plugins/autofill.js',
-        'src/plugins/grouping.js'
+        'src/plugins/grouping/grouping.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',

@@ -277,7 +277,7 @@ WalkontableTableRenderer.prototype.createRow = function () {
 };
 
 WalkontableTableRenderer.prototype.renderRowHeader = function (row, col, TH) {
-  this.rowHeaders[col](row, TH);
+  this.rowHeaders[col](row, TH, col);
 };
 
 WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
@@ -323,40 +323,6 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
       this.renderColumnHeader(i, columnIndex, TR.childNodes[columnIndex + this.rowHeaderCount]);
     }
   }
-
-
-////  for (var i = 0; i < this.columnHeaderCount; i++) {
-//
-//    console.log('fds');
-//
-//    TR = this.getTrForColumnHeaders();
-//    for (var j = 0; j < columnCount; j++) {
-//      if(!TR.childNodes[this.rowHeaderCount + j]) {
-//        TR.appendChild(document.createElement('TH'))
-//      }
-//    }
-
-//    for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-//
-//      this.renderColumnHeader(i, columnIndex, TR.childNodes[this.rowHeaderCount + columnIndex]);
-//    }
-//
-//    var TR = this.THEAD.childNodes[i];
-//
-//    if (!this.THEAD.childNodes[i]) {
-//      TR = this.createRow();
-//      this.THEAD.appendChild(TR);
-//      for (var j = 0; j < columnCount; j++) {
-//        TR.appendChild(document.createElement('TH'))
-//      }
-//    }
-//
-////    this.renderRowHeaders(i - this.columnHeaderCount, TR);
-//
-//    for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-//      this.renderColumnHeader(i, columnIndex, TR.childNodes[this.rowHeaderCount + columnIndex]);
-//    }
-//  }
 };
 
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
@@ -397,6 +363,13 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
         this.theadChildrenLength--;
       }
     }
+
+    var theadChildrenLength = this.THEAD.childNodes.length;
+    if(theadChildrenLength > this.columnHeaders.length) {
+      for(var i = this.columnHeaders.length; i < theadChildrenLength; i++ ) {
+        this.THEAD.removeChild(this.THEAD.lastChild);
+      }
+    }
   }
 
   else if (TR) {
@@ -416,7 +389,7 @@ WalkontableTableRenderer.prototype.getTrForColumnHeaders = function (index) {
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeader = function (row, col, TH) {
-  return this.columnHeaders[row](col, TH);
+  return this.columnHeaders[row](col, TH, row);
 };
 
 WalkontableTableRenderer.prototype.getColumnCount = function () {

@@ -595,35 +595,12 @@ Cell borders
 
 }
 
-/*.colGroupLevelsContainer ul > li,*/
-/*.rowGroupLevelsContainer ul > li,*/
-/*.colGroupsContainer ul > li,*/
-/*.rowGroupsContainer ul > li*/
-/*{*/
-  /*list-style: none;*/
-  /*font-size: 11px;*/
-  /*padding: 1px 3px;*/
-  /*display: inline-block;*/
-  /*cursor: pointer;*/
-/*}*/
-
-/*.colGroupLevelsContainer ul > li {*/
-  /*border: 1px solid red;*/
-/*}*/
-
-/*.rowGroupLevelsContainer ul > li {*/
-  /*border: 1px solid green;*/
-/*}*/
-
 /* Grouping indicators */
-
-
-
 .handsontable colgroup col.rowHeader.htGroupCol {
-  width: 25px;
+  width: 25px !important;
 }
 .handsontable colgroup col.rowHeader.htGroupColClosest {
-  width: 30px;
+  width: 30px !important;
 }
 
 .handsontable .htGroupIndicatorContainer {
@@ -639,10 +616,6 @@ Cell borders
   border-bottom: 0px;
 }
 
-/*.handsontable .htGroupIndicatorContainer {*/
-  /*border-right: 0px;*/
-/*}*/
-
 .handsontable tbody tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
 }
@@ -650,6 +623,11 @@ Cell borders
 .handsontable thead tr:nth-last-child(2) th {
   border-bottom: 1px solid #CCC;
   padding-bottom: 5px;
+}
+
+
+.ht_clone_corner thead tr th:nth-last-child(2) {
+  border-right: 1px solid #CCC;
 }
 
 .htVerticalGroup {
