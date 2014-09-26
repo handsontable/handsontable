@@ -5,6 +5,8 @@ function WalkontableBorder(instance, settings) {
     return;
   }
 
+  var eventManager = Handsontable.eventManager(instance);
+
   //reference to instance
   this.instance = instance;
   this.settings = settings;
@@ -61,50 +63,100 @@ function WalkontableBorder(instance, settings) {
   instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
-  var $body = $(document.body);
+//  var $body = $(document.body);
 
-  $body.on('mousedown.walkontable.' + instance.guid, function () {
+//  $body.on('mousedown.walkontable.' + instance.guid, function () {
+  eventManager.addEventListener(document.body, 'mousedown', function () {
     down = true;
   });
 
-  $body.on('mouseup.walkontable.' + instance.guid, function () {
+//  $body.on('mouseup.walkontable.' + instance.guid, function () {
+  eventManager.addEventListener(document.body, 'mouseup', function () {
     down = false
   });
 
-  $(this.main.childNodes).on('mouseenter', function (event) {
-    if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
-      return;
-    }
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  for (var c = 0, len = this.main.childNodes.length; c < len; c++) {
 
-    var bounds = this.getBoundingClientRect();
+    eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function (event) {
+      if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
-    var $this = $(this);
-    $this.hide();
+      var bounds = this.getBoundingClientRect();
 
-    var isOutside = function (event) {
-      if (event.clientY < Math.floor(bounds.top)) {
-        return true;
-      }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
-        return true;
-      }
-      if (event.clientX < Math.floor(bounds.left)) {
-        return true;
-      }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
-        return true;
-      }
-    };
+      // TODO - remove jquery
+      var $this = $(this);
+      $this.hide();
 
-    $body.on('mousemove.border.' + instance.guid, function (event) {
-      if (isOutside(event)) {
-        $body.off('mousemove.border.' + instance.guid);
-        $this.show();
-      }
+      var isOutside = function (event) {
+        if (event.clientY < Math.floor(bounds.top)) {
+          return true;
+        }
+        if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+          return true;
+        }
+        if (event.clientX < Math.floor(bounds.left)) {
+          return true;
+        }
+        if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+          return true;
+        }
+      };
+
+
+      eventManager.addEventListener(document.body, 'mousemove', function (event) {
+        if (isOutside(event)) {
+          eventManager.removeEventListener(document.body, 'mousemove');
+          $this.show();
+        }
+      });
+
+//      $body.on('mousemove.border.' + instance.guid, function (event) {
+//        if (isOutside(event)) {
+//          $body.off('mousemove.border.' + instance.guid);
+//          $this.show();
+//        }
+//      });
     });
-  });
+  }
+
+
+//  $(this.main.childNodes).on('mouseenter', function (event) {
+//    if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
+//      return;
+//    }
+//    event.preventDefault();
+//    event.stopImmediatePropagation();
+//
+//    var bounds = this.getBoundingClientRect();
+//
+//    var $this = $(this);
+//    $this.hide();
+//
+//    var isOutside = function (event) {
+//      if (event.clientY < Math.floor(bounds.top)) {
+//        return true;
+//      }
+//      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+//        return true;
+//      }
+//      if (event.clientX < Math.floor(bounds.left)) {
+//        return true;
+//      }
+//      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+//        return true;
+//      }
+//    };
+//
+//    $body.on('mousemove.border.' + instance.guid, function (event) {
+//      if (isOutside(event)) {
+//        $body.off('mousemove.border.' + instance.guid);
+//        $this.show();
+//      }
+//    });
+//  });
 }
 
 /**

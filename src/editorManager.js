@@ -3,9 +3,11 @@
 
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
-    var $document = $(document);
+//    var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
     var destroyed = false;
+
+    var eventManager = Handsontable.eventManager(instance);
 
     var activeEditor;
 
@@ -25,6 +27,17 @@
 
         if(destroyed) {
           return;
+        }
+
+        if (event != null && event.isImmediatePropagationEnabled == null) {
+          event.stopImmediatePropagation = function () {
+            this.isImmediatePropagationEnabled = false;
+            this.cancelBubble = true;
+          };
+          event.isImmediatePropagationEnabled = true;
+          event.isImmediatePropagationStopped = function () {
+            return !this.isImmediatePropagationEnabled;
+          };
         }
 
         if (!event.isImmediatePropagationStopped()) {
@@ -199,7 +212,9 @@
         onKeyDown(originalEvent);
       });
 
-      $document.on('keydown.' + instance.guid, function(ev) {
+      eventManager.addEventListener(document, 'keydown', function (ev){
+        console.log(ev);
+//      $document.on('keydown.' + instance.guid, function(ev) {
         instance.runHooks('afterDocumentKeyDown', ev);
       });
 

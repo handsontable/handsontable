@@ -23,6 +23,17 @@
     var keyCodes = Handsontable.helper.keyCode;
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
+    if (event != null && event.isImmediatePropagationEnabled == null) {
+      event.stopImmediatePropagation = function () {
+        this.isImmediatePropagationEnabled = false;
+        this.cancelBubble = true;
+      };
+      event.isImmediatePropagationEnabled = true;
+      event.isImmediatePropagationStopped = function () {
+        return !this.isImmediatePropagationEnabled;
+      };
+    }
+
 
     //Process only events that have been fired in the editor
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
@@ -254,11 +265,15 @@
   TextEditor.prototype.bindEvents = function () {
     var editor = this;
 
-    this.$textarea.on('cut.editor', function (event) {
+    var eventEditor = Handsontable.eventManager(editor);
+
+    eventEditor.addEventListener(this.TEXTAREA, 'cut',function (event){
+//    this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
     });
 
-    this.$textarea.on('paste.editor', function (event) {
+    eventEditor.addEventListener(this.TEXTAREA, 'paste', function (event){
+//    this.$textarea.on('paste.editor', function (event) {
       event.stopPropagation();
     });
 

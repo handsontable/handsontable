@@ -1,3 +1,4 @@
+
 if(!window.Handsontable){
   var Handsontable = {};
 }
@@ -12,7 +13,11 @@ Handsontable.eventManager = function (instance) {
   }
 
   var addEvent = function (element, event, delegate, callback, bubbling) {
+//      console.log('addEvent');
       bubbling = bubbling || false;
+
+//      console.log(instance, event);
+
 
       instance.eventListeners.push({
         element: element,
@@ -27,12 +32,12 @@ Handsontable.eventManager = function (instance) {
         bubbling = callback;
       } else {
         //TODO
-//        var cbFunction = function (event, callback) {
-//          if (Handsontable.Dom.hasClass(event.target, delegate)) {
-//            console.log(123);
-//            callback();
-//          }
-//        }
+        var CB = callback;
+        callback = function (event) {
+          if (Handsontable.Dom.hasClass(event.target, delegate)) {
+            CB();
+          }
+        }
       }
 
       if (window.addEventListener) {
@@ -40,8 +45,6 @@ Handsontable.eventManager = function (instance) {
       } else {
         element.attachEvent('on' + event, callback);
       }
-      console.log(instance.eventListeners);
-
     },
     removeEvent = function (element, event, delegate, callback, bubbling){
       bubbling = bubbling || false;

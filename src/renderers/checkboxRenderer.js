@@ -19,6 +19,8 @@
 
   var CheckboxRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
 
+    var eventManager = Handsontable.eventManager(instance);
+
     if (typeof cellProperties.checkedTemplate === "undefined") {
       cellProperties.checkedTemplate = true;
     }
@@ -48,20 +50,24 @@
     var $input = $(INPUT);
 
     if (cellProperties.readOnly) {
-      $input.on('click', function (event) {
+      eventManager.addEventListener(INPUT,'click',function (event) {
+//      $input.on('click', function (event) {
         event.preventDefault();
       });
     }
     else {
-      $input.on('mousedown', function (event) {
+      eventManager.addEventListener(INPUT,'mousedown',function (event) {
+//      $input.on('mousedown', function (event) {
         event.stopPropagation(); //otherwise can confuse cell mousedown handler
       });
 
-      $input.on('mouseup', function (event) {
+      eventManager.addEventListener(INPUT,'mouseup',function (event) {
+//      $input.on('mouseup', function (event) {
         event.stopPropagation(); //otherwise can confuse cell dblclick handler
       });
 
-      $input.on('change', function(){
+      eventManager.addEventListener(INPUT,'change',function () {
+//      $input.on('change', function(){
         if (this.checked) {
           instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
         }

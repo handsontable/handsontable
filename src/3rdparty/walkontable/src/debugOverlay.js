@@ -17,7 +17,10 @@ function WalkontableDebugOverlay(instance) {
   var lastY = 0;
   var overlayContainer = that.clone.wtTable.holder.parentNode;
 
-  $(document.body).on('mousemove.' + this.instance.guid, function (event) {
+  var eventManager = Handsontable.eventManager(instance);
+
+  eventManager.addEventListener(document.body, 'mousemove', function (event) {
+//  $(document.body).on('mousemove.' + this.instance.guid, function (event) {
     if (!that.instance.wtTable.holder.parentNode) {
       return; //removed from DOM
     }

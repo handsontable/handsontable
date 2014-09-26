@@ -1,6 +1,8 @@
 function WalkontableEvent(instance) {
   var that = this;
 
+  var eventManager = Handsontable.eventManager(instance);
+
   //reference to instance
   this.instance = instance;
 
@@ -80,11 +82,17 @@ function WalkontableEvent(instance) {
     }
   };
 
-  $(this.instance.wtTable.holder).on('mousedown', onMouseDown);
-  $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
-  $(this.instance.wtTable.holder).on('mouseup', onMouseUp);
+//  $(this.instance.wtTable.holder).on('mousedown', onMouseDown);
+  eventManager.addEventListener(this.instance.wtTable.holder,'mousedown', onMouseDown);
 
-  $(window).on('resize.' + this.instance.guid, function () {
+//  $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
+  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
+
+//  $(this.instance.wtTable.holder).on('mouseup', onMouseUp);
+  eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
+
+//  $(window).on('resize.' + this.instance.guid, function () {
+  eventManager.addEventListener(window, 'resize', function() {
     that.instance.draw();
   });
 }

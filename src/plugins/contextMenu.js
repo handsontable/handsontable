@@ -467,7 +467,13 @@
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
+    console.log('-------');
+    console.log('unbind');
+    console.log('-------');
     this.instance.rootElement.off('contextmenu.htContextMenu');
+
+
+
     $(document).off('mousedown.htContextMenu');
   };
 
@@ -476,6 +482,10 @@
     menu.style.display = 'block';
 
     var that = this;
+    console.log(menu);
+
+
+
     $(menu)
       .off('mousedown.htContextMenu')
       .on('mousedown.htContextMenu', function (event) {
@@ -511,6 +521,9 @@
   };
 
   ContextMenu.prototype.close = function (menu) {
+    console.log('-------');
+    console.log('close');
+    console.log('-------');
     this.hide(menu);
     $(document).off('mousedown.htContextMenu');
     this.unbindTableEvents();

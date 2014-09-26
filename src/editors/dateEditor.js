@@ -43,9 +43,12 @@
     };
     this.$datePicker.datepicker(defaultOptions);
 
+    var eventManager = Handsontable.eventManager(this);
+
     /**
      * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
      */
+//    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
     this.$datePicker.on('mousedown', function (event) {
       event.stopPropagation();
     });
@@ -56,6 +59,8 @@
   DateEditor.prototype.destroyElements = function () {
     this.$datePicker.datepicker('destroy');
     this.$datePicker.remove();
+    var eventManager = Handsontable.eventManager(this);
+    eventManager.removeEventListener(this.datePicker, 'mousedown');
   };
 
   DateEditor.prototype.open = function () {

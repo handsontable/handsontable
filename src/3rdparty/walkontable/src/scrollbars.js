@@ -46,27 +46,38 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     }
   }
 
-  var $window = $(window);
-  this.vertical.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
+  var eventManager = Handsontable.eventManager(that.instance);
+
+//  var $window = $(window);
+
+  eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', refreshAll);
+//  this.vertical.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   if (this.vertical.scrollHandler !== this.horizontal.scrollHandler) {
-    this.horizontal.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
+    eventManager.addEventListener(this.horizontal.scrollHandler, 'scroll', refreshAll);
+//    this.horizontal.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   }
 
   if (this.vertical.scrollHandler !== window && this.horizontal.scrollHandler !== window) {
-    $window.on('scroll.' + this.instance.guid, refreshAll);
+    eventManager.addEventListener(window,'scroll', refreshAll);
+//    $window.on('scroll.' + this.instance.guid, refreshAll);
   }
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
+  var eventManager = Handsontable.eventManager(this.instance);
+
   if (this.vertical) {
     this.vertical.destroy();
-    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+    eventManager.removeEventListener(this.vertical.scrollHandler,'scroll');
+//    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
   if (this.horizontal) {
     this.horizontal.destroy();
-    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+    eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll');
+//    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
-  $(window).off('scroll.' + this.instance.guid);
+  eventManager.removeEventListener(window,'scroll');
+//  $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
   this.debug && this.debug.destroy();
 };
