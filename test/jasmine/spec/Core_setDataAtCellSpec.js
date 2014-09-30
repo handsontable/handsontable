@@ -36,7 +36,8 @@ describe('Core_setDataAtCell', function () {
     handsontable();
     var td = setDataAtCell(0, 0, htmlText);
     selectCell(0, 0);
-    $(td).trigger("dblclick");
+//    $(td).trigger("dblclick");
+    $(td).simulate("dblclick");
     deselectCell();
     expect(getDataAtCell(0, 0)).toEqual(htmlText);
   });

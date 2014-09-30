@@ -264,9 +264,13 @@ describe('AutocompleteEditor', function () {
       runs(function () {
         updateChoicesList.reset();
         editor.$textarea.val('red');
-        editor.$textarea.trigger($.Event('keydown', {
+
+        editor.$textarea.simulate('keydown',{
           keyCode: 'd'.charCodeAt(0)
-        }));
+        });
+//        editor.$textarea.trigger($.Event('keydown', {
+//          keyCode: 'd'.charCodeAt(0)
+//        }));
       });
 
       waitsFor(function () {
@@ -406,7 +410,7 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        autocomplete().find('tbody td:eq(3)').mousedown();
+        autocomplete().find('tbody td:eq(3)').simulate('mousedown');
 
         expect(getDataAtCell(0, 0)).toEqual('green');
       });
@@ -713,7 +717,7 @@ describe('AutocompleteEditor', function () {
         var editor = $('.handsontableInput');
         editor.val('foo');
 
-        this.$container.find('tbody tr:eq(1) td:eq(0)').mousedown();
+        this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
 
         expect(getDataAtCell(0, 0)).toEqual('foo');
 
@@ -1739,10 +1743,10 @@ describe('AutocompleteEditor', function () {
 
     runs(function () {
 
-      autocomplete().find('tbody td:eq(1)').mouseenter();
-      autocomplete().find('tbody td:eq(1)').mouseleave();
+      autocomplete().find('tbody td:eq(1)').simulate('mouseenter');
+      autocomplete().find('tbody td:eq(1)').simulate('mouseleave');
 
-      this.$container.mousedown();
+      this.$container.simulate('mousedown');
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
@@ -1783,7 +1787,7 @@ describe('AutocompleteEditor', function () {
 
       expect(getDataAtCell(0, 0)).toEqual('one');
 
-      autocomplete().find('tbody td:eq(0)').mousedown();
+      autocomplete().find('tbody td:eq(0)').simulate('mousedown');
 
       expect(getDataAtCell(0, 0)).toEqual('');
     });
@@ -1819,7 +1823,7 @@ describe('AutocompleteEditor', function () {
 
     runs(function () {
       onAfterChange.reset();
-      autocomplete().find('tbody td:eq(1)').mousedown();
+      autocomplete().find('tbody td:eq(1)').simulate('mousedown');
 
       expect(getDataAtCell(0, 0)).toEqual('red');
       expect(onAfterChange.calls.length).toEqual(1);
@@ -1933,7 +1937,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().isOpened()).toBe(true);
       afterValidateCallback.reset();
-      hot.getActiveEditor().$htContainer.find('tr:eq(1) td:eq(0)').mousedown();
+      hot.getActiveEditor().$htContainer.find('tr:eq(1) td:eq(0)').simulate('mousedown');
     });
 
 
@@ -2041,7 +2045,7 @@ describe('AutocompleteEditor', function () {
     expect(syncSources).not.toHaveBeenCalled();
 
     selectCell(0, 0);
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
 
     waits(100);
@@ -2053,7 +2057,7 @@ describe('AutocompleteEditor', function () {
       expect(getCellMeta(1, 0).readOnly).toBeFalsy();
 
       selectCell(1, 0);
-      $(getCell(1, 0)).find('.htAutocompleteArrow').mousedown();
+      $(getCell(1, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     });
 
     waitsFor(function () {

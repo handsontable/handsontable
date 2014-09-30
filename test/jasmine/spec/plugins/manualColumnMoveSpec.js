@@ -19,23 +19,28 @@ describe('manualColumnMove', function () {
     var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
 
     //Enter the second column header
-    $secondColHeader.trigger('mouseenter');
+//    $secondColHeader.trigger('mouseenter');
+    $secondColHeader.simulate('mouseenter');
     var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Grab the second column
     var mouseDownEvent = $.Event('mousedown');
     mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+//    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate(mouseDownEvent);
 
     //Drag the second column over the first column
     var mouseMoveEvent = $.Event('mousemove');
     mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left - 20;
-    $manualColumnMover.trigger(mouseMoveEvent);
+//    $manualColumnMover.trigger(mouseMoveEvent);
+    $manualColumnMover.simulate(mouseMoveEvent);
 
-    $firstColHeader.trigger('mouseenter');
+//    $firstColHeader.trigger('mouseenter');
+    $firstColHeader.simulate('mouseenter');
 
     //Drop the second column
-    $secondColHeader.trigger('mouseup');
+//    $secondColHeader.trigger('mouseup');
+    $secondColHeader.simulate('mouseup');
   }
 
   it("should change column order at init", function () {
@@ -326,7 +331,8 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     var $handle = this.$container.find('.manualColumnMover');
     $handle[0].style.background = "red";
 
@@ -337,7 +343,8 @@ describe('manualColumnMove', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
@@ -358,16 +365,19 @@ describe('manualColumnMove', function () {
     selectCell(0, 0);
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
     //Grab the column
     var mouseDownEvent = $.Event('mousedown');
     mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+//    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate(mouseDownEvent);
 
     //Drop it without dragging
-    $colHeader.trigger('mouseup');
+//    $colHeader.trigger('mouseup');
+    $colHeader.simulate('mouseup');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
@@ -495,10 +505,12 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
-    $manualColumnMover.eq(1).trigger('mousedown');
+//    $manualColumnMover.eq(1).trigger('mousedown');
+    $manualColumnMover.eq(1).simulate('mousedown');
 
     expect(hot.getSelected()).toEqual(undefined);
 
@@ -514,7 +526,8 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     var $handle = this.$container.find('.manualColumnMover');
     $handle[0].style.background = "red";
 
@@ -525,7 +538,8 @@ describe('manualColumnMove', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseenter");
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });

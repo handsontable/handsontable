@@ -63,9 +63,13 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
-    this.$container.find(':checkbox').eq(0).trigger('click');
-    this.$container.find(':checkbox').eq(1).trigger('click');
-    this.$container.find(':checkbox').eq(2).trigger('click');
+//    this.$container.find(':checkbox').eq(0).trigger('click');
+//    this.$container.find(':checkbox').eq(1).trigger('click');
+//    this.$container.find(':checkbox').eq(2).trigger('click');
+
+    this.$container.find(':checkbox').eq(0).simulate('click');
+    this.$container.find(':checkbox').eq(1).simulate('click');
+    this.$container.find(':checkbox').eq(2).simulate('click');
 
     expect(getData()).toEqual([[false],[true],[false]]);
   });

@@ -66,16 +66,20 @@ var contextMenu = function () {
   var cell = getCell(selected[0], selected[1]);
   var cellOffset = $(cell).offset();
 
-  var ev = $.Event('contextmenu', {
+//  var ev = $.Event('contextmenu', {
+  var ev = {
     pageX: cellOffset.left,
     pageY: cellOffset.top
-  });
+  };
 
-  $(cell).trigger(ev);
+  $(cell).trigger('contextmenu', ev);
+//  console.log(cell)
+//  $(cell).simulate('contextmenu', ev);
 };
 
 var closeContextMenu = function () {
-  $(document).trigger('mousedown');
+  $(document).simulate('mousedown');
+//  $(document).trigger('mousedown');
 };
 
 /**
@@ -90,7 +94,8 @@ var handsontableMouseTriggerFactory = function (type, button) {
     }
     var ev = $.Event(type);
     ev.which = button || 1; //left click by default
-    element.trigger(ev);
+    element.simulate(type,ev);
+//    element.trigger(ev);
   }
 };
 
@@ -113,7 +118,8 @@ var mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
  */
 var handsontableKeyTriggerFactory = function (type) {
   return function (key, extend) {
-    var ev = $.Event(type);
+    var ev = {};// $.Event(type);
+
     if (typeof key === 'string') {
       if (key.indexOf('shift+') > -1) {
         key = key.substring(6);
@@ -181,9 +187,11 @@ var handsontableKeyTriggerFactory = function (type) {
     else if (typeof key === 'number') {
       ev.keyCode = key;
     }
-    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
+
+
+//    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
     $.extend(ev, extend);
-    $(document.activeElement).trigger(ev);
+    $(document.activeElement).simulate(type, ev);
   }
 };
 
@@ -212,6 +220,20 @@ var keyDownUp = function (key, extend) {
  */
 var keyProxy = function () {
   return spec().$container.find('textarea.handsontableInput');
+};
+
+var serveImmediatePropagation = function (event) {
+  if (event != null && event.isImmediatePropagationEnabled == null) {
+    event.stopImmediatePropagation = function () {
+      this.isImmediatePropagationEnabled = false;
+      this.cancelBubble = true;
+    };
+    event.isImmediatePropagationEnabled = true;
+    event.isImmediatePropagationStopped = function () {
+      return !this.isImmediatePropagationEnabled;
+    };
+  }
+  return event;
 };
 
 var autocompleteEditor = function () {
@@ -450,3 +472,4 @@ function createAccessorForProperty(name) {
     return obj.attr(name, value);
   }
 }
+

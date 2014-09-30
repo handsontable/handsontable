@@ -16,7 +16,8 @@ describe('manualColumnResize', function () {
     var $container = spec().$container;
     var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
 
-    $th.trigger('mouseenter');
+//    $th.trigger('mouseenter');
+    $th.simulate('mouseenter');
 
     var $resizer = $container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
@@ -29,7 +30,9 @@ describe('manualColumnResize', function () {
     var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
     $resizer.trigger(mouseMoveEvent);
 
-    $resizer.trigger('mouseup');
+
+//    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
   }
 
   it("should change column widths at init", function () {
@@ -179,16 +182,19 @@ describe('manualColumnResize', function () {
 
     var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
 
-    $th.trigger('mouseenter');
+//    $th.trigger('mouseenter');
+    $th.simulate('mouseenter');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
 
-    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.trigger(mouseDownEvent);
+//    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
+//    $resizer.trigger(mouseDownEvent);
+    $resizer.simulate('mousedown',{pageX: resizerPosition.left});
 
-    $resizer.trigger('mouseup');
+//    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -239,7 +245,7 @@ describe('manualColumnResize', function () {
     });
 
   });
-  
+
   it("should adjust resize handles position after table size changed", function(){
     var maxed = false;
 

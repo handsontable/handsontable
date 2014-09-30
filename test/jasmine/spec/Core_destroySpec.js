@@ -45,7 +45,9 @@ describe('Core_destroy', function () {
 
     selectCell(0, 0);
 
-    $("html").triggerHandler('mousedown');
+//    $("html").triggerHandler('mousedown');
+
+    $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
   });

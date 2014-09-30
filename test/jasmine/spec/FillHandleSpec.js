@@ -85,15 +85,26 @@ describe('FillHandle', function () {
     ev = jQuery.Event('mousedown');
     ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
 
-    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+//    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+//
+//    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+//    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
 
-    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
-    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(0) td:eq(0)').simulate('mousedown',{
+      target:this.$container.find('.wtBorder.corner')[0] //fill handle
+    });
+
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseenter');
+
 
     ev = jQuery.Event('mouseup');
     ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
 
     this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
+    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseup',{
+      target:this.$container.find('.wtBorder.corner')[0]
+    });
 
     expect(getSelected()).toEqual([0, 0, 2, 0]);
     expect(getDataAtCell(1, 0)).toEqual("test");

@@ -53,7 +53,7 @@ describe('Core_view', function () {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
-    htCore.find('tr:eq(3) td:eq(0)').trigger('mousedown');
+    htCore.find('tr:eq(3) td:eq(0)').simulate('mousedown');
     expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A2"); //test whether it scrolled
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4"); //test whether it scrolled
