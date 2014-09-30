@@ -375,7 +375,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       instance.selection.begin();
 
-      priv.selRange.to = coords;
+      priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
