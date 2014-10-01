@@ -2097,7 +2097,11 @@ DefaultSettings.prototype = {
   manualColumnMove: void 0,
   manualColumnResize: void 0,
   manualRowMove: void 0,
-  manualRowResize: void 0
+  manualRowResize: void 0,
+  selectedAreaBorderWidth: 1,
+  selectedAreaBorderColor: '#89AFF9',
+  selectedCellBorderWidth: 2,
+  selectedCellBorderColor: '#5292F7'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
