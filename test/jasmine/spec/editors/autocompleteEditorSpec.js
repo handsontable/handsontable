@@ -1272,15 +1272,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
+          [ 'lime'],
           [ 'white' ],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         syncSources.reset();
@@ -1327,15 +1327,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         editorInput.val("E");
@@ -1346,15 +1346,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
       });
     });
@@ -1387,15 +1387,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         editorInput.val("E");
@@ -1767,7 +1767,8 @@ describe('AutocompleteEditor', function () {
       columns: [
         {
           editor: 'autocomplete',
-          source: syncSources
+          source: syncSources,
+          filter: false
         }
       ]
     });
@@ -1787,9 +1788,52 @@ describe('AutocompleteEditor', function () {
 
       expect(getDataAtCell(0, 0)).toEqual('');
     });
-
-
   });
+
+  describe("Autocomplete helper functions:", function () {
+    describe("sortByRelevance", function () {
+      it("should sort the provided array, so items more relevant to the provided value are listed first", function () {
+        var choices = [
+          'Wayne',
+          'Draven',
+          'Banner',
+          'Stark',
+          'Parker',
+          'Kent',
+          'Gordon',
+          'Kyle',
+          'Simmons'
+        ]
+          , value = 'a';
+
+        var sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+
+        expect(sorted).toEqual([
+          'Wayne',
+          'Banner',
+          'Parker',
+          'Stark',
+          'Draven'
+        ]);
+
+        value = 'o';
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        expect(sorted).toEqual([
+          'Gordon',
+          'Simmons'
+        ]);
+
+        value = 'er';
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        expect(sorted).toEqual([
+          'Banner',
+          'Parker'
+        ]);
+
+      });
+    });
+  });
+
 
   it("should fire one afterChange event when value is changed", function () {
     var onAfterChange = jasmine.createSpy('onAfterChange');
