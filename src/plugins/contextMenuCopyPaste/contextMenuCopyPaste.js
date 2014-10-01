@@ -13,9 +13,11 @@
    * Configure ZeroClipboard
    */
   ContextMenuCopyPaste.prototype.prepareZeroClipboard = function () {
-    ZeroClipboard.config({
-      swfPath: this.swfPath
-    });
+    if(this.swfPath) {
+      ZeroClipboard.config({
+        swfPath: this.swfPath
+      });
+    }
   };
 
   /**
