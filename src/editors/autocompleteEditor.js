@@ -34,7 +34,7 @@
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, 0));
+      }, 10));
     }
   };
 
