@@ -164,12 +164,15 @@
     var indexOfValue;
     var charsLeft;
 
+    var caseSensitive = this.cellProperties.filteringCaseSensitive;
+    var searchedValue = caseSensitive ? this.getValue() : this.getValue().toLowerCase();
 
     for(var i = 0, len = this.choices.length; i < len; i++){
       currentItem = this.choices[i];
 
       if(valueLength > 0){
-        indexOfValue = currentItem.indexOf(this.getValue())
+        var comparedItem = caseSensitive ? currentItem : currentItem.toLowerCase();
+        indexOfValue = comparedItem.indexOf(searchedValue);
       } else {
         indexOfValue = currentItem === this.getValue() ? 0 : -1;
       }
