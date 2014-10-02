@@ -262,5 +262,58 @@ describe('FillHandle', function () {
     });
   });
 
+  it('should not add a new row if dragging from the last row upwards or sideways', function () {
+    var mouseOverSpy = jasmine.createSpy('mouseOverSpy');
+    var hot = handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      afterOnCellMouseOver: mouseOverSpy
+    });
+
+    selectCell(3, 2);
+
+    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
+    this.$container.find('tr:nth-child(3) td:eq(2)').trigger('mouseenter');
+
+    waitsFor(function () {
+      return mouseOverSpy.callCount > 0;
+    }, 'mouseover performed', 1000);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(4);
+
+      selectCell(3, 2);
+      this.$container.find('.wtBorder.current.corner').trigger('mousedown');
+      this.$container.find('tr:nth-child(4) td:eq(3)').trigger('mouseenter');
+
+      waitsFor(function () {
+        return mouseOverSpy.callCount > 0;
+      }, 'mouseover performed', 1000);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(4);
+
+        selectCell(3, 2);
+        this.$container.find('.wtBorder.current.corner').trigger('mousedown');
+        this.$container.find('tr:nth-child(4) td:eq(1)').trigger('mouseenter');
+
+        waitsFor(function () {
+          return mouseOverSpy.callCount > 0;
+        }, 'mouseover performed', 1000);
+
+        runs(function () {
+          expect(hot.countRows()).toBe(4);
+        });
+
+      });
+
+    });
+
+  });
+
 });
 
