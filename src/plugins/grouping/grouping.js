@@ -1272,8 +1272,8 @@ var Grouping = function (instance) {
     validateGroups: function () {
 
       var areRangesOverlapping = function (a, b) {
-        if ((a[0] < b[0] && a[1] < b[1] && b[0] < a[1])
-          || (a[0] > b[0] && b[1] < a[1] && a[0] < b[1])) {
+        if ((a[0] < b[0] && a[1] < b[1] && b[0] <= a[1])
+          || (a[0] > b[0] && b[1] < a[1] && a[0] <= b[1])) {
           return true;
         }
       };
@@ -1284,6 +1284,15 @@ var Grouping = function (instance) {
 
       for (var i = 0, groupsLength = configGroups.length; i < groupsLength; i++) {
         if (configGroups[i].rows) {
+
+          if(configGroups[i].rows.length === 1) { // single-entry group
+            throw new Error("Grouping error:  Group {" + configGroups[i].rows[0] + "} is invalid. Cannot define single-entry groups.");
+            return false;
+          } else if(configGroups[i].rows.length === 0) {
+            throw new Error("Grouping error:  Cannot define empty groups.");
+            return false;
+          }
+
           rows.push(configGroups[i].rows);
 
           for (var j = 0, rowsLength = rows.length; j < rowsLength; j++) {
@@ -1294,6 +1303,15 @@ var Grouping = function (instance) {
             }
           }
         } else if (configGroups[i].cols) {
+
+          if(configGroups[i].cols.length === 1) { // single-entry group
+            throw new Error("Grouping error:  Group {" + configGroups[i].cols[0] + "} is invalid. Cannot define single-entry groups.");
+            return false;
+          } else if(configGroups[i].cols.length === 0) {
+            throw new Error("Grouping error:  Cannot define empty groups.");
+            return false;
+          }
+
           cols.push(configGroups[i].cols);
 
           for (var j = 0, colsLength = cols.length; j < colsLength; j++) {

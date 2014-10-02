@@ -68,6 +68,84 @@ describe("Grouping plugin:", function () {
 
     });
 
+    it("should throw an error when trying to define an empty group", function () {
+      var groupConfig = [
+        { rows: [2, 4] },
+        { rows: [3, 6] }
+      ];
+
+      var caught = false
+        , hot;
+
+      try {
+        hot = handsontable({
+          data: createSpreadsheetData(10, 10),
+          groups: groupConfig
+        });
+      } catch(err) {
+        caught = true;
+      }
+
+      expect(caught).toBe(true);
+
+      caught = true;
+
+      groupConfig = [
+        { cols: [2, 4] },
+        { cols: [0] }
+      ];
+
+      try {
+        hot = handsontable({
+          data: createSpreadsheetData(10, 10),
+          groups: groupConfig
+        });
+      } catch(err) {
+        caught = true;
+      }
+
+      expect(caught).toBe(true);
+    });
+
+    it("should throw an error when trying to define a one-entry group", function () {
+      var groupConfig = [
+        { rows: [2, 4] },
+        { rows: [3, 6] }
+      ];
+
+      var caught = false
+        , hot;
+
+      try {
+        hot = handsontable({
+          data: createSpreadsheetData(10, 10),
+          groups: groupConfig
+        });
+      } catch(err) {
+        caught = true;
+      }
+
+      expect(caught).toBe(true);
+
+      caught = true;
+
+      groupConfig = [
+        { cols: [2, 4] },
+        { cols: [3] }
+      ];
+
+      try {
+        hot = handsontable({
+          data: createSpreadsheetData(10, 10),
+          groups: groupConfig
+        });
+      } catch(err) {
+        caught = true;
+      }
+
+      expect(caught).toBe(true);
+    });
+
     it("should throw an error when groups in the configuration overlap", function () {
       var groupConfig = [
         { rows: [2, 4] },
