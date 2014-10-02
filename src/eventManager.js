@@ -40,6 +40,16 @@ Handsontable.eventManager = function (instance) {
         }
       }
 
+      var origCallBack = callback;
+      callback = function(event) {
+        console.log('--------------------');
+        console.log(instance);
+//        console.log(event);
+        console.log('--------------------');
+        return origCallBack.apply(this, arguments);
+      };
+
+
       if (window.addEventListener) {
         element.addEventListener(event, callback, bubbling)
       } else {
@@ -55,6 +65,19 @@ Handsontable.eventManager = function (instance) {
         element.removeEventListener(event, callback, bubbling);
       }
     },
+    serveImmediatePropagation = function () {
+      if (event != null && event.isImmediatePropagationEnabled == null) {
+        event.stopImmediatePropagation = function () {
+          this.isImmediatePropagationEnabled = false;
+          this.cancelBubble = true;
+        };
+        event.isImmediatePropagationEnabled = true;
+        event.isImmediatePropagationStopped = function () {
+          return !this.isImmediatePropagationEnabled;
+        };
+      }
+      return event;
+    },
     clearEvents = function () {
       while(instance.eventListeners.length > 0) {
        var event = instance.eventListeners.pop();
@@ -65,6 +88,7 @@ Handsontable.eventManager = function (instance) {
   return {
     addEventListener: addEvent,
     removeEventListener: removeEvent,
-    clear: clearEvents
+    clear: clearEvents,
+    serveImmediatePropagation : serveImmediatePropagation
   }
 };

@@ -265,14 +265,14 @@
   TextEditor.prototype.bindEvents = function () {
     var editor = this;
 
-    var eventEditor = Handsontable.eventManager(editor);
+    var eventManager = Handsontable.eventManager(editor);
 
-    eventEditor.addEventListener(this.TEXTAREA, 'cut',function (event){
+    eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
 //    this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
     });
 
-    eventEditor.addEventListener(this.TEXTAREA, 'paste', function (event){
+    eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
 //    this.$textarea.on('paste.editor', function (event) {
       event.stopPropagation();
     });

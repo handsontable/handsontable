@@ -66,6 +66,9 @@
     contextMenu.menus = [];
     contextMenu.triggerRows = [];
 
+    contextMenu.eventManager = Handsontable.eventManager(contextMenu)
+
+
     this.enabled = true;
 
     this.instance.addHook('afterDestroy', function () {
@@ -394,6 +397,8 @@
   };
 
   ContextMenu.prototype.bindMouseEvents = function () {
+
+
     function contextMenuOpenListener(event) {
       var settings = this.instance.getSettings();
 //      if(!settings.contextMenu) {
@@ -419,10 +424,14 @@
       this.show(menu, items);
       this.setMenuPosition(event, menu);
 
-      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
+      this.eventManager.addEventListener(document, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
+
+//      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
 
-    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+    this.eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+
+//    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
