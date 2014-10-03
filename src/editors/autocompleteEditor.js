@@ -4,6 +4,12 @@
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
+    // set choices list initial height, so Walkontable can assign it's scroll handler
+    var choicesListHot = this.$htContainer.handsontable('getInstance');
+    choicesListHot.updateSettings({
+      height: 1
+    });
+
     this.query = null;
     this.choices = [];
   };

@@ -379,6 +379,33 @@ describe('AutocompleteEditor', function () {
       expect(hot.getActiveEditor().beginEditing.calls.length).toBe(3);
     });
 
+    it("should not display all the choices from a long source list and not leave any unused space in the dropdown (YouTrack: #HOT-32)", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ["Acura","Audi","BMW","Buick","Cadillac","Chevrolet","Chrysler","Citroen","Dodge","Eagle","Ferrari","Ford","General Motors","GMC","Honda","Hummer","Hyundai","Infiniti","Isuzu","Jaguar","Jeep","Kia","Lamborghini","Land Rover","Lexus","Lincoln","Lotus","Mazda","Mercedes-Benz","Mercury","Mitsubishi","Nissan","Oldsmobile","Peugeot","Pontiac","Porsche","Regal","Renault","Saab","Saturn","Seat","Skoda","Subaru","Suzuki","Toyota","Volkswagen","Volvo"]
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      var $autocomplete = autocomplete();
+
+      waits(100);
+      runs(function () {
+        expect($autocomplete.find("td").first().text()).toEqual("Acura");
+
+        $autocomplete.scrollTop($autocomplete[0].scrollHeight);
+
+        waits(100);
+        runs(function () {
+          expect($autocomplete.find("td").last().text()).toEqual("Volvo");
+        });
+      });
+    });
+
   });
 
   describe("closing editor", function () {
