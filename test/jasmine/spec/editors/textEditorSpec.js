@@ -612,4 +612,23 @@ describe('TextEditor', function () {
     expect(Handsontable.Dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toEqual(Handsontable.Dom.outerWidth(hot.getCell(0,7)));
   });
 
+  it("should display editor with the proper size, when editing a last row after the table is scrolled to the bottom", function() {
+    var hot = handsontable({
+      data: createSpreadsheetData(3, 8),
+      minSpareRows: 1,
+      height: 100
+    });
+
+    selectCell(0,2);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+    var regularHeight = Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA);
+
+    selectCell(3,2);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight);
+  });
+
 });
