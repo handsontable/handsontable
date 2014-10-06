@@ -393,7 +393,6 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  * @return {Number}
  */
 Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {
-  this.wt.wtScrollbars.horizontal.readWindowSize();
   var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
   var maxWidth = workspaceWidth - leftOffset;
   return maxWidth > 0 ? maxWidth : 0;
@@ -405,7 +404,6 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffs
  * @return {Number}
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (topOffset) {
-  this.wt.wtScrollbars.vertical.readWindowSize();
   var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
   var maxHeight = workspaceHeight - topOffset;
   return maxHeight > 0 ? maxHeight : 0;

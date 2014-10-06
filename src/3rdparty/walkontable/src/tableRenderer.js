@@ -138,10 +138,6 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
         break;
       }
 
-      if (visibleRowIndex == 0) { //rendering the first row may caused bottom scrollbar to appear, so we need to refresh the window size
-        this.instance.wtScrollbars.vertical.readWindowSize();
-      }
-
       this.resetOversizedRow(sourceRowIndex);
     }
 

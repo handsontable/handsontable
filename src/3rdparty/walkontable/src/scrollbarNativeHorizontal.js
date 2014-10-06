@@ -64,7 +64,6 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
-  this.readWindowSize();
 };
 
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
