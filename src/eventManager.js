@@ -26,8 +26,9 @@ Handsontable.eventManager = function (instance) {
       });
 
       if (typeof delegate === 'function') {
-        callback = delegate;
         bubbling = callback;
+        callback = delegate;
+        delegate = null;
       } else {
         //TODO
         var CB = callback;
