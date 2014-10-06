@@ -1910,7 +1910,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.destroy = function () {
     instance._clearTimeouts();
     if (instance.view) { //in case HT is destroyed before initialization has finished
-      instance.view.wt.destroy();
+      instance.view.destroy();
     }
     instance.rootElement.empty();
     instance.rootElement.removeData('handsontable');

@@ -4,9 +4,9 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this
-    , eventManager = Handsontable.eventManager(instance);
 //    , $documentElement = $(document.documentElement);
 
+  this.eventManager = Handsontable.eventManager(instance);
   this.instance = instance;
   this.settings = instance.getSettings();
 
@@ -25,7 +25,7 @@ Handsontable.TableView = function (instance) {
   instance.$table = $(table);
   instance.container.prepend(instance.$table);
 
-  eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
+  this.eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
@@ -34,7 +34,7 @@ Handsontable.TableView = function (instance) {
   });
 
 //    $documentElement.on('keyup.' + instance.guid, function (event) {
-  eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
+  this.eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -46,7 +46,7 @@ Handsontable.TableView = function (instance) {
   };
 
 //  $documentElement.on('mouseup.' + instance.guid, function (event) {
-  eventManager.addEventListener(document.documentElement, 'mouseup', function (event) {
+  this.eventManager.addEventListener(document.documentElement, 'mouseup', function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -58,7 +58,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
+  this.eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
 //  $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
@@ -88,7 +88,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
+  this.eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
 //  instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
@@ -275,20 +275,20 @@ Handsontable.TableView = function (instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
 
-  eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
 
 
-  eventManager.addEventListener(document.documentElement, 'click', function () {
+  this.eventManager.addEventListener(document.documentElement, 'click', function () {
 //  $documentElement.on('click.' + instance.guid, function () {
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
@@ -426,4 +426,9 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (topOffs
 
 Handsontable.TableView.prototype.mainViewIsActive = function () {
   return this.wt === this.activeWt;
+};
+
+Handsontable.TableView.prototype.destroy = function () {
+  this.wt.destroy();
+  this.eventManager.clear();
 };
