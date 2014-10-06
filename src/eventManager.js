@@ -27,14 +27,6 @@ Handsontable.eventManager = function (instance) {
         }
       }
 
-      var origCallBack = callback;
-      callback = function(event) {
-        console.log('--------------------');
-        console.log(instance);
-//        console.log(event);
-        console.log('--------------------');
-        return origCallBack.apply(this, arguments);
-      };
       bubbling = bubbling || false;
 
       instance.eventListeners.push({
