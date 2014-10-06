@@ -104,12 +104,9 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
 
 WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
   if (this.scrollHandler === window) {
-    this.windowSize = document.documentElement.clientHeight;
     this.tableParentOffset = this.instance.wtTable.holderOffset.top;
   }
   else {
-    var elemHeight = Handsontable.Dom.outerHeight(this.scrollHandler);
-    this.windowSize = elemHeight > 0 && this.scrollHandler.clientHeight > 0 ? this.scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
     this.tableParentOffset = 0;
   }
   this.windowScrollPosition = this.getScrollPosition();

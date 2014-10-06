@@ -73,11 +73,9 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
 
 WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
   if (this.scrollHandler === window) {
-    this.windowSize = document.documentElement.clientWidth;
     this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
-    this.windowSize = this.scrollHandler.clientWidth;
     this.tableParentOffset = 0;
   }
   this.windowScrollPosition = this.getScrollPosition();
