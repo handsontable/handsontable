@@ -18,6 +18,8 @@ Handsontable.eventManager = function (instance) {
         callback = delegate;
         delegate = null;
       } else {
+        throw new Error("Add delegate event not implemented");
+
         //TODO
         var CB = callback;
         callback = function (event) {
@@ -44,6 +46,14 @@ Handsontable.eventManager = function (instance) {
       }
     },
     removeEvent = function (element, event, delegate, callback, bubbling){
+      if(typeof delegate === 'function') {
+        bubbling = callback;
+        callback = delegate;
+      }
+      else {
+        throw new Error("Remove delegate event not implemented");
+      }
+
       bubbling = bubbling || false;
 
       if (element.detachEvent) {
@@ -68,7 +78,12 @@ Handsontable.eventManager = function (instance) {
     clearEvents = function () {
       while(instance.eventListeners.length > 0) {
        var event = instance.eventListeners.pop();
-        removeEvent(event.element, event.event, event.delegate, event.callback, event.bubbling);
+        if(event.delegate) {
+          removeEvent(event.element, event.event, event.delegate, event.callback, event.bubbling);
+        }
+        else {
+          removeEvent(event.element, event.event, event.callback, event.bubbling);
+        }
       }
     };
 
