@@ -31,8 +31,8 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     }
   }
   else {
-    elem.style.top = this.instance.wtScrollbars.vertical.windowScrollPosition + "px";
-    elem.style.left = this.instance.wtScrollbars.horizontal.windowScrollPosition + "px";
+    elem.style.top = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
+    elem.style.left = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
   }
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';

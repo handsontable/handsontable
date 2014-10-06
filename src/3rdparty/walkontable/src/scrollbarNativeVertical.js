@@ -30,7 +30,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
     }
   }
   else {
-    elem.style.top = this.windowScrollPosition + "px";
+    elem.style.top = this.getScrollPosition() + "px";
     elem.style.left = '0';
   }
 
@@ -97,28 +97,25 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
 };
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
-  var newY = this.tableParentOffset + cell * this.cellSize;
+  var newY = this.getTableParentOffset() + cell * this.cellSize;
   this.setScrollPosition(newY);
   this.onScroll();
 };
 
-WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
+WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () {
   if (this.scrollHandler === window) {
-    this.tableParentOffset = this.instance.wtTable.holderOffset.top;
+    return this.instance.wtTable.holderOffset.top;
   }
   else {
-    this.tableParentOffset = 0;
+    return 0;
   }
-  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  this.readWindowSize();
-
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 
-  var scrollDelta = this.windowScrollPosition - this.tableParentOffset;
+  var scrollDelta = this.getScrollPosition() - this.getTableParentOffset();
 
   var sum = 0;
   var last;

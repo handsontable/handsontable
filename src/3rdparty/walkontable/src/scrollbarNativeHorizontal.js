@@ -16,7 +16,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-	if (this.scrollHandler === window) {
+  if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var left = Math.ceil(box.left);
 
@@ -30,7 +30,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
   else {
     elem.style.top = this.instance.wtTable.hider.style.top;
-    elem.style.left = this.windowScrollPosition + "px";
+    elem.style.left = this.getScrollPosition() + "px";
   }
 
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
@@ -46,7 +46,7 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
-  if (this.scrollHandler === window){
+  if (this.scrollHandler === window) {
     window.scrollTo(pos, Handsontable.Dom.getWindowScrollTop());
   } else {
     this.scrollHandler.scrollLeft = pos;
@@ -67,20 +67,18 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
-  this.setScrollPosition(this.tableParentOffset + cell * this.cellSize);
+  this.setScrollPosition(this.getTableParentOffset() + cell * this.cellSize);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
+WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
   if (this.scrollHandler === window) {
-    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
+    return this.instance.wtTable.holderOffset.left;
   }
   else {
-    this.tableParentOffset = 0;
+    return 0;
   }
-  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  this.readWindowSize();
   this.total = this.instance.getSetting('totalColumns');
 };
