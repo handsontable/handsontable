@@ -19,7 +19,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     , oldBoxTop
     , oldBoxLeft;
 
-  function refreshAll() {
+  this.refreshAll = function refreshAll() {
     if(!that.instance.drawn) {
       return;
     }
@@ -50,15 +50,15 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 
 //  var $window = $(window);
 
-  eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', refreshAll);
+  eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', this.refreshAll);
 //  this.vertical.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   if (this.vertical.scrollHandler !== this.horizontal.scrollHandler) {
-    eventManager.addEventListener(this.horizontal.scrollHandler, 'scroll', refreshAll);
+    eventManager.addEventListener(this.horizontal.scrollHandler, 'scroll', this.refreshAll);
 //    this.horizontal.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   }
 
   if (this.vertical.scrollHandler !== window && this.horizontal.scrollHandler !== window) {
-    eventManager.addEventListener(window,'scroll', refreshAll);
+    eventManager.addEventListener(window,'scroll', this.refreshAll);
 //    $window.on('scroll.' + this.instance.guid, refreshAll);
   }
 };
@@ -68,15 +68,15 @@ WalkontableScrollbars.prototype.destroy = function () {
 
   if (this.vertical) {
     this.vertical.destroy();
-    eventManager.removeEventListener(this.vertical.scrollHandler,'scroll');
+    eventManager.removeEventListener(this.vertical.scrollHandler,'scroll', this.refreshAll);
 //    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
   if (this.horizontal) {
     this.horizontal.destroy();
-    eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll');
+    eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
 //    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
-  eventManager.removeEventListener(window,'scroll');
+  eventManager.removeEventListener(window,'scroll', this.refreshAll);
 //  $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
   this.debug && this.debug.destroy();

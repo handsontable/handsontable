@@ -105,13 +105,13 @@ function WalkontableBorder(instance, settings) {
         }
       };
 
-
-      eventManager.addEventListener(document.body, 'mousemove', function (event) {
+      var handler = function (event) {
         if (isOutside(event)) {
-          eventManager.removeEventListener(document.body, 'mousemove');
+          eventManager.removeEventListener(document.body, 'mousemove', handler);
           $this.show();
         }
-      });
+      };
+      eventManager.addEventListener(document.body, 'mousemove', handler);
 
 //      $body.on('mousemove.border.' + instance.guid, function (event) {
 //        if (isOutside(event)) {
