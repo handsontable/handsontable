@@ -48,24 +48,6 @@ WalkontableDebugOverlay.prototype.resetFixedPosition = function () {
   elem.style.left = Math.ceil(box.left, 10) + 'px';
 };
 
-WalkontableDebugOverlay.prototype.getScrollPosition = function () {
-};
-
-WalkontableDebugOverlay.prototype.getLastCell = function () {
-};
-
-WalkontableDebugOverlay.prototype.applyToDOM = function () {
-};
-
-WalkontableDebugOverlay.prototype.scrollTo = function () {
-};
-
-WalkontableDebugOverlay.prototype.readWindowSize = function () {
-};
-
-WalkontableDebugOverlay.prototype.readSettings = function () {
-};
-
 WalkontableDebugOverlay.prototype.destroy = function () {
   WalkontableOverlay.prototype.destroy.call(this);
   clearTimeout(this.lastTimeout);
