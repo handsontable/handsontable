@@ -59,8 +59,8 @@
   DateEditor.prototype.destroyElements = function () {
     this.$datePicker.datepicker('destroy');
     this.$datePicker.remove();
-    var eventManager = Handsontable.eventManager(this);
-    eventManager.removeEventListener(this.datePicker, 'mousedown');
+    //var eventManager = Handsontable.eventManager(this);
+    //eventManager.removeEventListener(this.datePicker, 'mousedown');
   };
 
   DateEditor.prototype.open = function () {
