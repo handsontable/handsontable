@@ -17,10 +17,6 @@
           return;
         }
 
-        if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
-          priv.settings.beforeOnKeyDown.call(instance, event);
-        }
-
         Handsontable.hooks.run(instance, 'beforeKeyDown', event);
 
         if(destroyed) {
