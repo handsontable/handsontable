@@ -476,9 +476,6 @@
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
-    console.log('-------');
-    console.log('unbind');
-    console.log('-------');
     this.instance.rootElement.off('contextmenu.htContextMenu');
 
 
@@ -491,7 +488,6 @@
     menu.style.display = 'block';
 
     var that = this;
-    console.log(menu);
 
 
 
@@ -530,9 +526,6 @@
   };
 
   ContextMenu.prototype.close = function (menu) {
-    console.log('-------');
-    console.log('close');
-    console.log('-------');
     this.hide(menu);
     $(document).off('mousedown.htContextMenu');
     this.unbindTableEvents();

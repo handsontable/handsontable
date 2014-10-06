@@ -13,10 +13,8 @@ Handsontable.eventManager = function (instance) {
   }
 
   var addEvent = function (element, event, delegate, callback, bubbling) {
-//      console.log('addEvent');
       bubbling = bubbling || false;
 
-//      console.log(instance, event);
 
 
       instance.eventListeners.push({

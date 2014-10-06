@@ -60,8 +60,6 @@ Handsontable.TableView = function (instance) {
 
   eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
 //  $documentElement.on('mousedown.' + instance.guid, function (event) {
-    console.log('mousedown');
-
     var next = event.target;
 
     if (isMouseDown) {
