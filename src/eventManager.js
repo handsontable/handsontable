@@ -13,18 +13,6 @@ Handsontable.eventManager = function (instance) {
   }
 
   var addEvent = function (element, event, delegate, callback, bubbling) {
-      bubbling = bubbling || false;
-
-
-
-      instance.eventListeners.push({
-        element: element,
-        event: event,
-        delegate: delegate,
-        callback: callback,
-        bubbling: bubbling
-      });
-
       if (typeof delegate === 'function') {
         bubbling = callback;
         callback = delegate;
@@ -47,7 +35,15 @@ Handsontable.eventManager = function (instance) {
         console.log('--------------------');
         return origCallBack.apply(this, arguments);
       };
+      bubbling = bubbling || false;
 
+      instance.eventListeners.push({
+        element: element,
+        event: event,
+        delegate: delegate,
+        callback: callback,
+        bubbling: bubbling
+      });
 
       if (window.addEventListener) {
         element.addEventListener(event, callback, bubbling)
