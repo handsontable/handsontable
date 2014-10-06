@@ -52,6 +52,10 @@ function HandsontableManualColumnMove() {
   }
 
   function refreshHandlePosition(TH) {
+    if (TH.firstChild && TH.firstChild.firstChild && TH.firstChild.firstChild.className === 'rowHeader') {
+      return;
+    }
+
     var box = TH.getBoundingClientRect();
     handle.style.left = box.left + 'px';
   }
@@ -111,9 +115,10 @@ function HandsontableManualColumnMove() {
         hideHandleAndGuide();
         pressed = false;
 
-        if (startCol < endCol) {
-          endCol--;
+        if (startCol < 0 || endCol < 0) {
+          return;
         }
+
         createPositionData(instance.manualColumnPositions, instance.countCols());
         instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
 
