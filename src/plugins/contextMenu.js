@@ -424,7 +424,7 @@
       this.show(menu, items);
       this.setMenuPosition(event, menu);
 
-      this.eventManager.addEventListener(document, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
+      this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
 
 //      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
