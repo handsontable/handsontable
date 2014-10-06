@@ -53,24 +53,6 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
   return window;
 };
 
-WalkontableOverlay.prototype.availableSize = function () {
-  var availableSize;
-
-  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
-    if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
-      availableSize = Handsontable.Dom.outerHeight(this.TABLE);
-    }
-    else {
-      availableSize = this.windowSize;
-    }
-  }
-  else {
-    availableSize = this.windowSize - (this.tableParentOffset);
-  }
-
-  return availableSize;
-};
-
 WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
   this.clone && this.clone.draw(selectionsOnly);
 };
