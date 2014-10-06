@@ -90,7 +90,6 @@ Handsontable.TableView = function (instance) {
 
   eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
 //  instance.$table.on('selectstart', function (event) {
-    console.log('selectstart');
     if (that.settings.fragmentSelection) {
       return;
     }
@@ -277,14 +276,12 @@ Handsontable.TableView = function (instance) {
   this.activeWt = this.wt;
 
   eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
-    console.log('mousedown');
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
 
   eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
-    console.log('contextmenu');
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
@@ -293,7 +290,6 @@ Handsontable.TableView = function (instance) {
 
   eventManager.addEventListener(document.documentElement, 'click', function () {
 //  $documentElement.on('click.' + instance.guid, function () {
-  console.log('click');
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
         that.instance.forceFullRender = true;
