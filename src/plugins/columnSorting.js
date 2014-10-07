@@ -150,6 +150,9 @@ function HandsontableColumnSorting() {
 
   function defaultSort(sortOrder) {
     return function (a, b) {
+      if(typeof a[1] == "string") a[1] = a[1].toLowerCase();
+      if(typeof b[1] == "string") b[1] = b[1].toLowerCase();
+
       if (a[1] === b[1]) {
         return 0;
       }

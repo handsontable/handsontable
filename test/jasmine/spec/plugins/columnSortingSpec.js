@@ -1054,6 +1054,27 @@ describe('ColumnSorting', function () {
     expect(getSourceDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
   });
 
+  it("should ignore case when sorting", function () {
+    var hot = handsontable({
+      data: [
+        [1, "albuquerque"],
+        [2, "Alabama"],
+        [3, "Missouri"]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(1);
+    expect(getDataAtCol(0)).toEqual([2, 1, 3]);
+    expect(getDataAtCol(1)).toEqual(["Alabama", "albuquerque", "Missouri"]);
+
+    this.sortByColumn(1);
+    expect(getDataAtCol(0)).toEqual([3, 1, 2]);
+    expect(getDataAtCol(1)).toEqual(["Missouri", "albuquerque", "Alabama"]);
+
+  });
+
   it("should push empty cells to the end of sorted column", function () {
     var hot = handsontable({
       data:  [
