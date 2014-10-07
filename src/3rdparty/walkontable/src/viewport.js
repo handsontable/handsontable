@@ -8,26 +8,28 @@ function WalkontableViewport(instance) {
   });
 }
 
-//used by scrollbar
-WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  return this.instance.wtScrollbars.vertical.windowSize;
+WalkontableViewport.prototype.getWorkspaceHeight = function () {
+  var scrollHandler = this.instance.wtScrollbars.vertical.scrollHandler;
+  if (scrollHandler === window) {
+    return document.documentElement.clientHeight;
+  }
+  else {
+    var elemHeight = Handsontable.Dom.outerHeight(scrollHandler);
+    var height = (elemHeight > 0 && scrollHandler.clientHeight > 0) ? scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
+    return height;
+  }
 };
 
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
-  var width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth)
-    , overflow = this.instance.wtScrollbars.horizontal.scrollHandler != window ? this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow : null;
-
-  if(overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
-    overflow = "scroll";
+  var width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
+  if (scrollHandler != window) {
+    var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+    if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
+      return Math.max(width, scrollHandler.clientWidth);
+    }
   }
-
-  if (overflow == "scroll") {
-    width = Math.max(width, this.instance.wtScrollbars.horizontal.windowSize);
-  } else {
-    width = Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
-  }
-
-  return width;
+  return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
 };
 
 WalkontableViewport.prototype.getContainerFillWidth = function() {
