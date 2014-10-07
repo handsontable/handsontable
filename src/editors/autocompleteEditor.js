@@ -122,9 +122,19 @@
     var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA),
         endPos = Handsontable.Dom.getSelectionEndPosition(this.TEXTAREA);
 
-    var sortedByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
+    var orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
+    var highlightIndex;
+
     if (this.cellProperties.filter != false) {
-      choices = sortedByRelevance;
+      var sorted = [];
+      for(var i = 0, choicesCount = orderByRelevance.length; i < choicesCount; i++) {
+        sorted.push(choices[orderByRelevance[i]]);
+      }
+      highlightIndex = 0;
+      choices = sorted;
+    }
+    else {
+      highlightIndex = orderByRelevance[0];
     }
 
     this.choices = choices;
@@ -133,7 +143,7 @@
     this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     if (this.cellProperties.strict === true) {
-      this.highlightBestMatchingChoice(sortedByRelevance);
+      this.highlightBestMatchingChoice(highlightIndex);
     }
 
     this.instance.listen();
@@ -148,18 +158,21 @@
     Handsontable.editors.HandsontableEditor.prototype.finishEditing.apply(this, arguments);
   };
 
-  AutocompleteEditor.prototype.highlightBestMatchingChoice = function (matchedChoices) {
-    if (matchedChoices.length === 0) {
-      this.$htContainer.handsontable('deselectCell');
+  AutocompleteEditor.prototype.highlightBestMatchingChoice = function (index) {
+    if (typeof index === "number") {
+      this.$htContainer.handsontable('selectCell', index, 0);
     } else {
-      if (this.cellProperties.filter === false) {
-        this.$htContainer.handsontable('selectCell', this.bestMatchingChoiceIndex, 0);
-      } else {
-        this.$htContainer.handsontable('selectCell', 0, 0);
-      }
+      this.$htContainer.handsontable('deselectCell');
     }
   };
 
+  /**
+   * Filters and sorts by relevance
+   * @param value
+   * @param choices
+   * @param caseSensitive
+   * @returns {Array} array of indexes in original choices array
+   */
   AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
     var choicesRelevance = []
@@ -167,13 +180,18 @@
       , valueLength = value.length
       , valueIndex
       , charsLeft
-      , result = [];
+      , result = []
+      , i
+      , choicesCount;
 
     if(valueLength === 0) {
-      return choices;
+      for(i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+        result.push(i);
+      }
+      return result;
     }
 
-    for(var i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+    for(i = 0, choicesCount = choices.length; i < choicesCount; i++) {
       currentItem = choices[i];
 
       if(caseSensitive) {
@@ -214,11 +232,8 @@
       }
     });
 
-    // set best maching choice base index
-    this.bestMatchingChoiceIndex = choicesRelevance.length > 0 ? choicesRelevance[0].baseIndex : void 0;
-
-    for(var i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
-      result.push(choicesRelevance[i].value);
+    for(i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
+      result.push(choicesRelevance[i].baseIndex);
     }
 
     return result;

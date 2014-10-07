@@ -1794,40 +1794,40 @@ describe('AutocompleteEditor', function () {
     describe("sortByRelevance", function () {
       it("should sort the provided array, so items more relevant to the provided value are listed first", function () {
         var choices = [
-          'Wayne',
-          'Draven',
-          'Banner',
-          'Stark',
-          'Parker',
-          'Kent',
-          'Gordon',
-          'Kyle',
-          'Simmons'
+          'Wayne',//0
+          'Draven',//1
+          'Banner',//2
+          'Stark',//3
+          'Parker',//4
+          'Kent',//5
+          'Gordon',//6
+          'Kyle',//7
+          'Simmons'//8
         ]
           , value = 'a';
 
         var sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
 
         expect(sorted).toEqual([
-          'Wayne',
-          'Banner',
-          'Parker',
-          'Stark',
-          'Draven'
+          0,
+          2,
+          4,
+          3,
+          1
         ]);
 
         value = 'o';
         sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
         expect(sorted).toEqual([
-          'Gordon',
-          'Simmons'
+          6,
+          8
         ]);
 
         value = 'er';
         sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
         expect(sorted).toEqual([
-          'Banner',
-          'Parker'
+          2,
+          4
         ]);
 
       });
