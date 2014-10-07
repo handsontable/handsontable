@@ -173,10 +173,10 @@ function HandsontableColumnSorting() {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null) {
+      if (a[1] === null || a[1] === '') {
         return 1;
       }
-      if (b[1] === null) {
+      if (b[1] === null || b[1] === '') {
         return -1;
       }
 
