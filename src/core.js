@@ -333,6 +333,16 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.selection = selection = { //this public assignment is only temporary
     inProgress: false,
 
+    selectedHeader: {
+      cols: false,
+      rows: false
+    },
+
+    setSelectedHeaders: function (rows, cols) {
+      instance.selection.selectedHeader.rows = rows;
+      instance.selection.selectedHeader.cols = cols;
+    },
+
     /**
      * Sets inProgress to true. This enables onSelectionEnd and onSelectionEndByProp to function as desired
      */
@@ -2097,7 +2107,8 @@ DefaultSettings.prototype = {
   manualColumnMove: void 0,
   manualColumnResize: void 0,
   manualRowMove: void 0,
-  manualRowResize: void 0
+  manualRowResize: void 0,
+  groups: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
