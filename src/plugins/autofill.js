@@ -23,7 +23,7 @@
 
 
     var mouseUpCallback = function (event) {
-      if(!instance.autofill) {
+      if (!instance.autofill) {
         return true;
       }
 
@@ -36,7 +36,7 @@
       }
     };
 
-    $(document).off('mouseup.autofill.' + instance.guid, this.instance.rootElement).on('mouseup.autofill.' + instance.guid, this.instance.rootElement,  function (event) {
+    $(document).off('mouseup.autofill.' + instance.guid, this.instance.rootElement).on('mouseup.autofill.' + instance.guid, this.instance.rootElement, function (event) {
       mouseUpCallback(event);
     });
 
@@ -241,17 +241,19 @@
       this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().to);
       this.instance.view.wt.selections.fill.add(coords);
       this.instance.view.render();
-    }
+    };
 
   Autofill.prototype.checkIfNewRowNeeded = function () {
     var fillCorners,
+      selection,
       tableRows = this.instance.countRows(),
       that = this;
 
     if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+      selection = this.instance.getSelected();
       fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-      if (fillCorners[2] === tableRows - 1) {
+      if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
         this.addingStarted = true;
 
         this.instance._registerTimeout(setTimeout(function () {
