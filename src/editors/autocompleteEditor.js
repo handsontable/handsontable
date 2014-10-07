@@ -4,6 +4,12 @@
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
+    // set choices list initial height, so Walkontable can assign it's scroll handler
+    var choicesListHot = this.$htContainer.handsontable('getInstance');
+    choicesListHot.updateSettings({
+      height: 1
+    });
+
     this.query = null;
     this.choices = [];
   };
@@ -122,13 +128,28 @@
     var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA),
         endPos = Handsontable.Dom.getSelectionEndPosition(this.TEXTAREA);
 
+    var orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
+    var highlightIndex;
+
+    if (this.cellProperties.filter != false) {
+      var sorted = [];
+      for(var i = 0, choicesCount = orderByRelevance.length; i < choicesCount; i++) {
+        sorted.push(choices[orderByRelevance[i]]);
+      }
+      highlightIndex = 0;
+      choices = sorted;
+    }
+    else {
+      highlightIndex = orderByRelevance[0];
+    }
+
     this.choices = choices;
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
     this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
-    if(this.cellProperties.strict === true) {
-      this.highlightBestMatchingChoice();
+    if (this.cellProperties.strict === true) {
+      this.highlightBestMatchingChoice(highlightIndex);
     }
 
     this.instance.listen();
@@ -143,55 +164,85 @@
     Handsontable.editors.HandsontableEditor.prototype.finishEditing.apply(this, arguments);
   };
 
-  AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
-    var bestMatchingChoice = this.findBestMatchingChoice();
-
-    if ( typeof bestMatchingChoice == 'undefined' && this.cellProperties.allowInvalid === false){
-      bestMatchingChoice = 0;
-    }
-
-    if(typeof bestMatchingChoice == 'undefined'){
-      this.$htContainer.handsontable('deselectCell');
+  AutocompleteEditor.prototype.highlightBestMatchingChoice = function (index) {
+    if (typeof index === "number") {
+      this.$htContainer.handsontable('selectCell', index, 0);
     } else {
-      this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
+      this.$htContainer.handsontable('deselectCell');
     }
   };
 
-  AutocompleteEditor.prototype.findBestMatchingChoice = function(){
-    var bestMatch = {};
-    var valueLength = this.getValue().length;
-    var currentItem;
-    var indexOfValue;
-    var charsLeft;
+  /**
+   * Filters and sorts by relevance
+   * @param value
+   * @param choices
+   * @param caseSensitive
+   * @returns {Array} array of indexes in original choices array
+   */
+  AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
+    var choicesRelevance = []
+      , currentItem
+      , valueLength = value.length
+      , valueIndex
+      , charsLeft
+      , result = []
+      , i
+      , choicesCount;
 
-    for(var i = 0, len = this.choices.length; i < len; i++){
-      currentItem = this.choices[i];
-
-      if(valueLength > 0){
-        indexOfValue = currentItem.indexOf(this.getValue())
-      } else {
-        indexOfValue = currentItem === this.getValue() ? 0 : -1;
+    if(valueLength === 0) {
+      for(i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+        result.push(i);
       }
-
-      if(indexOfValue == -1) continue;
-
-      charsLeft =  currentItem.length - indexOfValue - valueLength;
-
-      if( typeof bestMatch.indexOfValue == 'undefined'
-        || bestMatch.indexOfValue > indexOfValue
-        || ( bestMatch.indexOfValue == indexOfValue && bestMatch.charsLeft > charsLeft ) ){
-
-        bestMatch.indexOfValue = indexOfValue;
-        bestMatch.charsLeft = charsLeft;
-        bestMatch.index = i;
-
-      }
-
+      return result;
     }
 
+    for(i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+      currentItem = choices[i];
 
-    return bestMatch.index;
+      if(caseSensitive) {
+        valueIndex = currentItem.indexOf(value);
+      } else {
+        valueIndex = currentItem.toLowerCase().indexOf(value.toLowerCase());
+      }
+
+
+      if(valueIndex == -1) { continue; }
+      charsLeft =  currentItem.length - valueIndex - valueLength;
+
+      choicesRelevance.push({
+        baseIndex: i,
+        index: valueIndex,
+        charsLeft: charsLeft,
+        value: currentItem
+      });
+    }
+
+    choicesRelevance.sort(function(a, b) {
+
+      if(b.index === -1) return -1;
+      if(a.index === -1) return 1;
+
+      if(a.index < b.index) {
+        return -1;
+      } else if(b.index < a.index) {
+        return 1;
+      } else if(a.index === b.index) {
+        if(a.charsLeft < b.charsLeft) {
+          return -1;
+        } else if(a.charsLeft > b.charsLeft) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    });
+
+    for(i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
+      result.push(choicesRelevance[i].baseIndex);
+    }
+
+    return result;
   };
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){

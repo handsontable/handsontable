@@ -122,7 +122,9 @@ describe('WalkontableTable', function () {
       height: 201,
       width: 120,
       columnHeaders: [function (col, TH) {
-        TH.innerHTML = 'Column';
+        if( col > - 1) {
+          TH.innerHTML = 'Column';
+        }
       }],
       rowHeaders: [function (row, TH) {
         if (row > -1) {

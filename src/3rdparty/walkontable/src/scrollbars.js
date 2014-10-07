@@ -37,7 +37,6 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
       that.vertical.onScroll();
       that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
-      that.corner.onScroll();
 
       oldVerticalScrollPosition = that.vertical.windowScrollPosition;
       oldHorizontalScrollPosition = that.horizontal.windowScrollPosition;
@@ -83,6 +82,4 @@ WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
 WalkontableScrollbars.prototype.applyToDOM = function () {
   this.horizontal && this.horizontal.applyToDOM();
   this.vertical && this.vertical.applyToDOM();
-  this.corner && this.corner.applyToDOM();
-  this.debug && this.debug.applyToDOM();
 };

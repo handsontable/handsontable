@@ -575,6 +575,25 @@ describe('Core_alter', function () {
 
       expect(output).toEqual(3);
     });
+
+    it("should keep the single-cell selection in the same position as before inserting the row", function () {
+      handsontable({
+        minRows: 5,
+        data: [
+          ["a", "b", "c", "d", "e", "f", "g", "h"],
+          ["a", "b", "c", "d", "e", "f", "g", "h"],
+          ["a", "b", "c", "d", "e", "f", "g", "h"]
+        ]
+      });
+
+      selectCell(2,2);
+      alter('insert_row', 2);
+
+      var selected = getSelected();
+      expect(selected[0]).toEqual(3);
+      expect(selected[2]).toEqual(3);
+    });
+
   });
 
   describe("insert column", function () {

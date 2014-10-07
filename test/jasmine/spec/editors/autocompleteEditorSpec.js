@@ -379,6 +379,33 @@ describe('AutocompleteEditor', function () {
       expect(hot.getActiveEditor().beginEditing.calls.length).toBe(3);
     });
 
+    it("should not display all the choices from a long source list and not leave any unused space in the dropdown (YouTrack: #HOT-32)", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ["Acura","Audi","BMW","Buick","Cadillac","Chevrolet","Chrysler","Citroen","Dodge","Eagle","Ferrari","Ford","General Motors","GMC","Honda","Hummer","Hyundai","Infiniti","Isuzu","Jaguar","Jeep","Kia","Lamborghini","Land Rover","Lexus","Lincoln","Lotus","Mazda","Mercedes-Benz","Mercury","Mitsubishi","Nissan","Oldsmobile","Peugeot","Pontiac","Porsche","Regal","Renault","Saab","Saturn","Seat","Skoda","Subaru","Suzuki","Toyota","Volkswagen","Volvo"]
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      var $autocomplete = autocomplete();
+
+      waits(100);
+      runs(function () {
+        expect($autocomplete.find("td").first().text()).toEqual("Acura");
+
+        $autocomplete.scrollTop($autocomplete[0].scrollHeight);
+
+        waits(100);
+        runs(function () {
+          expect($autocomplete.find("td").last().text()).toEqual("Volvo");
+        });
+      });
+    });
+
   });
 
   describe("closing editor", function () {
@@ -1272,15 +1299,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
+          [ 'lime'],
           [ 'white' ],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         syncSources.reset();
@@ -1327,15 +1354,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         editorInput.val("E");
@@ -1346,15 +1373,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
       });
     });
@@ -1387,15 +1414,15 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([
-          [ 'yellow' ],
           [ 'red' ],
-          [ 'orange' ],
+          [ 'yellow' ],
           [ 'green' ],
           [ 'blue' ],
-          ['white'],
-          ['purple'],
-          ['lime'],
-          ['olive']
+          [ 'lime'],
+          [ 'white' ],
+          [ 'olive'],
+          [ 'orange' ],
+          [ 'purple']
         ]);
 
         editorInput.val("E");
@@ -1767,7 +1794,8 @@ describe('AutocompleteEditor', function () {
       columns: [
         {
           editor: 'autocomplete',
-          source: syncSources
+          source: syncSources,
+          filter: false
         }
       ]
     });
@@ -1787,9 +1815,52 @@ describe('AutocompleteEditor', function () {
 
       expect(getDataAtCell(0, 0)).toEqual('');
     });
-
-
   });
+
+  describe("Autocomplete helper functions:", function () {
+    describe("sortByRelevance", function () {
+      it("should sort the provided array, so items more relevant to the provided value are listed first", function () {
+        var choices = [
+          'Wayne',//0
+          'Draven',//1
+          'Banner',//2
+          'Stark',//3
+          'Parker',//4
+          'Kent',//5
+          'Gordon',//6
+          'Kyle',//7
+          'Simmons'//8
+        ]
+          , value = 'a';
+
+        var sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+
+        expect(sorted).toEqual([
+          0,
+          2,
+          4,
+          3,
+          1
+        ]);
+
+        value = 'o';
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        expect(sorted).toEqual([
+          6,
+          8
+        ]);
+
+        value = 'er';
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        expect(sorted).toEqual([
+          2,
+          4
+        ]);
+
+      });
+    });
+  });
+
 
   it("should fire one afterChange event when value is changed", function () {
     var onAfterChange = jasmine.createSpy('onAfterChange');

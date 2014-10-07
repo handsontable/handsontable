@@ -31,32 +31,10 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     }
   }
   else {
-    elem.style.top = this.instance.wtScrollbars.vertical.windowScrollPosition + "px";
-    elem.style.left = this.instance.wtScrollbars.horizontal.windowScrollPosition + "px";
+    elem.style.top = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
+    elem.style.left = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
   }
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
-};
-
-WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
-};
-
-WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {
-};
-
-WalkontableCornerScrollbarNative.prototype.getLastCell = function () {
-};
-
-WalkontableCornerScrollbarNative.prototype.applyToDOM = function () {
-};
-
-WalkontableCornerScrollbarNative.prototype.scrollTo = function () {
-};
-
-WalkontableCornerScrollbarNative.prototype.readWindowSize = function () {
-};
-
-WalkontableCornerScrollbarNative.prototype.readSettings = function () {
 };

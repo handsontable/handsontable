@@ -109,6 +109,7 @@ module.exports = function (grunt) {
         'src/plugins/customBorders/customBorders.js',
         'src/plugins/manualRowMove.js',
         'src/plugins/autofill.js',
+        'src/plugins/grouping/grouping.js',
         'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js'
       ],
       walkontable: [
