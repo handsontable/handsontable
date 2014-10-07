@@ -54,7 +54,6 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
 };
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
-  this.readSettings(); //read window scroll position
   this.instance.getSetting('onScrollHorizontally');
 };
 

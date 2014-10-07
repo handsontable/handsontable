@@ -57,7 +57,6 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
-  this.readSettings(); //read window scroll position
   this.instance.draw(true);//
   this.instance.getSetting('onScrollVertically');
 };
