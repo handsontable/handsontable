@@ -127,6 +127,16 @@
       return false;
     }
 
+    try {
+      var flashTest = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+    } catch(exception) {
+      if(!('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash'])) {
+        throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
+
+        return false;
+      }
+    }
+
     cmCopyPaste.instance = this;
     cmCopyPaste.prepareZeroClipboard();
   };
