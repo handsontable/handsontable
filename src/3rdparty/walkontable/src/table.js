@@ -200,11 +200,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.isRowBeforeViewport(coords.row)) {
-    return -1; //row before viewport
+  if (this.isRowBeforeRenderedRows(coords.row)) {
+    return -1; //row before rendered rows
   }
-  else if (this.isRowAfterViewport(coords.row)) {
-    return -2; //row after viewport
+  else if (this.isRowAfterRenderedRows(coords.row)) {
+    return -2; //row after rendered rows
   }
 
     var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)];
@@ -271,6 +271,8 @@ WalkontableTable.prototype.getTrForRow = function (row) {
   return this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)];
 };
 
+
+
 //returns -1 if no row is visible
 WalkontableTable.prototype.getFirstVisibleRow = function () {
   return this.rowFilter.visibleToSource(0);
@@ -305,6 +307,21 @@ WalkontableTable.prototype.getFirstVisibleColumn = function () {
   }
 
   return -1;
+};
+
+//returns -1 if no row is visible
+WalkontableTable.prototype.getLastRenderedRow = function () {
+  var lastVisibleRow =  this.rowFilter.visibleToSource(this.tbodyChildrenLength - 1);
+  var instance = this.instance;
+
+  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+
+    return Math.min(fixedRowsTop - 1, lastVisibleRow);
+  } else {
+    return lastVisibleRow;
+  }
+
 };
 
 //returns -1 if no row is visible
@@ -361,12 +378,16 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
   return colIndex - rowHeaderCount - 1;
 };
 
-WalkontableTable.prototype.isRowBeforeViewport = function (r) {
+WalkontableTable.prototype.isRowBeforeRenderedRows = function (r) {
   return (this.rowFilter.sourceToVisible(r) < 0 && r >= 0);
 };
 
 WalkontableTable.prototype.isRowAfterViewport = function (r) {
   return (r > this.getLastVisibleRow());
+};
+
+WalkontableTable.prototype.isRowAfterRenderedRows = function (r) {
+  return (r > this.getLastRenderedRow());
 };
 
 WalkontableTable.prototype.isColumnBeforeViewport = function (c) {
@@ -375,14 +396,6 @@ WalkontableTable.prototype.isColumnBeforeViewport = function (c) {
 
 WalkontableTable.prototype.isColumnAfterViewport = function (c) {
   return (c > this.getLastVisibleColumn());
-};
-
-WalkontableTable.prototype.isRowInViewport = function (r) {
-  return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
-};
-
-WalkontableTable.prototype.isColumnInViewport = function (c) {
-  return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function () {

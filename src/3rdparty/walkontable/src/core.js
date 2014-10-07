@@ -43,6 +43,11 @@ function Walkontable(settings) {
   this.drawInterrupted = false;
 }
 
+/**
+ * Force rerender of Walkontable
+ * @param selectionsOnly {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if offsetRow was not changed since last render
+ * @returns {Walkontable}
+ */
 Walkontable.prototype.draw = function (selectionsOnly) {
   this.drawInterrupted = false;
   if (!selectionsOnly && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
