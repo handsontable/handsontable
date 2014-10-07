@@ -12,6 +12,9 @@
     "src",
     "test"
   ],
+  "dependencies": {
+    "zeroclipboard": ">=2.1.6"
+  },
   "devDependencies": {
     "chroma-js": "~0.5.6"
   }
