@@ -201,7 +201,7 @@
         );
       }
 
-      if (start) {
+      if (start && start.row > -1 && start.col > -1) {
         var selRange = {from: this.instance.getSelectedRange().from, to: this.instance.getSelectedRange().to};
 
         _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
@@ -212,11 +212,10 @@
 
         this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
         this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
-      }
-      /*else {
+      } else {
        //reset to avoid some range bug
-       selection.refreshBorders();
-       }*/
+       this.instance.selection.refreshBorders();
+     }
     },
 
   /**
