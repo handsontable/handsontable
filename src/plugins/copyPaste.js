@@ -46,20 +46,21 @@
     };
 
     function onBeforeKeyDown (event) {
-      if (Handsontable.helper.isCtrlKey(event.keyCode) && instance.getSelected()) {
-        //when CTRL is pressed, prepare selectable text in textarea
-        //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-        plugin.setCopyableText();
-        event.stopImmediatePropagation();
-        return;
+      if (instance.getSelected()) {
+        if (Handsontable.helper.isCtrlKey(event.keyCode)) {
+          //when CTRL is pressed, prepare selectable text in textarea
+          //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+          plugin.setCopyableText();
+          event.stopImmediatePropagation();
+          return;
+        }
+
+        var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+
+        if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
+          instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
+        }
       }
-
-      var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
-      if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
-        instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
-      }
-
     }
 
     this.destroy = function () {

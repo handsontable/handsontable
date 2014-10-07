@@ -1,8 +1,8 @@
 # Handsontable [![Build Status](https://travis-ci.org/handsontable/jquery-handsontable.png?branch=master)](https://travis-ci.org/handsontable/jquery-handsontable)
 
-Handsontable is a minimalist approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/handsontable/jquery-handsontable/issues/410)).
+Handsontable is a minimalist approach to Excel-like table editor (datagrid/data grid) in HTML & jQuery. 
 
-Runs in IE 8-11, Firefox, Chrome, Safari and Opera.
+Requires jQuery 1.9+ or 2.0+. Runs in IE 8-11, Firefox, Chrome, Safari and Opera.
 
 See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/warpech/hU6Kz/).
 
