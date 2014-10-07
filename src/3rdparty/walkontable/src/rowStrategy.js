@@ -15,7 +15,7 @@ function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
   this.cellCount = 0;
   this.visiblCellCount = 0;
   this.remainingSize = -Infinity;
-  this.maxOuts = 10; //max outs in one direction (before and after table)
+  this.maxOuts = 10; //render 10 rows after table. Change this to anything you like
   this.curOuts = this.maxOuts;
 }
 

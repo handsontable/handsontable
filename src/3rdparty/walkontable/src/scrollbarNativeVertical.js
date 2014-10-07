@@ -6,6 +6,9 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.total;
   this.init();
   this.clone = this.makeClone('top');
+
+  this.lastStart = null;
+  this.lastEnd = null;
 }
 
 WalkontableVerticalScrollbarNative.prototype = new WalkontableOverlay();
@@ -93,6 +96,9 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
   this.fixed.style.top = this.measureBefore + 'px';
   this.fixed.style.bottom = '';
+
+  this.lastStart = this.measureBefore;
+  this.lastEnd = this.measureBefore + Handsontable.Dom.outerHeight(this.instance.wtTable.TABLE);
 };
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
@@ -114,7 +120,22 @@ WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 
-  var scrollDelta = this.getScrollPosition() - this.getTableParentOffset();
+  var scrollY = this.getScrollPosition();
+  if(this.lastEnd != null) {
+    if(scrollY > this.lastStart) {
+      var height = this.instance.wtViewport.getWorkspaceHeight();
+      if(scrollY + height < this.lastEnd) {
+        return; //do not change offsetRow if I am within last rendered viewport. Walkontable.prototype.draw will skip drawing if offsetRow is not changed
+      }
+    }
+  }
+
+  var scrollDelta = scrollY - this.getTableParentOffset();
+
+  scrollDelta -= 100; //render 100px before viewport. Change this to anything you like
+  if(scrollDelta < 0) {
+    scrollDelta = 0;
+  }
 
   var sum = 0;
   var last;
