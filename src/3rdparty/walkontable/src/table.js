@@ -140,13 +140,11 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 
   this.refreshPositions(selectionsOnly);
 
-  if (!selectionsOnly) {
-    if (!this.isWorkingOnClone()) {
-      this.instance.wtScrollbars.vertical.resetFixedPosition();
-      this.instance.wtScrollbars.horizontal.resetFixedPosition();
-      this.instance.wtScrollbars.corner.resetFixedPosition();
-      this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
-    }
+  if (!this.isWorkingOnClone()) {
+    this.instance.wtScrollbars.vertical.resetFixedPosition();
+    this.instance.wtScrollbars.horizontal.resetFixedPosition();
+    this.instance.wtScrollbars.corner.resetFixedPosition();
+    this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
   }
 
   this.instance.drawn = true;

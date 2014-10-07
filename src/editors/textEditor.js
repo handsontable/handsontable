@@ -221,7 +221,7 @@
     ///end prepare textarea position
 
 
-    var cellTopOffset = this.TD.offsetTop,
+    var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtScrollbars.vertical.getScrollPosition(),
       cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
 
     var width = $td.width()

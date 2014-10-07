@@ -1053,7 +1053,7 @@
       dataSize = this.getSettings().data.length;
 
     for (var i = 0; i < dataSize; i++) {
-      if (this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
+      if (this.getSettings().data[i].name == ContextMenu.SEPARATOR.name) {
         realSeparatorHeight += 2;
       } else {
         realEntrySize += 26;

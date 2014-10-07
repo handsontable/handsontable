@@ -13,9 +13,11 @@
    * Configure ZeroClipboard
    */
   ContextMenuCopyPaste.prototype.prepareZeroClipboard = function () {
-    ZeroClipboard.config({
-      swfPath: this.swfPath
-    });
+    if(this.swfPath) {
+      ZeroClipboard.config({
+        swfPath: this.swfPath
+      });
+    }
   };
 
   /**
@@ -123,6 +125,16 @@
       throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
 
       return false;
+    }
+
+    try {
+      var flashTest = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+    } catch(exception) {
+      if(!('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash'])) {
+        throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
+
+        return false;
+      }
     }
 
     cmCopyPaste.instance = this;

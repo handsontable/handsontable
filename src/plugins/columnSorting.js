@@ -150,13 +150,16 @@ function HandsontableColumnSorting() {
 
   function defaultSort(sortOrder) {
     return function (a, b) {
+      if(typeof a[1] == "string") a[1] = a[1].toLowerCase();
+      if(typeof b[1] == "string") b[1] = b[1].toLowerCase();
+
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null) {
+      if (a[1] === null || a[1] === "") {
         return 1;
       }
-      if (b[1] === null) {
+      if (b[1] === null || b[1] === "") {
         return -1;
       }
       if (a[1] < b[1]) return sortOrder ? -1 : 1;
@@ -244,7 +247,7 @@ function HandsontableColumnSorting() {
   };
 
   this.getColHeader = function (col, TH) {
-    if (this.getSettings().columnSorting) {
+    if (this.getSettings().columnSorting && col >= 0) {
       Handsontable.Dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
     }
   };

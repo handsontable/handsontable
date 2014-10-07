@@ -1,6 +1,10 @@
 describe("ContextMenuCopyPaste", function () {
   var id = 'testContainer';
 
+  if (typeof navigator.mimeTypes['application/x-shockwave-flash'] === "undefined") {
+    navigator.mimeTypes['application/x-shockwave-flash'] = {}; //mock Adobe Flash plugin so that contextMenuCopyPaste.js does not throw an error in PhantomJS
+  }
+
   beforeEach(function () {
     $('head').append('<script src="../../demo/js/ZeroClipboard.js"></script>');
 
