@@ -414,7 +414,8 @@
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+      var value = this.get(row, prop);
+      return Handsontable.hooks.execute(this.instance, 'beforeCopy', value, row, prop);
     }
     return '';
   };
@@ -533,7 +534,8 @@
    * @return {String}
    */
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
-    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+    var outputs = this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+    return SheetClip.stringify(outputs);
   };
 
 })(Handsontable);

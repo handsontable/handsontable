@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 07 2014 21:47:07 GMT+0200 (CEST)
+ * Date: Wed Oct 08 2014 16:45:15 GMT-0300 (Hora oficial do Brasil)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4715,7 +4715,8 @@ Handsontable.helper.toString = function (obj) {
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+      var value = this.get(row, prop);
+      return Handsontable.hooks.execute(this.instance, 'beforeCopy', value, row, prop);
     }
     return '';
   };
@@ -4834,7 +4835,8 @@ Handsontable.helper.toString = function (obj) {
    * @return {String}
    */
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
-    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+    var outputs = this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+    return SheetClip.stringify(outputs);
   };
 
 })(Handsontable);
@@ -6756,214 +6758,225 @@ var autoResize = function () {
  * @constructor
  */
 var CopyPaste = (function () {
-  var instance;
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = new CopyPasteClass();
-      } else if (instance.hasBeenDestroyed()){
-        instance.init();
-      }
+    var instance;
+    return {
+        getInstance: function () {
+            if (!instance) {
+                instance = new CopyPasteClass();
+            } else if (instance.hasBeenDestroyed()) {
+                instance.init();
+            }
 
-      instance.refCounter++;
+            instance.refCounter++;
 
-      return instance;
-    }
-  };
+            return instance;
+        }
+    };
 })();
 
 function CopyPasteClass() {
-  this.refCounter = 0;
-  this.init();
+    this.refCounter = 0;
+    this.init();
 }
 
 CopyPasteClass.prototype.init = function () {
-  var that = this
-    , style
-    , parent;
+    var that = this,
+        style, parent;
 
-  this.copyCallbacks = [];
-  this.cutCallbacks = [];
-  this.pasteCallbacks = [];
+    this.copyCallbacks = [];
+    this.cutCallbacks = [];
+    this.pasteCallbacks = [];
 
-  this.listenerElement = document.documentElement;
-  parent = document.body;
+    this.listenerElement = document.documentElement;
+    parent = document.body;
 
-  if (document.getElementById('CopyPasteDiv')) {
-    this.elDiv = document.getElementById('CopyPasteDiv');
-    this.elTextarea = this.elDiv.firstChild;
-  }
-  else {
-    this.elDiv = document.createElement('DIV');
-    this.elDiv.id = 'CopyPasteDiv';
-    style = this.elDiv.style;
-    style.position = 'fixed';
-    style.top = '-10000px';
-    style.left = '-10000px';
-    parent.appendChild(this.elDiv);
+    if (document.getElementById('CopyPasteDiv')) {
+        this.elDiv = document.getElementById('CopyPasteDiv');
+        this.elTextarea = this.elDiv.firstChild;
+    } else {
+        this.elDiv = document.createElement('DIV');
+        this.elDiv.id = 'CopyPasteDiv';
+        style = this.elDiv.style;
+        style.position = 'fixed';
+        style.top = '-10000px';
+        style.left = '-10000px';
+        parent.appendChild(this.elDiv);
 
-    this.elTextarea = document.createElement('TEXTAREA');
-    this.elTextarea.className = 'copyPaste';
-    style = this.elTextarea.style;
-    style.width = '10000px';
-    style.height = '10000px';
-    style.overflow = 'hidden';
-    this.elDiv.appendChild(this.elTextarea);
+        this.elTextarea = document.createElement('TEXTAREA');
+        this.elTextarea.className = 'copyPaste';
+        style = this.elTextarea.style;
+        style.width = '10000px';
+        style.height = '10000px';
+        style.overflow = 'hidden';
+        this.elDiv.appendChild(this.elTextarea);
 
-    if (typeof style.opacity !== 'undefined') {
-      style.opacity = 0;
-    }
-    else {
-      /*@cc_on @if (@_jscript)
+        if (typeof style.opacity !== 'undefined') {
+            style.opacity = 0;
+        } else {
+            /*@cc_on @if (@_jscript)
        if(typeof style.filter === 'string') {
        style.filter = 'alpha(opacity=0)';
        }
        @end @*/
-    }
-  }
-
-  this.keydownListener = function (event) {
-    var isCtrlDown = false;
-    if (event.metaKey) { //mac
-      isCtrlDown = true;
-    }
-    else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
-      isCtrlDown = true;
+        }
     }
 
-    if (isCtrlDown) {
-      if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
-        return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
-      }
+    this.keydownListener = function (event) {
+        var isCtrlDown = false;
+        if (event.metaKey) { //mac
+            isCtrlDown = true;
+        } else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
+            isCtrlDown = true;
+        }
 
-      that.selectNodeText(that.elTextarea);
-      setTimeout(function () {
-        that.selectNodeText(that.elTextarea);
-      }, 0);
+        if (isCtrlDown) {
+            if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
+                return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
+            }
+
+            that.selectNodeText(that.elTextarea);
+            setTimeout(function () {
+                that.selectNodeText(that.elTextarea);
+            }, 0);
+        }
+
+        /* 67 = c
+         * 86 = v
+         * 88 = x
+         */
+        if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
+            // that.selectNodeText(that.elTextarea);
+
+            if (event.keyCode === 67) {
+                setTimeout(function () {
+                    that.triggerCopy(event);
+                }, 0);
+            } else if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
+                setTimeout(function () {
+                    that.triggerCut(event);
+                }, 0);
+            } else if (event.keyCode === 86) {
+                setTimeout(function () {
+                    that.triggerPaste(event);
+                }, 0);
+            }
+        }
     }
 
-    /* 67 = c
-     * 86 = v
-     * 88 = x
-     */
-    if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      // that.selectNodeText(that.elTextarea);
-
-      if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        setTimeout(function () {
-          that.triggerCut(event);
-        }, 0);
-      }
-      else if (event.keyCode === 86) {
-        setTimeout(function () {
-          that.triggerPaste(event);
-        }, 0);
-      }
-    }
-  }
-
-  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
+    this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };
 
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPasteClass.prototype.selectNodeText = function (el) {
-  el.select();
+    el.select();
 };
 
 //http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
 CopyPasteClass.prototype.getSelectionText = function () {
-  var text = "";
-  if (window.getSelection) {
-    text = window.getSelection().toString();
-  } else if (document.selection && document.selection.type != "Control") {
-    text = document.selection.createRange().text;
-  }
-  return text;
+    var text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    return text;
 };
 
 CopyPasteClass.prototype.copyable = function (str) {
-  if (typeof str !== 'string' && str.toString === void 0) {
-    throw new Error('copyable requires string parameter');
-  }
-  this.elTextarea.value = str;
+    if (typeof str !== 'string' && str.toString === void 0) {
+        throw new Error('copyable requires string parameter');
+    }
+    this.elTextarea.value = str;
 };
 
-/*CopyPasteClass.prototype.onCopy = function (fn) {
-  this.copyCallbacks.push(fn);
-};*/
+CopyPasteClass.prototype.onCopy = function (fn) {
+    this.copyCallbacks.push(fn);
+};
 
 CopyPasteClass.prototype.onCut = function (fn) {
-  this.cutCallbacks.push(fn);
+    this.cutCallbacks.push(fn);
 };
 
 CopyPasteClass.prototype.onPaste = function (fn) {
-  this.pasteCallbacks.push(fn);
+    this.pasteCallbacks.push(fn);
 };
 
 CopyPasteClass.prototype.removeCallback = function (fn) {
-  var i, ilen;
-  for (i = 0, ilen = this.copyCallbacks.length; i < ilen; i++) {
-    if (this.copyCallbacks[i] === fn) {
-      this.copyCallbacks.splice(i, 1);
-      return true;
+    var i, ilen;
+    for (i = 0, ilen = this.copyCallbacks.length; i < ilen; i++) {
+        if (this.copyCallbacks[i] === fn) {
+            this.copyCallbacks.splice(i, 1);
+            return true;
+        }
     }
-  }
-  for (i = 0, ilen = this.cutCallbacks.length; i < ilen; i++) {
-    if (this.cutCallbacks[i] === fn) {
-      this.cutCallbacks.splice(i, 1);
-      return true;
+    for (i = 0, ilen = this.cutCallbacks.length; i < ilen; i++) {
+        if (this.cutCallbacks[i] === fn) {
+            this.cutCallbacks.splice(i, 1);
+            return true;
+        }
     }
-  }
-  for (i = 0, ilen = this.pasteCallbacks.length; i < ilen; i++) {
-    if (this.pasteCallbacks[i] === fn) {
-      this.pasteCallbacks.splice(i, 1);
-      return true;
+    for (i = 0, ilen = this.pasteCallbacks.length; i < ilen; i++) {
+        if (this.pasteCallbacks[i] === fn) {
+            this.pasteCallbacks.splice(i, 1);
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
+};
+
+CopyPasteClass.prototype.triggerCopy = function (event, str) {
+    var that = this;
+    if (that.copyCallbacks) {
+        setTimeout(function () {
+            var val = (str || that.elTextarea.value).replace(/\n$/, ''); //remove trailing newline
+            for (var i = 0, ilen = that.copyCallbacks.length; i < ilen; i++) {
+                that.copyCallbacks[i](val, event);
+            }
+        }, 50);
+    }
 };
 
 CopyPasteClass.prototype.triggerCut = function (event) {
-  var that = this;
-  if (that.cutCallbacks) {
-    setTimeout(function () {
-      for (var i = 0, ilen = that.cutCallbacks.length; i < ilen; i++) {
-        that.cutCallbacks[i](event);
-      }
-    }, 50);
-  }
+    var that = this;
+    if (that.cutCallbacks) {
+        setTimeout(function () {
+            for (var i = 0, ilen = that.cutCallbacks.length; i < ilen; i++) {
+                that.cutCallbacks[i](event);
+            }
+        }, 50);
+    }
 };
 
 CopyPasteClass.prototype.triggerPaste = function (event, str) {
-  var that = this;
-  if (that.pasteCallbacks) {
-    setTimeout(function () {
-      var val = (str || that.elTextarea.value).replace(/\n$/, ''); //remove trailing newline
-      for (var i = 0, ilen = that.pasteCallbacks.length; i < ilen; i++) {
-        that.pasteCallbacks[i](val, event);
-      }
-    }, 50);
-  }
+    var that = this;
+    if (that.pasteCallbacks) {
+        setTimeout(function () {
+            var val = (str || that.elTextarea.value).replace(/\n$/, ''); //remove trailing newline
+            for (var i = 0, ilen = that.pasteCallbacks.length; i < ilen; i++) {
+                that.pasteCallbacks[i](val, event);
+            }
+        }, 50);
+    }
 };
 
 CopyPasteClass.prototype.destroy = function () {
 
-  if(!this.hasBeenDestroyed() && --this.refCounter == 0){
-    if (this.elDiv && this.elDiv.parentNode) {
-      this.elDiv.parentNode.removeChild(this.elDiv);
-      this.elDiv = null;
-      this.elTextarea = null;
+    if (!this.hasBeenDestroyed() && --this.refCounter == 0) {
+        if (this.elDiv && this.elDiv.parentNode) {
+            this.elDiv.parentNode.removeChild(this.elDiv);
+            this.elDiv = null;
+            this.elTextarea = null;
+        }
+
+        this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
+
     }
-
-    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
-
-  }
 
 };
 
 CopyPasteClass.prototype.hasBeenDestroyed = function () {
-  return !this.refCounter;
+    return !this.refCounter;
 };
 
 //old version used this:
@@ -6971,29 +6984,27 @@ CopyPasteClass.prototype.hasBeenDestroyed = function () {
 // - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
 //but that cannot work with jQuery.trigger
 CopyPasteClass.prototype._bindEvent = (function () {
-  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-    return function (elem, type, cb) {
-      $(elem).on(type + '.copypaste', cb);
-    };
-  }
-  else {
-    return function (elem, type, cb) {
-      elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-    };
-  }
+    if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
+        return function (elem, type, cb) {
+            $(elem).on(type + '.copypaste', cb);
+        };
+    } else {
+        return function (elem, type, cb) {
+            elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
+        };
+    }
 })();
 
 CopyPasteClass.prototype._unbindEvent = (function () {
-  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-    return function (elem, type, cb) {
-      $(elem).off(type + '.copypaste', cb);
-    };
-  }
-  else {
-    return function (elem, type, cb) {
-      elem.removeEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-    };
-  }
+    if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
+        return function (elem, type, cb) {
+            $(elem).off(type + '.copypaste', cb);
+        };
+    } else {
+        return function (elem, type, cb) {
+            elem.removeEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
+        };
+    }
 })();
 // json-patch-duplex.js 0.3.6
 // (c) 2013 Joachim Wester
@@ -7469,6 +7480,7 @@ Handsontable.PluginHookClass = (function () {
       beforeAutofill: [],
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
+      beforeCopy : [],
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
@@ -11016,132 +11028,142 @@ if (typeof Handsontable !== 'undefined') {
 
 (function (Handsontable, CopyPaste, SheetClip) {
 
-  function CopyPastePlugin(instance) {
-    this.copyPasteInstance = CopyPaste.getInstance();
+    function CopyPastePlugin(instance) {
+        this.copyPasteInstance = CopyPaste.getInstance();
 
-    this.copyPasteInstance.onCut(onCut);
-    this.copyPasteInstance.onPaste(onPaste);
-    var plugin = this;
+        this.copyPasteInstance.onCut(onCut);
+        this.copyPasteInstance.onPaste(onPaste);
+        this.copyPasteInstance.onCopy(onCopy);
+        var plugin = this;
 
-    instance.addHook('beforeKeyDown', onBeforeKeyDown);
+        instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
-    function onCut() {
-      if (!instance.isListening()) {
-        return;
-      }
-
-      instance.selection.empty();
-    }
-
-    function onPaste(str) {
-      if (!instance.isListening() || !instance.selection.isSelected()) {
-        return;
-      }
-
-      var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
-        , inputArray = SheetClip.parse(input)
-        , selected = instance.getSelected()
-        , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
-        , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
-        , cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo)
-        , topLeftCorner = cellRange.getTopLeftCorner()
-        , bottomRightCorner = cellRange.getBottomRightCorner()
-        , areaStart = topLeftCorner
-        , areaEnd = new WalkontableCellCoords(
-          Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-          Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
-        );
-
-      instance.addHookOnce('afterChange', function (changes, source) {
-        if (changes && changes.length) {
-          this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col);
-        }
-      });
-
-      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
-    };
-
-    function onBeforeKeyDown (event) {
-      if (instance.getSelected()) {
-        if (Handsontable.helper.isCtrlKey(event.keyCode)) {
-          //when CTRL is pressed, prepare selectable text in textarea
-          //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-          plugin.setCopyableText();
-          event.stopImmediatePropagation();
-          return;
+        function onCopy(str) {
         }
 
-        var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+        function onCut() {
+            if (!instance.isListening()) {
+                return;
+            }
 
-        if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
-          instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
+            instance.selection.empty();
         }
-      }
-    }
 
-    this.destroy = function () {
-      this.copyPasteInstance.removeCallback(onCut);
-      this.copyPasteInstance.removeCallback(onPaste);
-      this.copyPasteInstance.destroy();
-      instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-    };
+        function onPaste(str) {
+            if (!instance.isListening() || !instance.selection.isSelected()) {
+                return;
+            }
 
-    instance.addHook('afterDestroy', Handsontable.helper.proxy(this.destroy, this));
+            var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
+                ,
+                inputArray = SheetClip.parse(input),
+                selected = instance.getSelected(),
+                coordsFrom = new WalkontableCellCoords(selected[0], selected[1]),
+                coordsTo = new WalkontableCellCoords(selected[2], selected[3]),
+                cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo),
+                topLeftCorner = cellRange.getTopLeftCorner(),
+                bottomRightCorner = cellRange.getBottomRightCorner(),
+                areaStart = topLeftCorner,
+                areaEnd = new WalkontableCellCoords(
+                    Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+                    Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
+                );
 
-    this.triggerPaste = Handsontable.helper.proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
-    this.triggerCut = Handsontable.helper.proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
+            instance.addHookOnce('afterChange', function (changes, source) {
+                if (changes && changes.length) {
+                    this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col);
+                }
+            });
+            instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+        };
 
-    /**
-     * Prepares copyable text in the invisible textarea
-     */
-    this.setCopyableText = function () {
+        function onBeforeKeyDown(event) {
+            if (instance.getSelected()) {
+                if (Handsontable.helper.isCtrlKey(event.keyCode)) {
+                    //when CTRL is pressed, prepare selectable text in textarea
+                    //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+                    plugin.setCopyableText();
+                    event.stopImmediatePropagation();
+                    return;
+                }
 
-      var settings = instance.getSettings();
-      var copyRowsLimit = settings.copyRowsLimit;
-      var copyColsLimit = settings.copyColsLimit;
+                var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
-      var selRange = instance.getSelectedRange();
-      var topLeft = selRange.getTopLeftCorner();
-      var bottomRight = selRange.getBottomRightCorner();
-      var startRow = topLeft.row;
-      var startCol = topLeft.col;
-      var endRow = bottomRight.row;
-      var endCol = bottomRight.col;
-      var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
-      var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
+                if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
+                    instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
+                }
+            }
+        }
 
-      instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
+        this.destroy = function () {
+            this.copyPasteInstance.removeCallback(onCut);
+            this.copyPasteInstance.removeCallback(onPaste);
+            this.copyPasteInstance.destroy();
+            instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+        };
 
-      if (endRow !== finalEndRow || endCol !== finalEndCol) {
-        Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
-      }
-    };
+        instance.addHook('afterDestroy', Handsontable.helper.proxy(this.destroy, this));
 
-  }
+        this.triggerPaste = Handsontable.helper.proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
+        this.triggerCut = Handsontable.helper.proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
 
+        /**
+         * Prepares copyable text in the invisible textarea
+         */
+        this.setCopyableText = function () {
 
+            var settings = instance.getSettings();
+            var copyRowsLimit = settings.copyRowsLimit;
+            var copyColsLimit = settings.copyColsLimit;
 
-  function init() {
-    var instance  = this;
-    var pluginEnabled = instance.getSettings().copyPaste !== false;
+            var selRange = instance.getSelectedRange();
+            var topLeft = selRange.getTopLeftCorner();
+            var bottomRight = selRange.getBottomRightCorner();
+            var startRow = topLeft.row;
+            var startCol = topLeft.col;
+            var endRow = bottomRight.row;
+            var endCol = bottomRight.col;
+            var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
+            var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
-    if(pluginEnabled && !instance.copyPaste){
+            /* formatting before set as copyable text*/
+            /*var format = instance.getCellMeta(startRow, startCol).format;
+            var data = instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol);
+            var formattedValue = numeral(data).format(format);
+            */
 
-      instance.copyPaste = new CopyPastePlugin(instance);
+            instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
 
-    } else if (!pluginEnabled && instance.copyPaste) {
-
-      instance.copyPaste.destroy();
-      delete instance.copyPaste;
+            if (endRow !== finalEndRow || endCol !== finalEndCol) {
+                Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+            }
+        };
 
     }
 
-  }
 
-  Handsontable.hooks.add('afterInit', init);
-  Handsontable.hooks.add('afterUpdateSettings', init);
 
-  Handsontable.hooks.register('afterCopyLimit');
+    function init() {
+        var instance = this;
+        var pluginEnabled = instance.getSettings().copyPaste !== false;
+
+        if (pluginEnabled && !instance.copyPaste) {
+
+            instance.copyPaste = new CopyPastePlugin(instance);
+
+        } else if (!pluginEnabled && instance.copyPaste) {
+
+            instance.copyPaste.destroy();
+            delete instance.copyPaste;
+
+        }
+
+    }
+
+    Handsontable.hooks.add('afterInit', init);
+    Handsontable.hooks.add('afterUpdateSettings', init);
+
+    Handsontable.hooks.register('afterCopyLimit');
 })(Handsontable, CopyPaste, SheetClip);
 (function (Handsontable) {
 
