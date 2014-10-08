@@ -47,27 +47,21 @@
       Handsontable.Dom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
-    var $input = $(INPUT);
-
     if (cellProperties.readOnly) {
       eventManager.addEventListener(INPUT,'click',function (event) {
-//      $input.on('click', function (event) {
         event.preventDefault();
       });
     }
     else {
       eventManager.addEventListener(INPUT,'mousedown',function (event) {
-//      $input.on('mousedown', function (event) {
         event.stopPropagation(); //otherwise can confuse cell mousedown handler
       });
 
       eventManager.addEventListener(INPUT,'mouseup',function (event) {
-//      $input.on('mouseup', function (event) {
         event.stopPropagation(); //otherwise can confuse cell dblclick handler
       });
 
       eventManager.addEventListener(INPUT,'change',function () {
-//      $input.on('change', function(){
         if (this.checked) {
           instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
         }
@@ -83,7 +77,19 @@
       };
 
       instance.addHook('beforeKeyDown', function(event){
-        if(event.keyCode == Handsontable.helper.keyCode.SPACE){
+
+        if (event != null && event.isImmediatePropagationEnabled == null) {
+          event.stopImmediatePropagation = function () {
+            this.isImmediatePropagationEnabled = false;
+            this.cancelBubble = true;
+          };
+          event.isImmediatePropagationEnabled = true;
+          event.isImmediatePropagationStopped = function () {
+            return !this.isImmediatePropagationEnabled;
+          };
+        }
+
+        if(event.keyCode == Handsontable.helper.keyCode.SPACE || event.keyCode == Handsontable.helper.keyCode.ENTER){
 
           var cell, checkbox, cellProperties;
 
@@ -107,7 +113,7 @@
 
                 for(var i = 0, len = checkbox.length; i < len; i++){
                   checkbox[i].checked = !checkbox[i].checked;
-                  $(checkbox[i]).trigger('change');
+                  eventManager.fireEvent(checkbox[i], 'change');
                 }
 
               }

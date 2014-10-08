@@ -41,8 +41,10 @@ Handsontable.Dom.isChildOf = function (child, parent) {
  */
 Handsontable.Dom.index = function (elem) {
   var i = 0;
-  while (elem = elem.previousSibling) {
-    ++i
+  if (elem.previousSibling) {
+    while (elem = elem.previousSibling) {
+      ++i
+    }
   }
   return i;
 };

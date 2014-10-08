@@ -67,8 +67,6 @@ describe('FillHandle', function () {
   });
 
   it('should add custom value after autofill', function () {
-    var ev;
-
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -82,29 +80,10 @@ describe('FillHandle', function () {
     });
     selectCell(0, 0);
 
-    ev = jQuery.Event('mousedown');
-    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
-
-//    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
-//
-//    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
-//    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
-
-    this.$container.find('tr:eq(0) td:eq(0)').simulate('mousedown',{
-      target:this.$container.find('.wtBorder.corner')[0] //fill handle
-    });
-
-    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseenter');
-    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseenter');
-
-
-    ev = jQuery.Event('mouseup');
-    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
-
-    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
-    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseup',{
-      target:this.$container.find('.wtBorder.corner')[0]
-    });
+    this.$container.find('.wtBorder.corner').simulate('mousedown');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+    this.$container.find('.wtBorder.corner').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 0, 2, 0]);
     expect(getDataAtCell(1, 0)).toEqual("test");
@@ -129,19 +108,10 @@ describe('FillHandle', function () {
     });
     selectCell(1, 1);
 
-    ev = jQuery.Event('mousedown');
-    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
-
-    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
-
-    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
-    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
-
-    ev = jQuery.Event('mouseup');
-    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
-
-    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
-
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+    this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([1, 1, 2, 1]);
     expect(getDataAtCell(2, 1)).toEqual("test");
@@ -214,8 +184,8 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
-    this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     expect(hot.countRows()).toBe(4);
     waits(300);
@@ -223,7 +193,7 @@ describe('FillHandle', function () {
     runs(function () {
       expect(hot.countRows()).toBe(5);
 
-      this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
+      this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
       waits(300);
 
@@ -246,8 +216,8 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
-    var ev = jQuery.Event('mousemove')
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    var ev = {}
       , $lastRow = this.$container.find('tr:last-child td:eq(2)');
 
     expect(hot.countRows()).toBe(4);
@@ -255,7 +225,7 @@ describe('FillHandle', function () {
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
 
-    $(document).trigger(ev);
+    $(document).simulate('mousemove', ev);
 
     waits(300);
 
@@ -263,7 +233,7 @@ describe('FillHandle', function () {
       expect(hot.countRows()).toBe(5);
 
       ev.clientY = $lastRow.offset().top + 150;
-      $(document).trigger(ev);
+      $(document).simulate('mousemove',ev);
 
       waits(300);
 

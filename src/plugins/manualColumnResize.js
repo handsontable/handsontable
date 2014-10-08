@@ -20,7 +20,9 @@ function HandsontableManualColumnResize() {
     , startOffset
     , handle = document.createElement('DIV')
     , guide = document.createElement('DIV')
-    , $window = $(window);
+    , $window = $(window)
+    , eventManager = Handsontable.eventManager(this);
+
 
   handle.className = 'manualColumnResizer';
   guide.className = 'manualColumnResizerGuide';
@@ -82,13 +84,25 @@ function HandsontableManualColumnResize() {
     var dblclick = 0;
     var autoresizeTimeout = null;
 
-    instance.rootElement.on('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th', function (e) {
-      if (!pressed) {
-        setupHandlePosition.call(instance, e.currentTarget);
-      }
-    });
 
-    instance.rootElement.on('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer', function (e) {
+
+    eventManager.addEventListener(instance.rootElement[0], 'mouseenter',function (e) {
+      if (e.target.nodeName == 'TH') {
+        if (!pressed) {
+          setupHandlePosition.call(instance, e.target);
+        }
+      }
+    },true);
+
+//    instance.rootElement.on('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th', function (e) {
+//      if (!pressed) {
+//        setupHandlePosition.call(instance, e.currentTarget);
+//      }
+//    });
+
+    eventManager.addEventListener(instance.rootElement[0],'mousedown', '.manualColumnResizer', function (e) {
+      console.log(e.target);
+//    instance.rootElement.on('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer', function (e) {
       setupGuidePosition.call(instance);
       pressed = instance;
 
@@ -112,7 +126,8 @@ function HandsontableManualColumnResize() {
       newSize = startWidth;
     });
 
-    $window.on('mousemove.manualColumnResize.' + instance.guid, function (e) {
+    eventManager.addEventListener(instance.rootElement[0],'mousemove', function (e) {
+//    $window.on('mousemove.manualColumnResize.' + instance.guid, function (e) {
       if (pressed) {
         currentWidth = startWidth + (e.pageX - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
@@ -121,7 +136,8 @@ function HandsontableManualColumnResize() {
       }
     });
 
-    $window.on('mouseup.manualColumnResize.' + instance.guid, function () {
+    eventManager.addEventListener(window, 'mouseup', function (){
+//    $window.on('mouseup.manualColumnResize.' + instance.guid, function () {
       if (pressed) {
         hideHandleAndGuide();
         pressed = false;
@@ -144,10 +160,15 @@ function HandsontableManualColumnResize() {
 
   var unbindEvents = function(){
     var instance = this;
-    instance.rootElement.off('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th');
-    instance.rootElement.off('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer');
-    $window.off('mousemove.manualColumnResize.' + instance.guid);
-    $window.off('mouseup.manualColumnResize.' + instance.guid);
+
+    eventManager.removeEventListener(instance.rootElement[0],'mouseenter');
+    eventManager.removeEventListener(instance.rootElement[0],'mousedown');
+    eventManager.removeEventListener(window,'mousemove');
+    eventManager.removeEventListener(window,'mouseup');
+//    instance.rootElement.off('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th');
+//    instance.rootElement.off('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer');
+//    $window.off('mousemove.manualColumnResize.' + instance.guid);
+//    $window.off('mouseup.manualColumnResize.' + instance.guid);
   };
 
   this.beforeInit = function () {

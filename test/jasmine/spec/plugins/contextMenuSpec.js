@@ -38,14 +38,8 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       selectCell(0, 0);
-      var cellOffset = $(getCell(0, 0)).offset();
 
-      var event = $.Event('contextmenu', {
-        pageX: cellOffset.left,
-        pageY: cellOffset.top
-      });
-
-			this.$container.find('.wtBorder.current:eq(0)').trigger(event);
+			this.$container.find('.wtBorder.current:eq(0)').simulate('contextmenu');
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
@@ -76,6 +70,7 @@ describe('ContextMenu', function () {
       var hot = handsontable({
         contextMenu: true
       });
+
 
 			hot.contextMenu.disable();
 
@@ -2014,7 +2009,7 @@ describe('ContextMenu', function () {
       expect(hot1.countRows()).toEqual(5);
       expect(hot2.countRows()).toEqual(5);
 
-      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').mousedown(); //insert row above
+      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown'); //insert row above
 
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(5);
@@ -2025,7 +2020,7 @@ describe('ContextMenu', function () {
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(5);
 
-      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').mousedown(); //insert row above
+      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown'); //insert row above
 
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(6);
@@ -2042,12 +2037,10 @@ describe('ContextMenu', function () {
         var cell = hot.getCell(selected[0], selected[1]);
         var cellOffset = $(cell).offset();
 
-        var ev = $.Event('contextmenu', {
+        $(cell).simulate('contextmenu',{
           pageX: cellOffset.left,
           pageY: cellOffset.top
         });
-
-        $(cell).trigger(ev);
       }
 
     });

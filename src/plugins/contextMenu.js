@@ -398,12 +398,8 @@
 
   ContextMenu.prototype.bindMouseEvents = function () {
 
-
     function contextMenuOpenListener(event) {
       var settings = this.instance.getSettings();
-//      if(!settings.contextMenu) {
-//        return;
-//      }
 
       this.closeAll();
 
@@ -428,9 +424,9 @@
 
 //      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
+    var eventManager = Handsontable.eventManager(this.instance);
 
-    this.eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
-
+    eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 //    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
@@ -476,11 +472,12 @@
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
-    this.instance.rootElement.off('contextmenu.htContextMenu');
-
-
-
-    $(document).off('mousedown.htContextMenu');
+    this.eventManager.clear();
+    var eventManager = Handsontable.eventManager(this.instance);
+    eventManager.removeEventListener(this.instance.rootElement[0], 'contextmenu');
+//    this.instance.rootElement.off('contextmenu.htContextMenu');
+//    this.eventManager.removeEventListener(document, 'mousedown');
+//    $(document).off('mousedown.htContextMenu');
   };
 
   ContextMenu.prototype.show = function (menu, items) {
@@ -489,13 +486,16 @@
 
     var that = this;
 
+    this.eventManager.removeEventListener(menu, 'mousedown');
+    this.eventManager.addEventListener(menu,'mousedown', function (event) {
+      that.performAction(event, menu)
+    });
 
-
-    $(menu)
-      .off('mousedown.htContextMenu')
-      .on('mousedown.htContextMenu', function (event) {
-        that.performAction(event, menu)
-      });
+//    $(menu)
+//      .off('mousedown.htContextMenu')
+//      .on('mousedown.htContextMenu', function (event) {
+//        that.performAction(event, menu)
+//      });
 
     $(menu).handsontable({
       data: items,
@@ -527,7 +527,7 @@
 
   ContextMenu.prototype.close = function (menu) {
     this.hide(menu);
-    $(document).off('mousedown.htContextMenu');
+    this.eventManager.clear();
     this.unbindTableEvents();
     this.instance.listen();
   };
@@ -578,7 +578,8 @@
     if (itemIsDisabled(item)) {
       Handsontable.Dom.addClass(TD, 'htDisabled');
 
-      $(wrapper).on('mouseenter', function () {
+      this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
+//      $(wrapper).on('mouseenter', function () {
         instance.deselectCell();
       });
 
@@ -586,7 +587,9 @@
       if (isSubMenu(item)) {
         Handsontable.Dom.addClass(TD, 'htSubmenu');
 
-        $(wrapper).on('mouseenter', function () {
+
+        this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
+//        $(wrapper).on('mouseenter', function () {
           instance.selectCell(row, col);
         });
 
@@ -594,7 +597,8 @@
         Handsontable.Dom.removeClass(TD, 'htSubmenu');
         Handsontable.Dom.removeClass(TD, 'htDisabled');
 
-        $(wrapper).on('mouseenter', function () {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
+//        $(wrapper).on('mouseenter', function () {
           instance.selectCell(row, col);
         });
       }
@@ -644,6 +648,7 @@
   };
 
   ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
+    event = this.eventManager.serveImmediatePropagation(event);
     var contextMenu = this;
     var instance = $(menu).handsontable('getInstance');
     var selection = instance.getSelected();

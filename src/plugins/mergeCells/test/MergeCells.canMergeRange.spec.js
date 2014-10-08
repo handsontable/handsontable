@@ -169,22 +169,22 @@ describe("handsontable.MergeCells", function () {
         ]
       });
 
-      $(hot.getCell(6,6)).trigger('mousedown');
+      $(hot.getCell(6,6)).simulate('mousedown');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(1,1)).trigger('mouseenter');
+      $(hot.getCell(1,1)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(3,3)).trigger('mouseenter');
+      $(hot.getCell(3,3)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(4,4)).trigger('mouseenter');
+      $(hot.getCell(4,4)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);

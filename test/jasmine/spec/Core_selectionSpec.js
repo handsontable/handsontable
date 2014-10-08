@@ -363,14 +363,12 @@ describe('Core_selection', function () {
       }
     });
 
-    // TODO - simulate select
-
     this.$container.find('tr:eq(0) td:eq(0)').simulate('mousedown');
-    this.$container.find('tr:eq(0) td:eq(1)').simulate('mouseenter');
-    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseenter');
+    this.$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
+    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseover');
 
 
-    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseup',{which:1});
+    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 0, 1, 3]);
     expect(tick).toEqual(3);

@@ -19,19 +19,21 @@ describe('Core_destroy', function () {
   });
 
   it('should remove events from the root element, document element and window', function () {
-    handsontable();
+    var x = handsontable();
 
     //expect($._data(this.$container[0], 'events')).toBeTruthy(); //not true anymore after fragmentSelection feature, which changed bindings to documentElement
-    expect($._data(document.documentElement, 'events')).toBeTruthy();
-    expect($._data(window, 'events')).toBeTruthy();
+    expect(x.eventListeners.length > 0).toBeTruthy();
+//    expect($._data(document.documentElement, 'events')).toBeTruthy();
+//    expect($._data(window, 'events')).toBeTruthy();
 
     destroy();
+    expect(x.eventListeners).toBeNull();
     $(document.documentElement).off('.copypaste'); //remove copypaste.js listeners, which are not removed by destroy (because copypaste is a singleton for whole page)
 
-    expect($._data(this.$container[0], 'events')).toBeFalsy();
-    expect($._data(document.documentElement, 'events')).toBeFalsy();
-    expect($._data(document.body, 'events')).toBeFalsy();
-    expect($._data(window, 'events')).toBeFalsy();
+//    expect($._data(this.$container[0], 'events')).toBeFalsy();
+//    expect($._data(document.documentElement, 'events')).toBeFalsy();
+//    expect($._data(document.body, 'events')).toBeFalsy();
+//    expect($._data(window, 'events')).toBeFalsy();
   });
 
   it('should NOT remove events from document element and window for other Handsontable instances on the page', function () {

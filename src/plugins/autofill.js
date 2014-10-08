@@ -15,11 +15,11 @@
     this.instance = instance;
     this.addingStarted = false;
 
-    var $document = $(document),
-      wtOnCellCornerMouseDown,
+    var  wtOnCellCornerMouseDown,
       wtOnCellMouseOver,
       mouseDownOnCellCorner = false,
-      plugin = this;
+      plugin = this,
+      eventManager = Handsontable.eventManager(instance);
 
 
     var mouseUpCallback = function (event) {
@@ -36,11 +36,11 @@
       }
     };
 
-    $(document).off('mouseup.autofill.' + instance.guid, this.instance.rootElement).on('mouseup.autofill.' + instance.guid, this.instance.rootElement,  function (event) {
+    eventManager.addEventListener(document, 'mouseup', function (event) {
       mouseUpCallback(event);
     });
 
-    $(document).off('mousemove.moveOutside_' + instance.guid).on('mousemove.moveOutside_' + instance.guid, function (event) {
+    eventManager.addEventListener(document,'mousemove', function (event){
       if (!plugin.instance.autofill) {
         return 0;
       }

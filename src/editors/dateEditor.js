@@ -48,8 +48,7 @@
     /**
      * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
      */
-//    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
-    this.$datePicker.on('mousedown', function (event) {
+    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
       event.stopPropagation();
     });
 

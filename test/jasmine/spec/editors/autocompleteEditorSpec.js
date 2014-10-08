@@ -586,7 +586,7 @@ describe('AutocompleteEditor', function () {
       runs(function () {
         expect(autocompleteEditor().is(":visible")).toBe(true);
 
-        $('body').mousedown();
+        $('body').simulate('mousedown');
 
         expect(autocompleteEditor().is(":visible")).toBe(false);
       });

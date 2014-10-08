@@ -178,8 +178,7 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDown(Handsontable.helper.keyCode.CONTROL_LEFT);
-//      $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true}));
+
       $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true});
       waits(0);
 

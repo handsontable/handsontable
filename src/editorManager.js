@@ -219,7 +219,6 @@
 
       function onDblClick(event, coords, elem) {
         if(elem.nodeName == "TD") { //may be TD or TH
-          //that.instance.destroyEditor();
           that.openEditor();
         }
       }

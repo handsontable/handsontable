@@ -15,7 +15,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     , instance = this
     , GridSettings = function () {}
     , $document = $(document.documentElement)
-    , $body = $(document.body);
+    , $body = $(document.body)
+    , eventManager = Handsontable.eventManager(instance);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
@@ -1908,6 +1909,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.destroy = function () {
+
     instance._clearTimeouts();
     if (instance.view) { //in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -1915,9 +1917,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.rootElement.empty();
     instance.rootElement.removeData('handsontable');
     instance.rootElement.off('.handsontable');
-    $(window).off('.' + instance.guid);
-    $document.off('.' + instance.guid);
-    $body.off('.' + instance.guid);
+
+    eventManager.clear();
+
+//    $(window).off('.' + instance.guid);
+//    $document.off('.' + instance.guid);
+//    $body.off('.' + instance.guid);
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
 
@@ -1936,6 +1941,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
     }
+
+//    eventManager.clear();
 
     //replace private properties with null (restores memory)
     //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests

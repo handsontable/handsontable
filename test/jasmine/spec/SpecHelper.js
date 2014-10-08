@@ -66,15 +66,11 @@ var contextMenu = function () {
   var cell = getCell(selected[0], selected[1]);
   var cellOffset = $(cell).offset();
 
-//  var ev = $.Event('contextmenu', {
-  var ev = {
+
+  $(cell).simulate('contextmenu',{
     pageX: cellOffset.left,
     pageY: cellOffset.top
-  };
-
-  $(cell).trigger('contextmenu', ev);
-//  console.log(cell)
-//  $(cell).simulate('contextmenu', ev);
+  });
 };
 
 var closeContextMenu = function () {
