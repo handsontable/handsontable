@@ -418,7 +418,9 @@ describe('ContextMenu', function () {
     it("should insert column on the left of selection", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true
+        contextMenu: true,
+        width: 400,
+        height: 400
       });
 
       var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');

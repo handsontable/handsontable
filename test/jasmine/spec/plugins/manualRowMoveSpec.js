@@ -177,18 +177,18 @@ describe('manualRowMove', function () {
 
     selectCell(7, 0);
 
-    var lastVisibleRowIndex = hot.view.wt.wtTable.getLastVisibleRow();
+    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
 
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
 
     waits(500);
 
     runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex);
 
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('9');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('9');
     });
   });
 
@@ -221,17 +221,17 @@ describe('manualRowMove', function () {
 
     selectCell(7, 0);
 
-    var lastVisibleRowIndex = hot.view.wt.wtTable.getLastVisibleRow();
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
 
     waits(500);
 
     runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex - 1);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex - 1);
 
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
     });
   });
 

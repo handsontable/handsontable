@@ -137,7 +137,7 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it("getCell should only return cells from visible rows", function () {
+  it("getCell should only return cells from rendered rows", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -151,8 +151,8 @@ describe('WalkontableTable', function () {
 
     expect(wt.wtTable.getCell(new WalkontableCellCoords(7, 0)) instanceof HTMLElement).toBe(true);
     expect($table.find('tr:eq(10) td:first-child').text()).toEqual(this.data[10][0].toString())
-    expect(wt.wtTable.getCell(new WalkontableCellCoords(10, 0))).toBe(-2); //exit code
     expect(wt.wtTable.getCell(new WalkontableCellCoords(20, 0))).toBe(-2); //exit code
+    expect(wt.wtTable.getCell(new WalkontableCellCoords(25, 0))).toBe(-2); //exit code
   });
 
   it("getCoords should return coords of TD", function () {
@@ -431,7 +431,7 @@ describe('WalkontableTable', function () {
     expect(count).toBe(oldCount);
   });
 
-  it("should ignore selectionsOnly == true when grid was scrolled", function () {
+  it("should not ignore selectionsOnly == true when grid was scrolled by amount of rows that doesn't exceed the maxOuts settings", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
@@ -449,7 +449,34 @@ describe('WalkontableTable', function () {
       });
     wt.draw();
     var oldCount = count;
-    wt.scrollVertical(1);
+
+    var maxOuts = wt.wtTable.getRowStrategy().maxOuts;
+    wt.scrollVertical(maxOuts - 2);
+    wt.draw(true);
+    expect(count).not.toBeGreaterThan(oldCount);
+  });
+
+  it("should ignore selectionsOnly == true when grid was scrolled by amount of rows that exceeds the maxOuts settings", function () {
+    var count = 0
+      , wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 201,
+        height: 100,
+        offsetRow: 0,
+        columnWidth: 100,
+        cellRenderer: function (row, column, TD) {
+          count++;
+          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        }
+      });
+    wt.draw();
+    var oldCount = count;
+
+    var maxOuts = wt.wtTable.getRowStrategy().maxOuts;
+    wt.scrollVertical(maxOuts + 2);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -637,7 +664,7 @@ describe('WalkontableTable', function () {
         height: 185
       });
       wt.draw();
-      wt.scrollVertical(1);
+      wt.scrollVertical(2);
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
     });

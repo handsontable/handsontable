@@ -90,7 +90,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     }
 
   } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
-    this.scrollVertical(coords.row - this.instance.wtTable.getFirstVisibleRow());
+    this.scrollVertical(coords.row - this.instance.wtTable.getFirstRenderedRow());
   }
 };
 

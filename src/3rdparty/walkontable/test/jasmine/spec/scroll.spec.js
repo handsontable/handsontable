@@ -185,7 +185,7 @@ describe('WalkontableScroll', function () {
       });
       wt.draw();
       var height = $container[0].clientHeight;
-      var visibleRowCount = Math.ceil(height/23);
+      var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
       expect(wt.getViewport()).toEqual([0, 0, visibleRowCount - 1, 2]);
     });
@@ -205,7 +205,7 @@ describe('WalkontableScroll', function () {
       });
       wt.draw();
       var height = $container[0].clientHeight;
-      var visibleRowCount = Math.ceil(height/23);
+      var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
 
@@ -232,7 +232,7 @@ describe('WalkontableScroll', function () {
       wt.draw();
 
       var height = $container[0].clientHeight;
-      var visibleRowCount = Math.ceil(height/23);
+      var visibleRowCount = Math.floor(height/23);
 
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
@@ -272,7 +272,7 @@ describe('WalkontableScroll', function () {
       wt.draw();
 
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([5, 0, 13, 2]);
+      expect(wt.getViewport()).toEqual([5, 0, 12, 2]);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {
@@ -290,7 +290,9 @@ describe('WalkontableScroll', function () {
       wt.draw();
       wt.scrollViewport(new WalkontableCellCoords(20, 0)).draw();
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(12, 0));
+
+      var firstVisibleIndex = wt.wtTable.getFirstVisibleRow() - wt.wtTable.getFirstRenderedRow() + 1;
+      expect(wt.wtTable.getCoords($table.find('tbody tr:nth-child(' + firstVisibleIndex + ') td:first')[0])).toEqual(new WalkontableCellCoords(12, 0));
     });
 
     it("scroll viewport to a cell that does not exist (vertically) should throw an error", function () {

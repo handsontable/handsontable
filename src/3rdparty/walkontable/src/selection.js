@@ -87,10 +87,10 @@ WalkontableSelection.prototype.draw = function (instance) {
     corners = this.getCorners();
 
     for (r = 0; r < visibleRows; r++) {
-      source_r = instance.wtTable.rowFilter.visibleToSource(r);
+      source_r = instance.wtTable.rowFilter.renderedToSource(r);
 
       for (c = 0; c < renderedColumns; c++) {
-        source_c = instance.wtTable.columnFilter.visibleToSource(c);
+        source_c = instance.wtTable.columnFilter.renderedToSource(c);
 
         if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell

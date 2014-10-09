@@ -135,7 +135,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.rowFilter.visibleToSource(i);
+    s = instance.wtTable.rowFilter.renderedToSource(i);
     if (s >= corners[0] && s <= corners[2]) {
       fromRow = s;
       break;
@@ -143,7 +143,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.rowFilter.visibleToSource(i);
+    s = instance.wtTable.rowFilter.renderedToSource(i);
     if (s >= corners[0] && s <= corners[2]) {
       toRow = s;
       break;
@@ -158,7 +158,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.columnFilter.visibleToSource(i);
+    s = instance.wtTable.columnFilter.renderedToSource(i);
     if (s >= corners[1] && s <= corners[3]) {
       fromColumn = s;
       break;
@@ -166,7 +166,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.columnFilter.visibleToSource(i);
+    s = instance.wtTable.columnFilter.renderedToSource(i);
     if (s >= corners[1] && s <= corners[3]) {
       toColumn = s;
       break;

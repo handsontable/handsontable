@@ -107,7 +107,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
   var lastTD, TR, res;
   var offsetRow = this.instance.getSetting('offsetRow');
   var visibleRowIndex = 0;
-  var sourceRowIndex = this.rowFilter.visibleToSource(visibleRowIndex);
+  var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
   var isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
   while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
@@ -154,7 +154,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
     visibleRowIndex++;
 
-    sourceRowIndex = this.rowFilter.visibleToSource(visibleRowIndex);
+    sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
   }
 };
 
@@ -173,7 +173,7 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
   var rowCount = this.instance.wtTable.TBODY.childNodes.length;
   while (rowCount) {
     rowCount--;
-    sourceRowIndex = this.instance.wtTable.rowFilter.visibleToSource(rowCount);
+    sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
     previousRowHeight = this.instance.wtSettings.settings.rowHeight(sourceRowIndex);
     currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
 
@@ -192,7 +192,7 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-    sourceColIndex = this.columnFilter.visibleToSource(visibleColIndex);
+    sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
     if (visibleColIndex === 0) {
       TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
     }
@@ -308,7 +308,7 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
 
   for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {
     if (this.columnHeaders.length) {
-     this.renderColumnHeader( this.columnFilter.visibleToSource(columnIndex), TR.childNodes[this.rowHeaderCount + columnIndex]);
+     this.renderColumnHeader( this.columnFilter.renderedToSource(columnIndex), TR.childNodes[this.rowHeaderCount + columnIndex]);
     }
   }
 };
@@ -420,7 +420,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   var that = this;
 
   var columnWidthFn = function (i) {
-    var source_c = that.columnFilter.visibleToSource(i);
+    var source_c = that.columnFilter.renderedToSource(i);
     if (source_c < totalColumns) {
       return instance.getSetting('columnWidth', source_c);
     }
