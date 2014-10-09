@@ -68,8 +68,8 @@ var contextMenu = function () {
 
 
   $(cell).simulate('contextmenu',{
-    pageX: cellOffset.left,
-    pageY: cellOffset.top
+    clientX: cellOffset.left,
+    clientY: cellOffset.top
   });
 };
 
