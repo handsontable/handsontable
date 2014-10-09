@@ -2,13 +2,12 @@
 
   //Blank editor, because all the work is done by renderer
   var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
-  var eventManager = Handsontable.eventManager(CheckboxEditor);
 
   CheckboxEditor.prototype.beginEditing = function () {
     var checkbox = this.TD.querySelector('input[type="checkbox"]');
 
     if (checkbox) {
-      eventManager.addEventListener(checkbox,'click');
+      checkbox.click();
     }
 
   };
