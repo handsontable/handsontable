@@ -208,7 +208,7 @@ CopyPasteClass.prototype.destroy = function () {
       this.elTextarea = null;
     }
 
-    this._eventManager.removeEventListener(document.documentElement, 'keyup', this.keydownListener, false);
+    this._eventManager.removeEventListener(document.documentElement, 'keydown', this.keydownListener, false);
 //    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
 
   }
