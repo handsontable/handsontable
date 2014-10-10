@@ -1972,12 +1972,10 @@ describe('ContextMenu', function () {
         var cell = hot.getCell(selected[0], selected[1]);
         var cellOffset = $(cell).offset();
 
-        var ev = $.Event('contextmenu', {
+        $(cell).simulate('contextmenu',{
           pageX: cellOffset.left,
           pageY: cellOffset.top
         });
-
-        $(cell).trigger(ev);
       }
 
     });

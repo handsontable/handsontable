@@ -77,36 +77,79 @@ function HandsontableManualColumnMove() {
     Handsontable.Dom.removeClass(guide, 'active');
   }
 
+  var checkColumnHeader = function (element) {
+    if (element.tagName != 'BODY') {
+      if (element.parentNode.tagName == 'THEAD') {
+        return true;
+      } else {
+        element = element.parentNode;
+        return checkColumnHeader(element);
+      }
+    }
+    return false;
+  };
+
+  var getTHFromTargetElement = function (element) {
+    if (element.tagName != 'TABLE') {
+      if (element.tagName == 'TH') {
+        return element;
+      } else {
+        return getTHFromTargetElement(element.parentNode);
+      }
+    }
+    return null;
+  };
+
   var bindEvents = function () {
     var instance = this;
     var pressed;
 
-    instance.rootElement.on('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th', function (e) {
-      if (pressed) {
-        endCol = instance.view.wt.wtTable.getCoords(e.currentTarget).col;
-        refreshHandlePosition(e.currentTarget);
-      }
-      else {
-        setupHandlePosition.call(instance, e.currentTarget);
+    var eventManager = Handsontable.eventManager(instance);
+    eventManager.addEventListener(instance.rootElement[0],'mouseover',function (e) {
+        if (checkColumnHeader(e.target)){
+          var th = getTHFromTargetElement(e.target);
+          if (th) {
+            if (pressed) {
+              endCol = instance.view.wt.wtTable.getCoords(th).col;
+              refreshHandlePosition(e.target);
+            }
+            else {
+              setupHandlePosition.call(instance, th);
+            }
+          }
+        }
+    });
+
+    eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
+      if (Handsontable.Dom.hasClass(e.target, 'manualColumnMover')){
+        startX = e.pageX;
+        setupGuidePosition.call(instance);
+        pressed = instance;
+
+        startCol = currentCol;
+        endCol = currentCol;
       }
     });
 
-    instance.rootElement.on('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover', function (e) {
-      startX = e.pageX;
-      setupGuidePosition.call(instance);
-      pressed = instance;
+//    instance.rootElement.on('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover', function (e) {
+//      startX = e.pageX;
+//      setupGuidePosition.call(instance);
+//      pressed = instance;
+//
+//      startCol = currentCol;
+//      endCol = currentCol;
+//    });
 
-      startCol = currentCol;
-      endCol = currentCol;
-    });
-
-    $window.on('mousemove.manualColumnMove.' + instance.guid, function (e) {
+    eventManager.addEventListener(window,'mousemove',function (e) {
+//    $window.on('mousemove.manualColumnMove.' + instance.guid, function (e) {
       if (pressed) {
         refreshGuidePosition(e.pageX - startX);
       }
     });
 
-    $window.on('mouseup.manualColumnMove.' + instance.guid, function () {
+
+    eventManager.addEventListener(window,'mouseup',function (e) {
+//    $window.on('mouseup.manualColumnMove.' + instance.guid, function () {
       if (pressed) {
         hideHandleAndGuide();
         pressed = false;
@@ -133,10 +176,14 @@ function HandsontableManualColumnMove() {
 
   var unbindEvents = function(){
     var instance = this;
-    instance.rootElement.off('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th');
-    instance.rootElement.off('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover');
-    $window.off('mousemove.manualColumnMove.' + instance.guid);
-    $window.off('mouseup.manualColumnMove.' + instance.guid);
+
+    var eventManager = Handsontable.eventManager(instance);
+    eventManager.clear();
+
+//    instance.rootElement.off('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th');
+//    instance.rootElement.off('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover');
+//    $window.off('mousemove.manualColumnMove.' + instance.guid);
+//    $window.off('mouseup.manualColumnMove.' + instance.guid);
   };
 
   var createPositionData = function (positionArr, len) {
