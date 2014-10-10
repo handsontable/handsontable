@@ -83,7 +83,7 @@ Handsontable.eventManager = function (instance) {
         callback = delegate;
         delegate = null;
       }
-      else {
+      else if(typeof delegate === 'string') {
         throw new Error("Remove delegate event not implemented");
       }
 
