@@ -18,7 +18,9 @@ Handsontable.eventManager = function (instance) {
         callback = delegate;
         delegate = null;
       } else if(delegate) {
-//        throw new Error("Add delegate event not implemented");
+        throw new Error("Add delegate event not implemented");
+        /*
+        below code is wrong because rewritten callback function will not be found by removeEvent)
 
         var id,className, tagName;
 
@@ -38,6 +40,7 @@ Handsontable.eventManager = function (instance) {
         }
 
         var originalCallBack = callback;
+        throw new Error("DOES NOT WORK!!! IMPOSSIBLE TO UNBIND THIS FUNCTION!");
         callback = function (event) {
           if (id) {
             if (event.target.id == id){
@@ -55,6 +58,7 @@ Handsontable.eventManager = function (instance) {
             }
           }
         }
+        */
       }
 
       useCapture = useCapture || false;
@@ -80,7 +84,7 @@ Handsontable.eventManager = function (instance) {
         delegate = null;
       }
       else {
-//        throw new Error("Remove delegate event not implemented");
+        throw new Error("Remove delegate event not implemented");
       }
 
       useCapture = useCapture || false;
