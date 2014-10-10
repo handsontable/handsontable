@@ -89,23 +89,20 @@ Handsontable.eventManager = function (instance) {
       var len = instance.eventListeners.length;
 
       while (len--) {
-        var tmpEv =instance.eventListeners[len];
+        var tmpEv = instance.eventListeners[len];
 
-        if (tmpEv && tmpEv.event == event && tmpEv.element == element) {
-          if (callback) {
-            if (callback == tmpEv.callback) {
-              instance.eventListeners.splice(len,1);
-            }
-          } else {
-            instance.eventListeners.splice(len,1);
+
+        if (tmpEv.event == event && tmpEv.element == element) {
+          if (callback && callback != tmpEv.callback) {
+            continue;
           }
-        }
-      }
 
-      if (element.detachEvent) {
-        element.detachEvent('on' + event, callback);
-      } else {
-        element.removeEventListener(event, callback, useCapture);
+          instance.eventListeners.splice(len, 1);
+          if (tmpEv.element.detachEvent) {
+            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callback);
+          } else {
+            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callback, tmpEv.useCapture);
+          }        }
       }
     },
     serveImmediatePropagation = function (event) {
