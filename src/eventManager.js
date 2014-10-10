@@ -119,10 +119,9 @@ Handsontable.eventManager = function (instance) {
       return event;
     },
     clearEvents = function () {
-
-      while(instance.eventListeners.length > 0) {
-       var event = instance.eventListeners.pop();
-
+      var len = instance.eventListeners.length;
+      while(len--) {
+       var event = instance.eventListeners[len];
        removeEvent(event.element, event.event, event.delegate, event.callback, event.useCapture);
 
       }
