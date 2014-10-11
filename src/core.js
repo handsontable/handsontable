@@ -55,15 +55,26 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter: function (action, index, amount, source, keepEmptyRows) {
-      var delta;
+      var delta, spliceArray;
 
       amount = amount || 1;
+
+      //create arguments for inserting multiple empty elements into an array with Array.splice()
+      // => myArray.splice(index, 0, undefined, undefined, undefined, ...)
+      function createSpliceArgs(d) {
+        var spliceArgs = [index, 0];
+        spliceArgs.length += d; //inserts empty (undefined) elements at the end of an array
+        return spliceArgs;
+      }
 
       switch (action) {
         case "insert_row":
           delta = datamap.createRow(index, amount);
 
           if (delta) {
+            spliceArray = createSpliceArgs(delta);
+            Array.prototype.splice.apply(priv.cellSettings, spliceArray);   //inserts empty (undefined) settings representing the new rows
+
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); //will call render() internally
@@ -78,11 +89,15 @@ Handsontable.Core = function (rootElement, userSettings) {
           delta = datamap.createCol(index, amount);
 
           if (delta) {
+            spliceArray = createSpliceArgs(delta);
 
             if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
-              var spliceArray = [index, 0];
-              spliceArray.length += delta; //inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
+            }
+            for (var row = 0, len = datamap.getAll().length; row < len; row++) {    //inserts empty (undefined) elements into the each row's meta data
+              if (row in priv.cellSettings) {  //if row hasn't been rendered it wouldn't have cellSettings
+                Array.prototype.splice.apply(priv.cellSettings[row], spliceArray);
+              }
             }
 
             if (selection.isSelected() && priv.selRange.from.col >= index) {
@@ -118,7 +133,9 @@ Handsontable.Core = function (rootElement, userSettings) {
             instance.getSettings().colHeaders.splice(index, amount);
           }
 
-          priv.columnSettings.splice(index, amount);
+          //this has already been done by datamap.removeCol()
+          //
+          // priv.columnSettings.splice(index, amount);
 
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
