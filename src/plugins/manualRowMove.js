@@ -19,7 +19,8 @@
         currentTH,
         handle = document.createElement('DIV'),
         guide = document.createElement('DIV'),
-        $window = $(window);
+        $window = $(window),
+        eventManager = Handsontable.eventManager(this);;
 
     handle.className = 'manualRowMover';
     guide.className = 'manualRowMoverGuide';
@@ -77,36 +78,67 @@
       Handsontable.Dom.removeClass(guide, 'active');
     }
 
+    var checkRowHeader = function (element) {
+      if (element.tagName != 'BODY') {
+        if (element.parentNode.tagName == 'TBODY') {
+          return true;
+        } else {
+          element = element.parentNode;
+          return checkRowHeader(element);
+        }
+      }
+      return false;
+    };
+
+    var getTHFromTargetElement = function (element) {
+      if (element.tagName != 'TABLE') {
+        if (element.tagName == 'TH') {
+          return element;
+        } else {
+          return getTHFromTargetElement(element.parentNode);
+        }
+      }
+      return null;
+    };
+
     var bindEvents = function () {
       var instance = this;
       var pressed;
 
-      instance.rootElement.on('mouseenter.manualRowMove.' + instance.guid, 'table tbody tr > th', function (e) {
-        if (pressed) {
-          endRow = instance.view.wt.wtTable.getCoords(e.currentTarget).row;
-          refreshHandlePosition(e.currentTarget);
-        }
-        else {
-          setupHandlePosition.call(instance, e.currentTarget);
+
+      eventManager.addEventListener(instance.rootElement[0],'mouseover', function (e){
+        if(checkRowHeader(e.target)){
+          var th = getTHFromTargetElement(e.target)
+          if (th) {
+            if (pressed) {
+              endRow = instance.view.wt.wtTable.getCoords(th).row;
+              refreshHandlePosition(th);
+            }
+            else {
+              setupHandlePosition.call(instance, th);
+            }
+          }
         }
       });
 
-      instance.rootElement.on('mousedown.manualRowMove.' + instance.guid, '.manualRowMover', function (e) {
-        startY = e.pageY;
-        setupGuidePosition.call(instance);
-        pressed = instance;
+      eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
+        if (Handsontable.Dom.hasClass(e.target, 'manualRowMover')) {
+          startY = e.pageY;
+          setupGuidePosition.call(instance);
+          pressed = instance;
 
-        startRow = currentRow;
-        endRow = currentRow;
+          startRow = currentRow;
+          endRow = currentRow;
+        }
       });
 
-      $window.on('mousemove.manualRowMove.' + instance.guid, function (e) {
+      eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
           refreshGuidePosition(e.pageY - startY);
         }
       });
 
-      $window.on('mouseup.manualRowMove.' + instance.guid, function () {
+      eventManager.addEventListener(window,'mouseup',function (e) {
         if (pressed) {
           hideHandleAndGuide();
           pressed = false;
@@ -132,11 +164,7 @@
     };
 
     var unbindEvents = function () {
-      var instance = this;
-      instance.rootElement.off('mouseenter.manualRowMove.' + instance.guid, 'table tbody tr > th');
-      instance.rootElement.off('mousedown.manualRowMove.' + instance.guid, '.manualRowMover');
-      $window.off('mousemove.manualRowMove.' + instance.guid);
-      $window.off('mouseup.manualRowMove.' + instance.guid);
+      eventManager.clear();
     };
 
     var createPositionData = function (positionArr, len) {

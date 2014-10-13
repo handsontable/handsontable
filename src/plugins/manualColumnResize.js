@@ -112,7 +112,7 @@ function HandsontableManualColumnResize() {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (!pressed) {
-            setupHandlePosition.call(instance, e.target);
+            setupHandlePosition.call(instance, th);
           }
         }
       }

@@ -19,7 +19,6 @@ function HandsontableManualColumnMove() {
     , currentTH
     , handle = document.createElement('DIV')
     , guide = document.createElement('DIV')
-    , $window = $(window)
     , eventManager = Handsontable.eventManager(this);
 
   handle.className = 'manualColumnMover';
@@ -108,7 +107,6 @@ function HandsontableManualColumnMove() {
 
 
     eventManager.addEventListener(instance.rootElement[0],'mouseover',function (e) {
-      console.log(123);
         if (checkColumnHeader(e.target)){
           var th = getTHFromTargetElement(e.target);
           if (th) {
@@ -135,7 +133,6 @@ function HandsontableManualColumnMove() {
     });
 
     eventManager.addEventListener(window,'mousemove',function (e) {
-      console.log('x');
       if (pressed) {
         refreshGuidePosition(e.pageX - startX);
       }
@@ -168,7 +165,7 @@ function HandsontableManualColumnMove() {
   };
 
   var unbindEvents = function(){
-    var instance = this;
+//    var instance = this;
 
 //    var eventManager = Handsontable.eventManager(instance);
     eventManager.clear();
