@@ -19,8 +19,7 @@
         currentTH,
         handle = document.createElement('DIV'),
         guide = document.createElement('DIV'),
-        $window = $(window),
-        eventManager = Handsontable.eventManager(this);;
+        eventManager = Handsontable.eventManager(this);
 
     handle.className = 'manualRowMover';
     guide.className = 'manualRowMoverGuide';

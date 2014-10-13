@@ -18,13 +18,14 @@ describe('manualRowResize', function () {
     var $container = spec().$container;
     var $th = $container.find('tbody tr:eq(' + displayedRowIndex + ') th:eq(0)');
 
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = $container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.trigger(mouseDownEvent);
+    $resizer.simulate('mousedown',{
+      clientY: resizerPosition.top
+    });
 
     var delta = height - $th.height() - 2;
 
@@ -32,10 +33,11 @@ describe('manualRowResize', function () {
       delta = 0;
     }
 
-    var mouseMoveEvent = new $.Event('mousemove', {pageY: resizerPosition.top + delta});
-    $resizer.trigger(mouseMoveEvent);
+    $resizer.simulate('mousemove',{
+      clientY: resizerPosition.top + delta
+    });
 
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
   }
 
   it("should change row heights at init", function () {
@@ -150,15 +152,17 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
 
     var $th = this.$container.find('tbody tr:eq(0) th:eq(0)');
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.trigger(mouseDownEvent);
+//    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
+    $resizer.simulate('mousedown',{
+      clientY: resizerPosition.top
+    });
 
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
@@ -177,18 +181,20 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
 
     var $th = this.$container.find('tbody tr:eq(2) th:eq(0)');
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.trigger(mouseDownEvent);
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mousedown',{
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
 
-    mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.trigger(mouseDownEvent);
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mousedown',{
+      clientY:resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
 
     waitsFor(function() {
       return afterRowResizeCallback.calls.length > 0;
@@ -216,14 +222,15 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
 
     var $th = this.$container.find('tbody tr:eq(2) th:eq(0)');
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.trigger(mouseDownEvent);
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mousedown',{
+      clientY:resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
@@ -239,7 +246,7 @@ describe('manualRowResize', function () {
     });
 
     var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualRowResizer');
     $handle[0].style.background = "red";
 
@@ -250,7 +257,7 @@ describe('manualRowResize', function () {
     this.$container.scroll();
 
     $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
     expect($rowHeader.offset().left).toEqual($handle.offset().left);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
   });
