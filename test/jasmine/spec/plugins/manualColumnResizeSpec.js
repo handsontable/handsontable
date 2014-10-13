@@ -16,22 +16,21 @@ describe('manualColumnResize', function () {
     var $container = spec().$container;
     var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
 
-
-//    $th.trigger('mouseenter');
-    $th.simulate('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = $container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
+    $resizer.simulate('mousedown',{
+      clientX:resizerPosition.left
+    });
 
-
-
-//    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.simulate('mousedown',{pageX: resizerPosition.left});
 
     var delta = width - $th.width() - 2;
-//    var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
-    $resizer.simulate('mousemove',{pageX: resizerPosition.left + delta});
+    var newPosition = resizerPosition.left + delta;
+    $resizer.simulate('mousemove',
+      {clientX: newPosition}
+    );
 
     $resizer.simulate('mouseup');
   }
@@ -182,9 +181,7 @@ describe('manualColumnResize', function () {
     expect(colWidth(this.$container, 0)).toEqual(50);
 
     var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
-
-//    $th.trigger('mouseenter');
-    $th.simulate('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
@@ -192,7 +189,7 @@ describe('manualColumnResize', function () {
 
 //    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
 //    $resizer.trigger(mouseDownEvent);
-    $resizer.simulate('mousedown',{pageX: resizerPosition.left});
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
 
 //    $resizer.trigger('mouseup');
     $resizer.simulate('mouseup');
@@ -217,15 +214,15 @@ describe('manualColumnResize', function () {
 
     var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
 
-    $th.simulate('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{pageX: resizerPosition.left});
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown',{pageX: resizerPosition.left});
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
 
@@ -256,7 +253,7 @@ describe('manualColumnResize', function () {
       }
     });
 
-    this.$container.find('thead th:eq(0)').simulate('mouseenter');
+    this.$container.find('thead th:eq(0)').simulate('mouseover');
 
     var handle = this.$container.find('.manualColumnResizer');
     var handleBox = handle[0].getBoundingClientRect();
@@ -268,8 +265,7 @@ describe('manualColumnResize', function () {
     maxed = true;
 
     render();
-
-    this.$container.find('thead th:eq(0)').mouseenter();
+    this.$container.find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
     thBox = th0[0].getBoundingClientRect();
@@ -286,7 +282,7 @@ describe('manualColumnResize', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.simulate("mouseenter");
+    $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnResizer');
     $handle[0].style.background = "red";
 
@@ -297,7 +293,7 @@ describe('manualColumnResize', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.simulate("mouseenter");
+    $colHeader.simulate("mouseover");
     expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });

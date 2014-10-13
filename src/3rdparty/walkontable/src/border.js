@@ -111,52 +111,9 @@ function WalkontableBorder(instance, settings) {
           $this.show();
         }
       };
-      eventManager.addEventListener(document.body, 'mousemove', handler);
-
-//      $body.on('mousemove.border.' + instance.guid, function (event) {
-//        if (isOutside(event)) {
-//          $body.off('mousemove.border.' + instance.guid);
-//          $this.show();
-//        }
-//      });
+      eventManager.addEventListener(document.body, 'mousemove', handler);;
     });
   }
-
-
-//  $(this.main.childNodes).on('mouseenter', function (event) {
-//    if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
-//      return;
-//    }
-//    event.preventDefault();
-//    event.stopImmediatePropagation();
-//
-//    var bounds = this.getBoundingClientRect();
-//
-//    var $this = $(this);
-//    $this.hide();
-//
-//    var isOutside = function (event) {
-//      if (event.clientY < Math.floor(bounds.top)) {
-//        return true;
-//      }
-//      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
-//        return true;
-//      }
-//      if (event.clientX < Math.floor(bounds.left)) {
-//        return true;
-//      }
-//      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
-//        return true;
-//      }
-//    };
-//
-//    $body.on('mousemove.border.' + instance.guid, function (event) {
-//      if (isOutside(event)) {
-//        $body.off('mousemove.border.' + instance.guid);
-//        $this.show();
-//      }
-//    });
-//  });
 }
 
 /**

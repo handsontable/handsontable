@@ -19,7 +19,8 @@ function HandsontableManualColumnMove() {
     , currentTH
     , handle = document.createElement('DIV')
     , guide = document.createElement('DIV')
-    , $window = $(window);
+    , $window = $(window)
+    , eventManager = Handsontable.eventManager(this);
 
   handle.className = 'manualColumnMover';
   guide.className = 'manualColumnMoverGuide';
@@ -101,11 +102,13 @@ function HandsontableManualColumnMove() {
   };
 
   var bindEvents = function () {
+
     var instance = this;
     var pressed;
 
-    var eventManager = Handsontable.eventManager(instance);
+
     eventManager.addEventListener(instance.rootElement[0],'mouseover',function (e) {
+      console.log(123);
         if (checkColumnHeader(e.target)){
           var th = getTHFromTargetElement(e.target);
           if (th) {
@@ -131,17 +134,8 @@ function HandsontableManualColumnMove() {
       }
     });
 
-//    instance.rootElement.on('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover', function (e) {
-//      startX = e.pageX;
-//      setupGuidePosition.call(instance);
-//      pressed = instance;
-//
-//      startCol = currentCol;
-//      endCol = currentCol;
-//    });
-
     eventManager.addEventListener(window,'mousemove',function (e) {
-//    $window.on('mousemove.manualColumnMove.' + instance.guid, function (e) {
+      console.log('x');
       if (pressed) {
         refreshGuidePosition(e.pageX - startX);
       }
@@ -149,7 +143,6 @@ function HandsontableManualColumnMove() {
 
 
     eventManager.addEventListener(window,'mouseup',function (e) {
-//    $window.on('mouseup.manualColumnMove.' + instance.guid, function () {
       if (pressed) {
         hideHandleAndGuide();
         pressed = false;
@@ -177,7 +170,7 @@ function HandsontableManualColumnMove() {
   var unbindEvents = function(){
     var instance = this;
 
-    var eventManager = Handsontable.eventManager(instance);
+//    var eventManager = Handsontable.eventManager(instance);
     eventManager.clear();
 
 //    instance.rootElement.off('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th');
