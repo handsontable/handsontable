@@ -36,8 +36,8 @@ describe('DropdownEditor', function () {
       });
 
       selectCell(0, 0);
-      $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
-      $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
       var dropdown = hot.getActiveEditor().$htContainer;
 
@@ -53,8 +53,8 @@ describe('DropdownEditor', function () {
       waits(30);
 
       runs(function () {
-        $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
-        $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+        $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+        $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
         dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
       });
@@ -64,7 +64,7 @@ describe('DropdownEditor', function () {
       runs(function () {
         expect($(dropdown[0]).is(':visible')).toBe(true);
       });
-    });  
+    });
 });
 
 });

@@ -2097,7 +2097,7 @@ describe('AutocompleteEditor', function () {
     expect(choices.length).toBeGreaterThan(10);
 
     selectCell(0, 0);
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
     var dropdown = hot.getActiveEditor().$htContainer[0];
 
@@ -2110,7 +2110,7 @@ describe('AutocompleteEditor', function () {
     hot.updateSettings({});
 
     selectCell(0, 0);
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
     waits(30);
 
@@ -2145,8 +2145,8 @@ describe('AutocompleteEditor', function () {
     expect(choices.length).toBeGreaterThan(10);
 
     selectCell(0, 0);
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
     var dropdown = hot.getActiveEditor().$htContainer;
 
@@ -2162,8 +2162,8 @@ describe('AutocompleteEditor', function () {
     waits(30);
 
     runs(function () {
-      $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
-      $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
       dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
     });
