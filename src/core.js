@@ -14,8 +14,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , instance = this
     , GridSettings = function () {}
-    , $document = $(document.documentElement)
-    , $body = $(document.body)
+//    , $document = $(document.documentElement)
+//    , $body = $(document.body)
     , eventManager = Handsontable.eventManager(instance);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
@@ -1920,9 +1920,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     eventManager.clear();
 
-//    $(window).off('.' + instance.guid);
-//    $document.off('.' + instance.guid);
-//    $body.off('.' + instance.guid);
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
 
@@ -1953,8 +1950,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     editorManager = null;
     instance = null;
     GridSettings = null;
-    $document = null;
-    $body = null;
+//    $document = null;
+//    $body = null;
   };
 
   /**

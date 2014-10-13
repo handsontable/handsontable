@@ -373,10 +373,11 @@
 
     var menu;
     if (menuName) {
-      menu = $('body > .htContextMenu.' + menuName)[0];
+      menu = document.querySelector('.htContextMenu.' + menuName);
     } else {
-      menu = $('body > .htContextMenu')[0];
+      menu = document.querySelector('.htContextMenu');
     }
+
 
     if (!menu) {
       menu = document.createElement('DIV');

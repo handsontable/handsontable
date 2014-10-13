@@ -3,7 +3,6 @@
 
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
-//    var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
     var destroyed = false;
 

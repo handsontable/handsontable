@@ -73,9 +73,8 @@
   };
 
   DateEditor.prototype.showDatepicker = function () {
-    var $td = $(this.TD);
-    var offset = $td.offset();
-    this.datePickerStyle.top = (offset.top + $td.height()) + 'px';
+    var offset = Handsontable.Dom.offset(this.TD); //$td.offset();
+    this.datePickerStyle.top = (offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = offset.left + 'px';
 
     var dateOptions = {

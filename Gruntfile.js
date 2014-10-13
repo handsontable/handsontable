@@ -231,6 +231,7 @@ module.exports = function (grunt) {
       walkontable: {
         src: [
           'src/dom.js',
+          'src/eventManager.js',
           'src/3rdparty/walkontable/src/*.js',
           'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],

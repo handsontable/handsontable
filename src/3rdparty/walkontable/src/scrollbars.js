@@ -44,22 +44,17 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       oldBoxTop = that.box.top;
       oldBoxLeft = that.box.left;
     }
-  }
+  };
 
   var eventManager = Handsontable.eventManager(that.instance);
 
-//  var $window = $(window);
-
   eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', this.refreshAll);
-//  this.vertical.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   if (this.vertical.scrollHandler !== this.horizontal.scrollHandler) {
     eventManager.addEventListener(this.horizontal.scrollHandler, 'scroll', this.refreshAll);
-//    this.horizontal.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
   }
 
   if (this.vertical.scrollHandler !== window && this.horizontal.scrollHandler !== window) {
     eventManager.addEventListener(window,'scroll', this.refreshAll);
-//    $window.on('scroll.' + this.instance.guid, refreshAll);
   }
 };
 

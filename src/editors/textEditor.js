@@ -117,10 +117,10 @@
   };
 
   TextEditor.prototype.createElements = function () {
-    this.$body = $(document.body);
+//    this.$body = $(document.body);
 
     this.TEXTAREA = document.createElement('TEXTAREA');
-    this.$textarea = $(this.TEXTAREA);
+//    this.$textarea = $(this.TEXTAREA);
 
     Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -218,6 +218,8 @@
     if (editLeft < 0) {
       editLeft = 0;
     }
+
+    console.log(this.TD);
 
     if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
       editTop += 1;

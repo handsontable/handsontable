@@ -11,7 +11,6 @@
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
-    this.$textarea = $(this.TEXTAREA);
 
     Handsontable.Dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);

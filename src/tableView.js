@@ -88,7 +88,9 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  this.eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
+
+//  this.eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
+  this.eventManager.addEventListener(table, 'selectstart', function (event) {
 //  instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;

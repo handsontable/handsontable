@@ -500,7 +500,7 @@ describe('WalkontableTable', function () {
 
       $container.width(401).height(201);
 
-      $(window).trigger('resize');
+      $(window).simulate('resize');
 
       runs(function() {
         var currentTableWidth = wtHider.outerWidth();

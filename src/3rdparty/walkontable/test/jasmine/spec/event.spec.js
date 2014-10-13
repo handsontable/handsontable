@@ -33,7 +33,7 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.trigger('mousedown');
+    $td.simulate('mousedown');
 
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
@@ -57,8 +57,9 @@ describe('WalkontableEvent', function () {
       });
     wt.draw();
 
+
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.trigger('mouseover');
+    $td.simulate('mouseover');
 
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
@@ -83,10 +84,10 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.trigger('mousedown');
-    $td.trigger('mouseup');
-    $td.trigger('mousedown');
-    $td.trigger('mouseup');
+    $td.simulate('mousedown');
+    $td.simulate('mouseup');
+    $td.simulate('mousedown');
+    $td.simulate('mouseup');
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
   });
@@ -106,14 +107,14 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.trigger('mousedown');
-    $td.trigger('mouseup');
-    $td.trigger('mousedown');
+    $td.simulate('mousedown');
+    $td.simulate('mouseup');
+    $td.simulate('mousedown');
     wt.update('onCellDblClick', function (event, coords, TD) {
       myCoords = coords;
       myTD = TD;
     });
-    $td.trigger('mouseup');
+    $td.simulate('mouseup');
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
   });
@@ -139,7 +140,7 @@ describe('WalkontableEvent', function () {
 
     var $th = $table.find('th:first');
 
-    $th.trigger('mousedown');
+    $th.simulate('mousedown');
     expect(called).toEqual(true);
   });
 
@@ -163,7 +164,7 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $th = $table.find('th:first');
-    $th.trigger('mouseover');
+    $th.simulate('mouseover');
     expect(called.row).toEqual(-1);
     expect(called.col).toEqual(0);
   });
@@ -188,10 +189,10 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $th = $table.find('th:first');
-    $th.trigger('mousedown');
-    $th.trigger('mouseup');
-    $th.trigger('mousedown');
-    $th.trigger('mouseup');
+    $th.simulate('mousedown');
+    $th.simulate('mouseup');
+    $th.simulate('mousedown');
+    $th.simulate('mouseup');
     expect(called).toEqual(true);
   });
 
@@ -212,13 +213,13 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.find('tbody tr:first td:first');
-    var mouseup = $.Event('mouseup');
-    var mousedown = $.Event('mousedown');
-    mouseup.button = mouseup.button = 2; //right mouse button
-    $td.trigger(mousedown);
-    $td.trigger(mouseup);
-    $td.trigger(mousedown);
-    $td.trigger(mouseup);
+    var options = {
+      button: 2
+      };
+    $td.simulate('mousedown',options);
+    $td.simulate('mouseup',options);
+    $td.simulate('mousedown',options);
+    $td.simulate('mouseup',options);
     expect(called).toEqual(false);
   });
 
@@ -240,10 +241,10 @@ describe('WalkontableEvent', function () {
 
     var $td = $table.find('tbody tr:first td:first');
     var $td2 = $table.find('tbody tr:first td:eq(1)');
-    $td2.trigger('mousedown');
-    $td.trigger('mouseup');
-    $td.trigger('mousedown');
-    $td.trigger('mouseup');
+    $td2.simulate('mousedown');
+    $td.simulate('mouseup');
+    $td.simulate('mousedown');
+    $td.simulate('mouseup');
     expect(called).toEqual(false);
   });
 
@@ -278,7 +279,7 @@ describe('WalkontableEvent', function () {
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
     var $border = $table.parents('.wtHolder').find('.wtBorder:first');
-    $border.trigger('mousedown');
+    $border.simulate('mousedown');
 
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
@@ -315,10 +316,10 @@ describe('WalkontableEvent', function () {
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
     var $border = $table.parents('.wtHolder').find('.wtBorder:first');
-    $border.trigger('mousedown');
-    $border.trigger('mouseup');
-    $border.trigger('mousedown');
-    $border.trigger('mouseup');
+    $border.simulate('mousedown');
+    $border.simulate('mouseup');
+    $border.simulate('mousedown');
+    $border.simulate('mouseup');
     expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
     expect(myTD).toEqual($td[0]);
   });
@@ -353,7 +354,7 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
-    $td.trigger('mousedown');
+    $td.simulate('mousedown');
     expect(clicked).toEqual(true);
   });
 
@@ -382,13 +383,13 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
-    $td.trigger('mousedown');
-    $td.trigger('mouseup');
-    $td.trigger('mousedown');
+    $td.simulate('mousedown');
+    $td.simulate('mouseup');
+    $td.simulate('mousedown');
     wt.update('onCellCornerDblClick', function (event) {
       clicked = true;
     });
-    $td.trigger('mouseup');
+    $td.simulate('mouseup');
     expect(clicked).toEqual(true);
   });
 

@@ -125,6 +125,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("scroll horizontal should scroll to first row if given number smaller than 0", function () {
+
       var wt = new Walkontable({
         table: $table[0],
         data: getData,
@@ -171,6 +172,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("scroll viewport to a cell on far right should make it visible on right edge", function () {
+
 
       $container.width(125).height(201);
 

@@ -41,10 +41,10 @@ describe('WalkontableSelection', function () {
 
     var $td1 = $table.find('tbody td:eq(0)');
     var $td2 = $table.find('tbody td:eq(1)');
-    $td1.mousedown();
+    $td1.simulate('mousedown');
     expect($td1.hasClass('current')).toEqual(true);
 
-    $td2.mousedown();
+    $td2.simulate('mousedown');
     expect($td1.hasClass('current')).toEqual(false);
     expect($td2.hasClass('current')).toEqual(true);
   });
@@ -103,12 +103,12 @@ describe('WalkontableSelection', function () {
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
     var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
     var $top = $(wt.selections[0].getBorder(wt).top); //cheat... get border for ht_master
-    $td1.mousedown();
+    $td1.simulate('mousedown');
     var pos1 = $top.position();
     expect(pos1.top).toBeGreaterThan(0);
     expect(pos1.left).toBe(0);
 
-    $td2.mousedown();
+    $td2.simulate('mousedown');
     var pos2 = $top.position();
     expect(pos2.top).toBeGreaterThan(pos1.top);
     expect(pos2.left).toBeGreaterThan(pos1.left);
@@ -326,7 +326,7 @@ describe('WalkontableSelection', function () {
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");
-    
+
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
 

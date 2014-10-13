@@ -87,8 +87,11 @@ function WalkontableBorder(instance, settings) {
       var bounds = this.getBoundingClientRect();
 
       // TODO - remove jquery
-      var $this = $(this);
-      $this.hide();
+//      var $this = $(this);
+      this.style.display = 'none';
+//      $this.hide();
+
+
 
       var isOutside = function (event) {
         if (event.clientY < Math.floor(bounds.top)) {
@@ -108,7 +111,8 @@ function WalkontableBorder(instance, settings) {
       var handler = function (event) {
         if (isOutside(event)) {
           eventManager.removeEventListener(document.body, 'mousemove', handler);
-          $this.show();
+          this.style.display = 'block';
+//          $this.show();
         }
       };
       eventManager.addEventListener(document.body, 'mousemove', handler);;
