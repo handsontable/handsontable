@@ -12,89 +12,23 @@ Handsontable.eventManager = function (instance) {
     instance.eventListeners = [];
   }
 
-  var addEvent = function (element, event, delegate, callback, useCapture) {
-      if (typeof delegate === 'function') {
-        useCapture = callback;
-        callback = delegate;
-        delegate = null;
-      } else if(delegate) {
-        throw new Error("Add delegate event not implemented");
-        /*
-        below code is wrong because rewritten callback function will not be found by removeEvent)
-
-        var id,className, tagName;
-
-        if (typeof delegate == 'object') {
-          id = delegate[0].id;
-          className = delegate[0].className;
-        } else {
-          if (delegate.indexOf('#') != -1) {
-            id = delegate.split('#')[1];
-          } else {
-            if (delegate.indexOf('.') != -1) {
-              className = delegate.split('.')[1];
-            } else {
-              tagName = delegate;
-            }
-          }
-        }
-
-        var originalCallBack = callback;
-        throw new Error("DOES NOT WORK!!! IMPOSSIBLE TO UNBIND THIS FUNCTION!");
-        callback = function (event) {
-          if (id) {
-            if (event.target.id == id){
-              return originalCallBack.apply(this, arguments);
-            }
-          } else {
-            if (tagName){
-              if (event.target.tagName.toUpperCase() == tagName.toUpperCase()) {
-                return originalCallBack.apply(this, arguments);
-              }
-            } else {
-              if (Handsontable.Dom.hasClass(event.target, className)) {
-                return originalCallBack.apply(this, arguments);
-              }
-            }
-          }
-        }
-        */
-      }
-
-      useCapture = useCapture || false;
-
+  var addEvent = function (element, event, callback) {
       instance.eventListeners.push({
         element: element,
         event: event,
-        delegate: delegate,
-        callback: callback,
-        useCapture: useCapture
+        callback: callback
       });
 
       if (window.addEventListener) {
-        element.addEventListener(event, callback, useCapture)
+        element.addEventListener(event, callback, false)
       } else {
         element.attachEvent('on' + event, callback);
       }
     },
-    removeEvent = function (element, event, delegate, callback, useCapture){
-      if(typeof delegate === 'function') {
-        useCapture = callback;
-        callback = delegate;
-        delegate = null;
-      }
-      else if(typeof delegate === 'string') {
-        throw new Error("Remove delegate event not implemented");
-      }
-
-      useCapture = useCapture || false;
-
-
+    removeEvent = function (element, event, callback){
       var len = instance.eventListeners.length;
-
       while (len--) {
         var tmpEv = instance.eventListeners[len];
-
 
         if (tmpEv.event == event && tmpEv.element == element) {
           if (callback && callback != tmpEv.callback) {
@@ -105,8 +39,9 @@ Handsontable.eventManager = function (instance) {
           if (tmpEv.element.detachEvent) {
             tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callback);
           } else {
-            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callback, tmpEv.useCapture);
-          }        }
+            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callback, false);
+          }
+        }
       }
     },
     serveImmediatePropagation = function (event) {
@@ -126,7 +61,7 @@ Handsontable.eventManager = function (instance) {
       var len = instance.eventListeners.length;
       while(len--) {
        var event = instance.eventListeners[len];
-       removeEvent(event.element, event.event, event.delegate, event.callback, event.useCapture);
+       removeEvent(event.element, event.event, event.callback);
       }
     },
     fireEvent = function (element, type) {
