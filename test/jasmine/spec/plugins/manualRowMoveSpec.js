@@ -326,7 +326,7 @@ describe('manualRowMove', function () {
     this.$container.scrollTop(200);
     this.$container.scroll();
 
-    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
+    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
     $rowHeader.trigger("mouseenter");
     expect($rowHeader.offset().left).toEqual($handle.offset().left);
     expect($rowHeader.offset().top).toEqual($handle.offset().top);

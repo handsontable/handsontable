@@ -484,7 +484,8 @@ Comment For Cell
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner {
+.htContextMenu .ht_clone_corner,
+.htContextMenu .ht_clone_debug {
   display: none;
 }
 
@@ -497,6 +498,10 @@ Comment For Cell
 }
 
 .ht_clone_corner {
+  z-index: 103;
+}
+
+.ht_clone_debug {
   z-index: 103;
 }
 

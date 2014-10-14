@@ -74,7 +74,7 @@ describe('WalkontableScroll', function () {
 
       wt.draw();
 
-      expect(wt.wtTable.getRowStrategy().countVisible()).toEqual(5);
+      expect(wt.wtTable.getVisibleRowsCount()).toEqual(5);
 
       wt.scrollVertical(999).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new WalkontableCellCoords(0, 0));

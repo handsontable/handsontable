@@ -9,10 +9,16 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 
   var instance = this.instance
     , newOffset
-    , offset = instance.getSetting('offsetRow')
+    , offset = instance.calculator.renderStartRow
     , fixedCount = instance.getSetting('fixedRowsTop')
     , total = instance.getSetting('totalRows')
     , maxSize = instance.wtViewport.getViewportHeight();
+
+
+  newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount);
+
+  this.instance.wtScrollbars.vertical.scrollTo(newOffset);
+  return instance;
 
   if (total > 0 && !this.instance.wtTable.isLastRowFullyVisible()) {
     newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount, maxSize, function (row) {
@@ -40,7 +46,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
   return this.instance;
 };
 
-WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total, fixedCount, maxSize, cellSizeFn) {
+WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total, fixedCount) {
   var newOffset = offset + delta;
 
   if (newOffset >= total - fixedCount) {

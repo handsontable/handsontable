@@ -1,6 +1,5 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
-  this.resetSettings();
 
   var that = this;
   $(window).on('resize.walkontable.' + this.instance.guid, function () {
@@ -138,7 +137,30 @@ WalkontableViewport.prototype.getViewportWidth = function () {
   }
 };
 
+WalkontableViewport.prototype.createCalculator = function () {
+  var height;
+  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.wtSettings.settings.renderAllRows) {
+    height = Infinity;
+  }
+  else {
+    height = this.getViewportHeight();
+  }
+
+  var pos = this.instance.wtScrollbars.vertical.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  if (pos < 0) {
+    pos = 0;
+  }
+  return new WalkontableViewportCalculator(
+    height,
+    pos,
+    this.instance.getSetting('totalRows'),
+    this.instance.wtSettings.settings.rowHeight
+  );
+};
+
 WalkontableViewport.prototype.resetSettings = function () {
   this.rowHeaderWidth = NaN;
   this.columnHeaderHeight = NaN;
+
+  this.preCalculator = this.createCalculator();
 };

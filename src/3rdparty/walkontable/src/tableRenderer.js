@@ -28,18 +28,17 @@ function WalkontableTableRenderer(wtTable){
     , totalColumns = this.instance.getSetting('totalColumns')
     , displayTds
     , adjusted = false
-    , workspaceWidth;
+    , workspaceWidth
+    , cloneLimit = this.instance.wtViewport.preCalculator.countRendered;
 
   if (totalColumns > 0) {
-    var cloneLimit;
     if (this.wtTable.isWorkingOnClone()) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
       if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
         cloneLimit = this.fixedRowsTop;
       }
-      else if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
-        cloneLimit = this.wtTable.getRowStrategy().cellCount;
+      else if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+        cloneLimit = totalRows;
       }
-      //else if WalkontableDebugOverlay do nothing. No cloneLimit means render ALL rows
     }
 
     this.adjustAvailableNodes();
@@ -67,9 +66,7 @@ function WalkontableTableRenderer(wtTable){
     this.adjustAvailableNodes();
   }
 
-  if (!(this.instance.cloneOverlay instanceof WalkontableDebugOverlay)) {
-    this.removeRedundantRows();
-  }
+  this.removeRedundantRows(cloneLimit);
 
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
@@ -95,9 +92,8 @@ function WalkontableTableRenderer(wtTable){
 
 };
 
-WalkontableTableRenderer.prototype.removeRedundantRows = function () {
-  var renderedRowIndex = this.wtTable.getRowStrategy().countRendered();
-  while (this.wtTable.tbodyChildrenLength > renderedRowIndex) {
+WalkontableTableRenderer.prototype.removeRedundantRows = function (renderedRowsCount) {
+  while (this.wtTable.tbodyChildrenLength > renderedRowsCount) {
     this.TBODY.removeChild(this.TBODY.lastChild);
     this.wtTable.tbodyChildrenLength--;
   }
@@ -128,16 +124,8 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
     lastTD = this.renderCells(sourceRowIndex, TR, displayTds);
 
-    offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
-
     //after last column is rendered, check if last cell is fully displayed
     if (!isWorkingOnClone) {
-      res = this.wtTable.getRowStrategy().add(visibleRowIndex, lastTD);
-
-      if (res === false) {
-        break;
-      }
-
       this.resetOversizedRow(sourceRowIndex);
     }
 
@@ -370,7 +358,11 @@ WalkontableTableRenderer.prototype.renderColumnHeader = function (col, TH) {
 };
 
 WalkontableTableRenderer.prototype.getColumnCount = function () {
-  if (this.wtTable.isWorkingOnClone() && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+  var isClone = this.wtTable.isWorkingOnClone();
+  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    return 1;
+  }
+  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {

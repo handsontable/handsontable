@@ -48,6 +48,10 @@ function WalkontableTable(instance, table) {
   }
   this.holder = this.hider.parentNode;
 
+  if (!this.isWorkingOnClone()) {
+    this.holder.parentNode.style.position = "relative";
+  }
+
   //bootstrap from settings
   this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
   if (!this.TBODY) {
@@ -102,16 +106,21 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
+  this.holderOffset = Handsontable.Dom.offset(this.holder);
+  this.instance.wtViewport.resetSettings();
+
+  if (this.instance.calculator && (this.instance.calculator.renderStartRow != this.instance.wtViewport.preCalculator.renderStartRow || this.instance.calculator.renderEndRow != this.instance.wtViewport.preCalculator.renderEndRow)) {
+    selectionsOnly = false;
+  }
+
   if (!selectionsOnly) {
     if (this.isWorkingOnClone()) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
     else {
-      this.holderOffset = Handsontable.Dom.offset(this.holder);
       this.tableOffset = Handsontable.Dom.offset(this.TABLE);
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
-      this.instance.wtViewport.resetSettings();
     }
     var offsetRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
@@ -120,7 +129,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       offsetRow = 0;
     }
     else {
-      offsetRow = this.instance.wtSettings.settings.offsetRow;
+      offsetRow = this.instance.wtViewport.preCalculator.renderStartRow;
     }
 
     this.rowFilter = new WalkontableRowFilter(
@@ -144,7 +153,6 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this.instance.wtScrollbars.vertical.resetFixedPosition();
     this.instance.wtScrollbars.horizontal.resetFixedPosition();
     this.instance.wtScrollbars.corner.resetFixedPosition();
-    this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
   }
 
   this.instance.drawn = true;
@@ -337,31 +345,7 @@ WalkontableTable.prototype.getLastRenderedRow = function () {
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  var rowStrategy = this.getRowStrategy();
-  var visibleCells = rowStrategy.countVisible();
-  var lastVisibleRow = this.getFirstVisibleRow() + visibleCells - 1;
-
-  var lastVisibleRowCell = this.getCell(new WalkontableCellCoords(lastVisibleRow, 0));
-
-  if (lastVisibleRowCell == -2) {
-    lastVisibleRow--;
-    lastVisibleRowCell = this.getCell(new WalkontableCellCoords(lastVisibleRow, 0));
-  }
-
-  if (Handsontable.Dom.offset(lastVisibleRowCell).top + Handsontable.Dom.outerHeight(lastVisibleRowCell) - this.instance.wtScrollbars.vertical.getScrollPosition() > this.instance.wtViewport.getWorkspaceOffset().top + this.instance.wtViewport.getWorkspaceHeight()) {
-    lastVisibleRow--;
-  }
-
-  var instance = this.instance;
-
-  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
-
-    return Math.min(fixedRowsTop - 1, lastVisibleRow);
-  } else {
-    return lastVisibleRow;
-  }
-  return lastVisibleRow;
+  return this.instance.calculator.renderEndRow;
 };
 
 //returns -1 if no column is visible
@@ -382,7 +366,7 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
 
 
   var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
-  var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth(Infinity);
+  var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth();
   var columnCount = this.getColumnStrategy().cellCount;
   var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0;
   var firstTR = this.TBODY.firstChild;
@@ -431,8 +415,12 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
   return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.getColumnStrategy().isLastIncomplete());
 };
 
+WalkontableTable.prototype.getRenderedRowsCount = function () {
+  return this.instance.wtViewport.preCalculator.countRendered;
+};
+
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.getRowStrategy().countVisible();
+  return this.instance.calculator.countRendered;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {

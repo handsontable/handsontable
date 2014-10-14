@@ -66,7 +66,7 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
 };
 
 WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.getSetting('offsetRow') + this.instance.wtTable.tbodyChildrenLength - 1;
+  return this.instance.wtViewport.preCalculator.renderEndRow;
 };
 
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -85,16 +85,18 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly)
 
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
+  var total = this.instance.getSetting('totalRows');
+  var first = this.instance.wtViewport.preCalculator.renderStartRow;
   var last = this.getLastCell();
-  this.measureBefore = this.sumCellSizes(0, this.offset);
+  this.measureBefore = this.sumCellSizes(0, first);
   if (last === -1) { //last -1 means that viewport is scrolled behind the table
     this.measureAfter = 0;
   }
   else {
-    this.measureAfter = this.sumCellSizes(last, this.total - last);
+    this.measureAfter = this.sumCellSizes(last, total - last);
   }
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
   this.fixed.style.top = this.measureBefore + 'px';
   this.fixed.style.bottom = '';
 
@@ -118,36 +120,5 @@ WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () 
 };
 
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  this.offset = this.instance.getSetting('offsetRow');
-  this.total = this.instance.getSetting('totalRows');
-
-  var scrollY = this.getScrollPosition();
-  if(this.lastEnd != null) {
-    if(scrollY > this.lastStart) {
-      var height = this.instance.wtViewport.getWorkspaceHeight();
-      if(scrollY + height < this.lastEnd) {
-        return; //do not change offsetRow if I am within last rendered viewport. Walkontable.prototype.draw will skip drawing if offsetRow is not changed
-      }
-    }
-  }
-
-  var scrollDelta = scrollY - this.getTableParentOffset();
-
-  scrollDelta -= 100; //render 100px before viewport. Change this to anything you like
-  if(scrollDelta < 0) {
-    scrollDelta = 0;
-  }
-
-  var sum = 0;
-  var last;
-  for (var i = 0; i < this.total; i++) {
-    last = this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
-    sum += last;
-    if (sum - 1 > scrollDelta) {
-      break;
-    }
-  }
-
-  this.offset = Math.min(i, this.total);
-  this.instance.update('offsetRow', this.offset);
+  //throw new Error("not here")
 };

@@ -31,14 +31,7 @@ var getLeftClone = function () {
   return spec().$container.find('.ht_clone_left');
 };
 
-var countRows = function () {
-  return getHtCore().find('tbody tr').length;
-};
-
-var countCols = function () {
-  return getHtCore().find('tbody tr:eq(0) td').length;
-};
-
+//Rename me to countTD
 var countCells = function () {
   return getHtCore().find('tbody td').length;
 };
@@ -270,6 +263,8 @@ var handsontableMethodFactory = function (method) {
 };
 
 var getInstance = handsontableMethodFactory('getInstance');
+var countRows = handsontableMethodFactory('countRows');
+var countCols = handsontableMethodFactory('countCols');
 var selectCell = handsontableMethodFactory('selectCell');
 var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');

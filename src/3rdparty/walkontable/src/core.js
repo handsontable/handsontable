@@ -55,18 +55,9 @@ Walkontable.prototype.draw = function (selectionsOnly) {
     return;
   }
 
-  selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow;
-  this.lastOffsetRow = this.getSetting('offsetRow');
-
-  var totalRows = this.getSetting('totalRows');
-
-  if (this.lastOffsetRow > totalRows && totalRows > 0) {
-    this.scrollVertical(-Infinity); //TODO: probably very inefficient!
-    this.scrollViewport(new WalkontableCellCoords(totalRows - 1, 0));
-  }
-
-
   this.wtTable.draw(selectionsOnly);
+  this.calculator = this.wtViewport.createCalculator();
+
   return this;
 };
 
