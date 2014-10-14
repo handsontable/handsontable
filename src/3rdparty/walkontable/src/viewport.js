@@ -78,9 +78,9 @@ WalkontableViewport.prototype.getColumnHeaderHeight = function () {
   return this.columnHeaderHeight;
 };
 
-WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
+WalkontableViewport.prototype.getViewportHeight = function () {
 
-  var containerHeight = this.getWorkspaceHeight(proposedHeight);
+  var containerHeight = this.getWorkspaceHeight();
 
   if (containerHeight === Infinity) {
     return containerHeight;
@@ -122,8 +122,8 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
 };
 
 // Viewport width = Workspace width - Row Headers width
-WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
-  var containerWidth = this.getWorkspaceWidth(proposedWidth);
+WalkontableViewport.prototype.getViewportWidth = function () {
+  var containerWidth = this.getWorkspaceWidth();
 
   if (containerWidth === Infinity) {
     return containerWidth;

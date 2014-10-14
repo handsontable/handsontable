@@ -32,7 +32,7 @@ WalkontableRowStrategy.prototype.add = function (i, TD) {
     return false; //total rows exceeded
   }
 
-  var containerSize = this.getContainerSize(this.cellSizesSum + size);
+  var containerSize = this.getContainerSize();
   this.cellSizes.push(size);
   this.cellSizesSum += size;
 

@@ -412,8 +412,8 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
     , totalRows = instance.getSetting('totalRows')
     , totalColumns = instance.getSetting('totalColumns');
 
-  var containerWidthFn = function (cacheWidth) {
-    var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
+  var containerWidthFn = function () {
+    var viewportWidth = that.instance.wtViewport.getViewportWidth();
     return viewportWidth;
   };
 
@@ -426,12 +426,12 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
     }
   };
 
-  var containerHeightFn = function (cacheHeight) {
+  var containerHeightFn = function () {
     if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay || instance.wtSettings.settings.renderAllRows) {
       return Infinity;
     }
     else {
-      return that.instance.wtViewport.getViewportHeight(cacheHeight);
+      return that.instance.wtViewport.getViewportHeight();
     }
   };
 

@@ -10,8 +10,8 @@ WalkontableAbstractStrategy.prototype.getSize = function (index) {
   return this.cellSizes[index];
 };
 
-WalkontableAbstractStrategy.prototype.getContainerSize = function (proposedSize) {
-  return typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
+WalkontableAbstractStrategy.prototype.getContainerSize = function () {
+  return typeof this.containerSizeFn === 'function' ? this.containerSizeFn() : this.containerSizeFn;
 };
 
 WalkontableAbstractStrategy.prototype.countVisible = function () {
