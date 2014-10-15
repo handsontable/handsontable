@@ -18,6 +18,12 @@ Handsontable.TextCell = {
   renderer: Handsontable.renderers.TextRenderer
 };
 
+Handsontable.MathjaxCell = {
+  editor: Handsontable.editors.TextEditor,
+  renderer: Handsontable.renderers.MathjaxRenderer
+  //TODO: Find a way to validate user input with MathJax
+};
+
 Handsontable.NumericCell = {
   editor: Handsontable.editors.TextEditor,
   renderer: Handsontable.renderers.NumericRenderer,
@@ -51,6 +57,7 @@ Handsontable.DropdownCell = {
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
   date: Handsontable.DateCell,
+  mathjax: Handsontable.MathjaxCell,
   numeric: Handsontable.NumericCell,
   checkbox: Handsontable.CheckboxCell,
   autocomplete: Handsontable.AutocompleteCell,
