@@ -365,7 +365,13 @@ Handsontable.Dom.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  * @return {void}
  */
 Handsontable.Dom.fastInnerHTML = function (element, content) {
-  if (this.HTML_CHARACTERS.test(content)) {
+  if (content instanceof HTMLElement) {
+    while(element.firstChild){
+	element.removeChild(element.firstChild);
+    }
+    element.appendChild(content);
+  }
+  else if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
   }
   else {
