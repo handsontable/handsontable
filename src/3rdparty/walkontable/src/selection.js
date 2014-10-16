@@ -101,7 +101,7 @@ WalkontableSelection.prototype.draw = function (instance) {
           // selected row headers
           if(source_c === corners[1]) {
             var TH = instance.wtTable.getRowHeader(source_r);
-            if (TH) {
+            if (TH && this.settings.highlightRowClassName) {
               Handsontable.Dom.addClass(TH, this.settings.highlightRowClassName);
             }
           }
@@ -109,18 +109,22 @@ WalkontableSelection.prototype.draw = function (instance) {
           // selected column headers
           if(source_r === corners[0] || (source_r > corners[0] && r == 0)) {
             var TH = instance.wtTable.getColumnHeader(source_c);
-            if (TH) {
+            if (TH && this.settings.highlightColumnClassName) {
               Handsontable.Dom.addClass(TH, this.settings.highlightColumnClassName);
             }
           }
         }
         else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
-          this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightRowClassName);
+          if (this.settings.highlightRowClassName) {
+            this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightRowClassName);
+          }
         }
         else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
-          this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightColumnClassName);
+          if(this.settings.highlightColumnClassName) {
+            this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightColumnClassName);
+          }
         }
       }
     }

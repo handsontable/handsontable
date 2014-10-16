@@ -35,6 +35,25 @@ describe('Core_view', function () {
     expect(isEditorVisible()).toEqual(true);
   });
 
+  it("should not render 'undefined' class name", function() {
+    this.$container[0].style.width = '501px';
+    this.$container[0].style.height = '100px';
+    this.$container[0].style.overflow = 'auto';
+
+    var hot = handsontable({
+      startRows: 10,
+      startCols: 5,
+      colWidths: [47, 47, 47, 47, 47],
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('.undefined').length).toBe(0);
+  });
+
   xit('should scroll viewport when partially visible cell is clicked', function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
