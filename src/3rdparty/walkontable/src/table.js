@@ -102,14 +102,16 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-  this.holderOffset = Handsontable.Dom.offset(this.holder);
-  this.instance.wtViewport.resetSettings();
+  if (!this.isWorkingOnClone()) {
+    this.holderOffset = Handsontable.Dom.offset(this.holder);
+    this.instance.wtViewport.resetSettings();
+  }
 
   if (selectionsOnly && this.instance.wtViewport.calculator) {
     if(this.instance.wtViewport.preCalculator.visibleStartRow < this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow > this.instance.wtViewport.calculator.renderEndRow) {
       selectionsOnly = false;
     }
-    else if(this.instance.wtViewport.preCalculator.renderStartPosition !== this.instance.wtViewport.calculator.renderStartPosition && (this.instance.wtViewport.preCalculator.visibleStartRow <= this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow >= this.instance.wtViewport.calculator.renderEndRow)) {
+    else if(this.instance.wtViewport.preCalculator.scrollOffset !== this.instance.wtViewport.calculator.scrollOffset && (this.instance.wtViewport.preCalculator.visibleStartRow <= this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow >= this.instance.wtViewport.calculator.renderEndRow)) {
       selectionsOnly = false;
     }
   }
@@ -117,7 +119,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   if (!this.isWorkingOnClone()) {
     var oldCalc = this.instance.wtViewport.calculator;
     this.instance.wtViewport.calculator = null; //must be created after render
-  };
+  }
 
   if (!selectionsOnly) {
     if (this.isWorkingOnClone()) {

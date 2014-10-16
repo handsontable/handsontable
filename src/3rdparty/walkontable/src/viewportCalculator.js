@@ -1,4 +1,5 @@
 function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeightFn, override, strict) {
+  this.scrollOffset = scrollOffset;
   this.renderStartRow = null;
   this.renderStartPosition = null;
   this.renderEndRow = null;
