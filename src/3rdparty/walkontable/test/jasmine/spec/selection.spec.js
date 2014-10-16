@@ -223,7 +223,7 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual(wt.calculator.countRendered * 2 - 2);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 - 2);
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
@@ -255,7 +255,7 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(wt.calculator.countRendered - 1);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
   });
 
   it("should remove highlight when selection is deselected", function () {
@@ -322,7 +322,7 @@ describe('WalkontableSelection', function () {
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-    expect($table.find('.highlightColumn').length).toEqual(wt.calculator.countRendered * 2 + 2 - 4);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 + 2 - 4);
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");

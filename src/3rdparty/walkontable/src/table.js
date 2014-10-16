@@ -105,11 +105,19 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.holderOffset = Handsontable.Dom.offset(this.holder);
   this.instance.wtViewport.resetSettings();
 
-  if (selectionsOnly && this.instance.calculator && (this.instance.wtViewport.preCalculator.visibleStartRow < this.instance.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow > this.instance.calculator.renderEndRow)) {
-    selectionsOnly = false;
+  if (selectionsOnly && this.instance.wtViewport.calculator) {
+    if(this.instance.wtViewport.preCalculator.visibleStartRow < this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow > this.instance.wtViewport.calculator.renderEndRow) {
+      selectionsOnly = false;
+    }
+    else if(this.instance.wtViewport.preCalculator.renderStartPosition !== this.instance.wtViewport.calculator.renderStartPosition && (this.instance.wtViewport.preCalculator.visibleStartRow <= this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow >= this.instance.wtViewport.calculator.renderEndRow)) {
+      selectionsOnly = false;
+    }
   }
 
-  this.instance.calculator = null; //must be created after render
+  if (!this.isWorkingOnClone()) {
+    var oldCalc = this.instance.wtViewport.calculator;
+    this.instance.wtViewport.calculator = null; //must be created after render
+  };
 
   if (!selectionsOnly) {
     if (this.isWorkingOnClone()) {
@@ -142,7 +150,13 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this._doDraw(); //creates calculator after draw
   }
   else {
-    this.instance.calculator = this.instance.wtViewport.createCalculator();
+    if (!this.isWorkingOnClone()) {
+      var tmp = this.instance.wtViewport.createCalculator();
+      this.instance.wtViewport.calculator = oldCalc;
+      this.instance.wtViewport.calculator.visibleCellCount = tmp.visibleCellCount;
+      this.instance.wtViewport.calculator.visibleStartRow = tmp.visibleStartRow;
+      this.instance.wtViewport.calculator.visibleEndRow = tmp.visibleEndRow;
+    };
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
@@ -335,7 +349,7 @@ WalkontableTable.prototype.getLastRenderedRow = function () {
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.instance.calculator.visibleEndRow;
+  return this.instance.wtViewport.calculator.visibleEndRow;
 };
 
 //returns -1 if no column is visible
@@ -423,7 +437,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.instance.calculator.countVisible;
+  return this.instance.wtViewport.calculator.countVisible;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {

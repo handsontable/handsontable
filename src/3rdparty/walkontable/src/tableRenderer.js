@@ -71,7 +71,7 @@ function WalkontableTableRenderer(wtTable){
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
 
-    this.instance.calculator = this.instance.wtViewport.createCalculator();
+    this.instance.wtViewport.calculator = this.instance.wtViewport.createCalculator();
 
     this.instance.wtScrollbars.applyToDOM();
 

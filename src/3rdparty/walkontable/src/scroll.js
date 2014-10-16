@@ -9,7 +9,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 
   var instance = this.instance
     , newOffset
-    , offset = instance.calculator.renderStartRow
+    , offset = instance.wtViewport.calculator.renderStartRow
     , fixedCount = instance.getSetting('fixedRowsTop')
     , total = instance.getSetting('totalRows')
     , maxSize = instance.wtViewport.getViewportHeight();
