@@ -1,10 +1,13 @@
 describe('WalkontableScrollbarNative', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {
+    $container = $('<div></div>').css({'overflow': 'auto'});
+    $container.width(100).height(200);
     $table = $('<table></table>'); //create a table that is not attached to document
-    $table.appendTo('body');
+    $container.append($table).appendTo('body');
     createDataArray();
   });
 
@@ -48,5 +51,25 @@ describe('WalkontableScrollbarNative', function () {
     wt.draw();
 
     expect($table.find('td').length).toEqual(tds);
+  });
+
+  it("scrolling 50px down should render 2 more rows", function () {
+    createDataArray(20, 4);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0
+    });
+    wt.draw();
+
+    var lastRenderedRow = wt.wtTable.getLastRenderedRow();
+
+    $container.scrollTop(50);
+    wt.draw();
+
+    expect(wt.wtTable.getLastRenderedRow()).toEqual(lastRenderedRow + 2);
   });
 });

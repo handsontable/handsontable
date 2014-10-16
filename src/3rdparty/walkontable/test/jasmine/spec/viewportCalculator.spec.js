@@ -39,7 +39,7 @@ describe('WalkontableViewportCalculator', function () {
     expect(calc.countVisible).toBe(4);
   });
 
-  it("should render all rows if they fit in viewport", function () {
+  it("should render all rows if their size is smaller than viewport", function () {
     var calc = new WalkontableViewportCalculator(200, 0, 8, allRows20);
     expect(calc.renderStartRow).toBe(0);
     expect(calc.renderEndRow).toBe(7);
@@ -49,7 +49,7 @@ describe('WalkontableViewportCalculator', function () {
     expect(calc.countVisible).toBe(8);
   });
 
-  it("should render all rows if they fit in viewport - border case", function () {
+  it("should render all rows if their size is exactly the viewport", function () {
     var calc = new WalkontableViewportCalculator(200, 0, 10, allRows20);
     expect(calc.renderStartRow).toBe(0);
     expect(calc.renderEndRow).toBe(9);
@@ -57,6 +57,16 @@ describe('WalkontableViewportCalculator', function () {
     expect(calc.visibleStartRow).toBe(0);
     expect(calc.visibleEndRow).toBe(9);
     expect(calc.countVisible).toBe(10);
+  });
+
+  it("should render all rows if their size is slightly larger than viewport", function () {
+    var calc = new WalkontableViewportCalculator(199, 0, 10, allRows20);
+    expect(calc.renderStartRow).toBe(0);
+    expect(calc.renderEndRow).toBe(9);
+    expect(calc.countRendered).toBe(10);
+    expect(calc.visibleStartRow).toBe(0);
+    expect(calc.visibleEndRow).toBe(8);
+    expect(calc.countVisible).toBe(9);
   });
 
   it("should set null values if total rows is 0", function () {
