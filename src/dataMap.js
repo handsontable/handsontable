@@ -415,7 +415,7 @@
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
       var value = this.get(row, prop);
-      return Handsontable.hooks.execute(this.instance, 'beforeCopy', value, row, prop);
+      return Handsontable.hooks.execute(this.instance, 'beforeCellCopy', value, row, prop);
     }
     return '';
   };
