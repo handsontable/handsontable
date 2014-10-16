@@ -405,6 +405,19 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
   return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.getColumnStrategy().isLastIncomplete());
 };
 
+WalkontableTable.prototype.getRenderedColumnsCount = function () {
+  var isClone = this.isWorkingOnClone();
+  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    return 1;
+  }
+  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+    return this.instance.getSetting('fixedColumnsLeft');
+  }
+  else {
+    return this.getColumnStrategy().cellCount;
+  }
+};
+
 WalkontableTable.prototype.getRenderedRowsCount = function () {
   return this.instance.wtViewport.preCalculator.countRendered;
 };

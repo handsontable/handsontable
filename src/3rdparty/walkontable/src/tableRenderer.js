@@ -32,7 +32,7 @@ function WalkontableTableRenderer(wtTable){
     , cloneLimit = this.instance.wtViewport.preCalculator.countRendered;
 
   if (totalColumns > 0) {
-    if (this.wtTable.isWorkingOnClone()) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
+    if (this.wtTable.isWorkingOnClone()) {
       if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
         cloneLimit = this.fixedRowsTop;
       }
@@ -48,7 +48,7 @@ function WalkontableTableRenderer(wtTable){
 
     this.renderColumnHeaders();
 
-    displayTds = this.getColumnCount();
+    displayTds = this.wtTable.getRenderedColumnsCount();
 
     //Render table rows
     this.renderRows(totalRows, cloneLimit, displayTds);
@@ -289,7 +289,7 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
     return;
   }
 
-  var columnCount = this.getColumnCount();
+  var columnCount = this.wtTable.getRenderedColumnsCount();
 
   var TR = this.getTrForColumnHeaders();
 
@@ -301,7 +301,7 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
 };
 
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
-  var columnCount = this.getColumnCount();
+  var columnCount = this.wtTable.getRenderedColumnsCount();
 
   //adjust COLGROUP
   while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
@@ -318,7 +318,7 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
 };
 
 WalkontableTableRenderer.prototype.adjustThead = function () {
-  var columnCount = this.getColumnCount();
+  var columnCount = this.wtTable.getRenderedColumnsCount();
   var TR = this.THEAD.firstChild;
   if (this.columnHeaders.length) {
     if (!TR) {
@@ -354,19 +354,6 @@ WalkontableTableRenderer.prototype.renderColumnHeader = function (col, TH) {
   TH.className = '';
   TH.removeAttribute('style');
   return this.columnHeaders[0](col, TH);
-};
-
-WalkontableTableRenderer.prototype.getColumnCount = function () {
-  var isClone = this.wtTable.isWorkingOnClone();
-  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    return 1;
-  }
-  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
-    return this.instance.getSetting('fixedColumnsLeft');
-  }
-  else {
-    return this.wtTable.getColumnStrategy().cellCount;
-  }
 };
 
 WalkontableTableRenderer.prototype.renderColGroups = function () {

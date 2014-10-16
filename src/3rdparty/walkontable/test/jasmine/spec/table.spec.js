@@ -100,7 +100,7 @@ describe('WalkontableTable', function () {
 
     wt.draw();
     var potentialRowCount = 9;
-    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getColumnStrategy().cellCount); //displayed cells
+    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); //displayed cells
     expect($table.find('tbody th').length).toBe(potentialRowCount); //9*1=9 displayed row headers
     expect($table.find('tbody tr:first th').length).toBe(1); //only one th per row
     expect($table.find('tbody tr:first th')[0].innerHTML).toBe('1'); //this should be the first row header
@@ -125,7 +125,7 @@ describe('WalkontableTable', function () {
       }]
     });
     wt.draw();
-    expect($table.find('thead tr:first th').length).toBe(wt.wtTable.getColumnStrategy().cellCount + 1); //4 columns in THEAD + 1 empty cell in the corner
+    expect($table.find('thead tr:first th').length).toBe(wt.wtTable.getRenderedColumnsCount() + 1); //4 columns in THEAD + 1 empty cell in the corner
     expect($table.find('thead tr:first th:eq(0)')[0].innerHTML.replace(/&nbsp;/, '')).toBe(''); //corner row is empty (or contains only &nbsp;)
     expect($table.find('thead tr:first th:eq(1)')[0].innerHTML).toBe('Column');
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');

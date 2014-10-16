@@ -111,7 +111,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -125,7 +125,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -155,7 +155,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
             return (selected[1] < 0 || rowSelected);
           }

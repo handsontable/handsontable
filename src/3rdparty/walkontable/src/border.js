@@ -150,12 +150,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     }
   }
 
-  if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-    ilen = instance.getSetting('fixedColumnsLeft');
-  }
-  else {
-    ilen = instance.wtTable.getColumnStrategy().cellCount;
-  }
+  ilen = instance.wtTable.getRenderedColumnsCount();
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.columnFilter.renderedToSource(i);

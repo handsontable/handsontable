@@ -81,7 +81,7 @@ WalkontableSelection.prototype.addClassAtCoords = function (instance, source_r, 
 WalkontableSelection.prototype.draw = function (instance) {
   var corners, r, c, source_r, source_c,
     visibleRows = instance.wtTable.getRenderedRowsCount(),
-    renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
+    renderedColumns = instance.wtTable.getRenderedColumnsCount();
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
