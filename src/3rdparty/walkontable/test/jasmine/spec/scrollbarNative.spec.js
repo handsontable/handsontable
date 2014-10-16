@@ -15,6 +15,7 @@ describe('WalkontableScrollbarNative', function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
+    $container.remove();
   });
 
   it("initial render should be no different than the redraw (vertical)", function () {

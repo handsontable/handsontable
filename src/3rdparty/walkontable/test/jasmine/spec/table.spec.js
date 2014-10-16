@@ -1,5 +1,6 @@
 describe('WalkontableTable', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {

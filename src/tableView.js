@@ -262,6 +262,9 @@ Handsontable.TableView = function (instance) {
     },
     onBeforeDrawBorders: function (corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
+    },
+    viewportCalculatorOverride: function(calc) {
+      instance.runHooks('afterViewportCalculatorOverride', calc);
     }
   };
 

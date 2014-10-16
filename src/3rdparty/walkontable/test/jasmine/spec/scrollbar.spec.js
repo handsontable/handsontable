@@ -1,5 +1,6 @@
 describe('WalkontableScrollbar', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {

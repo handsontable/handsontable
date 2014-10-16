@@ -430,5 +430,36 @@ describe("handsontable.MergeCells", function () {
       var regularCellScrollTop = hot.rootElement[0].scrollTop;
       expect(mergedCellScrollTop).toBe(regularCellScrollTop);
     });
+
+    it("should render whole merged cell even when most rows are not in the viewport - scrolled to top", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(40, 5),
+        mergeCells: [
+          {row: 1, col: 0, rowspan: 21, colspan: 2},
+          {row: 21, col: 2, rowspan: 18, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      expect(hot.countRenderedRows()).toBe(39);
+    });
+
+    it("should render whole merged cell even when most rows are not in the viewport - scrolled to bottom", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(40, 5),
+        mergeCells: [
+          {row: 1, col: 0, rowspan: 21, colspan: 2},
+          {row: 21, col: 2, rowspan: 18, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      this.$container.scrollTop(99999);
+      hot.render();
+
+      expect(hot.countRenderedRows()).toBe(39);
+    });
   });
 });

@@ -1,5 +1,6 @@
 describe('WalkontableSelection', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {
