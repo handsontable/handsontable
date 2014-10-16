@@ -400,7 +400,6 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
 
   var instance = this.instance
     , stretchH = instance.getSetting('stretchH')
-    , totalRows = instance.getSetting('totalRows')
     , totalColumns = instance.getSetting('totalColumns');
 
   var containerWidthFn = function () {
@@ -417,21 +416,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
     }
   };
 
-  var containerHeightFn = function () {
-    if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay || instance.wtSettings.settings.renderAllRows) {
-      return Infinity;
-    }
-    else {
-      return that.instance.wtViewport.getViewportHeight();
-    }
-  };
-
-  var rowHeightFn = function (i, TD) {
-    return instance.wtSettings.settings.defaultRowHeight;
-  };
-
   this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
-  this.wtTable.rowStrategy = new WalkontableRowStrategy(instance, containerHeightFn, rowHeightFn);
 };
 
 /*

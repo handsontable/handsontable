@@ -447,8 +447,7 @@ describe('WalkontableTable', function () {
     wt.draw();
     var oldCount = count;
 
-    var maxOuts = wt.wtTable.getRowStrategy().maxOuts;
-    wt.scrollVertical(maxOuts - 2);
+    wt.scrollVertical(8);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
   });

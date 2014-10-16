@@ -1,5 +1,5 @@
 /**
- * WalkontableAbstractStrategy (WalkontableColumnStrategy and WalkontableRowStrategy inherit from this)
+ * WalkontableAbstractStrategy (WalkontableColumnStrategy inherits from this)
  * @constructor
  */
 function WalkontableAbstractStrategy(instance) {

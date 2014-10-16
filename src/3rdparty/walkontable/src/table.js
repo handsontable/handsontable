@@ -86,10 +86,6 @@ function WalkontableTable(instance, table) {
   this.columnWidthCache = [];
 }
 
-WalkontableTable.prototype.getRowStrategy = function () {
-  return this.isWorkingOnClone() ? this.instance.cloneSource.wtTable.rowStrategy : this.rowStrategy;
-};
-
 WalkontableTable.prototype.getColumnStrategy = function () {
   return this.isWorkingOnClone() ? this.instance.cloneSource.wtTable.columnStrategy : this.columnStrategy;
 };
@@ -418,7 +414,7 @@ WalkontableTable.prototype.getVisibleRowsCount = function () {
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {
-  return this.getRowStrategy().cellCount == this.getVisibleRowsCount();
+  return this.instance.getSetting('totalRows') == this.getVisibleRowsCount();
 };
 
 /**

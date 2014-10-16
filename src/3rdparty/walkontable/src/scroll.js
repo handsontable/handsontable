@@ -88,13 +88,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.scrollToRenderedCell(TD);
     }
   }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
-
     this.scrollVertical(coords.row - this.instance.wtTable.getLastVisibleRow());
-
-    if (coords.row == this.instance.wtTable.getLastVisibleRow() && this.instance.wtTable.getRowStrategy().isLastIncomplete()){
-      this.scrollViewport(coords)
-    }
-
   } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
     this.scrollVertical(coords.row - this.instance.wtTable.getFirstRenderedRow());
   }
