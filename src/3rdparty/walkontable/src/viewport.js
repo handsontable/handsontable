@@ -1,5 +1,6 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
+  this.oversizedRows = [];
 
   var that = this;
   $(window).on('resize.walkontable.' + this.instance.guid, function () {
@@ -138,6 +139,9 @@ WalkontableViewport.prototype.getViewportWidth = function () {
 };
 
 WalkontableViewport.prototype.createCalculator = function () {
+  this.rowHeaderWidth = NaN;
+  this.columnHeaderHeight = NaN;
+
   var height;
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.wtSettings.settings.renderAllRows) {
     height = Infinity;
@@ -154,13 +158,11 @@ WalkontableViewport.prototype.createCalculator = function () {
     height,
     pos,
     this.instance.getSetting('totalRows'),
-    this.instance.wtSettings.settings.rowHeight
+    this.instance.wtTable.getRowHeight.bind(this),
+    this.instance.wtSettings.settings.viewportCalculatorOverride
   );
 };
 
 WalkontableViewport.prototype.resetSettings = function () {
-  this.rowHeaderWidth = NaN;
-  this.columnHeaderHeight = NaN;
-
   this.preCalculator = this.createCalculator();
 };

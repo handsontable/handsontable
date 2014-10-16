@@ -56,7 +56,6 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   }
 
   this.wtTable.draw(selectionsOnly);
-  this.calculator = this.wtViewport.createCalculator();
 
   return this;
 };

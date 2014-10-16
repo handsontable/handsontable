@@ -18,9 +18,7 @@ describe('WalkontableTable', function () {
     $container.remove()
   });
 
-  it("should create as many rows as in `height` + maxOuts", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-
+  it("should create as many rows as fits in height", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -31,8 +29,7 @@ describe('WalkontableTable', function () {
       width: 100
     });
     wt.draw();
-    var height = $container[0].clientHeight;
-    expect($table.find('tbody tr').length).toBe(Math.ceil(height / rowHeight) + wt.wtTable.rowStrategy.maxOuts);
+    expect($table.find('tbody tr').length).toBe(9);
   });
 
   it("should create as many rows as in `totalRows` if it is smaller than `height`", function () {
@@ -88,8 +85,6 @@ describe('WalkontableTable', function () {
   });
 
   it("should use rowHeaders function to generate row headers", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -104,8 +99,7 @@ describe('WalkontableTable', function () {
     });
 
     wt.draw();
-    var height = $container[0].clientHeight;
-    var potentialRowCount = Math.ceil(height / rowHeight) + wt.wtTable.getRowStrategy().maxOuts;
+    var potentialRowCount = 9;
     expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getColumnStrategy().cellCount); //displayed cells
     expect($table.find('tbody th').length).toBe(potentialRowCount); //9*1=9 displayed row headers
     expect($table.find('tbody tr:first th').length).toBe(1); //only one th per row
@@ -150,7 +144,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     expect(wt.wtTable.getCell(new WalkontableCellCoords(7, 0)) instanceof HTMLElement).toBe(true);
-    expect($table.find('tr:eq(10) td:first-child').text()).toEqual(this.data[10][0].toString())
+    expect($table.find('tr:eq(8) td:first-child').text()).toEqual(this.data[8][0].toString())
     expect(wt.wtTable.getCell(new WalkontableCellCoords(20, 0))).toBe(-2); //exit code
     expect(wt.wtTable.getCell(new WalkontableCellCoords(25, 0))).toBe(-2); //exit code
   });
@@ -431,7 +425,7 @@ describe('WalkontableTable', function () {
     expect(count).toBe(oldCount);
   });
 
-  it("should not ignore selectionsOnly == true when grid was scrolled by amount of rows that doesn't exceed the maxOuts settings", function () {
+  it("should not ignore selectionsOnly == true when grid was scrolled by amount of rows that doesn't exceed renderRowEnd", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
@@ -445,6 +439,9 @@ describe('WalkontableTable', function () {
         cellRenderer: function (row, column, TD) {
           count++;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        },
+        viewportCalculatorOverride: function(calc) {
+          calc.renderEndRow += 10;
         }
       });
     wt.draw();
@@ -456,7 +453,7 @@ describe('WalkontableTable', function () {
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
-  it("should ignore selectionsOnly == true when grid was scrolled by amount of rows that exceeds the maxOuts settings", function () {
+  it("should ignore selectionsOnly == true when grid was scrolled by amount of rows that exceeds renderRowEnd", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
@@ -470,13 +467,15 @@ describe('WalkontableTable', function () {
         cellRenderer: function (row, column, TD) {
           count++;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        },
+        viewportCalculatorOverride: function(calc) {
+          calc.renderEndRow += 10;
         }
       });
     wt.draw();
     var oldCount = count;
 
-    var maxOuts = wt.wtTable.getRowStrategy().maxOuts;
-    wt.scrollVertical(maxOuts + 2);
+    wt.scrollVertical(12);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });

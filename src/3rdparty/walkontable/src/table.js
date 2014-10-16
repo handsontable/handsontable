@@ -109,9 +109,11 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.holderOffset = Handsontable.Dom.offset(this.holder);
   this.instance.wtViewport.resetSettings();
 
-  if (this.instance.calculator && (this.instance.calculator.renderStartRow != this.instance.wtViewport.preCalculator.renderStartRow || this.instance.calculator.renderEndRow != this.instance.wtViewport.preCalculator.renderEndRow)) {
+  if (selectionsOnly && this.instance.calculator && (this.instance.wtViewport.preCalculator.visibleStartRow < this.instance.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow > this.instance.calculator.renderEndRow)) {
     selectionsOnly = false;
   }
+
+  this.instance.calculator = null; //must be created after render
 
   if (!selectionsOnly) {
     if (this.isWorkingOnClone()) {
@@ -141,9 +143,10 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.getSetting('totalColumns'),
       this.instance.getSetting('rowHeaders').length
     );
-    this._doDraw();
+    this._doDraw(); //creates calculator after draw
   }
   else {
+    this.instance.calculator = this.instance.wtViewport.createCalculator();
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
@@ -290,7 +293,7 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 
   do {
     i++;
-    sum += this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
+    sum += this.instance.wtTable.getRowHeight(i) || this.instance.wtSettings.settings.defaultRowHeight;
   } while (scrollbarPosition > 0 && sum - 1 < scrollbarPosition);
 
   if(i > 0)
@@ -332,20 +335,11 @@ WalkontableTable.prototype.getFirstVisibleColumn = function () {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getLastRenderedRow = function () {
-  var lastRenderedeRow =  this.rowFilter.renderedToSource(this.tbodyChildrenLength - 1);
-  var instance = this.instance;
-
-  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
-
-    return Math.min(fixedRowsTop - 1, lastRenderedeRow);
-  } else {
-    return lastRenderedeRow;
-  }
+  return this.instance.wtViewport.preCalculator.renderEndRow;
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.instance.calculator.renderEndRow;
+  return this.instance.calculator.visibleEndRow;
 };
 
 //returns -1 if no column is visible
@@ -408,7 +402,7 @@ WalkontableTable.prototype.isColumnAfterViewport = function (c) {
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function () {
-  return (this.getLastVisibleRow() === this.instance.getSetting('totalRows') - 1 && !this.getRowStrategy().isLastIncomplete());
+  return (this.getLastVisibleRow() === this.getLastRenderedRow());
 };
 
 WalkontableTable.prototype.isLastColumnFullyVisible = function () {
@@ -420,9 +414,23 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.instance.calculator.countRendered;
+  return this.instance.calculator.countVisible;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {
   return this.getRowStrategy().cellCount == this.getVisibleRowsCount();
+};
+
+/**
+ * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+ * @param {Number} row
+ * @return {Number}
+ */
+WalkontableTable.prototype.getRowHeight = function (sourceRow) {
+  var height = this.instance.wtSettings.settings.rowHeight(sourceRow);
+  var oversizedHeight = this.instance.wtViewport.oversizedRows[sourceRow];
+  if (oversizedHeight !== void 0) {
+    height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+  }
+  return height;
 };

@@ -33,11 +33,12 @@ function WalkontableSettings(instance, settings) {
     },
     columnWidth: 50,
     rowHeight: function (row) {
-      return 23;
+      return; //return undefined means use default size for the rendered cell content
     },
     defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
+    viewportCalculatorOverride: null,
 
     //callbacks
     onCellMouseDown: null,

@@ -346,11 +346,11 @@ describe('WalkontableScroll', function () {
         width: 100
       });
       wt.draw().scrollViewport(new WalkontableCellCoords(getTotalRows() - 1, 0)).draw();
-      var originalOffsetRow = wt.getSetting('offsetRow');
+      var originalOffsetRow = wt.getViewport()[0];
       this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
       wt.draw();
 
-      expect(originalOffsetRow - 1).toEqual(wt.getSetting('offsetRow'));
+      expect(originalOffsetRow - 1).toEqual(wt.getViewport()[0]);
     });
 
     it("should scroll to last row if smaller data source is loaded that does not have currently displayed row", function () {

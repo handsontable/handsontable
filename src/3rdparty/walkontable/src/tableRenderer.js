@@ -71,6 +71,8 @@ function WalkontableTableRenderer(wtTable){
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
 
+    this.instance.calculator = this.instance.wtViewport.createCalculator();
+
     this.instance.wtScrollbars.applyToDOM();
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
@@ -131,7 +133,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
 
     if (TR.firstChild) {
-      var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      var height = this.instance.wtTable.getRowHeight(sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
       if(height) {
         TR.firstChild.style.height = height + 'px';
       }
@@ -147,8 +149,8 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 };
 
 WalkontableTableRenderer.prototype.resetOversizedRow = function (sourceRow) {
-  if (this.instance.wtTable.oversizedRows && this.instance.wtTable.oversizedRows[sourceRow]) {
-    this.instance.wtTable.oversizedRows[sourceRow] = void 0;  //void 0 is faster than delete, see http://jsperf.com/delete-vs-undefined-vs-null/16
+  if (this.instance.wtViewport.oversizedRows && this.instance.wtViewport.oversizedRows[sourceRow]) {
+    this.instance.wtViewport.oversizedRows[sourceRow] = void 0;  //void 0 is faster than delete, see http://jsperf.com/delete-vs-undefined-vs-null/16
   }
 };
 
@@ -162,16 +164,13 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
   while (rowCount) {
     rowCount--;
     sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
-    previousRowHeight = this.instance.wtSettings.settings.rowHeight(sourceRowIndex);
+    previousRowHeight = this.instance.wtTable.getRowHeight(sourceRowIndex);
     currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
 
     trInnerHeight = Handsontable.Dom.innerHeight(currentTr) - 1;
 
     if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight || previousRowHeight < trInnerHeight)) {
-      if (!this.instance.wtTable.oversizedRows) {
-        this.instance.wtTable.oversizedRows = {};
-      }
-      this.instance.wtTable.oversizedRows[sourceRowIndex] = trInnerHeight;
+      this.instance.wtViewport.oversizedRows[sourceRowIndex] = trInnerHeight;
     }
   }
 

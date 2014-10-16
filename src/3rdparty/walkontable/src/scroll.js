@@ -23,10 +23,10 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
   if (total > 0 && !this.instance.wtTable.isLastRowFullyVisible()) {
     newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount, maxSize, function (row) {
       if (row - offset < fixedCount && row - offset >= 0) {
-        return instance.getSetting('rowHeight', row - offset);
+        return this.instance.wtTable.getRowHeight(row - offset);
       }
       else {
-        return instance.getSetting('rowHeight', row);
+        return this.instance.wtTable.getRowHeight(row);
       }
     });
 
