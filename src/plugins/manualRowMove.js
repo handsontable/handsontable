@@ -51,9 +51,15 @@
       }
     }
 
-    function refreshHandlePosition(TH) {
+    function refreshHandlePosition(TH, delta) {
       var box = TH.getBoundingClientRect();
-      handle.style.top = box.top + 'px';
+      var handleHeight = 6;
+      if (delta > 0) {
+        handle.style.top = (box.top + box.height - handleHeight) + 'px';
+      }
+      else {
+        handle.style.top = box.top + 'px';
+      }
     }
 
     function setupGuidePosition() {
@@ -84,7 +90,7 @@
       instance.rootElement.on('mouseenter.manualRowMove.' + instance.guid, 'table tbody tr > th', function (e) {
         if (pressed) {
           endRow = instance.view.wt.wtTable.getCoords(e.currentTarget).row;
-          refreshHandlePosition(e.currentTarget);
+          refreshHandlePosition(e.currentTarget, endRow - startRow);
         }
         else {
           setupHandlePosition.call(instance, e.currentTarget);
@@ -111,9 +117,6 @@
           hideHandleAndGuide();
           pressed = false;
 
-          if (startRow < endRow) {
-            endRow--;
-          }
           createPositionData(instance.manualRowPositions, instance.countRows());
           instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
 
