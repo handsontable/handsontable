@@ -38,6 +38,32 @@ describe('manualColumnMove', function () {
     $secondColHeader.trigger('mouseup');
   }
 
+  function moveFirstDisplayedColumnAfterSecondColumn(container, firstDisplayedColIndex){
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first();
+    var $colHeaders = container.find('thead tr:eq(0) th');
+    var $firstColHeader = $colHeaders.eq(firstDisplayedColIndex);
+    var $secondColHeader = $colHeaders.eq(firstDisplayedColIndex + 1);
+
+    //Enter the first column header
+    $firstColHeader.trigger('mouseenter');
+    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+
+    //Grab the first column
+    var mouseDownEvent = $.Event('mousedown');
+    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
+    $manualColumnMover.trigger(mouseDownEvent);
+
+    //Drag the first column over the second column
+    var mouseMoveEvent = $.Event('mousemove');
+    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left + 20;
+    $manualColumnMover.trigger(mouseMoveEvent);
+    
+    $secondColHeader.trigger('mouseenter');
+    
+    //Drop the first column
+    $firstColHeader.trigger('mouseup');
+  }
+
   it("should change column order at init", function () {
     handsontable({
       data: [
@@ -530,4 +556,129 @@ describe('manualColumnMove', function () {
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
 
+  it("should move the first column to the second column", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true,
+      manualColumnMove: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+
+    moveFirstDisplayedColumnAfterSecondColumn(htCore, 0);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+  });
+
+  it("should move the second column to the third column", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true,
+      manualColumnMove: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+
+    moveFirstDisplayedColumnAfterSecondColumn(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Right');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Ted');
+  });
+
+  it("should not move the column when dropped in the row header column", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right", color: "Blue"},
+        {id: 2, name: "Frank", lastName: "Honest", color: "Red"},
+        {id: 3, name: "Joan", lastName: "Well", color: "Yellow"},
+        {id: 4, name: "Sid", lastName: "Strong", color: "Black"},
+        {id: 5, name: "Jane", lastName: "Neat", color: "White"}
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('Blue');
+
+    moveSecondDisplayedColumnBeforeFirstColumn(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('Blue');
+  });
+  
+  it("should not display the move handler in the row header column", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right", color: "Blue"},
+        {id: 2, name: "Frank", lastName: "Honest", color: "Red"},
+        {id: 3, name: "Joan", lastName: "Well", color: "Yellow"},
+        {id: 4, name: "Sid", lastName: "Strong", color: "Black"},
+        {id: 5, name: "Jane", lastName: "Neat", color: "White"}
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: true
+    });
+
+    var htCore = getHtCore();
+
+    var $mainContainer = htCore.parents(".handsontable").not("[class*=clone]").first();
+    var $colHeaders = htCore.find('thead tr:eq(0) th');
+    var $rowHeader = $colHeaders.eq(0);
+    var $firstColHeader = $colHeaders.eq(1);
+
+    //Enter the first column header
+    $firstColHeader.trigger('mouseenter');
+    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+
+    //Grab the first column
+    var mouseDownEvent = $.Event('mousedown');
+    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
+    $manualColumnMover.trigger(mouseDownEvent);
+
+    //Drag the first column over the row header column
+    var mouseMoveEvent = $.Event('mousemove');
+    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left - 20;
+    $manualColumnMover.trigger(mouseMoveEvent);
+
+    $rowHeader.trigger('mouseenter');
+
+    expect($manualColumnMover[0].getBoundingClientRect().left).not.toEqual($rowHeader[0].getBoundingClientRect().left);
+    expect($manualColumnMover[0].getBoundingClientRect().left).toEqual($firstColHeader[0].getBoundingClientRect().left);
+
+
+    //Drop the second column
+    $firstColHeader.trigger('mouseup');
+  });
 });

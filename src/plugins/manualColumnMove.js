@@ -51,9 +51,15 @@ function HandsontableManualColumnMove() {
     }
   }
 
-  function refreshHandlePosition(TH) {
+  function refreshHandlePosition(TH, delta) {
     var box = TH.getBoundingClientRect();
-    handle.style.left = box.left + 'px';
+    var handleWidth = 6;
+    if (delta > 0) {
+      handle.style.left = (box.left + box.width - handleWidth) + 'px';
+    }
+    else {
+      handle.style.left = box.left + 'px';
+    }
   }
 
   function setupGuidePosition() {
@@ -83,8 +89,11 @@ function HandsontableManualColumnMove() {
 
     instance.rootElement.on('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th', function (e) {
       if (pressed) {
-        endCol = instance.view.wt.wtTable.getCoords(e.currentTarget).col;
-        refreshHandlePosition(e.currentTarget);
+        var col = instance.view.wt.wtTable.getCoords(e.currentTarget).col;
+        if(col >= 0) { //not TH above row header
+          endCol = col;
+          refreshHandlePosition(e.currentTarget, endCol - startCol);
+        }
       }
       else {
         setupHandlePosition.call(instance, e.currentTarget);
@@ -111,9 +120,6 @@ function HandsontableManualColumnMove() {
         hideHandleAndGuide();
         pressed = false;
 
-        if (startCol < endCol) {
-          endCol--;
-        }
         createPositionData(instance.manualColumnPositions, instance.countCols());
         instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
 
