@@ -11,7 +11,9 @@
 
 .handsontable {
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
+
 .handsontable .hide{
   display: none;
 }
@@ -409,6 +411,36 @@ Comment For Cell
   right: 0;
   border-left: 6px solid transparent;
   border-top: 6px solid red;
+}
+
+/* Mobile Text Editor */
+#mobile-editor-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  z-index: 9999;
+}
+
+#mobile-editor-container.active {
+  display: block;
+}
+
+#mobile-editor-container .inputs,
+#mobile-editor-container .inputs textarea {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#mobile-editor-container .inputs textarea {
+  font-size: 20pt;
 }
 
 /**

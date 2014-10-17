@@ -72,6 +72,7 @@ module.exports = function (grunt) {
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
+        'src/editors/mobileTextEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',

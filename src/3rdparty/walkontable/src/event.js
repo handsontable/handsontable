@@ -29,6 +29,10 @@ function WalkontableEvent(instance) {
     }
   };
 
+  var onTouchStart = function (event) {
+    onMouseDown(event);
+  };
+
   var lastMouseOver;
   var onMouseOver = function (event) {
     if (that.instance.hasSetting('onCellMouseOver')) {
@@ -80,9 +84,22 @@ function WalkontableEvent(instance) {
     }
   };
 
+  var onTouchEnd = function (event) {
+    onMouseUp(event);
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
   $(this.instance.wtTable.holder).on('mousedown', onMouseDown);
   $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
   $(this.instance.wtTable.holder).on('mouseup', onMouseUp);
+
+  var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
+
+  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchstart', classSelector, onTouchStart);
+  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchend', classSelector, onTouchEnd);
+
 
   $(window).on('resize.' + this.instance.guid, function () {
     that.instance.draw();
