@@ -407,4 +407,56 @@ describe('manualRowMove', function () {
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
   });
 
+  it("moving row should keep cell meta created using cells function", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true,
+      cells: function (row, col) {
+        if (row == 1 && col == 0) {
+          this.readOnly = true;
+        }
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+  });
+
+  it("moving row should keep cell meta created using cell array", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true,
+      cell: [
+        {row: 1, col: 0, readOnly: true}
+      ]
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+  });
+
 });

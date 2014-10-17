@@ -371,7 +371,7 @@ describe('manualColumnMove', function () {
   it("should not move the column if you click the handle without dragging", function () {
     handsontable({
       data: [
-        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 1, name: "Ted", lastName: "Right"}
       ],
       colHeaders: true,
       manualColumnMove: true
@@ -680,5 +680,57 @@ describe('manualColumnMove', function () {
 
     //Drop the second column
     $firstColHeader.trigger('mouseup');
+  });
+
+  it("moving column should keep cell meta created using cells function", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true,
+      manualColumnMove: true,
+      cells: function (row, col) {
+        if (row == 0 && col == 1) {
+          this.readOnly = true;
+        }
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedColumnAfterSecondColumn(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+  });
+
+  it("moving column should keep cell meta created using cell array", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true,
+      manualColumnMove: true,
+      cell: [
+        {row: 0, col: 1, readOnly: true}
+      ]
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedColumnAfterSecondColumn(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
   });
 });
