@@ -105,8 +105,10 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
-    cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
-    cell.TD = this.instance.wtTable.getCell(cell.coords);
+    if (this.instance.selections[1].cellRange){
+      cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
+      cell.TD = this.instance.wtTable.getCell(cell.coords);
+    }
   }
 
   return cell;

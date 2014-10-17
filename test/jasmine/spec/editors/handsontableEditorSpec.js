@@ -198,7 +198,7 @@ describe('HandsontableEditor', function () {
 
       keyDownUp('enter');
 
-      expect(hot.getActiveEditor().$textarea.css('visibility')).toEqual('hidden');
+      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('hidden');
 
     });
   });
@@ -239,8 +239,7 @@ describe('HandsontableEditor', function () {
       selectCell(2, 0);
 
       keyDownUp('enter');
-
-      expect(hot.getActiveEditor().$textarea.css('visibility')).toEqual('visible');
+      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('visible');
 
     });
 

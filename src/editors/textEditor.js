@@ -120,7 +120,6 @@
 //    this.$body = $(document.body);
 
     this.TEXTAREA = document.createElement('TEXTAREA');
-//    this.$textarea = $(this.TEXTAREA);
 
     Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -219,8 +218,6 @@
       editLeft = 0;
     }
 
-    console.log(this.TD);
-
     if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
       editTop += 1;
     }
@@ -270,12 +267,10 @@
     var eventManager = Handsontable.eventManager(editor);
 
     eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
-//    this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
     });
 
     eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
-//    this.$textarea.on('paste.editor', function (event) {
       event.stopPropagation();
     });
 

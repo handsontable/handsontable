@@ -5,7 +5,8 @@ describe('ColumnSorting', function () {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.sortByColumn = function (columnIndex) {
-      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
+//      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
+      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
     }
   });
 
@@ -235,11 +236,11 @@ describe('ColumnSorting', function () {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    htCore.find('th span.columnSorting:eq(2)').click();  // DESC sort after first click
+    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
-    htCore.find('th span.columnSorting:eq(2)').click();  // ASC sort after second click
+    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
@@ -929,7 +930,7 @@ describe('ColumnSorting', function () {
         [2, "Frank", "Honest"],
         [3, "Joan", "Well"],
         [4, "Sid", "Strong"],
-        [5, "Jane", "Neat"],
+        [5, "Jane", "Neat"]
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -959,7 +960,7 @@ describe('ColumnSorting', function () {
         [2, "Frank", "Honest"],
         [3, "Joan", "Well"],
         [4, "Sid", "Strong"],
-        [5, "Jane", "Neat"],
+        [5, "Jane", "Neat"]
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -990,7 +991,7 @@ describe('ColumnSorting', function () {
         [2, "Frank", "Honest"],
         [3, "Joan", "Well"],
         [4, "Sid", "Strong"],
-        [5, "Jane", "Neat"],
+        [5, "Jane", "Neat"]
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -1022,7 +1023,7 @@ describe('ColumnSorting', function () {
         [2, "Frank", "Honest"],
         [3, "Joan", "Well"],
         [4, "Sid", "Strong"],
-        [5, "Jane", "Neat"],
+        [5, "Jane", "Neat"]
       ],
       colHeaders: true,
       rowHeaders: true,

@@ -263,14 +263,12 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         updateChoicesList.reset();
-        editor.$textarea.val('red');
+        editor.TEXTAREA.value = 'red';
 
-        editor.$textarea.simulate('keydown',{
+        $(editor.TEXTAREA).simulate('keydown',{
           keyCode: 'd'.charCodeAt(0)
         });
-//        editor.$textarea.trigger($.Event('keydown', {
-//          keyCode: 'd'.charCodeAt(0)
-//        }));
+
       });
 
       waitsFor(function () {
