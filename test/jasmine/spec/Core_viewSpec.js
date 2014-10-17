@@ -596,8 +596,10 @@ describe('Core_view', function () {
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
-      expect(masterTH[1].offsetWidth).toEqual(87);
-      expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
+
+      var result = navigator.platform == "Win32" ? 86 : 87;
+      expect(masterTH[1].offsetWidth).toEqual(result);
+      expect(overlayTH[1].offsetWidth).toEqual(result); //if you get 90, it means it is calculated before scrollbars were applied
 
       expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
       expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);
