@@ -59,7 +59,8 @@
     var plugin = this;
     this.cmInstance = cmInstance;
 
-    if (!Handsontable.Dom.hasClass(this.cmInstance.rootElement[0], 'htContextMenu')) {
+//    if (!Handsontable.Dom.hasClass(this.cmInstance.rootElement[0], 'htContextMenu')) {
+    if (!Handsontable.Dom.hasClass(this.cmInstance.rootElement, 'htContextMenu')) {
       return;
     }
 
@@ -90,7 +91,8 @@
     // Workaround for 'current' and 'zeroclipboard-is-hover' classes being stuck when moving the cursor over the context menu
     if (plugin.cmInstance) {
       $(document).off('mouseenter.' + plugin.cmInstance.guid).on('mouseenter.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
-        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.current');
+        var hadClass = plugin.cmInstance.rootElement.querySelector('td.current');
+//        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.current');
         if (hadClass) {
           Handsontable.Dom.removeClass(hadClass, 'current');
         }
@@ -99,7 +101,8 @@
       });
 
       $(document).off('mouseleave.' + plugin.cmInstance.guid).on('mouseleave.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
-        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.zeroclipboard-is-hover');
+        var hadClass = plugin.cmInstance.rootElement.querySelector('td.zeroclipboard-is-hover');
+//        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.zeroclipboard-is-hover');
         if (hadClass) {
           Handsontable.Dom.removeClass(hadClass, 'zeroclipboard-is-hover');
         }

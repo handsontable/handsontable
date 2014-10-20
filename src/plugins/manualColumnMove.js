@@ -47,7 +47,8 @@ function HandsontableManualColumnMove() {
       startOffset = box.left;
       handle.style.top = box.top + 'px';
       handle.style.left = startOffset + 'px';
-      instance.rootElement[0].appendChild(handle);
+//      instance.rootElement[0].appendChild(handle);
+      instance.rootElement.appendChild(handle);
     }
   }
 
@@ -65,7 +66,8 @@ function HandsontableManualColumnMove() {
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
     guide.style.top = handle.style.top;
     guide.style.left = startOffset + 'px';
-    instance.rootElement[0].appendChild(guide);
+//    instance.rootElement[0].appendChild(guide);
+    instance.rootElement.appendChild(guide);
   }
 
   function refreshGuidePosition(diff) {
@@ -105,8 +107,8 @@ function HandsontableManualColumnMove() {
     var instance = this;
     var pressed;
 
-
-    eventManager.addEventListener(instance.rootElement[0],'mouseover',function (e) {
+//    eventManager.addEventListener(instance.rootElement[0],'mouseover',function (e) {
+    eventManager.addEventListener(instance.rootElement,'mouseover',function (e) {
         if (checkColumnHeader(e.target)){
           var th = getTHFromTargetElement(e.target);
           if (th) {
@@ -121,7 +123,8 @@ function HandsontableManualColumnMove() {
         }
     });
 
-    eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
+//    eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
+    eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
       if (Handsontable.Dom.hasClass(e.target, 'manualColumnMover')){
         startX = e.pageX;
         setupGuidePosition.call(instance);

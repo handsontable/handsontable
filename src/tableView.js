@@ -10,10 +10,13 @@ Handsontable.TableView = function (instance) {
   this.instance = instance;
   this.settings = instance.getSettings();
 
-  instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+//  instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+
+  instance.rootElement.data['originalStyle'] = instance.rootElement.getAttribute('style'); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
 
-  instance.rootElement.addClass('handsontable');
+  Handsontable.Dom.addClass(instance.rootElement,'handsontable');
+//  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
   table.className = 'htCore';
@@ -25,7 +28,8 @@ Handsontable.TableView = function (instance) {
   instance.$table = $(table);
   instance.container.prepend(instance.$table);
 
-  this.eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
+//  this.eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
+  this.eventManager.addEventListener(instance.rootElement,'mousedown', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
@@ -71,7 +75,8 @@ Handsontable.TableView = function (instance) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
-        if (next === instance.rootElement[0]) {
+//        if (next === instance.rootElement[0]) {
+        if (next === instance.rootElement) {
           return; //click inside container
         }
         next = next.parentNode;
@@ -331,7 +336,7 @@ Handsontable.TableView.prototype.onDraw = function(force){
 Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
-  this.instance.rootElement.triggerHandler('render.handsontable');
+//  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 /**

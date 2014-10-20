@@ -427,7 +427,8 @@
     }
     var eventManager = Handsontable.eventManager(this.instance);
 
-    eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+    eventManager.addEventListener(this.instance.rootElement, 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+//    eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 //    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
@@ -452,7 +453,8 @@
 
   ContextMenu.prototype.performAction = function (event, menu) {
     var contextMenu = this;
-    var hot = $(menu).handsontable('getInstance');
+
+    var hot = tmpHandsontable(menu,'getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
@@ -475,7 +477,8 @@
   ContextMenu.prototype.unbindMouseEvents = function () {
     this.eventManager.clear();
     var eventManager = Handsontable.eventManager(this.instance);
-    eventManager.removeEventListener(this.instance.rootElement[0], 'contextmenu');
+//    eventManager.removeEventListener(this.instance.rootElement[0], 'contextmenu');
+    eventManager.removeEventListener(this.instance.rootElement, 'contextmenu');
 //    this.instance.rootElement.off('contextmenu.htContextMenu');
 //    this.eventManager.removeEventListener(document, 'mousedown');
 //    $(document).off('mousedown.htContextMenu');
@@ -492,13 +495,8 @@
       that.performAction(event, menu)
     });
 
-//    $(menu)
-//      .off('mousedown.htContextMenu')
-//      .on('mousedown.htContextMenu', function (event) {
-//        that.performAction(event, menu)
-//      });
-
-    $(menu).handsontable({
+    console.log(items);
+    var settings = {
       data: items,
       colHeaders: false,
       colWidths: [200],
@@ -518,12 +516,11 @@
       },
 
       renderAllRows: true
-    });
+    };
 
+    menu = tmpHandsontable(menu,settings);
     this.bindTableEvents();
-
-    $(menu).handsontable('listen');
-
+    tmpHandsontable(menu, 'listen');
   };
 
   ContextMenu.prototype.close = function (menu) {
@@ -1065,7 +1062,8 @@
 
   function updateHeight() {
 
-    if (this.rootElement[0].className.indexOf('htContextMenu')) {
+//    if (this.rootElement[0].className.indexOf('htContextMenu')) {
+    if (this.rootElement.className.indexOf('htContextMenu')) {
       return;
     }
 

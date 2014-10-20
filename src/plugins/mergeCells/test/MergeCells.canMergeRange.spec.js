@@ -66,7 +66,8 @@ describe("handsontable.MergeCells", function () {
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement[0].querySelector('td');
+      var TD = hot.rootElement.querySelector('td');
+//      var TD = hot.rootElement[0].querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
     })

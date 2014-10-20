@@ -77,7 +77,8 @@ function Storage(prefix) {
       }
 
       if (!instance.storage) {
-        instance.storage = new StorageClass(instance.rootElement[0].id);
+//        instance.storage = new StorageClass(instance.rootElement[0].id);
+        instance.storage = new StorageClass(instance.rootElement.id);
       }
 
       instance.resetState = plugin.resetValue;

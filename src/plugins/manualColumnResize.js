@@ -51,7 +51,8 @@ function HandsontableManualColumnResize() {
       startWidth = parseInt(box.width, 10);
       handle.style.top = box.top + 'px';
       handle.style.left = startOffset + startWidth + 'px';
-      instance.rootElement[0].appendChild(handle);
+//      instance.rootElement[0].appendChild(handle);
+      instance.rootElement.appendChild(handle);
     }
   }
 
@@ -66,7 +67,8 @@ function HandsontableManualColumnResize() {
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
-    instance.rootElement[0].appendChild(guide);
+//    instance.rootElement[0].appendChild(guide);
+    instance.rootElement.appendChild(guide);
   }
 
   function refreshGuidePosition() {

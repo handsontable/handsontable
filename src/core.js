@@ -26,14 +26,20 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.container = document.createElement('DIV');
   this.container.className = 'htContainer';
-  rootElement.prepend(this.container);
+
+  rootElement.insertBefore(this.container, rootElement.firstChild);
+
+//  rootElement.prepend(this.container);
   this.container = $(this.container);
 
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
-  if (!this.rootElement[0].id || this.rootElement[0].id.substring(0, 3) === "ht_") {
-    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+  if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === "ht_") {
+    this.rootElement.id = this.guid; //if root element does not have an id, assign a random id
   }
+//  if (!this.rootElement[0].id || this.rootElement[0].id.substring(0, 3) === "ht_") {
+//    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+//  }
 
   priv = {
     cellSettings: [],
@@ -1147,10 +1153,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (typeof settings.className !== "undefined") {
       if (GridSettings.prototype.className) {
-        instance.rootElement.removeClass(GridSettings.prototype.className);
+        Handsontable.Dom.removeClass(instance.rootElement,GridSettings.prototype.className);
+//        instance.rootElement.removeClass(GridSettings.prototype.className);
       }
       if (settings.className) {
-        instance.rootElement.addClass(settings.className);
+        Handsontable.Dom.addClass(instance.rootElement,settings.className);
+//        instance.rootElement.addClass(settings.className);
       }
     }
 
@@ -1161,7 +1169,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         height = height();
       }
 
-      instance.rootElement[0].style.height = height + 'px';
+      instance.rootElement.style.height = height + 'px';
+//      instance.rootElement[0].style.height = height + 'px';
     }
 
     if (typeof settings.width != 'undefined'){
@@ -1171,11 +1180,13 @@ Handsontable.Core = function (rootElement, userSettings) {
         width = width();
       }
 
-      instance.rootElement[0].style.width = width + 'px';
+      instance.rootElement.style.width = width + 'px';
+//      instance.rootElement[0].style.width = width + 'px';
     }
 
     if (height){
-      instance.rootElement[0].style.overflow = 'auto';
+      instance.rootElement.style.overflow = 'auto';
+//      instance.rootElement[0].style.overflow = 'auto';
     }
 
     if (!init) {
@@ -2105,6 +2116,54 @@ DefaultSettings.prototype = {
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
+var tmpHandsontable = function (element, action) {
+
+  var i
+    , ilen
+    , args
+    , output
+    , userSettings
+    , instance = element.data ? element.data['handsontable'] : null;
+  // Init case
+//  console.log('element',element);
+//  console.log('instance',instance);
+//  console.log('action',action)
+
+  if (typeof action !== 'string') {
+
+    userSettings = action || {};
+    if (instance) {
+      instance.updateSettings(userSettings);
+    }
+    else {
+      instance = new Handsontable.Core(element,userSettings);
+      element.data = {'handsontable': instance};
+      instance.init();
+
+    }
+    return element;
+  } else {
+    args = [];
+    if (arguments.length > 1) {
+      for (i = 1, ilen = arguments.length; i < ilen; i++) {
+        args.push(arguments[i]);
+      }
+    }
+
+    if (instance) {
+      if (typeof instance[action] !== 'undefined') {
+        output = instance[action].apply(instance, args);
+      }
+      else {
+        throw new Error('Handsontable do not provide action: ' + action);
+      }
+    }
+
+    return output;
+  }
+};
+
+
 $.fn.handsontable = function (action) {
   var i
     , ilen
@@ -2114,6 +2173,8 @@ $.fn.handsontable = function (action) {
     , $this = this.first() // Use only first element from list
     , instance = $this.data('handsontable');
 
+
+
   // Init case
   if (typeof action !== 'string') {
     userSettings = action || {};
@@ -2121,12 +2182,19 @@ $.fn.handsontable = function (action) {
       instance.updateSettings(userSettings);
     }
     else {
-      instance = new Handsontable.Core($this, userSettings);
-      $this.data('handsontable', instance);
+      console.log(this);
+      instance = new Handsontable.Core(this[0],userSettings);
+
+      this[0].data = {'handsontable': instance};
+
+
+//      instance = new Handsontable.Core($this, userSettings);
+//      $this.data('handsontable', instance);
       instance.init();
     }
 
-    return $this;
+//    return $this;
+    return this[0];
   }
   // Action case
   else {

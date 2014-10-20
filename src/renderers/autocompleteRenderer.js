@@ -53,7 +53,8 @@
         }
       };
 
-      eventManager.addEventListener(instance.rootElement[0],'mousedown',instance.acArrowListener);
+      eventManager.addEventListener(instance.rootElement,'mousedown',instance.acArrowListener);
+//      eventManager.addEventListener(instance.rootElement[0],'mousedown',instance.acArrowListener);
 
       //We need to unbind the listener after the table has been destroyed
       instance.addHookOnce('afterDestroy', function () {
