@@ -416,11 +416,13 @@ Comment For Cell
 /* Mobile Text Editor */
 #mobile-editor-container {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
+  width: 70%;
+  height: 100px;
+  background: #ededed;
+  border-radius: 8px;
+  border: 1px solid #d1d1d1;
   z-index: 9999;
 }
 
@@ -431,16 +433,33 @@ Comment For Cell
 #mobile-editor-container .inputs,
 #mobile-editor-container .inputs textarea {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  height: 40px;
 }
 
 #mobile-editor-container .inputs textarea {
   font-size: 20pt;
+}
+
+#mobile-editor-container .move-handle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 35px;
+  height: 35px;
+  cursor: move;
+}
+
+#mobile-editor-container .move-handle:after {
+  content: "...\a...\a...";
+  white-space: pre;
+  line-height: 10px;
+  font-size: 20pt;
+  display: inline-block;
+  margin-top: -8px;
+  color: #b7b7b7;
 }
 
 /**

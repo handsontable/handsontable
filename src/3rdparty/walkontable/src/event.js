@@ -128,4 +128,7 @@ WalkontableEvent.prototype.parentCell = function (elem) {
 WalkontableEvent.prototype.destroy = function () {
   clearTimeout(this.dblClickTimeout[0]);
   clearTimeout(this.dblClickTimeout[1]);
+
+  $(this.instance.wtTable.holder.parentNode.parentNode).off('touchstart');
+  $(this.instance.wtTable.holder.parentNode.parentNode).off('touchend');
 };
