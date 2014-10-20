@@ -55,7 +55,8 @@
 
 //      tmp.container.className = instance.rootElement[0].className + ' htAutoColumnSize';
       tmp.container.className = instance.rootElement.className + ' htAutoColumnSize';
-      tmp.table.className = instance.$table[0].className;
+//      tmp.table.className = instance.$table[0].className;
+      tmp.table.className = instance.table.className;
 
       var rows = instance.countRows();
       var samples = {};

@@ -25,8 +25,11 @@ Handsontable.TableView = function (instance) {
   this.TBODY = document.createElement('TBODY');
   table.appendChild(this.TBODY);
 
-  instance.$table = $(table);
-  instance.container.prepend(instance.$table);
+  instance.table = table;
+//  instance.table = $(table);
+//  instance.container.prepend(instance.$table);
+
+  instance.container.insertBefore(table, instance.container.firstChild);
 
 //  this.eventManager.addEventListener(instance.rootElement[0],'mousedown', function (event) {
   this.eventManager.addEventListener(instance.rootElement,'mousedown', function (event) {

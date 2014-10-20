@@ -30,7 +30,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
 //  rootElement.prepend(this.container);
-  this.container = $(this.container);
+//  this.container = $(this.container);
 
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
