@@ -649,7 +649,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3])) {
-            var len = changes[i][3].length
+            var len = changes[i][3].length;
             if (typeof cellProperties.language == 'undefined') {
               numeral.language('en');
             }
@@ -1228,7 +1228,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     return expandedType;
 
-  };
+  }
 
   /**
    * Returns current settings object
@@ -1394,10 +1394,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.setCellMetaObject = function (row, col, prop) {
     if (typeof prop === 'object') {
-      for (var i in prop) {
-        var key = i,
-            value = prop[i];
-
+      for (var key in prop) {
+        var value = prop[key];
         this.setCellMeta(row, col, key, value);
       }
     }
@@ -1942,7 +1940,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   function postMortem() {
     throw new Error("This method cannot be called because this Handsontable instance has been destroyed");
-  };
+  }
 
   /**
    * Returns active editor object

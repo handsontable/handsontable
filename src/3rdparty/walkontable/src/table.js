@@ -158,7 +158,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.wtViewport.calculator.visibleCellCount = tmp.visibleCellCount;
       this.instance.wtViewport.calculator.visibleStartRow = tmp.visibleStartRow;
       this.instance.wtViewport.calculator.visibleEndRow = tmp.visibleEndRow;
-    };
+    }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
@@ -192,9 +192,10 @@ WalkontableTable.prototype.removeClassFromCells = function (className) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
+  var i, ilen;
   if (this.instance.selections) {
     if(selectionsOnly) {
-    for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
+    for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
         //there was no rerender, so we need to remove classNames by ourselves
         if (this.instance.selections[i].settings.className) {
           this.removeClassFromCells(this.instance.selections[i].settings.className);
@@ -208,7 +209,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
       }
     }
 
-    for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
+    for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
       this.instance.selections[i].draw(this.instance, selectionsOnly);
     }
   }
@@ -448,7 +449,7 @@ WalkontableTable.prototype.allRowsInViewport = function () {
 
 /**
  * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
- * @param {Number} row
+ * @param {Number} sourceRow
  * @return {Number}
  */
 WalkontableTable.prototype.getRowHeight = function (sourceRow) {

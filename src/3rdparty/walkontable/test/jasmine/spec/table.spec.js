@@ -145,7 +145,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     expect(wt.wtTable.getCell(new WalkontableCellCoords(7, 0)) instanceof HTMLElement).toBe(true);
-    expect($table.find('tr:eq(8) td:first-child').text()).toEqual(this.data[8][0].toString())
+    expect($table.find('tr:eq(8) td:first-child').text()).toEqual(this.data[8][0].toString());
     expect(wt.wtTable.getCell(new WalkontableCellCoords(20, 0))).toBe(-2); //exit code
     expect(wt.wtTable.getCell(new WalkontableCellCoords(25, 0))).toBe(-2); //exit code
   });

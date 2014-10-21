@@ -228,9 +228,6 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-    var height = 200;
-
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
