@@ -45,7 +45,7 @@ function Walkontable(settings) {
 
 /**
  * Force rerender of Walkontable
- * @param selectionsOnly {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if offsetRow was not changed since last render
+ * @param selectionsOnly {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if WalkontableTable.draw() does not force rendering anyway
  * @returns {Walkontable}
  */
 Walkontable.prototype.draw = function (selectionsOnly) {

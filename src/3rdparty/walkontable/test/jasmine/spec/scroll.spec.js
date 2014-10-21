@@ -25,7 +25,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -43,7 +42,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -67,7 +65,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -86,7 +83,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 500
       });
@@ -100,7 +96,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -116,7 +111,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -130,7 +124,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -144,7 +137,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -160,7 +152,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 120
       });
@@ -179,7 +170,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 125
       });
@@ -199,7 +189,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -222,7 +211,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 140,
         rowHeaders: [function (row, TH) {
@@ -246,7 +234,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 130,
         rowHeaders: [function (row, TH) {
@@ -265,7 +252,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 125
       });
@@ -283,7 +269,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
@@ -305,7 +290,6 @@ describe('WalkontableScroll', function () {
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
-          offsetRow: 0,
           height: 201,
           width: 100
         });
@@ -323,7 +307,6 @@ describe('WalkontableScroll', function () {
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
-          offsetRow: 0,
           height: 201,
           width: 100
         });
@@ -341,16 +324,15 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 201,
         width: 100
       });
       wt.draw().scrollViewport(new WalkontableCellCoords(getTotalRows() - 1, 0)).draw();
-      var originalOffsetRow = wt.getViewport()[0];
+      var originalViewportStartRow = wt.getViewport()[0];
       this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
       wt.draw();
 
-      expect(originalOffsetRow - 1).toEqual(wt.getViewport()[0]);
+      expect(originalViewportStartRow - 1).toEqual(wt.getViewport()[0]);
     });
 
     it("should scroll to last row if smaller data source is loaded that does not have currently displayed row", function () {
@@ -360,7 +342,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         height: 260
       });
       wt.draw();
@@ -377,7 +358,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         width: 260,
         height: 201
       });
@@ -400,7 +380,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         width: 260,
         height: 201
       });
@@ -421,7 +400,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         fixedRowsTop: 2,
         width: 260,
         height: 601
@@ -442,7 +420,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         width: 260,
         height: 201
       });
@@ -469,7 +446,6 @@ describe('WalkontableScroll', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         columnWidth: 50,
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -489,7 +465,6 @@ describe('WalkontableScroll', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         columnWidth: 50,
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -517,7 +492,6 @@ describe('WalkontableScroll', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         columnWidth: 50,
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -545,7 +519,6 @@ describe('WalkontableScroll', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         columnWidth: 50,
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -573,7 +546,6 @@ describe('WalkontableScroll', function () {
             return 50
           }
         },
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -602,7 +574,6 @@ describe('WalkontableScroll', function () {
             return 50
           }
         },
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -645,7 +616,6 @@ describe('WalkontableScroll', function () {
             return 50
           }
         },
-        offsetRow: 0,
         width: 201,
         height: 201,
         fixedColumnsLeft: 2
@@ -685,7 +655,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         width: 201,
         height: 201
       });
@@ -717,7 +686,6 @@ describe('WalkontableScroll', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
         width: 201,
         height: 201
       });

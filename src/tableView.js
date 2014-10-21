@@ -158,7 +158,6 @@ Handsontable.TableView = function (instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
-    offsetRow: 0,
     fixedColumnsLeft: function () {
       return that.settings.fixedColumnsLeft;
     },

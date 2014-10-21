@@ -130,18 +130,18 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
     }
-    var offsetRow;
+    var renderStartRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
         || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
         || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-      offsetRow = 0;
+      renderStartRow = 0;
     }
     else {
-      offsetRow = this.instance.wtViewport.preCalculator.renderStartRow;
+      renderStartRow = this.instance.wtViewport.preCalculator.renderStartRow;
     }
 
     this.rowFilter = new WalkontableRowFilter(
-      offsetRow,
+      renderStartRow,
       this.instance.getSetting('totalRows'),
       this.instance.getSetting('columnHeaders').length
     );

@@ -101,7 +101,6 @@ function init() {
     totalColumns: function () {
       return arr[0].length;
     },
-    offsetRow: 0,
     height: 200,
     width: 200,
     rowHeaders: [function (row, TH) {

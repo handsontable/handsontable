@@ -1729,11 +1729,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return index of first visible row
+   * Return index of first rendered row
    * @return {Number}
    */
   this.rowOffset = function () {
-    return instance.view.wt.getSetting('offsetRow'); //actually offsetRow is the first rendered row, not neccessarily first visible
+    return instance.view.wt.wtTable.getFirstRenderedRow();
   };
 
   /**
