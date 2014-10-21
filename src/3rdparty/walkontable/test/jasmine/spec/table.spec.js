@@ -24,9 +24,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(9);
@@ -39,9 +37,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(5);
@@ -55,9 +51,7 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }],
-      height: 201,
-      width: 100
+      }]
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe($table.find('thead th').length);
@@ -70,8 +64,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      width: 100,
       columnHeaders: [function (column, TH) {
         TH.innerHTML = headers[column];
       }]
@@ -87,8 +79,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      width: 120,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }]
@@ -108,8 +98,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      width: 120,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = 'Column';
       }],
@@ -131,9 +119,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
@@ -148,9 +134,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
@@ -168,8 +152,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      width: 100,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = plusOne(row);
       }]
@@ -186,8 +168,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      width: 100,
       cellRenderer: function (row, column, TD) {
         var cellData = getData(row, column);
         if (cellData !== void 0) {
@@ -211,9 +191,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(8);
@@ -229,7 +207,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }]
@@ -245,7 +222,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -264,7 +240,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -282,7 +257,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -306,7 +280,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -328,7 +301,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -352,7 +324,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: 4,
-      height: 201,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -375,8 +346,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      width: 190,
-      height: 100,
       columnWidth: 100
     });
     wt.draw();
@@ -392,8 +361,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 201,
-        height: 100,
         columnWidth: 100,
         cellRenderer: function (row, column, TD) {
           count++;
@@ -413,8 +380,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 201,
-        height: 100,
         columnWidth: 100,
         cellRenderer: function (row, column, TD) {
           count++;
@@ -439,8 +404,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 201,
-        height: 100,
         columnWidth: 100,
         cellRenderer: function (row, column, TD) {
           count++;
@@ -618,9 +581,7 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 185,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
 
@@ -636,9 +597,7 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 185,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
       wt.scrollVertical(2);

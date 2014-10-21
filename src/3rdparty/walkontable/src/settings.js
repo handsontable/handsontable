@@ -24,8 +24,6 @@ function WalkontableSettings(instance, settings) {
     }, //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
     totalColumns: void 0,
-    width: null,
-    height: null,
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
       Handsontable.Dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);

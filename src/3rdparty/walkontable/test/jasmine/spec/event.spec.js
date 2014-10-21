@@ -22,8 +22,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onCellMouseDown: function (event, coords, TD) {
           myCoords = coords;
           myTD = TD;
@@ -46,8 +44,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onCellMouseOver: function (event, coords, TD) {
           myCoords = coords;
           myTD = TD;
@@ -70,8 +66,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onCellDblClick: function (event, coords, TD) {
           myCoords = coords;
           myTD = TD;
@@ -95,9 +89,7 @@ describe('WalkontableEvent', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        height: 200,
-        width: 100
+        totalColumns: getTotalColumns
       });
     wt.draw();
 
@@ -121,8 +113,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
@@ -145,8 +135,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
@@ -169,8 +157,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
@@ -195,8 +181,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onCellDblClick: function (event, coords, TD) {
           called = true
         }
@@ -221,8 +205,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onCellDblClick: function (event, coords, TD) {
           called = true
         }
@@ -246,8 +228,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         selections: [
           new WalkontableSelection({
             className: 'current',
@@ -282,8 +262,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         selections: [
           new WalkontableSelection({
             className: 'current',
@@ -321,8 +299,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         selections: [
           new WalkontableSelection({
             className: 'current',
@@ -352,8 +328,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         selections: [
           new WalkontableSelection({
             className: 'current',
@@ -386,8 +360,6 @@ describe('WalkontableEvent', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
-        width: 100,
         onDraw: function () {
           count++;
         }

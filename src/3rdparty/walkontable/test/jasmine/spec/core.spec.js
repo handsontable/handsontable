@@ -23,9 +23,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 200,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     var TDs = $table.find('tbody tr:first td');
@@ -58,7 +56,6 @@ describe('WalkontableCore', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }]
@@ -77,8 +74,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe(4);
@@ -90,8 +86,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect(wt.drawn).toBe(false);
@@ -106,8 +101,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect(wt.drawn).toBe(false);
@@ -123,8 +117,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
@@ -150,8 +143,7 @@ describe('WalkontableCore', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     createDataArray(1, 5);

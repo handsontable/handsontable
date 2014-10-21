@@ -23,9 +23,7 @@ describe('WalkontableScrollbar', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 200,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
@@ -40,9 +38,7 @@ describe('WalkontableScrollbar', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        height: 200,
-        width: 500
+        totalColumns: getTotalColumns
       });
       wt.draw();
 

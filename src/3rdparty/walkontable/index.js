@@ -101,8 +101,6 @@ function init() {
     totalColumns: function () {
       return arr[0].length;
     },
-    height: 200,
-    width: 200,
     rowHeaders: [function (row, TH) {
       TH.innerHTML = row + 1;
     }],

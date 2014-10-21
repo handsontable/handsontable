@@ -24,8 +24,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           className: 'current'
@@ -55,8 +53,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           className: 'current'
@@ -79,8 +75,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           border: {
@@ -118,8 +112,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -142,8 +134,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -171,8 +161,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -201,8 +189,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -226,8 +212,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -254,8 +238,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -290,8 +272,6 @@ describe('WalkontableSelection', function () {
       columnHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -336,7 +316,6 @@ describe('WalkontableSelection', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        height: 200,
         selections: [
           new WalkontableSelection({
             border: {
