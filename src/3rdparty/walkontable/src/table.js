@@ -315,6 +315,10 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
   return i;
 };
 
+WalkontableTable.prototype.getFirstRenderedColumn = function () {
+  return 0; //all columns are rendered
+};
+
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
 

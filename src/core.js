@@ -1741,7 +1741,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.colOffset = function () {
-    return 0; //all columns are always rendered
+    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
