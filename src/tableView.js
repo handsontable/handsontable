@@ -115,7 +115,12 @@ Handsontable.TableView = function (instance) {
         color: '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function () {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+        var selectedRange = instance.getSelectedRange();
+
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
+        },
+        multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && !instance.selection.isMultiple();
         }
       }
     }),
@@ -127,6 +132,9 @@ Handsontable.TableView = function (instance) {
         //style: 'solid', // not used
         cornerVisible: function () {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        },
+          multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && instance.selection.isMultiple();
         }
       }
     }),

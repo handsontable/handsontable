@@ -1,5 +1,44 @@
 function WalkontableBorder(instance, settings) {
   var style;
+  var createMultipleSelectorHandles = function () {
+    this.selectionHandles = {
+      topLeft: document.createElement('DIV'),
+      topLeftHitArea: document.createElement('DIV'),
+      bottomRight: document.createElement('DIV'),
+      bottomRightHitArea: document.createElement('DIV')
+    };
+    var width = 10
+      , hitAreaWidth = 40;
+
+    this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
+    this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
+    this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
+
+    this.selectionHandles.styles = {};
+    this.selectionHandles.styles.topLeft = this.selectionHandles.topLeft.style;
+    this.selectionHandles.styles.topLeftHitArea = this.selectionHandles.topLeftHitArea.style;
+    this.selectionHandles.styles.bottomRight = this.selectionHandles.bottomRight.style;
+    this.selectionHandles.styles.bottomRightHitArea = this.selectionHandles.bottomRightHitArea.style;
+
+    this.selectionHandles.styles.bottomRightHitArea['position'] = this.selectionHandles.styles.topLeftHitArea['position'] = 'absolute';
+    this.selectionHandles.styles.bottomRightHitArea['z-index'] = this.selectionHandles.styles.topLeftHitArea['z-index'] = '99999';
+    this.selectionHandles.styles.bottomRightHitArea['height'] = this.selectionHandles.styles.topLeftHitArea['height'] = hitAreaWidth + 'px';
+    this.selectionHandles.styles.bottomRightHitArea['width'] = this.selectionHandles.styles.topLeftHitArea['width'] = hitAreaWidth + 'px';
+    this.selectionHandles.styles.bottomRightHitArea['border-radius'] = this.selectionHandles.styles.topLeftHitArea['border-radius'] = parseInt(hitAreaWidth/1.5,10) + 'px';
+
+    this.selectionHandles.styles.bottomRight['position'] = this.selectionHandles.styles.topLeft['position'] = 'absolute';
+    this.selectionHandles.styles.bottomRight['height'] = this.selectionHandles.styles.topLeft['height'] = width + 'px';
+    this.selectionHandles.styles.bottomRight['width'] = this.selectionHandles.styles.topLeft['width'] = width + 'px';
+    this.selectionHandles.styles.bottomRight['border-radius'] = this.selectionHandles.styles.topLeft['border-radius'] = parseInt(width/1.5,10) + 'px';
+    this.selectionHandles.styles.bottomRight['background'] = this.selectionHandles.styles.topLeft['background'] = '#F5F5FF';
+    this.selectionHandles.styles.bottomRight['border'] = this.selectionHandles.styles.topLeft['border'] = '1px solid #4285c8';
+
+    this.main.appendChild(this.selectionHandles.topLeft);
+    this.main.appendChild(this.selectionHandles.bottomRight);
+    this.main.appendChild(this.selectionHandles.topLeftHitArea);
+    this.main.appendChild(this.selectionHandles.bottomRightHitArea);
+  };
 
   if(!settings){
     return;
@@ -50,6 +89,10 @@ function WalkontableBorder(instance, settings) {
   this.cornerStyle.width = '5px';
   this.cornerStyle.height = '5px';
   this.cornerStyle.border = '2px solid #FFF';
+
+  if(Handsontable.mobileBrowser) {
+    createMultipleSelectorHandles.call(this);
+  }
 
   this.disappear();
   if (!instance.wtTable.bordersHolder) {
@@ -126,6 +169,53 @@ WalkontableBorder.prototype.appear = function (corners) {
     , i
     , ilen
     , s;
+
+  var isPartRange = function () {
+    if(this.instance.selections[1].cellRange) {
+
+      if(toRow != this.instance.selections[1].cellRange.to.row
+        || toColumn != this.instance.selections[1].cellRange.to.col) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  var updateMultipleSelectionHandlesPosition = function (top, left, width, height) {
+    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10)
+      , hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+
+    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth,10) + "px";
+    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth,10) + "px";
+
+    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - hitAreaWidth,10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - hitAreaWidth,10) + "px";
+
+    this.selectionHandles.styles.bottomRight.top = parseInt(top + height,10) + "px";
+    this.selectionHandles.styles.bottomRight.left = parseInt(left + width,10) + "px";
+
+    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height,10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width,10) + "px";
+
+
+
+    if(this.settings.border.multipleSelectionHandlesVisible()) {
+      this.selectionHandles.styles.topLeft.display = "block";
+      this.selectionHandles.styles.topLeftHitArea.display = "block";
+      if(!isPartRange.call(this)) {
+        this.selectionHandles.styles.bottomRight.display = "block";
+        this.selectionHandles.styles.bottomRightHitArea.display = "block";
+      }
+    } else {
+      this.selectionHandles.styles.topLeft.display = "none";
+      this.selectionHandles.styles.bottomRight.display = "none";
+      this.selectionHandles.styles.topLeftHitArea.display = "none";
+      this.selectionHandles.styles.bottomRightHitArea.display = "none";
+    }
+
+
+  };
 
   if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     ilen = instance.getSetting('fixedRowsTop');
@@ -226,13 +316,17 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.rightStyle.height = height + 1 + 'px';
   this.rightStyle.display = 'block';
 
-  if (!this.hasSetting(this.settings.border.cornerVisible)) {
+  if (!this.settings.border.cornerVisible() || isPartRange.call(this)) {
     this.cornerStyle.display = 'none';
   }
   else {
     this.cornerStyle.top = top + height - 4 + 'px';
     this.cornerStyle.left = left + width - 4 + 'px';
     this.cornerStyle.display = 'block';
+  }
+
+  if(Handsontable.mobileBrowser) {
+    updateMultipleSelectionHandlesPosition.call(this,top, left, width, height);
   }
 };
 
@@ -245,6 +339,13 @@ WalkontableBorder.prototype.disappear = function () {
   this.bottomStyle.display = 'none';
   this.rightStyle.display = 'none';
   this.cornerStyle.display = 'none';
+
+  if(Handsontable.mobileBrowser) {
+    this.selectionHandles.styles.topLeft.display = 'none';
+    this.selectionHandles.styles.bottomRight.display = 'none';
+  }
+
+
 };
 
 WalkontableBorder.prototype.hasSetting = function (setting) {

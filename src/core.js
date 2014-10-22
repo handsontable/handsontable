@@ -1282,6 +1282,15 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Returns coordinates for the provided element
+   * @param elem
+   * @returns {WalkontableCellCoords|*}
+   */
+  this.getCoords = function(elem) {
+    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, elem);
+  };
+
+  /**
    * Returns property name associated with column number
    * @param {Number} col
    * @public
