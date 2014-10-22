@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.min.js"></script>
   <script src="../dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -85,11 +84,12 @@
           <div class="codeLayout">
             <div class="pad">
               <script>
-                var $container = $("#example1");
-                var $console = $("#example1console");
-                var $parent = $container.parent();
+                var container = document.getElementById("example1");
+                var console = document.getElementById("example1console");
+                var parent = container.parentNode;
                 var autosaveNotification;
-                $container.handsontable({
+
+								Handsontable.tmpHandsontable(container,{
                   startRows: 8,
                   startCols: 6,
                   rowHeaders: true,
@@ -100,6 +100,7 @@
                     if (source === 'loadData') {
                       return; //don't save this change
                     }
+										// TODO - remove JQUERY
                     if ($parent.find('input[name=autosave]').is(':checked')) {
                       clearTimeout(autosaveNotification);
                       $.ajax({
@@ -118,7 +119,8 @@
                     }
                   }
                 });
-                var handsontable = $container.data('handsontable');
+
+                var handsontable = container.data['handsontable'];
 
                 $parent.find('button[name=load]').click(function () {
                   $.ajax({

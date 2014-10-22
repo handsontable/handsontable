@@ -7,11 +7,11 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+	<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+	<script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen"
         href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
@@ -122,20 +122,18 @@
 
             var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
               Handsontable.renderers.TextRenderer.apply(this, arguments);
-              $(td).css({
-                background: 'yellow'
-              });
+              td.style.backgroundColor = 'yellow';
+
             };
 
             var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
               Handsontable.renderers.TextRenderer.apply(this, arguments);
-              $(td).css({
-                background: 'green'
-              });
+							td.style.backgroundColor = 'green';
+
             };
 
-            var $container = $("#example1");
-            $container.handsontable({
+            var container = document.getElementById("example1");
+            Handsontable.tmpHandsontable(container,{
               data: data,
               startRows: 5,
               colHeaders: true,

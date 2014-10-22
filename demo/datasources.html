@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -108,8 +107,8 @@
           ["2010", 30, 15, 12, 13]
         ];
 
-        var $container = $("#example1");
-        $container.handsontable({
+        var container = document.getElementById("example1");
+        Handsontable.tmpHandsontable(container,{
           data: data,
           startRows: 5,
           startCols: 5,
@@ -154,8 +153,8 @@
           ["2010", 30, 15, 12, 13]
         ];
 
-        var $container = $("#example2");
-        $container.handsontable({
+        var container = document.getElementById("example2");
+        Handsontable.tmpHandsontable(container,{
           data: hiddenData,
           startRows: 5,
           startCols: 5,
@@ -203,8 +202,8 @@
           {id: 3, name: "Joan Well", address: ""}
         ];
 
-        var $container = $("#example3");
-        $container.handsontable({
+        var container = document.getElementById("example3");
+        Handsontable.tmpHandsontable(container,{
           data: objectData,
           startRows: 5,
           startCols: 3,
@@ -251,8 +250,8 @@
           {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
         ];
 
-        var $container = $("#example4");
-        $container.handsontable({
+        var container = document.getElementById("example4");
+        Handsontable.tmpHandsontable(container,{
           data: nestedObjects,
           startRows: 5,
           startCols: 4,
@@ -305,8 +304,8 @@
       </div>
 
       <script data-jsfiddle="example5">
-        var $container = $("#example5");
-        $container.handsontable({
+        var container = document.getElementById("example5");
+        Handsontable.tmpHandsontable(container, {
           data: [],
           dataSchema: {id: null, name: {first: null, last: null}, address: null},
           startRows: 5,
@@ -359,8 +358,8 @@
 
       <script data-jsfiddle="example6">
 
-        var $container = $("#example6");
-        $container.handsontable({
+        var container = document.getElementById("example6");
+        Handsontable.tmpHandsontable(container,{
           data: [
             model({id: 1, name: "Ted Right", address: ""}),
             model({id: 2, name: "Frank Honest", address: ""}),
@@ -380,7 +379,7 @@
 
         function model(opts) {
           var _pub = {},
-            _priv = $.extend({
+            _priv = Handsontable.Dom.extend({
               id: undefined,
               name: undefined,
               address: undefined

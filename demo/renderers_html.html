@@ -7,11 +7,11 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+	<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+	<script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
   <script data-jsfiddle="common" src="js/jquery.ui.position.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen"
         href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
@@ -132,6 +132,14 @@
           }
         ];
 
+				function addEvent(element, event, callback) {
+					if (window.addEventListener) {
+						element.addEventListener(event, callback, false)
+					} else {
+						element.attachEvent('on' + event, callback);
+					}
+				}
+
         function strip_tags(input, allowed) {
           // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
           allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
@@ -152,12 +160,16 @@
         var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
           var escaped = Handsontable.helper.stringify(value);
           if (escaped.indexOf('http') === 0) {
-            var $img = $('<img>');
-            $img.attr('src', value);
-            $img.on('mousedown', function (event) {
-              event.preventDefault(); //prevent selection quirk
-            });
-            $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
+            var img = document.createElement('IMG');
+            img.src = value;
+
+						addEvent(img, 'mousedown', function (e){
+							e.preventDefault();//prevent selection quirk
+						});
+
+						Handsontable.Dom.empty(td);
+						td.appendChild(img);
+
           }
           else {
             Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
@@ -165,8 +177,8 @@
           return td;
         };
 
-        var $container = $("#example1");
-        $container.handsontable({
+        var container = document.getElementById("example1");
+        Handsontable.tmpHandsontable(container, {
           data: data,
           colWidths: [200, 200, 200, 60],
           colHeaders: ["Title", "Description", "Comments", "Cover"],
@@ -214,6 +226,14 @@
       <script data-jsfiddle="example2">
         var isChecked;
 
+				function addEvent(element, event, callback) {
+					if (window.addEventListener) {
+						element.addEventListener(event, callback, false)
+					} else {
+						element.attachEvent('on' + event, callback);
+					}
+				}
+
         var customRenderer = function (instance, td) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           if (isChecked) {
@@ -225,8 +245,8 @@
           return td;
         };
 
-        var $container = $("#example2");
-        $container.handsontable({
+        var container = document.getElementById("example2");
+        Handsontable.tmpHandsontable(container,{
           startCols: 2,
           columns: [
             {},
@@ -246,14 +266,19 @@
           }
         });
 
-        $container.on('mousedown', 'input.checker', function (event) {
-          event.stopPropagation();
-        });
+				addEvent(container, 'mousedown', function (e) {
+					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
+						e.stopPropagation();
+					}
+				});
 
-        $container.on('mouseup', 'input.checker', function (event) {
-          isChecked = !$(this).is(':checked');
-          $container.handsontable('render');
-        });
+				addEvent(container, 'mouseup', function (e) {
+					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
+						isChecked = !e.target.checked;
+						Handsontable.tmpHandsontable(container,'render');
+					}
+				});
+
       </script>
     </div>
   </div>
@@ -340,6 +365,22 @@
       </style>
 
       <script data-jsfiddle="example3">
+				function addEvent(element, event, callback) {
+					if (window.addEventListener) {
+						element.addEventListener(event, callback, false)
+					} else {
+						element.attachEvent('on' + event, callback);
+					}
+				}
+
+				function removeEvent(element,event,callback) {
+					if (window.detachEvent) {
+						element.detachEvent('on' + event, callback);
+					} else {
+						element.removeEventListener(event, callback, false);
+					}
+				}
+
         var data = [
           ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
           ["2009", 0, 2941, 4303, 354, 5814],
@@ -357,51 +398,58 @@
             {type: 'numeric'}
           ];
 
-
-        $('#example3').handsontable({
+				var container = document.getElementById('example3');
+        Handsontable.tmpHandsontable(container,{
           data: data,
           colHeaders: true,
           minSpareRows: 1,
           type: 'numeric',
           columns: columns,
           afterGetColHeader: function (col, TH) {
-            var instance = this;
+						var instance = this;
             var menu = buildMenu(columns[col].type);
+            var button = buildButton();
 
-            var $button = buildButton();
+						addEvent(button,'click', function (e){
+							instance.rootElement.appendChild(menu);
 
-            $button.click(function (e) {
-              instance.rootElement[0].appendChild(menu[0]);
+							console.log(button);
 
-              e.preventDefault();
-              e.stopImmediatePropagation();
+							e.preventDefault();
+							e.stopImmediatePropagation();
 
-              $('.changeTypeMenu').hide();
-              menu.show();
-              menu.position({
-                 my: 'left top',
-                 at: 'left bottom',
-                 of: $button,
-                 within: instance.rootElement
-              });
+							var changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
+							for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
+								changeTypeMenu[i].style.display = 'none';
+							}
 
-              $(document).off('click.changeTypeMenu.hide');
+							menu.style.display = 'block';
+							var position = button.getBoundingClientRect();
+							menu.style.top = (position.top - 70) + 'px';
+							menu.style.left = (position.left -310) + 'px';
 
-              $(document).one('click.changeTypeMenu.hide', function () {
-//                 menu.hide();
-                instance.rootElement[0].removeChild(menu[0]);
-              });
+							var removeMenu = function (e) {
+								console.log(e.target);
+									if (e.target.nodeName == 'LI' && e.target.parentNode.className.indexOf('changeTypeMenu') != -1 ){
+										instance.rootElement.removeChild(menu);
+									}
+							};
+
+							removeEvent(document, 'click', removeMenu);
+							addEvent(document, 'click', removeMenu);
+						});
 
 
-            });
 
-            menu.on('click', 'li', function () {
-               setColumnType(col, $(this).data('colType'), instance);
-            });
+						addEvent(menu, 'click', function (e) {
+							if (e.target.nodeName == 'LI') {
+								setColumnType(col, e.target.data['colType'], instance);
+							}
+						});
 
-            TH.firstChild.appendChild($button[0]);
+            TH.firstChild.appendChild(button);
 
-            //TH.appendChild(menu[0]);
+
           },
           cells: function (row, col, prop) {
             if (row === 0) {
@@ -414,26 +462,32 @@
         });
 
         function buildMenu(activeCellType){
-          var menu = $('<ul></ul>').addClass('changeTypeMenu');
+					var menu = document.createElement('UL');
+					menu.className = 'changeTypeMenu';
 
-          $.each(['text', 'numeric', 'date'], function (i, type) {
-            var item = $('<li></li>').data('colType', type).text(type);
+					var types = ['text', 'numeric', 'date'];
 
-            if(activeCellType == type){
-              item.addClass('active');
-            }
 
-            menu.append(item);
+					for (var i = 0, len = types.length; i< len; i++) {
+						var item = document.createElement('LI');
+						item.innerText = types[i];
+						item.data = {'colType': types[i]};
 
-          });
-
+						if (activeCellType == types[i]) {
+							item.className = 'active';
+						}
+						menu.appendChild(item);
+					}
 
           return menu;
 
         }
 
         function buildButton() {
-          return $('<button></button>').addClass('changeType').html('\u25BC');
+					var button = document.createElement('BUTTON');
+					button.innerHTML = '\u25BC';
+					button.className = 'changeType';
+					return button;
         }
 
         function setColumnType(i, type, instance) {

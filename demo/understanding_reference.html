@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -86,13 +85,16 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            var $container = $("#example1");
-            $container.handsontable({
-              data: data
-            });
+						var container = document.getElementById('example1');
+						var settings1 = {
+							data:data
+						};
+
+						Handsontable.tmpHandsontable(container,settings1);
 
             data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
-            $container.handsontable('render'); //refresh the grid to display the new value
+
+						Handsontable.tmpHandsontable(container,'render');
           </script>
         </div>
       </div>
@@ -134,9 +136,9 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            var $container = $("#example2");
-            $container.handsontable({
-              data: $.extend(true, [], data2) //for object data source, use {} instead of []
+            var container = document.getElementById("example2");
+            Handsontable.tmpHandsontable(container,{
+              data: Handsontable.Dom.extend(true, [], data2) //for object data source, use {} instead of []
             });
           </script>
         </div>
@@ -172,15 +174,15 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            var $container = $("#example3");
-            $container.handsontable({
-              data: data3,
-              afterChange: function () {
-                var tmpData = $.extend(true, [], data3);
-                //now tmpData has a copy of data3 that can be manipulated
-                //without breaking the Handsontable data source object
-              }
-            });
+            var container = document.getElementById("example3");
+            Handsontable.tmpHandsontable(container,{
+							data: data3,
+							afterChange: function () {
+								var tmpData = Handsontable.Dom.extend(true, [], data3);
+								//now tmpData has a copy of data3 that can be manipulated
+								//without breaking the Handsontable data source object
+							}
+						});
           </script>
         </div>
       </div>
