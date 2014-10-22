@@ -111,7 +111,8 @@ module.exports = function (grunt) {
         'src/plugins/manualRowMove.js',
         'src/plugins/autofill.js',
         'src/plugins/grouping/grouping.js',
-        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js'
+        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js',
+        'src/plugins/multipleSelectionHandles/multipleSelectionHandles.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
