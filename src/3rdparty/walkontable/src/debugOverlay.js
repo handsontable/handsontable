@@ -20,7 +20,6 @@ function WalkontableDebugOverlay(instance) {
   var eventManager = Handsontable.eventManager(instance);
 
   eventManager.addEventListener(document.body, 'mousemove', function (event) {
-//  $(document.body).on('mousemove.' + this.instance.guid, function (event) {
     if (!that.instance.wtTable.holder.parentNode) {
       return; //removed from DOM
     }

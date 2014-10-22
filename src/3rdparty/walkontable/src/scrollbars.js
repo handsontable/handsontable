@@ -64,15 +64,12 @@ WalkontableScrollbars.prototype.destroy = function () {
   if (this.vertical) {
     this.vertical.destroy();
     eventManager.removeEventListener(this.vertical.scrollHandler,'scroll', this.refreshAll);
-//    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
   if (this.horizontal) {
     this.horizontal.destroy();
     eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
-//    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
   }
   eventManager.removeEventListener(window,'scroll', this.refreshAll);
-//  $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
   this.debug && this.debug.destroy();
 };

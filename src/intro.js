@@ -15,5 +15,5 @@ var Handsontable = { //class namespace
   helper: {} //helper namespace
 };
 
-(function ($, window, Handsontable) {
+(function (window, Handsontable) {
   "use strict";

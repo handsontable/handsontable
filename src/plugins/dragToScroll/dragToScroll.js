@@ -67,7 +67,6 @@ if (typeof Handsontable !== 'undefined') {
       dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
     }
     else {
-//      dragToScroll.setBoundaries(instance.$table[0].getBoundingClientRect());
       dragToScroll.setBoundaries(instance.table.getBoundingClientRect());
     }
 

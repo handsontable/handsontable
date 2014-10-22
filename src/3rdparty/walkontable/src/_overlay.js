@@ -17,7 +17,6 @@ WalkontableOverlay.prototype.init = function () {
   this.fixed = this.instance.wtTable.hider;
   this.fixedContainer = this.instance.wtTable.holder;
   this.scrollHandler = this.getScrollableElement(this.TABLE);
-//  this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
 };
 
 WalkontableOverlay.prototype.makeClone = function (direction) {
@@ -84,10 +83,6 @@ WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
 };
 
 WalkontableOverlay.prototype.destroy = function () {
-//  this.$scrollHandler.off('.' + this.clone.guid);
   var eventManager = Handsontable.eventManager(this.clone);
   eventManager.clear();
-//  $(window).off('.' + this.clone.guid);
-//  $(document).off('.' + this.clone.guid);
-//  $(document.body).off('.' + this.clone.guid);
 };

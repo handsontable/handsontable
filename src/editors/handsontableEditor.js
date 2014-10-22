@@ -46,7 +46,8 @@
     };
 
     if (this.cellProperties.handsontable) {
-      options = $.extend(options, cellProperties.handsontable);
+      options = Handsontable.Dom.extend(options, cellProperties.handsontable);
+//      options = $.extend(options, cellProperties.handsontable);
     }
     this.$htContainer.handsontable('destroy');
     this.$htContainer.handsontable(options);

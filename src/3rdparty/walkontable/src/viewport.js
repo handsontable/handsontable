@@ -6,7 +6,6 @@ function WalkontableViewport(instance) {
 
   var eventManager = Handsontable.eventManager(instance);
   eventManager.addEventListener(window,'resize',function () {
-//  $(window).on('resize.walkontable.' + this.instance.guid, function () {
     that.clientHeight = that.getWorkspaceHeight();
   });
 }

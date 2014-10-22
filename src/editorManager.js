@@ -212,7 +212,6 @@
       });
 
       eventManager.addEventListener(document, 'keydown', function (ev){
-//      $document.on('keydown.' + instance.guid, function(ev) {
         instance.runHooks('afterDocumentKeyDown', ev);
       });
 

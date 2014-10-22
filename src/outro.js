@@ -1,1 +1,1 @@
-})(jQuery, window, Handsontable);
+})(window, Handsontable);

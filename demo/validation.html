@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <!--<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>-->
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -15,7 +15,7 @@
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
-  <script src="js/samples.js"></script>
+  <!--<script src="js/samples.js"></script>-->
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
@@ -123,7 +123,9 @@
               }, 1000);
             };
 
-            $("#example1").handsontable({
+            var example1 = document.getElementById('example1');
+            var example1console = document.getElementById('example1console');
+            var settings1 = {
               data: people,
               minSpareRows: 1,
               contextMenu: true,
@@ -143,7 +145,7 @@
               },
               afterChange: function (changes, source) {
                 if (source !== 'loadData') {
-                  $("#example1console").text(JSON.stringify(changes));
+                  example1console.innerText = JSON.stringify(changes);
                 }
               },
               colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
@@ -154,7 +156,11 @@
                 {data: 'ip', validator: ip_validator_regexp, allowInvalid: true},
                 {data: 'email', validator: email_validator_fn, allowInvalid: false}
               ]
-            });
+            };
+
+            Handsontable.tmpHandsontable(example1,settings1);
+
+//            $("#example1").handsontable();
           </script>
         </div>
       </div>

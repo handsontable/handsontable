@@ -17,7 +17,6 @@ function Comments(instance) {
     bindMouseEvent = function (range) {
 
 			function commentsListener(event) {
-//				$(document).off('mouseover.htCommment');
         eventManager.removeEventListener(document, 'mouseover');
         if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
           var value = document.getElementsByClassName('htCommentTextArea')[0].value;
@@ -30,13 +29,10 @@ function Comments(instance) {
       }
 
       eventManager.addEventListener(document, 'mousedown',Handsontable.helper.proxy(commentsListener));
-//      $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsListener));
     },
     unBindMouseEvent = function () {
       eventManager.removeEventListener(document, 'mousedown');
       eventManager.addEventListener(document, 'mousedown', Handsontable.helper.proxy(commentsMouseOverListener));
-//      $(document).off('mousedown.htCommment');
-//			$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
@@ -89,7 +85,6 @@ function Comments(instance) {
   return {
     init: function () {
       eventManager.addEventListener(document, 'mouseover', Handsontable.helper.proxy(commentsMouseOverListener));
-//        $(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     showComment: function (range) {
 			var meta = instance.getCellMeta(range.from.row, range.from.col),
@@ -177,4 +172,4 @@ var init = function () {
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addCommentsActionsToContextMenu);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
-//$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+

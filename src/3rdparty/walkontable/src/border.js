@@ -63,14 +63,14 @@ function WalkontableBorder(instance, settings) {
   instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
-//  var $body = $(document.body);
 
-//  $body.on('mousedown.walkontable.' + instance.guid, function () {
+
+
   eventManager.addEventListener(document.body, 'mousedown', function () {
     down = true;
   });
 
-//  $body.on('mouseup.walkontable.' + instance.guid, function () {
+
   eventManager.addEventListener(document.body, 'mouseup', function () {
     down = false
   });
@@ -86,12 +86,7 @@ function WalkontableBorder(instance, settings) {
 
       var bounds = this.getBoundingClientRect();
 
-      // TODO - remove jquery
-//      var $this = $(this);
       this.style.display = 'none';
-//      $this.hide();
-
-
 
       var isOutside = function (event) {
         if (event.clientY < Math.floor(bounds.top)) {
@@ -112,7 +107,6 @@ function WalkontableBorder(instance, settings) {
         if (isOutside(event)) {
           eventManager.removeEventListener(document.body, 'mousemove', handler);
           this.style.display = 'block';
-//          $this.show();
         }
       };
       eventManager.addEventListener(document.body, 'mousemove', handler);;

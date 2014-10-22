@@ -14,8 +14,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , instance = this
     , GridSettings = function () {}
-//    , $document = $(document.documentElement)
-//    , $body = $(document.body)
     , eventManager = Handsontable.eventManager(instance);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
@@ -30,7 +28,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
 //  rootElement.prepend(this.container);
-//  this.container = $(this.container);
 
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
@@ -796,7 +793,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (typeof row === "object") { //is it an array of changes
       return row;
     }
-    else if ($.isPlainObject(value)) { //backwards compatibility
+    else if (Handsontable.Dom.isPlainObject(value)) { //backwards compatibility
+//    else if ($.isPlainObject(value)) { //backwards compatibility
       return value;
     }
     else {
@@ -1925,11 +1923,16 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (instance.view) { //in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
-    instance.rootElement.empty();
-    instance.rootElement.removeData('handsontable');
-    instance.rootElement.off('.handsontable');
 
+    Handsontable.Dom.empty(instance.rootElement);
+    delete instance.rootElement.data;
     eventManager.clear();
+
+//    instance.rootElement.empty();
+//    instance.rootElement.removeData('handsontable');
+//    instance.rootElement.off('.handsontable');
+
+
 
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
@@ -1961,8 +1964,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     editorManager = null;
     instance = null;
     GridSettings = null;
-//    $document = null;
-//    $body = null;
   };
 
   /**
@@ -2162,58 +2163,58 @@ var tmpHandsontable = function (element, action) {
     return output;
   }
 };
+Handsontable.tmpHandsontable = tmpHandsontable;
 
-
-$.fn.handsontable = function (action) {
-  var i
-    , ilen
-    , args
-    , output
-    , userSettings
-    , $this = this.first() // Use only first element from list
-    , instance = $this.data('handsontable');
-
-
-
-  // Init case
-  if (typeof action !== 'string') {
-    userSettings = action || {};
-    if (instance) {
-      instance.updateSettings(userSettings);
-    }
-    else {
-      console.log(this);
-      instance = new Handsontable.Core(this[0],userSettings);
-
-      this[0].data = {'handsontable': instance};
-
-
-//      instance = new Handsontable.Core($this, userSettings);
-//      $this.data('handsontable', instance);
-      instance.init();
-    }
-
-//    return $this;
-    return this[0];
-  }
-  // Action case
-  else {
-    args = [];
-    if (arguments.length > 1) {
-      for (i = 1, ilen = arguments.length; i < ilen; i++) {
-        args.push(arguments[i]);
-      }
-    }
-
-    if (instance) {
-      if (typeof instance[action] !== 'undefined') {
-        output = instance[action].apply(instance, args);
-      }
-      else {
-        throw new Error('Handsontable do not provide action: ' + action);
-      }
-    }
-
-    return output;
-  }
-};
+//$.fn.handsontable = function (action) {
+//  var i
+//    , ilen
+//    , args
+//    , output
+//    , userSettings
+//    , $this = this.first() // Use only first element from list
+//    , instance = $this.data('handsontable');
+//
+//
+//
+//  // Init case
+//  if (typeof action !== 'string') {
+//    userSettings = action || {};
+//    if (instance) {
+//      instance.updateSettings(userSettings);
+//    }
+//    else {
+//      console.log(this);
+//      instance = new Handsontable.Core(this[0],userSettings);
+//
+//      this[0].data = {'handsontable': instance};
+//
+//
+////      instance = new Handsontable.Core($this, userSettings);
+////      $this.data('handsontable', instance);
+//      instance.init();
+//    }
+//
+////    return $this;
+//    return this[0];
+//  }
+//  // Action case
+//  else {
+//    args = [];
+//    if (arguments.length > 1) {
+//      for (i = 1, ilen = arguments.length; i < ilen; i++) {
+//        args.push(arguments[i]);
+//      }
+//    }
+//
+//    if (instance) {
+//      if (typeof instance[action] !== 'undefined') {
+//        output = instance[action].apply(instance, args);
+//      }
+//      else {
+//        throw new Error('Handsontable do not provide action: ' + action);
+//      }
+//    }
+//
+//    return output;
+//  }
+//};

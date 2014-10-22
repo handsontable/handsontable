@@ -4,7 +4,7 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this
-//    , $documentElement = $(document.documentElement);
+
 
   this.eventManager = Handsontable.eventManager(instance);
   this.instance = instance;
@@ -26,8 +26,7 @@ Handsontable.TableView = function (instance) {
   table.appendChild(this.TBODY);
 
   instance.table = table;
-//  instance.table = $(table);
-//  instance.container.prepend(instance.$table);
+
 
   instance.container.insertBefore(table, instance.container.firstChild);
 
@@ -40,7 +39,6 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-//    $documentElement.on('keyup.' + instance.guid, function (event) {
   this.eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
@@ -52,7 +50,6 @@ Handsontable.TableView = function (instance) {
     return isMouseDown;
   };
 
-//  $documentElement.on('mouseup.' + instance.guid, function (event) {
   this.eventManager.addEventListener(document.documentElement, 'mouseup', function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
@@ -66,7 +63,6 @@ Handsontable.TableView = function (instance) {
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
-//  $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
     if (isMouseDown) {
@@ -97,9 +93,8 @@ Handsontable.TableView = function (instance) {
   });
 
 
-//  this.eventManager.addEventListener(instance.$table[0], 'selectstart', function (event) {
+
   this.eventManager.addEventListener(table, 'selectstart', function (event) {
-//  instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
     }
@@ -299,7 +294,6 @@ Handsontable.TableView = function (instance) {
 
 
   this.eventManager.addEventListener(document.documentElement, 'click', function () {
-//  $documentElement.on('click.' + instance.guid, function () {
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
         that.instance.forceFullRender = true;

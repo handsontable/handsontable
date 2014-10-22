@@ -219,32 +219,4 @@ CopyPasteClass.prototype.hasBeenDestroyed = function () {
   return !this.refCounter;
 };
 
-//old version used this:
-// - http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
-// - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
-//but that cannot work with jQuery.trigger
-//CopyPasteClass.prototype._bindEvent = (function () {
-//  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-//    return function (elem, type, cb) {
-//      $(elem).on(type + '.copypaste', cb);
-//    };
-//  }
-//  else {
-//    return function (elem, type, cb) {
-//      elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-//    };
-//  }
-//})();
-//
-//CopyPasteClass.prototype._unbindEvent = (function () {
-//  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-//    return function (elem, type, cb) {
-//      $(elem).off(type + '.copypaste', cb);
-//    };
-//  }
-//  else {
-//    return function (elem, type, cb) {
-//      elem.removeEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-//    };
-//  }
-//})();
+

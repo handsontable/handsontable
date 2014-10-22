@@ -80,7 +80,8 @@
     var dateOptions = {
       defaultDate: this.originalValue || void 0
     };
-    $.extend(dateOptions, this.cellProperties);
+    Handsontable.Dom.extend(dateOptions, this.cellProperties);
+//    $.extend(dateOptions, this.cellProperties);
     this.$datePicker.datepicker("option", dateOptions);
     if (this.originalValue) {
       this.$datePicker.datepicker("setDate", this.originalValue);

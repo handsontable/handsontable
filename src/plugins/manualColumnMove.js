@@ -168,15 +168,7 @@ function HandsontableManualColumnMove() {
   };
 
   var unbindEvents = function(){
-//    var instance = this;
-
-//    var eventManager = Handsontable.eventManager(instance);
     eventManager.clear();
-
-//    instance.rootElement.off('mouseenter.manualColumnMove.' + instance.guid, 'table thead tr > th');
-//    instance.rootElement.off('mousedown.manualColumnMove.' + instance.guid, '.manualColumnMover');
-//    $window.off('mousemove.manualColumnMove.' + instance.guid);
-//    $window.off('mouseup.manualColumnMove.' + instance.guid);
   };
 
   var createPositionData = function (positionArr, len) {

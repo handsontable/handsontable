@@ -178,10 +178,6 @@ function HandsontableManualColumnResize() {
 
   var unbindEvents = function(){
     eventManager.clear();
-//    instance.rootElement.off('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th');
-//    instance.rootElement.off('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer');
-//    $window.off('mousemove.manualColumnResize.' + instance.guid);
-//    $window.off('mouseup.manualColumnResize.' + instance.guid);
   };
 
   this.beforeInit = function () {
