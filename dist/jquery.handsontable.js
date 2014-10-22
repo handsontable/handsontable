@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 07 2014 21:47:07 GMT+0200 (CEST)
+ * Date: Thu Oct 16 2014 13:53:15 GMT-0300 (Hora oficial do Brasil)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4715,7 +4715,8 @@ Handsontable.helper.toString = function (obj) {
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+      var value = this.get(row, prop);
+      return Handsontable.hooks.execute(this.instance, 'beforeCellCopy', value, row, prop);
     }
     return '';
   };
@@ -4834,7 +4835,8 @@ Handsontable.helper.toString = function (obj) {
    * @return {String}
    */
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
-    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+    var outputs = this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+    return SheetClip.stringify(outputs);
   };
 
 })(Handsontable);
@@ -7469,6 +7471,7 @@ Handsontable.PluginHookClass = (function () {
       beforeAutofill: [],
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
+      beforeCellCopy : [],
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
