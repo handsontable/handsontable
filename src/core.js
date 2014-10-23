@@ -2126,9 +2126,6 @@ var tmpHandsontable = function (element, action) {
     , userSettings
     , instance = element.data ? element.data['handsontable'] : null;
   // Init case
-//  console.log('element',element);
-//  console.log('instance',instance);
-//  console.log('action',action)
 
   if (typeof action !== 'string') {
 
@@ -2146,7 +2143,7 @@ var tmpHandsontable = function (element, action) {
   } else {
     args = [];
     if (arguments.length > 1) {
-      for (i = 1, ilen = arguments.length; i < ilen; i++) {
+      for (i = 2, ilen = arguments.length; i < ilen; i++) {
         args.push(arguments[i]);
       }
     }
