@@ -95,6 +95,14 @@
           </style>
 
           <script data-jsfiddle="example1">
+            function addEvent(element, event, callback) {
+              if (window.addEventListener) {
+                element.addEventListener(event, callback, false)
+              } else {
+                element.attachEvent('on' + event, callback);
+              }
+            }
+
             var getData = (function () {
               var data = [
                     [1,2,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],
@@ -130,13 +138,15 @@
               }
             })();
 
-            $("#example1").handsontable({
+            var container = document.getElementById('example1');
+
+            Handsontable.tmpHandsontable(container,{
               data: getData(),
               colHeaders: true
             });
 
-            $(window).on('hashchange',  function (event) {
-              $("#example1").handsontable('loadData', getData());
+            addEvent(window,'hashchange', function (event) {
+              Handsontable.tmpHandsontable(container,'loadData', getData());
             });
 
           </script>
