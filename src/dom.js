@@ -468,11 +468,11 @@ Handsontable.Dom.outerHeight = function (elem) {
 };
 
 Handsontable.Dom.innerHeight = function (elem) {
-  return elem.clientHeight;
+  return elem.clientHeight || elem.innerHeight;
 };
 
 Handsontable.Dom.innerWidth = function (elem) {
-  return elem.innerWidth;
+  return elem.clientWidth || elem.innerWidth;
 };
 
 (function () {
