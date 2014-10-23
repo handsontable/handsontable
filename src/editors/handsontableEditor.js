@@ -13,8 +13,13 @@
     DIV.className = 'handsontableEditor';
     this.TEXTAREA_PARENT.appendChild(DIV);
 
-    this.$htContainer = $(DIV);
-    this.$htContainer.handsontable();
+    //this.$htContainer = $(DIV);
+
+    this.htContainer = DIV;
+
+    Handsontable.tmpHandsontable(this.htContainer);
+
+    //this.$htContainer.handsontable();
   };
 
   HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cellProperties) {
@@ -49,8 +54,10 @@
       options = Handsontable.Dom.extend(options, cellProperties.handsontable);
 //      options = $.extend(options, cellProperties.handsontable);
     }
-    this.$htContainer.handsontable('destroy');
-    this.$htContainer.handsontable(options);
+    Handsontable.tmpHandsontable(this.htContainer,'destroy');
+    Handsontable.tmpHandsontable(this.htContainer,options);
+    //this.$htContainer.handsontable('destroy');
+    //this.$htContainer.handsontable(options);
   };
 
   var onBeforeKeyDown = function (event) {
@@ -71,7 +78,10 @@
     }
 
     var editor = this.getActiveEditor();
-    var innerHOT = editor.$htContainer.handsontable('getInstance');
+
+    var innerHOT = Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
+
+    //var innerHOT = editor.$htContainer.handsontable('getInstance');
     var rowToSelect;
 
     if (event.keyCode == Handsontable.helper.keyCode.ARROW_DOWN) {
@@ -113,13 +123,17 @@
 
     Handsontable.editors.TextEditor.prototype.open.apply(this, arguments);
 
-    this.$htContainer.handsontable('render');
+    //this.$htContainer.handsontable('render');
+
+    Handsontable.tmpHandsontable(this.htContainer, 'render');
 
     if (this.cellProperties.strict) {
-      this.$htContainer.handsontable('selectCell', 0, 0);
+      //this.$htContainer.handsontable('selectCell', 0, 0);
+      Handsontable.tmpHandsontable(this.htContainer, 'selectCell',0,0);
       this.TEXTAREA.style.visibility = 'hidden';
     } else {
-      this.$htContainer.handsontable('deselectCell');
+      //this.$htContainer.handsontable('deselectCell');
+      Handsontable.tmpHandsontable(this.htContainer, 'deselectCell');
       this.TEXTAREA.style.visibility = 'visible';
     }
 
@@ -153,12 +167,15 @@
   };
 
   HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
-    if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
+    if (Handsontable.tmpHandsontable(this.htContainer,'isListening')) { //if focus is still in the HOT editor
+    //if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
       this.instance.listen(); //return the focus to the parent HOT instance
     }
 
-    if (this.$htContainer.handsontable('getSelected')) {
-      var value = this.$htContainer.handsontable('getInstance').getValue();
+    if (Handsontable.tmpHandsontable(this.htContainer,'getSelected')) {
+    //if (this.$htContainer.handsontable('getSelected')) {
+    //  var value = this.$htContainer.handsontable('getInstance').getValue();
+      var value = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getValue();
       if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
         this.setValue(value);
       }

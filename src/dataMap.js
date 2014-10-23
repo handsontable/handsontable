@@ -59,7 +59,7 @@
       parent = '';
     }
     if(Handsontable.Dom.isPlainObject(schema)) {
-//    if ($.isPlainObject(schema)) {
+    //if ($.isPlainObject(schema)) {
       for (i in schema) {
         if (schema.hasOwnProperty(i)) {
           if (schema[i] === null) {
@@ -165,8 +165,8 @@
         row = this.instance.getSettings().dataSchema(index);
       }
       else {
-//        row = $.extend(true, {}, this.getSchema());
-        row = Handsontable.Dom.extend(true, {}, this.getSchema())
+        row = Handsontable.Dom.extend(true, {}, this.getSchema());
+
       }
 
       if (index === this.instance.countRows()) {

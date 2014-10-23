@@ -19,8 +19,10 @@
       }
     };
 
-    this.$htContainer.addClass('autocompleteEditor');
-    this.$htContainer.addClass(getSystemSpecificPaddingClass());
+    Handsontable.Dom.addClass(this.htContainer, 'autocompleteEditor');
+    Handsontable.Dom.addClass(this.htContainer,getSystemSpecificPaddingClass());
+    //this.$htContainer.addClass('autocompleteEditor');
+    //this.$htContainer.addClass(getSystemSpecificPaddingClass());
 
   };
 
@@ -49,7 +51,7 @@
     this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
-    var choicesListHot = this.$htContainer.handsontable('getInstance');
+    var choicesListHot = Handsontable.tmpHandsontable(this.htContainer,'getInstance');
     var that = this;
 
     choicesListHot.updateSettings({
@@ -124,8 +126,10 @@
 
     this.choices = choices;
 
-    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
-    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
+    Handsontable.tmpHandsontable(this.htContainer,'loadData', Handsontable.helper.pivot([choices]));
+    Handsontable.tmpHandsontable(this.htContainer,'updateSettings', {height: this.getDropdownHeight()});
+    //this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
+    //this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     if(this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice();
@@ -151,9 +155,11 @@
     }
 
     if(typeof bestMatchingChoice == 'undefined'){
-      this.$htContainer.handsontable('deselectCell');
+      //this.$htContainer.handsontable('deselectCell');
+      Handsontable.tmpHandsontable(this.htContainer,'deselectCell');
     } else {
-      this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
+      //this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
+      Handsontable.tmpHandsontable(this.htContainer,'selectCell', bestMatchingChoice, 0);
     }
   };
 
@@ -195,7 +201,8 @@
   };
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){
-    var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
+    //var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
+    var firstRowHeight = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getRowHeight(0) || 23;
     return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
     //sorry, we can't measure row height before it was rendered. Let's use fixed height for now

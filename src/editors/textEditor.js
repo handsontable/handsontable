@@ -200,7 +200,8 @@
       //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
       return;
     }
-    var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
+    //var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
+
     var currentOffset = Handsontable.Dom.offset(this.TD);
 //    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
     var containerOffset = Handsontable.Dom.offset(this.instance.rootElement);
@@ -219,11 +220,12 @@
     if (editLeft < 0) {
       editLeft = 0;
     }
-
-    if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
+    //if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
+    if (rowHeadersCount > 0 && parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       editTop += 1;
     }
-    if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
+    //if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
+    if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       editLeft += 1;
     }
 
@@ -236,15 +238,17 @@
     var cellTopOffset = this.TD.offsetTop,
       cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
 
-    var width = $td.width()
+    var width = Handsontable.Dom.innerWidth(this.TD)  //$td.width()
       , maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10 //10 is TEXTAREAs border and padding
-      , height = $td.outerHeight() - 4
+      , height = Handsontable.Dom.outerHeight(this.TD)-4  //$td.outerHeight() - 4
       , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset)-2; //10 is TEXTAREAs border and padding
 
-    if (parseInt($td.css('border-top-width'), 10) > 0) {
+    //if (parseInt($td.css('border-top-width'), 10) > 0) {
+    if (parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       height -= 1;
     }
-    if (parseInt($td.css('border-left-width'), 10) > 0) {
+    //if (parseInt($td.css('border-left-width'), 10) > 0) {
+    if (parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       if (rowHeadersCount > 0) {
         width -= 1;
       }
