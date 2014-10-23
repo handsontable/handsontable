@@ -124,25 +124,26 @@
 
             Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer); //maps function to lookup string
 
-            var container = $("#example1");
-            container.handsontable({
+            var container = document.getElementById("example1");
+            Handsontable.tmpHandsontable(container,{
               data: data,
               startRows: 5,
               startCols: 5,
               minSpareRows: 1,
               contextMenu: true,
               onSelection: function (row, col, row2, col2) {
-                var meta = container.handsontable('getCellMeta', row2, col2);
+                var meta = Handsontable.tmpHandsontable(container, 'getCellMeta', row2, col2);
                 if (meta.readOnly) {
-                  container.handsontable('updateSettings', {fillHandle: false});
+                  Handsontable.tmpHandsontable(container,'updateSettings', {fillHandle: false});
                 }
                 else {
-                  container.handsontable('updateSettings', {fillHandle: true});
+                  Handsontable.tmpHandsontable(container,'updateSettings', {fillHandle: true});
                 }
               },
               cells: function (row, col, prop) {
                 var cellProperties = {};
-                if (row === 0 || container.handsontable('getData')[row][col] === 'readOnly') {
+
+                if (row === 0 ||  Handsontable.tmpHandsontable(container, 'getData')[row][col] === 'readOnly') {
                   cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
                 }
                 if (row === 0) {
