@@ -290,7 +290,8 @@
             ["2012", 2, 2422, 5399, 776, 4151]
           ];
 
-          $('#example').handsontable({
+          var container = document.getElementById('example');
+          Handsontable.tmpHandsontable(container,{
             data: data,
             minSpareRows: 1,
             colHeaders: true,
@@ -310,7 +311,7 @@
         $('.codeLayout').toggleClass('codeLayoutExpanded');
 
       });
-      $('.ver').text($('#example').data('handsontable').version);
+      $('.ver').text(container.data['handsontable'].version);
     </script>
 
     <script type="text/javascript">
