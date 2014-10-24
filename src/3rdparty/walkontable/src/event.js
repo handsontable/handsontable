@@ -29,7 +29,29 @@ function WalkontableEvent(instance) {
     }
   };
 
+  var onTouchMove = function (event) {
+    that.instance.touchMoving = true;
+  };
+
   var onTouchStart = function (event) {
+    var container = this;
+    this.addEventListener("touchmove", onTouchMove, false);
+
+    // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
+    /*
+    var checkForMove = setTimeout(function () {
+      if(that.instance.touchMoving == true) {
+        that.instance.touchMoving = void 0;
+
+        container.removeEventListener("touchmove", onTouchMove, false);
+
+        return;
+      } else {
+        onMouseDown(event);
+      }
+    },10);
+    */
+
     onMouseDown(event);
   };
 
@@ -83,6 +105,7 @@ function WalkontableEvent(instance) {
       }
     }
   };
+
 
   var onTouchEnd = function (event) {
     onMouseUp(event);
