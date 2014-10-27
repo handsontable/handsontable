@@ -44,7 +44,7 @@ describe('Core_selection', function () {
 
     handsontable({
       onSelection: function () {
-        output = this.rootElement[0];
+        output = this.rootElement;
       }
     });
     selectCell(0, 0);
@@ -57,7 +57,7 @@ describe('Core_selection', function () {
 
     handsontable({
       onSelectionByProp: function () {
-        output = this.rootElement[0];
+        output = this.rootElement;
       }
     });
     selectCell(0, 0);

@@ -17,10 +17,11 @@ describe('Core_beforechange', function () {
 
     handsontable({
       beforeChange: function () {
-        output = this.rootElement[0];
+        output = this.rootElement;
       }
     });
     setDataAtCell(0, 0, "test");
+
 
     expect(output).toEqual(this.$container[0]);
   });

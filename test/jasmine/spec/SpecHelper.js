@@ -266,7 +266,8 @@ var autocomplete = function () {
  * Triggers paste string on current selection
  */
 var triggerPaste = function (str) {
-  spec().$container.data['handsontable'].copyPaste.triggerPaste(null, str);
+  debugger;
+  spec().$container[0].data['handsontable'].copyPaste.triggerPaste(null, str);
 };
 
 /**

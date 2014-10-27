@@ -81,7 +81,7 @@ describe('Core_datachange', function () {
 
     handsontable({
       onChange: function () {
-        output = this.rootElement[0];
+        output = this.rootElement;
       }
     });
     setDataAtCell(0, 0, "test");
