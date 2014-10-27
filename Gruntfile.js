@@ -197,8 +197,8 @@ module.exports = function (grunt) {
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
-          'lib/jquery-ui/js/jquery-ui.custom.js',
-          'plugins/removeRow/jquery.handsontable.removeRow.js'
+          'lib/jquery-ui/js/jquery-ui.custom.js'
+          //'plugins/removeRow/jquery.handsontable.removeRow.js'
         ],
         options: {
           specs: [

@@ -1316,7 +1316,7 @@ describe('ContextMenu', function () {
 
         contextMenu();
 
-        var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var menuHot =  $('.htContextMenu').handsontable('getInstance');
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1961,7 +1961,7 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
       function contextMenu2() {
-        var hot = spec().$container2.data('handsontable');
+        var hot = spec().$container2.data['handsontable'];
         var selected = hot.getSelected();
 
         if(!selected){
@@ -2069,6 +2069,7 @@ describe('ContextMenu', function () {
         height: 100
       });
 
+      debugger;
       this.$container2.handsontable({
         contextMenu: true,
         height: 100
@@ -2100,7 +2101,7 @@ describe('ContextMenu', function () {
       expect(hot2.countRows()).toEqual(6);
 
       function contextMenu2() {
-        var hot = spec().$container2.data('handsontable');
+        var hot = spec().$container2.data['handsontable'];
         var selected = hot.getSelected();
 
         if(!selected){

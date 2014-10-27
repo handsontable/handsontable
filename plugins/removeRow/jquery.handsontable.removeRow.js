@@ -12,6 +12,8 @@
 
     var pluginEnabled = !!(instance.getSettings().removeRowPlugin);
 
+    var eventManager = Handsontable.eventManager(instance);
+
     if (pluginEnabled) {
       bindMouseEvents();
       instance.rootElement.addClass('htRemoveRow');
@@ -21,6 +23,13 @@
     }
 
     function bindMouseEvents() {
+      eventManager.addEventListener(instance.rootElement,'mouseover', function (e) {
+
+      });
+      eventManager.addEventListener(instance.rootElement,'mouseout',function(e){
+
+      });
+
       instance.rootElement.on('mouseover.removeRow', 'tbody th, tbody td', function () {
         getButton(this).show();
       });
@@ -35,6 +44,7 @@
     }
 
     function getButton(td) {
+      debugger;
       return $(td).parent('tr').find('th.htRemoveRow').eq(0).find('.btn');
     }
   }
