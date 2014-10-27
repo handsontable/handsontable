@@ -89,12 +89,9 @@
 						var settings1 = {
 							data:data
 						};
-
-						Handsontable.tmpHandsontable(container,settings1);
-
+            var hot = new Handsontable(container,settings1);
             data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
-
-						Handsontable.tmpHandsontable(container,'render');
+            hot.render();
           </script>
         </div>
       </div>

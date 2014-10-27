@@ -4,10 +4,9 @@ var spec = function () {
 
 var handsontable = function (options) {
   var currentSpec = spec();
-  Handsontable.tmpHandsontable(currentSpec.$container[0], options);
-  //currentSpec.$container.handsontable(options);
+  currentSpec.$container.handsontable(options);
   currentSpec.$container[0].focus(); //otherwise TextEditor tests do not pass in IE8
-  return currentSpec.$container[0].data['handsontable'];
+  return currentSpec.$container.data('handsontable');
 };
 
 /**
@@ -56,7 +55,7 @@ var isFillHandleVisible = function () {
  * Shows context menu
  */
 var contextMenu = function () {
-  var hot = spec().$container[0].data['handsontable'];
+  var hot = spec().$container.data('handsontable');
   var selected = hot.getSelected();
 
   if (!selected) {
@@ -266,8 +265,7 @@ var autocomplete = function () {
  * Triggers paste string on current selection
  */
 var triggerPaste = function (str) {
-  debugger;
-  spec().$container[0].data['handsontable'].copyPaste.triggerPaste(null, str);
+  spec().$container.data('handsontable').copyPaste.triggerPaste(null, str);
 };
 
 /**
@@ -278,7 +276,7 @@ var triggerPaste = function (str) {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var instance = Handsontable.tmpHandsontable(spec().$container[0], 'getInstance');
+    var instance = spec().$container.handsontable('getInstance');
     if (!instance) {
       if (method === 'destroy') {
         return; //we can forgive this... maybe it was destroyed in the test
@@ -470,4 +468,3 @@ function createAccessorForProperty(name) {
     return obj.attr(name, value);
   }
 }
-

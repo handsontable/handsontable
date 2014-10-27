@@ -2069,7 +2069,6 @@ describe('ContextMenu', function () {
         height: 100
       });
 
-      debugger;
       this.$container2.handsontable({
         contextMenu: true,
         height: 100

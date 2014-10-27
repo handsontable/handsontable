@@ -35,7 +35,6 @@ describe('Core_listen', function () {
   });
 
   it('when second instance is created, first should unlisten automatically', function () {
-    debugger;
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();

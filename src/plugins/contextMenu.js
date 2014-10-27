@@ -422,14 +422,10 @@
       this.setMenuPosition(event, menu);
 
       this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
-
-//      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
     var eventManager = Handsontable.eventManager(this.instance);
 
     eventManager.addEventListener(this.instance.rootElement, 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
-//    eventManager.addEventListener(this.instance.rootElement[0], 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
-//    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
@@ -454,7 +450,7 @@
   ContextMenu.prototype.performAction = function (event, menu) {
     var contextMenu = this;
 
-    var hot = Handsontable.tmpHandsontable(menu,'getInstance');
+    var hot = menu.data['hot'].getInstance(); //Handsontable.tmpHandsontable(menu,'getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
@@ -477,11 +473,7 @@
   ContextMenu.prototype.unbindMouseEvents = function () {
     this.eventManager.clear();
     var eventManager = Handsontable.eventManager(this.instance);
-//    eventManager.removeEventListener(this.instance.rootElement[0], 'contextmenu');
     eventManager.removeEventListener(this.instance.rootElement, 'contextmenu');
-//    this.instance.rootElement.off('contextmenu.htContextMenu');
-//    this.eventManager.removeEventListener(document, 'mousedown');
-//    $(document).off('mousedown.htContextMenu');
   };
 
   ContextMenu.prototype.show = function (menu, items) {
@@ -517,9 +509,10 @@
       renderAllRows: true
     };
 
-    menu = Handsontable.tmpHandsontable(menu,settings);
+    menu.data = {'hot': new Handsontable(menu, settings)}; //Handsontable.tmpHandsontable(menu,settings);
     this.bindTableEvents();
-    Handsontable.tmpHandsontable(menu, 'listen');
+    menu.data['hot'].listen();
+    //Handsontable.tmpHandsontable(menu, 'listen');
   };
 
   ContextMenu.prototype.close = function (menu) {
@@ -552,7 +545,8 @@
   ContextMenu.prototype.hide = function (menu) {
     menu.style.display = 'none';
 //    $(menu).handsontable('destroy');
-    Handsontable.tmpHandsontable(menu,'destroy');
+    menu.data['hot'].destroy();
+    //Handsontable.tmpHandsontable(menu,'destroy');
   };
 
   ContextMenu.prototype.renderer = function (instance, TD, row, col, prop, value) {
@@ -620,8 +614,8 @@
 
   ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, menu) {
 
-//    var hot = $(menu).handsontable('getInstance');
-    var hot = Handsontable.tmpHandsontable(menu, 'getInstance');
+    var hot = menu.data['hot'].getInstance();
+    //var hot = Handsontable.tmpHandsontable(menu, 'getInstance');
     var menusLength = this.menus.length;
 
     if (menusLength > 0) {
@@ -649,8 +643,9 @@
   ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
     event = this.eventManager.serveImmediatePropagation(event);
     var contextMenu = this;
-//    var instance = $(menu).handsontable('getInstance');
-    var instance = Handsontable.tmpHandsontable(menu,'getInstance');
+
+    //var instance = Handsontable.tmpHandsontable(menu,'getInstance');
+    var instance = menu.data['hot'].getInstance(); //Handsontable.tmpHandsontable(menu,'getInstance');
     var selection = instance.getSelected();
 
     switch (event.keyCode) {
@@ -724,7 +719,9 @@
               menu = contextMenu.menus[index - 1];
               var triggerRow = contextMenu.triggerRows.pop();
 //              instance = $(menu).handsontable('getInstance');
-              instance = Handsontable.tmpHandsontable(menu,'getInstance');
+//              instance = Handsontable.tmpHandsontable(menu,'getInstance');
+
+              instance = menu.data['hot'].getInstance();
               instance.selectCell(triggerRow, 0);
             }
 
@@ -804,7 +801,8 @@
 
       contextMenu.show(subMenu, items);
       contextMenu.setSubMenuPosition(coords, subMenu);
-      var subMenuInstance = Handsontable.tmpHandsontable(subMenu, 'getInstance');
+      var subMenuInstance = subMenu.data['hot'].getInstance();
+//      var subMenuInstance = Handsontable.tmpHandsontable(subMenu, 'getInstance');
 //        $(subMenu).handsontable('getInstance');
       subMenuInstance.selectCell(0, 0);
     }
@@ -1046,7 +1044,8 @@
     var menuEnabled = false;
 
     for (var i = 0, len = hotContainers.length; i < len; i++) {
-      var instance = Handsontable.tmpHandsontable(hotContainers[i],'getInstance'); //$(hotContainers[i]).handsontable('getInstance');
+      //var instance = Handsontable.tmpHandsontable(hotContainers[i],'getInstance'); //$(hotContainers[i]).handsontable('getInstance');
+      var instance = hotContainers[i].data['hot'].getInstance();
       if (instance && instance.getSettings().contextMenu) {
         menuEnabled = true;
         break;

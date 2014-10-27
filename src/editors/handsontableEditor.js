@@ -16,8 +16,9 @@
     //this.$htContainer = $(DIV);
 
     this.htContainer = DIV;
+    this.hot = new Handsontable(this.htContainer);
 
-    Handsontable.tmpHandsontable(this.htContainer);
+    //Handsontable.tmpHandsontable(this.htContainer);
 
     //this.$htContainer.handsontable();
   };
@@ -54,8 +55,12 @@
       options = Handsontable.Dom.extend(options, cellProperties.handsontable);
 //      options = $.extend(options, cellProperties.handsontable);
     }
-    Handsontable.tmpHandsontable(this.htContainer,'destroy');
-    Handsontable.tmpHandsontable(this.htContainer,options);
+    this.hot.destroy();
+    this.hot = new Handsontable(this.htContainer, options);
+
+    //Handsontable.tmpHandsontable(this.htContainer,'destroy');
+    //Handsontable.tmpHandsontable(this.htContainer,options);
+
     //this.$htContainer.handsontable('destroy');
     //this.$htContainer.handsontable(options);
   };
@@ -79,7 +84,7 @@
 
     var editor = this.getActiveEditor();
 
-    var innerHOT = Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
+    var innerHOT = editor.hot.getInstance(); //Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
 
     //var innerHOT = editor.$htContainer.handsontable('getInstance');
     var rowToSelect;
@@ -125,15 +130,18 @@
 
     //this.$htContainer.handsontable('render');
 
-    Handsontable.tmpHandsontable(this.htContainer, 'render');
+    //Handsontable.tmpHandsontable(this.htContainer, 'render');
+    this.hot.render();
 
     if (this.cellProperties.strict) {
       //this.$htContainer.handsontable('selectCell', 0, 0);
-      Handsontable.tmpHandsontable(this.htContainer, 'selectCell',0,0);
+      //Handsontable.tmpHandsontable(this.htContainer, 'selectCell',0,0);
+      this.hot.selectCell(0,0);
       this.TEXTAREA.style.visibility = 'hidden';
     } else {
       //this.$htContainer.handsontable('deselectCell');
-      Handsontable.tmpHandsontable(this.htContainer, 'deselectCell');
+      //Handsontable.tmpHandsontable(this.htContainer, 'deselectCell');
+      this.hot.deselectCell();
       this.TEXTAREA.style.visibility = 'visible';
     }
 
@@ -167,15 +175,19 @@
   };
 
   HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
-    if (Handsontable.tmpHandsontable(this.htContainer,'isListening')) { //if focus is still in the HOT editor
+    if (this.hot.isListening()) { //if focus is still in the HOT editor
+
+      //if (Handsontable.tmpHandsontable(this.htContainer,'isListening')) { //if focus is still in the HOT editor
     //if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
       this.instance.listen(); //return the focus to the parent HOT instance
     }
 
-    if (Handsontable.tmpHandsontable(this.htContainer,'getSelected')) {
+    if(this.hot.getSelected()){
+    //if (Handsontable.tmpHandsontable(this.htContainer,'getSelected')) {
     //if (this.$htContainer.handsontable('getSelected')) {
     //  var value = this.$htContainer.handsontable('getInstance').getValue();
-      var value = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getValue();
+      var value = this.hot.getInstance().getValue();
+      //var value = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getValue();
       if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
         this.setValue(value);
       }

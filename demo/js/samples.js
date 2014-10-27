@@ -62,8 +62,11 @@
 			if (e.target.nodeName == "BUTTON" && e.target.name == 'dump') {
 				var dump = e.target.dataset['dump'];
 				var element = document.getElementById(dump.replace('#', ''));
-				console.log('data of' + dump, Handsontable.tmpHandsontable(element, 'getData'));
-			}
+        var hot = new Handsontable(element);
+				//console.log('data of' + dump, Handsontable.tmpHandsontable(element, 'getData'));
+        console.log('data of' + dump, hot.getData());
+
+      }
 		});
 	}
 
