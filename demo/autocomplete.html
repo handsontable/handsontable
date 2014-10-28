@@ -115,7 +115,8 @@
       </div>
 
       <script data-jsfiddle="example1">
-        $("#example1").handsontable({
+        var example1 = document.getElementById('example1');
+        var hot1 = new Handsontable(example1,{
           data: getCarData(),
           startRows: 7,
           startCols: 4,

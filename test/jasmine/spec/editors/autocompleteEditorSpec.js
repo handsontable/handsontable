@@ -17,6 +17,7 @@ describe('AutocompleteEditor', function () {
   describe("open editor", function () {
     it("should display editor (after hitting ENTER)", function () {
 
+
       handsontable({
         columns: [
           {
@@ -222,9 +223,9 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         updateChoicesList.reset();
-        editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
-        editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseleave();
-        editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+        $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+        $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseleave();
+        $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseenter();
       });
 
       waits(100);
@@ -764,7 +765,8 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
 
-        var innerHot = autocomplete().handsontable('getInstance');
+        var ac = autocomplete();
+        var innerHot = ac.handsontable('getInstance');
 
         expect(innerHot.getData()).toEqual([
           [ 'blue' ],
@@ -1457,6 +1459,7 @@ describe('AutocompleteEditor', function () {
     });
 
     it('typing in textarea should highlight the matching phrase', function () {
+
       var choices = ['Male', 'Female'];
 
       var syncSources = jasmine.createSpy('syncSources');
@@ -1707,7 +1710,7 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([1, 0, 1, 0]);
+        expect(hot.getActiveEditor().hot.getSelected()).toEqual([1, 0, 1, 0]);
       });
     });
 
@@ -1880,7 +1883,6 @@ describe('AutocompleteEditor', function () {
   });
 
   it("should handle editor if cell data is a function", function () {
-
     spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
     var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
     var afterValidateCallback = jasmine.createSpy('afterValidateCallbak');
@@ -1935,7 +1937,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().isOpened()).toBe(true);
       afterValidateCallback.reset();
-      hot.getActiveEditor().$htContainer.find('tr:eq(1) td:eq(0)').simulate('mousedown');
+      $(hot.getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
     });
 
 
@@ -2071,6 +2073,7 @@ describe('AutocompleteEditor', function () {
   });
 
   it("should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10", function () {
+
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2097,7 +2100,7 @@ describe('AutocompleteEditor', function () {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    var dropdown = hot.getActiveEditor().$htContainer[0];
+    var dropdown = hot.getActiveEditor().htContainer;
 
     expect(dropdown.scrollHeight).toBeGreaterThan(dropdown.clientHeight);
 
@@ -2146,14 +2149,14 @@ describe('AutocompleteEditor', function () {
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-    var dropdown = hot.getActiveEditor().$htContainer;
+    var dropdown = hot.getActiveEditor().htContainer;
 
     hot.view.wt.wtScrollbars.vertical.scrollTo(1);
 
     waits(30);
 
     runs(function () {
-      expect($(dropdown[0]).is(':visible')).toBe(true);
+      expect($(dropdown).is(':visible')).toBe(true);
       selectCell(0, 0);
     });
 
@@ -2162,14 +2165,13 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-
-      dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
+      hot.view.wt.wtScrollbars.vertical.scrollTo(3);
     });
 
     waits(30);
 
     runs(function () {
-      expect($(dropdown[0]).is(':visible')).toBe(true);
+      expect($(dropdown).is(':visible')).toBe(true);
     });
   });
 

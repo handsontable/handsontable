@@ -119,6 +119,7 @@ describe('Core_keepEmptyRows', function () {
   });
 
   it('should create new row when last cell in last row is edited by autocomplete', function () {
+    debugger;
     var data = [
           {id: 1, color: "orange" }
         ];

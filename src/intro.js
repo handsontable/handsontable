@@ -16,6 +16,8 @@
 //};
 
 var Handsontable = function (rootElement, userSettings) {
+  userSettings = userSettings || {};
+  console.log(userSettings);
   var instance = new Handsontable.Core(rootElement, userSettings);
   instance.init();
   return instance;

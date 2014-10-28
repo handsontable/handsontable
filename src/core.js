@@ -1216,7 +1216,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   function expandType(obj) {
     if (!obj.hasOwnProperty('type')) return; //ignore obj.prototype.type
 
-
     var type, expandedType = {};
 
     if (typeof obj.type === 'object') {
@@ -1924,15 +1923,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.view.destroy();
     }
 
+
     Handsontable.Dom.empty(instance.rootElement);
     delete instance.rootElement.data;
     eventManager.clear();
-
-//    instance.rootElement.empty();
-//    instance.rootElement.removeData('handsontable');
-//    instance.rootElement.off('.handsontable');
-
-
 
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);

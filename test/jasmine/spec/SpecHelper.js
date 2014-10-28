@@ -276,7 +276,14 @@ var triggerPaste = function (str) {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var instance = spec().$container.handsontable('getInstance');
+
+    var instance;
+    try{
+      instance = spec().$container.handsontable('getInstance');
+    } catch (err) {
+      console.log(err);
+    }
+
     if (!instance) {
       if (method === 'destroy') {
         return; //we can forgive this... maybe it was destroyed in the test

@@ -127,7 +127,9 @@ if (document.documentElement.classList) {
   };
 
   Handsontable.Dom.addClass = function (ele, cls) {
-    ele.classList.add(cls);
+    if (cls) {
+      ele.classList.add(cls);
+    }
   };
 
   Handsontable.Dom.removeClass = function (ele, cls) {

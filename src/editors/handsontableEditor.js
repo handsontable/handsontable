@@ -13,14 +13,9 @@
     DIV.className = 'handsontableEditor';
     this.TEXTAREA_PARENT.appendChild(DIV);
 
-    //this.$htContainer = $(DIV);
-
     this.htContainer = DIV;
-    this.hot = new Handsontable(this.htContainer);
+    this.hot =  new Handsontable(DIV);
 
-    //Handsontable.tmpHandsontable(this.htContainer);
-
-    //this.$htContainer.handsontable();
   };
 
   HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cellProperties) {
@@ -55,7 +50,10 @@
       options = Handsontable.Dom.extend(options, cellProperties.handsontable);
 //      options = $.extend(options, cellProperties.handsontable);
     }
-    this.hot.destroy();
+    if (this.hot) {
+      this.hot.destroy();
+    }
+
     this.hot = new Handsontable(this.htContainer, options);
 
     //Handsontable.tmpHandsontable(this.htContainer,'destroy');

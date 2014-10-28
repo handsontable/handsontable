@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -138,9 +137,17 @@
           </div>
 
           <script data-jsfiddle="example1">
+            function addEvent(element, event, callback) {
+              if (window.addEventListener) {
+                element.addEventListener(event, callback, false)
+              } else {
+                element.attachEvent('on' + event, callback);
+              }
+            }
 
+            var container = document.getElementById('example1');
 
-            $("#example1").handsontable({
+            Handsontable.tmpHandsontable(container,{
               data: createBigData(),
               rowHeaders: true,
               colHeaders: true,
@@ -159,24 +166,37 @@
               persistentState: true
             });
 
-            var HOT = $('#example1').handsontable('getInstance');
+            var HOT = Handsontable.tmpHandsontable(container,'getInstance');
 
-            $('.reset-state').on('click', function(){
+//            var HOT = $('#example1').handsontable('getInstance');
+            var resetState = document.querySelector('.reset-state');
+            var stateLoaded = document.querySelector('.state-loaded');
 
-              HOT.runHooks('persistentStateReset');
-
-              HOT.updateSettings({
-                columnSorting: true,
-                manualColumnMove:true,
-                manualColumnResize: true
-              });
-
-              $(".state-loaded").fadeOut(300, function () {
-                // render table after hidden state-loaded alert
-                HOT.render();
-              });
-
-            });
+//            addEvent(document.body,'click', function (e){
+//
+//              if (e.target.className.indexOf('reset-state') < 0) {
+//                return;
+//              }
+//
+//              HOT.runHooks('persistentStateReset');
+//
+//              HOT.updateSettings({
+//                columnSorting: true,
+//                manualColumnMove:true,
+//                manualColumnResize: true
+//              });
+//
+////              $(".state-loaded").fadeOut(300, function () {
+////                // render table after hidden state-loaded alert
+////                HOT.render();
+////              });
+//
+//              setTimeout(function ( ) {
+//                stateLoaded.style.display = 'none';
+//                HOT.render();
+//              },300);
+//
+//            });
 
 
             var storedData = {};
@@ -186,7 +206,9 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-              $(".state-loaded").show();
+//              $(".state-loaded").show();
+              stateLoaded.style.display = 'block';
+
             }
 
 
