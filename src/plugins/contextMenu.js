@@ -418,7 +418,8 @@
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
 
-      this.show(menu, items);
+      var hot = this.show(menu, items);
+
       this.setMenuPosition(event, menu);
 
       this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
@@ -509,9 +510,13 @@
       renderAllRows: true
     };
 
+    //var hot = new Handsontable(menu, settings);
+
     menu.data = {'hot': new Handsontable(menu, settings)}; //Handsontable.tmpHandsontable(menu,settings);
     this.bindTableEvents();
     menu.data['hot'].listen();
+    //hot.listen();
+    //return hot;
     //Handsontable.tmpHandsontable(menu, 'listen');
   };
 
