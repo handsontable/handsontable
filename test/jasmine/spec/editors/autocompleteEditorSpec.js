@@ -732,7 +732,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      var hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -748,23 +748,24 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function (hot) {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function (hot) {
         syncSources.reset();
 
         editorInput.val("b");
         keyDownUp("b".charCodeAt(0));
       });
 
-      waitsFor(function () {
+      waitsFor(function (hot) {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function (hot) {
 
+        var test = Handsontable.editors.getEditor('autocomplete',hot);
         var ac = autocomplete();
         var innerHot = ac.handsontable('getInstance');
 
