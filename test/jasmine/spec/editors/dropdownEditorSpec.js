@@ -3,11 +3,17 @@ describe('DropdownEditor', function () {
 
   var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"];
 
+  var hot;
+
   beforeEach(function () {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
   afterEach(function () {
+    if (hot) {
+      hot = null;
+    }
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -16,7 +22,7 @@ describe('DropdownEditor', function () {
 
   describe("closing the editor", function () {
     it("should not close editor on scrolling", function(){
-      var hot = handsontable({
+      hot = handsontable({
         data: [
         ['', 'two','three'],
         ['four', 'five', 'six']
@@ -39,14 +45,14 @@ describe('DropdownEditor', function () {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-      var dropdown = hot.getActiveEditor().$htContainer;
-
       hot.view.wt.wtScrollbars.vertical.scrollTo(1);
 
       waits(30);
 
+      var dropdown = Handsontable.editors.getEditor('dropdown', hot);
+
       runs(function () {
-        expect($(dropdown[0]).is(':visible')).toBe(true);
+        expect($(dropdown.htContainer).is(':visible')).toBe(true);
         selectCell(0, 0);
       });
 
@@ -56,13 +62,13 @@ describe('DropdownEditor', function () {
         $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
         $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-        dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
+        dropdown.instance.view.wt.wtScrollbars.vertical.scrollTo(3);
       });
 
       waits(30);
 
       runs(function () {
-        expect($(dropdown[0]).is(':visible')).toBe(true);
+        expect($(dropdown.htContainer).is(':visible')).toBe(true);
       });
     });
 });
