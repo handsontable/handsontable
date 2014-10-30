@@ -1315,9 +1315,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot =  $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1350,9 +1349,8 @@ describe('ContextMenu', function () {
 
         contextMenu();
 
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1385,9 +1383,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1411,9 +1408,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1445,9 +1441,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1480,9 +1475,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         expect(menuHot.getSelected()).toBeUndefined();
 
@@ -1515,9 +1509,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1552,9 +1545,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1585,9 +1577,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1621,9 +1612,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1662,9 +1652,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1698,9 +1687,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_up');
 
@@ -1735,9 +1723,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_up');
 
@@ -1768,9 +1755,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_up');
 
@@ -1804,9 +1790,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_up');
 
@@ -1845,9 +1830,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_up');
 
@@ -1880,10 +1864,8 @@ describe('ContextMenu', function () {
         });
 
         contextMenu();
-
-        var menuHot =  $('.htContextMenu')[0].data['hot'];
-        //var menuHot = $('.htContextMenu').handsontable('getInstance');
-
+        var id = $('.htContextMenu')[0].id;
+        var menuHot =  hot.contextMenu.htMenus[id];
 
         keyDownUp('arrow_down');
 
@@ -1902,7 +1884,7 @@ describe('ContextMenu', function () {
 
     it("should close menu when user hits ESC", function () {
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });
