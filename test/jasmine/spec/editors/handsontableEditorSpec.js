@@ -178,7 +178,10 @@ describe('HandsontableEditor', function () {
 
       keyDownUp('enter');
 
-      expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([0, 0, 0, 0]);
+      var ht = Handsontable.editors.getEditor('handsontable', hot);
+      var innerHot = ht.htEditor;
+
+      expect(innerHot.getSelected()).toEqual([0, 0, 0, 0]);
     });
 
     it("should hide textarea", function () {
@@ -221,7 +224,10 @@ describe('HandsontableEditor', function () {
 
       keyDownUp('enter');
 
-      expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toBeUndefined();
+      var ht = Handsontable.editors.getEditor('handsontable', hot);
+      var innerHot = ht.htEditor;
+
+      expect(innerHot.getSelected()).toBeUndefined();
     });
 
     it("should show textarea", function () {
