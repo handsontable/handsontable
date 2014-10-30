@@ -56,7 +56,7 @@ describe('AutocompleteRenderer', function () {
       type: 'autocomplete'
     });
 
-    hot.destroy();
+    destroy();
 
     hot = handsontable({
       type: 'autocomplete'
