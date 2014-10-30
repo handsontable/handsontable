@@ -289,7 +289,12 @@ var handsontableMethodFactory = function (method) {
         return; //we can forgive this... maybe it was destroyed in the test
       }
       throw new Error('Something wrong with the test spec: Handsontable instance not found');
+    } else {
+      if (method === 'destroy') {
+        spec().$container.removeData();
+      }
     }
+
     return instance[method].apply(instance, arguments);
   }
 };

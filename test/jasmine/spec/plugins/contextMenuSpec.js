@@ -158,7 +158,7 @@ describe('ContextMenu', function () {
 
     it('should work properly (remove row) after destroy and new init', function () {
       var test = function () {
-        var hot = handsontable({
+        handsontable({
           startRows: 5,
           contextMenu: ['remove_row'],
           height: 100
