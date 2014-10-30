@@ -109,7 +109,7 @@ function HandsontableManualColumnResize() {
     var dblclick = 0;
     var autoresizeTimeout = null;
 
-    eventManager.addEventListener(instance.rootElement[0], 'mouseover',function (e) {
+    eventManager.addEventListener(instance.rootElement, 'mouseover',function (e) {
       if (checkColumnHeader(e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
@@ -120,7 +120,7 @@ function HandsontableManualColumnResize() {
       }
     });
 
-    eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
+    eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
       if (Handsontable.Dom.hasClass(e.target, 'manualColumnResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
