@@ -53,6 +53,10 @@ CopyPasteClass.prototype.init = function () {
 
     this.elTextarea = document.createElement('TEXTAREA');
     this.elTextarea.className = 'copyPaste';
+    this.elTextarea.onpaste = function (event) {
+      this.value = event.clipboardData.getData("Text");
+      return false;
+    };
     style = this.elTextarea.style;
     style.width = '10000px';
     style.height = '10000px';
@@ -109,7 +113,7 @@ CopyPasteClass.prototype.init = function () {
         }, 0);
       }
     }
-  }
+  };
 
   this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };
