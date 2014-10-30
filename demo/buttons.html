@@ -89,9 +89,8 @@
       <div class="codeLayout">
         <div class="pad">
           <script>
-            var container = $("#example1");
-
-            container.handsontable({
+            var container = document.getElementById("example1");
+            var hot = new Handsontable(container, {
               startRows: 15,
               startCols: 16,
               rowHeaders: true,
@@ -103,26 +102,26 @@
               removeRowPlugin: true
             });
 
-            var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
-            ];
+//            var data = [
+//              ["", "Kia", "Nissan", "Toyota", "Honda"],
+//              ["2008", 10, 11, 12, 13],
+//              ["2009", 20, 11, 14, 13],
+//              ["2010", 30, 15, 12, 13]
+//            ];
 
-            container.handsontable("loadData", data);
+            //hot.handsontable("loadData", data);
 
-            $("button#selectFirst").on('click', function () {
-                container.handsontable("selectCell", 0, 0);
-            });
-
-            $("input#rowHeaders").change(function () {
-              container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
-            });
-
-            $("input#colHeaders").change(function () {
-              container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
-            });
+//            $("button#selectFirst").on('click', function () {
+//                container.handsontable("selectCell", 0, 0);
+//            });
+//
+//            $("input#rowHeaders").change(function () {
+//              container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
+//            });
+//
+//            $("input#colHeaders").change(function () {
+//              container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
+//            });
           </script>
         </div>
       </div>
