@@ -7,7 +7,6 @@ describe('RemoveRowSpec', function () {
 
   afterEach(function () {
     if (this.$container) {
-      debugger;
       destroy();
       this.$container.remove();
     }

@@ -843,7 +843,6 @@ describe('UndoRedo', function () {
         });
 
         it('should redo single change in cell with validator', function () {
-
           var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
             result(true);
           });

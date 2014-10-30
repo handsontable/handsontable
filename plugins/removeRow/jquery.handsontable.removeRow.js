@@ -44,7 +44,6 @@
     }
 
     function getButton(td) {
-      debugger;
       return $(td).parent('tr').find('th.htRemoveRow').eq(0).find('.btn');
     }
   }

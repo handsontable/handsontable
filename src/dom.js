@@ -8,16 +8,57 @@ if(!window.Handsontable) {
 }
 Handsontable.Dom = {};
 
-Handsontable.Dom.isPlainObject = function (obj) {
-  return obj!=null && typeof(obj)=="object" && Object.getPrototypeOf(obj)==Object.prototype;
+//https://gist.github.com/p0rsche/2763377
+Handsontable.Dom.class2type = {};
+
+Handsontable.Dom.type = function( obj ) {
+  return obj == null ?
+    String( obj ) :
+  Handsontable.Dom.class2type[ toString.call(obj) ] || "object";
 };
 
-Handsontable.Dom.isFunction = function (target) {
+Handsontable.Dom.isWindow = function( obj ) {
+  return obj != null && obj == obj.window;
+};
+
+Handsontable.Dom.isFunction = function(target){
   return toString.call(target) === "[object Function]";
 };
 
-//https://gist.github.com/p0rsche/2763377
-Handsontable.Dom.extend = function () {
+Handsontable.Dom.isArray =  Array.isArray || function( obj ) {
+    return Handsontable.Dom.type(obj) === "array";
+  };
+
+Handsontable.Dom.isPlainObject = function( obj ) {
+  // Must be an Object.
+  // Because of IE, we also have to check the presence of the constructor property.
+  // Make sure that DOM nodes and window objects don't pass through, as well
+  if ( !obj || Handsontable.Dom.type(obj) !== "object" || obj.nodeType || Handsontable.Dom.isWindow( obj ) ) {
+    return false;
+  }
+
+  try {
+    // Not own constructor property must be Object
+    if ( obj.constructor &&
+      !Handsontable.Dom.class2type.hasOwnProperty.call(obj, "constructor") &&
+      !Handsontable.Dom.class2type.hasOwnProperty.call(obj.constructor.prototype, "isPrototypeOf") ) {
+      return false;
+    }
+  } catch ( e ) {
+    // IE8,9 Will throw exceptions on certain host objects #9897
+    return false;
+  }
+
+  // Own properties are enumerated firstly, so to speed up,
+  // if last one is own, then all properties are own.
+
+  var key;
+  for ( key in obj ) {}
+
+  return key === undefined || Handsontable.Dom.class2type.hasOwnProperty.call( obj, key );
+};
+
+Handsontable.Dom.extend = function() {
   var options, name, src, copy, copyIsArray, clone,
     target = arguments[0] || {},
     i = 1,
@@ -56,10 +97,10 @@ Handsontable.Dom.extend = function () {
         }
 
         // Recurse if we're merging plain objects or arrays
-        if ( deep && copy && (Handsontable.Dom.isPlainObject(copy) || (copyIsArray = (typeof(copy) ===  "array") ) ) ) {
+        if ( deep && copy && ( Handsontable.Dom.isPlainObject(copy) || (copyIsArray = Handsontable.Dom.isArray(copy)) ) ) {
           if ( copyIsArray ) {
             copyIsArray = false;
-            clone = src && typeof(src) === "array" ? src : [];
+            clone = src && Handsontable.Dom.isArray(src) ? src : [];
 
           } else {
             clone = src && Handsontable.Dom.isPlainObject(src) ? src : {};
@@ -78,6 +119,77 @@ Handsontable.Dom.extend = function () {
   // Return the modified object
   return target;
 };
+
+//Handsontable.Dom.isPlainObject = function (obj) {
+//  return obj!=null && typeof(obj)=="object" && Object.getPrototypeOf(obj)==Object.prototype;
+//};
+//
+//Handsontable.Dom.isFunction = function (target) {
+//  return toString.call(target) === "[object Function]";
+//};
+//
+//
+//Handsontable.Dom.extend = function () {
+//  var options, name, src, copy, copyIsArray, clone,
+//    target = arguments[0] || {},
+//    i = 1,
+//    length = arguments.length,
+//    deep = false;
+//
+//  // Handle a deep copy situation
+//  if ( typeof target === "boolean" ) {
+//    deep = target;
+//    target = arguments[1] || {};
+//    // skip the boolean and the target
+//    i = 2;
+//  }
+//
+//  // Handle case when target is a string or something (possible in deep copy)
+//  if ( typeof target !== "object" && !Handsontable.Dom.isFunction(target) ) {
+//    target = {};
+//  }
+//
+//  if ( length === i ) {
+//    target = this;
+//    --i;
+//  }
+//
+//  for ( ; i < length; i++ ) {
+//    // Only deal with non-null/undefined values
+//    if ( (options = arguments[ i ]) != null ) {
+//      // Extend the base object
+//      for ( name in options ) {
+//        src = target[ name ];
+//        copy = options[ name ];
+//
+//        // Prevent never-ending loop
+//        if ( target === copy ) {
+//          continue;
+//        }
+//
+//        // Recurse if we're merging plain objects or arrays
+//        if ( deep && copy && (Handsontable.Dom.isPlainObject(copy) || (copyIsArray = (typeof(copy) ===  "array") ) ) ) {
+//          if ( copyIsArray ) {
+//            copyIsArray = false;
+//            clone = src && typeof(src) === "array" ? src : [];
+//
+//          } else {
+//            clone = src && Handsontable.Dom.isPlainObject(src) ? src : {};
+//          }
+//
+//          // Never move original objects, clone them
+//          target[ name ] = Handsontable.Dom.extend( deep, clone, copy );
+//
+//          // Don't bring in undefined values
+//        } else if ( copy !== undefined ) {
+//          target[ name ] = copy;
+//        }
+//      }
+//    }
+//  }
+//  // Return the modified object
+//  return target;
+//};
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
 Handsontable.Dom.closest = function (elem, nodeNames, until) {
