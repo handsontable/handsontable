@@ -52,7 +52,7 @@
     this.focus();
 
 
-    var choicesListHot = this.hot.getInstance();
+    var choicesListHot = this.htEditor.getInstance();
     var that = this;
 
     choicesListHot.updateSettings({
@@ -130,8 +130,8 @@
 
     this.choices = choices;
 
-    this.hot.loadData(Handsontable.helper.pivot([choices]));
-    this.hot.updateSettings({height: this.getDropdownHeight()});
+    this.htEditor.loadData(Handsontable.helper.pivot([choices]));
+    this.htEditor.updateSettings({height: this.getDropdownHeight()});
     //Handsontable.tmpHandsontable(this.htContainer,'loadData', Handsontable.helper.pivot([choices]));
     //Handsontable.tmpHandsontable(this.htContainer,'updateSettings', {height: this.getDropdownHeight()});
 
@@ -163,11 +163,11 @@
 
     if(typeof bestMatchingChoice == 'undefined'){
       //this.$htContainer.handsontable('deselectCell');
-      this.hot.deselectCell();
+      this.htEditor.deselectCell();
       //Handsontable.tmpHandsontable(this.htContainer,'deselectCell');
     } else {
       //this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
-      this.hot.selectCell(bestMatchingChoice, 0);
+      this.htEditor.selectCell(bestMatchingChoice, 0);
       //Handsontable.tmpHandsontable(this.htContainer,'selectCell', bestMatchingChoice, 0);
     }
   };
@@ -211,7 +211,7 @@
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){
     //var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
-    var firstRowHeight = this.hot.getInstance().getRowHeight(0) || 23;
+    var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
     //var firstRowHeight = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getRowHeight(0) || 23;
     return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);

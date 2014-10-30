@@ -3,11 +3,17 @@ describe('AutocompleteEditor', function () {
 
   var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"];
 
+  var hot;
+
   beforeEach(function () {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
   afterEach(function () {
+    if (hot) {
+      hot = null;
+    }
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -323,7 +329,7 @@ describe('AutocompleteEditor', function () {
           ["c", "d"]
         ];
 
-        handsontable({
+        hot = handsontable({
           data: data,
           minRows: 4,
           minCols: 4,
@@ -732,7 +738,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      var hot = handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -748,26 +754,24 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function (hot) {
+      waitsFor(function () {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function (hot) {
+      runs(function () {
         syncSources.reset();
 
         editorInput.val("b");
         keyDownUp("b".charCodeAt(0));
       });
 
-      waitsFor(function (hot) {
+      waitsFor(function () {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function (hot) {
-
-        var test = Handsontable.editors.getEditor('autocomplete',hot);
-        var ac = autocomplete();
-        var innerHot = ac.handsontable('getInstance');
+      runs(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           [ 'blue' ],
@@ -1055,7 +1059,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1090,7 +1094,8 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
 
-        var innerHot = autocomplete().handsontable('getInstance');
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           [ 'blue' ],
@@ -1128,7 +1133,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1163,7 +1168,8 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
 
-        var innerHot = autocomplete().handsontable('getInstance');
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           [ 'blue' ],
@@ -1241,7 +1247,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1276,7 +1282,10 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
           [ 'yellow' ],
           [ 'red' ],
           [ 'orange' ],
@@ -1299,7 +1308,10 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
           [ 'red' ]
         ]);
       });
@@ -1307,7 +1319,7 @@ describe('AutocompleteEditor', function () {
     it('default filtering should be case insensitive', function () {
 
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1331,7 +1343,10 @@ describe('AutocompleteEditor', function () {
       waits(50); //filtering is always async
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
           [ 'yellow' ],
           [ 'red' ],
           [ 'orange' ],
@@ -1350,7 +1365,10 @@ describe('AutocompleteEditor', function () {
       waits(50); //filtering is always async
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
           [ 'yellow' ],
           [ 'red' ],
           [ 'orange' ],
@@ -1366,7 +1384,7 @@ describe('AutocompleteEditor', function () {
     it('default filtering should be case sensitive when filteringCaseSensitive is false', function () {
 
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1391,7 +1409,10 @@ describe('AutocompleteEditor', function () {
       waits(50); //filtering is always async
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
           [ 'yellow' ],
           [ 'red' ],
           [ 'orange' ],
@@ -1410,12 +1431,15 @@ describe('AutocompleteEditor', function () {
       waits(50); //filtering is always async
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual([ ]);
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([ ]);
       });
     });
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', function () {
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1444,7 +1468,10 @@ describe('AutocompleteEditor', function () {
       waits(20);
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual(Handsontable.helper.pivot([choices]));
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
 
         editorInput.val("ed");
         keyDownUp("d".charCodeAt(0)); //d
@@ -1453,7 +1480,10 @@ describe('AutocompleteEditor', function () {
       waits(20);
 
       runs(function () {
-        expect(autocomplete().handsontable('getData')).toEqual(Handsontable.helper.pivot([choices]));
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
       });
 
 
@@ -1471,7 +1501,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1507,7 +1537,10 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        var autocompleteList = autocomplete().handsontable('getInstance').rootElement;
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+        var autocompleteList = $(innerHot.rootElement);
+
         expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>Male<\/(strong|STRONG)>/); //IE8 makes the tag names UPPERCASE
         expect(autocompleteList.find('td:eq(1)').html()).toMatch(/Fe<(strong|STRONG)>male<\/(strong|STRONG)>/);
 
@@ -1519,7 +1552,7 @@ describe('AutocompleteEditor', function () {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
       var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1554,7 +1587,10 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        expect(autocomplete().handsontable('getData').length).toEqual(0);
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData().length).toEqual(0);
       });
     });
 
@@ -1569,7 +1605,7 @@ describe('AutocompleteEditor', function () {
         }));
       };
 
-      handsontable({
+      hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1605,7 +1641,11 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        var autocompleteList = autocomplete().handsontable('getInstance').rootElement;
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        var autocompleteList = $(innerHot.rootElement);
+
         expect(autocompleteList.find('td:eq(0)').html()).toEqual('Male');
         expect(autocompleteList.find('td:eq(1)').html()).toEqual('Female');
 
@@ -1711,7 +1751,9 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        expect(hot.getActiveEditor().hot.getSelected()).toEqual([1, 0, 1, 0]);
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+        expect(innerHot.getSelected()).toEqual([1, 0, 1, 0]);
       });
     });
 

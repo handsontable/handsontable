@@ -14,7 +14,7 @@
     this.TEXTAREA_PARENT.appendChild(DIV);
 
     this.htContainer = DIV;
-    this.hot =  new Handsontable(DIV);
+    this.htEditor = new Handsontable(DIV);
 
   };
 
@@ -50,11 +50,11 @@
       options = Handsontable.Dom.extend(options, cellProperties.handsontable);
 //      options = $.extend(options, cellProperties.handsontable);
     }
-    if (this.hot) {
-      this.hot.destroy();
+    if (this.htEditor) {
+      this.htEditor.destroy();
     }
 
-    this.hot = new Handsontable(this.htContainer, options);
+    this.htEditor = new Handsontable(this.htContainer, options);
 
     //Handsontable.tmpHandsontable(this.htContainer,'destroy');
     //Handsontable.tmpHandsontable(this.htContainer,options);
@@ -82,7 +82,7 @@
 
     var editor = this.getActiveEditor();
 
-    var innerHOT = editor.hot.getInstance(); //Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
+    var innerHOT = editor.htEditor.getInstance(); //Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
 
     //var innerHOT = editor.$htContainer.handsontable('getInstance');
     var rowToSelect;
@@ -129,17 +129,17 @@
     //this.$htContainer.handsontable('render');
 
     //Handsontable.tmpHandsontable(this.htContainer, 'render');
-    this.hot.render();
+    this.htEditor.render();
 
     if (this.cellProperties.strict) {
       //this.$htContainer.handsontable('selectCell', 0, 0);
       //Handsontable.tmpHandsontable(this.htContainer, 'selectCell',0,0);
-      this.hot.selectCell(0,0);
+      this.htEditor.selectCell(0,0);
       this.TEXTAREA.style.visibility = 'hidden';
     } else {
       //this.$htContainer.handsontable('deselectCell');
       //Handsontable.tmpHandsontable(this.htContainer, 'deselectCell');
-      this.hot.deselectCell();
+      this.htEditor.deselectCell();
       this.TEXTAREA.style.visibility = 'visible';
     }
 
@@ -173,18 +173,18 @@
   };
 
   HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
-    if (this.hot.isListening()) { //if focus is still in the HOT editor
+    if (this.htEditor.isListening()) { //if focus is still in the HOT editor
 
       //if (Handsontable.tmpHandsontable(this.htContainer,'isListening')) { //if focus is still in the HOT editor
     //if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
       this.instance.listen(); //return the focus to the parent HOT instance
     }
 
-    if(this.hot.getSelected()){
+    if(this.htEditor.getSelected()){
     //if (Handsontable.tmpHandsontable(this.htContainer,'getSelected')) {
     //if (this.$htContainer.handsontable('getSelected')) {
     //  var value = this.$htContainer.handsontable('getInstance').getValue();
-      var value = this.hot.getInstance().getValue();
+      var value = this.htEditor.getInstance().getValue();
       //var value = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getValue();
       if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
         this.setValue(value);
