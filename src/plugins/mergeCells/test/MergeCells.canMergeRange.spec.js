@@ -407,28 +407,28 @@ describe("handsontable.MergeCells", function () {
         width: 400
       });
 
-      hot.rootElement[0].scrollTop = 130;
+      hot.rootElement.scrollTop = 130;
       hot.render();
 
-      expect(hot.rootElement[0].scrollTop).toBe(130);
+      expect(hot.rootElement.scrollTop).toBe(130);
 
       var TD = hot.getCell(5, 0);
       mouseDown(TD);
       mouseUp(TD);
-      var mergedCellScrollTop = hot.rootElement[0].scrollTop;
+      var mergedCellScrollTop = hot.rootElement.scrollTop;
       expect(mergedCellScrollTop).toBeLessThan(130);
       expect(mergedCellScrollTop).toBeGreaterThan(0);
 
-      hot.rootElement[0].scrollTop = 0;
+      hot.rootElement.scrollTop = 0;
       hot.render();
 
-      hot.rootElement[0].scrollTop = 130;
+      hot.rootElement.scrollTop = 130;
       hot.render();
 
       TD = hot.getCell(5, 2);
       mouseDown(TD);
       mouseUp(TD);
-      var regularCellScrollTop = hot.rootElement[0].scrollTop;
+      var regularCellScrollTop = hot.rootElement.scrollTop;
       expect(mergedCellScrollTop).toBe(regularCellScrollTop);
     });
   });
