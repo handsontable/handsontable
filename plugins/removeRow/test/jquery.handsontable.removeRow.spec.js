@@ -19,7 +19,7 @@ describe('RemoveRowSpec', function () {
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
 
-    this.$container.find('tr:eq(0) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
 
     expect($('.htRemoveRow .btn:visible').length).toBe(1);
   });
@@ -34,7 +34,7 @@ describe('RemoveRowSpec', function () {
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
 
-    this.$container.find('tr:eq(0) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
 
     expect($('.htRemoveRow .btn:visible').length).toBe(1);
 

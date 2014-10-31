@@ -1,4 +1,5 @@
 (function (Handsontable) {
+  console.debug('removeRow');
   "use strict";
   /**
    * Handsontable RemoveRow plugin. See `demo/buttons.html` for example usage
@@ -14,9 +15,9 @@
 
       eventManager.addEventListener(instance.rootElement, 'mouseover', function (e) {
         if(checkRowHeader(e.target)) {
-          var th = getTHFromTargetElement(e.target);
-          if (th) {
-            var btn = getButton(th);
+          var element = getElementFromTargetElement(e.target);
+          if (element) {
+            var btn = getButton(element);
             if (btn) {
               btn.style.display = 'block';
             }
@@ -26,9 +27,9 @@
 
       eventManager.addEventListener(instance.rootElement, 'mouseout', function (e) {
         if(checkRowHeader(e.target)) {
-          var th = getTHFromTargetElement(e.target);
-          if (th) {
-            var btn = getButton(th);
+          var element = getElementFromTargetElement(e.target);
+          if (element) {
+            var btn = getButton(element);
             if (btn) {
               btn.style.display = 'none';
             }
@@ -45,12 +46,12 @@
 //      });
     }
 
-    var getTHFromTargetElement = function (element) {
+    var getElementFromTargetElement = function (element) {
       if (element.tagName != 'TABLE') {
-        if (element.tagName == 'TH') {
+        if (element.tagName == 'TH' || element.tagName == 'TD') {
           return element;
         } else {
-          return getTHFromTargetElement(element.parentNode);
+          return getElementFromTargetElement(element.parentNode);
         }
       }
       return null;
@@ -69,7 +70,7 @@
     };
 
     function unbindMouseEvents() {
-      instance.eventManager.clear();
+      eventManager.clear();
     }
 
     function getButton(td) {
