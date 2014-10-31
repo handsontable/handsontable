@@ -58,18 +58,21 @@
               {"car": "Opel Astra", "year": 2004, "price": 7000},
               {"car": "BMW 320i Coupe", "year": 2011, "price": 30500}
             ];
-            $("#goGOT").click(function () {
+
+            var goGOT = document.getElementById('goGOT');
+            Handsontable.helper.addEvent(goGOT, 'click', function () {
               var test = document.getElementById("test");
-              var $container = $("<div></div>");
-              test.appendChild($container[0]);
-              $container.handsontable({
+              var container = document.createElement('DIV');
+              test.appendChild(container);
+
+              var hot = new Handsontable(container,{
                 data: myData,
                 startRows: 7,
                 startCols: 4,
                 colHeaders: ["Car", "Year", "Price ($)", "Price (€)"]
               });
-              $container.handsontable("destroy");
-              test.removeChild($container[0]);
+              hot.destroy();
+              test.removeChild(container);
             });
           </script>
         </div>

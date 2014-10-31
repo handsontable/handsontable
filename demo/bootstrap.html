@@ -96,7 +96,7 @@
           <div id="example1"></div>
 
           <p>
-            <button class="btn btn-info" name="dump" data-dump="#example1"
+            <button class="btn btn-info" name="dump" data-dump="#example1" data-instance="hot"
                     title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
@@ -134,19 +134,29 @@
               [1, 2, 3, 4, 5, 6]
             ];
 
-            $('#example1').handsontable({
+            var container = document.getElementById('example1');
+            var hot = new Handsontable(container,{
               data: data,
               colHeaders: true,
               rowHeaders: true,
               minSpareRows: 1
             });
 
-            $('#example1 table').addClass('table');
+            var table = document.querySelector('table');
+            Handsontable.Dom.addClass(table, 'table');
 
-            $('.options input').on('change', function () {
-              var method = this.checked ? 'addClass' : 'removeClass';
-              $('#example1').find('table')[method](this.getAttribute('data-type'));
-            });
+            var options = document.querySelectorAll('.options input');
+
+            for (var i = 0, len = options.length; i < len; i++) {
+              Handsontable.helper.addEvent(options[i], 'click', function (){
+                if (this.checked){
+                  Handsontable.Dom.addClass(table,this.getAttribute('data-type'))
+                }
+                else{
+                  Handsontable.Dom.removeClass(table,this.getAttribute('data-type'))
+                }
+              })
+            }
 
           </script>
         </div>

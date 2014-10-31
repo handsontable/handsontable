@@ -102,7 +102,7 @@
       <div id="example1" style="width: 400px; height: 200px; overflow: auto"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -116,13 +116,7 @@
       </div>
 
       <script data-jsfiddle="example1">
-        function addEvent(element, event, callback) {
-          if (window.addEventListener) {
-            element.addEventListener(event, callback, false)
-          } else {
-            element.attachEvent('on' + event, callback);
-          }
-        }
+
 
         var maxed = false
           , resizeTimeout
@@ -141,8 +135,8 @@
           }
         };
 
-        addEvent(window, 'resize', calculateSize);
-        Handsontable.tmpHandsontable(example,{
+        Handsontable.helper.addEvent(window, 'resize', calculateSize);
+        var hot1 = new Handsontable(example,{
           data: createBigData(),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
@@ -155,7 +149,7 @@
         });
 
         var maximize = document.querySelector('.maximize');
-        addEvent(maximize, 'click', function () {
+        Handsontable.helper.addEvent(maximize, 'click', function () {
           maxed = !maxed;
           if(maxed) {
             calculateSize();
@@ -164,7 +158,8 @@
             example.style.width = 400 + 'px';
             example.style.height = 400 + 'px';
           }
-          Handsontable.tmpHandsontable(example,'render');
+          hot1.render();
+
         });
 
       </script>

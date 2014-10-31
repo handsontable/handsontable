@@ -443,3 +443,46 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 Handsontable.helper.toString = function (obj) {
   return '' + obj;
 };
+
+Handsontable.helper.addEvent = function(element, event, callback) {
+  if (window.addEventListener) {
+    element.addEventListener(event, callback, false)
+  } else {
+    element.attachEvent('on' + event, callback);
+  }
+};
+
+Handsontable.helper.removeEvent = function(element, event, callback) {
+  if (window.detachEvent) {
+    element.detachEvent('on' + event, callback);
+  } else {
+    element.removeEventListener(event, callback, false);
+  }
+};
+
+Handsontable.helper.ajax = function (url, method, callback, params) {
+  var obj;
+  try {
+    obj = new XMLHttpRequest();
+  } catch (e) {
+    try {
+      obj = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        obj = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        alert("Your browser does not support Ajax.");
+        return false;
+      }
+    }
+  }
+  obj.onreadystatechange = function () {
+
+    if (obj.readyState == 4) {
+      callback(obj);
+    }
+  };
+  obj.open(method, url, true);
+  obj.send(params);
+  return obj;
+};

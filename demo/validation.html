@@ -83,7 +83,7 @@
           <pre id="example1console" class="console">Edit the above grid to see callback</pre>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -158,7 +158,7 @@
               ]
             };
 
-            Handsontable.tmpHandsontable(example1,settings1);
+            var hot = new Handsontable(example1,settings1);
 
 //            $("#example1").handsontable();
           </script>

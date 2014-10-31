@@ -133,7 +133,7 @@
             };
 
             var container = document.getElementById("example1");
-            Handsontable.tmpHandsontable(container,{
+            var hot1 = new Handsontable(container,{
               data: data,
               startRows: 5,
               colHeaders: true,

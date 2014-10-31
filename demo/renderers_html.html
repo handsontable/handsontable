@@ -97,7 +97,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -132,14 +132,6 @@
           }
         ];
 
-				function addEvent(element, event, callback) {
-					if (window.addEventListener) {
-						element.addEventListener(event, callback, false)
-					} else {
-						element.attachEvent('on' + event, callback);
-					}
-				}
-
         function strip_tags(input, allowed) {
           // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
           allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
@@ -163,7 +155,7 @@
             var img = document.createElement('IMG');
             img.src = value;
 
-						addEvent(img, 'mousedown', function (e){
+						Handsontable.helper.addEvent(img, 'mousedown', function (e){
 							e.preventDefault();//prevent selection quirk
 						});
 
@@ -178,7 +170,7 @@
         };
 
         var container = document.getElementById("example1");
-        Handsontable.tmpHandsontable(container, {
+        var hot1 = new Handsontable(container, {
           data: data,
           colWidths: [200, 200, 200, 60],
           colHeaders: ["Title", "Description", "Comments", "Cover"],
@@ -210,7 +202,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -226,14 +218,6 @@
       <script data-jsfiddle="example2">
         var isChecked;
 
-				function addEvent(element, event, callback) {
-					if (window.addEventListener) {
-						element.addEventListener(event, callback, false)
-					} else {
-						element.attachEvent('on' + event, callback);
-					}
-				}
-
         var customRenderer = function (instance, td) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           if (isChecked) {
@@ -246,7 +230,7 @@
         };
 
         var container = document.getElementById("example2");
-        Handsontable.tmpHandsontable(container,{
+        var hot2 = new Handsontable(container,{
           startCols: 2,
           columns: [
             {},
@@ -266,16 +250,17 @@
           }
         });
 
-				addEvent(container, 'mousedown', function (e) {
+				Handsontable.helper.addEvent(container, 'mousedown', function (e) {
 					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
 						e.stopPropagation();
 					}
 				});
 
-				addEvent(container, 'mouseup', function (e) {
+        Handsontable.helper.addEvent(container, 'mouseup', function (e) {
 					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
 						isChecked = !e.target.checked;
-						Handsontable.tmpHandsontable(container,'render');
+            hot2.render();
+
 					}
 				});
 
@@ -296,7 +281,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -365,21 +350,6 @@
       </style>
 
       <script data-jsfiddle="example3">
-				function addEvent(element, event, callback) {
-					if (window.addEventListener) {
-						element.addEventListener(event, callback, false)
-					} else {
-						element.attachEvent('on' + event, callback);
-					}
-				}
-
-				function removeEvent(element,event,callback) {
-					if (window.detachEvent) {
-						element.detachEvent('on' + event, callback);
-					} else {
-						element.removeEventListener(event, callback, false);
-					}
-				}
 
         var data = [
           ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
@@ -399,7 +369,7 @@
           ];
 
 				var container = document.getElementById('example3');
-        Handsontable.tmpHandsontable(container,{
+        var hot3 = new Handsontable(container,{
           data: data,
           colHeaders: true,
           minSpareRows: 1,
@@ -410,7 +380,7 @@
             var menu = buildMenu(columns[col].type);
             var button = buildButton();
 
-						addEvent(button,'click', function (e){
+            Handsontable.helper.addEvent(button,'click', function (e){
 							instance.rootElement.appendChild(menu);
 
 							console.log(button);
@@ -435,13 +405,13 @@
 									}
 							};
 
-							removeEvent(document, 'click', removeMenu);
-							addEvent(document, 'click', removeMenu);
+              Handsontable.helper.removeEvent(document, 'click', removeMenu);
+              Handsontable.helper.addEvent(document, 'click', removeMenu);
 						});
 
 
 
-						addEvent(menu, 'click', function (e) {
+            Handsontable.helper.addEvent(menu, 'click', function (e) {
 							if (e.target.nodeName == 'LI') {
 								setColumnType(col, e.target.data['colType'], instance);
 							}

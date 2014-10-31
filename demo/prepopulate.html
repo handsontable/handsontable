@@ -72,7 +72,7 @@
           </style>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -114,7 +114,7 @@
 
 
             var container = document.getElementById("example1");
-            Handsontable.tmpHandsontable(container,{
+            var hot1 = new Handsontable(container,{
               startRows: 8,
               startCols: 5,
               minSpareRows: 1,
@@ -159,8 +159,8 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            Handsontable.tmpHandsontable(container,"loadData", data);
-//            container.handsontable("loadData", data);
+            hot1.loadData(data);
+
           </script>
         </div>
       </div>

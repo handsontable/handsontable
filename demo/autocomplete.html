@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <!--<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>-->
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -101,7 +101,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -179,7 +179,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -193,7 +193,8 @@
       </div>
 
       <script data-jsfiddle="example2">
-        $("#example2").handsontable({
+        var container2 = document.getElementById('example2');
+        var hot2 = new Handsontable(container2,{
           data: getCarData(),
           startRows: 7,
           startCols: 4,
@@ -242,7 +243,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -259,7 +260,8 @@
       </div>
 
       <script>
-        $("#example3").handsontable({
+        var container3 = document.getElementById('example3');
+        var hot3 = new Handsontable(container3,{
           data: getCarData(),
           startRows: 7,
           startCols: 4,

@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -76,7 +75,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -90,7 +89,7 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = $("#example1")
+            var container = document.getElementById("example1")
               , data = [
                 ["Nissan", 2009, "black", "black"],
                 ["Nissan", 2006, "blue", "blue"],
@@ -100,34 +99,38 @@
 
             var lastChange = null;
 
-            container.handsontable({
+            var hot = new Handsontable(container,{
               data: data,
               colHeaders: true,
               rowHeaders: true,
               minSpareRows: 1,
               beforeChange: function (changes, source) {
                 lastChange = changes;
-              },
-              beforeKeyDown: function (e) {
-                var HOT = container.handsontable('getInstance')
-                  , selection = HOT.getSelected();
-
-                if (e.keyCode === 8 || e.keyCode === 46) { //BACKSPACE or DELETE
-                  e.stopImmediatePropagation();
-                  HOT.spliceCol(selection[1], selection[0], 1); //remove data at cell, shift up
-                  e.preventDefault();
-                }
-                else if (e.keyCode === 13) { //ENTER
-                  if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) { //if last change affected a single cell and did not change it's values
-                    e.stopImmediatePropagation();
-                    HOT.spliceCol(selection[1], selection[0], 0, ''); //add new cell
-                    HOT.selectCell(selection[0], selection[1]); //select new cell
-                  }
-                }
-
-                lastChange = null;
               }
             });
+
+            hot.updateSettings(
+              {
+                beforeKeyDown: function (e) {
+                  var selection = hot.getSelected();
+
+                  if (e.keyCode === 8 || e.keyCode === 46) { //BACKSPACE or DELETE
+                    e.stopImmediatePropagation();
+                    hot.spliceCol(selection[1], selection[0], 1); //remove data at cell, shift up
+                    e.preventDefault();
+                  }
+                  else if (e.keyCode === 13) { //ENTER
+                    if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) { //if last change affected a single cell and did not change it's values
+                      e.stopImmediatePropagation();
+                      hot.spliceCol(selection[1], selection[0], 0, ''); //add new cell
+                      hot.selectCell(selection[0], selection[1]); //select new cell
+                    }
+                  }
+
+                  lastChange = null;
+                }
+              }
+            )
 
           </script>
         </div>

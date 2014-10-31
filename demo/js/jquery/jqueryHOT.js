@@ -34,6 +34,10 @@
       if (instance) {
         if (typeof instance[action] !== 'undefined') {
           output = instance[action].apply(instance, args);
+
+          if (action === 'destroy'){
+            $this.removeData();
+          }
         }
         else {
           throw new Error('Handsontable do not provide action: ' + action);

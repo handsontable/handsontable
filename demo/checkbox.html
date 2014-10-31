@@ -82,7 +82,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -97,7 +97,8 @@
           </div>
 
           <script data-jsfiddle="example1">
-            $("#example1").handsontable({
+            var example1 = document.getElementById('example1');
+            var hot1 = new Handsontable(example1,{
               data: getCarData(),
               startRows: 7,
               startCols: 4,
@@ -155,7 +156,8 @@
           </div>
 
           <script data-jsfiddle="example2">
-            $("#example2").handsontable({
+            var example2 = document.getElementById('example2');
+            new Handsontable(example2,{
               data: getCarData(),
               startRows: 7,
               startCols: 4,

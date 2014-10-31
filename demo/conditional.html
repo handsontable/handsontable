@@ -77,7 +77,7 @@
           </style>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -125,7 +125,7 @@
             Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer); //maps function to lookup string
 
             var container = document.getElementById("example1");
-            Handsontable.tmpHandsontable(container,{
+            var hot1 = new Handsontable(container,{
               data: data,
               startRows: 5,
               startCols: 5,

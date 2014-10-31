@@ -9,6 +9,7 @@
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <script data-jsfiddle="common" src="js/jquery/jqueryHOT.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
@@ -16,7 +17,6 @@
   -->
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
-  <script data-jsfiddle="common" src="js/backbone/lodash.underscore.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
@@ -85,13 +85,6 @@
                 }
               </script>
               <script data-jsfiddle="example1">
-
-                (function (window, $, Handsontable) {
-                  $.fn.handsontable = function (action){
-                    Handsontable.tmpHandsontable(this[0], action);
-                  }
-                })(window, $, Handsontable);
-
                 var $container = $("#example1");
                 $container.handsontable({
                   data: getData(),

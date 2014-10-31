@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -84,7 +83,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -124,7 +123,6 @@
           contextMenu: true
         };
         var hot1 = new Handsontable(example1,settings1);
-//        Handsontable.tmpHandsontable(example1,settings1);
       </script>
     </div>
   </div>
@@ -156,7 +154,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -180,7 +178,7 @@
           minSpareRows: 1,
           contextMenu: ['row_above', 'row_below', 'remove_row']
         };
-        new Handsontable(example2, settings2);
+        var hot2 = new Handsontable(example2, settings2);
       </script>
     </div>
   </div>
@@ -202,7 +200,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -257,7 +255,7 @@
           }
         };
 
-        new Handsontable(example3,settings3);
+        var hot3 = new Handsontable(example3,settings3);
       </script>
     </div>
   </div>

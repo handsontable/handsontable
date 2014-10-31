@@ -122,7 +122,7 @@
           <div id="example1" style="width: 600px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -137,17 +137,9 @@
           </div>
 
           <script data-jsfiddle="example1">
-            function addEvent(element, event, callback) {
-              if (window.addEventListener) {
-                element.addEventListener(event, callback, false)
-              } else {
-                element.attachEvent('on' + event, callback);
-              }
-            }
-
             var container = document.getElementById('example1');
 
-            Handsontable.tmpHandsontable(container,{
+            var HOT = new Handsontable(container,{
               data: createBigData(),
               rowHeaders: true,
               colHeaders: true,
@@ -165,38 +157,21 @@
               contextMenu: true,
               persistentState: true
             });
-
-            var HOT = Handsontable.tmpHandsontable(container,'getInstance');
-
-//            var HOT = $('#example1').handsontable('getInstance');
             var resetState = document.querySelector('.reset-state');
             var stateLoaded = document.querySelector('.state-loaded');
 
-//            addEvent(document.body,'click', function (e){
-//
-//              if (e.target.className.indexOf('reset-state') < 0) {
-//                return;
-//              }
-//
-//              HOT.runHooks('persistentStateReset');
-//
-//              HOT.updateSettings({
-//                columnSorting: true,
-//                manualColumnMove:true,
-//                manualColumnResize: true
-//              });
-//
-////              $(".state-loaded").fadeOut(300, function () {
-////                // render table after hidden state-loaded alert
-////                HOT.render();
-////              });
-//
-//              setTimeout(function ( ) {
-//                stateLoaded.style.display = 'none';
-//                HOT.render();
-//              },300);
-//
-//            });
+
+
+            Handsontable.helper.addEvent(resetState, 'click', function() {
+              HOT.runHooks('persistentStateReset');
+              HOT.updateSettings({
+                columnSorting: true,
+                manualColumnMove:true,
+                manualColumnResize: true
+              });
+              stateLoaded.style.display = 'none';
+              HOT.render();
+            });
 
 
             var storedData = {};
@@ -206,9 +181,7 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-//              $(".state-loaded").show();
               stateLoaded.style.display = 'block';
-
             }
 
 

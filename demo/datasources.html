@@ -96,7 +96,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example1" data-instance="hot1">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example1">
@@ -108,7 +108,7 @@
         ];
 
         var container = document.getElementById("example1");
-        Handsontable.tmpHandsontable(container,{
+        var hot1 = new Handsontable(container,{
           data: data,
           startRows: 5,
           startCols: 5,
@@ -142,7 +142,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example2" data-instance="hot2">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example2">
@@ -154,7 +154,7 @@
         ];
 
         var container = document.getElementById("example2");
-        Handsontable.tmpHandsontable(container,{
+        var hot2 = new Handsontable(container,{
           data: hiddenData,
           startRows: 5,
           startCols: 5,
@@ -184,7 +184,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3">Dump to console</button>
+        <button name="dump" data-dump="#example3" data-instance="hot3">Dump to console</button>
       </p>
     </div>
   </div>
@@ -203,7 +203,7 @@
         ];
 
         var container = document.getElementById("example3");
-        Handsontable.tmpHandsontable(container,{
+        var hot3 = new Handsontable(container,{
           data: objectData,
           startRows: 5,
           startCols: 3,
@@ -240,7 +240,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example4">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example4" data-instance="hot4">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example4">
@@ -251,7 +251,7 @@
         ];
 
         var container = document.getElementById("example4");
-        Handsontable.tmpHandsontable(container,{
+        var hot4 = new Handsontable(container,{
           data: nestedObjects,
           startRows: 5,
           startCols: 4,
@@ -300,12 +300,12 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example5">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example5" data-instance="hot5">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example5">
         var container = document.getElementById("example5");
-        Handsontable.tmpHandsontable(container, {
+        var hot5 = Handsontable(container, {
           data: [],
           dataSchema: {id: null, name: {first: null, last: null}, address: null},
           startRows: 5,
@@ -353,13 +353,13 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example6">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example6" data-instance="hot6">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example6">
 
         var container = document.getElementById("example6");
-        Handsontable.tmpHandsontable(container,{
+        var hot6 = new Handsontable(container,{
           data: [
             model({id: 1, name: "Ted Right", address: ""}),
             model({id: 2, name: "Frank Honest", address: ""}),

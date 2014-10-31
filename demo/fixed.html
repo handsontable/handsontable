@@ -109,8 +109,9 @@
              */
 
             var myData = createSpreadsheetData(1000, 100);
+            var container = document.getElementById('example1');
 
-            $("#example1").handsontable({
+            var ht = new Handsontable(container, {
               data: myData,
               colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
               rowHeaders: true,
@@ -120,12 +121,12 @@
               contextMenu: true
             });
 
-            var ht = $("#example1").data('handsontable');
+            var positions = document.getElementById('positions');
 
             setInterval(function () {
               var str = '';
               str += 'offsetRow: ' + ht.view.wt.getSetting('offsetRow');
-              $('#positions').html(str);
+              positions.innerHTML = str;
             }, 100);
           </script>
         </div>

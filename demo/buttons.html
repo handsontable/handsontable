@@ -75,7 +75,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -102,26 +102,35 @@
               removeRowPlugin: true
             });
 
-//            var data = [
-//              ["", "Kia", "Nissan", "Toyota", "Honda"],
-//              ["2008", 10, 11, 12, 13],
-//              ["2009", 20, 11, 14, 13],
-//              ["2010", 30, 15, 12, 13]
-//            ];
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
 
-            //hot.handsontable("loadData", data);
 
-//            $("button#selectFirst").on('click', function () {
-//                container.handsontable("selectCell", 0, 0);
-//            });
-//
-//            $("input#rowHeaders").change(function () {
-//              container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
-//            });
-//
-//            $("input#colHeaders").change(function () {
-//              container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
-//            });
+            hot.loadData(data);
+
+            var selectFirst = document.getElementById('selectFirst'),
+              rowHeaders = document.getElementById('rowHeaders'),
+              colHeaders = document.getElementById('colHeaders');
+
+            Handsontable.helper.addEvent(selectFirst, 'click', function () {
+              hot.selectCell(0,0);
+            });
+
+            Handsontable.helper.addEvent(rowHeaders, 'click', function () {
+              hot.updateSettings({
+                rowHeaders: this.checked
+              });
+            });
+
+            Handsontable.helper.addEvent(colHeaders, 'click', function () {
+              hot.updateSettings({
+                colHeaders: this.checked
+              });
+            });
           </script>
         </div>
       </div>
