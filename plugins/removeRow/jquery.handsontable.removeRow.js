@@ -1,5 +1,4 @@
 (function (Handsontable) {
-  console.debug('removeRow');
   "use strict";
   /**
    * Handsontable RemoveRow plugin. See `demo/buttons.html` for example usage
