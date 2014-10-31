@@ -90,7 +90,10 @@
 
     // Workaround for 'current' and 'zeroclipboard-is-hover' classes being stuck when moving the cursor over the context menu
     if (plugin.cmInstance) {
-      $(document).off('mouseenter.' + plugin.cmInstance.guid).on('mouseenter.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
+
+      var eventManager = new Handsontable.eventManager(this.instance);
+
+      var removeCurrenClass = function (event) {
         var hadClass = plugin.cmInstance.rootElement.querySelector('td.current');
 //        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.current');
         if (hadClass) {
@@ -98,16 +101,32 @@
         }
         plugin.outsideClickDeselectsCache = plugin.instance.getSettings().outsideClickDeselects;
         plugin.instance.getSettings().outsideClickDeselects = false;
-      });
+      };
 
-      $(document).off('mouseleave.' + plugin.cmInstance.guid).on('mouseleave.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
+      var removeZeroClipboardClass = function (event) {
         var hadClass = plugin.cmInstance.rootElement.querySelector('td.zeroclipboard-is-hover');
 //        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.zeroclipboard-is-hover');
         if (hadClass) {
           Handsontable.Dom.removeClass(hadClass, 'zeroclipboard-is-hover');
         }
         plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
+      };
+
+      eventManager.removeEventListener(document,'mouseenter', function () {
+        removeCurrenClass();
       });
+      eventManager.addEventListener(document, 'mouseenter', function (e) {
+        removeCurrenClass();
+      });
+
+      eventManager.removeEventListener(document,'mouseleave', function () {
+        removeZeroClipboardClass();
+      });
+      eventManager.addEventListener(document, 'mouseleave', function (e) {
+        removeZeroClipboardClass();
+      });
+
+
     }
   };
 
