@@ -137,7 +137,6 @@
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
-//    this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
     this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
 
     var that = this;
@@ -203,7 +202,6 @@
     //var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
 
     var currentOffset = Handsontable.Dom.offset(this.TD);
-//    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
     var containerOffset = Handsontable.Dom.offset(this.instance.rootElement);
     var editTop = currentOffset.top - containerOffset.top - 1;
     var editLeft = currentOffset.left - containerOffset.left - 1;

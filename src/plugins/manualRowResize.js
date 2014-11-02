@@ -51,7 +51,6 @@
         handle.style.left = box.left + 'px';
         handle.style.top = startOffset + startHeight + 'px';
         instance.rootElement.appendChild(handle);
-//        instance.rootElement[0].appendChild(handle);
       }
     }
 
@@ -66,7 +65,6 @@
       guide.style.top = handle.style.top;
       guide.style.left = handle.style.left;
       guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
-//      instance.rootElement[0].appendChild(guide);
       instance.rootElement.appendChild(guide);
     }
 
@@ -109,7 +107,6 @@
       var autoresizeTimeout = null;
 
       eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
-//      eventManager.addEventListener(instance.rootElement[0],'mouseover', function (e){
         if(checkRowHeader(e.target)) {
           var th = getTHFromTargetElement(e.target)
           if (th) {
@@ -121,7 +118,6 @@
       });
 
       eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
-//      eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowResizer')) {
           setupGuidePosition.call(instance);
           pressed = instance;

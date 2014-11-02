@@ -47,7 +47,6 @@
         startOffset = box.top;
         handle.style.top = startOffset + 'px';
         handle.style.left = box.left + 'px';
-//        instance.rootElement[0].appendChild(handle);
         instance.rootElement.appendChild(handle);
       }
     }
@@ -67,7 +66,6 @@
       guide.style.top = startOffset + 'px';
       guide.style.left = handle.style.left;
       instance.rootElement.appendChild(guide);
-//      instance.rootElement[0].appendChild(guide);
     }
 
     function refreshGuidePosition(diff) {
@@ -108,7 +106,6 @@
 
 
       eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
-//      eventManager.addEventListener(instance.rootElement[0],'mouseover', function (e){
         if(checkRowHeader(e.target)){
           var th = getTHFromTargetElement(e.target)
           if (th) {
@@ -123,7 +120,6 @@
         }
       });
 
-//      eventManager.addEventListener(instance.rootElement[0],'mousedown', function (e) {
       eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowMover')) {
           startY = e.pageY;

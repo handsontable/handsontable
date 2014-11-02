@@ -106,7 +106,6 @@
         }
       }
 
-//      var parent = instance.rootElement[0].parentNode;
       var parent = instance.rootElement.parentNode;
       parent.appendChild(tmp.container);
       var width = Handsontable.Dom.outerWidth(tmp.table);

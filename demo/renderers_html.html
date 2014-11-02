@@ -147,40 +147,38 @@
           escaped = strip_tags(escaped, '<em><b><strong><a><big>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
           td.innerHTML = escaped;
           return td;
-        };
+          },
+          coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+            var escaped = Handsontable.helper.stringify(value);
+            if (escaped.indexOf('http') === 0) {
+              var img = document.createElement('IMG');
+              img.src = value;
 
-        var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-          var escaped = Handsontable.helper.stringify(value);
-          if (escaped.indexOf('http') === 0) {
-            var img = document.createElement('IMG');
-            img.src = value;
+              Handsontable.helper.addEvent(img, 'mousedown', function (e){
+                e.preventDefault();//prevent selection quirk
+              });
 
-						Handsontable.helper.addEvent(img, 'mousedown', function (e){
-							e.preventDefault();//prevent selection quirk
-						});
+              Handsontable.Dom.empty(td);
+              td.appendChild(img);
 
-						Handsontable.Dom.empty(td);
-						td.appendChild(img);
-
-          }
-          else {
-            Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
-          }
-          return td;
-        };
-
-        var container = document.getElementById("example1");
-        var hot1 = new Handsontable(container, {
-          data: data,
-          colWidths: [200, 200, 200, 60],
-          colHeaders: ["Title", "Description", "Comments", "Cover"],
-          columns: [
-            {data: "title", renderer: "html"},
-            {data: "description", renderer: "html"},
-            {data: "comments", renderer: safeHtmlRenderer},
-            {data: "cover", renderer: coverRenderer}
-          ]
-        });
+            }
+            else {
+              Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
+            }
+            return td;
+          },
+          container = document.getElementById("example1"),
+            hot1 = new Handsontable(container, {
+            data: data,
+            colWidths: [200, 200, 200, 60],
+            colHeaders: ["Title", "Description", "Comments", "Cover"],
+            columns: [
+              {data: "title", renderer: "html"},
+              {data: "description", renderer: "html"},
+              {data: "comments", renderer: safeHtmlRenderer},
+              {data: "cover", renderer: coverRenderer}
+            ]
+          });
       </script>
     </div>
   </div>
@@ -216,54 +214,51 @@
       </div>
 
       <script data-jsfiddle="example2">
-        var isChecked;
-
-        var customRenderer = function (instance, td) {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
-          if (isChecked) {
-            td.style.backgroundColor = 'yellow';
-          }
-          else {
-            td.style.backgroundColor = 'white';
-          }
-          return td;
-        };
-
-        var container = document.getElementById("example2");
-        var hot2 = new Handsontable(container,{
-          startCols: 2,
-          columns: [
-            {},
-            {renderer: customRenderer}
-          ],
-          colHeaders: function (col) {
-            switch (col) {
-              case 0:
-                return "<b>Bold</b> and <em>Beautiful</em>";
-
-              case 1:
-                var txt = "Some <input type='checkbox' class='checker' ";
-                txt += isChecked ? 'checked="checked"' : '';
-                txt += "> checkbox";
-                return txt;
+        var isChecked,
+          customRenderer = function (instance, td) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            if (isChecked) {
+              td.style.backgroundColor = 'yellow';
             }
-          }
-        });
+            else {
+              td.style.backgroundColor = 'white';
+            }
+            return td;
+          },
+          container = document.getElementById("example2"),
+          hot2 = new Handsontable(container,{
+            startCols: 2,
+            columns: [
+              {},
+              {renderer: customRenderer}
+            ],
+            colHeaders: function (col) {
+              switch (col) {
+                case 0:
+                  return "<b>Bold</b> and <em>Beautiful</em>";
 
-				Handsontable.helper.addEvent(container, 'mousedown', function (e) {
-					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
-						e.stopPropagation();
-					}
-				});
+                case 1:
+                  var txt = "Some <input type='checkbox' class='checker' ";
+                  txt += isChecked ? 'checked="checked"' : '';
+                  txt += "> checkbox";
+                  return txt;
+              }
+            }
+          });
 
-        Handsontable.helper.addEvent(container, 'mouseup', function (e) {
-					if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
-						isChecked = !e.target.checked;
-            hot2.render();
+          Handsontable.helper.addEvent(container, 'mousedown', function (e) {
+            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
+              e.stopPropagation();
+            }
+          });
 
-					}
-				});
+          Handsontable.helper.addEvent(container, 'mouseup', function (e) {
+            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
+              isChecked = !e.target.checked;
+              hot2.render();
 
+            }
+          });
       </script>
     </div>
   </div>
@@ -357,67 +352,63 @@
           ["2010", 3, 2905, 2867, 412, 5284],
           ["2011", 4, 2517, 4822, 552, 6127],
           ["2012", 2, 2422, 5399, 776, 4151]
-        ];
-
-        var columns = [
+          ],
+          columns = [
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'}
-          ];
+          ],
+          container = document.getElementById('example3'),
+          hot3 = new Handsontable(container,{
+            data: data,
+            colHeaders: true,
+            minSpareRows: 1,
+            type: 'numeric',
+            columns: columns,
+            afterGetColHeader: function (col, TH) {
+              var instance = this;
+              var menu = buildMenu(columns[col].type);
+              var button = buildButton();
 
-				var container = document.getElementById('example3');
-        var hot3 = new Handsontable(container,{
-          data: data,
-          colHeaders: true,
-          minSpareRows: 1,
-          type: 'numeric',
-          columns: columns,
-          afterGetColHeader: function (col, TH) {
-						var instance = this;
-            var menu = buildMenu(columns[col].type);
-            var button = buildButton();
+              Handsontable.helper.addEvent(button,'click', function (e){
+                instance.rootElement.appendChild(menu);
 
-            Handsontable.helper.addEvent(button,'click', function (e){
-							instance.rootElement.appendChild(menu);
+                console.log(button);
 
-							console.log(button);
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-							e.preventDefault();
-							e.stopImmediatePropagation();
+                var changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
+                for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
+                  changeTypeMenu[i].style.display = 'none';
+                }
 
-							var changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
-							for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
-								changeTypeMenu[i].style.display = 'none';
-							}
+                menu.style.display = 'block';
+                var position = button.getBoundingClientRect();
+                menu.style.top = (position.top - 70) + 'px';
+                menu.style.left = (position.left -310) + 'px';
 
-							menu.style.display = 'block';
-							var position = button.getBoundingClientRect();
-							menu.style.top = (position.top - 70) + 'px';
-							menu.style.left = (position.left -310) + 'px';
+                var removeMenu = function (e) {
+                  console.log(e.target);
+                    if (e.target.nodeName == 'LI' && e.target.parentNode.className.indexOf('changeTypeMenu') != -1 ){
+                      instance.rootElement.removeChild(menu);
+                    }
+                };
 
-							var removeMenu = function (e) {
-								console.log(e.target);
-									if (e.target.nodeName == 'LI' && e.target.parentNode.className.indexOf('changeTypeMenu') != -1 ){
-										instance.rootElement.removeChild(menu);
-									}
-							};
+                Handsontable.helper.removeEvent(document, 'click', removeMenu);
+                Handsontable.helper.addEvent(document, 'click', removeMenu);
+              });
 
-              Handsontable.helper.removeEvent(document, 'click', removeMenu);
-              Handsontable.helper.addEvent(document, 'click', removeMenu);
-						});
+              Handsontable.helper.addEvent(menu, 'click', function (e) {
+                if (e.target.nodeName == 'LI') {
+                  setColumnType(col, e.target.data['colType'], instance);
+                }
+              });
 
-
-
-            Handsontable.helper.addEvent(menu, 'click', function (e) {
-							if (e.target.nodeName == 'LI') {
-								setColumnType(col, e.target.data['colType'], instance);
-							}
-						});
-
-            TH.firstChild.appendChild(button);
+              TH.firstChild.appendChild(button);
 
 
           },
@@ -431,42 +422,42 @@
           }
         });
 
-        function buildMenu(activeCellType){
-					var menu = document.createElement('UL');
-					menu.className = 'changeTypeMenu';
+          function buildMenu(activeCellType){
+            var menu = document.createElement('UL');
+            menu.className = 'changeTypeMenu';
 
-					var types = ['text', 'numeric', 'date'];
+            var types = ['text', 'numeric', 'date'];
 
 
-					for (var i = 0, len = types.length; i< len; i++) {
-						var item = document.createElement('LI');
-						item.innerText = types[i];
-						item.data = {'colType': types[i]};
+            for (var i = 0, len = types.length; i< len; i++) {
+              var item = document.createElement('LI');
+              item.innerText = types[i];
+              item.data = {'colType': types[i]};
 
-						if (activeCellType == types[i]) {
-							item.className = 'active';
-						}
-						menu.appendChild(item);
-					}
+              if (activeCellType == types[i]) {
+                item.className = 'active';
+              }
+              menu.appendChild(item);
+            }
 
-          return menu;
+            return menu;
 
-        }
+          }
 
-        function buildButton() {
-					var button = document.createElement('BUTTON');
-					button.innerHTML = '\u25BC';
-					button.className = 'changeType';
-					return button;
-        }
+          function buildButton() {
+            var button = document.createElement('BUTTON');
+            button.innerHTML = '\u25BC';
+            button.className = 'changeType';
+            return button;
+          }
 
-        function setColumnType(i, type, instance) {
-          columns[i].type = type;
-          instance.updateSettings({columns: columns});
-          instance.validateCells(function(){
-            instance.render();
-          });
-        }
+          function setColumnType(i, type, instance) {
+            columns[i].type = type;
+            instance.updateSettings({columns: columns});
+            instance.validateCells(function(){
+              instance.render();
+            });
+          }
 
 
       </script>

@@ -77,19 +77,21 @@
 
       <div class="codeLayout">
         <div class="pad">
-          <script>
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+          <script data-jsfiddle="example1">
             var data = [
               ["", "Kia", "Nissan", "Toyota", "Honda"],
               ["2008", 10, 11, 12, 13],
               ["2009", 20, 11, 14, 13],
               ["2010", 30, 15, 12, 13]
-            ];
-
-						var container = document.getElementById('example1');
-						var settings1 = {
-							data:data
-						};
-            var hot = new Handsontable(container,settings1);
+            ],
+              container = document.getElementById('example1'),
+              settings1 = {
+                data:data
+              },
+              hot = new Handsontable(container,settings1);
             data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
             hot.render();
           </script>
@@ -125,7 +127,10 @@
 
       <div class="codeLayout">
         <div class="pad">
-          <script>
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+          </div>
+          <script data-jsfiddle="example2">
             var data2 = [
               ["", "Kia", "Nissan", "Toyota", "Honda"],
               ["2008", 10, 11, 12, 13],
@@ -163,23 +168,25 @@
 
       <div class="codeLayout">
         <div class="pad">
-          <script>
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
+          </div>
+          <script data-jsfiddle="example3">
             var data3 = [
               ["", "Kia", "Nissan", "Toyota", "Honda"],
               ["2008", 10, 11, 12, 13],
               ["2009", 20, 11, 14, 13],
               ["2010", 30, 15, 12, 13]
-            ];
-
-            var container = document.getElementById("example3");
-            var hot3 = new Handsontable(container,{
-							data: data3,
-							afterChange: function () {
-								var tmpData = Handsontable.Dom.extend(true, [], data3);
-								//now tmpData has a copy of data3 that can be manipulated
-								//without breaking the Handsontable data source object
-							}
-						});
+            ],
+              container = document.getElementById("example3"),
+              hot3 = new Handsontable(container,{
+                data: data3,
+                afterChange: function () {
+                  var tmpData = Handsontable.Dom.extend(true, [], data3);
+                  //now tmpData has a copy of data3 that can be manipulated
+                  //without breaking the Handsontable data source object
+                }
+              });
           </script>
         </div>
       </div>

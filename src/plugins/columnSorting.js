@@ -121,14 +121,8 @@ function HandsontableColumnSorting() {
 
     var eventManager = Handsontable.eventManager(instance);
     eventManager.addEventListener(instance.rootElement, 'click', function (e){
-//    eventManager.addEventListener(instance.rootElement[0], 'click', function (e){
-//    instance.rootElement.on('click.handsontable', '.columnSorting', function (e) {
-
-      // TODO (remove it to sort each column)
-//      if (instance.view.wt.wtDom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
         plugin.sortByColumn.call(instance, col);
-//      }
     });
 
     function countRowHeaders() {

@@ -27,17 +27,11 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-//  rootElement.prepend(this.container);
-
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === "ht_") {
     this.rootElement.id = this.guid; //if root element does not have an id, assign a random id
   }
-//  if (!this.rootElement[0].id || this.rootElement[0].id.substring(0, 3) === "ht_") {
-//    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
-//  }
-
   priv = {
     cellSettings: [],
     columnSettings: [],
@@ -794,7 +788,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       return row;
     }
     else if (Handsontable.Dom.isPlainObject(value)) { //backwards compatibility
-//    else if ($.isPlainObject(value)) { //backwards compatibility
       return value;
     }
     else {
@@ -1168,7 +1161,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       instance.rootElement.style.height = height + 'px';
-//      instance.rootElement[0].style.height = height + 'px';
     }
 
     if (typeof settings.width != 'undefined'){
@@ -1179,12 +1171,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       instance.rootElement.style.width = width + 'px';
-//      instance.rootElement[0].style.width = width + 'px';
     }
 
     if (height){
       instance.rootElement.style.overflow = 'auto';
-//      instance.rootElement[0].style.overflow = 'auto';
     }
 
     if (!init) {
@@ -1947,7 +1937,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-//    eventManager.clear();
 
     //replace private properties with null (restores memory)
     //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
@@ -2155,57 +2144,3 @@ var tmpHandsontable = function (element, action) {
   }
 };
 Handsontable.tmpHandsontable = tmpHandsontable;
-
-//$.fn.handsontable = function (action) {
-//  var i
-//    , ilen
-//    , args
-//    , output
-//    , userSettings
-//    , $this = this.first() // Use only first element from list
-//    , instance = $this.data('handsontable');
-//
-//
-//
-//  // Init case
-//  if (typeof action !== 'string') {
-//    userSettings = action || {};
-//    if (instance) {
-//      instance.updateSettings(userSettings);
-//    }
-//    else {
-//      console.log(this);
-//      instance = new Handsontable.Core(this[0],userSettings);
-//
-//      this[0].data = {'handsontable': instance};
-//
-//
-////      instance = new Handsontable.Core($this, userSettings);
-////      $this.data('handsontable', instance);
-//      instance.init();
-//    }
-//
-////    return $this;
-//    return this[0];
-//  }
-//  // Action case
-//  else {
-//    args = [];
-//    if (arguments.length > 1) {
-//      for (i = 1, ilen = arguments.length; i < ilen; i++) {
-//        args.push(arguments[i]);
-//      }
-//    }
-//
-//    if (instance) {
-//      if (typeof instance[action] !== 'undefined') {
-//        output = instance[action].apply(instance, args);
-//      }
-//      else {
-//        throw new Error('Handsontable do not provide action: ' + action);
-//      }
-//    }
-//
-//    return output;
-//  }
-//};

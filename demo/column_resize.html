@@ -91,7 +91,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -106,7 +106,8 @@
           </div>
 
           <script data-jsfiddle="example1">
-            $("#example1").handsontable({
+            var container = document.getElementById('example1');
+            var HOT = new Handsontable(container,{
               data: createBigData(),
               rowHeaders: true,
               colHeaders: true,
@@ -126,7 +127,6 @@
 
 <script type="text/javascript">
   (function(){
-    var HOT = $('#example1').handsontable('getInstance');
 
     $('.reset-state1').on('click', function(){
 
