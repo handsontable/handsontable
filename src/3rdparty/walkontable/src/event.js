@@ -33,13 +33,30 @@ function WalkontableEvent(instance) {
     that.instance.touchMoving = true;
   };
 
+  var longTouchTimeout;
+
   var onTouchStart = function (event) {
     var container = this;
     this.addEventListener("touchmove", onTouchMove, false);
 
+    // touch-and-hold event
+    //longTouchTimeout = setTimeout(function () {
+    //  if(!that.instance.touchMoving) {
+    //    that.instance.longTouch = true;
+    //
+    //    var targetCoords = Handsontable.Dom.offset(event.target);
+    //    var contextMenuEvent = new MouseEvent('contextmenu', {
+    //      clientX: targetCoords.left + event.target.offsetWidth,
+    //      clientY: targetCoords.top + event.target.offsetHeight,
+    //      button: 2
+    //    });
+    //
+    //    that.instance.wtTable.holder.parentNode.parentNode.dispatchEvent(contextMenuEvent);
+    //  }
+    //},200);
+
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
-    /*
-    var checkForMove = setTimeout(function () {
+    setTimeout(function () {
       if(that.instance.touchMoving == true) {
         that.instance.touchMoving = void 0;
 
@@ -49,10 +66,9 @@ function WalkontableEvent(instance) {
       } else {
         onMouseDown(event);
       }
-    },10);
-    */
+    },30);
 
-    onMouseDown(event);
+    $(that.instance.wtTable.holder).off('mousedown');
   };
 
   var lastMouseOver;
@@ -108,11 +124,15 @@ function WalkontableEvent(instance) {
 
 
   var onTouchEnd = function (event) {
+    clearTimeout(longTouchTimeout);
+    that.instance.longTouch == void 0;
+
+    event.preventDefault();
     onMouseUp(event);
 
-    event.stopPropagation();
-    event.preventDefault();
+    $(that.instance.wtTable.holder).off('mouseup');
   };
+
 
   $(this.instance.wtTable.holder).on('mousedown', onMouseDown);
   $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
@@ -152,6 +172,8 @@ WalkontableEvent.prototype.destroy = function () {
   clearTimeout(this.dblClickTimeout[0]);
   clearTimeout(this.dblClickTimeout[1]);
 
-  $(this.instance.wtTable.holder.parentNode.parentNode).off('touchstart');
-  $(this.instance.wtTable.holder.parentNode.parentNode).off('touchend');
+  var rootElement = this.instance.wtTable.holder.parentNode.parentNode;
+  $(rootElement).off('touchstart');
+  $(rootElement).off('touchend');
+  $(rootElement).off('touchmove');
 };

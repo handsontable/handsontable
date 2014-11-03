@@ -467,3 +467,7 @@ Handsontable.helper.isMobileBrowser = function (type) {
       break;
   }
 };
+
+Handsontable.helper.isTouchSupported = function () {
+  return ('ontouchstart' in window);
+};

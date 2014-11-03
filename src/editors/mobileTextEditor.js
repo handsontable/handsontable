@@ -2,9 +2,16 @@
 
   var MobileTextEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
+  var domDimensionsCache = {};
+
   MobileTextEditor.prototype.init = function () {
+    var that = this;
     this.createElements();
     this.bindEvents();
+
+    this.instance.addHook('afterDestroy', function () {
+      that.destroy();
+    })
   };
 
   MobileTextEditor.prototype.getValue = function () {
@@ -16,8 +23,28 @@
   };
 
   MobileTextEditor.prototype.createElements = function () {
+    var createcontrols = function () {
+      this.controls = [];
+
+      this.controls.leftButton = document.createElement('DIV');
+      this.controls.leftButton.className = 'left-button';
+      this.controls.rightButton = document.createElement('DIV');
+      this.controls.rightButton.className = 'right-button';
+      this.controls.upButton = document.createElement('DIV');
+      this.controls.upButton.className = 'up-button';
+      this.controls.downButton = document.createElement('DIV');
+      this.controls.downButton.className = 'down-button';
+
+      for(var button in this.controls) {
+        this.positionControls.appendChild(this.controls[button]);
+      }
+    };
+
     this.editorContainer = document.createElement('DIV');
     this.editorContainer.id = "mobile-editor-container";
+
+    this.cellPointer = document.createElement('DIV');
+    this.cellPointer.className = "cell-pointer";
 
     this.moveHandle = document.createElement('DIV');
     this.moveHandle.className = "move-handle";
@@ -25,11 +52,18 @@
     this.inputPane = document.createElement('DIV');
     this.inputPane.className = "inputs";
 
+    this.positionControls = document.createElement('DIV');
+    this.positionControls.className = "position-controls";
+
     this.TEXTAREA = document.createElement('TEXTAREA');
     this.inputPane.appendChild(this.TEXTAREA);
 
+    this.editorContainer.appendChild(this.cellPointer);
     this.editorContainer.appendChild(this.moveHandle);
     this.editorContainer.appendChild(this.inputPane);
+    this.editorContainer.appendChild(this.positionControls);
+
+    createcontrols.call(this);
 
 //    this.instance.rootElement[0].parentNode.appendChild(this.editorContainer);
     document.body.appendChild(this.editorContainer);
@@ -60,6 +94,7 @@
     this.instance.addHook('beforeKeyDown', this.onBeforeKeyDown);
 
     Handsontable.Dom.addClass(this.editorContainer, 'active');
+    //this.updateEditorDimensions();
     this.updateEditorPosition();
   };
 
@@ -82,30 +117,96 @@
 
       this.editorContainer.style.top = y + "px";
       this.editorContainer.style.left = x + "px";
+
     } else {
       var selection = this.instance.getSelected()
         , selectedCell = this.instance.getCell(selection[0],selection[1]);
 
-      if(selectedCell != undefined) {
+      //cache sizes
+      if(!domDimensionsCache.cellPointer) {
+        domDimensionsCache.cellPointer = {
+          height: Handsontable.Dom.outerHeight(this.cellPointer),
+          width: Handsontable.Dom.outerWidth(this.cellPointer)
+        }
+      }
+      if(!domDimensionsCache.editorContainer) {
+        domDimensionsCache.editorContainer = {
+          width: Handsontable.Dom.outerWidth(this.editorContainer)
+        }
+      }
 
+      if(selectedCell != undefined) {
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , currentScrollPosition = {
-            x: this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollTop,
+            x: this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollLeft,
             y: this.instance.view.wt.wtScrollbars.vertical.scrollHandler.scrollTop
           };
 
-        this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) - currentScrollPosition.y, 10) + "px";
-        this.editorContainer.style.left = parseInt(selectedCellOffset.left - Handsontable.Dom.outerWidth(this.editorContainer) / 2 - currentScrollPosition.x, 10)  + "px";
+        this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) - currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
+        this.editorContainer.style.left = parseInt((window.innerWidth / 2) - (domDimensionsCache.editorContainer.width / 2) ,10) + "px";
+
+        this.cellPointer.style.left = parseInt(selectedCellOffset.left - (domDimensionsCache.cellPointer.width / 2) - Handsontable.Dom.offset(this.editorContainer).left + (Handsontable.Dom.outerWidth(selectedCell) /2) - currentScrollPosition.x ,10) + "px";
+
+        // horizontal centering below the cell
+        //this.editorContainer.style.left = parseInt(selectedCellOffset.left - Handsontable.Dom.outerWidth(this.editorContainer) / 2 - currentScrollPosition.x, 10)  + "px";
       }
     }
+  };
+
+  MobileTextEditor.prototype.updateEditorDimensions = function () {
+    if(!this.beginningWindowWidth) {
+      this.beginningWindowWidth = window.innerWidth;
+      this.beginningEditorWidth = Handsontable.Dom.outerWidth(this.editorContainer);
+      this.scaleRatio = this.beginningEditorWidth / this.beginningWindowWidth;
+
+      this.editorContainer.style.width = this.beginningEditorWidth + "px";
+      return;
+    }
+
+    var currentScaleRatio = this.beginningEditorWidth / window.innerWidth;
+    //if(currentScaleRatio > this.scaleRatio + 0.2 || currentScaleRatio < this.scaleRatio - 0.2) {
+    if(currentScaleRatio != this.scaleRatio) {
+      this.editorContainer.style["zoom"] = (1 - ((currentScaleRatio * this.scaleRatio) - this.scaleRatio)) * 100 + "%";
+    }
+
+  };
+
+  MobileTextEditor.prototype.updateEditorData = function () {
+    var selected = this.instance.getSelected()
+      , selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
+
+    this.row = selected[0];
+    this.col = selected[1];
+    this.setValue(selectedValue);
+    this.updateEditorPosition();
   };
 
   MobileTextEditor.prototype.bindEvents = function () {
     var that = this;
 
+    this.controls.leftButton.addEventListener("touchend", function (event) {
+      that.instance.selection.transformStart(0, -1, null, true);
+      that.updateEditorData();
+      event.preventDefault();
+    });
+    this.controls.rightButton.addEventListener("touchend", function (event) {
+      that.instance.selection.transformStart(0, 1, null, true);
+      that.updateEditorData();
+      event.preventDefault();
+    });
+    this.controls.upButton.addEventListener("touchend", function (event) {
+      that.instance.selection.transformStart(-1, 0, null, true);
+      that.updateEditorData();
+      event.preventDefault();
+    });
+    this.controls.downButton.addEventListener("touchend", function (event) {
+      that.instance.selection.transformStart(1, 0, null, true);
+      that.updateEditorData();
+      event.preventDefault();
+    });
+
+
     this.moveHandle.addEventListener("touchstart", function (event) {
-
-
 
       if (event.touches.length == 1) {
         var touch = event.touches[0]
@@ -118,65 +219,31 @@
           y: touch.pageY - onTouchPosition.y
         };
 
-
         this.addEventListener("touchmove", function (event) {
-          console.log('touchmove');
-//          console.log(touch.pageX - onTouchOffset.x, touch.pageY, onTouchOffset.y);
-
           that.updateEditorPosition(touch.pageX - onTouchOffset.x, touch.pageY - onTouchOffset.y);
           event.preventDefault();
         });
 
       }
-
-
     });
 
 
-//    sticky.addEventListener("touchstart", function (e) {
-//      if (e.touches.length == 1 && e.touches[0].target == sticky) {
-//        var touch = e.touches[0];
-//
-//        var stickyPosition = {
-//            x: sticky.offsetLeft,
-//            y: sticky.offsetTop
-//          }
-//          , stickyOffset = {
-//            x: (touch.pageX - stickyPosition.x),
-//            y: (touch.pageY - stickyPosition.y)
-//          };
-//
-//        sticky.addEventListener("touchmove", function (e) {
-//          updateStickyPosition(touch.pageX - stickyOffset.x, touch.pageY - stickyOffset.y);
-//
-//          if(document.activeElement == input) {
-//            document.addEventListener("scroll", function () {
-//
-//            });
-//          }
-//
-//          e.preventDefault();
-//        });
-//        e.preventDefault();
-//      }
-//
-//    });
-//
-//    sticky.addEventListener("touchend", function (e) {
-//      if (e.touches.length == 1 && e.touches[0].target == sticky) {
-//        sticky.removeEventListener("touchmove");
-//        e.preventDefault();
-//      }
-//    });
+    document.body.addEventListener("gestureend", function () {
+      //that.updateEditorDimensions();
+      that.updateEditorPosition();
+    });
 
   };
 
-
-
-
+  MobileTextEditor.prototype.destroy = function () {
+    for(var i = 0, controlsLength = this.controls.length; i< controlsLength ;i++) {
+      this.controls[i].removeEventListener("touchend");
+    }
+    this.moveHandle.removeEventListener("touchstart");
+    this.moveHandle.removeEventListener("touchmove");
+  };
 
   Handsontable.editors.MobileTextEditor = MobileTextEditor;
   Handsontable.editors.registerEditor('mobile', Handsontable.editors.MobileTextEditor);
-
 
 })(Handsontable);

@@ -537,5 +537,5 @@ Handsontable.Dom.innerWidth = function (elem) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
     return cachedScrollbarWidth;
-  }
+  };
 })();

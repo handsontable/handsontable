@@ -220,6 +220,9 @@ WalkontableBorder.prototype.appear = function (corners) {
       if(!isPartRange.call(this)) {
         this.selectionHandles.styles.bottomRight.display = "block";
         this.selectionHandles.styles.bottomRightHitArea.display = "block";
+      } else {
+        this.selectionHandles.styles.bottomRight.display = "none";
+        this.selectionHandles.styles.bottomRightHitArea.display = "none";
       }
     } else {
       this.selectionHandles.styles.topLeft.display = "none";
@@ -330,7 +333,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.rightStyle.height = height + 1 + 'px';
   this.rightStyle.display = 'block';
 
-  if (!this.settings.border.cornerVisible() || isPartRange.call(this)) {
+  if (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this)) {
     this.cornerStyle.display = 'none';
   }
   else {

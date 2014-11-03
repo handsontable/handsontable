@@ -232,8 +232,17 @@
           event.originalEvent.touches[0].screenY - scrollTop
         );
 
+        if(!endTarget) {
+          return;
+        }
+
         if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
           var targetCoords = that.instance.getCoords(endTarget);
+
+          if(targetCoords.col == -1) {
+            targetCoords.col = 0;
+          }
+
           var selectedRange = that.instance.getSelectedRange()
             , rangeWidth = selectedRange.getWidth()
             , rangeHeight = selectedRange.getHeight()

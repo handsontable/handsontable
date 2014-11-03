@@ -65,6 +65,32 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   return this;
 };
 
+/**
+ * Returns the TD at coords. If topmost is set to true, returns TD from the topmost overlay layer,
+ * if not set or set to false, returns TD from the master table.
+ * @param {WalkontableCellCoords} coords
+ * @param {Boolean} topmost
+ * @returns {Object}
+ */
+Walkontable.prototype.getCell = function (coords, topmost) {
+  if(topmost === void 0 || topmost === false) {
+    return this.wtTable.getCell(coords);
+  } else {
+    var fixedRows = this.wtSettings.getSetting('fixedRowsTop')
+      , fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
+
+    if(coords.row < fixedRows && coords.col < fixedColumns) {
+      return this.wtScrollbars.corner.clone.wtTable.getCell(coords);
+    } else if(coords.row < fixedRows) {
+      return this.wtScrollbars.vertical.clone.wtTable.getCell(coords);
+    } else if (coords.col < fixedColumns) {
+      return this.wtScrollbars.horizontal.clone.wtTable.getCell(coords);
+    } else {
+      return this.wtTable.getCell(coords);
+    }
+  }
+};
+
 Walkontable.prototype.update = function (settings, value) {
   return this.wtSettings.update(settings, value);
 };
