@@ -78,6 +78,10 @@ I want to stay motivated to keep Handsontable the best possible editable datagri
  - [Backgrid.js](http://backgridjs.com/)
  - [dgrid](http://dojofoundation.org/packages/dgrid/)
 
+## Contact
+
+You can contact us at hello@handsontable.com.
+
 ## License
 
 The MIT License (see the [LICENSE](https://github.com/handsontable/jquery-handsontable/blob/master/LICENSE) file for the full text)
