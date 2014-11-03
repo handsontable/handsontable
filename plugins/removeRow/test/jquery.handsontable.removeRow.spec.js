@@ -14,7 +14,9 @@ describe('RemoveRowSpec', function () {
 
   it('should show X when mouse is over cell', function () {
     handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      height: 400,
+      width: 400
     });
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
@@ -29,7 +31,9 @@ describe('RemoveRowSpec', function () {
     this.$container.appendTo($table.find('td'));
 
     handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      height: 400,
+      width: 400
     });
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
