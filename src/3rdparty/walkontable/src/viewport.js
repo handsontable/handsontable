@@ -138,6 +138,10 @@ WalkontableViewport.prototype.getViewportWidth = function () {
   }
 };
 
+/**
+ * Creates rowsPreCalculator (before draw, to qualify rows for rendering) and rowsCalculator (after draw, to measure rows are actually visible)
+ * @returns {WalkontableViewportRowsCalculator}
+ */
 WalkontableViewport.prototype.createRowsCalculator = function () {
   this.rowHeaderWidth = NaN;
   this.columnHeaderHeight = NaN;
@@ -163,6 +167,52 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
   );
 };
 
-WalkontableViewport.prototype.resetSettings = function () {
+/**
+ * Creates rowsPreCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
+ */
+WalkontableViewport.prototype.createPreCalculators = function () {
   this.rowsPreCalculator = this.createRowsCalculator();
+  //TODO this.colsPreCalculator = this.createColsCalculator();
+};
+
+/**
+ * Creates rowsCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
+ * @param oldRowCalculator {WalkontableViewportRowsCalculator} If given, only visibleStartRow, visibleEndRow, visibleCellCount will be updated in oldRowCalculator object. This prevents
+ */
+WalkontableViewport.prototype.createCalculators = function (oldRowCalculator) {
+  if(oldRowCalculator) {
+    var tmp = this.createRowsCalculator();
+    this.rowsCalculator = oldRowCalculator;
+    this.rowsCalculator.visibleStartRow = tmp.visibleStartRow;
+    this.rowsCalculator.visibleEndRow = tmp.visibleEndRow;
+    this.rowsCalculator.visibleCellCount = tmp.visibleCellCount;
+  }
+  else {
+    this.rowsCalculator = this.createRowsCalculator();
+  }
+  //TODO repeat the above for colsCalculator
+};
+
+/**
+ * Returns information whether the current rowsPreCalculator viewport
+ * is contained inside rows rendered in previous draw (cached in rowsCalculator)
+ *
+ * Returns TRUE if all proposed visible rows are already rendered (meaning: redraw is not needed)
+ * Returns FALSE if at least one proposed visible row is not already rendered (meaning: redraw is needed)
+ *
+ * @returns {boolean}
+ */
+WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function () {
+  if (this.rowsCalculator) {
+    if (this.rowsPreCalculator.visibleStartRow < this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow > this.rowsCalculator.renderEndRow) {
+      return false;
+    }
+    else if (this.rowsPreCalculator.scrollOffset !== this.rowsCalculator.scrollOffset && (this.rowsPreCalculator.visibleStartRow <= this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow >= this.rowsCalculator.renderEndRow)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
 };

@@ -101,27 +101,29 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
   spreaderStyle.height = 'auto';
 };
 
-WalkontableTable.prototype.draw = function (selectionsOnly) {
+/**
+ * Redraws the table
+ * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+ * @returns {WalkontableTable}
+ */
+WalkontableTable.prototype.draw = function (fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
-    this.instance.wtViewport.resetSettings();
+    this.instance.wtViewport.createPreCalculators();
   }
 
-  if (selectionsOnly && this.instance.wtViewport.rowsCalculator) {
-    if(this.instance.wtViewport.rowsPreCalculator.visibleStartRow < this.instance.wtViewport.rowsCalculator.renderStartRow || this.instance.wtViewport.rowsPreCalculator.visibleEndRow > this.instance.wtViewport.rowsCalculator.renderEndRow) {
-      selectionsOnly = false;
-    }
-    else if(this.instance.wtViewport.rowsPreCalculator.scrollOffset !== this.instance.wtViewport.rowsCalculator.scrollOffset && (this.instance.wtViewport.rowsPreCalculator.visibleStartRow <= this.instance.wtViewport.rowsCalculator.renderStartRow || this.instance.wtViewport.rowsPreCalculator.visibleEndRow >= this.instance.wtViewport.rowsCalculator.renderEndRow)) {
-      selectionsOnly = false;
+  if (fastDraw) {
+    if (!this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered()) {
+      fastDraw = false;
     }
   }
 
   if (!this.isWorkingOnClone()) {
-    var oldCalc = this.instance.wtViewport.rowsCalculator;
-    this.instance.wtViewport.rowsCalculator = null; //must be created after render
+    var oldRowsCalculator = this.instance.wtViewport.rowsCalculator;
+    this.instance.wtViewport.rowsCalculator = null; //delete temporarily to make sure that renderers always use rowsPreCalculator, not rowsCalculator
   }
 
-  if (!selectionsOnly) {
+  if (!fastDraw) {
     if (this.isWorkingOnClone()) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
@@ -153,16 +155,12 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      var tmp = this.instance.wtViewport.createRowsCalculator();
-      this.instance.wtViewport.rowsCalculator = oldCalc;
-      this.instance.wtViewport.rowsCalculator.visibleCellCount = tmp.visibleCellCount;
-      this.instance.wtViewport.rowsCalculator.visibleStartRow = tmp.visibleStartRow;
-      this.instance.wtViewport.rowsCalculator.visibleEndRow = tmp.visibleEndRow;
+      this.instance.wtViewport.createCalculators(oldRowsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
-  this.refreshPositions(selectionsOnly);
+  this.refreshPositions(fastDraw);
 
   if (!this.isWorkingOnClone()) {
     this.instance.wtScrollbars.vertical.resetFixedPosition();
@@ -179,9 +177,9 @@ WalkontableTable.prototype._doDraw = function () {
   wtRenderer.render();
 };
 
-WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
+WalkontableTable.prototype.refreshPositions = function (fastDraw) {
   this.refreshHiderDimensions();
-  this.refreshSelections(selectionsOnly);
+  this.refreshSelections(fastDraw);
 };
 
 WalkontableTable.prototype.removeClassFromCells = function (className) {
@@ -191,10 +189,10 @@ WalkontableTable.prototype.removeClassFromCells = function (className) {
   }
 };
 
-WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
+WalkontableTable.prototype.refreshSelections = function (fastDraw) {
   var i, ilen;
   if (this.instance.selections) {
-    if(selectionsOnly) {
+    if(fastDraw) {
     for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
         //there was no rerender, so we need to remove classNames by ourselves
         if (this.instance.selections[i].settings.className) {
@@ -210,7 +208,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     }
 
     for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw(this.instance, selectionsOnly);
+      this.instance.selections[i].draw(this.instance, fastDraw);
     }
   }
 };

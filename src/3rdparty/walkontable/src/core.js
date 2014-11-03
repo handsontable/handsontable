@@ -45,17 +45,17 @@ function Walkontable(settings) {
 
 /**
  * Force rerender of Walkontable
- * @param selectionsOnly {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if WalkontableTable.draw() does not force rendering anyway
+ * @param fastDraw {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if WalkontableTable.draw() does not force rendering anyway
  * @returns {Walkontable}
  */
-Walkontable.prototype.draw = function (selectionsOnly) {
+Walkontable.prototype.draw = function (fastDraw) {
   this.drawInterrupted = false;
-  if (!selectionsOnly && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
+  if (!fastDraw && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
     this.drawInterrupted = true; //draw interrupted because TABLE is not visible
     return;
   }
 
-  this.wtTable.draw(selectionsOnly);
+  this.wtTable.draw(fastDraw);
 
   return this;
 };
