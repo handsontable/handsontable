@@ -82,7 +82,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
+              entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
             return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
@@ -96,7 +96,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
+              entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
             return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
@@ -111,7 +111,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -125,7 +125,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -141,7 +141,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0, selected[1], this.view.wt.wtTable.getRowStrategy().cellCount - 1, selected[1]],
+              entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
             return (selected[0] < 0 || columnSelected);
           }
@@ -155,7 +155,7 @@
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.view.wt.wtTable.getColumnStrategy().cellCount - 1],
+              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
             return (selected[1] < 0 || rowSelected);
           }

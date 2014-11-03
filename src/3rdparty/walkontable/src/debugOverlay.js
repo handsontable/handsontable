@@ -12,7 +12,9 @@ function WalkontableDebugOverlay(instance) {
   this.clone.wtTable.holder.style.textShadow = '0 0 2px #ff0000';
   this.lastTimeout = null;
 
-  var that = this;
+  Handsontable.Dom.addClass(this.clone.wtTable.holder.parentNode, 'wtDebugVisible');
+
+  /*var that = this;
   var lastX = 0;
   var lastY = 0;
   var overlayContainer = that.clone.wtTable.holder.parentNode;
@@ -33,20 +35,10 @@ function WalkontableDebugOverlay(instance) {
       Handsontable.Dom.removeClass(overlayContainer, 'wtDebugHidden');
       Handsontable.Dom.addClass(overlayContainer, 'wtDebugVisible');
     }, 1000);
-  });
+  });*/
 }
 
 WalkontableDebugOverlay.prototype = new WalkontableOverlay();
-
-WalkontableDebugOverlay.prototype.resetFixedPosition = function () {
-  if (!this.instance.wtTable.holder.parentNode) {
-    return; //removed from DOM
-  }
-  var elem = this.clone.wtTable.holder.parentNode;
-  var box = this.instance.wtTable.holder.getBoundingClientRect();
-  elem.style.top = Math.ceil(box.top, 10) + 'px';
-  elem.style.left = Math.ceil(box.left, 10) + 'px';
-};
 
 WalkontableDebugOverlay.prototype.destroy = function () {
   WalkontableOverlay.prototype.destroy.call(this);

@@ -66,8 +66,12 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 };
 
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
-  this.setScrollPosition(this.getTableParentOffset() + cell * this.cellSize);
+/**
+ * Scrolls horizontally to a column at the left edge of the viewport
+ * @param sourceCol {Number}
+ */
+WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol) {
+  this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {

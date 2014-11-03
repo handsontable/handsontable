@@ -1,5 +1,6 @@
 describe('WalkontableSelection', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {
@@ -23,9 +24,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           className: 'current'
@@ -55,9 +53,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           className: 'current'
@@ -80,9 +75,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 100,
       selections: [
         new WalkontableSelection({
           border: {
@@ -120,9 +112,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -145,9 +134,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -165,8 +151,10 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
     wt.selections[0].clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
   });
 
   it("should clear a selection that has more than one cell", function () {
@@ -175,9 +163,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 150,
       selections: [
         new WalkontableSelection({
           border: {
@@ -206,9 +191,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -223,21 +205,15 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() * 2 - 2);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 - 2);
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-    var height = 200;
-
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -255,7 +231,7 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() - 1);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
   });
 
   it("should remove highlight when selection is deselected", function () {
@@ -264,9 +240,6 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -301,9 +274,6 @@ describe('WalkontableSelection', function () {
       columnHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      offsetRow: 0,
-      height: 200,
-      width: 300,
       selections: [
         new WalkontableSelection({
           highlightRowClassName: 'highlightRow',
@@ -322,11 +292,11 @@ describe('WalkontableSelection', function () {
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() * 2 + 2 - 4);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 + 2 - 4);
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");
-    
+
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
 
@@ -348,8 +318,6 @@ describe('WalkontableSelection', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 0,
-        height: 200,
         selections: [
           new WalkontableSelection({
             border: {

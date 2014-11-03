@@ -122,6 +122,8 @@ module.exports = function (grunt) {
       shims: [
         'lib/shims/array.indexOf.js',
         'lib/shims/array.filter.js',
+        'lib/shims/array.isArray.js',
+        'lib/shims/object.keys.js',
         'lib/shims/weakmap.js'
       ]
     },

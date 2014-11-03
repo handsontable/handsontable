@@ -62,8 +62,6 @@ $(window).load(function () {
     totalColumns: function () {
       return arr[0].length;
     },
-    height: 600,
-    width: 600,
     rowHeaders: [function (row, TH) {
       TH.innerHTML = row + 1;
     }],

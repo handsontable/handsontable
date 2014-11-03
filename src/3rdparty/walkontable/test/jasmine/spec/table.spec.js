@@ -1,5 +1,6 @@
 describe('WalkontableTable', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {
@@ -18,21 +19,15 @@ describe('WalkontableTable', function () {
     $container.remove()
   });
 
-  it("should create as many rows as in `height` + maxOuts", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-
+  it("should create as many rows as fits in height", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
-    var height = $container[0].clientHeight;
-    expect($table.find('tbody tr').length).toBe(Math.ceil(height / rowHeight) + wt.wtTable.rowStrategy.maxOuts);
+    expect($table.find('tbody tr').length).toBe(9);
   });
 
   it("should create as many rows as in `totalRows` if it is smaller than `height`", function () {
@@ -42,10 +37,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(5);
@@ -59,10 +51,7 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }],
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      }]
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe($table.find('thead th').length);
@@ -75,9 +64,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100,
       columnHeaders: [function (column, TH) {
         TH.innerHTML = headers[column];
       }]
@@ -88,25 +74,19 @@ describe('WalkontableTable', function () {
   });
 
   it("should use rowHeaders function to generate row headers", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 120,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }]
     });
 
     wt.draw();
-    var height = $container[0].clientHeight;
-    var potentialRowCount = Math.ceil(height / rowHeight) + wt.wtTable.getRowStrategy().maxOuts;
-    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getColumnStrategy().cellCount); //displayed cells
+    var potentialRowCount = 9;
+    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); //displayed cells
     expect($table.find('tbody th').length).toBe(potentialRowCount); //9*1=9 displayed row headers
     expect($table.find('tbody tr:first th').length).toBe(1); //only one th per row
     expect($table.find('tbody tr:first th')[0].innerHTML).toBe('1'); //this should be the first row header
@@ -118,9 +98,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 120,
       columnHeaders: [function (col, TH) {
         if( col > - 1) {
           TH.innerHTML = 'Column';
@@ -133,28 +110,25 @@ describe('WalkontableTable', function () {
       }]
     });
     wt.draw();
-    expect($table.find('thead tr:first th').length).toBe(wt.wtTable.getColumnStrategy().cellCount + 1); //4 columns in THEAD + 1 empty cell in the corner
+    expect($table.find('thead tr:first th').length).toBe(wt.wtTable.getRenderedColumnsCount() + 1); //4 columns in THEAD + 1 empty cell in the corner
     expect($table.find('thead tr:first th:eq(0)')[0].innerHTML.replace(/&nbsp;/, '')).toBe(''); //corner row is empty (or contains only &nbsp;)
     expect($table.find('thead tr:first th:eq(1)')[0].innerHTML).toBe('Column');
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it("getCell should only return cells from visible rows", function () {
+  it("getCell should only return cells from rendered rows", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
     expect(wt.wtTable.getCell(new WalkontableCellCoords(7, 0)) instanceof HTMLElement).toBe(true);
-    expect($table.find('tr:eq(10) td:first-child').text()).toEqual(this.data[10][0].toString())
-    expect(wt.wtTable.getCell(new WalkontableCellCoords(10, 0))).toBe(-2); //exit code
+    expect($table.find('tr:eq(8) td:first-child').text()).toEqual(this.data[8][0].toString());
     expect(wt.wtTable.getCell(new WalkontableCellCoords(20, 0))).toBe(-2); //exit code
+    expect(wt.wtTable.getCell(new WalkontableCellCoords(25, 0))).toBe(-2); //exit code
   });
 
   it("getCoords should return coords of TD", function () {
@@ -162,10 +136,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
@@ -183,9 +154,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = plusOne(row);
       }]
@@ -202,9 +170,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100,
       cellRenderer: function (row, column, TD) {
         var cellData = getData(row, column);
         if (cellData !== void 0) {
@@ -228,10 +193,7 @@ describe('WalkontableTable', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 201,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(8);
@@ -247,8 +209,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }]
@@ -264,8 +224,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -284,8 +242,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -303,8 +259,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -328,8 +282,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -351,8 +303,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -376,8 +326,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: 4,
-      height: 201,
-      offsetRow: 0,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
@@ -400,9 +348,6 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      width: 190,
-      height: 100,
-      offsetRow: 0,
       columnWidth: 100
     });
     wt.draw();
@@ -418,9 +363,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 201,
-        height: 100,
-        offsetRow: 0,
         columnWidth: 100,
         cellRenderer: function (row, column, TD) {
           count++;
@@ -433,25 +375,54 @@ describe('WalkontableTable', function () {
     expect(count).toBe(oldCount);
   });
 
-  it("should ignore selectionsOnly == true when grid was scrolled", function () {
+  it("should not ignore selectionsOnly == true when grid was scrolled by amount of rows that doesn't exceed renderRowEnd", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 201,
-        height: 100,
-        offsetRow: 0,
         columnWidth: 100,
         cellRenderer: function (row, column, TD) {
           count++;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        },
+        viewportRowCalculatorOverride: function(calc) {
+          calc.renderEndRow += 10;
         }
       });
     wt.draw();
     var oldCount = count;
-    wt.scrollVertical(1);
+
+    wt.scrollVertical(8);
+    wt.draw(true);
+    expect(count).not.toBeGreaterThan(oldCount);
+  });
+
+  it("should ignore selectionsOnly == true when grid was scrolled by amount of rows that exceeds renderRowEnd", function () {
+    var count = 0
+      , wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 100,
+        cellRenderer: function (row, column, TD) {
+          count++;
+          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        },
+        viewportRowCalculatorOverride: function(calc) {
+          calc.renderEndRow += 10;
+        }
+      });
+    wt.draw();
+    var oldCount = count;
+
+    wt.scrollVertical(10);
+    wt.draw(true);
+    expect(count).not.toBeGreaterThan(oldCount);
+
+    wt.scrollVertical(11);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -616,9 +587,7 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 185,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
 
@@ -634,12 +603,11 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 185,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
-      wt.scrollVertical(1);
+      wt.scrollVertical(7);
+      wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
     });

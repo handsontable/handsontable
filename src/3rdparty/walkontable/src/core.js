@@ -43,25 +43,20 @@ function Walkontable(settings) {
   this.drawInterrupted = false;
 }
 
-Walkontable.prototype.draw = function (selectionsOnly) {
+/**
+ * Force rerender of Walkontable
+ * @param fastDraw {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if WalkontableTable.draw() does not force rendering anyway
+ * @returns {Walkontable}
+ */
+Walkontable.prototype.draw = function (fastDraw) {
   this.drawInterrupted = false;
-  if (!selectionsOnly && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
+  if (!fastDraw && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
     this.drawInterrupted = true; //draw interrupted because TABLE is not visible
     return;
   }
 
-  selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow;
-  this.lastOffsetRow = this.getSetting('offsetRow');
+  this.wtTable.draw(fastDraw);
 
-  var totalRows = this.getSetting('totalRows');
-
-  if (this.lastOffsetRow > totalRows && totalRows > 0) {
-    this.scrollVertical(-Infinity); //TODO: probably very inefficient!
-    this.scrollViewport(new WalkontableCellCoords(totalRows - 1, 0));
-  }
-
-
-  this.wtTable.draw(selectionsOnly);
   return this;
 };
 
@@ -69,20 +64,26 @@ Walkontable.prototype.update = function (settings, value) {
   return this.wtSettings.update(settings, value);
 };
 
-Walkontable.prototype.scrollVertical = function (delta) {
-  var result = this.wtScroll.scrollVertical(delta);
-
+/**
+ * Scroll the viewport to a row at the given index in the data source
+ * @param row
+ * @returns {Walkontable}
+ */
+Walkontable.prototype.scrollVertical = function (row) {
+  this.wtScrollbars.vertical.scrollTo(row);
   this.getSetting('onScrollVertically');
-
-  return result;
+  return this;
 };
 
-Walkontable.prototype.scrollHorizontal = function (delta) {
-  var result = this.wtScroll.scrollHorizontal(delta);
-
+/**
+ * Scroll the viewport to a column at the given index in the data source
+ * @param row
+ * @returns {Walkontable}
+ */
+Walkontable.prototype.scrollHorizontal = function (column) {
+  this.wtScrollbars.horizontal.scrollTo(column);
   this.getSetting('onScrollHorizontally');
-
-  return result;
+  return this;
 };
 
 /**

@@ -659,7 +659,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3])) {
-            var len = changes[i][3].length
+            var len = changes[i][3].length;
             if (typeof cellProperties.language == 'undefined') {
               numeral.language('en');
             }
@@ -1238,7 +1238,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     return expandedType;
 
-  };
+  }
 
   /**
    * Returns current settings object
@@ -1404,10 +1404,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.setCellMetaObject = function (row, col, prop) {
     if (typeof prop === 'object') {
-      for (var i in prop) {
-        var key = i,
-            value = prop[i];
-
+      for (var key in prop) {
+        var value = prop[key];
         this.setCellMeta(row, col, key, value);
       }
     }
@@ -1701,31 +1699,10 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.getRowHeight = function (row) {
-    var height = instance._getRowHeightFromSettings(row),
-        oversizedHeight = instance.checkIfRowIsOversized(row);
-
+    var height = instance._getRowHeightFromSettings(row);
     height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
-
-    if(oversizedHeight) {
-      height = height ? Math.max(height,oversizedHeight) : oversizedHeight;
-    }
-
     return height;
   };
-
-
-
-  /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
-   * @param {Number} row
-   * @return {Number}
-   */
-   this.checkIfRowIsOversized = function(row) {
-      if(instance.view.wt.wtTable.oversizedRows) {
-        return instance.view.wt.wtTable.oversizedRows[row];
-      }
-   };
-
 
   /**
    * Return total number of rows in grid
@@ -1762,11 +1739,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return index of first visible row
+   * Return index of first rendered row
    * @return {Number}
    */
   this.rowOffset = function () {
-    return instance.view.wt.getSetting('offsetRow'); //actually offsetRow is the first rendered row, not neccessarily first visible
+    return instance.view.wt.wtTable.getFirstRenderedRow();
   };
 
   /**
@@ -1774,15 +1751,23 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.colOffset = function () {
-    return 0; //all columns are always rendered
+    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
-   * Return number of visible rows. Returns -1 if table is not visible
+   * Return number of rendered rows (including rows partially or fully rendered outside viewport). Returns -1 if table is not visible
+   * @return {Number}
+   */
+  this.countRenderedRows = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
+  };
+
+  /**
+   * Return number of visible rows (rendered rows that fully fit inside viewport)). Returns -1 if table is not visible
    * @return {Number}
    */
   this.countVisibleRows = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.rowStrategy.countVisible() : -1;
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
   };
 
   /**
@@ -1965,7 +1950,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   function postMortem() {
     throw new Error("This method cannot be called because this Handsontable instance has been destroyed");
-  };
+  }
 
   /**
    * Returns active editor object
@@ -2108,6 +2093,7 @@ DefaultSettings.prototype = {
   manualColumnResize: void 0,
   manualRowMove: void 0,
   manualRowResize: void 0,
+  viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
   groups: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
