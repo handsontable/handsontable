@@ -151,7 +151,37 @@
     });
 
     bindDumpButton();
+    updateFooter();
   });
+
+  function updateFooter () {
+    var footer = document.querySelector(".footer-text");
+    if(!footer) {
+      return true;
+    }
+    // Email obfuscator script 2.1 by Tim Williams, University of Arizona
+    // Random encryption key feature by Andrew Moulden, Site Engineering Ltd
+    // This code is freeware provided these four comment lines remain intact
+    // A wizard to generate this code is at http://www.jottings.com/obfuscator/
+    {
+      coded = "1iffw@1R42Vw4nR0fi.Gwa"
+      key = "GF9al7W2hVXHzeENn30K6QkruRfxov1IATMigJ4BcYLmZSyd5swUpDOCtqb8Pj"
+      shift = coded.length
+      link = ""
+      for (i = 0; i < coded.length; i++) {
+        if (key.indexOf(coded.charAt(i)) == -1) {
+          ltr = coded.charAt(i)
+          link += (ltr)
+        }
+        else {
+          ltr = (key.indexOf(coded.charAt(i)) - shift + key.length) % key.length
+          link += (key.charAt(ltr))
+        }
+      }
+
+      footer.innerHTML = 'Handsontable &copy; 2012-2014 NextGen [<a href="mailto:' + link + '">'+ link +'</a>].<br> Code and documentation licensed under the The MIT License.';
+    }
+  }
 
   function bindDumpButton() {
     $('body').on('click', 'button[name=dump]', function () {
