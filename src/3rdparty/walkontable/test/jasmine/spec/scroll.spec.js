@@ -11,7 +11,6 @@ describe('WalkontableScroll', function () {
   });
 
   afterEach(function () {
-    return;
     if (!debug) {
       $('.wtHolder').remove();
     }
