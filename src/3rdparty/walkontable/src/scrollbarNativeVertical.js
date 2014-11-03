@@ -1,9 +1,6 @@
 function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';
-  this.cellSize = this.instance.wtSettings.settings.defaultRowHeight;
-  this.offset;
-  this.total;
   this.init();
   this.clone = this.makeClone('top');
 }
@@ -89,10 +86,22 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   this.fixed.style.bottom = '';
 };
 
-WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
-  var newY = this.getTableParentOffset() + cell * this.cellSize;
+/**
+ * Scrolls vertically to a row
+ * @param sourceRow {Number}
+ * @param bottomEdge {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
+ */
+WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bottomEdge) {
+  var newY = this.getTableParentOffset();
+  if (bottomEdge) {
+    newY += this.sumCellSizes(0, sourceRow + 1);
+    newY -= this.instance.wtViewport.getViewportHeight();
+  }
+  else {
+    newY += this.sumCellSizes(0, sourceRow);
+  }
+
   this.setScrollPosition(newY);
-  this.onScroll();
 };
 
 WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () {

@@ -416,7 +416,11 @@ describe('WalkontableTable', function () {
     wt.draw();
     var oldCount = count;
 
-    wt.scrollVertical(12);
+    wt.scrollVertical(10);
+    wt.draw(true);
+    expect(count).not.toBeGreaterThan(oldCount);
+
+    wt.scrollVertical(11);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -600,7 +604,8 @@ describe('WalkontableTable', function () {
         totalColumns: getTotalColumns
       });
       wt.draw();
-      wt.scrollVertical(2);
+      wt.scrollVertical(7);
+      wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
     });

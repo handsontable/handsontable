@@ -64,20 +64,26 @@ Walkontable.prototype.update = function (settings, value) {
   return this.wtSettings.update(settings, value);
 };
 
-Walkontable.prototype.scrollVertical = function (delta) {
-  var result = this.wtScroll.scrollVertical(delta);
-
+/**
+ * Scroll the viewport to a row at the given index in the data source
+ * @param row
+ * @returns {Walkontable}
+ */
+Walkontable.prototype.scrollVertical = function (row) {
+  this.wtScrollbars.vertical.scrollTo(row);
   this.getSetting('onScrollVertically');
-
-  return result;
+  return this;
 };
 
-Walkontable.prototype.scrollHorizontal = function (delta) {
-  var result = this.wtScroll.scrollHorizontal(delta);
-
+/**
+ * Scroll the viewport to a column at the given index in the data source
+ * @param row
+ * @returns {Walkontable}
+ */
+Walkontable.prototype.scrollHorizontal = function (column) {
+  this.wtScrollbars.horizontal.scrollTo(column);
   this.getSetting('onScrollHorizontally');
-
-  return result;
+  return this;
 };
 
 /**

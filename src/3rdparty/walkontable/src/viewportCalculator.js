@@ -57,24 +57,20 @@ function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeigh
   }
 
   if (this.renderEndRow == totalRows - 1 && needReverse) {
-    i = this.renderStartRow - 1;
-    sum = startPositions[this.renderEndRow] - startPositions[this.renderStartRow] + rowHeight; //now sum is just the height of the rendered cells
-    while (i > -1) {
-      rowHeight = rowHeightFn(i);
-      if (rowHeight === undefined) {
-        rowHeight = defaultRowHeight;
+    this.renderStartRow = this.renderEndRow;
+    this.visibleStartRow = this.renderEndRow;
+    this.visibleEndRow = this.renderEndRow;
+    while(this.renderStartRow > 0) {
+      this.renderStartRow--;
+      var viewportSum = startPositions[this.renderEndRow] + rowHeight - startPositions[this.renderStartRow]; //rowHeight is the height of the last row
+      if (viewportSum <= height)
+      {
+        this.visibleStartRow = this.renderStartRow;
       }
-      this.renderStartRow = i;
-      sum += rowHeight;
-      if (sum <= height) {
-        this.visibleStartRow = i;
+      if (viewportSum >= height)
+      {
+       break;
       }
-
-      if (sum >= height) {
-        break;
-      }
-
-      i--;
     }
   }
 

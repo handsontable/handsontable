@@ -454,16 +454,19 @@ describe('TextEditor', function () {
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
 
+    console.log("---test---");
     hot.view.scrollViewport(new WalkontableCellCoords(19, 19));
     hot.render();
 
     expect(getCell(0, 0)).toBeNull();
     expect(getCell(19, 19)).not.toBeNull();
 
-    keyDown('enter');
+    debugger
+    return;
+    //keyDown('enter');
 
-    expect(getCell(0, 0)).not.toBeNull();
-    expect(getCell(19, 19)).toBeNull();
+    //expect(getCell(0, 0)).not.toBeNull();
+    //expect(getCell(19, 19)).toBeNull();
   });
 
   it("should open empty editor after clearing cell value width BACKSPACE", function () {

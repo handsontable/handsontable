@@ -61,31 +61,6 @@ function init() {
   });
 
   /**
-   * Page up/down
-   */
-
-  createButton('Page down', function () {
-    wt.scrollVertical(displayRows).draw();
-  }, true);
-
-  createButton('Page up', function () {
-    wt.scrollVertical(-displayRows).draw();
-  });
-
-
-  /**
-   * Scroll left/right
-   */
-
-  createButton('Scroll left', function () {
-    wt.scrollHorizontal(-100).draw();
-  });
-
-  createButton('Scroll right', function () {
-    wt.scrollHorizontal(100).draw();
-  });
-
-  /**
    * Init Walkontable
    */
   var arr = createData(100000);

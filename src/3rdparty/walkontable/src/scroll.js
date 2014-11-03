@@ -2,64 +2,6 @@ function WalkontableScroll(instance) {
   this.instance = instance;
 }
 
-WalkontableScroll.prototype.scrollVertical = function (delta) {
-  if (!this.instance.drawn) {
-    throw new Error('scrollVertical can only be called after table was drawn to DOM');
-  }
-
-  var instance = this.instance
-    , newOffset
-    , offset = instance.wtViewport.calculator.renderStartRow
-    , fixedCount = instance.getSetting('fixedRowsTop')
-    , total = instance.getSetting('totalRows')
-    , maxSize = instance.wtViewport.getViewportHeight();
-
-
-  newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount);
-
-  this.instance.wtScrollbars.vertical.scrollTo(newOffset);
-  return instance;
-
-  if (total > 0 && !this.instance.wtTable.isLastRowFullyVisible()) {
-    newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount, maxSize, function (row) {
-      if (row - offset < fixedCount && row - offset >= 0) {
-        return this.instance.wtTable.getRowHeight(row - offset);
-      }
-      else {
-        return this.instance.wtTable.getRowHeight(row);
-      }
-    });
-
-  } else {
-    newOffset = 0;
-  }
-
-
-  if (newOffset !== offset) {
-    this.instance.wtScrollbars.vertical.scrollTo(newOffset);
-  }
-  return instance;
-};
-
-WalkontableScroll.prototype.scrollHorizontal = function (delta) {
-  this.instance.wtScrollbars.horizontal.scrollTo(delta);
-  return this.instance;
-};
-
-WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total, fixedCount) {
-  var newOffset = offset + delta;
-
-  if (newOffset >= total - fixedCount) {
-    newOffset = total - fixedCount - 1;
-  }
-
-  if (newOffset < 0) {
-    newOffset = 0;
-  }
-
-  return newOffset;
-};
-
 /**
  * Scrolls viewport to a cell by minimum number of cells
  * @param {WalkontableCellCoords} coords
@@ -69,10 +11,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     return;
   }
 
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , totalRows = this.instance.getSetting('totalRows')
+  var totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns');
-
 
   if (coords.row < 0 || coords.row > totalRows - 1) {
     throw new Error('row ' + coords.row + ' does not exist');
@@ -88,9 +28,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.scrollToRenderedCell(TD);
     }
   }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
-    this.scrollVertical(coords.row - this.instance.wtTable.getLastVisibleRow());
+    this.instance.wtScrollbars.vertical.scrollTo(coords.row, true);
   } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
-    this.scrollVertical(coords.row - this.instance.wtTable.getFirstRenderedRow());
+    this.instance.wtScrollbars.vertical.scrollTo(coords.row);
   }
 };
 

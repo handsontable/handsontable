@@ -80,12 +80,12 @@ describe('WalkontableViewportCalculator', function () {
   });
 
   it("should scroll backwards if total rows is reached", function () {
-    var calc = new WalkontableViewportCalculator(200, 350, 20, allRows20);
+    var calc = new WalkontableViewportCalculator(190, 350, 20, allRows20);
     expect(calc.renderStartRow).toBe(10);
     expect(calc.renderStartPosition).toBe(200);
     expect(calc.renderEndRow).toBe(19);
     expect(calc.countRendered).toBe(10);
-    expect(calc.visibleStartRow).toBe(10);
+    expect(calc.visibleStartRow).toBe(11);
     expect(calc.visibleEndRow).toBe(19);
   });
 });

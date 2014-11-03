@@ -151,8 +151,10 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
     wt.selections[0].clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
   });
 
   it("should clear a selection that has more than one cell", function () {
@@ -294,7 +296,7 @@ describe('WalkontableSelection', function () {
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");
-    
+
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
 

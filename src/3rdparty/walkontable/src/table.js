@@ -296,23 +296,11 @@ WalkontableTable.prototype.getTrForRow = function (row) {
 };
 
 WalkontableTable.prototype.getFirstRenderedRow = function () {
-  return this.rowFilter.renderedToSource(0);
+  return this.instance.wtViewport.preCalculator.renderStartRow;
 };
 
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  var scrollbarPosition = this.instance.wtScrollbars.vertical.getScrollPosition()
-    , sum = 0
-    , i = 0;
-
-  do {
-    i++;
-    sum += this.instance.wtTable.getRowHeight(i) || this.instance.wtSettings.settings.defaultRowHeight;
-  } while (scrollbarPosition > 0 && sum - 1 < scrollbarPosition);
-
-  if(i > 0)
-    i--;
-
-  return i;
+  return this.instance.wtViewport.calculator.visibleStartRow;
 };
 
 WalkontableTable.prototype.getFirstRenderedColumn = function () {

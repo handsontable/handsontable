@@ -11,6 +11,7 @@ describe('WalkontableScroll', function () {
   });
 
   afterEach(function () {
+    return;
     if (!debug) {
       $('.wtHolder').remove();
     }
@@ -246,8 +247,7 @@ describe('WalkontableScroll', function () {
       wt.scrollViewport(new WalkontableCellCoords(20, 0)).draw();
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
 
-      var firstVisibleIndex = wt.wtTable.getFirstVisibleRow() - wt.wtTable.getFirstRenderedRow() + 1;
-      expect(wt.wtTable.getCoords($table.find('tbody tr:nth-child(' + firstVisibleIndex + ') td:first')[0])).toEqual(new WalkontableCellCoords(12, 0));
+      expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(12, 0));
     });
 
     it("scroll viewport to a cell that does not exist (vertically) should throw an error", function () {
@@ -283,7 +283,7 @@ describe('WalkontableScroll', function () {
 
     it("remove row from the last scroll page should scroll viewport a row up if needed", function () {
 
-      $container.width(100).height(201);
+      $container.width(100).height(210);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -292,11 +292,16 @@ describe('WalkontableScroll', function () {
         totalColumns: getTotalColumns
       });
       wt.draw().scrollViewport(new WalkontableCellCoords(getTotalRows() - 1, 0)).draw();
+
       var originalViewportStartRow = wt.getViewport()[0];
+      console.log("a1",  wt.getViewport()[0]);
+
       this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
       wt.draw();
 
       expect(originalViewportStartRow - 1).toEqual(wt.getViewport()[0]);
+      console.log("a2",  wt.getViewport()[0]);
+
     });
 
     it("should scroll to last row if smaller data source is loaded that does not have currently displayed row", function () {
