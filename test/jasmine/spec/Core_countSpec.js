@@ -33,9 +33,19 @@ describe('Core_count', function () {
     it('should return number of rendered rows', function () {
       var instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        height: 100
+        height: 100,
+        viewportRowRenderingOffset: 0
       });
       expect(instance.countRenderedRows()).toEqual(5);
+    });
+
+    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', function () {
+      var instance = handsontable({
+        data: createSpreadsheetData(50, 10),
+        height: 100,
+        viewportRowRenderingOffset: 20
+      });
+      expect(instance.countRenderedRows()).toEqual(25);
     });
 
     it('should return -1 if table is not rendered', function () {

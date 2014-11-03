@@ -35,7 +35,7 @@ function WalkontableSettings(instance, settings) {
     defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
-    viewportCalculatorOverride: null,
+    viewportRowCalculatorOverride: null,
 
     //callbacks
     onCellMouseDown: null,
