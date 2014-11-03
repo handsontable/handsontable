@@ -158,11 +158,15 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
   if (pos < 0) {
     pos = 0;
   }
+
+  var that = this;
   return new WalkontableViewportRowsCalculator(
     height,
     pos,
     this.instance.getSetting('totalRows'),
-    this.instance.wtTable.getRowHeight.bind(this),
+    function(sourceRow) {
+      return that.instance.wtTable.getRowHeight(sourceRow)
+    },
     this.instance.wtSettings.settings.viewportRowCalculatorOverride
   );
 };

@@ -74,7 +74,7 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
     }
   }
 
-  if (overrideFn) {
+  if (this.renderStartRow !== null && overrideFn) {
     overrideFn(this);
   }
 

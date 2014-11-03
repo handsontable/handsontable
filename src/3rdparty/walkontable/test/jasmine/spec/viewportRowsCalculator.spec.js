@@ -79,6 +79,19 @@ describe('WalkontableViewportRowsCalculator', function () {
     expect(calc.visibleEndRow).toBe(null);
   });
 
+  it("should set null values if total rows is 0 (with overrideFn provided)", function () {
+    var calc = new WalkontableViewportRowsCalculator(200, 0, 0, allRows20, function (myCalc) {
+      myCalc.renderStartRow = 0;
+      myCalc.renderEndRow = 0;
+    });
+    expect(calc.renderStartRow).toBe(null);
+    expect(calc.renderStartPosition).toBe(null);
+    expect(calc.renderEndRow).toBe(null);
+    expect(calc.countRendered).toBe(0);
+    expect(calc.visibleStartRow).toBe(null);
+    expect(calc.visibleEndRow).toBe(null);
+  });
+
   it("should scroll backwards if total rows is reached", function () {
     var calc = new WalkontableViewportRowsCalculator(190, 350, 20, allRows20);
     expect(calc.renderStartRow).toBe(10);
