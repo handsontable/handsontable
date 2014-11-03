@@ -138,7 +138,7 @@ WalkontableViewport.prototype.getViewportWidth = function () {
   }
 };
 
-WalkontableViewport.prototype.createCalculator = function () {
+WalkontableViewport.prototype.createRowsCalculator = function () {
   this.rowHeaderWidth = NaN;
   this.columnHeaderHeight = NaN;
 
@@ -154,7 +154,7 @@ WalkontableViewport.prototype.createCalculator = function () {
   if (pos < 0) {
     pos = 0;
   }
-  return new WalkontableViewportCalculator(
+  return new WalkontableViewportRowsCalculator(
     height,
     pos,
     this.instance.getSetting('totalRows'),
@@ -164,5 +164,5 @@ WalkontableViewport.prototype.createCalculator = function () {
 };
 
 WalkontableViewport.prototype.resetSettings = function () {
-  this.preCalculator = this.createCalculator();
+  this.rowsPreCalculator = this.createRowsCalculator();
 };

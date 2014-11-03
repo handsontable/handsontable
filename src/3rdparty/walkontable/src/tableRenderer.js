@@ -29,7 +29,7 @@ function WalkontableTableRenderer(wtTable){
     , displayTds
     , adjusted = false
     , workspaceWidth
-    , cloneLimit = this.instance.wtViewport.preCalculator.countRendered;
+    , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered;
 
   if (totalColumns > 0) {
     if (this.wtTable.isWorkingOnClone()) {
@@ -71,7 +71,7 @@ function WalkontableTableRenderer(wtTable){
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
 
-    this.instance.wtViewport.calculator = this.instance.wtViewport.createCalculator();
+    this.instance.wtViewport.rowsCalculator = this.instance.wtViewport.createRowsCalculator();
 
     this.instance.wtScrollbars.applyToDOM();
 

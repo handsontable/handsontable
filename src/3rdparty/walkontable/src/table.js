@@ -107,18 +107,18 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this.instance.wtViewport.resetSettings();
   }
 
-  if (selectionsOnly && this.instance.wtViewport.calculator) {
-    if(this.instance.wtViewport.preCalculator.visibleStartRow < this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow > this.instance.wtViewport.calculator.renderEndRow) {
+  if (selectionsOnly && this.instance.wtViewport.rowsCalculator) {
+    if(this.instance.wtViewport.rowsPreCalculator.visibleStartRow < this.instance.wtViewport.rowsCalculator.renderStartRow || this.instance.wtViewport.rowsPreCalculator.visibleEndRow > this.instance.wtViewport.rowsCalculator.renderEndRow) {
       selectionsOnly = false;
     }
-    else if(this.instance.wtViewport.preCalculator.scrollOffset !== this.instance.wtViewport.calculator.scrollOffset && (this.instance.wtViewport.preCalculator.visibleStartRow <= this.instance.wtViewport.calculator.renderStartRow || this.instance.wtViewport.preCalculator.visibleEndRow >= this.instance.wtViewport.calculator.renderEndRow)) {
+    else if(this.instance.wtViewport.rowsPreCalculator.scrollOffset !== this.instance.wtViewport.rowsCalculator.scrollOffset && (this.instance.wtViewport.rowsPreCalculator.visibleStartRow <= this.instance.wtViewport.rowsCalculator.renderStartRow || this.instance.wtViewport.rowsPreCalculator.visibleEndRow >= this.instance.wtViewport.rowsCalculator.renderEndRow)) {
       selectionsOnly = false;
     }
   }
 
   if (!this.isWorkingOnClone()) {
-    var oldCalc = this.instance.wtViewport.calculator;
-    this.instance.wtViewport.calculator = null; //must be created after render
+    var oldCalc = this.instance.wtViewport.rowsCalculator;
+    this.instance.wtViewport.rowsCalculator = null; //must be created after render
   }
 
   if (!selectionsOnly) {
@@ -137,7 +137,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       renderStartRow = 0;
     }
     else {
-      renderStartRow = this.instance.wtViewport.preCalculator.renderStartRow;
+      renderStartRow = this.instance.wtViewport.rowsPreCalculator.renderStartRow;
     }
 
     this.rowFilter = new WalkontableRowFilter(
@@ -153,11 +153,11 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      var tmp = this.instance.wtViewport.createCalculator();
-      this.instance.wtViewport.calculator = oldCalc;
-      this.instance.wtViewport.calculator.visibleCellCount = tmp.visibleCellCount;
-      this.instance.wtViewport.calculator.visibleStartRow = tmp.visibleStartRow;
-      this.instance.wtViewport.calculator.visibleEndRow = tmp.visibleEndRow;
+      var tmp = this.instance.wtViewport.createRowsCalculator();
+      this.instance.wtViewport.rowsCalculator = oldCalc;
+      this.instance.wtViewport.rowsCalculator.visibleCellCount = tmp.visibleCellCount;
+      this.instance.wtViewport.rowsCalculator.visibleStartRow = tmp.visibleStartRow;
+      this.instance.wtViewport.rowsCalculator.visibleEndRow = tmp.visibleEndRow;
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
@@ -296,19 +296,21 @@ WalkontableTable.prototype.getTrForRow = function (row) {
 };
 
 WalkontableTable.prototype.getFirstRenderedRow = function () {
-  return this.instance.wtViewport.preCalculator.renderStartRow;
+  return this.instance.wtViewport.rowsPreCalculator.renderStartRow;
 };
 
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  return this.instance.wtViewport.calculator.visibleStartRow;
+  return this.instance.wtViewport.rowsCalculator.visibleStartRow;
 };
 
 WalkontableTable.prototype.getFirstRenderedColumn = function () {
-  return 0; //all columns are rendered
+  //TODO change to this.instance.wtViewport.colsCalculator.renderedStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
+  return 0; //currently all columns are rendered
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
+  //TODO change to this.instance.wtViewport.colsCalculator.visibleStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
 
   if (this.isWorkingOnClone()){
     if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
@@ -340,15 +342,17 @@ WalkontableTable.prototype.getFirstVisibleColumn = function () {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getLastRenderedRow = function () {
-  return this.instance.wtViewport.preCalculator.renderEndRow;
+  return this.instance.wtViewport.rowsPreCalculator.renderEndRow;
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.instance.wtViewport.calculator.visibleEndRow;
+  return this.instance.wtViewport.rowsCalculator.visibleEndRow;
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
+  //TODO change to this.instance.wtViewport.colsCalculator.visibleEndCol when implemented; make sure code calls to getLastVisibleColumn/getLastRenderedColumn correctly
+
   var instance = this.instance;
 
   if (this.isWorkingOnClone()){
@@ -428,11 +432,11 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
 };
 
 WalkontableTable.prototype.getRenderedRowsCount = function () {
-  return this.instance.wtViewport.preCalculator.countRendered;
+  return this.instance.wtViewport.rowsPreCalculator.countRendered;
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.instance.wtViewport.calculator.countVisible;
+  return this.instance.wtViewport.rowsCalculator.countVisible;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {

@@ -19,7 +19,7 @@
  * @param overrideFn - function that changes calculated this.renderStartRow, this.renderEndRow (used by mergeCells.js plugin)
  * @constructor
  */
-function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn) {
+function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn) {
   this.scrollOffset = scrollOffset;
   this.renderStartRow = null;
   this.renderStartPosition = null;
