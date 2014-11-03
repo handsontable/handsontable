@@ -37,14 +37,12 @@
     else if (value === cellProperties.uncheckedTemplate || value === Handsontable.helper.stringify(cellProperties.uncheckedTemplate)) {
       TD.appendChild(INPUT);
     }
-    else if (value === null) { //default value
+    else{ //noValue
+      value = cellProperties.uncheckedTemplate;
       INPUT.className += ' noValue';
       TD.appendChild(INPUT);
     }
-    else {
-      Handsontable.Dom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
-    }
-
+    
     var $input = $(INPUT);
 
     if (cellProperties.readOnly) {
