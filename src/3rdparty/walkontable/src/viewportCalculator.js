@@ -1,4 +1,25 @@
-function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeightFn, override, strict) {
+/**
+ * Viewport calculator constructor. Calculates indexes of rows to render and the indexes of rows that are visible.
+ * To redo the calculation, you need to create a new calculator.
+ *
+ * Object properties:
+ *   this.scrollOffset - position of vertical scroll (in px)
+ *   this.renderStartRow - index of the first rendered row (can be overwritten using overrideFn)
+ *   this.renderStartPosition - position of the first rendered row (in px)
+ *   this.renderEndRow - index of the last rendered row (can be overwritten using overrideFn)
+ *   this.countRendered - number of rendered rows
+ *   this.visibleStartRow - index of the first fully visible row
+ *   this.visibleEndRow - index of the last fully visible row
+ *   this.countRendered - number of visible rows
+ *
+ * @param height - height of the viewport
+ * @param scrollOffset - current vertical scroll position of the viewport
+ * @param totalRows - total number of rows
+ * @param rowHeightFn - function that returns the height of the row at a given index (in px)
+ * @param overrideFn - function that changes calculated this.renderStartRow, this.renderEndRow (used by mergeCells.js plugin)
+ * @constructor
+ */
+function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn) {
   this.scrollOffset = scrollOffset;
   this.renderStartRow = null;
   this.renderStartPosition = null;
@@ -15,9 +36,6 @@ function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeigh
   for (var i = 0; i < totalRows; i++) {
     rowHeight = rowHeightFn(i);
     if (rowHeight === undefined) {
-      if (strict) {
-        throw new Error("Row height function did not return real row height");
-      }
       rowHeight = defaultRowHeight;
     }
     if (sum <= scrollOffset) {
@@ -44,9 +62,6 @@ function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeigh
     while (i > -1) {
       rowHeight = rowHeightFn(i);
       if (rowHeight === undefined) {
-        if (strict) {
-          throw new Error("Row height function did not return real row height");
-        }
         rowHeight = defaultRowHeight;
       }
       this.renderStartRow = i;
@@ -63,8 +78,8 @@ function WalkontableViewportCalculator(height, scrollOffset, totalRows, rowHeigh
     }
   }
 
-  if (override) {
-    override(this);
+  if (overrideFn) {
+    overrideFn(this);
   }
 
   this.renderStartPosition = startPositions[this.renderStartRow];
