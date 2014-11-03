@@ -294,14 +294,11 @@ describe('WalkontableScroll', function () {
       wt.draw().scrollViewport(new WalkontableCellCoords(getTotalRows() - 1, 0)).draw();
 
       var originalViewportStartRow = wt.getViewport()[0];
-      console.log("a1",  wt.getViewport()[0]);
 
       this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
       wt.draw();
 
       expect(originalViewportStartRow - 1).toEqual(wt.getViewport()[0]);
-      console.log("a2",  wt.getViewport()[0]);
-
     });
 
     it("should scroll to last row if smaller data source is loaded that does not have currently displayed row", function () {
