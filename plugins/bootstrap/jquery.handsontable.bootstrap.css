@@ -32,3 +32,12 @@
 .handsontable .table-striped tbody > tr:nth-child(2n+1) > th {
     background-color: #EEE;
 }
+
+/* override bootstrap 3 box model to fix sizing of text inputs */
+.handsontable *,
+.handsontable *:before,
+.handsontable *:after {
+  -webkit-box-sizing: content-box!important;
+  -moz-box-sizing: content-box!important;
+  box-sizing: content-box!important;
+}
