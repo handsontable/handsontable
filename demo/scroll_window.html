@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -91,7 +90,7 @@
           <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad at, commodi dicta distinctio doloremque dolores facilis in iure nam nesciunt obcaecati, omnis placeat quae quas quo repellat reprehenderit, sequi tenetur.</p>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -106,7 +105,8 @@
           </div>
 
           <script data-jsfiddle="example1">
-            $('#example1').handsontable({
+            var example1 = document.getElementById('example1');
+            var hot1 = new Handsontable(example1,{
               data: createBigData(),
               colWidths: [55, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,

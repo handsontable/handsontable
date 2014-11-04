@@ -64,7 +64,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -78,9 +78,10 @@
       <div class="codeLayout">
         <div class="pad">
           <script>
-            var container = $("#example1");
 
-            container.handsontable({
+            var container = document.getElementById("example1");
+
+            var hot1 = new Handsontable(container,{
               data: [
                 ["2008", 'Nissan', 11],
                 ["2009", 'Honda', 11],

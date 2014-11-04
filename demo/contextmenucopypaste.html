@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <!--<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>-->
   <script data-jsfiddle="common" src="../demo/js/ZeroClipboard.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
@@ -113,7 +113,8 @@
       </script>
 
       <script data-jsfiddle="example1">
-        $("#example1").handsontable({
+        var container = document.getElementById('example1');
+        var hot1 = new Handsontable(container,{
           data: getData(),
           startRows: 5,
           startCols: 5,

@@ -63,9 +63,9 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
-    this.$container.find(':checkbox').eq(0).trigger('click');
-    this.$container.find(':checkbox').eq(1).trigger('click');
-    this.$container.find(':checkbox').eq(2).trigger('click');
+    this.$container.find(':checkbox').eq(0).simulate('click');
+    this.$container.find(':checkbox').eq(1).simulate('click');
+    this.$container.find(':checkbox').eq(2).simulate('click');
 
     expect(getData()).toEqual([[false],[true],[false]]);
   });
@@ -91,6 +91,8 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
+
+
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
     addHook('afterChange', afterChangeCallback);
 
@@ -103,6 +105,10 @@ describe('CheckboxRenderer', function () {
 
     selectCell(0, 0);
 
+//    this.$container.find(':checkbox').eq(0).simulate('click');
+//    this.$container.simulate('keydown',{
+//      keyCode: 32
+//    });
     keyDown('space');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
@@ -190,6 +196,7 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
+
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
     addHook('afterChange', afterChangeCallback);
 
@@ -251,13 +258,15 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
-    mouseDoubleClick($(getCell(0, 0)));
+    selectCell(0, 0);
+
+    mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(false);
 
-    mouseDoubleClick($(getCell(0, 0)));
+    mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    mouseDoubleClick($(getCell(0, 0)));
+    mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 

@@ -18,20 +18,20 @@ describe('manualRowMove', function () {
       $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
       $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
-    $secondRowHeader.trigger('mouseenter');
+    $secondRowHeader.simulate('mouseover');
     var $manualRowMover = $mainContainer.find('.manualRowMover');
 
     if($manualRowMover.length) {
-      var mouseDownEvent = $.Event('mousedown');
-      mouseDownEvent.pageY = $manualRowMover[0].getBoundingClientRect().top;
-      $manualRowMover.trigger(mouseDownEvent);
+      $manualRowMover.simulate('mousedown',{
+        clientY: $manualRowMover[0].getBoundingClientRect().top
+      });
 
-      var mouseMoveEvent = $.Event('mousemove');
-      mouseMoveEvent.pageY = $manualRowMover[0].getBoundingClientRect().top - 20;
-      $manualRowMover.trigger(mouseMoveEvent);
+      $manualRowMover.simulate('mousemove',{
+        clientY:$manualRowMover[0].getBoundingClientRect().top - 20
+      });
 
-      $firstRowHeader.trigger('mouseenter');
-      $secondRowHeader.trigger('mouseup');
+      $firstRowHeader.simulate('mouseover');
+      $secondRowHeader.simulate('mouseup');
     }
   };
 
@@ -41,20 +41,20 @@ describe('manualRowMove', function () {
       $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
       $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
 
-    $secondRowHeader.trigger('mouseenter');
+    $secondRowHeader.simulate('mouseover');
     var $manualRowMover = $mainContainer.find('.manualRowMover');
 
     if($manualRowMover.length) {
-      var mouseDownEvent = $.Event('mousedown');
-      mouseDownEvent.pageY = $manualRowMover[0].getBoundingClientRect().top;
-      $manualRowMover.trigger(mouseDownEvent);
+      $manualRowMover.simulate('mousedown',{
+        clientY: $manualRowMover[0].getBoundingClientRect().top
+      });
 
-      var mouseMoveEvent = $.Event('mousemove');
-      mouseMoveEvent.pageY = $manualRowMover[0].getBoundingClientRect().top + 20;
-      $manualRowMover.trigger(mouseMoveEvent);
+      $manualRowMover.simulate('mousemove',{
+        clientY:$manualRowMover[0].getBoundingClientRect().top + 20
+      });
 
-      $firstRowHeader.trigger('mouseenter');
-      $secondRowHeader.trigger('mouseup');
+      $firstRowHeader.simulate('mouseover');
+      $secondRowHeader.simulate('mouseup');
     }
   };
 
@@ -321,10 +321,10 @@ describe('manualRowMove', function () {
     });
 
     var $rowHeader = this.$container.find('tbody tr:eq(2) th:eq(1)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
 
     var $manualRowMover = this.$container.find('.manualRowMover');
-    $manualRowMover.eq(1).trigger('mousedown');
+    $manualRowMover.eq(1).simulate('mousedown');
 
     expect(hot.getSelected()).toEqual(undefined);
   });
@@ -339,7 +339,8 @@ describe('manualRowMove', function () {
     });
 
     var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
+
     var $handle = this.$container.find('.manualRowMover');
     $handle[0].style.background = "red";
 
@@ -350,7 +351,7 @@ describe('manualRowMove', function () {
     this.$container.scroll();
 
     $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
     expect($rowHeader.offset().left).toEqual($handle.offset().left);
     expect($rowHeader.offset().top).toEqual($handle.offset().top);
   });

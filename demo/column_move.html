@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -97,7 +96,8 @@
               </div>
 
               <script data-jsfiddle="example1">
-                $("#example1").handsontable({
+                var example1 = document.getElementById('example1');
+                var HOT = new Handsontable(example1,{
                   data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
@@ -117,10 +117,11 @@
 
 
         <script type="text/javascript">
-          (function(){
-            var HOT = $('#example1').handsontable('getInstance');
+          (function(HOT){
+            var reset = document.querySelector('.reset-state1');
+            var stateLoaded = document.querySelector('.state-loaded');
 
-            $('.reset-state1').on('click', function(){
+            Handsontable.helper.addEvent(reset, 'click', function(){
 
               HOT.runHooks('persistentStateReset');
 
@@ -131,12 +132,9 @@
                 manualRowResize: true
               });
 
-              $(".state-loaded.example1").fadeOut(300, function () {
-                // render table after hidden state-loaded alert
-                HOT.render();
-              });
+              stateLoaded.style.display = 'none';
+              HOT.render();
             });
-
 
             var storedData = {};
 
@@ -145,10 +143,10 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-              $(".state-loaded.example1").show();
+              stateLoaded.style.display = 'block';
               HOT.render();
             }
-          })();
+          })(HOT);
 
         </script>
 

@@ -115,8 +115,8 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  $(window).off('.' + this.guid);
-  $(document.body).off('.' + this.guid);
+  var eventManager = Handsontable.eventManager(this);
+  eventManager.clear();
   this.wtScrollbars.destroy();
   this.wtEvent && this.wtEvent.destroy();
 };

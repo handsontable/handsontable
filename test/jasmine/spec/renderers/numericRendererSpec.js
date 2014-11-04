@@ -85,7 +85,7 @@ describe('NumericRenderer', function () {
 
   it('should add class name `htNumeric` to the cell if it renders a number', function () {
     var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core($(DIV), {});
+    var instance = new Handsontable(DIV, {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');
@@ -96,7 +96,7 @@ describe('NumericRenderer', function () {
 
   it('should add class name `htNumeric` to the cell if it renders a numeric string', function () {
     var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core($(DIV), {});
+    var instance = new Handsontable(DIV, {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');
@@ -107,7 +107,7 @@ describe('NumericRenderer', function () {
 
   it('should not add class name `htNumeric` to the cell if it renders a text', function () {
     var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core($(DIV), {});
+    var instance = new Handsontable(DIV, {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');
@@ -118,7 +118,7 @@ describe('NumericRenderer', function () {
 
   it('should add class name `htDimmed` to a read only cell', function () {
     var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core($(DIV), {});
+    var instance = new Handsontable(DIV, {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');

@@ -47,12 +47,15 @@ describe('Core_beforeKeyDown', function () {
     expect(called).toEqual(["afterDocumentKeyDown", "beforeKeyDown"]);
   });
 
-  it('should prevent hook fron running default action', function () {
+  it('should prevent hook from running default action', function () {
     var called = false;
 
     handsontable({
       data : [[1,2,3,4,5],[1,2,3,4,5]],
       beforeKeyDown: function (event) {
+
+        event = serveImmediatePropagation(event);
+
         event.stopImmediatePropagation();
         called = true;
       }

@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -70,7 +69,7 @@
           </div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -95,6 +94,8 @@
           </style>
 
           <script data-jsfiddle="example1">
+
+
             var getData = (function () {
               var data = [
                     [1,2,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],
@@ -130,13 +131,15 @@
               }
             })();
 
-            $("#example1").handsontable({
+            var container = document.getElementById('example1');
+
+            var hot = new Handsontable(container,{
               data: getData(),
               colHeaders: true
             });
 
-            $(window).on('hashchange',  function (event) {
-              $("#example1").handsontable('loadData', getData());
+            Handsontable.helper.addEvent(window,'hashchange', function (event) {
+              Handsontable.tmpHandsontable(container,'loadData', getData());
             });
 
           </script>

@@ -14,8 +14,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , instance = this
     , GridSettings = function () {}
-    , $document = $(document.documentElement)
-    , $body = $(document.body);
+    , eventManager = Handsontable.eventManager(instance);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
@@ -25,15 +24,14 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.container = document.createElement('DIV');
   this.container.className = 'htContainer';
-  rootElement.prepend(this.container);
-  this.container = $(this.container);
+
+  rootElement.insertBefore(this.container, rootElement.firstChild);
 
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
-  if (!this.rootElement[0].id || this.rootElement[0].id.substring(0, 3) === "ht_") {
-    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+  if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === "ht_") {
+    this.rootElement.id = this.guid; //if root element does not have an id, assign a random id
   }
-
   priv = {
     cellSettings: [],
     columnSettings: [],
@@ -866,7 +864,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (typeof row === "object") { //is it an array of changes
       return row;
     }
-    else if ($.isPlainObject(value)) { //backwards compatibility
+    else if (Handsontable.Dom.isPlainObject(value)) { //backwards compatibility
       return value;
     }
     else {
@@ -1225,10 +1223,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (typeof settings.className !== "undefined") {
       if (GridSettings.prototype.className) {
-        instance.rootElement.removeClass(GridSettings.prototype.className);
+        Handsontable.Dom.removeClass(instance.rootElement,GridSettings.prototype.className);
+//        instance.rootElement.removeClass(GridSettings.prototype.className);
       }
       if (settings.className) {
-        instance.rootElement.addClass(settings.className);
+        Handsontable.Dom.addClass(instance.rootElement,settings.className);
+//        instance.rootElement.addClass(settings.className);
       }
     }
 
@@ -1239,7 +1239,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         height = height();
       }
 
-      instance.rootElement[0].style.height = height + 'px';
+      instance.rootElement.style.height = height + 'px';
     }
 
     if (typeof settings.width != 'undefined'){
@@ -1249,11 +1249,11 @@ Handsontable.Core = function (rootElement, userSettings) {
         width = width();
       }
 
-      instance.rootElement[0].style.width = width + 'px';
+      instance.rootElement.style.width = width + 'px';
     }
 
     if (height){
-      instance.rootElement[0].style.overflow = 'auto';
+      instance.rootElement.style.overflow = 'auto';
     }
 
     if (!init) {
@@ -1284,7 +1284,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   function expandType(obj) {
     if (!obj.hasOwnProperty('type')) return; //ignore obj.prototype.type
-
 
     var type, expandedType = {};
 
@@ -1972,16 +1971,17 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.destroy = function () {
+
     instance._clearTimeouts();
     if (instance.view) { //in case HT is destroyed before initialization has finished
-      instance.view.wt.destroy();
+      instance.view.destroy();
     }
-    instance.rootElement.empty();
-    instance.rootElement.removeData('handsontable');
-    instance.rootElement.off('.handsontable');
-    $(window).off('.' + instance.guid);
-    $document.off('.' + instance.guid);
-    $body.off('.' + instance.guid);
+
+
+    Handsontable.Dom.empty(instance.rootElement);
+    delete instance.rootElement.data;
+    eventManager.clear();
+
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
 
@@ -2001,6 +2001,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
+
     //replace private properties with null (restores memory)
     //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
     priv = null;
@@ -2010,8 +2011,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     editorManager = null;
     instance = null;
     GridSettings = null;
-    $document = null;
-    $body = null;
   };
 
   /**
@@ -2167,34 +2166,33 @@ DefaultSettings.prototype = {
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
-$.fn.handsontable = function (action) {
+var tmpHandsontable = function (element, action) {
+
   var i
     , ilen
     , args
     , output
     , userSettings
-    , $this = this.first() // Use only first element from list
-    , instance = $this.data('handsontable');
-
+    , instance = element.data ? element.data['handsontable'] : null;
   // Init case
+
   if (typeof action !== 'string') {
+
     userSettings = action || {};
     if (instance) {
       instance.updateSettings(userSettings);
     }
     else {
-      instance = new Handsontable.Core($this, userSettings);
-      $this.data('handsontable', instance);
+      instance = new Handsontable.Core(element,userSettings);
+      element.data = {'handsontable': instance};
       instance.init();
-    }
 
-    return $this;
-  }
-  // Action case
-  else {
+    }
+    return element;
+  } else {
     args = [];
     if (arguments.length > 1) {
-      for (i = 1, ilen = arguments.length; i < ilen; i++) {
+      for (i = 2, ilen = arguments.length; i < ilen; i++) {
         args.push(arguments[i]);
       }
     }
@@ -2211,3 +2209,4 @@ $.fn.handsontable = function (action) {
     return output;
   }
 };
+Handsontable.tmpHandsontable = tmpHandsontable;

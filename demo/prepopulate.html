@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <!--<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>-->
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -72,7 +72,7 @@
           </style>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -97,7 +97,8 @@
             }
 
             function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-              var args = $.extend(true, [], arguments);
+//              var args = $.extend(true, [], arguments);
+              var args = Handsontable.Dom.extend(true, [], arguments);
               if (args[5] === null && isEmptyRow(instance, row)) {
                 args[5] = tpl[col];
                 td.style.color = '#999';
@@ -111,8 +112,9 @@
 
             var tpl = ["one", "two", "three"];
 
-            var container = $("#example1");
-            container.handsontable({
+
+            var container = document.getElementById("example1");
+            var hot1 = new Handsontable(container,{
               startRows: 8,
               startCols: 5,
               minSpareRows: 1,
@@ -157,7 +159,8 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            container.handsontable("loadData", data);
+            hot1.loadData(data);
+
           </script>
         </div>
       </div>

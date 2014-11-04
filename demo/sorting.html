@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -123,7 +122,7 @@
           <div id="example1" style="width: 600px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -138,9 +137,9 @@
           </div>
 
           <script data-jsfiddle="example1">
+            var container = document.getElementById('example1');
 
-
-            $("#example1").handsontable({
+            var HOT = new Handsontable(container,{
               data: createBigData(),
               rowHeaders: true,
               colHeaders: true,
@@ -158,24 +157,20 @@
               contextMenu: true,
               persistentState: true
             });
+            var resetState = document.querySelector('.reset-state');
+            var stateLoaded = document.querySelector('.state-loaded');
 
-            var HOT = $('#example1').handsontable('getInstance');
 
-            $('.reset-state').on('click', function(){
 
+            Handsontable.helper.addEvent(resetState, 'click', function() {
               HOT.runHooks('persistentStateReset');
-
               HOT.updateSettings({
                 columnSorting: true,
                 manualColumnMove:true,
                 manualColumnResize: true
               });
-
-              $(".state-loaded").fadeOut(300, function () {
-                // render table after hidden state-loaded alert
-                HOT.render();
-              });
-
+              stateLoaded.style.display = 'none';
+              HOT.render();
             });
 
 
@@ -186,7 +181,7 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-              $(".state-loaded").show();
+              stateLoaded.style.display = 'block';
             }
 
 

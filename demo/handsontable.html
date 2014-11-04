@@ -102,7 +102,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -137,8 +137,9 @@
                 [color]
               ]);
             }
+            var container = document.getElementById('example1');
 
-            $("#example1").handsontable({
+            var hot = new Handsontable(container,{
               data: carData,
               startRows: 7,
               startCols: 4,

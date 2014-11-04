@@ -19,23 +19,23 @@ describe('manualColumnMove', function () {
     var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
 
     //Enter the second column header
-    $secondColHeader.trigger('mouseenter');
+    $secondColHeader.simulate('mouseover');
     var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Grab the second column
-    var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate('mousedown',{
+      pageX : $manualColumnMover[0].getBoundingClientRect().left
+    });
 
     //Drag the second column over the first column
-    var mouseMoveEvent = $.Event('mousemove');
-    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left - 20;
-    $manualColumnMover.trigger(mouseMoveEvent);
+    $manualColumnMover.simulate('mousemove',{
+      pageX : $manualColumnMover[0].getBoundingClientRect().left - 20
+    });
 
-    $firstColHeader.trigger('mouseenter');
+    $firstColHeader.simulate('mouseover');
 
     //Drop the second column
-    $secondColHeader.trigger('mouseup');
+    $secondColHeader.simulate('mouseup');
   }
 
   function moveFirstDisplayedColumnAfterSecondColumn(container, firstDisplayedColIndex){
@@ -45,23 +45,23 @@ describe('manualColumnMove', function () {
     var $secondColHeader = $colHeaders.eq(firstDisplayedColIndex + 1);
 
     //Enter the first column header
-    $firstColHeader.trigger('mouseenter');
+    $firstColHeader.simulate('mouseover');
     var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Grab the first column
-    var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate('mousedown',{
+      pageX:$manualColumnMover[0].getBoundingClientRect().left
+    });
 
     //Drag the first column over the second column
-    var mouseMoveEvent = $.Event('mousemove');
-    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left + 20;
-    $manualColumnMover.trigger(mouseMoveEvent);
-    
-    $secondColHeader.trigger('mouseenter');
-    
+    $manualColumnMover.simulate('mousemove',{
+      pageX:$manualColumnMover[0].getBoundingClientRect().left + 20
+    });
+
+    $secondColHeader.simulate('mouseover');
+
     //Drop the first column
-    $firstColHeader.trigger('mouseup');
+    $firstColHeader.simulate('mouseup');
   }
 
   it("should change column order at init", function () {
@@ -177,7 +177,6 @@ describe('manualColumnMove', function () {
   });
 
   it("should move columns when viewport has been scrolled", function () {
-
     this.$container.width(120);
 
     var hot = handsontable({
@@ -352,7 +351,8 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnMover');
     $handle[0].style.background = "red";
 
@@ -363,7 +363,8 @@ describe('manualColumnMove', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
@@ -384,16 +385,18 @@ describe('manualColumnMove', function () {
     selectCell(0, 0);
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+//    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
     //Grab the column
-    var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate('mousedown',{
+      pageX:$manualColumnMover[0].getBoundingClientRect().left
+    });
 
     //Drop it without dragging
-    $colHeader.trigger('mouseup');
+//    $colHeader.trigger('mouseup');
+    $colHeader.simulate('mouseup');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
@@ -521,10 +524,10 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
-    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
-    $manualColumnMover.eq(1).trigger('mousedown');
+    $manualColumnMover.eq(1).simulate('mousedown');
 
     expect(hot.getSelected()).toEqual(undefined);
 
@@ -540,7 +543,7 @@ describe('manualColumnMove', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnMover');
     $handle[0].style.background = "red";
 
@@ -551,7 +554,7 @@ describe('manualColumnMove', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
@@ -636,7 +639,7 @@ describe('manualColumnMove', function () {
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('Blue');
   });
-  
+
   it("should not display the move handler in the row header column", function () {
     handsontable({
       data: [
@@ -659,20 +662,20 @@ describe('manualColumnMove', function () {
     var $firstColHeader = $colHeaders.eq(1);
 
     //Enter the first column header
-    $firstColHeader.trigger('mouseenter');
+    $firstColHeader.simulate('mouseover');
     var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Grab the first column
-    var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
-    $manualColumnMover.trigger(mouseDownEvent);
+    $manualColumnMover.simulate('mousedown',{
+      pageX:$manualColumnMover[0].getBoundingClientRect().left
+    });
 
     //Drag the first column over the row header column
-    var mouseMoveEvent = $.Event('mousemove');
-    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left - 20;
-    $manualColumnMover.trigger(mouseMoveEvent);
+    $manualColumnMover.simulate('mousemove',{
+      pageX:$manualColumnMover[0].getBoundingClientRect().left - 20
+    });
 
-    $rowHeader.trigger('mouseenter');
+    $rowHeader.simulate('mouseover');
 
     expect($manualColumnMover[0].getBoundingClientRect().left).not.toEqual($rowHeader[0].getBoundingClientRect().left);
     expect($manualColumnMover[0].getBoundingClientRect().left).toEqual($firstColHeader[0].getBoundingClientRect().left);

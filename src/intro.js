@@ -10,10 +10,19 @@
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
-var Handsontable = { //class namespace
-  plugins: {}, //plugin namespace
-  helper: {} //helper namespace
-};
+//var Handsontable = { //class namespace
+//  plugins: {}, //plugin namespace
+//  helper: {} //helper namespace
+//};
 
-(function ($, window, Handsontable) {
+var Handsontable = function (rootElement, userSettings) {
+  userSettings = userSettings || {};
+  var instance = new Handsontable.Core(rootElement, userSettings);
+  instance.init();
+  return instance;
+};
+Handsontable.helper = {};
+Handsontable.plugins = {};
+
+(function (window, Handsontable) {
   "use strict";

@@ -55,6 +55,7 @@ module.exports = function (grunt) {
         'tmp/core.js',
         'src/multiMap.js',
         'src/dom.js',
+        'src/eventManager.js',
         'src/tableView.js',
         'src/editors.js',
         'src/editorManager.js',
@@ -195,6 +196,7 @@ module.exports = function (grunt) {
       handsontable: {
         src: [
           'dist/jquery.handsontable.js',
+          'demo/js/jquery/jqueryHOT.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -233,6 +235,7 @@ module.exports = function (grunt) {
       walkontable: {
         src: [
           'src/dom.js',
+          'src/eventManager.js',
           'src/3rdparty/walkontable/src/*.js',
           'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],

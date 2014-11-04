@@ -75,7 +75,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -194,7 +194,8 @@
               }
             }
 
-            $('#example1').handsontable(config);
+            var example1 = document.getElementById('example1');
+            var hot = new Handsontable(example1,config);
 
             $('#check_select_all').click(function () {
               var state = this.checked;

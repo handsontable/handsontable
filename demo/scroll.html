@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -103,7 +102,7 @@
       <div id="example1" style="width: 400px; height: 200px; overflow: auto"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -117,24 +116,27 @@
       </div>
 
       <script data-jsfiddle="example1">
+
+
         var maxed = false
           , resizeTimeout
           , availableWidth
           , availableHeight
-          , $window = $(window)
-          , $example1 = $('#example1');
+          , example = document.getElementById('example1');
 
         var calculateSize = function () {
           if(maxed) {
-            var offset = $example1.offset();
-            availableWidth = $window.width() - offset.left + $window.scrollLeft();
-            availableHeight = $window.height() - offset.top + $window.scrollTop();
-            $example1.width(availableWidth).height(availableHeight);
+            var offset = Handsontable.Dom.offset(example);
+            availableWidth = Handsontable.Dom.innerWidth(document.body) - offset.left + window.scrollX;
+            availableHeight = Handsontable.Dom.innerHeight(document.body) - offset.top + window.scrollY;
+
+            example.style.width = availableWidth + 'px';
+            example.style.height = availableHeight + 'px';
           }
         };
-        $window.on('resize', calculateSize);
 
-        $example1.handsontable({
+        Handsontable.helper.addEvent(window, 'resize', calculateSize);
+        var hot1 = new Handsontable(example,{
           data: createBigData(),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
@@ -146,15 +148,18 @@
           contextMenu: true
         });
 
-        $('.maximize').on('click', function () {
+        var maximize = document.querySelector('.maximize');
+        Handsontable.helper.addEvent(maximize, 'click', function () {
           maxed = !maxed;
           if(maxed) {
             calculateSize();
           }
           else {
-            $example1.width(400).height(200);
+            example.style.width = 400 + 'px';
+            example.style.height = 400 + 'px';
           }
-          $example1.handsontable('render');
+          hot1.render();
+
         });
 
       </script>
@@ -194,8 +199,8 @@
 
          <div id="example2" style="width: height: 300px; overflow: auto"></div>
          */
-
-        $("#example2").handsontable({
+        var container2 = document.getElementById('example2');
+        Handsontable.tmpHandsontable(container2,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
@@ -245,8 +250,8 @@
 
          <div id="example3" style="width: height: 300px; overflow: auto"></div>
          */
-
-        $("#example3").handsontable({
+        var container3 = document.getElementById('example3');
+        Handsontable.tmpHandsontable(container3,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
@@ -289,8 +294,8 @@
 
          <div id="example4" style="width: height: 300px; overflow: auto"></div>
          */
-
-        $("#example4").handsontable({
+        var container4 = document.getElementById('example4');
+        Handsontable.tmpHandsontable(container4,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,

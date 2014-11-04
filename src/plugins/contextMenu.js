@@ -64,7 +64,11 @@
     this.instance = instance;
     var contextMenu = this;
     contextMenu.menus = [];
+    contextMenu.htMenus = {};
     contextMenu.triggerRows = [];
+
+    contextMenu.eventManager = Handsontable.eventManager(contextMenu)
+
 
     this.enabled = true;
 
@@ -362,6 +366,12 @@
 
   }
 
+  /***
+   * Create DOM instance of contextMenu
+   * @param menuName
+   * @param row
+   * @return {*}
+   */
   ContextMenu.prototype.createMenu = function (menuName, row) {
     if (menuName) {
       menuName = menuName.replace(/ /g, '_'); // replace all spaces in name
@@ -370,10 +380,11 @@
 
     var menu;
     if (menuName) {
-      menu = $('body > .htContextMenu.' + menuName)[0];
+      menu = document.querySelector('.htContextMenu.' + menuName);
     } else {
-      menu = $('body > .htContextMenu')[0];
+      menu = document.querySelector('.htContextMenu');
     }
+
 
     if (!menu) {
       menu = document.createElement('DIV');
@@ -394,11 +405,9 @@
   };
 
   ContextMenu.prototype.bindMouseEvents = function () {
+
     function contextMenuOpenListener(event) {
       var settings = this.instance.getSettings();
-//      if(!settings.contextMenu) {
-//        return;
-//      }
 
       this.closeAll();
 
@@ -417,21 +426,18 @@
       var items = this.getItems(settings.contextMenu);
 
       this.show(menu, items);
+
       this.setMenuPosition(event, menu);
 
-      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
+      this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
+    var eventManager = Handsontable.eventManager(this.instance);
 
-    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+    eventManager.addEventListener(this.instance.rootElement, 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
-    var that = this;
-
-    this._afterScrollCallback = function () {
-      // that.close();
-    };
-
+    this._afterScrollCallback = function () {};
     this.instance.addHook('afterScrollVertically', this._afterScrollCallback);
     this.instance.addHook('afterScrollHorizontally', this._afterScrollCallback);
   };
@@ -444,9 +450,9 @@
     }
   };
 
-  ContextMenu.prototype.performAction = function (event, menu) {
+  ContextMenu.prototype.performAction = function (event, hot) {
     var contextMenu = this;
-    var hot = $(menu).handsontable('getInstance');
+
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
@@ -467,22 +473,18 @@
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
-    this.instance.rootElement.off('contextmenu.htContextMenu');
-    $(document).off('mousedown.htContextMenu');
+    this.eventManager.clear();
+    var eventManager = Handsontable.eventManager(this.instance);
+    eventManager.removeEventListener(this.instance.rootElement, 'contextmenu');
   };
 
   ContextMenu.prototype.show = function (menu, items) {
+    var that = this;
+
     menu.removeAttribute('style');
     menu.style.display = 'block';
 
-    var that = this;
-    $(menu)
-      .off('mousedown.htContextMenu')
-      .on('mousedown.htContextMenu', function (event) {
-        that.performAction(event, menu)
-      });
-
-    $(menu).handsontable({
+    var settings = {
       data: items,
       colHeaders: false,
       colWidths: [200],
@@ -494,25 +496,34 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
+      renderAllRows: true
+    };
+
+    var htContextMenu = new Handsontable(menu, settings);
+
+    htContextMenu.updateSettings({
       beforeKeyDown: function (event) {
-        that.onBeforeKeyDown(event, menu);
+        that.onBeforeKeyDown(event, htContextMenu);
       },
       afterOnCellMouseOver: function (event, coords, TD) {
-        that.onCellMouseOver(event, coords, TD, menu);
-      },
+        that.onCellMouseOver(event, coords, TD, htContextMenu);
+      }
+    });
 
-      renderAllRows: true
+    this.eventManager.removeEventListener(menu, 'mousedown');
+    this.eventManager.addEventListener(menu,'mousedown', function (event) {
+      that.performAction(event, htContextMenu)
     });
 
     this.bindTableEvents();
+    htContextMenu.listen();
 
-    $(menu).handsontable('listen');
-
+    this.htMenus[htContextMenu.guid] = htContextMenu;
   };
 
   ContextMenu.prototype.close = function (menu) {
     this.hide(menu);
-    $(document).off('mousedown.htContextMenu');
+    this.eventManager.clear();
     this.unbindTableEvents();
     this.instance.listen();
   };
@@ -532,14 +543,16 @@
     var menu = this.menus.pop();
     if (menu) {
       this.hide(menu);
-//			this.close(menu);
     }
 
   };
 
   ContextMenu.prototype.hide = function (menu) {
     menu.style.display = 'none';
-    $(menu).handsontable('destroy');
+    var instance =this.htMenus[menu.id];
+
+    instance.destroy();
+    delete this.htMenus[menu.id];
   };
 
   ContextMenu.prototype.renderer = function (instance, TD, row, col, prop, value) {
@@ -563,7 +576,7 @@
     if (itemIsDisabled(item)) {
       Handsontable.Dom.addClass(TD, 'htDisabled');
 
-      $(wrapper).on('mouseenter', function () {
+      this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
         instance.deselectCell();
       });
 
@@ -571,7 +584,8 @@
       if (isSubMenu(item)) {
         Handsontable.Dom.addClass(TD, 'htSubmenu');
 
-        $(wrapper).on('mouseenter', function () {
+
+        this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
           instance.selectCell(row, col);
         });
 
@@ -579,7 +593,7 @@
         Handsontable.Dom.removeClass(TD, 'htSubmenu');
         Handsontable.Dom.removeClass(TD, 'htDisabled');
 
-        $(wrapper).on('mouseenter', function () {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', function () {
           instance.selectCell(row, col);
         });
       }
@@ -601,14 +615,12 @@
 
   };
 
-  ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, menu) {
-
-    var hot = $(menu).handsontable('getInstance');
+  ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, hot) {
     var menusLength = this.menus.length;
 
     if (menusLength > 0) {
       var lastMenu = this.menus[menusLength - 1];
-      if (lastMenu.id != menu.id) {
+      if (lastMenu.id != hot.guid) {
         this.closeLastOpenedSubMenu();
       }
     } else {
@@ -628,9 +640,11 @@
     }
   };
 
-  ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
+  ContextMenu.prototype.onBeforeKeyDown = function (event, instance) {
+
+    event = this.eventManager.serveImmediatePropagation(event);
     var contextMenu = this;
-    var instance = $(menu).handsontable('getInstance');
+
     var selection = instance.getSelected();
 
     switch (event.keyCode) {
@@ -643,7 +657,7 @@
 
       case Handsontable.helper.keyCode.ENTER:
         if (selection) {
-          contextMenu.performAction(event, menu);
+          contextMenu.performAction(event, instance);
         }
         break;
 
@@ -696,25 +710,22 @@
       case Handsontable.helper.keyCode.ARROW_LEFT:
         if (selection) {
 
-          if (menu.className.indexOf('htContextSubMenu_') != -1) {
+          if (instance.rootElement.className.indexOf('htContextSubMenu_') != -1) {
             contextMenu.closeLastOpenedSubMenu();
             var index = contextMenu.menus.length;
 
             if (index > 0) {
-              menu = contextMenu.menus[index - 1];
+              var menu = contextMenu.menus[index - 1];
+
               var triggerRow = contextMenu.triggerRows.pop();
-              instance = $(menu).handsontable('getInstance');
+              instance = this.htMenus[menu.id];
               instance.selectCell(triggerRow, 0);
             }
-
           }
-
           event.preventDefault();
           event.stopImmediatePropagation();
         }
         break;
-
-
     }
 
     function selectFirstCell(instance) {
@@ -780,13 +791,11 @@
       var items = contextMenu.getItems(selectedItem.submenu);
       var subMenu = contextMenu.createMenu(selectedItem.name, row);
       var coords = cell.getBoundingClientRect();
+      var subMenuInstance = contextMenu.show(subMenu, items);
 
-      contextMenu.show(subMenu, items);
       contextMenu.setSubMenuPosition(coords, subMenu);
-      var subMenuInstance = $(subMenu).handsontable('getInstance');
       subMenuInstance.selectCell(0, 0);
     }
-
   };
 
   function findByKey(items, key) {
@@ -817,18 +826,7 @@
     if (items === true) {
       items = this.defaultOptions.items;
     }
-    /*else if (Handsontable.helper.isArray(items)) {
-     menu = [];
-     for (var i = 0, ilen = items.length; i < ilen; i++) {
-     if (typeof items[i] === 'string') {
-     item = findByKey(this.defaultOptions.items, items[i]);
-     }
-     else {
-     item = items[i];
-     }
-     menu.push(new ContextMenuItem(item || items[i]));
-     }
-     }*/
+
     if (1 == 1) {
       menu = [];
       for (var key in items) {
@@ -1020,11 +1018,11 @@
   };
 
   ContextMenu.prototype.isMenuEnabledByOtherHotInstance = function () {
-    var hotContainers = $('.handsontable');
+    var hotContainers = document.querySelectorAll('.handsontable');
     var menuEnabled = false;
 
     for (var i = 0, len = hotContainers.length; i < len; i++) {
-      var instance = $(hotContainers[i]).handsontable('getInstance');
+      var instance = this.htMenus[hotContainers[i].id];
       if (instance && instance.getSettings().contextMenu) {
         menuEnabled = true;
         break;
@@ -1044,7 +1042,7 @@
 
   function updateHeight() {
 
-    if (this.rootElement[0].className.indexOf('htContextMenu')) {
+    if (this.rootElement.className.indexOf('htContextMenu')) {
       return;
     }
 

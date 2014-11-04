@@ -7,7 +7,6 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -84,7 +83,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -109,7 +108,8 @@
       </script>
 
       <script data-jsfiddle="example1">
-        $("#example1").handsontable({
+        var example1 = document.getElementById('example1');
+        var settings1 = {
           data: getData(),
           startRows: 5,
           startCols: 5,
@@ -121,7 +121,8 @@
           colHeaders: true,
           minSpareRows: 1,
           contextMenu: true
-        });
+        };
+        var hot1 = new Handsontable(example1,settings1);
       </script>
     </div>
   </div>
@@ -157,7 +158,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -171,7 +172,8 @@
       </div>
 
       <script data-jsfiddle="example2">
-        $("#example2").handsontable({
+        var example2 = document.getElementById('example2');
+        var settings2 = {
           data: getData(),
           startRows: 5,
           startCols: 5,
@@ -179,7 +181,8 @@
           colHeaders: true,
           minSpareRows: 1,
           contextMenu: ['row_above', 'row_below', 'remove_row']
-        });
+        };
+        var hot2 = new Handsontable(example2, settings2);
       </script>
     </div>
   </div>
@@ -201,7 +204,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -215,7 +218,8 @@
       </div>
 
       <script data-jsfiddle="example3">
-        $("#example3").handsontable({
+        var example3 = document.getElementById('example3');
+        var settings3 = {
           data: getData(),
           startRows: 5,
           startCols: 5,
@@ -235,7 +239,8 @@
               "row_above": {
                 disabled: function () {
                   //if first row, disable this option
-                  return ($("#example3").handsontable('getSelected')[0] === 0);
+                  return  (Handsontable.tmpHandsontable(example3,'getSelected')[0]===0)
+//                  return ($("#example3").handsontable('getSelected')[0] === 0);
                 }
               },
               "row_below": {},
@@ -244,14 +249,17 @@
                 name: 'Remove this row, ok?',
                 disabled: function () {
                   //if first row, disable this option
-                  return ($("#example3").handsontable('getSelected')[0] === 0);
+                  return  (Handsontable.tmpHandsontable(example3,'getSelected')[0]===0)
+//                  return ($("#example3").handsontable('getSelected')[0] === 0);
                 }
               },
               "hsep2": "---------",
               "about": {name: 'About this menu'}
             }
           }
-        });
+        };
+
+        var hot3 = new Handsontable(example3,settings3);
       </script>
     </div>
   </div>

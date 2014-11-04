@@ -86,7 +86,7 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = $("#example1"), 
+            var container = document.getElementById("example1"),
             data = [
                 [2002, 190251, 5090, 195341],
                 [2003, 224495, 6486, 230981],
@@ -107,7 +107,7 @@
             var heatmap;
             var heatmapScale  = chroma.scale(['#17F556', '#ED6D47']);
 
-            function updateHeatmap(change,source) {              
+            function updateHeatmap(change,source) {
               if(change) {
                 heatmap[change[0][1]] = generateHeatmapData.call(this, change[0][1]);
               } else {
@@ -140,7 +140,7 @@
               }
             }
 
-            container.handsontable({
+            var hot = new Handsontable(container,{
               data: data,
               colHeaders: ["Year", "Domestic Flights", "International Flights", "Total Flights"],
               columns: [

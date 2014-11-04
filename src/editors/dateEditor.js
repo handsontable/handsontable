@@ -43,10 +43,12 @@
     };
     this.$datePicker.datepicker(defaultOptions);
 
+    var eventManager = Handsontable.eventManager(this);
+
     /**
      * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
      */
-    this.$datePicker.on('mousedown', function (event) {
+    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
       event.stopPropagation();
     });
 
@@ -56,6 +58,8 @@
   DateEditor.prototype.destroyElements = function () {
     this.$datePicker.datepicker('destroy');
     this.$datePicker.remove();
+    //var eventManager = Handsontable.eventManager(this);
+    //eventManager.removeEventListener(this.datePicker, 'mousedown');
   };
 
   DateEditor.prototype.open = function () {
@@ -69,15 +73,15 @@
   };
 
   DateEditor.prototype.showDatepicker = function () {
-    var $td = $(this.TD);
-    var offset = $td.offset();
-    this.datePickerStyle.top = (offset.top + $td.height()) + 'px';
+    var offset = Handsontable.Dom.offset(this.TD); //$td.offset();
+    this.datePickerStyle.top = (offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = offset.left + 'px';
 
     var dateOptions = {
       defaultDate: this.originalValue || void 0
     };
-    $.extend(dateOptions, this.cellProperties);
+    Handsontable.Dom.extend(dateOptions, this.cellProperties);
+//    $.extend(dateOptions, this.cellProperties);
     this.$datePicker.datepicker("option", dateOptions);
     if (this.originalValue) {
       this.$datePicker.datepicker("setDate", this.originalValue);

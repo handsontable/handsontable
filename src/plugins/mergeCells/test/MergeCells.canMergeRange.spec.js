@@ -66,7 +66,7 @@ describe("handsontable.MergeCells", function () {
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement[0].querySelector('td');
+      var TD = hot.rootElement.querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
     })
@@ -169,22 +169,22 @@ describe("handsontable.MergeCells", function () {
         ]
       });
 
-      $(hot.getCell(6,6)).trigger('mousedown');
+      $(hot.getCell(6,6)).simulate('mousedown');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(1,1)).trigger('mouseenter');
+      $(hot.getCell(1,1)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(3,3)).trigger('mouseenter');
+      $(hot.getCell(3,3)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
 
-      $(hot.getCell(4,4)).trigger('mouseenter');
+      $(hot.getCell(4,4)).simulate('mouseenter');
 
       expect(hot.getSelectedRange().from.col).toEqual(6);
       expect(hot.getSelectedRange().from.row).toEqual(6);
@@ -406,28 +406,28 @@ describe("handsontable.MergeCells", function () {
         width: 400
       });
 
-      hot.rootElement[0].scrollTop = 130;
+      hot.rootElement.scrollTop = 130;
       hot.render();
 
-      expect(hot.rootElement[0].scrollTop).toBe(130);
+      expect(hot.rootElement.scrollTop).toBe(130);
 
       var TD = hot.getCell(5, 0);
       mouseDown(TD);
       mouseUp(TD);
-      var mergedCellScrollTop = hot.rootElement[0].scrollTop;
+      var mergedCellScrollTop = hot.rootElement.scrollTop;
       expect(mergedCellScrollTop).toBeLessThan(130);
       expect(mergedCellScrollTop).toBeGreaterThan(0);
 
-      hot.rootElement[0].scrollTop = 0;
+      hot.rootElement.scrollTop = 0;
       hot.render();
 
-      hot.rootElement[0].scrollTop = 130;
+      hot.rootElement.scrollTop = 130;
       hot.render();
 
       TD = hot.getCell(5, 2);
       mouseDown(TD);
       mouseUp(TD);
-      var regularCellScrollTop = hot.rootElement[0].scrollTop;
+      var regularCellScrollTop = hot.rootElement.scrollTop;
       expect(mergedCellScrollTop).toBe(regularCellScrollTop);
     });
 
