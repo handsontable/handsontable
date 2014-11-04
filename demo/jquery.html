@@ -58,9 +58,9 @@
               <h2>jQuery</h2>
 
               <p>
-                <a href="http://jquery.com/">jQuery</a> jQuery is a fast, small, and feature-rich JavaScript library. It makes things like HTML document traversal and manipulation, event handling, animation, and Ajax much simpler with an easy-to-use API that works across a multitude of browsers. With a combination of versatility and extensibility, jQuery has changed the way that millions of people write JavaScript.
+                jQuery is a library, which makes DOM manipulations and event handling easier. <br><br>
+                Handsontable is fully compatible with jQuery - the small example below shows that the integration between the two is quick and intuitive.
               </p>
-
 
 
               <div id="example1"></div>
@@ -84,6 +84,10 @@
                 }
               </script>
               <script data-jsfiddle="example1">
+
+                // Instead of creating a new Handsontable instance with the container element passed as an argument,
+                // you can simply call .handsontable method on a jQuery DOM object.
+
                 var $container = $("#example1");
                 $container.handsontable({
                   data: getData(),
@@ -98,6 +102,11 @@
                   minSpareRows: 1,
                   contextMenu: true
                 });
+
+
+                // This way, you can access Handsontable api methods by passing their names as an argument, e.g.:
+
+                var hotInstance = $("#example1").handsontable('getInstance');
 
               </script>
             </div>
