@@ -248,9 +248,11 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Object} [end] End selection position (only for drag-down mode)
      * @param {String} [source="populateFromArray"]
      * @param {String} [method="overwrite"]
+     * @param {String} direction (left|right|up|down)
+     * @param {Array} deltas array
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function (start, input, end, source, method) {
+    populateFromArray: function (start, input, end, source, method, direction, deltas) {
       var r, rlen, c, clen, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
@@ -306,6 +308,26 @@ Handsontable.Core = function (rootElement, userSettings) {
           // overwrite and other not specified options
           current.row = start.row;
           current.col = start.col;
+
+          var iterators = {row: 0, col: 0}, // number of packages
+              selected = { // selected range
+                row: (end && start) ? (end.row - start.row + 1) : 1,
+                col: (end && start) ? (end.col - start.col + 1) : 1
+              };
+
+          if (['up', 'left'].indexOf(direction) !== -1) {
+            iterators = {
+              row: Math.ceil(selected.row / rlen) || 1,
+              col: Math.ceil(selected.col / input[0].length) || 1
+            }
+          } else if (['down', 'right'].indexOf(direction) !== -1) {
+            iterators = {
+              row: 1,
+              col: 1
+            };
+          }
+
+
           for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
               break;
@@ -316,17 +338,57 @@ Handsontable.Core = function (rootElement, userSettings) {
               if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
+
               if (!instance.getCellMeta(current.row, current.col).readOnly) {
-                setData.push([current.row, current.col, input[r][c]]);
+                var result,
+                    value = input[r][c],
+                    index = {
+                      row: r,
+                      col: c
+                    };
+
+                if (source === 'autofill') {
+                  result = instance.runHooksAndReturn('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+
+                  if (result) {
+                    iterators = typeof(result.iterators) !== 'undefined' ? result.iterators : iterators;
+                    value = typeof(result.value) !== 'undefined' ? result.value : value;
+                  }
+                }
+
+                setData.push([current.row, current.col, value]);
               }
+
               current.col++;
+
               if (end && c === clen - 1) {
                 c = -1;
+
+                if (['down', 'right'].indexOf(direction) !== -1) {
+                  iterators.col++;
+                } else if (['up', 'left'].indexOf(direction) !== -1) {
+                  if (iterators.col > 1) {
+                    iterators.col--;
+                  }
+                }
+
               }
             }
+
             current.row++;
+            iterators.col = 1;
+
             if (end && r === rlen - 1) {
               r = -1;
+
+              if (['down', 'right'].indexOf(direction) !== -1) {
+                iterators.row++;
+              } else if (['up', 'left'].indexOf(direction) !== -1) {
+                if (iterators.row > 1) {
+                  iterators.row--;
+                }
+              }
+
             }
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
@@ -932,13 +994,15 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @param {Number=} endCol End column (use when you want to cut input when certain column is reached)
    * @param {String=} [source="populateFromArray"]
    * @param {String=} [method="overwrite"]
+   * @param {String} direction edit (left|right|up|down)
+   * @param {Array} deltas array
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
+  this.populateFromArray = function (row, col, input, endRow, endCol, source, method, direction, deltas) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error("populateFromArray parameter `input` must be an array of arrays"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
-    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null, source, method);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null, source, method, direction, deltas);
   };
 
   /**
