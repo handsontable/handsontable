@@ -94,7 +94,8 @@
               </div>
 
               <script data-jsfiddle="example1">
-                $("#example1").handsontable({
+                var example1 = document.getElementById('example1');
+                var settings = {
                   data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
@@ -119,7 +120,9 @@
                       rows: [2, 4]
                     }
                   ]
-                });
+                };
+                var hot = new Handsontable(example1,settings);
+
               </script>
 
             </div>
