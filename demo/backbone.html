@@ -131,8 +131,8 @@
               {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
             ]);
 
-            var $container = $("#example1");
-            $container.handsontable({
+            var container = document.getElementById("example1");
+            var hot = new Handsontable(container,{
               data: cars,
               dataSchema: makeCar,
               contextMenu: true,
@@ -148,10 +148,10 @@
             // this will log all the Backbone events getting fired!
             cars.on("all", log_events)
               .on("add", function () {
-                $container.handsontable("render");
+                hot.render();
               })
               .on("remove", function () {
-                $container.handsontable("render");
+                hot.render();
               });
 
             // you'll have to make something like these until there is a better
@@ -182,22 +182,20 @@
               return removed;
             }
 
+            var eventHolder = document.getElementById('example1_events');
+
             // show a log of events getting fired
             function log_events(event, model) {
               var now = new Date();
-              $("#example1_events").prepend(
-                  $("<option/>").text([
-                    ":", now.getSeconds(), ":", now.getMilliseconds(),
-                    "[" + event + "]",
-                    JSON.stringify(model)
-                  ].join(" "))
-                )
-                .scrollTop(0);
+              var option = document.createElement('OPTION');
+              option.innerHTML = [":", now.getSeconds(), ":", now.getMilliseconds(),"[" + event + "]",JSON.stringify(model)].join(" ");
+              eventHolder.insertBefore(option, eventHolder.firstChild);
             }
 
-            $("#add_car").click(function () {
+            var addCar = document.getElementById('add_car');
+            Handsontable.helper.addEvent(addCar, 'click', function () {
               cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
-            })
+            });
           </script>
         </div>
       </div>
