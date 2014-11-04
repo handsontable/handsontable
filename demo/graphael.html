@@ -118,7 +118,7 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var container = $("#example1")
+                var container = document.getElementById("example1")
                   , data = [
                     ["Nissan", 2009, "black"],
                     ["Nissan", 2006, "blue"],
@@ -134,16 +134,14 @@
 
                 var lastChange = null;
 
-                container.handsontable({
+                var ht = new Handsontable(container,{
                     data: data,
                     width: 250,
                     colHeaders: ["Car", "Year", "Color"],
                     rowHeaders: true,
                     afterChange: refreshChart
                   }
-                );
-
-                var ht = container.handsontable('getInstance'),
+                  ),
                   r = Raphael("graphael-example", 250, 250),
                   chartData = [
                     gatherColData(0),
