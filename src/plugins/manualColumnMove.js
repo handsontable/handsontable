@@ -200,6 +200,59 @@ function HandsontableManualColumnMove() {
     return col;
   };
 
+  // need to reconstruct manualcolpositions after removing columns
+  this.afterRemoveCol = function (index, amount) {
+    if (!this.getSettings().manualColumnMove) return;
+
+    var rmindx,
+        colpos = this.manualColumnPositions;
+
+      // We have removed columns, we also need to remove the indicies from manual column array
+      rmindx = colpos.splice(index, amount);
+
+      // We need to remap manualColPositions so it remains constant linear from 0->ncols
+      colpos = colpos.map(function (colpos) {
+        var i, newpos = colpos;
+
+       for (i = 0; i < rmindx.length; i++) {
+         if (colpos > rmindx[i]) newpos--;
+       }
+
+       return newpos;
+     });
+
+      this.manualColumnPositions = colpos;
+      // saveManualColumnPositions()
+    };
+
+    // need to reconstruct manualcolpositions after adding columns
+    this.afterCreateCol = function (index, amount) {
+      if (!this.getSettings().manualColumnMove) return;
+
+      var colpos = this.manualColumnPositions;
+      if (!colpos.length) return;
+
+      var addindx = [];
+      for (var i = 0; i < amount; i++) {
+        addindx.push(index + i);
+      }
+
+      if (index >= colpos.length) {
+        colpos.concat(addindx);
+      }
+      else {
+        // We need to remap manualColPositions so it remains constant linear from 0->ncols
+        colpos = colpos.map(function (colpos) {
+          return (colpos >= index) ? (colpos + amount) : colpos;
+        });
+
+        // We have added columns, we also need to add new indicies to manualcolumn position array
+        colpos.splice.apply(colpos, [index, 0].concat(addindx));
+      }
+
+      this.manualColumnPositions = colpos;
+      // saveManualColumnPositions()
+    };
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
 
@@ -213,6 +266,8 @@ Handsontable.hooks.add('afterUpdateSettings', function () {
 });
 Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
 
+Handsontable.hooks.add('afterRemoveCol', htManualColumnMove.afterRemoveCol);
+Handsontable.hooks.add('afterCreateCol', htManualColumnMove.afterCreateCol);
 Handsontable.hooks.register('afterColumnMove');
 
 })(Handsontable);

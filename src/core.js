@@ -75,6 +75,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "insert_col":
+          // //column order may have changes, so we need to translate the selection column index -> source array index
+          // index = instance.runHooksAndReturn('modifyCol', index);
           delta = datamap.createCol(index, amount);
 
           if (delta) {
@@ -96,6 +98,9 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "remove_row":
+          //column order may have changes, so we need to translate the selection column index -> source array index
+          index = instance.runHooksAndReturn('modifyCol', index);
+
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
           grid.adjustRowsAndCols();
@@ -118,7 +123,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             instance.getSettings().colHeaders.splice(index, amount);
           }
 
-          priv.columnSettings.splice(index, amount);
+          //priv.columnSettings.splice(index, amount);
 
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
