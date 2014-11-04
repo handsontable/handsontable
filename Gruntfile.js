@@ -134,6 +134,7 @@ module.exports = function (grunt) {
             '<%= meta.shims %>',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
+            'plugins/jqueryHandsontable.js',
             'src/outro.js'
           ]
         }
@@ -193,7 +194,6 @@ module.exports = function (grunt) {
       handsontable: {
         src: [
           'dist/jquery.handsontable.js',
-          'demo/js/jquery/jqueryHOT.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
