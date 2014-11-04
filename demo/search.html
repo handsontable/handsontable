@@ -110,9 +110,9 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example = $("#example1");
+                              , example = document.getElementById("example1");
 
-                      example.handsontable({
+                      var hot = new Handsontable(example,{
                           data: data,
                           colHeaders: true,
                           search: true
@@ -122,13 +122,10 @@
                         return queryStr.toString() === value.toString();
                       };
 
-                      $('#search_field').on('keyup', function (event) {
-                          var hot = example.handsontable('getInstance');
-
+                      var searchFiled = document.getElementById('search_field');
+                      Handsontable.helper.addEvent(searchFiled,'keyup', function (event) {
                           var queryResult = hot.search.query(this.value);
-
                           console.log(queryResult);
-
                           hot.render();
                       });
 
@@ -169,9 +166,9 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example2 = $("#example2");
+                              , example2 = document.getElementById("example2");
 
-                      example2.handsontable({
+                      var hot2 = new Handsontable(example2,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -179,14 +176,11 @@
                           }
                       });
 
-                      $('#search_field2').on('keyup', function (event) {
-                          var hot = example2.handsontable('getInstance');
-
-                          var queryResult = hot.search.query(this.value);
-
+                      var searchFiled2 = document.getElementById('search_field2');
+                      Handsontable.helper.addEvent(searchFiled2,'keyup', function (event) {
+                          var queryResult = hot2.search.query(this.value);
                           console.log(queryResult);
-
-                          hot.render();
+                          hot2.render();
                       });
 
                   </script>
@@ -219,13 +213,13 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example3 = $("#example3");
+                              , example3 = document.getElementById("example3");
 
                       var onlyExactMatch = function (queryStr, value) {
                           return queryStr.toString() === value.toString();
                       };
 
-                      example3.handsontable({
+                      var hot3 = new Handsontable(example3,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -233,14 +227,16 @@
                           }
                       });
 
-                      $('#search_field3').on('keyup', function (event) {
-                          var hot = example3.handsontable('getInstance');
+                      var searchFiled3 = document.getElementById('search_field3');
+                      Handsontable.helper.addEvent(searchFiled3,'keyup', function (event) {
 
-                          var queryResult = hot.search.query(this.value);
+
+
+                          var queryResult = hot3.search.query(this.value);
 
                           console.log(queryResult);
 
-                          hot.render();
+                          hot3.render();
                       });
 
                   </script>
@@ -275,7 +271,7 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example4 = $("#example4");
+                              , example4 = document.getElementById("example4");
 
                       var searchResultCount = 0;
 
@@ -288,7 +284,7 @@
                           }
                       };
 
-                      example4.handsontable({
+                      var hot4 = new Handsontable(example4,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -296,15 +292,15 @@
                           }
                       });
 
-                      $('#search_field4').on('keyup', function (event) {
-                          var hot = example4.handsontable('getInstance');
-                          searchResultCount = 0;
+                      var searchFiled4 = document.getElementById('search_field4');
+                      var resultCount = document.getElementById('resultCount');
 
-                          var queryResult = hot.search.query(this.value);
-
-                          $('#resultCount').text(searchResultCount);
-
-                          hot.render();
+                      Handsontable.helper.addEvent(searchFiled4, 'keyup', function (event) {
+                        searchResultCount = 0;
+                        var queryResult = hot4.search.query(this.value);
+                        console.log(queryResult);
+                        resultCount.innerText = searchResultCount.toString();
+                        hot4.render();
                       });
 
                   </script>
