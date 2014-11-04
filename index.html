@@ -297,7 +297,8 @@
           ];
 
           var container = document.getElementById('example');
-          Handsontable.tmpHandsontable(container,{
+          var hot = new Handsontable(container,
+          {
             data: data,
             minSpareRows: 1,
             colHeaders: true,
@@ -317,7 +318,7 @@
         $('.codeLayout').toggleClass('codeLayoutExpanded');
 
       });
-      $('.ver').text(container.data['handsontable'].version);
+      $('.ver').text(hot.version);
     </script>
 
     <script type="text/javascript">
