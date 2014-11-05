@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Sep 19 2014 19:04:29 GMT+0200 (CEST)
+ * Date: Wed Nov 05 2014 09:51:28 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2398,7 +2398,7 @@ $.fn.handsontable = function (action) {
  * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
  * @type {Object}
  */
-if(!window.Handsontable) {
+if (typeof Handsontable === 'undefined') {
   var Handsontable = {}; //required because Walkontable test suite uses this class directly
 }
 Handsontable.Dom = {};
