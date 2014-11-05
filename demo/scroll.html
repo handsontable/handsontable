@@ -135,7 +135,7 @@
           }
         };
 
-        Handsontable.helper.addEvent(window, 'resize', calculateSize);
+        Handsontable.Dom.addEvent(window, 'resize', calculateSize);
         var hot1 = new Handsontable(example,{
           data: createBigData(),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
@@ -149,7 +149,7 @@
         });
 
         var maximize = document.querySelector('.maximize');
-        Handsontable.helper.addEvent(maximize, 'click', function () {
+        Handsontable.Dom.addEvent(maximize, 'click', function () {
           maxed = !maxed;
           if(maxed) {
             calculateSize();
@@ -180,7 +180,7 @@
       <div id="example2" style="height: 300px; overflow: auto"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -200,7 +200,7 @@
          <div id="example2" style="width: height: 300px; overflow: auto"></div>
          */
         var container2 = document.getElementById('example2');
-        Handsontable.tmpHandsontable(container2,{
+        var hot2 = new Handsontable(container2,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
@@ -231,7 +231,7 @@
       <div id="example3" style="height: 300px; overflow: auto"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -251,7 +251,7 @@
          <div id="example3" style="width: height: 300px; overflow: auto"></div>
          */
         var container3 = document.getElementById('example3');
-        Handsontable.tmpHandsontable(container3,{
+        var hot3 = new Handsontable(container3,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
@@ -275,7 +275,7 @@
       <div id="example4" style="height: 300px; overflow: auto"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example4" data-instance="hot4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -295,7 +295,7 @@
          <div id="example4" style="width: height: 300px; overflow: auto"></div>
          */
         var container4 = document.getElementById('example4');
-        Handsontable.tmpHandsontable(container4,{
+        var hot4 = new Handsontable(container4,{
           data: createBigData(),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,

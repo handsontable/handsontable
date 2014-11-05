@@ -1,4 +1,33 @@
+function ajax (url, method, callback, params) {
+  var obj;
+  try {
+    obj = new XMLHttpRequest();
+  } catch (e) {
+    try {
+      obj = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        obj = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        alert("Your browser does not support Ajax.");
+        return false;
+      }
+    }
+  }
+  obj.onreadystatechange = function () {
+
+    if (obj.readyState == 4) {
+      callback(obj);
+    }
+  };
+  obj.open(method, url, true);
+  obj.send(params);
+  return obj;
+};
+
 (function () {
+
+
   function trimCodeBlock(code, pad) {
     var i, ilen;
     pad = pad || 0;
@@ -24,7 +53,7 @@
 
   function bindDumpButton() {
 
-    Handsontable.helper.addEvent(document.body, 'click', function (e) {
+    Handsontable.Dom.addEvent(document.body, 'click', function (e) {
 
       if (e.target.nodeName == "BUTTON" && e.target.name == 'dump') {
         var name = e.target.dataset['dump'];
@@ -36,7 +65,7 @@
   }
 
   function bindFiddleButton() {
-    Handsontable.helper.addEvent(document.body, 'click', function (e) {
+    Handsontable.Dom.addEvent(document.body, 'click', function (e) {
       if (e.target.className == "jsFiddleLink") {
 
         var keys = ['common'];
@@ -255,7 +284,7 @@
 
     function bindMenuEvents(menu) {
       collapseAll(menu, true);
-      Handsontable.helper.addEvent(menu, 'click', function (ev) {
+      Handsontable.Dom.addEvent(menu, 'click', function (ev) {
         if (ev.target.nodeName == "H3") {
           if (ev.target.parentNode.className.indexOf('current') != -1) {
             collapseAll(menu);
@@ -272,7 +301,7 @@
       bindMenuEvents(menu)
     }
     else {
-      Handsontable.helper.ajax("../index.html", 'GET', onMenuLoad);
+      ajax("../index.html", 'GET', onMenuLoad);
     }
 
   }

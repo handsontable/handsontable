@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 07 2014 21:47:07 GMT+0200 (CEST)
+ * Date: Wed Nov 05 2014 09:31:12 GMT+0100 (Środkowoeuropejski czas stand.)
  */
 
 .handsontable {
@@ -486,7 +486,8 @@ Comment For Cell
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner {
+.htContextMenu .ht_clone_corner,
+.htContextMenu .ht_clone_debug {
   display: none;
 }
 
@@ -499,6 +500,10 @@ Comment For Cell
 }
 
 .ht_clone_corner {
+  z-index: 103;
+}
+
+.ht_clone_debug {
   z-index: 103;
 }
 

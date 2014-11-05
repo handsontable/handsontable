@@ -162,7 +162,7 @@
 
 
 
-            Handsontable.helper.addEvent(resetState, 'click', function() {
+            Handsontable.Dom.addEvent(resetState, 'click', function() {
               HOT.runHooks('persistentStateReset');
               HOT.updateSettings({
                 columnSorting: true,

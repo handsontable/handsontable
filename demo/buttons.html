@@ -116,17 +116,17 @@
               rowHeaders = document.getElementById('rowHeaders'),
               colHeaders = document.getElementById('colHeaders');
 
-            Handsontable.helper.addEvent(selectFirst, 'click', function () {
+            Handsontable.Dom.addEvent(selectFirst, 'click', function () {
               hot.selectCell(0,0);
             });
 
-            Handsontable.helper.addEvent(rowHeaders, 'click', function () {
+            Handsontable.Dom.addEvent(rowHeaders, 'click', function () {
               hot.updateSettings({
                 rowHeaders: this.checked
               });
             });
 
-            Handsontable.helper.addEvent(colHeaders, 'click', function () {
+            Handsontable.Dom.addEvent(colHeaders, 'click', function () {
               hot.updateSettings({
                 colHeaders: this.checked
               });

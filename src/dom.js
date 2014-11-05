@@ -589,6 +589,23 @@ Handsontable.Dom.innerWidth = function (elem) {
   return elem.clientWidth || elem.innerWidth;
 };
 
+Handsontable.Dom.addEvent = function(element, event, callback) {
+  if (window.addEventListener) {
+    element.addEventListener(event, callback, false)
+  } else {
+    element.attachEvent('on' + event, callback);
+  }
+};
+
+Handsontable.Dom.removeEvent = function(element, event, callback) {
+  if (window.detachEvent) {
+    element.detachEvent('on' + event, callback);
+  } else {
+    element.removeEventListener(event, callback, false);
+  }
+};
+
+
 (function () {
   var hasCaptionProblem;
 

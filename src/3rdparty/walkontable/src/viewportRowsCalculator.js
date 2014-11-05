@@ -55,7 +55,7 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
       break;
     }
   }
-
+  //If the rendering has reached the last row and there is still some space available in the viewport, we need to render in reverse in order to fill the whole viewport with rows
   if (this.renderEndRow == totalRows - 1 && needReverse) {
     this.renderStartRow = this.renderEndRow;
     this.visibleStartRow = this.renderEndRow;

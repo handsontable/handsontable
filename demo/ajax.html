@@ -106,7 +106,7 @@
                       }
                       if(autosave.checked){
                         clearTimeout(autosaveNotification);
-                        Handsontable.helper.ajax(
+                        ajax(
                           "json/save.json",
                           "POST",
                           function (data) {
@@ -121,11 +121,10 @@
 
 
                     }
-                  }),
-                  handsontable = container.data['handsontable'];
+                  });
 
-                Handsontable.helper.addEvent(load,'click', function (){
-                  Handsontable.helper.ajax(
+                Handsontable.Dom.addEvent(load,'click', function (){
+                  ajax(
                     "json/load.json",
                     'GET',
                     function (res) {
@@ -136,8 +135,8 @@
                   );
                 });
 
-                Handsontable.helper.addEvent(save,'click', function (){
-                  Handsontable.helper.ajax(
+                Handsontable.Dom.addEvent(save,'click', function (){
+                  ajax(
                     "json/save.json",
                     'POST',
                     function (res) {
@@ -154,7 +153,7 @@
                   );
                 });
 
-                Handsontable.helper.addEvent(autosave,'click', function (){
+                Handsontable.Dom.addEvent(autosave,'click', function (){
                   if (autosave.checked) {
                     console.innerText = 'Changes will be autosaved';
                   }

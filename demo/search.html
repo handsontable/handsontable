@@ -123,7 +123,7 @@
                       };
 
                       var searchFiled = document.getElementById('search_field');
-                      Handsontable.helper.addEvent(searchFiled,'keyup', function (event) {
+                      Handsontable.Dom.addEvent(searchFiled,'keyup', function (event) {
                           var queryResult = hot.search.query(this.value);
                           console.log(queryResult);
                           hot.render();
@@ -177,7 +177,7 @@
                       });
 
                       var searchFiled2 = document.getElementById('search_field2');
-                      Handsontable.helper.addEvent(searchFiled2,'keyup', function (event) {
+                      Handsontable.Dom.addEvent(searchFiled2,'keyup', function (event) {
                           var queryResult = hot2.search.query(this.value);
                           console.log(queryResult);
                           hot2.render();
@@ -228,7 +228,7 @@
                       });
 
                       var searchFiled3 = document.getElementById('search_field3');
-                      Handsontable.helper.addEvent(searchFiled3,'keyup', function (event) {
+                      Handsontable.Dom.addEvent(searchFiled3,'keyup', function (event) {
 
 
 
@@ -295,7 +295,7 @@
                       var searchFiled4 = document.getElementById('search_field4');
                       var resultCount = document.getElementById('resultCount');
 
-                      Handsontable.helper.addEvent(searchFiled4, 'keyup', function (event) {
+                      Handsontable.Dom.addEvent(searchFiled4, 'keyup', function (event) {
                         searchResultCount = 0;
                         var queryResult = hot4.search.query(this.value);
                         console.log(queryResult);

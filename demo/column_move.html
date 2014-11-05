@@ -121,7 +121,7 @@
             var reset = document.querySelector('.reset-state1');
             var stateLoaded = document.querySelector('.state-loaded');
 
-            Handsontable.helper.addEvent(reset, 'click', function(){
+            Handsontable.Dom.addEvent(reset, 'click', function(){
 
               HOT.runHooks('persistentStateReset');
 

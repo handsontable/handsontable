@@ -138,8 +138,8 @@
               colHeaders: true
             });
 
-            Handsontable.helper.addEvent(window,'hashchange', function (event) {
-              Handsontable.tmpHandsontable(container,'loadData', getData());
+            Handsontable.Dom.addEvent(window,'hashchange', function (event) {
+              hot.loadData(getData());
             });
 
           </script>

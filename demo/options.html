@@ -146,7 +146,7 @@
 
             var htOptions = document.querySelectorAll('.handsontableOption');
             for(var i = 0, len = htOptions.length; i<len; i++) {
-              Handsontable.helper.addEvent(htOptions[i], 'change', function (){
+              Handsontable.Dom.addEvent(htOptions[i], 'change', function (){
                 var update = {};
                 switch (this.value) {
                   case 'true':

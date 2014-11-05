@@ -225,7 +225,12 @@
           startCols: 5,
           rowHeaders: true,
           colHeaders: true,
-          minSpareRows: 1,
+          minSpareRows: 1
+        };
+
+        var hot3 = new Handsontable(example3,settings3);
+
+        hot3.updateSettings({
           contextMenu: {
             callback: function (key, options) {
               if (key === 'about') {
@@ -239,8 +244,7 @@
               "row_above": {
                 disabled: function () {
                   //if first row, disable this option
-                  return  (Handsontable.tmpHandsontable(example3,'getSelected')[0]===0)
-//                  return ($("#example3").handsontable('getSelected')[0] === 0);
+                  return (hot3.getSelected()[0]===0)
                 }
               },
               "row_below": {},
@@ -249,17 +253,14 @@
                 name: 'Remove this row, ok?',
                 disabled: function () {
                   //if first row, disable this option
-                  return  (Handsontable.tmpHandsontable(example3,'getSelected')[0]===0)
-//                  return ($("#example3").handsontable('getSelected')[0] === 0);
+                  return  (hot3.getSelected()[0] === 0)
                 }
               },
               "hsep2": "---------",
               "about": {name: 'About this menu'}
             }
           }
-        };
-
-        var hot3 = new Handsontable(example3,settings3);
+        })
       </script>
     </div>
   </div>

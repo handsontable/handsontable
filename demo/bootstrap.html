@@ -148,7 +148,7 @@
             var options = document.querySelectorAll('.options input');
 
             for (var i = 0, len = options.length; i < len; i++) {
-              Handsontable.helper.addEvent(options[i], 'click', function (){
+              Handsontable.Dom.addEvent(options[i], 'click', function (){
                 if (this.checked){
                   Handsontable.Dom.addClass(table,this.getAttribute('data-type'))
                 }

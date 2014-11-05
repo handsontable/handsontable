@@ -154,7 +154,7 @@
               var img = document.createElement('IMG');
               img.src = value;
 
-              Handsontable.helper.addEvent(img, 'mousedown', function (e){
+              Handsontable.Dom.addEvent(img, 'mousedown', function (e){
                 e.preventDefault();//prevent selection quirk
               });
 
@@ -246,13 +246,13 @@
             }
           });
 
-          Handsontable.helper.addEvent(container, 'mousedown', function (e) {
+          Handsontable.Dom.addEvent(container, 'mousedown', function (e) {
             if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
               e.stopPropagation();
             }
           });
 
-          Handsontable.helper.addEvent(container, 'mouseup', function (e) {
+          Handsontable.Dom.addEvent(container, 'mouseup', function (e) {
             if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
               isChecked = !e.target.checked;
               hot2.render();
@@ -373,7 +373,7 @@
               var menu = buildMenu(columns[col].type);
               var button = buildButton();
 
-              Handsontable.helper.addEvent(button,'click', function (e){
+              Handsontable.Dom.addEvent(button,'click', function (e){
                 instance.rootElement.appendChild(menu);
 
                 console.log(button);
@@ -398,11 +398,11 @@
                     }
                 };
 
-                Handsontable.helper.removeEvent(document, 'click', removeMenu);
-                Handsontable.helper.addEvent(document, 'click', removeMenu);
+                Handsontable.Dom.removeEvent(document, 'click', removeMenu);
+                Handsontable.Dom.addEvent(document, 'click', removeMenu);
               });
 
-              Handsontable.helper.addEvent(menu, 'click', function (e) {
+              Handsontable.Dom.addEvent(menu, 'click', function (e) {
                 if (e.target.nodeName == 'LI') {
                   setColumnType(col, e.target.data['colType'], instance);
                 }
