@@ -132,18 +132,18 @@
               minSpareRows: 1,
               contextMenu: true,
               onSelection: function (row, col, row2, col2) {
-                var meta = Handsontable.tmpHandsontable(container, 'getCellMeta', row2, col2);
+                var meta = this.getCellMeta(row2, col2);
                 if (meta.readOnly) {
-                  Handsontable.tmpHandsontable(container,'updateSettings', {fillHandle: false});
+                  this.updateSettings({fillHandle: false});
                 }
                 else {
-                  Handsontable.tmpHandsontable(container,'updateSettings', {fillHandle: true});
+                  this.updateSettings({fillHandle: true});
                 }
               },
               cells: function (row, col, prop) {
                 var cellProperties = {};
 
-                if (row === 0 ||  Handsontable.tmpHandsontable(container, 'getData')[row][col] === 'readOnly') {
+                if (row === 0 || this.instance.getData()[row][col] === 'readOnly') {
                   cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
                 }
                 if (row === 0) {
