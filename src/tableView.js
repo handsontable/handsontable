@@ -122,7 +122,12 @@ Handsontable.TableView = function (instance) {
         color: '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function () {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+        var selectedRange = instance.getSelectedRange();
+
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
+        },
+        multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && !instance.selection.isMultiple();
         }
       }
     }),
@@ -134,6 +139,9 @@ Handsontable.TableView = function (instance) {
         //style: 'solid', // not used
         cornerVisible: function () {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        },
+          multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && instance.selection.isMultiple();
         }
       }
     }),
@@ -386,9 +394,11 @@ Handsontable.TableView.prototype.render = function () {
 /**
  * Returns td object given coordinates
  * @param {WalkontableCellCoords} coords
+ * @param {Boolean} topmost
  */
-Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-  var td = this.wt.wtTable.getCell(coords);
+Handsontable.TableView.prototype.getCellAtCoords = function (coords, topmost) {
+  var td = this.wt.getCell(coords, topmost);
+  //var td = this.wt.wtTable.getCell(coords);
   if (td < 0) { //there was an exit code (cell is out of bounds)
     return null;
   }

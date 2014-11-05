@@ -73,6 +73,7 @@ module.exports = function (grunt) {
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
+        'src/editors/mobileTextEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',
@@ -111,7 +112,8 @@ module.exports = function (grunt) {
         'src/plugins/manualRowMove.js',
         'src/plugins/autofill.js',
         'src/plugins/grouping/grouping.js',
-        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js'
+        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js',
+        'src/plugins/multipleSelectionHandles/multipleSelectionHandles.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',

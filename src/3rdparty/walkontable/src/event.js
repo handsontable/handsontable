@@ -31,6 +31,48 @@ function WalkontableEvent(instance) {
     }
   };
 
+  var onTouchMove = function (event) {
+    that.instance.touchMoving = true;
+  };
+
+  var longTouchTimeout;
+
+  var onTouchStart = function (event) {
+    var container = this;
+    this.addEventListener("touchmove", onTouchMove, false);
+
+    // touch-and-hold event
+    //longTouchTimeout = setTimeout(function () {
+    //  if(!that.instance.touchMoving) {
+    //    that.instance.longTouch = true;
+    //
+    //    var targetCoords = Handsontable.Dom.offset(event.target);
+    //    var contextMenuEvent = new MouseEvent('contextmenu', {
+    //      clientX: targetCoords.left + event.target.offsetWidth,
+    //      clientY: targetCoords.top + event.target.offsetHeight,
+    //      button: 2
+    //    });
+    //
+    //    that.instance.wtTable.holder.parentNode.parentNode.dispatchEvent(contextMenuEvent);
+    //  }
+    //},200);
+
+    // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
+    setTimeout(function () {
+      if(that.instance.touchMoving == true) {
+        that.instance.touchMoving = void 0;
+
+        container.removeEventListener("touchmove", onTouchMove, false);
+
+        return;
+      } else {
+        onMouseDown(event);
+      }
+    },30);
+
+    $(that.instance.wtTable.holder).off('mousedown');
+  };
+
   var lastMouseOver;
   var onMouseOver = function (event) {
     if (that.instance.hasSetting('onCellMouseOver')) {
@@ -82,12 +124,31 @@ function WalkontableEvent(instance) {
     }
   };
 
+
+  var onTouchEnd = function (event) {
+    clearTimeout(longTouchTimeout);
+    that.instance.longTouch == void 0;
+
+    event.preventDefault();
+    onMouseUp(event);
+
+    $(that.instance.wtTable.holder).off('mouseup');
+  };
+
+
   eventManager.addEventListener(this.instance.wtTable.holder,'mousedown', onMouseDown);
 
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
+  var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
+
+  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchstart', classSelector, onTouchStart);
+  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchend', classSelector, onTouchEnd);
+
+
+ 
   eventManager.addEventListener(window, 'resize', function() {
     that.instance.draw();
   });
@@ -117,4 +178,9 @@ WalkontableEvent.prototype.parentCell = function (elem) {
 WalkontableEvent.prototype.destroy = function () {
   clearTimeout(this.dblClickTimeout[0]);
   clearTimeout(this.dblClickTimeout[1]);
+
+  var rootElement = this.instance.wtTable.holder.parentNode.parentNode;
+  $(rootElement).off('touchstart');
+  $(rootElement).off('touchend');
+  $(rootElement).off('touchmove');
 };

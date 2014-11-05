@@ -741,5 +741,5 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
     return cachedScrollbarWidth;
-  }
+  };
 })();

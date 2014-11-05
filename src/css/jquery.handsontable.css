@@ -12,6 +12,18 @@
 .handsontable {
   position: relative;
 }
+
+.handsontable.mobile {
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  -khtml-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-overflow-scrolling: touch;
+}
+
 .handsontable .hide{
   display: none;
 }
@@ -409,6 +421,166 @@ Comment For Cell
   right: 0;
   border-left: 6px solid transparent;
   border-top: 6px solid red;
+}
+
+/* Mobile Text Editor */
+#mobile-editor-container {
+  display: none;
+  position: absolute;
+  top: 0;
+  width: 70%;
+  height: 54pt;
+  background: #f8f8f8;
+  border-radius: 20px;
+  border: 1px solid #ebebeb;
+  z-index: 9999;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -webkit-text-size-adjust: none;
+}
+
+.topLeftSelectionHandle,
+.topLeftSelectionHandle-HitArea {
+  z-index: 9999;
+}
+
+#mobile-editor-container.active {
+  display: block;
+}
+
+#mobile-editor-container .inputs {
+  position: absolute;
+  right: 210pt;
+  bottom: 10pt;
+  top: 10pt;
+  left: 14px;
+  height: 34pt;
+}
+
+#mobile-editor-container .inputs textarea {
+  font-size: 13pt;
+  border: 1px solid #a1a1a1;
+  -webkit-appearance: none;
+  padding: 4pt;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 0;
+  bottom: 0;
+  padding: 5pt;
+}
+
+#mobile-editor-container .cell-pointer {
+  position: absolute;
+  top: -13pt;
+  height: 0;
+  width: 0;
+  left: 30px;
+
+  border-left: 13pt solid transparent;
+  border-right: 13pt solid transparent;
+  border-bottom: 13pt solid #ebebeb;
+}
+
+#mobile-editor-container .cell-pointer:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 2px;
+  height: 0;
+  width: 0;
+  left: -13pt;
+
+  border-left: 13pt solid transparent;
+  border-right: 13pt solid transparent;
+  border-bottom: 13pt solid #f8f8f8;
+}
+
+#mobile-editor-container .move-handle {
+  position: absolute;
+  top: 10pt;
+  left: 5px;
+  width: 30px;
+  bottom: 0px;
+  cursor: move;
+}
+
+#mobile-editor-container .move-handle:after {
+  content: "..\a..\a..\a..";
+  white-space: pre;
+  line-height: 10px;
+  font-size: 20pt;
+  display: inline-block;
+  margin-top: -8px;
+  color: #ebebeb;
+}
+
+#mobile-editor-container .position-controls {
+  width: 205pt;
+  position: absolute;
+  right: 5pt;
+  top: 0;
+  bottom: 0;
+}
+
+#mobile-editor-container .position-controls > div {
+  width: 50pt;
+  height: 100%;
+  float: left;
+}
+
+#mobile-editor-container .position-controls > div:after {
+  content: " ";
+  display: block;
+  width: 15pt;
+  height: 15pt;
+  text-align: center;
+  line-height: 50pt;
+}
+
+#mobile-editor-container .left-button:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(-45deg);
+  margin-top: 17pt;
+  margin-left: 20pt;
+}
+#mobile-editor-container .left-button:active:after {
+  border-color: #cfcfcf;
+}
+
+#mobile-editor-container .right-button:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(135deg);
+  margin-top: 17pt;
+  margin-left: 10pt;
+}
+#mobile-editor-container .right-button:active:after {
+  border-color: #cfcfcf;
+}
+
+#mobile-editor-container .up-button:after {
+  /*border-top: 2px solid #cfcfcf;*/
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(45deg);
+  margin-top: 22pt;
+  margin-left: 15pt;
+}
+#mobile-editor-container .up-button:active:after {
+  border-color: #cfcfcf;
+}
+
+#mobile-editor-container .down-button:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(225deg);
+  margin-top: 15pt;
+  margin-left: 15pt;
+}
+#mobile-editor-container .down-button:active:after {
+  border-color: #cfcfcf;
 }
 
 /**
