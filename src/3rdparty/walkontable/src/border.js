@@ -212,9 +212,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth/2,10) + "px";
     this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth/2,10) + "px";
 
-
-
-    if(this.settings.border.multipleSelectionHandlesVisible()) {
+    if(this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
       this.selectionHandles.styles.topLeft.display = "block";
       this.selectionHandles.styles.topLeftHitArea.display = "block";
       if(!isPartRange.call(this)) {
@@ -230,7 +228,6 @@ WalkontableBorder.prototype.appear = function (corners) {
       this.selectionHandles.styles.topLeftHitArea.display = "none";
       this.selectionHandles.styles.bottomRightHitArea.display = "none";
     }
-
 
   };
 

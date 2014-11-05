@@ -95,6 +95,7 @@
 
     Handsontable.Dom.addClass(this.editorContainer, 'active');
     //this.updateEditorDimensions();
+    this.scrollToView();
     this.updateEditorPosition();
   };
 
@@ -108,6 +109,11 @@
     this.instance.removeHook('beforeKeyDown', this.onBeforeKeyDown);
 
     Handsontable.Dom.removeClass(this.editorContainer, 'active');
+  };
+
+  MobileTextEditor.prototype.scrollToView = function () {
+    var coords = this.instance.getSelectedRange().highlight;
+    this.instance.view.scrollViewport(coords);
   };
 
   MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
@@ -137,6 +143,7 @@
 
       if(selectedCell != undefined) {
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
+          , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
           , currentScrollPosition = {
             x: this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollLeft,
             y: this.instance.view.wt.wtScrollbars.vertical.scrollHandler.scrollTop
@@ -145,7 +152,13 @@
         this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) - currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
         this.editorContainer.style.left = parseInt((window.innerWidth / 2) - (domDimensionsCache.editorContainer.width / 2) ,10) + "px";
 
-        this.cellPointer.style.left = parseInt(selectedCellOffset.left - (domDimensionsCache.cellPointer.width / 2) - Handsontable.Dom.offset(this.editorContainer).left + (Handsontable.Dom.outerWidth(selectedCell) /2) - currentScrollPosition.x ,10) + "px";
+        if(selectedCellOffset.left + selectedCellWidth / 2 > parseInt(this.editorContainer.style.left,10) + domDimensionsCache.editorContainer.width) {
+          this.editorContainer.style.left = window.innerWidth - domDimensionsCache.editorContainer.width + "px";
+        } else if(selectedCellOffset.left + selectedCellWidth / 2 < parseInt(this.editorContainer.style.left,10)) {
+          this.editorContainer.style.left = 0 + "px";
+        }
+
+        this.cellPointer.style.left = parseInt(selectedCellOffset.left - (domDimensionsCache.cellPointer.width / 2) - Handsontable.Dom.offset(this.editorContainer).left + (selectedCellWidth / 2) - currentScrollPosition.x ,10) + "px";
 
         // horizontal centering below the cell
         //this.editorContainer.style.left = parseInt(selectedCellOffset.left - Handsontable.Dom.outerWidth(this.editorContainer) / 2 - currentScrollPosition.x, 10)  + "px";
@@ -153,23 +166,26 @@
     }
   };
 
-  MobileTextEditor.prototype.updateEditorDimensions = function () {
-    if(!this.beginningWindowWidth) {
-      this.beginningWindowWidth = window.innerWidth;
-      this.beginningEditorWidth = Handsontable.Dom.outerWidth(this.editorContainer);
-      this.scaleRatio = this.beginningEditorWidth / this.beginningWindowWidth;
 
-      this.editorContainer.style.width = this.beginningEditorWidth + "px";
-      return;
-    }
+  // For the optional dont-affect-editor-by-zooming feature:
 
-    var currentScaleRatio = this.beginningEditorWidth / window.innerWidth;
-    //if(currentScaleRatio > this.scaleRatio + 0.2 || currentScaleRatio < this.scaleRatio - 0.2) {
-    if(currentScaleRatio != this.scaleRatio) {
-      this.editorContainer.style["zoom"] = (1 - ((currentScaleRatio * this.scaleRatio) - this.scaleRatio)) * 100 + "%";
-    }
-
-  };
+  //MobileTextEditor.prototype.updateEditorDimensions = function () {
+  //  if(!this.beginningWindowWidth) {
+  //    this.beginningWindowWidth = window.innerWidth;
+  //    this.beginningEditorWidth = Handsontable.Dom.outerWidth(this.editorContainer);
+  //    this.scaleRatio = this.beginningEditorWidth / this.beginningWindowWidth;
+  //
+  //    this.editorContainer.style.width = this.beginningEditorWidth + "px";
+  //    return;
+  //  }
+  //
+  //  var currentScaleRatio = this.beginningEditorWidth / window.innerWidth;
+  //  //if(currentScaleRatio > this.scaleRatio + 0.2 || currentScaleRatio < this.scaleRatio - 0.2) {
+  //  if(currentScaleRatio != this.scaleRatio) {
+  //    this.editorContainer.style["zoom"] = (1 - ((currentScaleRatio * this.scaleRatio) - this.scaleRatio)) * 100 + "%";
+  //  }
+  //
+  //};
 
   MobileTextEditor.prototype.updateEditorData = function () {
     var selected = this.instance.getSelected()
@@ -181,25 +197,37 @@
     this.updateEditorPosition();
   };
 
+  MobileTextEditor.prototype.prepareAndSave = function () {
+    var val = [
+      [String.prototype.trim.call(this.getValue())]
+    ];
+
+    this.saveValue(val);
+  };
+
   MobileTextEditor.prototype.bindEvents = function () {
     var that = this;
 
     this.controls.leftButton.addEventListener("touchend", function (event) {
+      that.prepareAndSave();
       that.instance.selection.transformStart(0, -1, null, true);
       that.updateEditorData();
       event.preventDefault();
     });
     this.controls.rightButton.addEventListener("touchend", function (event) {
+      that.prepareAndSave();
       that.instance.selection.transformStart(0, 1, null, true);
       that.updateEditorData();
       event.preventDefault();
     });
     this.controls.upButton.addEventListener("touchend", function (event) {
+      that.prepareAndSave();
       that.instance.selection.transformStart(-1, 0, null, true);
       that.updateEditorData();
       event.preventDefault();
     });
     this.controls.downButton.addEventListener("touchend", function (event) {
+      that.prepareAndSave();
       that.instance.selection.transformStart(1, 0, null, true);
       that.updateEditorData();
       event.preventDefault();

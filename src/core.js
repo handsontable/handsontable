@@ -1974,6 +1974,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     $body = null;
   };
 
+  this.centerSelected = function () {
+    var selected = this.getSelectedRange().highlight
+      , visibleRows = this.countVisibleRows()
+      , visibleCols = this.countVisibleCols();
+
+    this.view.wt.wtScroll.scrollVertical(selected.row - parseInt(visibleRows / 2,10));
+    this.view.wt.wtScroll.scrollHorizontal(selected.col - parseInt(visibleCols / 2,10));
+  };
+
   /**
    * Replacement for all methods after Handsotnable was destroyed
    */
