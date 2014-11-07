@@ -1,6 +1,7 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
   this.oversizedRows = [];
+  this.oversizedCols = [];
 
   var that = this;
 
@@ -146,7 +147,7 @@ WalkontableViewport.prototype.getViewportWidth = function () {
  */
 WalkontableViewport.prototype.createRowsCalculator = function () {
   this.rowHeaderWidth = NaN;
-  this.columnHeaderHeight = NaN;
+  //this.columnHeaderHeight = NaN;
 
   var height;
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.wtSettings.settings.renderAllRows) {
@@ -173,19 +174,46 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
   );
 };
 
+WalkontableViewport.prototype.createColumnsCalculator = function () {
+  this.columnHeaderHeight = NaN;
+
+  var width;
+  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    width = Infinity;
+  } else {
+    width = this.getViewportWidth();
+  }
+
+  var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  if (pos < 0) {
+    pos = 0;
+  }
+
+  var that = this;
+  return new WalkontableViewportColumnsCalculator(
+    width,
+    pos,
+    this.instance.getSetting('totalColumns'),
+    function (sourceCol) {
+      return that.instance.wtTable.getColumnWidth(sourceCol);
+    }
+  )
+};
+
+
 /**
  * Creates rowsPreCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
  */
 WalkontableViewport.prototype.createPreCalculators = function () {
   this.rowsPreCalculator = this.createRowsCalculator();
-  //TODO this.colsPreCalculator = this.createColsCalculator();
+  this.columnsPreCalculator = this.createColumnsCalculator();
 };
 
 /**
  * Creates rowsCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
  * @param oldRowCalculator {WalkontableViewportRowsCalculator} If given, only visibleStartRow, visibleEndRow, visibleCellCount will be updated in oldRowCalculator object. This prevents
  */
-WalkontableViewport.prototype.createCalculators = function (oldRowCalculator) {
+WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, oldColumnsCalculator) {
   if(oldRowCalculator) {
     var tmp = this.createRowsCalculator();
     this.rowsCalculator = oldRowCalculator;
@@ -195,6 +223,17 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator) {
   }
   else {
     this.rowsCalculator = this.createRowsCalculator();
+  }
+
+  if (oldColumnsCalculator) {
+    var cTmp = this.createColumnsCalculator();
+    this.columnsCalculator = oldColumnsCalculator;
+    this.columnsCalculator.visibleStartColumn = cTmp.visibleStartColumn;
+    this.columnsCalculator.visibleEndColumn = cTmp. visibleEndColumn;
+    this.columnsCalculator.visibleCellCount = cTmp.visibleCellCount;
+  }
+  else {
+    this.columnsCalculator = this.createColumnsCalculator();
   }
   //TODO repeat the above for colsCalculator
 };
