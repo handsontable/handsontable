@@ -333,10 +333,10 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
 
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
   var columnCount = this.wtTable.getRenderedColumnsCount();
-  if(this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative)
-  {
-    debugger;
-  }
+  //if(this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative)
+  //{
+  //  debugger;
+  //}
 
   //adjust COLGROUP
   while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
