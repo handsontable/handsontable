@@ -319,6 +319,13 @@ Handsontable.TableView = function (instance) {
         calc.renderEndRow = Math.min(calc.renderEndRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
+    },
+    viewportColumnCalculatorOverride: function (calc) {
+      if (that.settings.viewportColumnRenderingOffset) {
+        calc.renderStartColumn = Math.max(calc.renderStartColumn - that.settings.viewportColumnRenderingOffset, 0);
+        calc.renderEndColumn = Math.min(calc.renderEndColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      }
+      instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
   };
 
