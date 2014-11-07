@@ -1,5 +1,5 @@
 function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn) {
-  this.columnScrollOffset = scrollOffset;
+  this.scrollOffset = scrollOffset;
   this.renderStartColumn = null;
   this.renderEndColumn = null;
   this.renderStartPosition = null;
@@ -20,7 +20,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
       columnWidth = defaultColumnWidth;
     }
 
-    if (sum < scrollOffset){
+    if (sum <= scrollOffset){
       this.renderStartColumn = i;
     }
 

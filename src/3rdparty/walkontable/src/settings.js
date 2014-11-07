@@ -28,7 +28,10 @@ function WalkontableSettings(instance, settings) {
       var cellData = that.getSetting('data', row, column);
       Handsontable.Dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
-    columnWidth: 50,
+    //columnWidth: 50,
+    columnWidth: function (col) {
+      return; //return undefined means use default size for the rendered cell content
+    },
     rowHeight: function (row) {
       return; //return undefined means use default size for the rendered cell content
     },

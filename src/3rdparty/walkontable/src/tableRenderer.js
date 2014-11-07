@@ -58,7 +58,8 @@ WalkontableTableRenderer.prototype.render = function () {
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.instance.wtViewport.containerWidth = null;
-      this.wtTable.getColumnStrategy().stretch();
+      // TODO
+      //this.wtTable.getColumnStrategy().stretch();
     }
 
     this.adjustColumnWidths(displayTds);
@@ -80,10 +81,18 @@ WalkontableTableRenderer.prototype.render = function () {
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
-      this.wtTable.getColumnStrategy().stretch();
+
+      //TODO
+      //this.wtTable.getColumnStrategy().stretch();
       var cache = this.instance.wtTable.columnWidthCache;
-      for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-        var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+      debugger;
+      var fVC = this.wtTable.getFirstVisibleColumn();
+      var lVC = this.wtTable.getLastVisibleColumn();
+
+      for (visibleColIndex = fVC ; visibleColIndex < lVC; visibleColIndex++) {
+      //for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
+      //  var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+        var width = this.wtTable.getColumnWidth(visibleColIndex);
         this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
         cache[visibleColIndex] = width;
       }
@@ -215,7 +224,9 @@ WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
       width = this.instance.cloneSource.wtTable.columnWidthCache[visibleColIndex];
     }
     else {
-      width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+      //width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+      width = this.wtTable.getColumnWidth(visibleColIndex);
+      console.log(width);
     }
     if (width !== cache[visibleColIndex]) {
       this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
@@ -422,6 +433,8 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   };
 
   this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
+
+  // TODO NEW STRETCH-H
 };
 
 /*

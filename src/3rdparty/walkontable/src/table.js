@@ -86,9 +86,9 @@ function WalkontableTable(instance, table) {
   this.columnWidthCache = [];
 }
 
-WalkontableTable.prototype.getColumnStrategy = function () {
-  return this.isWorkingOnClone() ? this.instance.cloneSource.wtTable.columnStrategy : this.columnStrategy;
-};
+//WalkontableTable.prototype.getColumnStrategy = function () {
+//  return this.isWorkingOnClone() ? this.instance.cloneSource.wtTable.columnStrategy : this.columnStrategy;
+//};
 
 WalkontableTable.prototype.isWorkingOnClone = function () {
   return !!this.instance.cloneSource;
@@ -120,7 +120,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
   if (!this.isWorkingOnClone()) {
     var oldRowsCalculator = this.instance.wtViewport.rowsCalculator;
+    var oldColumnsCalculator = this.instance.wtViewport.columnsCalculator;
     this.instance.wtViewport.rowsCalculator = null; //delete temporarily to make sure that renderers always use rowsPreCalculator, not rowsCalculator
+    //this.instance.wtViewport.columnsCalculator = null;
   }
 
   if (!fastDraw) {
@@ -142,12 +144,23 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       renderStartRow = this.instance.wtViewport.rowsPreCalculator.renderStartRow;
     }
 
+
+    var renderStartColumn;
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
+    || this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative
+    || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+      renderStartColumn = 0;
+    } else {
+      renderStartColumn = this.instance.wtViewport.columnsPreCalculator.renderStartColumn;
+    }
+
     this.rowFilter = new WalkontableRowFilter(
       renderStartRow,
       this.instance.getSetting('totalRows'),
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
+      renderStartColumn,
       this.instance.getSetting('totalColumns'),
       this.instance.getSetting('rowHeaders').length
     );
@@ -155,7 +168,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createCalculators(oldRowsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      this.instance.wtViewport.createCalculators(oldRowsCalculator, oldColumnsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
@@ -303,39 +316,14 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 
 WalkontableTable.prototype.getFirstRenderedColumn = function () {
   //TODO change to this.instance.wtViewport.colsCalculator.renderedStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
-  return 0; //currently all columns are rendered
+  //return 0; //currently all columns are rendered
+  return this.instance.wtViewport.columnsCalculator.renderStartColumn;
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
   //TODO change to this.instance.wtViewport.colsCalculator.visibleStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
-
-  if (this.isWorkingOnClone()){
-    if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
-      return 0;
-    } else {
-      return this.instance.cloneSource.wtTable.getFirstVisibleColumn();
-    }
-  }
-
-  var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
-  var columnCount = this.getColumnStrategy().cellCount;
-  var firstTR = this.TBODY.firstChild;
-
-  if (!firstTR){
-    return 0;
-  }
-
-  for (var colIndex = 0; colIndex < columnCount; colIndex++){
-    leftOffset -= firstTR.childNodes[colIndex].offsetWidth;
-
-    if (leftOffset < 0){
-      return colIndex;
-    }
-
-  }
-
-  return -1;
+  return this.instance.wtViewport.columnsCalculator.visibleStartColumn;
 };
 
 //returns -1 if no row is visible
@@ -349,43 +337,8 @@ WalkontableTable.prototype.getLastVisibleRow = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
+  return this.instance.wtViewport.columnsCalculator.visibleEndColumn;
   //TODO change to this.instance.wtViewport.colsCalculator.visibleEndCol when implemented; make sure code calls to getLastVisibleColumn/getLastRenderedColumn correctly
-
-  var instance = this.instance;
-
-  if (this.isWorkingOnClone()){
-
-    if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
-      var lastVisibleColumn = this.getColumnStrategy().countVisible() - 1;
-      var fixedColumnsLeft =  instance.getSetting('fixedColumnsLeft');
-      return Math.min(fixedColumnsLeft - 1, lastVisibleColumn);
-    } else {
-      return this.instance.cloneSource.wtTable.getLastVisibleColumn();
-    }
-
-  }
-
-
-  var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
-  var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth();
-  var columnCount = this.getColumnStrategy().cellCount;
-  var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0;
-  var firstTR = this.TBODY.firstChild;
-
-  if (!columnCount) {
-    return -1;
-  }
-
-  for (var colIndex = 0; colIndex < columnCount + rowHeaderCount; colIndex++){
-    leftPartOfTable -= firstTR.childNodes[colIndex].offsetWidth;
-
-    if (leftPartOfTable <= 0){
-      return colIndex - rowHeaderCount;
-    }
-
-  }
-
-  return colIndex - rowHeaderCount - 1;
 };
 
 WalkontableTable.prototype.isRowBeforeRenderedRows = function (r) {
@@ -416,20 +369,21 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
   return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.getColumnStrategy().isLastIncomplete());
 };
 
-WalkontableTable.prototype.getRenderedColumnsCount = function () {
-  var isClone = this.isWorkingOnClone();
-  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    return 1;
-  }
-  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
-    return this.instance.getSetting('fixedColumnsLeft');
-  }
-  else {
-    return this.getColumnStrategy().cellCount;
-  }
-};
+//WalkontableTable.prototype.getRenderedColumnsCount = function () {
+//  var isClone = this.isWorkingOnClone();
+//  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+//    return 1;
+//  }
+//  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+//    return this.instance.getSetting('fixedColumnsLeft');
+//  }
+//  else {
+//    return this.getColumnStrategy().cellCount;
+//  }
+//};
 
 WalkontableTable.prototype.getRenderedRowsCount = function () {
+  console.log(this.instance.wtViewport.rowsPreCalculator.countRendered);
   return this.instance.wtViewport.rowsPreCalculator.countRendered;
 };
 
@@ -453,4 +407,30 @@ WalkontableTable.prototype.getRowHeight = function (sourceRow) {
     height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
   }
   return height;
+};
+
+
+WalkontableTable.prototype.getVisibleColumnsCount = function () {
+  return this.instance.wtViewport.columnsCalculator.countVisibleColumns;
+};
+
+WalkontableTable.prototype.getRenderedColumnsCount = function () {
+
+  return this.instance.wtViewport.columnsPreCalculator.countRenderedColumns;
+  //return this.instance.wtViewport.columnsCalculator.countRenderedColumns;
+};
+
+WalkontableTable.prototype.allColumnsInViewport = function () {
+  return this.instance.getSetting('totalColumns') == this.getVisibleColumnsCount();
+};
+
+
+
+WalkontableTable.prototype.getColumnWidth = function (sourceColumn) {
+  var width = this.instance.wtSettings.settings.columnWidth(sourceColumn);
+  var oversizedWidth = this.instance.wtViewport.oversizedCols[sourceColumn];
+  if (oversizedWidth !== void 0) {
+    width = width ? Math.max(width, oversizedWidth) : oversizedWidth;
+  }
+  return width;
 };

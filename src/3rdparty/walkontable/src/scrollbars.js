@@ -15,6 +15,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   var that = this;
 
   this.refreshAll = function refreshAll() {
+    console.log('refreshAll');
     if(!that.instance.drawn) {
       return;
     }
@@ -58,6 +59,7 @@ WalkontableScrollbars.prototype.destroy = function () {
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
+  console.log('refresh');
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.refresh(selectionsOnly);
