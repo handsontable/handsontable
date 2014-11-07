@@ -56,6 +56,7 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
   this.readSettings(); //read window scroll position
+  this.instance.draw(true);
   this.instance.getSetting('onScrollHorizontally');
 };
 
@@ -77,18 +78,15 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
-  //console.log(this.fixedContainer);
-  //console.log('total', total);
+
   this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 4 + 'px';
 
-  //console.log(this.fixedContainer.style.width);
   if (typeof this.instance.wtViewport.columnsCalculator.renderStartPosition === 'number'){
     this.fixed.style.left = this.instance.wtViewport.columnsCalculator.renderStartPosition + 'px';
   }
   else if (total === 0) {
-    this.fixed.style.top = '0';
-  }
-  else{
+    this.fixed.style.left = '0';
+  } else {
     throw  new Error('Incorrect value of the columnsCalculator');
   }
   this.fixed.style.right = '';

@@ -39,6 +39,7 @@ function WalkontableSettings(instance, settings) {
     selections: null,
     hideBorderOnMouseDownOver: false,
     viewportRowCalculatorOverride: null,
+    viewportColumnCalculatorOverride: null,
 
     //callbacks
     onCellMouseDown: null,

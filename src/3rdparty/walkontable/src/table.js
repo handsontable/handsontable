@@ -122,7 +122,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     var oldRowsCalculator = this.instance.wtViewport.rowsCalculator;
     var oldColumnsCalculator = this.instance.wtViewport.columnsCalculator;
     this.instance.wtViewport.rowsCalculator = null; //delete temporarily to make sure that renderers always use rowsPreCalculator, not rowsCalculator
-    //this.instance.wtViewport.columnsCalculator = null;
+    this.instance.wtViewport.columnsCalculator = null;
   }
 
   if (!fastDraw) {
@@ -415,7 +415,6 @@ WalkontableTable.prototype.getVisibleColumnsCount = function () {
 };
 
 WalkontableTable.prototype.getRenderedColumnsCount = function () {
-
   return this.instance.wtViewport.columnsPreCalculator.countRenderedColumns;
   //return this.instance.wtViewport.columnsCalculator.countRenderedColumns;
 };

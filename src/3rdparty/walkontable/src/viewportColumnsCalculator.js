@@ -1,4 +1,4 @@
-function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn) {
+function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, stretchH) {
   this.scrollOffset = scrollOffset;
   this.renderStartColumn = null;
   this.renderEndColumn = null;
@@ -7,6 +7,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   this.visibleEndColumn = null;
   this.countRenderedColumns = 0;
   this.countVisibleColumns = 0;
+  this.stretch = stretchH;
 
   var sum = 0;
   var columnWidth;
@@ -74,4 +75,28 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     this.countVisibleColumns = this.visibleEndColumn - this.visibleStartColumn + 1;
   }
 
+
+  //var remainingSize = width - sum;
+  if (this.stretchH === 'all') {
+    //if (this.remainingSize < 0) {
+    //  var ratio = width / this.cellSizesSum;
+    //  var newSize;
+		//
+    //  while (i < this.cellCount - 1) { //"i < this.cellCount - 1" is needed because last cellSize is adjusted after the loop
+    //    newSize = Math.floor(ratio * this.cellSizes[i]);
+    //    this.remainingSize += newSize - this.cellSizes[i];
+    //    this.cellStretch[i] = newSize - this.cellSizes[i];
+    //    i++;
+    //  }
+    //  this.cellStretch[this.cellCount - 1] = -this.remainingSize;
+    //  this.remainingSize = 0;
+    //}
+  }
+  else if (this.stretchH === 'last') {
+    //if (this.remainingSize < 0 && containerSize !== Infinity) { //Infinity is with native scroll when the table is wider than the viewport (TODO: test)
+    //  this.cellStretch[this.cellCount - 1] = -this.remainingSize;
+    //  this.remainingSize = 0;
+    //}
+  }
 }
+

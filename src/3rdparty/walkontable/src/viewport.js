@@ -196,7 +196,9 @@ WalkontableViewport.prototype.createColumnsCalculator = function () {
     this.instance.getSetting('totalColumns'),
     function (sourceCol) {
       return that.instance.wtTable.getColumnWidth(sourceCol);
-    }
+    },
+    this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
+    this.instance.getSetting('stretchH')
   )
 };
 
@@ -235,7 +237,6 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, ol
   else {
     this.columnsCalculator = this.createColumnsCalculator();
   }
-  //TODO repeat the above for colsCalculator
 };
 
 /**
