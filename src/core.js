@@ -1022,7 +1022,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     priv.isPopulated = false;
     GridSettings.prototype.data = data;
 
-    if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
+    if (Handsontable.helper.isArray(priv.settings.dataSchema) || Handsontable.helper.isArray(data[0])) {
       instance.dataType = 'array';
     }
     else if (typeof priv.settings.dataSchema === 'function') {
