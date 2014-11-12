@@ -16,7 +16,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   var startPositions = [];
 
   for (var i = 0; i< totalColumns; i++) {
-    columnWidth = columnWidthFn[i];
+    columnWidth = columnWidthFn(i);
     if (columnWidth === undefined) {
       columnWidth = defaultColumnWidth;
     }
@@ -68,7 +68,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     this.renderStartPosition = null;
   }
 
-  if (this.renderStartPosition != null) {
+  if (this.renderStartColumn != null) {
     this.countRenderedColumns = this.renderEndColumn - this.renderStartColumn + 1;
   }
   if (this.visibleStartColumn != null) {
