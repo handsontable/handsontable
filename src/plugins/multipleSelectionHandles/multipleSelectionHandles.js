@@ -5,6 +5,8 @@
     this.instance = instance;
     this.dragged = [];
 
+    this.eventManager = Handsontable.eventManager(instance);
+
     this.bindTouchEvents();
   }
 
@@ -184,52 +186,56 @@
       }
     };
 
-    this.instance.rootElement.on("touchstart", ".topLeftSelectionHandle-HitArea", function (event) {
+    this.eventManager.addEventListener(this.instance.rootElement,'touchstart', function (event) {
+      if(Handsontable.Dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        that.dragged.push("topLeft");
+        var selectedRange = that.instance.getSelectedRange();
+        that.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
+        event.preventDefault();
 
-      that.dragged.push("topLeft");
-      var selectedRange = that.instance.getSelectedRange();
-      that.touchStartRange = {
-        width: selectedRange.getWidth(),
-        height: selectedRange.getHeight(),
-        direction: selectedRange.getDirection()
-      };
-      event.preventDefault();
+        return false;
+      } else if (Handsontable.Dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        that.dragged.push("bottomRight");
+        var selectedRange = that.instance.getSelectedRange();
+        that.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
+        event.preventDefault();
 
-      return false;
-    }).on("touchstart", ".bottomRightSelectionHandle-HitArea", function (event) {
+        return false;
+      }
+    });
 
-      that.dragged.push("bottomRight");
-      var selectedRange = that.instance.getSelectedRange();
-      that.touchStartRange = {
-        width: selectedRange.getWidth(),
-        height: selectedRange.getHeight(),
-        direction: selectedRange.getDirection()
-      };
-      event.preventDefault();
+    this.eventManager.addEventListener(this.instance.rootElement,'touchend', function (event) {
+      if(Handsontable.Dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        removeFromDragged.call(that, "topLeft");
+        that.touchStartRange = void 0;
+        event.preventDefault();
 
-      return false;
-    }).on("touchend", ".topLeftSelectionHandle-HitArea", function (event) {
+        return false;
+      } else if (Handsontable.Dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        removeFromDragged.call(that, "bottomRight");
+        that.touchStartRange = void 0;
+        event.preventDefault();
 
-      removeFromDragged.call(that, "topLeft");
-      that.touchStartRange = void 0;
-      event.preventDefault();
+        return false;
+      }
+    });
 
-      return false;
-    }).on("touchend", ".bottomRightSelectionHandle-HitArea", function (event) {
-
-      removeFromDragged.call(that, "bottomRight");
-      that.touchStartRange = void 0;
-      event.preventDefault();
-
-      return false;
-    }).on("touchmove", function (event) {
+    this.eventManager.addEventListener(this.instance.rootElement,'touchmove', function (event) {
       var scrollTop = Handsontable.Dom.getWindowScrollTop()
         , scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
       if (that.dragged.length > 0) {
         var endTarget = document.elementFromPoint(
-          event.originalEvent.touches[0].screenX - scrollLeft,
-          event.originalEvent.touches[0].screenY - scrollTop
+          event.touches[0].screenX - scrollLeft,
+          event.touches[0].screenY - scrollTop
         );
 
         if(!endTarget) {
@@ -252,7 +258,7 @@
             that.instance.selection.setRangeEnd(targetCoords);
           }
 
-         var newRangeCoords = that.getCurrentRangeCoords(selectedRange, targetCoords, that.touchStartRange.direction, rangeDirection, that.dragged[0]);
+          var newRangeCoords = that.getCurrentRangeCoords(selectedRange, targetCoords, that.touchStartRange.direction, rangeDirection, that.dragged[0]);
 
           if(newRangeCoords.start != null) {
             that.instance.selection.setRangeStart(newRangeCoords.start);
@@ -264,6 +270,87 @@
         event.preventDefault();
       }
     });
+
+    //this.instance.rootElement.on("touchstart", ".topLeftSelectionHandle-HitArea", function (event) {
+    //
+    //  that.dragged.push("topLeft");
+    //  var selectedRange = that.instance.getSelectedRange();
+    //  that.touchStartRange = {
+    //    width: selectedRange.getWidth(),
+    //    height: selectedRange.getHeight(),
+    //    direction: selectedRange.getDirection()
+    //  };
+    //  event.preventDefault();
+    //
+    //  return false;
+    //}).on("touchstart", ".bottomRightSelectionHandle-HitArea", function (event) {
+    //
+    //  that.dragged.push("bottomRight");
+    //  var selectedRange = that.instance.getSelectedRange();
+    //  that.touchStartRange = {
+    //    width: selectedRange.getWidth(),
+    //    height: selectedRange.getHeight(),
+    //    direction: selectedRange.getDirection()
+    //  };
+    //  event.preventDefault();
+    //
+    //  return false;
+    //}).on("touchend", ".topLeftSelectionHandle-HitArea", function (event) {
+    //
+    //  removeFromDragged.call(that, "topLeft");
+    //  that.touchStartRange = void 0;
+    //  event.preventDefault();
+    //
+    //  return false;
+    //}).on("touchend", ".bottomRightSelectionHandle-HitArea", function (event) {
+    //
+    //  removeFromDragged.call(that, "bottomRight");
+    //  that.touchStartRange = void 0;
+    //  event.preventDefault();
+    //
+    //  return false;
+    //on("touchmove", function (event) {
+    //  var scrollTop = Handsontable.Dom.getWindowScrollTop()
+    //    , scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+    //
+    //  if (that.dragged.length > 0) {
+    //    var endTarget = document.elementFromPoint(
+    //      event.originalEvent.touches[0].screenX - scrollLeft,
+    //      event.originalEvent.touches[0].screenY - scrollTop
+    //    );
+    //
+    //    if(!endTarget) {
+    //      return;
+    //    }
+    //
+    //    if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
+    //      var targetCoords = that.instance.getCoords(endTarget);
+    //
+    //      if(targetCoords.col == -1) {
+    //        targetCoords.col = 0;
+    //      }
+    //
+    //      var selectedRange = that.instance.getSelectedRange()
+    //        , rangeWidth = selectedRange.getWidth()
+    //        , rangeHeight = selectedRange.getHeight()
+    //        , rangeDirection = selectedRange.getDirection();
+    //
+    //      if (rangeWidth == 1 && rangeHeight == 1) {
+    //        that.instance.selection.setRangeEnd(targetCoords);
+    //      }
+    //
+    //     var newRangeCoords = that.getCurrentRangeCoords(selectedRange, targetCoords, that.touchStartRange.direction, rangeDirection, that.dragged[0]);
+    //
+    //      if(newRangeCoords.start != null) {
+    //        that.instance.selection.setRangeStart(newRangeCoords.start);
+    //      }
+    //      that.instance.selection.setRangeEnd(newRangeCoords.end);
+    //
+    //    }
+    //
+    //    event.preventDefault();
+    //  }
+    //});
   };
 
   MultipleSelectionHandles.prototype.isDragged = function () {

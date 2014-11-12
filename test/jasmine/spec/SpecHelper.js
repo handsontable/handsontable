@@ -44,6 +44,16 @@ var isFillHandleVisible = function () {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
+var getCorrespondingOverlay = function (cell, container) {
+  var overlay = $(cell).parents(".handsontable");
+  if(overlay[0] == container[0]) {
+    return $(".ht_master");
+  } else {
+    return $(overlay[0]);
+  }
+};
+
+
 /**
  * Shows context menu
  */
@@ -225,6 +235,15 @@ var serveImmediatePropagation = function (event) {
   return event;
 };
 
+var triggerTouchEvent = function (type, target) {
+  var e = document.createEvent('TouchEvent');
+  var targetCoords = target.getBoundingClientRect();
+  e.touches = [{pageX: parseInt(targetCoords.left + 3,10), pageY: parseInt(targetCoords.top + 3,10)}];
+
+  e.initUIEvent(type, true, true);
+  target.dispatchEvent(e);
+};
+
 var autocompleteEditor = function () {
   return spec().$container.find('.handsontableInput');
 };
@@ -327,6 +346,7 @@ var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
 var addHook = handsontableMethodFactory('addHook');
+var getActiveEditor = handsontableMethodFactory('getActiveEditor');
 
 /**
  * Creates 2D array of Excel-like values "A1", "A2", ...

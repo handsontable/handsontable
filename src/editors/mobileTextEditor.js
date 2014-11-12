@@ -9,6 +9,8 @@
     this.createElements();
     this.bindEvents();
 
+    this.eventManager = new Handsontable.eventManager(this.instance);
+
     this.instance.addHook('afterDestroy', function () {
       that.destroy();
     })
@@ -72,6 +74,8 @@
   MobileTextEditor.prototype.onBeforeKeyDown = function (event) {
     var instance = this;
     var that = instance.getActiveEditor();
+
+    event = that.eventManager.serveImmediatePropagation(event);
 
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
       return;
@@ -269,6 +273,8 @@
     }
     this.moveHandle.removeEventListener("touchstart");
     this.moveHandle.removeEventListener("touchmove");
+
+    this.editorContainer.parentNode.removeChild(this.editorContainer);
   };
 
   Handsontable.editors.MobileTextEditor = MobileTextEditor;

@@ -15,7 +15,7 @@ describe("MultipleSelectionHandles", function () {
 
   describe("at init:", function () {
 
-    it("should add 2 selection handles if mobile device is detected", function () {
+    it("should add 2 visible selection handles (for each overlay) if mobile device is detected", function () {
       var hot = handsontable({
           data: createSpreadsheetObjectData(10, 5),
           width: 400,
@@ -42,21 +42,21 @@ describe("MultipleSelectionHandles", function () {
       selected = hot.getSelected();
       overlay = getCorrespondingOverlay(hot.getCell(selected[0], selected[1], true), this.$container);
 
-      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current - 2 may be redundant
+      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current
       expect(overlay.find(".topLeftSelectionHandle").size()).toEqual(3);
 
       hot.selectCell(0, 3);
       selected = hot.getSelected();
       overlay = getCorrespondingOverlay(hot.getCell(selected[0], selected[1], true), this.$container);
 
-      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current - 2 may be redundant
+      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current
       expect(overlay.find(".topLeftSelectionHandle").size()).toEqual(3);
 
       hot.selectCell(3, 0);
       selected = hot.getSelected();
       overlay = getCorrespondingOverlay(hot.getCell(selected[0], selected[1], true), this.$container);
 
-      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current - 2 may be redundant
+      expect(overlay.find(".bottomRightSelectionHandle").size()).toEqual(3); // one for area, fill and current
       expect(overlay.find(".topLeftSelectionHandle").size()).toEqual(3);
 
     });

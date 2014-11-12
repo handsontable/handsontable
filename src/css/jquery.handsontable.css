@@ -439,8 +439,8 @@ Comment For Cell
   -webkit-text-size-adjust: none;
 }
 
-.topLeftSelectionHandle,
-.topLeftSelectionHandle-HitArea {
+.topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
+.topLeftSelectionHandle-HitArea:not(.ht_master .topLeftSelectionHandle-HitArea) {
   z-index: 9999;
 }
 
@@ -513,6 +513,7 @@ Comment For Cell
   display: inline-block;
   margin-top: -8px;
   color: #ebebeb;
+  z-index: 9999;
 }
 
 #mobile-editor-container .position-controls {

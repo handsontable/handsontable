@@ -23,17 +23,9 @@
     var keyCodes = Handsontable.helper.keyCode;
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
-    if (event != null && event.isImmediatePropagationEnabled == null) {
-      event.stopImmediatePropagation = function () {
-        this.isImmediatePropagationEnabled = false;
-        this.cancelBubble = true;
-      };
-      event.isImmediatePropagationEnabled = true;
-      event.isImmediatePropagationStopped = function () {
-        return !this.isImmediatePropagationEnabled;
-      };
-    }
+    var eventManager = new Handsontable.eventManager(instance);
 
+    event = eventManager.serveImmediatePropagation(event);
 
     //Process only events that have been fired in the editor
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){

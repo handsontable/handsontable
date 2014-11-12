@@ -24,16 +24,7 @@
           return;
         }
 
-        if (event != null && event.isImmediatePropagationEnabled == null) {
-          event.stopImmediatePropagation = function () {
-            this.isImmediatePropagationEnabled = false;
-            this.cancelBubble = true;
-          };
-          event.isImmediatePropagationEnabled = true;
-          event.isImmediatePropagationStopped = function () {
-            return !this.isImmediatePropagationEnabled;
-          };
-        }
+        event = eventManager.serveImmediatePropagation(event);
 
         if (!event.isImmediatePropagationStopped()) {
 

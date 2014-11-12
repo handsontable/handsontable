@@ -670,7 +670,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if(Handsontable.mobileBrowser) {
-      Handsontable.Dom.addClass(instance.rootElement[0], 'mobile');
+      Handsontable.Dom.addClass(instance.rootElement, 'mobile');
     }
 
     this.updateSettings(priv.settings, true);

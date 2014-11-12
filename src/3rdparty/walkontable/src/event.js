@@ -59,7 +59,7 @@ function WalkontableEvent(instance) {
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
     setTimeout(function () {
-      if(that.instance.touchMoving == true) {
+      if (that.instance.touchMoving == true) {
         that.instance.touchMoving = void 0;
 
         container.removeEventListener("touchmove", onTouchMove, false);
@@ -68,9 +68,10 @@ function WalkontableEvent(instance) {
       } else {
         onMouseDown(event);
       }
-    },30);
+    }, 30);
 
-    $(that.instance.wtTable.holder).off('mousedown');
+    //$(that.instance.wtTable.holder).off('mousedown');
+    that.instance.wtTable.holder.removeEventListener("mousedown");
   };
 
   var lastMouseOver;
@@ -85,19 +86,19 @@ function WalkontableEvent(instance) {
     }
   };
 
-/*  var lastMouseOut;
-  var onMouseOut = function (event) {
-    if (that.instance.hasSetting('onCellMouseOut')) {
-      var TABLE = that.instance.wtTable.TABLE;
-      var TD = Handsontable.Dom.closest(event.target, ['TD', 'TH'], TABLE);
-      if (TD && TD !== lastMouseOut && Handsontable.Dom.isChildOf(TD, TABLE)) {
-        lastMouseOut = TD;
-        if (TD.nodeName === 'TD') {
-          that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(TD), TD);
-        }
-      }
-    }
-  };*/
+  /*  var lastMouseOut;
+   var onMouseOut = function (event) {
+   if (that.instance.hasSetting('onCellMouseOut')) {
+   var TABLE = that.instance.wtTable.TABLE;
+   var TD = Handsontable.Dom.closest(event.target, ['TD', 'TH'], TABLE);
+   if (TD && TD !== lastMouseOut && Handsontable.Dom.isChildOf(TD, TABLE)) {
+   lastMouseOut = TD;
+   if (TD.nodeName === 'TD') {
+   that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(TD), TD);
+   }
+   }
+   }
+   };*/
 
   var onMouseUp = function (event) {
     if (event.button !== 2) { //if not right mouse button
@@ -132,24 +133,51 @@ function WalkontableEvent(instance) {
     event.preventDefault();
     onMouseUp(event);
 
-    $(that.instance.wtTable.holder).off('mouseup');
+    //$(that.instance.wtTable.holder).off('mouseup');
+    that.instance.wtTable.holder.removeEventListener("mouseup");
   };
 
 
-  eventManager.addEventListener(this.instance.wtTable.holder,'mousedown', onMouseDown);
+  eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
 
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
-  var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
 
-  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchstart', classSelector, onTouchStart);
-  $(this.instance.wtTable.holder.parentNode.parentNode).on('touchend', classSelector, onTouchEnd);
+  if(this.instance.wtTable.holder.parentNode.parentNode) { // check if full HOT instance, or detached WOT
+    var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
+    var queryParents = function (elem) {
+      var level = 0
+        , queriedParent = document.querySelector(classSelector)
+        , parent = elem.parentNode;
+
+      while(level < 8 && parent != queriedParent) {
+        parent = parent.parentNode;
+        level++;
+      }
+
+      return parent == queriedParent;
+    };
+
+    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchstart', function (event) {
+      if (queryParents(event.target)) {
+        onTouchStart.call(event.target, event);
+      }
+    });
+    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchend', function (event) {
+      if (queryParents(event.target)) {
+        onTouchEnd.call(event.target, event);
+      }
+    });
+  }
 
 
- 
-  eventManager.addEventListener(window, 'resize', function() {
+  //$(this.instance.wtTable.holder.parentNode.parentNode).on('touchstart', classSelector, onTouchStart);
+  //$(this.instance.wtTable.holder.parentNode.parentNode).on('touchend', classSelector, onTouchEnd);
+
+
+  eventManager.addEventListener(window, 'resize', function () {
     that.instance.draw();
   });
 }
@@ -166,7 +194,7 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
-    if (this.instance.selections[1].cellRange){
+    if (this.instance.selections[1].cellRange) {
       cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
       cell.TD = this.instance.wtTable.getCell(cell.coords);
     }

@@ -23,7 +23,6 @@ function WalkontableBorder(instance, settings) {
 
     var hitAreaStyle = {
       'position': 'absolute',
-      'z-index': '99999',
       'height': hitAreaWidth + 'px',
       'width': hitAreaWidth + 'px',
       'border-radius': parseInt(hitAreaWidth/1.5,10) + 'px'
@@ -234,6 +233,14 @@ WalkontableBorder.prototype.appear = function (corners) {
       this.selectionHandles.styles.bottomRight.display = "none";
       this.selectionHandles.styles.topLeftHitArea.display = "none";
       this.selectionHandles.styles.bottomRightHitArea.display = "none";
+    }
+
+    if(fromRow == this.instance.wtSettings.getSetting('fixedRowsTop') || fromColumn == this.instance.wtSettings.getSetting('fixedColumnsLeft')) {
+      this.selectionHandles.styles.topLeft.zIndex = "9999";
+      this.selectionHandles.styles.topLeftHitArea.zIndex = "9999";
+    } else {
+      this.selectionHandles.styles.topLeft.zIndex = "";
+      this.selectionHandles.styles.topLeftHitArea.zIndex = "";
     }
 
   };

@@ -227,16 +227,7 @@ Handsontable.TableView = function (instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (event != null && event.isImmediatePropagationEnabled == null) {
-        event.stopImmediatePropagation = function () {
-          this.isImmediatePropagationEnabled = false;
-          this.cancelBubble = true;
-        };
-        event.isImmediatePropagationEnabled = true;
-        event.isImmediatePropagationStopped = function () {
-          return !this.isImmediatePropagationEnabled;
-        };
-      }
+      event = that.eventManager.serveImmediatePropagation(event);
 
       if (!event.isImmediatePropagationStopped()) {
 
