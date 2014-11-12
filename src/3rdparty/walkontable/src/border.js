@@ -339,7 +339,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.rightStyle.height = height + 1 + 'px';
   this.rightStyle.display = 'block';
 
-  if (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this)) {
+  if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this))) {
     this.cornerStyle.display = 'none';
   }
   else {

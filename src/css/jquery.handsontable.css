@@ -444,6 +444,15 @@ Comment For Cell
   z-index: 9999;
 }
 
+/* Initial left/top coordinates - overwritten when actual position is set */
+.topLeftSelectionHandle,
+.topLeftSelectionHandle-HitArea,
+.bottomRightSelectionHandle,
+.bottomRightSelectionHandle-HitArea {
+  left: -10000px;
+  top: -10000px;
+}
+
 #mobile-editor-container.active {
   display: block;
 }
@@ -461,6 +470,9 @@ Comment For Cell
   font-size: 13pt;
   border: 1px solid #a1a1a1;
   -webkit-appearance: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
   padding: 4pt;
   position: absolute;
   left: 14px;
@@ -480,6 +492,10 @@ Comment For Cell
   border-left: 13pt solid transparent;
   border-right: 13pt solid transparent;
   border-bottom: 13pt solid #ebebeb;
+}
+
+#mobile-editor-container .cell-pointer.hidden {
+  display: none;
 }
 
 #mobile-editor-container .cell-pointer:before {

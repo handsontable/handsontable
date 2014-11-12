@@ -58,6 +58,8 @@
     this.positionControls.className = "position-controls";
 
     this.TEXTAREA = document.createElement('TEXTAREA');
+    Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
+
     this.inputPane.appendChild(this.TEXTAREA);
 
     this.editorContainer.appendChild(this.cellPointer);
@@ -99,7 +101,9 @@
 
     Handsontable.Dom.addClass(this.editorContainer, 'active');
     //this.updateEditorDimensions();
-    this.scrollToView();
+    //this.scrollToView();
+    Handsontable.Dom.removeClass(this.cellPointer, 'hidden');
+
     this.updateEditorPosition();
   };
 
@@ -118,6 +122,12 @@
   MobileTextEditor.prototype.scrollToView = function () {
     var coords = this.instance.getSelectedRange().highlight;
     this.instance.view.scrollViewport(coords);
+  };
+
+  MobileTextEditor.prototype.hideCellPointer = function () {
+    if(!Handsontable.Dom.hasClass(this.cellPointer, 'hidden')) {
+      Handsontable.Dom.addClass(this.cellPointer, 'hidden');
+    }
   };
 
   MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
@@ -253,13 +263,14 @@
 
         this.addEventListener("touchmove", function (event) {
           that.updateEditorPosition(touch.pageX - onTouchOffset.x, touch.pageY - onTouchOffset.y);
+          that.hideCellPointer();
           event.preventDefault();
         });
 
       }
     });
 
-
+    
     document.body.addEventListener("gestureend", function () {
       //that.updateEditorDimensions();
       that.updateEditorPosition();
