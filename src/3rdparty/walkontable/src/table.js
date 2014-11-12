@@ -383,7 +383,6 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
 //};
 
 WalkontableTable.prototype.getRenderedRowsCount = function () {
-  console.log(this.instance.wtViewport.rowsPreCalculator.countRendered);
   return this.instance.wtViewport.rowsPreCalculator.countRendered;
 };
 
