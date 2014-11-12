@@ -32,7 +32,7 @@ WalkontableTableRenderer.prototype.render = function () {
     , adjusted = false
     , workspaceWidth
     , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered
-    , horizontalCloneLimit = this.instance.wtViewport.columnsPreCalculator.countRendered;
+    , horizontalCloneLimit = this.instance.wtViewport.columnsPreCalculator.countRenderedColumns;
 
   if (totalColumns > 0) {
     if (this.wtTable.isWorkingOnClone()) {
@@ -333,11 +333,8 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
 
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
   var columnCount = this.wtTable.getRenderedColumnsCount();
-  //if(this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative)
-  //{
-  //  debugger;
-  //}
 
+  console.log('columnCount', columnCount);
   //adjust COLGROUP
   while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
     this.COLGROUP.appendChild(document.createElement('COL'));
