@@ -28,7 +28,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
 
     elem.style.top = this.instance.wtTable.hider.style.top;
   }
-  else {
+  else if(!Handsontable.freezeOverlays) {
     elem.style.top = this.instance.wtTable.hider.style.top;
     elem.style.left = this.getScrollPosition() + "px";
   }

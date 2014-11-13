@@ -145,7 +145,7 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
 
-  if(this.instance.wtTable.holder.parentNode.parentNode) { // check if full HOT instance, or detached WOT
+  if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser) { // check if full HOT instance, or detached WOT
     var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
     var queryParents = function (elem) {
       var level = 0
@@ -161,14 +161,36 @@ function WalkontableEvent(instance) {
     };
 
     eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchstart', function (event) {
+      that.instance.touchApplied = true;
       if (queryParents(event.target)) {
         onTouchStart.call(event.target, event);
       }
     });
     eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchend', function (event) {
+      that.instance.touchApplied = false;
       if (queryParents(event.target)) {
         onTouchEnd.call(event.target, event);
       }
+    });
+
+    if(!that.instance.momentumScrolling) {
+      that.instance.momentumScrolling = {};
+    }
+    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'scroll', function (event) {
+      clearTimeout(that.instance.momentumScrolling._timeout);
+
+      if(!that.instance.momentumScrolling.ongoing) {
+        that.instance.getSetting('onBeforeTouchScroll');
+      }
+      that.instance.momentumScrolling.ongoing = true;
+
+      that.instance.momentumScrolling._timeout = setTimeout(function () {
+        if(!that.instance.touchApplied) {
+          that.instance.momentumScrolling.ongoing = false;
+
+          that.instance.getSetting('onAfterMomentumScroll');
+        }
+      },200);
     });
   }
 

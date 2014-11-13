@@ -473,13 +473,12 @@ Comment For Cell
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
-  padding: 4pt;
   position: absolute;
   left: 14px;
   right: 14px;
   top: 0;
   bottom: 0;
-  padding: 5pt;
+  padding: 7pt;
 }
 
 #mobile-editor-container .cell-pointer {
@@ -555,12 +554,21 @@ Comment For Cell
   line-height: 50pt;
 }
 
+#mobile-editor-container .left-button:after,
+#mobile-editor-container .right-button:after,
+#mobile-editor-container .up-button:after,
+#mobile-editor-container .down-button:after {
+  transform-origin: 5pt 5pt;
+  -webkit-transform-origin: 5pt 5pt;
+  margin: 21pt 0 0 21pt;
+}
+
 #mobile-editor-container .left-button:after {
   border-top: 2px solid #288ffe;
   border-left: 2px solid #288ffe;
   -webkit-transform: rotate(-45deg);
-  margin-top: 17pt;
-  margin-left: 20pt;
+  /*margin-top: 17pt;*/
+  /*margin-left: 20pt;*/
 }
 #mobile-editor-container .left-button:active:after {
   border-color: #cfcfcf;
@@ -570,8 +578,8 @@ Comment For Cell
   border-top: 2px solid #288ffe;
   border-left: 2px solid #288ffe;
   -webkit-transform: rotate(135deg);
-  margin-top: 17pt;
-  margin-left: 10pt;
+  /*margin-top: 17pt;*/
+  /*margin-left: 10pt;*/
 }
 #mobile-editor-container .right-button:active:after {
   border-color: #cfcfcf;
@@ -582,8 +590,8 @@ Comment For Cell
   border-top: 2px solid #288ffe;
   border-left: 2px solid #288ffe;
   -webkit-transform: rotate(45deg);
-  margin-top: 22pt;
-  margin-left: 15pt;
+  /*margin-top: 22pt;*/
+  /*margin-left: 15pt;*/
 }
 #mobile-editor-container .up-button:active:after {
   border-color: #cfcfcf;
@@ -593,8 +601,8 @@ Comment For Cell
   border-top: 2px solid #288ffe;
   border-left: 2px solid #288ffe;
   -webkit-transform: rotate(225deg);
-  margin-top: 15pt;
-  margin-left: 15pt;
+  /*margin-top: 15pt;*/
+  /*margin-left: 15pt;*/
 }
 #mobile-editor-container .down-button:active:after {
   border-color: #cfcfcf;

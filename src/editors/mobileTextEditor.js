@@ -13,7 +13,8 @@
 
     this.instance.addHook('afterDestroy', function () {
       that.destroy();
-    })
+    });
+
   };
 
   MobileTextEditor.prototype.getValue = function () {
@@ -270,7 +271,7 @@
       }
     });
 
-    
+
     document.body.addEventListener("gestureend", function () {
       //that.updateEditorDimensions();
       that.updateEditorPosition();
@@ -290,5 +291,7 @@
 
   Handsontable.editors.MobileTextEditor = MobileTextEditor;
   Handsontable.editors.registerEditor('mobile', Handsontable.editors.MobileTextEditor);
+
+
 
 })(Handsontable);
