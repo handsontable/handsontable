@@ -6,7 +6,6 @@ describe('manualColumnMove', function () {
   });
 
   afterEach(function () {
-    return
     if (this.$container) {
       destroy();
       this.$container.remove();
