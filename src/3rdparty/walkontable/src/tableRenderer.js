@@ -14,7 +14,6 @@ function WalkontableTableRenderer(wtTable) {
 }
 
 WalkontableTableRenderer.prototype.render = function () {
-  console.log('render');
   if (!this.wtTable.isWorkingOnClone()) {
     this.instance.getSetting('beforeDraw', true);
   }
@@ -31,32 +30,20 @@ WalkontableTableRenderer.prototype.render = function () {
     , displayTds
     , adjusted = false
     , workspaceWidth
-    , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered
-    , horizontalCloneLimit = this.instance.wtViewport.columnsPreCalculator.countRenderedColumns;
+    , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered;
 
   if (totalColumns > 0) {
     if (this.wtTable.isWorkingOnClone()) {
-      if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative) {
+      if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
         cloneLimit = this.fixedRowsTop;
       }
-      else if(this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative) {
-        horizontalCloneLimit = this.fixedColumnsLeft;
-      }
-      else if (this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
-        cloneLimit = this.fixedRowsTop;
-        horizontalCloneLimit = this.fixedColumnsLeft;
-      }
-
       else if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
         cloneLimit = totalRows;
-        horizontalCloneLimit = totalColumns;
       }
     }
 
     this.adjustAvailableNodes();
     adjusted = true;
-
-
 
     this.renderColGroups();
 
@@ -71,6 +58,7 @@ WalkontableTableRenderer.prototype.render = function () {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.instance.wtViewport.containerWidth = null;
       //TODO
+      this.instance.wtViewport.columnsPreCalculator.stretch();
       //this.wtTable.getColumnStrategy().stretch();
     }
 
@@ -79,6 +67,7 @@ WalkontableTableRenderer.prototype.render = function () {
 
   if (!adjusted) {
     this.adjustAvailableNodes();
+    this.instance.wtViewport.columnsPreCalculator.stretch();
   }
 
   this.removeRedundantRows(cloneLimit);
@@ -125,12 +114,14 @@ WalkontableTableRenderer.prototype.removeRedundantRows = function (renderedRowsC
 };
 
 WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit, displayTds) {
-  console.log('renderRows');
   var lastTD, TR;
   var visibleRowIndex = 0;
   var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
   var isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
+
+
+  console.log(sourceRowIndex);
   while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
     if (visibleRowIndex > 1000) {
       throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
@@ -201,29 +192,32 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
+  //var visibleColIndex = this.instance.wtViewport.columnsPreCalculator.visibleStartColumn;
+
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-    sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
-    if (visibleColIndex === 0) {
-      TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
+      sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
+      if (visibleColIndex === 0) {
+        TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
+      }
+      else {
+        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+      }
+
+      //If the number of headers has been reduced, we need to replace excess TH with TD
+      if (TD.nodeName == 'TH') {
+        TD = this.utils.replaceThWithTd(TD, TR);
+      }
+
+      if (!Handsontable.Dom.hasClass(TD, 'hide')) {
+        TD.className = '';
+      }
+
+      TD.removeAttribute('style');
+
+      this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
+
     }
-    else {
-      TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
-    }
 
-    //If the number of headers has been reduced, we need to replace excess TH with TD
-    if (TD.nodeName == 'TH') {
-      TD = this.utils.replaceThWithTd(TD, TR);
-    }
-
-    if (!Handsontable.Dom.hasClass(TD, 'hide')) {
-      TD.className = '';
-    }
-
-    TD.removeAttribute('style');
-
-    this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
-
-  }
 
   return TD;
 };
@@ -284,7 +278,6 @@ WalkontableTableRenderer.prototype.renderRowHeader = function(row, col, TH){
 };
 
 WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
-  console.log('this.rowHeaderCount',this.rowHeaderCount);
   for (var TH = TR.firstChild, visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
 
     //If the number of row headers increased we need to create TH or replace an existing TD node with TH
@@ -302,16 +295,13 @@ WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
 
 WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
 
+  //this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
 
   //adjust COLGROUP
   this.adjustColGroups();
 
   //adjust THEAD
   this.adjustThead();
-
-
-  this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
-
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
@@ -334,7 +324,6 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
   var columnCount = this.wtTable.getRenderedColumnsCount();
 
-  console.log('columnCount', columnCount);
   //adjust COLGROUP
   while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
     this.COLGROUP.appendChild(document.createElement('COL'));
