@@ -73,6 +73,7 @@
     });
 
     this.defaultOptions = {
+      width: 200,
       items: [
         {
           key: 'row_above',
@@ -415,8 +416,9 @@
       }
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
+      var width = settings.contextMenu.width || defaultOptions.width;
 
-      this.show(menu, items);
+      this.show(menu, items, width);
       this.setMenuPosition(event, menu);
 
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
@@ -471,7 +473,7 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function (menu, items) {
+  ContextMenu.prototype.show = function (menu, items, width) {
     menu.removeAttribute('style');
     menu.style.display = 'block';
 
@@ -485,7 +487,7 @@
     $(menu).handsontable({
       data: items,
       colHeaders: false,
-      colWidths: [200],
+      colWidths: [width],
       readOnly: true,
       copyPaste: false,
       columns: [
@@ -618,11 +620,12 @@
     if (TD.className.indexOf('htSubmenu') != -1) {
       var selectedItem = hot.getData()[coords.row];
       var items = this.getItems(selectedItem.submenu);
+      var width = selectedItem.submenu.width || defaultOptions.width;
 
       var subMenu = this.createMenu(selectedItem.name, coords.row);
       var tdCoords = TD.getBoundingClientRect();
 
-      this.show(subMenu, items);
+      this.show(subMenu, items, width);
       this.setSubMenuPosition(tdCoords, subMenu);
 
     }
@@ -778,10 +781,11 @@
     function openSubMenu(instance, contextMenu, cell, row) {
       var selectedItem = instance.getData()[row];
       var items = contextMenu.getItems(selectedItem.submenu);
+      var width = selectedItem.submenu.width || defaultOptions.width;
       var subMenu = contextMenu.createMenu(selectedItem.name, row);
       var coords = cell.getBoundingClientRect();
 
-      contextMenu.show(subMenu, items);
+      contextMenu.show(subMenu, items, width);
       contextMenu.setSubMenuPosition(coords, subMenu);
       var subMenuInstance = $(subMenu).handsontable('getInstance');
       subMenuInstance.selectCell(0, 0);
