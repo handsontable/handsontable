@@ -262,3 +262,27 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
   }
   return false;
 };
+
+/**
+ * Returns information whether the current columnsPreCalculator viewport
+ * is contained inside column rendered in previous draw (cached in columnsCalculator)
+ *
+ * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
+ * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
+ *
+ * @returns {boolean}
+ */
+WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function () {
+  if (this.columnsCalculator) {
+    if (this.columnsPreCalculator.visibleStartColumn < this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn > this.columnsCalculator.renderEndColumn) {
+      return false;
+    }
+    else if (this.columnsPreCalculator.scrollOffset !== this.columnsCalculator.scrollOffset && (this.columnsPreCalculator.visibleStartColumn <= this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn >= this.columnsCalculator.renderEndColumn)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
+};

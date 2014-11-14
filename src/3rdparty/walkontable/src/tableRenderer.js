@@ -119,9 +119,6 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
   var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
   var isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
-
-
-  console.log(sourceRowIndex);
   while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
     if (visibleRowIndex > 1000) {
       throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
@@ -192,7 +189,8 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
-  //var visibleColIndex = this.instance.wtViewport.columnsPreCalculator.visibleStartColumn;
+  var visibleColIndex = this.instance.wtViewport.columnsPreCalculator.visibleStartColumn;
+  console.log(visibleColIndex);
 
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
       sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);

@@ -113,7 +113,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
 
   if (fastDraw) {
-    if (!this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered()) {
+    if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered() && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
       fastDraw = false;
     }
   }

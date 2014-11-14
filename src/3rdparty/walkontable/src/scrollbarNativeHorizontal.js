@@ -55,8 +55,8 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
 };
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
-  this.readSettings(); //read window scroll position
-  this.instance.draw(true);
+  //this.readSettings(); //read window scroll position
+
   this.instance.getSetting('onScrollHorizontally');
 };
 
@@ -97,7 +97,6 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param sourceCol {Number}
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol) {
-  console.log('scroll');
   this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
 };
 
