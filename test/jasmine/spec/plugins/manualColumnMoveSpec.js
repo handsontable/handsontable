@@ -6,6 +6,7 @@ describe('manualColumnMove', function () {
   });
 
   afterEach(function () {
+    return
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -713,7 +714,7 @@ describe('manualColumnMove', function () {
   });
 
   it("moving column should keep cell meta created using cell array", function () {
-    handsontable({
+    var hot = handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
         {id: 2, name: "Frank", lastName: "Honest"},
@@ -735,5 +736,80 @@ describe('manualColumnMove', function () {
     moveFirstDisplayedColumnAfterSecondColumn(htCore, 1);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+  });
+
+  it("should reconstruct manualcolpositions after adding columns", function () {
+    var hot = handsontable({
+      data: [
+        ["", "Kia", "Nissan", "Toyota", "Honda"],
+        ["2008", 10, 11, 12, 13],
+        ["2009", 20, 11, 14, 13],
+        ["2010", 30, 15, 12, 13]
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: true,
+      contextMenu: true
+    });
+
+    var htCore = getHtCore();
+
+    selectCell(0, 2);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Nissan');
+
+    moveSecondDisplayedColumnBeforeFirstColumn(htCore, 3);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Kia');
+    expect(hot.manualColumnPositions).toEqual([0, 2, 1, 3, 4]);
+
+    alter('insert_col', 2);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('');
+    expect(hot.manualColumnPositions).toEqual([0, 3, 2, 1, 4, 5]);
+  });
+
+  it("should reconstruct manualcolpositions after removing columns", function () {
+    var hot = handsontable({
+      data: [
+        ["", "Kia", "Nissan", "Toyota", "Honda"],
+        ["2008", 10, 11, 12, 13],
+        ["2009", 20, 11, 14, 13],
+        ["2010", 30, 15, 12, 13]
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: true,
+      contextMenu: true
+    });
+
+    var htCore = getHtCore();
+
+    selectCell(0, 2);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Nissan');
+
+    moveSecondDisplayedColumnBeforeFirstColumn(htCore, 3);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Kia');
+    expect(hot.manualColumnPositions).toEqual([0, 2, 1, 3, 4]);
+
+    alter('remove_col', 2);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Toyota');
+    expect(hot.manualColumnPositions).toEqual([0, 1, 2, 3]);
   });
 });

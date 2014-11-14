@@ -120,7 +120,7 @@ function HandsontableManualColumnMove() {
         		if(col >= 0) { //not TH above row header
           			endCol = col;
           			refreshHandlePosition(e.target, endCol - startCol);
-        		}     	
+        		}
             }
             else {
               setupHandlePosition.call(instance, th);
@@ -250,7 +250,6 @@ function HandsontableManualColumnMove() {
      });
 
       this.manualColumnPositions = colpos;
-      // saveManualColumnPositions()
     };
 
     // need to reconstruct manualcolpositions after adding columns
@@ -279,7 +278,6 @@ function HandsontableManualColumnMove() {
       }
 
       this.manualColumnPositions = colpos;
-      // saveManualColumnPositions()
     };
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
