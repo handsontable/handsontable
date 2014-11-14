@@ -161,6 +161,7 @@ describe('FillHandle', function () {
 
     this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
 
+    // selection should not have changed, because autofill was canceled.
     expect(getSelected()).toEqual([0, 0, 0, 0]);
     expect(getDataAtCell(1, 0)).toEqual(2);
   });
