@@ -4,6 +4,10 @@
 
   var domDimensionsCache = {};
 
+  MobileTextEditor.prototype.valueChanged = function () {
+    return this.initValue != this.getValue();
+  };
+
   MobileTextEditor.prototype.init = function () {
     var that = this;
     this.createElements();
@@ -22,6 +26,8 @@
   };
 
   MobileTextEditor.prototype.setValue = function (newValue) {
+    this.initValue = newValue;
+
     this.TEXTAREA.value = newValue;
   };
 
@@ -213,6 +219,11 @@
   };
 
   MobileTextEditor.prototype.prepareAndSave = function () {
+
+    if(!this.valueChanged()) {
+      return true;
+    }
+
     var val = [
       [String.prototype.trim.call(this.getValue())]
     ];
