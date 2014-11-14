@@ -99,6 +99,135 @@ describe('FillHandle', function () {
     expect(getDataAtCell(1, 0)).toEqual("test");
   });
 
+  it('should allow beforeAutofill to permit autofill', function () {
+    var ev;
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [2, 2, 3, 4, 5, 6],
+        [3, 2, 3, 4, 5, 6],
+        [4, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill: function (start, end, data) {
+        return true;
+      }
+    });
+    selectCell(0, 0);
+
+    ev = jQuery.Event('mousedown');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+
+    ev = jQuery.Event('mouseup');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
+
+    expect(getSelected()).toEqual([0, 0, 2, 0]);
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
+  it('should allow beforeAutofill to prevent autofill', function () {
+    var ev;
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [2, 2, 3, 4, 5, 6],
+        [3, 2, 3, 4, 5, 6],
+        [4, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill: function (start, end, data) {
+        return false;
+      }
+    });
+    selectCell(0, 0);
+
+    ev = jQuery.Event('mousedown');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+
+    ev = jQuery.Event('mouseup');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getDataAtCell(1, 0)).toEqual(2);
+  });
+
+  it('should autofill when beforeAutofill does not return anything', function () {
+    var ev;
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [2, 2, 3, 4, 5, 6],
+        [3, 2, 3, 4, 5, 6],
+        [4, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill: function (start, end, data) {
+        return;
+      }
+    });
+    selectCell(0, 0);
+
+    ev = jQuery.Event('mousedown');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+
+    ev = jQuery.Event('mouseup');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
+
+    expect(getSelected()).toEqual([0, 0, 2, 0]);
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
+  it('should autofill when there is no beforeAutofill hook', function () {
+    var ev;
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [2, 2, 3, 4, 5, 6],
+        [3, 2, 3, 4, 5, 6],
+        [4, 2, 3, 4, 5, 6]
+      ]
+    });
+    selectCell(0, 0);
+
+    ev = jQuery.Event('mousedown');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(ev);
+
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+
+    ev = jQuery.Event('mouseup');
+    ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
+
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
+
+    expect(getSelected()).toEqual([0, 0, 2, 0]);
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', function () {
     var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
     this.$container.appendTo($table.find('td'));
@@ -366,4 +495,3 @@ describe('FillHandle', function () {
   });
 
 });
-

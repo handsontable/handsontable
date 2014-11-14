@@ -206,12 +206,14 @@
 
         _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
 
-        Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
+        // block autofill if beforeAutofill returns false
+        // but only if it returns false, not if it returns undefined, etc.
+        if (Handsontable.hooks.execute(this.instance, 'beforeAutofill', start, end, _data) !== false) {
+          this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill');
 
-        this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill');
-
-        this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-        this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+          this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
+          this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+        }
       } else {
        //reset to avoid some range bug
        this.instance.selection.refreshBorders();
