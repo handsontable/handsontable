@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Nov 14 2014 14:42:46 GMT-0500 (EST)
+ * Date: Fri Nov 14 2014 14:59:30 GMT-0500 (EST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -12686,6 +12686,9 @@ Handsontable.MergeCells = MergeCells;
 
           this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
           this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+        } else {
+          // restore selection borders, clear red outline
+          this.instance.selection.refreshBorders();
         }
       } else {
        //reset to avoid some range bug

@@ -213,6 +213,9 @@
 
           this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
           this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+        } else {
+          // restore selection borders, clear red outline
+          this.instance.selection.refreshBorders();
         }
       } else {
        //reset to avoid some range bug
