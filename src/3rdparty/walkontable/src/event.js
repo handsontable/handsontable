@@ -37,6 +37,31 @@ function WalkontableEvent(instance) {
 
   var longTouchTimeout;
 
+  /**
+   * Update touch event target - if user taps on resize handle 'hit area', update the target to the cell itself
+   * @param event
+   */
+  var adjustTapTarget = function (event) {
+    var currentSelection
+      , properTarget;
+
+    if(event.target.className.indexOf('SelectionHandle') > 0) {
+      if(that.instance.selections[0].cellRange) {
+        currentSelection = that.instance.selections[0].cellRange.highlight;
+
+        properTarget = that.instance.getCell(currentSelection, true);
+      }
+    }
+
+    if(properTarget) {
+      Object.defineProperty(event,'target',{
+        value: properTarget
+      });
+    }
+
+    return event;
+  };
+
   var onTouchStart = function (event) {
     var container = this;
     this.addEventListener("touchmove", onTouchMove, false);
@@ -57,20 +82,22 @@ function WalkontableEvent(instance) {
     //  }
     //},200);
 
-    // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
-    setTimeout(function () {
-      if (that.instance.touchMoving == true) {
-        that.instance.touchMoving = void 0;
+      // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
+      that.checkIfTouchMove = setTimeout(function () {
+        if (that.instance.touchMoving == true) {
+          that.instance.touchMoving = void 0;
 
-        container.removeEventListener("touchmove", onTouchMove, false);
+          container.removeEventListener("touchmove", onTouchMove, false);
 
-        return;
-      } else {
-        onMouseDown(event);
-      }
-    }, 30);
+          return;
+        } else {
 
-    //$(that.instance.wtTable.holder).off('mousedown');
+          event = adjustTapTarget(event);
+
+          onMouseDown(event);
+        }
+      }, 30);
+
     that.instance.wtTable.holder.removeEventListener("mousedown");
   };
 
@@ -131,9 +158,10 @@ function WalkontableEvent(instance) {
     that.instance.longTouch == void 0;
 
     event.preventDefault();
+
+    event = adjustTapTarget(event);
     onMouseUp(event);
 
-    //$(that.instance.wtTable.holder).off('mouseup');
     that.instance.wtTable.holder.removeEventListener("mouseup");
   };
 
@@ -145,7 +173,7 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
 
-  if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser) { // check if full HOT instance, or detached WOT
+  if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser) { // check if full HOT instance, or detached WOT AND run on mobile device
     var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
     var queryParents = function (elem) {
       var level = 0
@@ -193,11 +221,6 @@ function WalkontableEvent(instance) {
       },200);
     });
   }
-
-
-  //$(this.instance.wtTable.holder.parentNode.parentNode).on('touchstart', classSelector, onTouchStart);
-  //$(this.instance.wtTable.holder.parentNode.parentNode).on('touchend', classSelector, onTouchEnd);
-
 
   eventManager.addEventListener(window, 'resize', function () {
     that.instance.draw();
