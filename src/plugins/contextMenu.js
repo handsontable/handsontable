@@ -45,7 +45,6 @@
     }
 
     this.setCellMeta(row, col, 'className', className);
-    this.render();
   }
 
   function align(range, type, alignment) {
@@ -58,6 +57,8 @@
         }
       }
     }
+
+    this.render();
   }
 
   function ContextMenu(instance, customOptions) {
