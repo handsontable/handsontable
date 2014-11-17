@@ -428,3 +428,18 @@ WalkontableTable.prototype.getColumnWidth = function (sourceColumn) {
   }
   return width;
 };
+
+WalkontableTable.prototype.getStretchedColumnWidth = function (sourceColumn) {
+  var allColumns = this.instance.getSetting('totalColumns');
+  var width = this.getColumnWidth(sourceColumn);
+
+  if (this.instance.wtViewport.columnsPreCalculator.stretchAllRatio != 0) {
+    width = width * this.instance.wtViewport.columnsPreCalculator.stretchAllRatio;
+  } else if (this.instance.wtViewport.columnsPreCalculator.stretchLastWidth != 0) {
+    if (sourceColumn == allColumns - 1) {
+      width = this.instance.wtViewport.columnsPreCalculator.stretchLastWidth;
+    }
+  }
+  return width;
+};
+
