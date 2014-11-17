@@ -209,14 +209,14 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth,10) + "px";
     this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth,10) + "px";
 
-    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - hitAreaWidth/2,10) + "px";
-    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - hitAreaWidth/2,10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth/4)*3,10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth/4)*3,10) + "px";
 
     this.selectionHandles.styles.bottomRight.top = parseInt(top + height,10) + "px";
     this.selectionHandles.styles.bottomRight.left = parseInt(left + width,10) + "px";
 
-    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth/2,10) + "px";
-    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth/2,10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth/4,10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth/4,10) + "px";
 
     if(this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
       this.selectionHandles.styles.topLeft.display = "block";

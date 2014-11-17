@@ -2,6 +2,7 @@ function WalkontableEvent(instance) {
   var that = this;
 
   var eventManager = Handsontable.eventManager(instance);
+  this.eventManager = eventManager;
 
   //reference to instance
   this.instance = instance;
@@ -91,8 +92,7 @@ function WalkontableEvent(instance) {
 
           return;
         } else {
-
-          event = adjustTapTarget(event);
+          //event = adjustTapTarget(event);
 
           onMouseDown(event);
         }
@@ -155,11 +155,10 @@ function WalkontableEvent(instance) {
 
   var onTouchEnd = function (event) {
     clearTimeout(longTouchTimeout);
-    that.instance.longTouch == void 0;
+    //that.instance.longTouch == void 0;
 
     event.preventDefault();
 
-    event = adjustTapTarget(event);
     onMouseUp(event);
 
     that.instance.wtTable.holder.removeEventListener("mouseup");
@@ -253,7 +252,5 @@ WalkontableEvent.prototype.destroy = function () {
   clearTimeout(this.dblClickTimeout[1]);
 
   var rootElement = this.instance.wtTable.holder.parentNode.parentNode;
-  $(rootElement).off('touchstart');
-  $(rootElement).off('touchend');
-  $(rootElement).off('touchmove');
+  this.eventManager.clear();
 };

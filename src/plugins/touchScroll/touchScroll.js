@@ -5,6 +5,18 @@ var TouchScroll = (function(instance) {
   TouchScroll.prototype.init = function(instance) {
     this.instance = instance;
     this.bindEvents();
+
+    this.scrollbars = [
+      this.instance.view.wt.wtScrollbars.vertical,
+      this.instance.view.wt.wtScrollbars.horizontal,
+      this.instance.view.wt.wtScrollbars.corner
+    ]
+
+    this.clones = [
+      this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode,
+      this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode,
+      this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode
+    ]
   };
 
   TouchScroll.prototype.bindEvents = function () {
@@ -13,26 +25,32 @@ var TouchScroll = (function(instance) {
     this.instance.addHook('beforeTouchScroll', function () {
       Handsontable.freezeOverlays = true;
 
-      that.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode.style.display = "none";
-      that.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode.style.display = "none";
-      that.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode.style.display = "none";
-      //console.log('before touch scroll');
+      for(var i = 0, cloneCount = that.clones.length; i < cloneCount ; i++) {
+        Handsontable.Dom.addClass(that.clones[i], 'hide-tween');
+      }
     });
 
     this.instance.addHook('afterMomentumScroll', function () {
       Handsontable.freezeOverlays = false;
 
-      that.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode.style.display = "";
-      that.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode.style.display = "";
-      that.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode.style.display = "";
+      for(var i = 0, cloneCount = that.clones.length; i < cloneCount ; i++) {
+        Handsontable.Dom.removeClass(that.clones[i], 'hide-tween');
+      }
 
-      that.instance.view.wt.wtScrollbars.vertical.refresh();
-      that.instance.view.wt.wtScrollbars.vertical.resetFixedPosition();
-      that.instance.view.wt.wtScrollbars.horizontal.refresh();
-      that.instance.view.wt.wtScrollbars.horizontal.resetFixedPosition();
-      that.instance.view.wt.wtScrollbars.corner.refresh();
-      that.instance.view.wt.wtScrollbars.corner.resetFixedPosition();
-      //console.log('after momentum scroll');
+      for(var i = 0, cloneCount = that.clones.length; i < cloneCount ; i++) {
+        Handsontable.Dom.addClass(that.clones[i], 'show-tween');
+      }
+
+      setTimeout(function () {
+        for(var i = 0, cloneCount = that.clones.length; i < cloneCount ; i++) {
+          Handsontable.Dom.removeClass(that.clones[i], 'show-tween');
+        }
+      },400);
+
+      for(var i = 0, cloneCount = that.scrollbars.length; i < cloneCount ; i++) {
+        that.scrollbars[i].refresh();
+        that.scrollbars[i].resetFixedPosition();
+      }
 
     });
 

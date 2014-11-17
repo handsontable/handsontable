@@ -433,7 +433,7 @@ Comment For Cell
   background: #f8f8f8;
   border-radius: 20px;
   border: 1px solid #ebebeb;
-  z-index: 9999;
+  z-index: 999;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -webkit-text-size-adjust: none;
@@ -518,6 +518,7 @@ Comment For Cell
   width: 30px;
   bottom: 0px;
   cursor: move;
+  z-index: 9999;
 }
 
 #mobile-editor-container .move-handle:after {
@@ -528,7 +529,6 @@ Comment For Cell
   display: inline-block;
   margin-top: -8px;
   color: #ebebeb;
-  z-index: 9999;
 }
 
 #mobile-editor-container .position-controls {
@@ -606,6 +606,61 @@ Comment For Cell
 }
 #mobile-editor-container .down-button:active:after {
   border-color: #cfcfcf;
+}
+
+.handsontable.hide-tween {
+   -webkit-animation: opacity-hide 0.3s;
+   animation: opacity-hide 0.3s;
+   animation-fill-mode: forwards;
+   -webkit-animation-fill-mode: forwards;
+}
+
+.handsontable.show-tween {
+  -webkit-animation: opacity-show 0.3s;
+  animation: opacity-show 0.3s;
+  animation-fill-mode: forwards;
+  -webkit-animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes opacity-hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+@keyframes opacity-hide {
+  from {
+    /*display: block;*/
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+
+@-webkit-keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
+}
+@keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
 }
 
 /**
