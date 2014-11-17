@@ -18,24 +18,20 @@
       },
       bindMouseEvent = function (range) {
 
-        function commentsListener(event) {
-          $(instance.rootElement).off('mouseover.htCommment');
-          if (!(event.target.className == 'htCommentTextArea')) {
+        function commentsEditionMouseListener(event) {
+          if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
             var value = document.getElementsByClassName('htCommentTextArea')[0].value;
             if (value.trim().length > 1) {
               saveComment(range, value, instance);
             }
-            unBindMouseEvent();
+            $(document).off('mousedown.htCommment');
             instance.comments.visible = false;
+            instance.comments.edition = false;
             hideCommentTextArea();
           }
         }
 
-        $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsListener));
-      },
-      unBindMouseEvent = function () {
-        $(document).off('mousedown.htCommment');
-        $(instance.rootElement).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+        $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsEditionMouseListener));
       },
       placeCommentBox = function (range, commentBox) {
         var TD = instance.view.wt.wtTable.getCell(range.from),
@@ -71,30 +67,32 @@
         return comments;
       },
       commentsMouseOverListener = function (event) {
+        if (!instance.comments.edition) {
           if(event.target.className.indexOf('htCommentCell') != -1) {
-              unBindMouseEvent();
               var coords = instance.view.wt.wtTable.getCoords(event.target);
               var range = {
                   from: new WalkontableCellCoords(coords.row, coords.col)
               };
 
-              instance.comments.showComment(range);
+              instance.comments.showComment(range,false);
           }
           else if(instance.comments.visible){
             if (event.target.className !='htCommentTextArea'){
-              console.log('Hide' + instance.guid);
               instance.comments.visible = false;
               hideCommentTextArea();
             }
           }
+        }
       };
 
     return {
       init: function () {
           $(instance.rootElement).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
       },
-      showComment: function (range) {
+      showComment: function (range, editMode) {
         instance.comments.visible = true;
+        instance.comments.edition = editMode;
+
         var meta = instance.getCellMeta(range.from.row, range.from.col),
           value = '';
 
@@ -119,9 +117,8 @@
         }
         return hasComment;
       },
-      visible : false
-
-
+      visible : false,
+      edition : false
     };
   }
 
@@ -158,7 +155,7 @@
 
         },
         callback: function (key, selection, event) {
-            instance.comments.showComment(this.getSelectedRange());
+            instance.comments.showComment(this.getSelectedRange(),true);
         },
         disabled: function () {
           return false;
