@@ -57,9 +57,6 @@ WalkontableTableRenderer.prototype.render = function () {
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.instance.wtViewport.containerWidth = null;
-      //TODO
-      this.instance.wtViewport.columnsPreCalculator.stretch();
-      //this.wtTable.getColumnStrategy().stretch();
     }
 
     this.adjustColumnWidths(displayTds);
@@ -67,7 +64,6 @@ WalkontableTableRenderer.prototype.render = function () {
 
   if (!adjusted) {
     this.adjustAvailableNodes();
-    this.instance.wtViewport.columnsPreCalculator.stretch();
   }
 
   this.removeRedundantRows(cloneLimit);
@@ -92,8 +88,8 @@ WalkontableTableRenderer.prototype.render = function () {
 
       for (visibleColIndex = fVC ; visibleColIndex < lVC; visibleColIndex++) {
       //for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-      //  var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
-        var width = this.wtTable.getColumnWidth(visibleColIndex);
+      //  var width = this.wtTable.getColumnWidth(visibleColIndex);
+        var width = this.wtTable.getStretchedColumnWidth(visibleColIndex);
         this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
         cache[visibleColIndex] = width;
       }
@@ -189,8 +185,6 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
-  var visibleColIndex = this.instance.wtViewport.columnsPreCalculator.visibleStartColumn;
-  console.log(visibleColIndex);
 
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
       sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
@@ -224,13 +218,14 @@ WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   var cache = this.instance.wtTable.columnWidthCache;
   var cacheChanged = false;
   var width;
+  this.instance.wtViewport.columnsPreCalculator.doStretch(this.instance.wtViewport.getViewportWidth());
+
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
     if (this.wtTable.isWorkingOnClone()) {
       width = this.instance.cloneSource.wtTable.columnWidthCache[visibleColIndex];
     }
     else {
-      //width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
-      width = this.wtTable.getColumnWidth(visibleColIndex);
+      width = this.wtTable.getStretchedColumnWidth(visibleColIndex);
     }
     if (width !== cache[visibleColIndex]) {
       this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
@@ -292,9 +287,6 @@ WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
 };
 
 WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
-
-  //this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
-
   //adjust COLGROUP
   this.adjustColGroups();
 
