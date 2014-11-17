@@ -7,7 +7,10 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   this.visibleEndColumn = null;
   this.countRenderedColumns = 0;
   this.countVisibleColumns = 0;
+  this.stretchAllRatio = 0;
+  this.stretchLastWidth = 0;
   this.stretch = stretchH;
+
 
   var i;
   var sum = 0;
@@ -17,11 +20,34 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   var defaultColumnWidth = 50;
   var startPositions = [];
 
-  for (i = 0; i< totalColumns; i++) {
-    columnWidth = columnWidthFn(i);
-    if (columnWidth === undefined) {
-      columnWidth = defaultColumnWidth;
+  var ratio = 1;
+
+  var setColumnWidth = function (i) {
+    ratio = ratio || 1;
+    var width = columnWidthFn(i);
+    if (width === undefined) {
+      width = defaultColumnWidth ;
     }
+    return width;
+  };
+
+  this.doStretch = function (width) {
+    for(i = 0; i < totalColumns; i++) {
+      columnWidth = setColumnWidth(i);
+      sumAll +=columnWidth;
+    }
+
+    var remainingSize = sumAll - width;
+    if (this.stretch === 'all' && remainingSize < 0){
+      this.stretchAllRatio = width / sumAll;
+    } else if (this.stretch === 'last' && width !== Infinity) {
+      this.stretchLastWidth = -remainingSize + setColumnWidth(totalColumns-1);
+    }
+  };
+
+
+  for (i = 0; i< totalColumns; i++) {
+    columnWidth = setColumnWidth(i);
 
     if (sum <= scrollOffset){
       this.renderStartColumn = i;
@@ -34,7 +60,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
       this.visibleEndColumn = i;
     }
     startPositions.push(sum);
-    sum +=columnWidth;
+    sum += columnWidth;
     this.renderEndColumn = i;
 
     if(sum >= scrollOffset + width) {
@@ -43,13 +69,12 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
   }
 
-  for(i = 0; i < totalColumns; i++) {
-    columnWidth = columnWidthFn(i);
-    if (columnWidth === undefined) {
-      columnWidth = defaultColumnWidth;
-    }
-    sumAll +=columnWidth;
-  }
+
+
+
+
+
+
 
 
   if (this.renderEndColumn == totalColumns - 1 && needReverse) {
@@ -84,36 +109,5 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   if (this.visibleStartColumn != null) {
     this.countVisibleColumns = this.visibleEndColumn - this.visibleStartColumn + 1;
   }
-
-
-  this.stretch = function () {
-    var i = 0;
-
-    var remainingSize = width - sumAll;
-
-    if (this.stretchH === 'all') {
-      if (remainingSize < 0) {
-        var ratio = width / sumAll;
-        var newSize;
-
-        //while (i < this.cellCount - 1) { //"i < this.cellCount - 1" is needed because last cellSize is adjusted after the loop
-        //  newSize = Math.floor(ratio * this.cellSizes[i]);
-        //  this.remainingSize += newSize - this.cellSizes[i];
-        //  this.cellStretch[i] = newSize - this.cellSizes[i];
-        //  i++;
-        //}
-        //this.cellStretch[this.cellCount - 1] = -this.remainingSize;
-        //this.remainingSize = 0;
-      }
-    }
-    else if (this.stretchH === 'last') {
-      if (remainingSize < 0 && width !== Infinity) { //Infinity is with native scroll when the table is wider than the viewport (TODO: test)
-        //this.cellStretch[this.cellCount - 1] = -this.remainingSize;
-        //this.remainingSize = 0;
-      }
-    }
-  };
-
-
 }
 
