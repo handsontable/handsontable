@@ -59,7 +59,7 @@ describe('NumericRenderer', function () {
     });
   });
 
-  it('should render string as it is', function () {
+  xit('should render string as it is', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
