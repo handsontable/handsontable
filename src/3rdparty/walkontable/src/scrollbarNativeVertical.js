@@ -17,19 +17,23 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
+    var finalLeft
+      , finalTop;
 
-    elem.style.left = '0';
+    finalLeft = '0';
 
     if (top < 0) {
-      elem.style.top = -top + "px";
+      finalTop = -top + "px";
     } else {
-      elem.style.top = "0";
+      finalTop = "0";
     }
   }
   else {
-    elem.style.top = this.getScrollPosition() + "px";
-    elem.style.left = '0';
+    finalTop = this.getScrollPosition() + "px";
+    finalLeft = '0';
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   if (this.instance.wtScrollbars.horizontal.scrollHandler === window) {
     elem.style.width = this.instance.wtViewport.getWorkspaceActualWidth() + 'px';

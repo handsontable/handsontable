@@ -742,4 +742,36 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     }
     return cachedScrollbarWidth;
   }
+
+  var isIE8 = !(document.createTextNode('test').textContent);
+  Handsontable.Dom.isIE8 = function () {
+    return isIE8;
+  };
+
+  var isIE9 = !!(document.documentMode);
+  Handsontable.Dom.isIE9 = function () {
+    return isIE9;
+  };
+
+  var isSafari = (navigator.userAgent.indexOf("Safari") > -1);
+  Handsontable.Dom.isSafari = function () {
+    return isSafari;
+  };
+
+  /**
+   * Sets overlay position depending on it's type and used browser
+   */
+  Handsontable.Dom.setOverlayPosition = function (overlayElem, left, top) {
+    if (isIE8) {
+      overlayElem.style.top = top;
+      overlayElem.style.left = left;
+    } else if (isIE9) {
+      overlayElem.style['-ms-transform'] = 'translate(' + left + ',' + top + ')';
+    } else if (isSafari) {
+      overlayElem.style['-webkit-transform'] = 'translate(' + left + ',' + top + ')';
+    } else {
+      overlayElem.style['transform'] = 'translate(' + left + ',' + top + ')';
+    }
+  };
+
 })();
