@@ -2209,5 +2209,100 @@ describe('ContextMenu', function () {
       Handsontable.hooks.remove('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
     });
   });
+  
+  describe("custom contextmenu width", function () {
+    it("should open menu and submenu with default width", function () {
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      expect(hot.contextMenu).toBeDefined();
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect($('.htContextMenu').width()).toBe(200);
+
+    });
+
+    it("should open menu with custom width and submenu with default width", function () {
+      var hot = handsontable({
+        contextMenu: {
+          width: 400,
+          items: {
+            "test": {
+              name: "test",
+              submenu : {
+                items: {
+                  "sub": {
+                    name: "sub"
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      expect(hot.contextMenu).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+      contextMenu();
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect($('.htContextMenu').width()).toBe(400);
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0);
+      item.trigger('mouseover');
+
+      expect(item.text()).toBe('test');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+
+      expect(contextSubMenu.length).toEqual(1);
+      expect(contextSubMenu.width()).toBe(200);
+
+    });
+    
+    it("should open menu and submenu with custom width", function () {
+      var hot = handsontable({
+        contextMenu: {
+          width: 400,
+          items: {
+            "test": {
+              name: "test",
+              submenu : {
+                width: 100,
+                items: {
+                  "sub": {
+                    name: "sub"
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      expect(hot.contextMenu).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+      contextMenu();
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect($('.htContextMenu').width()).toBe(400);
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0);
+      item.trigger('mouseover');
+
+      expect(item.text()).toBe('test');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+
+      expect(contextSubMenu.length).toEqual(1);
+      expect(contextSubMenu.width()).toBe(100);
+
+    });
+  });
 
 });
