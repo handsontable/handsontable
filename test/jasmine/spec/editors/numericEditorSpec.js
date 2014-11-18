@@ -121,7 +121,7 @@ describe('NumericEditor', function () {
     selectCell(2, 0);
 
     keyDown('enter');
-    
+
     document.activeElement.value = '99.99';
 
     onAfterValidate.reset();
@@ -152,7 +152,7 @@ describe('NumericEditor', function () {
     selectCell(2, 0);
 
     keyDown('enter');
-    
+
     document.activeElement.value = '99,99';
 
     onAfterValidate.reset();
@@ -183,7 +183,7 @@ describe('NumericEditor', function () {
     selectCell(2, 0);
 
     keyDown('enter');
-    
+
     document.activeElement.value = '2456.22';
 
     onAfterValidate.reset();
@@ -320,6 +320,37 @@ describe('NumericEditor', function () {
 
     runs(function () {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
+    });
+
+  });
+
+  it("should paste formatted data if source cell has format", function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+
+    document.activeElement.value = '€123,00';
+
+    onAfterValidate.reset();
+    destroyEditor();
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getCell(2, 0).innerHTML).toEqual('123,00 €');
     });
 
   });
