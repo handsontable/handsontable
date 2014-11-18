@@ -416,7 +416,7 @@
       }
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
-      var width = settings.contextMenu.width || defaultOptions.width;
+      var width = settings.contextMenu.width || this.defaultOptions.width;
 
       this.show(menu, items, width);
       this.setMenuPosition(event, menu);
@@ -620,7 +620,7 @@
     if (TD.className.indexOf('htSubmenu') != -1) {
       var selectedItem = hot.getData()[coords.row];
       var items = this.getItems(selectedItem.submenu);
-      var width = selectedItem.submenu.width || defaultOptions.width;
+      var width = selectedItem.submenu.width || this.defaultOptions.width;
 
       var subMenu = this.createMenu(selectedItem.name, coords.row);
       var tdCoords = TD.getBoundingClientRect();
