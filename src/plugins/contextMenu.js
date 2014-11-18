@@ -781,7 +781,7 @@
     function openSubMenu(instance, contextMenu, cell, row) {
       var selectedItem = instance.getData()[row];
       var items = contextMenu.getItems(selectedItem.submenu);
-      var width = selectedItem.submenu.width || defaultOptions.width;
+      var width = selectedItem.submenu.width || this.defaultOptions.width;
       var subMenu = contextMenu.createMenu(selectedItem.name, row);
       var coords = cell.getBoundingClientRect();
 
