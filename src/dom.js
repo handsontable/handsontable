@@ -766,11 +766,11 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
       overlayElem.style.top = top;
       overlayElem.style.left = left;
     } else if (isIE9) {
-      overlayElem.style['-ms-transform'] = 'translate(' + left + ',' + top + ')';
+      overlayElem.style['-ms-transform'] = 'translate3d(' + left + ',' + top + ',0)';
     } else if (isSafari) {
-      overlayElem.style['-webkit-transform'] = 'translate(' + left + ',' + top + ')';
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
     } else {
-      overlayElem.style['transform'] = 'translate(' + left + ',' + top + ')';
+      overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
     }
   };
 
