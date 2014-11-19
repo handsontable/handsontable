@@ -335,6 +335,10 @@ WalkontableTable.prototype.getLastVisibleRow = function () {
   return this.instance.wtViewport.rowsCalculator.visibleEndRow;
 };
 
+WalkontableTable.prototype.getLastRenderedColumn = function () {
+  return this.instance.wtViewport.columnsPreCalculator.renderEndColumn;
+};
+
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
   return this.instance.wtViewport.columnsCalculator.visibleEndColumn;

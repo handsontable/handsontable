@@ -74,15 +74,16 @@ WalkontableTableRenderer.prototype.render = function () {
       //this.wtTable.getColumnStrategy().stretch();
 
       var cache = this.instance.wtTable.columnWidthCache;
-      var fVC = this.wtTable.getFirstVisibleColumn();
-      var lVC = this.wtTable.getLastVisibleColumn();
+      var firstRendered = this.wtTable.getFirstRenderedColumn();
+      var lastRendered = this.wtTable.getLastRenderedColumn();
 
-      for (visibleColIndex = fVC ; visibleColIndex < lVC; visibleColIndex++) {
+      for (var i = firstRendered ; i < lastRendered; i++) {
       //for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
       //  var width = this.wtTable.getColumnWidth(visibleColIndex);
-        var width = this.wtTable.getStretchedColumnWidth(visibleColIndex);
-        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
-        cache[visibleColIndex] = width;
+        var width = this.wtTable.getStretchedColumnWidth(i);
+        var renderedIndex = this.columnFilter.sourceToRendered(i);
+        this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+        cache[renderedIndex] = width;
       }
     }
 
@@ -211,16 +212,16 @@ WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   var width;
   this.instance.wtViewport.columnsPreCalculator.doStretch(this.instance.wtViewport.getViewportWidth());
 
-  for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-    if (this.wtTable.isWorkingOnClone()) {
-      width = this.instance.cloneSource.wtTable.columnWidthCache[visibleColIndex];
+  for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
+    if (this.wtTable.isWorkingOnClone() && !(this.instance.cloneOverlay instanceof WalkontableDebugOverlay)) {
+      width = this.instance.cloneSource.wtTable.columnWidthCache[renderedColIndex];
     }
     else {
-      width = this.wtTable.getStretchedColumnWidth(visibleColIndex);
+      width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
     }
-    if (width !== cache[visibleColIndex]) {
-      this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
-      cache[visibleColIndex] = width;
+    if (width !== cache[renderedColIndex]) {
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      cache[renderedColIndex] = width;
       cacheChanged = true;
     }
   }
