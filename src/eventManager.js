@@ -13,16 +13,46 @@ Handsontable.eventManager = function (instance) {
   }
 
   var addEvent = function (element, event, callback) {
+
+      var callbackProxy = function (event) {
+        if(event.target == void 0 && event.srcElement != void 0) {
+          if(event.definePoperty) {
+            event.definePoperty('target', {
+              value: event.srcElement
+            });
+          } else {
+            event.target = event.srcElement;
+          }
+        }
+
+        if(event.preventDefault == void 0) {
+          if(event.definePoperty) {
+            event.definePoperty('preventDefault', {
+              value: function() {
+                this.returnValue = false;
+              }
+            });
+          } else {
+            event.preventDefault = function () {
+              this.returnValue = false;
+            }
+          }
+        }
+
+        callback.call(this, event);
+      };
+
       instance.eventListeners.push({
         element: element,
         event: event,
-        callback: callback
+        callback: callback,
+        callbackProxy: callbackProxy
       });
 
       if (window.addEventListener) {
-        element.addEventListener(event, callback, false)
+        element.addEventListener(event, callbackProxy, false)
       } else {
-        element.attachEvent('on' + event, callback);
+        element.attachEvent('on' + event, callbackProxy);
       }
     },
     removeEvent = function (element, event, callback){
@@ -37,9 +67,9 @@ Handsontable.eventManager = function (instance) {
 
           instance.eventListeners.splice(len, 1);
           if (tmpEv.element.detachEvent) {
-            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callback);
+            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
           } else {
-            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callback, false);
+            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callbackProxy, false);
           }
         }
       }
@@ -110,6 +140,5 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     serveImmediatePropagation : serveImmediatePropagation,
     fireEvent: fireEvent
-
   }
 };

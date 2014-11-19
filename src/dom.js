@@ -14,7 +14,7 @@ Handsontable.Dom.class2type = {};
 Handsontable.Dom.type = function( obj ) {
   return obj == null ?
     String( obj ) :
-  Handsontable.Dom.class2type[ toString.call(obj) ] || "object";
+  Handsontable.Dom.class2type[ Object.prototype.toString.call(this,obj) ] || "object";
 };
 
 Handsontable.Dom.isWindow = function( obj ) {

@@ -86,6 +86,7 @@ function ajax (url, method, callback, params) {
         var onDomReady = true;
 
         tags.push('</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n');
+        tags.push('<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>\n');
 
         for (var i = 0, ilen = keys.length; i < ilen; i++) {
           var dataFillde = document.querySelectorAll('[data-jsfiddle=' + keys[i] + ']');
@@ -111,11 +112,12 @@ function ajax (url, method, callback, params) {
 
               var clone = dataFillde[x].cloneNode(true);
               var clonedExample = clone.querySelector('#' + runfiddle);
-              clonedExample.innerHtml = ''; //clear example HTML, just leave container
+              clonedExample.innerHTML = ''; //clear example HTML, just leave container
               var originalHT = dataFillde[x].querySelector('#' + runfiddle);
 
-              if (originalHT.data['originalStyle']) {
-                clonedExample.style = originalHT.data['originalStyle'];
+              var originalStyle = originalHT.getAttribute('data-originalstyle');
+              if (originalStyle) {
+                clonedExample.setAttribute('style', originalStyle);
               }
 
               var aName = clone.querySelectorAll('a[name]');
@@ -162,11 +164,7 @@ function ajax (url, method, callback, params) {
         js += '  bindDumpButton();\n\n';
 
         if (onDomReady) {
-
-          document.addEventListener('DOMContentLoaded', function () {
-            js
-          });
-//          js = '$(document).ready(function () {\n\n' + js + '});';
+          js = '$(document).ready(function () {\n\n' + js + '});';
         }
 
         var form = document.createElement('FORM');
@@ -263,7 +261,7 @@ function ajax (url, method, callback, params) {
     }
 
     function onMenuLoad(html) {
-      html = html.response;
+      html = html.response || html.responseText;
       //top menu
       importFromHtml(document.getElementById('outside-links-wrapper'), html, "<!-- outside-links start -->", "<!-- outside-links end -->");
 
@@ -306,10 +304,18 @@ function ajax (url, method, callback, params) {
 
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+
+  var initAll = function () {
     init();
     initSidebar();
-  }, false);
+  };
+
+if(document.addEventListener) {
+  document.addEventListener('DOMContentLoaded', initAll, false);
+} else {
+  document.attachEvent('DOMContentLoaded', initAll);
+}
+
 
 })();
 
