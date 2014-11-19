@@ -147,10 +147,9 @@ WalkontableViewport.prototype.getViewportWidth = function () {
  */
 WalkontableViewport.prototype.createRowsCalculator = function () {
   this.rowHeaderWidth = NaN;
-  //this.columnHeaderHeight = NaN;
 
   var height;
-  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.wtSettings.settings.renderAllRows) {
+  if (this.instance.wtSettings.settings.renderAllRows) {
     height = Infinity;
   }
   else {
@@ -177,12 +176,7 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
 WalkontableViewport.prototype.createColumnsCalculator = function () {
   this.columnHeaderHeight = NaN;
 
-  var width;
-  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    width = Infinity;
-  } else {
-    width = this.getViewportWidth();
-  }
+  var width = this.getViewportWidth();
 
   var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
   if (pos < 0) {

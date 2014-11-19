@@ -370,11 +370,10 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
 };
 
 WalkontableTable.prototype.getRenderedColumnsCount = function () {
-  var isClone = this.isWorkingOnClone();
-  if (isClone && this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    return 1;
+  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    return this.instance.getSetting('totalColumns');
   }
-  if (isClone && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+  else if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -383,6 +382,12 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
 };
 
 WalkontableTable.prototype.getRenderedRowsCount = function () {
+  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    return this.instance.getSetting('totalRows');
+  }
+  else if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    return this.instance.getSetting('fixedRowsTop');
+  }
   return this.instance.wtViewport.rowsPreCalculator.countRendered;
 };
 

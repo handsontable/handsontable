@@ -131,15 +131,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     , toRow
     , toColumn
     , i
-    , ilen
+    , ilen = instance.wtTable.getRenderedRowsCount()
     , s;
-
-  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-    ilen = instance.getSetting('fixedRowsTop');
-  }
-  else {
-    ilen = instance.wtTable.getRenderedRowsCount();
-  }
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.rowFilter.renderedToSource(i);

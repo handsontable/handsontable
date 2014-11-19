@@ -30,18 +30,9 @@ WalkontableTableRenderer.prototype.render = function () {
     , displayTds
     , adjusted = false
     , workspaceWidth
-    , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered;
+    , cloneLimit = this.wtTable.getRenderedRowsCount();
 
   if (totalColumns > 0) {
-    if (this.wtTable.isWorkingOnClone()) {
-      if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-        cloneLimit = this.fixedRowsTop;
-      }
-      else if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-        cloneLimit = totalRows;
-      }
-    }
-
     this.adjustAvailableNodes();
     adjusted = true;
 
