@@ -286,39 +286,24 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
     return;
   }
 
-    var columnCount = this.wtTable.getRenderedColumnsCount()
-    , TR,
-      columnIndex;
-
-  var firstRendered = this.instance.wtViewport.columnsPreCalculator.renderStartColumn;
-
+  var columnCount = this.wtTable.getRenderedColumnsCount(),
+    TR,
+    renderedColumnIndex;
 
   for (var i = 0; i < this.columnHeaderCount; i++) {
     TR = this.getTrForColumnHeaders(i);
 
-
-    if (this.wtTable.isWorkingOnClone() && (
-        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative ||
-        //this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
-        this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative
-      )
-      )
-    {
-      for ( columnIndex = (-1) * this.rowHeaderCount; columnIndex < columnCount; columnIndex++) {
-        this.renderColumnHeader(i, columnIndex, TR.childNodes[columnIndex + this.rowHeaderCount]);
+    if (this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative || this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
+      for (renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        this.renderColumnHeader(i, renderedColumnIndex, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
       }
-    } else {
-      for ( columnIndex = firstRendered ; columnIndex < columnCount; columnIndex++) {
-
-        if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative){
-        }
-        this.renderColumnHeader(i, columnIndex, TR.childNodes[columnSourceIndex + this.rowHeaderCount]);
-      }
-
     }
-
-
-
+    else {
+      for (renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[sourceCol + this.rowHeaderCount]);
+      }
+    }
   }
 };
 
