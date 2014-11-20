@@ -28,7 +28,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   }
   else {
     elem.style.top = this.getScrollPosition() + "px";
-    elem.style.left = '0';
+    elem.style.left =  this.instance.wtTable.hider.style.left; //'0';
   }
 
   if (this.instance.wtScrollbars.horizontal.scrollHandler === window) {
