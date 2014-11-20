@@ -301,7 +301,7 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
     else {
       for (renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
         var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
-        this.renderColumnHeader(i, sourceCol, TR.childNodes[sourceCol + this.rowHeaderCount]);
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
       }
     }
   }
