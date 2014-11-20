@@ -287,14 +287,38 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
   }
 
     var columnCount = this.wtTable.getRenderedColumnsCount()
-    , TR;
+    , TR,
+      columnIndex;
+
+  var firstRendered = this.instance.wtViewport.columnsPreCalculator.renderStartColumn;
+
 
   for (var i = 0; i < this.columnHeaderCount; i++) {
     TR = this.getTrForColumnHeaders(i);
 
-    for (var columnIndex = (-1) * this.rowHeaderCount; columnIndex < columnCount; columnIndex++) {
-      this.renderColumnHeader(i, columnIndex, TR.childNodes[columnIndex + this.rowHeaderCount]);
+
+    if (this.wtTable.isWorkingOnClone() && (
+        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative ||
+        //this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
+        this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative
+      )
+      )
+    {
+      for ( columnIndex = (-1) * this.rowHeaderCount; columnIndex < columnCount; columnIndex++) {
+        this.renderColumnHeader(i, columnIndex, TR.childNodes[columnIndex + this.rowHeaderCount]);
+      }
+    } else {
+      for ( columnIndex = firstRendered ; columnIndex < columnCount; columnIndex++) {
+
+        if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative){
+        }
+        this.renderColumnHeader(i, columnIndex, TR.childNodes[columnSourceIndex + this.rowHeaderCount]);
+      }
+
     }
+
+
+
   }
 };
 
