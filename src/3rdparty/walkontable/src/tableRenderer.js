@@ -70,7 +70,6 @@ WalkontableTableRenderer.prototype.render = function () {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
 
-      var cache = this.instance.wtTable.columnWidthCache;
       var firstRendered = this.wtTable.getFirstRenderedColumn();
       var lastRendered = this.wtTable.getLastRenderedColumn();
 
@@ -78,7 +77,6 @@ WalkontableTableRenderer.prototype.render = function () {
         var width = this.wtTable.getStretchedColumnWidth(i);
         var renderedIndex = this.columnFilter.sourceToRendered(i);
         this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
-        cache[renderedIndex] = width;
       }
     }
 
@@ -202,23 +200,12 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 };
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
-  var cache = this.instance.wtTable.columnWidthCache;
-  var cacheChanged = false;
   var width;
   this.instance.wtViewport.columnsPreCalculator.doStretch(this.instance.wtViewport.getViewportWidth());
 
   for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
-    if (this.wtTable.isWorkingOnClone() && !(this.instance.cloneOverlay instanceof WalkontableDebugOverlay)) {
-      width = this.instance.cloneSource.wtTable.columnWidthCache[renderedColIndex];
-    }
-    else {
-      width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-    }
-    if (width !== cache[renderedColIndex]) {
+    width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
       this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
-      cache[renderedColIndex] = width;
-      cacheChanged = true;
-    }
   }
 };
 
@@ -318,9 +305,6 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
   while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.wtTable.colgroupChildrenLength--;
-    if (this.wtTable.columnWidthCache) {
-      this.wtTable.columnWidthCache.splice(-1, 1);
-    }
   }
 };
 
