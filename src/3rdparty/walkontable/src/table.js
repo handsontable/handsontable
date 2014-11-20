@@ -97,7 +97,7 @@ WalkontableTable.prototype.isWorkingOnClone = function () {
 WalkontableTable.prototype.refreshHiderDimensions = function () {
   var spreaderStyle = this.spreader.style;
   spreaderStyle.position = 'relative';
-  spreaderStyle.width = 'auto';
+  spreaderStyle.width = '0';
   spreaderStyle.height = 'auto';
 };
 
