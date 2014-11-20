@@ -48,7 +48,7 @@ if (window.jQuery) {
         return output;
       }
     };
-  })(window, $, Handsontable);
+  })(window, jQuery, Handsontable);
 }
 
 
