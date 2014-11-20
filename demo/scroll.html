@@ -43,9 +43,9 @@
         , i
         , j;
 
-      for (i = 0; i < 1000; i++) {
+      for (i = 0; i < 40; i++) {
         var row = [];
-        for (j = 0; j < 26; j++) {
+        for (j = 0; j < 30; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
         }
         rows.push(row);
@@ -145,7 +145,8 @@
           fixedRowsTop: 2,
           minSpareRows: 1,
           stretchH: 'all',
-          contextMenu: true
+//          contextMenu: true,
+          debug: true
         });
 
         var maximize = document.querySelector('.maximize');
@@ -167,147 +168,147 @@
   </div>
 </div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example2">
-      <a name="last"></a>
+<!--<div class="rowLayout">-->
+  <!--<div class="descLayout">-->
+    <!--<div class="pad" data-jsfiddle="example2">-->
+      <!--<a name="last"></a>-->
 
-      <h2>Single scrollbar (stretchH <code>last</code> column)</h2>
+      <!--<h2>Single scrollbar (stretchH <code>last</code> column)</h2>-->
 
-      <p>It is also possible to configure only a single scrollbar. The following example creates one by specifying
-        only the container height and <code>overflow: auto</code> in CSS.</p>
+      <!--<p>It is also possible to configure only a single scrollbar. The following example creates one by specifying-->
+        <!--only the container height and <code>overflow: auto</code> in CSS.</p>-->
 
-      <div id="example2" style="height: 300px; overflow: auto"></div>
+      <!--<div id="example2" style="height: 300px; overflow: auto"></div>-->
 
-      <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
-      </p>
-    </div>
-  </div>
+      <!--<p>-->
+        <!--<button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump-->
+          <!--data to console-->
+        <!--</button>-->
+      <!--</p>-->
+    <!--</div>-->
+  <!--</div>-->
 
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
-      </div>
+  <!--<div class="codeLayout">-->
+    <!--<div class="pad">-->
+      <!--<div class="jsFiddle">-->
+        <!--<button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>-->
+      <!--</div>-->
 
-      <script data-jsfiddle="example2">
-        /*
-         Container looks like this:
+      <!--<script data-jsfiddle="example2">-->
+        <!--/*-->
+         <!--Container looks like this:-->
 
-         <div id="example2" style="width: height: 300px; overflow: auto"></div>
-         */
-        var container2 = document.getElementById('example2');
-        Handsontable.tmpHandsontable(container2,{
-          data: createBigData(),
-          colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-          rowHeaders: true,
-          colHeaders: true,
-          stretchH: 'last',
-          minSpareRows: 1,
-          contextMenu: true
-        });
-      </script>
-    </div>
-  </div>
-</div>
+         <!--<div id="example2" style="width: height: 300px; overflow: auto"></div>-->
+         <!--*/-->
+        <!--var container2 = document.getElementById('example2');-->
+        <!--Handsontable.tmpHandsontable(container2,{-->
+          <!--data: createBigData(),-->
+          <!--colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function-->
+          <!--rowHeaders: true,-->
+          <!--colHeaders: true,-->
+          <!--stretchH: 'last',-->
+          <!--minSpareRows: 1,-->
+          <!--contextMenu: true-->
+        <!--});-->
+      <!--</script>-->
+    <!--</div>-->
+  <!--</div>-->
+<!--</div>-->
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example3">
-      <a name="stretch"></a>
+<!--<div class="rowLayout">-->
+  <!--<div class="descLayout">-->
+    <!--<div class="pad" data-jsfiddle="example3">-->
+      <!--<a name="stretch"></a>-->
 
-      <h2>Single scrollbar (stretchH <code>all</code> columns)</h2>
+      <!--<h2>Single scrollbar (stretchH <code>all</code> columns)</h2>-->
 
-      <p>If the table content is not as wide as the container width, the table will be stretched to the container
-        width. The default horizontal stretch model is to stretch the last column only (by using <code>stretchH:
-          'last'</code> option).</p>
+      <!--<p>If the table content is not as wide as the container width, the table will be stretched to the container-->
+        <!--width. The default horizontal stretch model is to stretch the last column only (by using <code>stretchH:-->
+          <!--'last'</code> option).</p>-->
 
-      <p>Other possible stretch modes are <code>all</code> (stretches all columns equally, used in the below example)
-        and <code>none</code> (not stretching).</p>
+      <!--<p>Other possible stretch modes are <code>all</code> (stretches all columns equally, used in the below example)-->
+        <!--and <code>none</code> (not stretching).</p>-->
 
-      <div id="example3" style="height: 300px; overflow: auto"></div>
+      <!--<div id="example3" style="height: 300px; overflow: auto"></div>-->
 
-      <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
-      </p>
-    </div>
-  </div>
+      <!--<p>-->
+        <!--<button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump-->
+          <!--data to console-->
+        <!--</button>-->
+      <!--</p>-->
+    <!--</div>-->
+  <!--</div>-->
 
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
-      </div>
+  <!--<div class="codeLayout">-->
+    <!--<div class="pad">-->
+      <!--<div class="jsFiddle">-->
+        <!--<button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>-->
+      <!--</div>-->
 
-      <script data-jsfiddle="example3">
-        /*
-         Container looks like this:
+      <!--<script data-jsfiddle="example3">-->
+        <!--/*-->
+         <!--Container looks like this:-->
 
-         <div id="example3" style="width: height: 300px; overflow: auto"></div>
-         */
-        var container3 = document.getElementById('example3');
-        Handsontable.tmpHandsontable(container3,{
-          data: createBigData(),
-          colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-          rowHeaders: true,
-          colHeaders: true,
-          stretchH: 'all',
-          minSpareRows: 1,
-          contextMenu: true
-        });
-      </script>
-    </div>
-  </div>
-</div>
+         <!--<div id="example3" style="width: height: 300px; overflow: auto"></div>-->
+         <!--*/-->
+        <!--var container3 = document.getElementById('example3');-->
+        <!--Handsontable.tmpHandsontable(container3,{-->
+          <!--data: createBigData(),-->
+          <!--colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function-->
+          <!--rowHeaders: true,-->
+          <!--colHeaders: true,-->
+          <!--stretchH: 'all',-->
+          <!--minSpareRows: 1,-->
+          <!--contextMenu: true-->
+        <!--});-->
+      <!--</script>-->
+    <!--</div>-->
+  <!--</div>-->
+<!--</div>-->
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example4">
-      <a name="none"></a>
+<!--<div class="rowLayout">-->
+  <!--<div class="descLayout">-->
+    <!--<div class="pad" data-jsfiddle="example4">-->
+      <!--<a name="none"></a>-->
 
-      <h2>Single scrollbar (stretchH <code>none</code> - default)</h2>
+      <!--<h2>Single scrollbar (stretchH <code>none</code> - default)</h2>-->
 
-      <div id="example4" style="height: 300px; overflow: auto"></div>
+      <!--<div id="example4" style="height: 300px; overflow: auto"></div>-->
 
-      <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
-      </p>
-    </div>
-  </div>
+      <!--<p>-->
+        <!--<button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump-->
+          <!--data to console-->
+        <!--</button>-->
+      <!--</p>-->
+    <!--</div>-->
+  <!--</div>-->
 
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example4">Edit in jsFiddle</button>
-      </div>
+  <!--<div class="codeLayout">-->
+    <!--<div class="pad">-->
+      <!--<div class="jsFiddle">-->
+        <!--<button class="jsFiddleLink" data-runfiddle="example4">Edit in jsFiddle</button>-->
+      <!--</div>-->
 
-      <script data-jsfiddle="example4">
-        /*
-         Container looks like this:
+      <!--<script data-jsfiddle="example4">-->
+        <!--/*-->
+         <!--Container looks like this:-->
 
-         <div id="example4" style="width: height: 300px; overflow: auto"></div>
-         */
-        var container4 = document.getElementById('example4');
-        Handsontable.tmpHandsontable(container4,{
-          data: createBigData(),
-          colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-          rowHeaders: true,
-          colHeaders: true,
-          stretchH: 'none', //actually you don't have to declare it because it is default
-          minSpareRows: 1,
-          contextMenu: true
-        });
-      </script>
-    </div>
-  </div>
-</div>
+         <!--<div id="example4" style="width: height: 300px; overflow: auto"></div>-->
+         <!--*/-->
+        <!--var container4 = document.getElementById('example4');-->
+        <!--Handsontable.tmpHandsontable(container4,{-->
+          <!--data: createBigData(),-->
+          <!--colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function-->
+          <!--rowHeaders: true,-->
+          <!--colHeaders: true,-->
+          <!--stretchH: 'none', //actually you don't have to declare it because it is default-->
+          <!--minSpareRows: 1,-->
+          <!--contextMenu: true-->
+        <!--});-->
+      <!--</script>-->
+    <!--</div>-->
+  <!--</div>-->
+<!--</div>-->
 
 <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
   licensed under the The MIT License.

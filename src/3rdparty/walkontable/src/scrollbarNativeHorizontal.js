@@ -68,7 +68,7 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while(from < length) {
-    sum += this.instance.wtTable.getColumnWidth(from);
+    sum +=this.instance.wtTable.getStretchedColumnWidth(from);
     from++;
   }
   return sum;
