@@ -70,16 +70,11 @@ WalkontableTableRenderer.prototype.render = function () {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
 
-      //TODO
-      //this.wtTable.getColumnStrategy().stretch();
-
       var cache = this.instance.wtTable.columnWidthCache;
       var firstRendered = this.wtTable.getFirstRenderedColumn();
       var lastRendered = this.wtTable.getLastRenderedColumn();
 
       for (var i = firstRendered ; i < lastRendered; i++) {
-      //for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-      //  var width = this.wtTable.getColumnWidth(visibleColIndex);
         var width = this.wtTable.getStretchedColumnWidth(i);
         var renderedIndex = this.columnFilter.sourceToRendered(i);
         this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
@@ -403,34 +398,34 @@ WalkontableTableRenderer.prototype.removeRedundantColumns = function (renderedCo
   }
 };
 
-WalkontableTableRenderer.prototype.refreshStretching = function () {
-  if (this.wtTable.isWorkingOnClone()) {
-    return;
-  }
-
-  var instance = this.instance
-    , stretchH = instance.getSetting('stretchH')
-    , totalColumns = instance.getSetting('totalColumns');
-
-  var containerWidthFn = function () {
-    var viewportWidth = that.instance.wtViewport.getViewportWidth();
-    return viewportWidth;
-  };
-
-  var that = this;
-
-  var columnWidthFn = function (i) {
-    var source_c = that.columnFilter.renderedToSource(i);
-    if (source_c < totalColumns) {
-      return instance.getSetting('columnWidth', source_c);
-    }
-  };
-
-
-  //this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
-
-  // TODO NEW STRETCH-H
-};
+//WalkontableTableRenderer.prototype.refreshStretching = function () {
+//  if (this.wtTable.isWorkingOnClone()) {
+//    return;
+//  }
+//
+//  var instance = this.instance
+//    , stretchH = instance.getSetting('stretchH')
+//    , totalColumns = instance.getSetting('totalColumns');
+//
+//  var containerWidthFn = function () {
+//    var viewportWidth = that.instance.wtViewport.getViewportWidth();
+//    return viewportWidth;
+//  };
+//
+//  var that = this;
+//
+//  var columnWidthFn = function (i) {
+//    var source_c = that.columnFilter.renderedToSource(i);
+//    if (source_c < totalColumns) {
+//      return instance.getSetting('columnWidth', source_c);
+//    }
+//  };
+//
+//
+//  //this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
+//
+//  // TODO NEW STRETCH-H
+//};
 
 /*
  Helper functions, which does not have any side effects
