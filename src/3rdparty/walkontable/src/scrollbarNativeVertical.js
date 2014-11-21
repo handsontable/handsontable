@@ -38,7 +38,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
     elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 'px';
   }
 
-  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 1 + 'px';// + 4 + 'px';
 };
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
@@ -81,7 +81,7 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';// + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
   if (typeof this.instance.wtViewport.rowsCalculator.renderStartPosition === 'number') {
     this.fixed.style.top = this.instance.wtViewport.rowsCalculator.renderStartPosition + 'px';
   }

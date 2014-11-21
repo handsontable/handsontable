@@ -34,7 +34,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
 
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
-  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 1 + 'px';// + 4 + 'px';
 };
 
 WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
@@ -79,7 +79,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
 
-  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 4 + 'px';
+  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
 
   if (typeof this.instance.wtViewport.columnsCalculator.renderStartPosition === 'number'){
     this.fixed.style.left = this.instance.wtViewport.columnsCalculator.renderStartPosition + 'px';
