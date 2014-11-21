@@ -336,6 +336,7 @@
     };
 
     this.closeEditorAndRestoreOriginalValue = function(ctrlDown){
+      instance.selection.refreshBorders(); // fix for borders not showing properly after canceling the editor - gh#1890
       return this.closeEditor(true, ctrlDown);
     };
 
