@@ -355,4 +355,65 @@ describe('NumericEditor', function () {
 
   });
 
+  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX,XX' as an input string and ignore not needed zeros at the end", function() {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right", money: 0},
+        {id: 2, name: "Frank", lastName: "Honest", money: 0},
+        {id: 3, name: "Joan", lastName: "Well", money: 0},
+        {id: 4, name: "Sid", lastName: "Strong", money: 0},
+        {id: 5, name: "Jane", lastName: "Neat", money: 0},
+        {id: 6, name: "Chuck", lastName: "Jackson", money: 0},
+        {id: 7, name: "Meg", lastName: "Jansen", money: 0},
+        {id: 8, name: "Rob", lastName: "Norris", money: 0},
+        {id: 9, name: "Sean", lastName: "O'Hara", money: 0},
+        {id: 10, name: "Eve", lastName: "Branson", money: 0}
+      ],
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'name'},
+        {data: 'lastName'},
+        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(2, 0);
+
+    function manuallySetValueTo(val) {
+      keyDown('enter');
+
+      document.activeElement.value = val;
+
+      onAfterValidate.reset();
+      destroyEditor();
+    }
+
+    manuallySetValueTo('2456,220');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getCell(2, 0).innerHTML).toEqual('2 456,22 €');
+    });
+
+    runs(function () {
+      deselectCell();
+      selectCell(2, 3);
+      manuallySetValueTo('2456.220');
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
+    });
+  });
+
 });
