@@ -17,10 +17,11 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
+    var bottom = Math.ceil(box.bottom);
 
     elem.style.left = '0';
 
-    if (top < 0) {
+    if (top < 0 && (bottom - elem.offsetHeight) > 0) {
       elem.style.top = -top + "px";
     } else {
       elem.style.top = "0";

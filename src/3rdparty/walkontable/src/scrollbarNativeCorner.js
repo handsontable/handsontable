@@ -17,14 +17,15 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
+    var bottom = Math.ceil(box.bottom);
 
-    if (left < 0) {
+    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
       elem.style.left = -left + 'px';
     } else {
       elem.style.left = '0';
     }
 
-    if (top < 0) {
+    if (top < 0 && (bottom - elem.offsetHeight) > 0) {
       elem.style.top = -top + "px";
     } else {
       elem.style.top = "0";

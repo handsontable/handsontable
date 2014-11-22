@@ -17,10 +17,11 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   var elem = this.clone.wtTable.holder.parentNode;
 
   if (this.scrollHandler === window) {
+
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var left = Math.ceil(box.left);
 
-    if (left < 0) {
+    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
       elem.style.left = -left + 'px';
     } else {
       elem.style.left = '0';
