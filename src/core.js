@@ -309,7 +309,6 @@ Handsontable.Core = function (rootElement, userSettings) {
             current.col = start.col;
             clen = input[r] ? input[r].length : 0;
             for (c = 0; c < clen; c++) {
-//              if ((end && current.col > end.col) || (current.col >= priv.settings.maxCols)) {
               if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }

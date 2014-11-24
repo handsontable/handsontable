@@ -543,9 +543,6 @@ describe('Core_view', function () {
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
-//      expect(masterTH[1].offsetWidth).toEqual(87);
-//      expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
-
 			expect(masterTH[1].offsetWidth).toEqual(90);
       expect(overlayTH[1].offsetWidth).toEqual(90); //if you get 90, it means it is calculated before scrollbars were applied
 
