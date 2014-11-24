@@ -1,3 +1,58 @@
+/*
+ * https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded
+ *
+ * contentloaded.js
+ *
+ * Author: Diego Perini (diego.perini at gmail.com)
+ * Summary: cross-browser wrapper for DOMContentLoaded
+ * Updated: 20101020
+ * License: MIT
+ * Version: 1.2
+ *
+ * URL:
+ * http://javascript.nwbox.com/ContentLoaded/
+ * http://javascript.nwbox.com/ContentLoaded/MIT-LICENSE
+ *
+ */
+
+// @win window reference
+// @fn function reference
+function contentLoaded(win, fn) {
+
+  var done = false, top = true,
+
+    doc = win.document,
+    root = doc.documentElement,
+    modern = doc.addEventListener,
+
+    add = modern ? 'addEventListener' : 'attachEvent',
+    rem = modern ? 'removeEventListener' : 'detachEvent',
+    pre = modern ? '' : 'on',
+
+    init = function(e) {
+      if (e.type == 'readystatechange' && doc.readyState != 'complete') return;
+      (e.type == 'load' ? win : doc)[rem](pre + e.type, init, false);
+      if (!done && (done = true)) fn.call(win, e.type || e);
+    },
+
+    poll = function() {
+      try { root.doScroll('left'); } catch(e) { setTimeout(poll, 50); return; }
+      init('poll');
+    };
+
+  if (doc.readyState == 'complete') fn.call(win, 'lazy');
+  else {
+    if (!modern && root.doScroll) {
+      try { top = !win.frameElement; } catch(e) { }
+      if (top) poll();
+    }
+    doc[add](pre + 'DOMContentLoaded', init, false);
+    doc[add](pre + 'readystatechange', init, false);
+    win[add](pre + 'load', init, false);
+  }
+}
+
+
 function ajax (url, method, callback, params) {
   var obj;
   try {
@@ -55,9 +110,11 @@ function ajax (url, method, callback, params) {
 
     Handsontable.Dom.addEvent(document.body, 'click', function (e) {
 
-      if (e.target.nodeName == "BUTTON" && e.target.name == 'dump') {
-        var name = e.target.dataset['dump'];
-        var instance = e.target.dataset['instance'];
+      var element = e.target || e.srcElement;
+
+      if (element.nodeName == "BUTTON" && element.name == 'dump') {
+        var name = element.getAttribute('data-dump');
+        var instance = element.getAttribute('data-instance');
         var hot = window[instance];
         console.log('data of ' + name, hot.getData());
       }
@@ -66,10 +123,12 @@ function ajax (url, method, callback, params) {
 
   function bindFiddleButton() {
     Handsontable.Dom.addEvent(document.body, 'click', function (e) {
-      if (e.target.className == "jsFiddleLink") {
+      var element = e.target || e.srcElement;
+
+      if (element.className == "jsFiddleLink") {
 
         var keys = ['common'];
-        var runfiddle = e.target.dataset['runfiddle'];
+        var runfiddle = element.getAttribute('data-runfiddle');
 
         if (!runfiddle) {
           throw new Error("Edit in jsFiddle button does not contain runfiddle data");
@@ -89,6 +148,7 @@ function ajax (url, method, callback, params) {
         tags.push('<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>\n');
 
         for (var i = 0, ilen = keys.length; i < ilen; i++) {
+
           var dataFillde = document.querySelectorAll('[data-jsfiddle=' + keys[i] + ']');
 
           for (var x = 0, len = dataFillde.length; x < len; x++) {
@@ -283,12 +343,14 @@ function ajax (url, method, callback, params) {
     function bindMenuEvents(menu) {
       collapseAll(menu, true);
       Handsontable.Dom.addEvent(menu, 'click', function (ev) {
-        if (ev.target.nodeName == "H3") {
-          if (ev.target.parentNode.className.indexOf('current') != -1) {
+        var element = ev.target || ev.srcElement;
+
+        if (element.nodeName == "H3") {
+          if (element.parentNode.className.indexOf('current') != -1) {
             collapseAll(menu);
           }
           else {
-            expandOne(menu, ev.target.parentNode.querySelector("ul"));
+            expandOne(menu, element.parentNode.querySelector("ul"));
           }
         }
       });
@@ -310,11 +372,15 @@ function ajax (url, method, callback, params) {
     initSidebar();
   };
 
-if(document.addEventListener) {
-  document.addEventListener('DOMContentLoaded', initAll, false);
-} else {
-  document.attachEvent('DOMContentLoaded', initAll);
-}
+  contentLoaded(window, function (event) {
+    initAll();
+  });
+
+//if(document.addEventListener) {
+//  document.addEventListener('DOMContentLoaded', initAll, false);
+//} else {
+//  document.attachEvent('DOMContentLoaded', initAll);
+//}
 
 
 })();
