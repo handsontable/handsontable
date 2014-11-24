@@ -360,6 +360,59 @@ describe('ContextMenu', function () {
       expect(countRows()).toEqual(5);
     });
 
+		it('should NOT display insert row selection', function () {
+			var hot = handsontable({
+				contextMenu: true,
+				allowInsertRow: false
+			});
+
+			contextMenu();
+
+			var items = $('.htContextMenu tbody td');
+			var actions = items.not('.htSeparator');
+			var separators = items.filter('.htSeparator');
+
+			expect(actions.length).toEqual(8);
+			expect(separators.length).toEqual(4);
+
+			expect(actions.text()).toEqual([
+				'Insert column on the left',
+				'Insert column on the right',
+				'Remove row',
+				'Remove column',
+				'Undo',
+				'Redo',
+				'Read only',
+				'Alignment'
+			].join(''));
+
+		});
+
+		it('should NOT display insert column selection', function () {
+			var hot = handsontable({
+				contextMenu: true,
+				allowInsertColumn: false
+			});
+
+			contextMenu();
+
+			var items = $('.htContextMenu tbody td');
+			var actions = items.not('.htSeparator');
+
+			expect(actions.length).toEqual(8);
+
+			expect(actions.text()).toEqual([
+				'Insert row above',
+				'Insert row below',
+				'Remove row',
+				'Remove column',
+				'Undo',
+				'Redo',
+				'Read only',
+				'Alignment'
+			].join(''));
+		});
+
     it("should insert row above selection (reverse selection)", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
@@ -1981,89 +2034,6 @@ describe('ContextMenu', function () {
       }
 
     });
-
-//    it("should create only one DOM node for contextMenu per page ", function () {
-//
-//
-//      var hot1 = handsontable({
-//        contextMenu: false
-//      });
-//
-//      this.$container2.handsontable({
-//        contextMenu: false
-//      });
-//
-
-//      var hot2 = this.$container2.handsontable('getInstance');
-//      var contextMenuContainer = $('.htContextMenu');
-//
-//
-
-//      expect(contextMenuContainer.length).toEqual(0);
-//
-//      hot1.updateSettings({
-//        contextMenu: true
-//      });
-//
-//      contextMenuContainer = $('.htContextMenu');
-//
-//      expect(contextMenuContainer.length).toEqual(1);
-//
-//      hot2.updateSettings({
-//        contextMenu: true
-//      });
-//
-//      contextMenuContainer = $('.htContextMenu');
-//
-//      expect(contextMenuContainer.length).toEqual(1);
-//
-//
-//
-//
-//    });
-
-//    it("should remove contextMenu DOM nodes when there is no HOT instance on the page, which has contextMenu enabled ", function () {
-//      var hot1 = handsontable({
-//        contextMenu: true
-//      });
-//
-//      this.$container2.handsontable({
-//        contextMenu: true
-//      });
-//
-
-//
-//      var hot2 = this.$container2.handsontable('getInstance');
-//      var contextMenuContainer = $('.htContextMenu');
-//
-//      expect(contextMenuContainer.length).toEqual(1);
-//
-//      hot1.updateSettings({
-//        contextMenu: true
-//      });
-//
-//      hot2.updateSettings({
-//        contextMenu: false
-//      });
-//
-//      contextMenuContainer = $('.htContextMenu');
-//
-//      expect(contextMenuContainer.length).toEqual(1);
-//
-//      hot1.updateSettings({
-//        contextMenu: false
-//      });
-//
-//      hot2.updateSettings({
-//        contextMenu: false
-//      });
-//
-//      contextMenuContainer = $('.htContextMenu');
-//
-//      expect(contextMenuContainer.length).toEqual(0);
-//
-//
-//    });
 
     it("should perform a contextMenu action only for particular instance of HOT ", function () {
       var hot1 = handsontable({

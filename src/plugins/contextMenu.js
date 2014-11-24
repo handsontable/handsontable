@@ -1,66 +1,66 @@
 (function (Handsontable) {
   'use strict';
 
-  function prepareVerticalAlignClass(className, alignment) {
-    if (className.indexOf(alignment) != -1) {
+  function prepareVerticalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
       return className;
     }
 
-    className = className
-      .replace('htTop', '')
-      .replace('htMiddle', '')
-      .replace('htBottom', '')
-      .replace('  ', '');
+    className =  className
+      .replace('htTop','')
+      .replace('htMiddle','')
+      .replace('htBottom','')
+      .replace('  ','');
 
     className += " " + alignment;
     return className;
   }
 
-  function prepareHorizontalAlignClass(className, alignment) {
-    if (className.indexOf(alignment) != -1) {
+  function prepareHorizontalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
       return className;
     }
 
-    className = className
-      .replace('htLeft', '')
-      .replace('htCenter', '')
-      .replace('htRight', '')
-      .replace('htJustify', '')
-      .replace('  ', '');
+    className =  className
+      .replace('htLeft','')
+      .replace('htCenter','')
+      .replace('htRight','')
+      .replace('htJustify','')
+      .replace('  ','');
 
     className += " " + alignment;
     return className;
   }
 
-  function doAlign(row, col, type, alignment) {
-    var cellMeta = this.getCellMeta(row, col),
-      className = alignment;
+  function doAlign (row, col, type, alignment) {
+      var cellMeta = this.getCellMeta(row, col),
+        className = alignment;
 
-    if (cellMeta.className) {
-      if (type === 'vertical') {
-        className = prepareVerticalAlignClass(cellMeta.className, alignment);
-      } else {
-        className = prepareHorizontalAlignClass(cellMeta.className, alignment);
+      if (cellMeta.className) {
+        if(type === 'vertical') {
+          className = prepareVerticalAlignClass(cellMeta.className, alignment);
+        } else {
+          className = prepareHorizontalAlignClass(cellMeta.className, alignment);
+        }
       }
-    }
 
-    this.setCellMeta(row, col, 'className', className);
-    this.render();
+      this.setCellMeta(row, col, 'className',className);
+      this.render();
   }
 
-  function align(range, type, alignment) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col) {
-      doAlign.call(this, range.from.row, range.from.col, type, alignment);
+  function align (range, type, alignment) {
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      doAlign.call(this,range.from.row, range.from.col, type, alignment);
     } else {
-      for (var row = range.from.row; row <= range.to.row; row++) {
+      for(var row = range.from.row; row<= range.to.row; row++) {
         for (var col = range.from.col; col <= range.to.col; col++) {
-          doAlign.call(this, row, col, type, alignment);
+          doAlign.call(this,row, col, type, alignment);
         }
       }
     }
   }
 
-  function ContextMenu(instance, customOptions) {
+  function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
     contextMenu.menus = [];
@@ -73,7 +73,7 @@
     this.enabled = true;
 
     this.instance.addHook('afterDestroy', function () {
-      contextMenu.destroy();
+       contextMenu.destroy();
     });
 
     this.defaultOptions = {
@@ -110,12 +110,12 @@
         {
           key: 'col_left',
           name: 'Insert column on the left',
-          callback: function (key, selection) {
+          callback: function(key, selection){
             this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -124,12 +124,12 @@
         {
           key: 'col_right',
           name: 'Insert column on the right',
-          callback: function (key, selection) {
+          callback: function(key, selection){
             this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
 
             return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
@@ -139,13 +139,13 @@
         {
           key: 'remove_row',
           name: 'Remove row',
-          callback: function (key, selection) {
+          callback: function(key, selection){
             var amount = selection.end.row - selection.start.row + 1;
             this.alter("remove_row", selection.start.row, amount);
           },
           disabled: function () {
             var selected = this.getSelected(),
-              entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
             return (selected[0] < 0 || columnSelected);
           }
@@ -153,13 +153,13 @@
         {
           key: 'remove_col',
           name: 'Remove column',
-          callback: function (key, selection) {
+          callback: function(key, selection){
             var amount = selection.end.col - selection.start.col + 1;
             this.alter("remove_col", selection.start.col, amount);
           },
-          disabled: function () {
+          disabled: function (){
             var selected = this.getSelected(),
-              entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
               rowSelected = entireRowSelection.join(',') == selected.join(',');
             return (selected[1] < 0 || rowSelected);
           }
@@ -168,7 +168,7 @@
         {
           key: 'undo',
           name: 'Undo',
-          callback: function () {
+          callback: function(){
             this.undo();
           },
           disabled: function () {
@@ -178,7 +178,7 @@
         {
           key: 'redo',
           name: 'Redo',
-          callback: function () {
+          callback: function(){
             this.redo();
           },
           disabled: function () {
@@ -196,11 +196,11 @@
             }
             return label;
           },
-          callback: function () {
+          callback: function() {
             var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
 
             var that = this;
-            this.getSelectedRange().forAll(function (r, c) {
+            this.getSelectedRange().forAll(function(r, c) {
               that.getCellMeta(r, c).readOnly = atLeastOneReadOnly ? false : true;
             });
 
@@ -327,7 +327,7 @@
 
     contextMenu.options = {};
 
-    Handsontable.helper.extend(contextMenu.options, this.options);
+		Handsontable.helper.extend(contextMenu.options, this.defaultOptions);
 
     this.bindMouseEvents();
 
@@ -335,12 +335,12 @@
       return "<span class='selected'>✓</span>" + label;
     };
 
-    this.checkSelectionAlignment = function (hot, className) {
+    this.checkSelectionAlignment = function (hot, className){
       var hasAlignment = false;
 
-      hot.getSelectedRange().forAll(function (r, c) {
+      hot.getSelectedRange().forAll(function(r, c) {
         var metaClassName = hot.getCellMeta(r, c).className;
-        if (metaClassName && metaClassName.indexOf(className) != -1) {
+        if (metaClassName && metaClassName.indexOf(className)!= -1) {
           hasAlignment = true;
           return false;
         }
@@ -349,11 +349,40 @@
       return hasAlignment;
     };
 
-    this.checkSelectionReadOnlyConsistency = function (hot) {
+		if(!this.instance.getSettings().allowInsertRow) {
+			delete this.defaultOptions.items.row_above;
+			delete this.defaultOptions.items.row_below;
+			delete this.defaultOptions.items.hsep1;
+		}
+
+		if(!this.instance.getSettings().allowInsertColumn) {
+			delete this.defaultOptions.items.col_left;
+			delete this.defaultOptions.items.col_right;
+			delete this.defaultOptions.items.hsep2
+		}
+
+		var removeRow = false;
+		var removeCol = false;
+
+		if(!this.instance.getSettings().allowRemoveRow) {
+			delete this.defaultOptions.items.remove_row;
+			removeRow = true;
+		}
+
+		if(!this.instance.getSettings().allowRemoveColumn) {
+			delete this.defaultOptions.items.remove_col;
+			removeCol = true;
+		}
+
+		if (removeRow && removeCol) {
+			delete this.defaultOptions.items.hsep3;
+		}
+
+    this.checkSelectionReadOnlyConsistency = function(hot) {
       var atLeastOneReadOnly = false;
 
-      hot.getSelectedRange().forAll(function (r, c) {
-        if (hot.getCellMeta(r, c).readOnly) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        if(hot.getCellMeta(r, c).readOnly) {
           atLeastOneReadOnly = true;
           return false; //breaks forAll
         }
@@ -364,7 +393,7 @@
 
     Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
-  }
+	}
 
   /***
    * Create DOM instance of contextMenu
@@ -375,8 +404,8 @@
   ContextMenu.prototype.createMenu = function (menuName, row) {
     if (menuName) {
       menuName = menuName.replace(/ /g, '_'); // replace all spaces in name
-      menuName = 'htContextSubMenu_' + menuName;
-    }
+			menuName = 'htContextSubMenu_' + menuName;
+		}
 
     var menu;
     if (menuName) {
@@ -385,24 +414,24 @@
       menu = document.querySelector('.htContextMenu');
     }
 
+		if(!menu){
+			menu = document.createElement('DIV');
+			Handsontable.Dom.addClass(menu, 'htContextMenu');
+			if(menuName) {
+				Handsontable.Dom.addClass(menu, menuName);
+			}
+			document.getElementsByTagName('body')[0].appendChild(menu);
+		}
 
-    if (!menu) {
-      menu = document.createElement('DIV');
-      Handsontable.Dom.addClass(menu, 'htContextMenu');
-      if (menuName) {
-        Handsontable.Dom.addClass(menu, menuName);
-      }
-      document.getElementsByTagName('body')[0].appendChild(menu);
-    }
+		if(this.menus.indexOf(menu) < 0){
+			this.menus.push(menu);
+			row = row || 0;
+			this.triggerRows.push(row);
+		}
 
-    if (this.menus.indexOf(menu) < 0) {
-      this.menus.push(menu);
-      row = row || 0;
-      this.triggerRows.push(row);
-    }
+		return menu;
+	};
 
-    return menu;
-  };
 
   ContextMenu.prototype.bindMouseEvents = function () {
 
@@ -415,10 +444,10 @@
       event.stopPropagation();
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
-        showColHeaders = this.instance.getSettings().colHeaders;
+          showColHeaders = this.instance.getSettings().colHeaders;
 
-      if (!(showRowHeaders || showColHeaders)) {
-        if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
+      if(!(showRowHeaders || showColHeaders)) {
+        if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
           return;
         }
       }
@@ -437,13 +466,18 @@
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
-    this._afterScrollCallback = function () {};
+    var that = this;
+
+    this._afterScrollCallback = function () {
+      // that.close();
+    };
+
     this.instance.addHook('afterScrollVertically', this._afterScrollCallback);
     this.instance.addHook('afterScrollHorizontally', this._afterScrollCallback);
   };
 
   ContextMenu.prototype.unbindTableEvents = function () {
-    if (this._afterScrollCallback) {
+    if(this._afterScrollCallback){
       this.instance.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
@@ -600,15 +634,15 @@
     }
 
 
-    function isSubMenu(item) {
-      return item.hasOwnProperty('submenu');
-    }
+		function isSubMenu(item) {
+			return item.hasOwnProperty('submenu');
+		}
 
     function itemIsSeparator(item) {
       return new RegExp(ContextMenu.SEPARATOR.name, 'i').test(item.name);
     }
 
-    function itemIsDisabled(item) {
+    function itemIsDisabled(item){
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
 
@@ -627,7 +661,7 @@
       this.closeLastOpenedSubMenu();
     }
 
-    if (TD.className.indexOf('htSubmenu') != -1) {
+    if(TD.className.indexOf('htSubmenu')!=-1){
       var selectedItem = hot.getData()[coords.row];
       var items = this.getItems(selectedItem.submenu);
 
@@ -638,7 +672,7 @@
       this.setSubMenuPosition(tdCoords, subMenu);
 
     }
-  };
+	};
 
   ContextMenu.prototype.onBeforeKeyDown = function (event, instance) {
 
@@ -1081,7 +1115,11 @@
   Handsontable.hooks.add('afterUpdateSettings', init);
   Handsontable.hooks.add('afterInit', updateHeight);
 
-  Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
+  if(Handsontable.PluginHooks.register) { //HOT 0.11+
+    Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
+  }
+
+
 
   Handsontable.ContextMenu = ContextMenu;
 
