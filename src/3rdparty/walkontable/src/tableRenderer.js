@@ -280,17 +280,10 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
   for (var i = 0; i < this.columnHeaderCount; i++) {
     TR = this.getTrForColumnHeaders(i);
 
-    if (this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative || this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
-      for (renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        this.renderColumnHeader(i, renderedColumnIndex, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
-      }
-    }
-    else {
-      for (renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+    for (renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
         var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
         this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
       }
-    }
   }
 };
 
