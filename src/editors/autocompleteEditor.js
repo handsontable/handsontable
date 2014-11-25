@@ -37,12 +37,23 @@
     skipOne = false;
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-
+    
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
+      var timeOffset = 0;
+
+      // on ctl+c / cmd+c don't update suggestion list
+      if(event.keyCode === keyCodes.C && (event.ctrlKey || event.metaKey)) {
+        return;
+      }
+
+      if(!editor.isOpened()) {
+        timeOffset += 10;
+      }
+
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, 0));
+      }, timeOffset));
     }
   };
 
