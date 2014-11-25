@@ -21,13 +21,10 @@ describe('Core_paste', function () {
     ];
   };
 
-  it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', function () {
+  it('should not create new rows or columns of minSpareRows and minSpareCols equal 0', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_down',
-			allowInsertRow:false,
-			allowInsertColumn: false
-
+      pasteMode: 'shift_down'
     });
 
     selectCell(3, 4); //selectAll
@@ -43,11 +40,10 @@ describe('Core_paste', function () {
 
   });
 
- it('should shift data down instead of overwrite when paste (when allowInsertRow = false)', function () {
+ it('should shift data down instead of overwrite when paste', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_down',
-			allowInsertRow:false
+      pasteMode: 'shift_down'
     });
 
     selectCell(1, 0); //selectAll
@@ -84,8 +80,7 @@ describe('Core_paste', function () {
   it('should shift right insert instead of overwrite when paste', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_right',
-			allowInsertColumn: false
+      pasteMode: 'shift_right'
     });
 
     selectCell(1, 0); //selectAll

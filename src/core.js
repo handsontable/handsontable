@@ -304,7 +304,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         case 'overwrite' :
         default:
           // overwrite and other not specified options
-
           current.row = start.row;
           current.col = start.col;
 
@@ -328,13 +327,13 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
           for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
+            if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
               break;
             }
             current.col = start.col;
             clen = input[r] ? input[r].length : 0;
             for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
+              if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
 
@@ -534,8 +533,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       if (priv.selRange.highlight.col + delta.col > instance.countCols() - 1) {
-//        if (force && priv.settings.minSpareCols > 0) {
-        if (force && priv.settings.allowInsertColumn > 0) {
+        if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", instance.countCols());
         }
         else if (priv.settings.autoWrapRow) {
@@ -804,13 +802,13 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue;
       }
 
-      if (priv.settings.allowInsertRow) {
+      if (priv.settings.minSpareRows) {
         while (changes[i][0] > instance.countRows() - 1) {
           datamap.createRow();
         }
       }
-//      if (instance.dataType === 'array' && priv.settings.minSpareCols) {
-      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
+
+      if (instance.dataType === 'array' && priv.settings.minSpareCols) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -2104,14 +2102,8 @@ DefaultSettings.prototype = {
   minCols: 0,
   maxRows: Infinity,
   maxCols: Infinity,
-
   minSpareRows: 0,
   minSpareCols: 0,
-  allowInsertRow:true,
-  allowInsertColumn: true,
-  allowRemoveRow: true,
-  allowRemoveColumn: true,
-
   multiSelect: true,
   fillHandle: true,
   fixedRowsTop: 0,
