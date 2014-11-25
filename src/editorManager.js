@@ -99,6 +99,7 @@
                   if(that.isEditorOpened() && !activeEditor.isWaiting()){
                     that.closeEditorAndSaveChanges(ctrlDown);
                   }
+
                   moveSelectionLeft(event.shiftKey);
 
                   event.preventDefault();
