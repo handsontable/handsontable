@@ -1,7 +1,16 @@
 (function (Handsontable) {
   var DateEditor = Handsontable.editors.TextEditor.prototype.extend();
 
+  var $;
+
   DateEditor.prototype.init = function () {
+
+    if(typeof jQuery != 'undefined') {
+      $ = jQuery;
+    } else {
+      throw new Error("You need to include jQuery to your project in order to use the jQuery UI Datepicker.");
+    }
+
     if (!$.datepicker) {
       throw new Error("jQuery UI Datepicker dependency not found. Did you forget to include jquery-ui.custom.js or its substitute?");
     }

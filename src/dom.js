@@ -742,4 +742,54 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     }
     return cachedScrollbarWidth;
   }
+
+  var isIE8 = !(document.createTextNode('test').textContent);
+  Handsontable.Dom.isIE8 = function () {
+    return isIE8;
+  };
+
+  var isIE9 = !!(document.documentMode);
+  Handsontable.Dom.isIE9 = function () {
+    return isIE9;
+  };
+
+  var isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
+  Handsontable.Dom.isSafari = function () {
+    return isSafari;
+  };
+
+  /**
+   * Sets overlay position depending on it's type and used browser
+   */
+  Handsontable.Dom.setOverlayPosition = function (overlayElem, left, top) {
+    if (isIE8 || isIE9) {
+      overlayElem.style.top = top;
+      overlayElem.style.left = left;
+    } else if (isSafari) {
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    } else {
+      overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    }
+  };
+
+  Handsontable.Dom.getCssTransform = function (elem) {
+    var transform;
+
+    if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
+      return ['transform', transform];
+    } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
+      return ['-webkit-transform', transform];
+    } else {
+      return -1;
+    }
+  };
+
+  Handsontable.Dom.resetCssTransform = function (elem) {
+    if(elem['transform'] && elem['transform'] != "") {
+      elem['transform'] = "";
+    } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
+      elem['-webkit-transform'] = "";
+    }
+  };
+
 })();

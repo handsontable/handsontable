@@ -93,6 +93,8 @@
 
   };
 
+
+
   TextEditor.prototype.open = function(){
     this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/jquery-handsontable/issues/348
 
@@ -210,7 +212,20 @@
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
     var colHeadersCount = settings.colHeaders === false ? 0 : 1;
     var editorSection = this.checkEditorSection();
+    var cssTransformOffset;
 
+    // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
+    switch(editorSection) {
+      case 'top':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode);
+        break;
+      case 'left':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode);
+        break;
+      case 'corner':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode);
+        break;
+    }
 
     if (editTop < 0) {
       editTop = 0;
@@ -225,6 +240,13 @@
     //if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       editLeft += 1;
+    }
+
+
+    if(cssTransformOffset && cssTransformOffset != -1) {
+      this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    } else {
+      Handsontable.Dom.resetCssTransform(this.textareaParentStyle);
     }
 
     this.textareaParentStyle.top = editTop + 'px';

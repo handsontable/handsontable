@@ -20,19 +20,23 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
 
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var left = Math.ceil(box.left);
+    var finalLeft
+      , finalTop;
 
     if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
-      elem.style.left = -left + 'px';
+      finalLeft = -left + 'px';
     } else {
-      elem.style.left = '0';
+      finalLeft = '0';
     }
 
-    elem.style.top = this.instance.wtTable.hider.style.top;
+    finalTop = this.instance.wtTable.hider.style.top;
   }
   else {
-    elem.style.top = this.instance.wtTable.hider.style.top;
-    elem.style.left = this.getScrollPosition() + "px";
+    finalLeft = this.getScrollPosition() + "px";
+    finalTop = this.instance.wtTable.hider.style.top;
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
