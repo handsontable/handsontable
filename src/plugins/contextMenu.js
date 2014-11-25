@@ -349,6 +349,44 @@
       return hasAlignment;
     };
 
+		if(!this.instance.getSettings().allowInsertRow) {
+      var rowAboveIndex = findIndexByKey(this.defaultOptions.items, 'row_above');
+      this.defaultOptions.items.splice(rowAboveIndex,1);
+      var rowBelowIndex = findIndexByKey(this.defaultOptions.items, 'row_above');
+      this.defaultOptions.items.splice(rowBelowIndex,1);
+      this.defaultOptions.items.splice(rowBelowIndex,1); // FOR SEPARATOR
+
+		}
+
+		if(!this.instance.getSettings().allowInsertColumn) {
+      var colLeftIndex = findIndexByKey(this.defaultOptions.items, 'col_left');
+      this.defaultOptions.items.splice(colLeftIndex,1);
+      var colRightIndex = findIndexByKey(this.defaultOptions.items, 'col_right');
+      this.defaultOptions.items.splice(colRightIndex,1);
+      this.defaultOptions.items.splice(colRightIndex,1); // FOR SEPARATOR
+
+    }
+
+		var removeRow = false;
+		var removeCol = false;
+    var removeRowIndex, removeColumnIndex;
+
+		if(!this.instance.getSettings().allowRemoveRow) {
+      removeRowIndex = findIndexByKey(this.defaultOptions.items, 'remove_row');
+      this.defaultOptions.items.splice(removeRowIndex,1);
+			removeRow = true;
+		}
+
+		if(!this.instance.getSettings().allowRemoveColumn) {
+      removeColumnIndex = findIndexByKey(this.defaultOptions.items, 'remove_col');
+      this.defaultOptions.items.splice(removeColumnIndex,1);
+      removeCol = true;
+		}
+
+		if (removeRow && removeCol) {
+      this.defaultOptions.items.splice(removeColumnIndex,1); // SEPARATOR
+		}
+
     this.checkSelectionReadOnlyConsistency = function (hot) {
       var atLeastOneReadOnly = false;
 
@@ -802,6 +840,14 @@
     for (var i = 0, ilen = items.length; i < ilen; i++) {
       if (items[i].key === key) {
         return items[i];
+      }
+    }
+  }
+
+  function findIndexByKey(items, key) {
+    for (var i = 0, ilen = items.length; i < ilen; i++) {
+      if (items[i].key === key) {
+        return i;
       }
     }
   }

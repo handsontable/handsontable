@@ -75,7 +75,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         case "insert_col":
           // //column order may have changes, so we need to translate the selection column index -> source array index
           // index = instance.runHooksAndReturn('modifyCol', index);
-          delta = datamap.createCol(index, amount);
+            delta = datamap.createCol(index, amount);
 
           if (delta) {
 
@@ -327,13 +327,13 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
           for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
+            if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
               break;
             }
             current.col = start.col;
             clen = input[r] ? input[r].length : 0;
             for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
+              if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
 
@@ -802,13 +802,13 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue;
       }
 
-      if (priv.settings.minSpareRows) {
+      if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
           datamap.createRow();
         }
       }
 
-      if (instance.dataType === 'array' && priv.settings.minSpareCols) {
+      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -2104,6 +2104,10 @@ DefaultSettings.prototype = {
   maxCols: Infinity,
   minSpareRows: 0,
   minSpareCols: 0,
+  allowInsertRow:true,
+  allowInsertColumn: true,
+  allowRemoveRow: true,
+  allowRemoveColumn: true,
   multiSelect: true,
   fillHandle: true,
   fixedRowsTop: 0,

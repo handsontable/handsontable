@@ -360,6 +360,58 @@ describe('ContextMenu', function () {
       expect(countRows()).toEqual(5);
     });
 
+    it('should NOT display insert row selection', function () {
+      var hot = handsontable({
+      	contextMenu: true,
+        allowInsertRow: false
+      });
+
+      contextMenu();
+
+      var items = $('.htContextMenu tbody td');
+      var actions = items.not('.htSeparator');
+      var separators = items.filter('.htSeparator');
+
+      expect(actions.length).toEqual(8);
+      expect(separators.length).toEqual(4);
+
+      expect(actions.text()).toEqual([
+        	'Insert column on the left',
+        	'Insert column on the right',
+        	'Remove row',
+        	'Remove column',
+        	'Undo',
+        	'Redo',
+        	'Read only',
+        	'Alignment'
+        ].join(''));
+    });
+
+    it('should NOT display insert column selection', function () {
+      var hot = handsontable({
+      	contextMenu: true,
+        	allowInsertColumn: false
+      });
+
+      contextMenu();
+
+      var items = $('.htContextMenu tbody td');
+      var actions = items.not('.htSeparator');
+
+      expect(actions.length).toEqual(8);
+
+      expect(actions.text()).toEqual([
+          'Insert row above',
+          'Insert row below',
+          'Remove row',
+          'Remove column',
+          'Undo',
+          'Redo',
+          'Read only',
+          'Alignment'
+        ].join(''));
+  	});
+
     it("should insert row above selection (reverse selection)", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
