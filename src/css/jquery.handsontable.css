@@ -296,6 +296,7 @@
   color: #000;
   border-radius: 0;
   background-color: #FFF;
+  box-sizing: content-box;
   /*overwrite styles potentionally made by a framework*/
 }
 
