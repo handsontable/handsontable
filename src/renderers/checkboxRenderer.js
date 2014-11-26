@@ -54,11 +54,13 @@
     }
     else {
       eventManager.addEventListener(INPUT,'mousedown',function (event) {
-        event.stopPropagation(); //otherwise can confuse cell mousedown handler
+        Handsontable.helper.stopPropagation(event);
+        //event.stopPropagation(); //otherwise can confuse cell mousedown handler
       });
 
       eventManager.addEventListener(INPUT,'mouseup',function (event) {
-        event.stopPropagation(); //otherwise can confuse cell dblclick handler
+        Handsontable.helper.stopPropagation(event);
+        //event.stopPropagation(); //otherwise can confuse cell dblclick handler
       });
 
       eventManager.addEventListener(INPUT,'change',function () {

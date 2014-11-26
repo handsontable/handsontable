@@ -412,7 +412,7 @@
       this.closeAll();
 
       event.preventDefault();
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
         showColHeaders = this.instance.getSettings().colHeaders;
@@ -888,10 +888,12 @@
   };
 
   ContextMenu.prototype.setMenuPosition = function (event, menu) {
-    var cursorY = event.pageY;
-    var cursorX = event.pageX;
+    // for ie8
+    // http://msdn.microsoft.com/en-us/library/ie/ff974655(v=vs.85).aspx
     var scrollTop = Handsontable.Dom.getWindowScrollTop();
     var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+    var cursorY = event.pageY || (event.clientY + scrollTop);
+    var cursorX = event.pageX || (event.clientX + scrollLeft);
 
     var cursor = {
       top: cursorY,
@@ -935,6 +937,7 @@
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
+
     menu.style.top = cursor.top + 'px';
   };
 

@@ -5,7 +5,7 @@ if(!window.Handsontable){
 
 Handsontable.eventManager = function (instance) {
   if (!instance) {
-    throw  new Error ('instance not defined');
+    throw new Error ('instance not defined');
   }
 
   if (!instance.eventListeners) {

@@ -271,11 +271,13 @@
     var eventManager = Handsontable.eventManager(editor);
 
     eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     this.instance.addHook('afterScrollVertically', function () {
