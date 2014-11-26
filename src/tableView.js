@@ -40,7 +40,6 @@ Handsontable.TableView = function (instance) {
   });
 
   this.eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
-    debugger
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
