@@ -127,10 +127,10 @@ Handsontable.eventManager = function (instance) {
 
 
 
-      if (element.detachEvent) {
-        element.fireEvent('on' + type, event);
-      } else {
+      if (element.dispatchEvent) {
         element.dispatchEvent(event);
+      } else {
+        element.fireEvent('on' + type, event);
       }
     };
 
