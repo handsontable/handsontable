@@ -66,10 +66,10 @@ Handsontable.eventManager = function (instance) {
           }
 
           instance.eventListeners.splice(len, 1);
-          if (tmpEv.element.detachEvent) {
-            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
-          } else {
+          if (tmpEv.element.removeEventListener) {
             tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callbackProxy, false);
+          } else {
+            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
           }
         }
       }

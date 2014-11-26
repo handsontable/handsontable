@@ -598,10 +598,10 @@ Handsontable.Dom.addEvent = function(element, event, callback) {
 };
 
 Handsontable.Dom.removeEvent = function(element, event, callback) {
-  if (window.detachEvent) {
-    element.detachEvent('on' + event, callback);
-  } else {
+  if (window.removeEventListener) {
     element.removeEventListener(event, callback, false);
+  } else {
+    element.detachEvent('on' + event, callback);
   }
 };
 
