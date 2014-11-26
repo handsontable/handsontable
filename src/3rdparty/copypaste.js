@@ -54,6 +54,12 @@ CopyPasteClass.prototype.init = function () {
 
     this.elTextarea = document.createElement('TEXTAREA');
     this.elTextarea.className = 'copyPaste';
+    this.elTextarea.onpaste = function (event) {
+      if('WebkitAppearance' in document.documentElement.style) { // chrome and safari
+        this.value = event.clipboardData.getData("Text");
+        return false;
+      }
+    };
     style = this.elTextarea.style;
     style.width = '10000px';
     style.height = '10000px';
