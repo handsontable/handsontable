@@ -53,8 +53,8 @@
         createTmpContainer.call(tmp, instance);
       }
 
-      tmp.container.className = instance.rootElement[0].className + ' htAutoColumnSize';
-      tmp.table.className = instance.$table[0].className;
+      tmp.container.className = instance.rootElement.className + ' htAutoColumnSize';
+      tmp.table.className = instance.table.className;
 
       var rows = instance.countRows();
       var samples = {};
@@ -106,7 +106,7 @@
         }
       }
 
-      var parent = instance.rootElement[0].parentNode;
+      var parent = instance.rootElement.parentNode;
       parent.appendChild(tmp.container);
       var width = Handsontable.Dom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
@@ -158,7 +158,8 @@
       tmp.table.appendChild(tmp.tbody);
 
       tmp.container = d.createElement('div');
-      tmp.container.className = instance.rootElement[0].className + ' hidden';
+      tmp.container.className = instance.rootElement.className + ' hidden';
+//      tmp.container.className = instance.rootElement[0].className + ' hidden';
       tmp.containerStyle = tmp.container.style;
 
       tmp.container.appendChild(tmp.table);

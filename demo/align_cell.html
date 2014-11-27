@@ -5,11 +5,10 @@
   <title>Align cell - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -75,28 +74,31 @@
             <div class="pad" data-jsfiddle="example1">
               <h2>Horizontal & vertical alignment</h2>
 
-              <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details
+              <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells
+                details
                 in form of a grid, <code>columns</code> or <code>cell</code> setting (see code sample below).
               </p>
 
               <p>Available classNames:</p>
 
               <ul>
-                <li>horizontal: <code>htLeft</code>, <code>htCenter</code>, <code>htRight</code>, <code>htJustify</code>,</li>
+                <li>horizontal: <code>htLeft</code>, <code>htCenter</code>, <code>htRight</code>, <code>htJustify</code>,
+                </li>
                 <li>vertical: <code>htTop</code>, <code>htMiddle</code>, <code>htBottom</code>.</li>
               </ul>
 
               <p>Alignment changes can be tracked using <code>afterSetCellMeta</code> hook callback.</p>
 
-          <div style="overflow: scroll; height: 200px; width: 400px">
-            <div id="example1"></div>
-          </div>
+              <div style="overflow: scroll; height: 200px; width: 400px">
+                <div id="example1"></div>
+              </div>
 
-          <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
+              <p>
+                <button name="dump" data-dump="#example1" data-instance="hot1"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
         </div>
       </div>
 
@@ -106,8 +108,9 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
 
-          <script data-jsfiddle="example">
-            $('#example1').handsontable({
+          <script data-jsfiddle="example1">
+            var container = document.getElementById('example1');
+            var hot1 = new Handsontable(container,{
               data: createBigData(),
               colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,

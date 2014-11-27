@@ -178,9 +178,8 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDown(Handsontable.helper.keyCode.CONTROL_LEFT);
-      $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true}));
 
+      $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true});
       waits(0);
 
       runs(function () {
@@ -201,9 +200,12 @@ describe('CopyPaste plugin', function () {
       deselectCell();
 
       function keydownCtrl(){
-        $(document).trigger($.Event('keydown', {
+//        $(document).trigger($.Event('keydown', {
+//          keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
+//        }));
+        $(document).simulate('keydown', {
           keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
-        }));
+        });
       }
 
       expect(keydownCtrl).not.toThrow();  //expect no to throw any exception

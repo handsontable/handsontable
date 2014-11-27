@@ -92,4 +92,37 @@ describe('Core_populateFromArray', function () {
       ["2010", 30, 15, 12, 13, null, null, null, null]
     ]);
   });
+
+  it('should run beforeAutofillInsidePopulate hook for each inserted value', function () {
+    var called = 0;
+
+    var hot = handsontable({
+      data : arrayOfArrays()
+    });
+
+    hot.addHook('beforeAutofillInsidePopulate', function (index) {
+      called++;
+    });
+
+    populateFromArray(0, 0, [["test","test2"],["test3","test4"]], 1, 1, 'autofill', 'overwrite');
+
+    expect(called).toEqual(4);
+  });
+
+  it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', function () {
+
+    var hot = handsontable({
+      data : arrayOfArrays()
+    });
+
+    hot.addHook('beforeAutofillInsidePopulate', function (index) {
+      return {
+        value: 'my_test'
+      }
+    });
+
+    populateFromArray(0, 0, [["test","test2"],["test3","test4"]], 1, 1, 'autofill', 'overwrite');
+
+    expect(getDataAtCell(0,0)).toEqual('my_test')
+  });
 });

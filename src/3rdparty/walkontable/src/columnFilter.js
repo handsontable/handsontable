@@ -7,11 +7,11 @@ function WalkontableColumnFilter(total, countTH) {
   this.countTH = countTH;
 }
 
-WalkontableColumnFilter.prototype.visibleToSource = function (n) {
+WalkontableColumnFilter.prototype.renderedToSource = function (n) {
   return n;
 };
 
-WalkontableColumnFilter.prototype.sourceToVisible = function (n) {
+WalkontableColumnFilter.prototype.sourceToRendered = function (n) {
   return n;
 };
 
@@ -24,9 +24,9 @@ WalkontableColumnFilter.prototype.unOffsettedTH = function (n) {
 };
 
 WalkontableColumnFilter.prototype.visibleRowHeadedColumnToSourceColumn = function (n) {
-  return this.visibleToSource(this.offsettedTH(n));
+  return this.renderedToSource(this.offsettedTH(n));
 };
 
 WalkontableColumnFilter.prototype.sourceColumnToVisibleRowHeadedColumn = function (n) {
-  return this.unOffsettedTH(this.sourceToVisible(n));
+  return this.unOffsettedTH(this.sourceToRendered(n));
 };

@@ -16,11 +16,11 @@ WalkontableRowFilter.prototype.unOffsetted = function (n) {
   return n - this.offset;
 };
 
-WalkontableRowFilter.prototype.visibleToSource = function (n) {
+WalkontableRowFilter.prototype.renderedToSource = function (n) {
   return this.offsetted(n);
 };
 
-WalkontableRowFilter.prototype.sourceToVisible = function (n) {
+WalkontableRowFilter.prototype.sourceToRendered = function (n) {
   return this.unOffsetted(n);
 };
 
@@ -29,9 +29,9 @@ WalkontableRowFilter.prototype.offsettedTH = function (n) {
 };
 
 WalkontableRowFilter.prototype.visibleColHeadedRowToSourceRow = function (n) {
-  return this.visibleToSource(this.offsettedTH(n));
+  return this.renderedToSource(this.offsettedTH(n));
 };
 
 WalkontableRowFilter.prototype.sourceRowToVisibleColHeadedRow = function (n) {
-  return this.unOffsettedTH(this.sourceToVisible(n));
+  return this.unOffsettedTH(this.sourceToRendered(n));
 };

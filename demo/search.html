@@ -5,11 +5,10 @@
   <title>Search - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -63,7 +62,7 @@
           </p>
 
           <p>
-              See <a href="https://github.com/handsontable/jquery-handsontable/wiki/Search-plugin">wiki</a> for an in-depth documentation.
+              See <a href="https://github.com/handsontable/handsontable/wiki/Search-plugin">wiki</a> for an in-depth documentation.
           </p>
 
           <ul>
@@ -110,9 +109,9 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example = $("#example1");
+                              , example = document.getElementById("example1");
 
-                      example.handsontable({
+                      var hot = new Handsontable(example,{
                           data: data,
                           colHeaders: true,
                           search: true
@@ -122,13 +121,10 @@
                         return queryStr.toString() === value.toString();
                       };
 
-                      $('#search_field').on('keyup', function (event) {
-                          var hot = example.handsontable('getInstance');
-
+                      var searchFiled = document.getElementById('search_field');
+                      Handsontable.Dom.addEvent(searchFiled,'keyup', function (event) {
                           var queryResult = hot.search.query(this.value);
-
                           console.log(queryResult);
-
                           hot.render();
                       });
 
@@ -138,7 +134,7 @@
       </div>
       <div class="rowLayout">
           <div class="descLayout">
-              <div class="pad" data-jsfiddle="example1">
+              <div class="pad" data-jsfiddle="example2">
 
                   <h2 id="custom-search-result-class">Custom search result class</h2>
 
@@ -169,9 +165,9 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example2 = $("#example2");
+                              , example2 = document.getElementById("example2");
 
-                      example2.handsontable({
+                      var hot2 = new Handsontable(example2,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -179,14 +175,11 @@
                           }
                       });
 
-                      $('#search_field2').on('keyup', function (event) {
-                          var hot = example2.handsontable('getInstance');
-
-                          var queryResult = hot.search.query(this.value);
-
+                      var searchFiled2 = document.getElementById('search_field2');
+                      Handsontable.Dom.addEvent(searchFiled2,'keyup', function (event) {
+                          var queryResult = hot2.search.query(this.value);
                           console.log(queryResult);
-
-                          hot.render();
+                          hot2.render();
                       });
 
                   </script>
@@ -195,7 +188,7 @@
       </div>
       <div class="rowLayout">
           <div class="descLayout">
-              <div class="pad" data-jsfiddle="example1">
+              <div class="pad" data-jsfiddle="example3">
 
                   <h2 id="custom-query-method">Custom query method</h2>
 
@@ -219,13 +212,13 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example3 = $("#example3");
+                              , example3 = document.getElementById("example3");
 
                       var onlyExactMatch = function (queryStr, value) {
                           return queryStr.toString() === value.toString();
                       };
 
-                      example3.handsontable({
+                      var hot3 = new Handsontable(example3,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -233,14 +226,16 @@
                           }
                       });
 
-                      $('#search_field3').on('keyup', function (event) {
-                          var hot = example3.handsontable('getInstance');
+                      var searchFiled3 = document.getElementById('search_field3');
+                      Handsontable.Dom.addEvent(searchFiled3,'keyup', function (event) {
 
-                          var queryResult = hot.search.query(this.value);
+
+
+                          var queryResult = hot3.search.query(this.value);
 
                           console.log(queryResult);
 
-                          hot.render();
+                          hot3.render();
                       });
 
                   </script>
@@ -249,7 +244,7 @@
       </div>
       <div class="rowLayout">
           <div class="descLayout">
-              <div class="pad" data-jsfiddle="example1">
+              <div class="pad" data-jsfiddle="example4">
 
                   <h2 id="custom-callback">Custom callback</h2>
 
@@ -275,7 +270,7 @@
                                   ["Chrysler", 2004, "yellow", "black"],
                                   ["Volvo", 2012, "white", "gray"]
                               ]
-                              , example4 = $("#example4");
+                              , example4 = document.getElementById("example4");
 
                       var searchResultCount = 0;
 
@@ -288,7 +283,7 @@
                           }
                       };
 
-                      example4.handsontable({
+                      var hot4 = new Handsontable(example4,{
                           data: data,
                           colHeaders: true,
                           search: {
@@ -296,15 +291,15 @@
                           }
                       });
 
-                      $('#search_field4').on('keyup', function (event) {
-                          var hot = example4.handsontable('getInstance');
-                          searchResultCount = 0;
+                      var searchFiled4 = document.getElementById('search_field4');
+                      var resultCount = document.getElementById('resultCount');
 
-                          var queryResult = hot.search.query(this.value);
-
-                          $('#resultCount').text(searchResultCount);
-
-                          hot.render();
+                      Handsontable.Dom.addEvent(searchFiled4, 'keyup', function (event) {
+                        searchResultCount = 0;
+                        var queryResult = hot4.search.query(this.value);
+                        console.log(queryResult);
+                        resultCount.innerText = searchResultCount.toString();
+                        hot4.render();
                       });
 
                   </script>

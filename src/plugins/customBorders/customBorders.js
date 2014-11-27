@@ -243,13 +243,15 @@
    * @param borderClassName
    */
   var removeBordersFromDom = function (borderClassName) {
-	  var borders = document.getElementsByClassName(borderClassName);
+	  var borders = document.querySelectorAll("." + borderClassName);
 
 		for(var i = 0; i< borders.length; i++) {
 			if (borders[i]) {
 				if(borders[i].nodeName != 'TD') {
 					var parent = borders[i].parentNode;
-      		parent.parentNode.removeChild(parent);
+          if(parent.parentNode) {
+            parent.parentNode.removeChild(parent);
+          }
 				}
 			}
 		}

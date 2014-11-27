@@ -8,12 +8,12 @@
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <script data-jsfiddle="common" type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 
   <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/bootstrap/jquery.handsontable.bootstrap.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/bootstrap/handsontable.bootstrap.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -84,7 +84,7 @@
           <p>This page demonstrate example of using Handsontable with Twitter Bootstrap.</p>
 
           <p>Please note that you should reset some of Bootstrap styles. You can use file <a
-            href="https://github.com/handsontable/jquery-handsontable/blob/master/plugins/bootstrap/jquery.handsontable.bootstrap.css">plugins/bootstrap/jquery.handsontable.bootstrap.css</a>
+            href="https://github.com/handsontable/handsontable/blob/master/plugins/bootstrap/handsontable.bootstrap.css">plugins/bootstrap/handsontable.bootstrap.css</a>
             for that purpose.</p>
 
           <p class="options">
@@ -96,7 +96,7 @@
           <div id="example1"></div>
 
           <p>
-            <button class="btn btn-info" name="dump" data-dump="#example1"
+            <button class="btn btn-info" name="dump" data-dump="#example1" data-instance="hot"
                     title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
@@ -134,19 +134,29 @@
               [1, 2, 3, 4, 5, 6]
             ];
 
-            $('#example1').handsontable({
+            var container = document.getElementById('example1');
+            var hot = new Handsontable(container,{
               data: data,
               colHeaders: true,
               rowHeaders: true,
               minSpareRows: 1
             });
 
-            $('#example1 table').addClass('table');
+            var table = document.querySelector('table');
+            Handsontable.Dom.addClass(table, 'table');
 
-            $('.options input').on('change', function () {
-              var method = this.checked ? 'addClass' : 'removeClass';
-              $('#example1').find('table')[method](this.getAttribute('data-type'));
-            });
+            var options = document.querySelectorAll('.options input');
+
+            for (var i = 0, len = options.length; i < len; i++) {
+              Handsontable.Dom.addEvent(options[i], 'click', function (){
+                if (this.checked){
+                  Handsontable.Dom.addClass(table,this.getAttribute('data-type'))
+                }
+                else{
+                  Handsontable.Dom.removeClass(table,this.getAttribute('data-type'))
+                }
+              })
+            }
 
           </script>
         </div>

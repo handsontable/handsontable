@@ -63,46 +63,23 @@ if (typeof Handsontable !== 'undefined') {
       //not much we can do currently
       return;
     }
-    else if (scrollHandler) {
-      dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
-    }
     else {
-      dragToScroll.setBoundaries(instance.$table[0].getBoundingClientRect());
+      dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
     }
 
     dragToScroll.setCallback(function (scrollX, scrollY) {
       if (scrollX < 0) {
-        if (scrollHandler) {
           scrollHandler.scrollLeft -= 50;
-        }
-        else {
-          instance.view.wt.scrollHorizontal(-1).draw();
-        }
       }
       else if (scrollX > 0) {
-        if (scrollHandler) {
           scrollHandler.scrollLeft += 50;
-        }
-        else {
-          instance.view.wt.scrollHorizontal(1).draw();
-        }
       }
 
       if (scrollY < 0) {
-        if (scrollHandler) {
           scrollHandler.scrollTop -= 20;
-        }
-        else {
-          instance.view.wt.scrollVertical(-1).draw();
-        }
       }
       else if (scrollY > 0) {
-        if (scrollHandler) {
           scrollHandler.scrollTop += 20;
-        }
-        else {
-          instance.view.wt.scrollVertical(1).draw();
-        }
       }
     });
 
@@ -111,12 +88,13 @@ if (typeof Handsontable !== 'undefined') {
 
   Handsontable.hooks.add('afterInit', function () {
     var instance = this;
+    var eventManager = Handsontable.eventManager(this);
 
-    $(document).on('mouseup.' + this.guid, function () {
+    eventManager.addEventListener(document,'mouseup', function () {
       instance.dragToScrollListening = false;
     });
 
-    $(document).on('mousemove.' + this.guid, function (event) {
+    eventManager.addEventListener(document,'mousemove', function () {
       if (instance.dragToScrollListening) {
         dragToScroll.check(event.clientX, event.clientY);
       }
@@ -124,7 +102,8 @@ if (typeof Handsontable !== 'undefined') {
   });
 
   Handsontable.hooks.add('afterDestroy', function () {
-    $(document).off('.' + this.guid);
+    var eventManager = Handsontable.eventManager(this);
+    eventManager.clear();
   });
 
   Handsontable.hooks.add('afterOnCellMouseDown', function () {

@@ -1,6 +1,8 @@
 function WalkontableEvent(instance) {
   var that = this;
 
+  var eventManager = Handsontable.eventManager(instance);
+
   //reference to instance
   this.instance = instance;
 
@@ -80,11 +82,13 @@ function WalkontableEvent(instance) {
     }
   };
 
-  $(this.instance.wtTable.holder).on('mousedown', onMouseDown);
-  $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
-  $(this.instance.wtTable.holder).on('mouseup', onMouseUp);
+  eventManager.addEventListener(this.instance.wtTable.holder,'mousedown', onMouseDown);
 
-  $(window).on('resize.' + this.instance.guid, function () {
+  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
+
+  eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
+
+  eventManager.addEventListener(window, 'resize', function() {
     that.instance.draw();
   });
 }
@@ -101,8 +105,10 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
-    cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
-    cell.TD = this.instance.wtTable.getCell(cell.coords);
+    if (this.instance.selections[1].cellRange){
+      cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
+      cell.TD = this.instance.wtTable.getCell(cell.coords);
+    }
   }
 
   return cell;

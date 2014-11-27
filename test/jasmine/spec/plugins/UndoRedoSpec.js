@@ -843,7 +843,6 @@ describe('UndoRedo', function () {
         });
 
         it('should redo single change in cell with validator', function () {
-
           var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
             result(true);
           });
@@ -2413,8 +2412,9 @@ describe('UndoRedo', function () {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
-        this.$container.trigger(keyboardEvent);
+//        var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
+//        this.$container.trigger(keyboardEvent);
+        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2432,8 +2432,9 @@ describe('UndoRedo', function () {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
-        this.$container.trigger(keyboardEvent);
+//        var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
+//        this.$container.trigger(keyboardEvent);
+        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2452,8 +2453,9 @@ describe('UndoRedo', function () {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        var keyboardEvent = $.Event('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
-        this.$container.trigger(keyboardEvent);
+//        var keyboardEvent = $.Event('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
+//        this.$container.trigger(keyboardEvent);
+        this.$container.simulate('keydown', {ctrlKey: true,shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });

@@ -434,6 +434,31 @@ var afterGetCellMeta = function(row, col, cellProperties) {
   }
 };
 
+var afterViewportRowCalculatorOverride = function (calc) {
+  var mergeCellsSetting = this.getSettings().mergeCells;
+  if (mergeCellsSetting) {
+    var colCount = this.countCols();
+    var mergeParent;
+    for (var c = 0; c < colCount; c++) {
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.renderStartRow, c);
+      if (mergeParent) {
+        if (mergeParent.row < calc.renderStartRow) {
+          calc.renderStartRow = mergeParent.row;
+          return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
+        }
+      }
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.renderEndRow, c);
+      if (mergeParent) {
+        var mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
+        if (mergeEnd > calc.renderEndRow) {
+          calc.renderEndRow = mergeEnd;
+          return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
+        }
+      }
+    }
+  }
+};
+
 var isMultipleSelection = function(isMultiple) {
   if(isMultiple && this.mergeCells) {
     var mergedCells = this.mergeCells.mergedCellInfoCollection
@@ -461,6 +486,7 @@ Handsontable.hooks.add('afterIsMultipleSelection', isMultipleSelection);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
+Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 
 Handsontable.MergeCells = MergeCells;
 

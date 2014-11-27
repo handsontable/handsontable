@@ -144,7 +144,7 @@ Handsontable.helper.randomString = function () {
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
- * Described in ticket: https://github.com/handsontable/jquery-handsontable/pull/516
+ * Described in ticket: https://github.com/handsontable/handsontable/pull/516
  * @param  {Object} Child  child class
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
@@ -442,4 +442,37 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 
 Handsontable.helper.toString = function (obj) {
   return '' + obj;
+};
+
+Handsontable.helper.stopPropagation = function (event) {
+  // ie8
+  //http://msdn.microsoft.com/en-us/library/ie/ff975462(v=vs.85).aspx
+  if (typeof (event.stopPropagation) === 'function') {
+    event.stopPropagation();
+  }
+  else {
+    event.cancelBubble = true;
+  }
+};
+
+Handsontable.helper.pageX = function (event) {
+  if (event.pageX) {
+    return event.pageX;
+  }
+
+  var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+  var cursorX = event.clientX + scrollLeft;
+
+  return cursorX;
+};
+
+Handsontable.helper.pageY = function (event) {
+  if (event.pageY) {
+    return event.pageY;
+  }
+
+  var scrollTop = Handsontable.Dom.getWindowScrollTop();
+  var cursorY = event.clientY + scrollTop;
+
+  return cursorY;
 };
