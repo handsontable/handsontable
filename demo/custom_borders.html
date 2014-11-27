@@ -108,16 +108,17 @@
               <p>See full example below.
               </p>
 
-          <div style="overflow: scroll; height: 200px; width: 400px">
-            <div id="example1"></div>
-          </div>
+              <div style="overflow: scroll; height: 200px; width: 400px">
+                <div id="example1"></div>
+              </div>
 
-          <p>
-            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
-          </p>
+              <p>
+                <button name="dump" data-dump="#example1" data-instance="hot"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
         </div>
       </div>
 
@@ -127,9 +128,9 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
 
-          <script data-jsfiddle="example">
+          <script data-jsfiddle="example1">
             var container = document.getElementById('example1');
-            var hot = Handsontable(container,{
+            var hot = Handsontable(container, {
               data: createBigData(),
               rowHeaders: true,
               fixedColumnsLeft: 2,
@@ -138,43 +139,43 @@
               contextMenu: true,
               customBorders: [
                 {
-                  range:{
-                    from:{
+                  range: {
+                    from: {
                       row: 1,
                       col: 1
                     },
-                    to:{
+                    to: {
                       row: 3,
                       col: 4
                     }
                   },
 
-                  top:{
+                  top: {
                     width: 2,
                     color: '#5292F7'
                   },
                   left: {
-                    width:2,
+                    width: 2,
                     color: 'orange'
                   },
-                  bottom:{
+                  bottom: {
                     width: 2,
                     color: 'red'
                   },
                   right: {
-                    width:2,
-                    color:'magenta'
+                    width: 2,
+                    color: 'magenta'
                   }
                 },
                 {
                   row: 2,
                   col: 2,
-                  left:{
-                    width:2,
+                  left: {
+                    width: 2,
                     color: 'red'
                   },
-                  right:{
-                    width:1,
+                  right: {
+                    width: 1,
                     color: 'green'
                   }
                 }]
