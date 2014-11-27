@@ -30,6 +30,7 @@ function callback(obj) {
   }
 }
 
-$(function () {
+document.addEventListener("DOMContentLoaded", function() {
   jsonp('https://api.github.com/repos/' + user + '/' + repo);
 });
+

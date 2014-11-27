@@ -283,7 +283,7 @@
         <div class="jsFiddle inline-buttons">
           <button class="show-source"></button>
           <button class="jsFiddleLink" data-runfiddle="example">Edit in jsFiddle</button>
-          <button name="dump" data-dump="#example" title="Prints current data source to Firebug/Chrome Dev Tools">
+          <button name="dump" data-dump="#example" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
             Dump data to console
           </button>
         </div>
@@ -312,23 +312,45 @@
     </div>
 
     <script type="text/javascript">
-      $('.show-source').click(function (event) {
-        event.preventDefault();
+      var showSourceElements = document.querySelectorAll('.show-source');
 
-        $(this).toggleClass('shown');
-        $('pre.javascript').toggle();
-        $('.codeLayout').toggleClass('codeLayoutExpanded');
+      for(var i = 0; i < showSourceElements.length ; i++) {
+        var showElem = showSourceElements[i];
+        showElem.addEventListener('mousedown', function (event) {
+          event.preventDefault();
 
-      });
-      $('.ver').text(hot.version);
-    </script>
+          if(showElem.className.indexOf('shown') > -1) {
+            showElem.className = showElem.className.replace('shown', '');
+          } else {
+            showElem.className += ' shown';
+          }
 
-    <script type="text/javascript">
-      $(function () {
-        if (window.location.hostname === 'warpech.github.com') {
-          $('#domainNotice').show();
-        }
-      });
+          var preJS = document.querySelectorAll('pre.javascript');
+          for(var j = 0; j < preJS.length; j++) {
+            if(preJS[j].style.display == '') {
+              preJS[j].style.display = 'block';
+            } else {
+              preJS[j].style.display = '';
+            }
+          }
+
+          var codeLay = document.querySelectorAll('.codeLayout');
+          for(var j = 0; j < codeLay.length; j++) {
+            if(codeLay[j].className.indexOf('codeLayoutExpanded') > -1) {
+              codeLay[j].className = codeLay[j].className.replace('codeLayoutExpanded', '');
+            } else {
+              codeLay[j].className += ' codeLayoutExpanded';
+            }
+          }
+
+        });
+      }
+
+      var verHolders = document.querySelectorAll('.ver');
+      for(var i = 0; i < verHolders.length; i++) {
+        var verText = document.createTextNode(hot.version);
+        verHolders[i].appendChild(verText);
+      }
     </script>
 
     <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
