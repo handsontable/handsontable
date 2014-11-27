@@ -13,7 +13,7 @@ describe('Core_onKeyDown', function () {
   });
 
   it('should advance to next cell when TAB is pressed', function () {
-    //https://github.com/handsontable/jquery-handsontable/issues/151
+    //https://github.com/handsontable/handsontable/issues/151
     handsontable();
     selectCell(0, 0);
     keyDownUp('tab');
@@ -21,7 +21,7 @@ describe('Core_onKeyDown', function () {
   });
 
   it('while editing, should finish editing and advance to next cell when TAB is pressed', function () {
-    //https://github.com/handsontable/jquery-handsontable/issues/215
+    //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(1, 1);
 
@@ -33,7 +33,7 @@ describe('Core_onKeyDown', function () {
   });
 
   it('while editing, should finish editing and advance to lower cell when down arrow is pressed', function () {
-    //https://github.com/handsontable/jquery-handsontable/issues/215
+    //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(1, 1);
 
@@ -104,7 +104,7 @@ describe('Core_onKeyDown', function () {
   });
 
   it('while editing, should finish editing and advance to upper cell when up arrow is pressed', function () {
-    //https://github.com/handsontable/jquery-handsontable/issues/215
+    //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(1, 1);
 
@@ -116,7 +116,7 @@ describe('Core_onKeyDown', function () {
   });
 
   it('while editing, should finish editing and advance to next cell when right arrow is pressed', function () {
-    //https://github.com/handsontable/jquery-handsontable/issues/215
+    //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(1, 1);
 
@@ -129,7 +129,7 @@ describe('Core_onKeyDown', function () {
 
   it('while editing, should finish editing and advance to previous cell when left arrow is pressed and the text cursor is at position 0', function () {
     //this test almost always *succeeds* in Chrome so be sure to also test in FF, IE
-    //https://github.com/handsontable/jquery-handsontable/issues/215
+    //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(2, 2);
 

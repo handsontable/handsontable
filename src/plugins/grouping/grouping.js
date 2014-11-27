@@ -864,7 +864,7 @@ var Grouping = function (instance) {
     },
     afterGetColHeader: function (col, TH) {
       var rowHeaders = this.view.wt.wtSettings.getSetting('rowHeaders').length
-        , thisColgroup = instance.rootElement[0].querySelectorAll('colgroup col:nth-child(' + parseInt(col + rowHeaders + 1, 10) + ')');
+        , thisColgroup = instance.rootElement.querySelectorAll('colgroup col:nth-child(' + parseInt(col + rowHeaders + 1, 10) + ')');
 
       if (thisColgroup.length === 0) {
         return;

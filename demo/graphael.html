@@ -8,8 +8,8 @@
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -17,9 +17,9 @@
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
-  <script src="js/raphael/raphael-min.js"></script>
-  <script src="js/raphael/g.raphael-min.js"></script>
-  <script src="js/raphael/g.bar-min.js"></script>
+  <script data-jsfiddle="common" src="js/raphael/raphael-min.js"></script>
+  <script data-jsfiddle="common" src="js/raphael/g.raphael-min.js"></script>
+  <script data-jsfiddle="common" src="js/raphael/g.bar-min.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
   <style type="text/css">
@@ -118,7 +118,7 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var container = $("#example1")
+                var container = document.getElementById("example1")
                   , data = [
                     ["Nissan", 2009, "black"],
                     ["Nissan", 2006, "blue"],
@@ -134,16 +134,14 @@
 
                 var lastChange = null;
 
-                container.handsontable({
+                var ht = new Handsontable(container,{
                     data: data,
                     width: 250,
                     colHeaders: ["Car", "Year", "Color"],
                     rowHeaders: true,
                     afterChange: refreshChart
                   }
-                );
-
-                var ht = container.handsontable('getInstance'),
+                  ),
                   r = Raphael("graphael-example", 250, 250),
                   chartData = [
                     gatherColData(0),

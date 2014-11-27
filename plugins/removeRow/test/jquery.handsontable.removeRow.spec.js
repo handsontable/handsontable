@@ -14,12 +14,16 @@ describe('RemoveRowSpec', function () {
 
   it('should show X when mouse is over cell', function () {
     handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      height: 400,
+      width: 400,
+      rowHeaders: true,
+      colHeaders: true
     });
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
 
-    this.$container.find('tr:eq(0) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
 
     expect($('.htRemoveRow .btn:visible').length).toBe(1);
   });
@@ -29,12 +33,16 @@ describe('RemoveRowSpec', function () {
     this.$container.appendTo($table.find('td'));
 
     handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      height: 400,
+      width: 400,
+      rowHeaders: true,
+      colHeaders: true
     });
 
     expect($('.htRemoveRow .btn:visible').length).toBe(0);
 
-    this.$container.find('tr:eq(0) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
 
     expect($('.htRemoveRow .btn:visible').length).toBe(1);
 
@@ -43,7 +51,10 @@ describe('RemoveRowSpec', function () {
   });
 
   it("should be possible to enable plugin using updateSettings", function () {
-    handsontable();
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true
+    });
 
     expect(this.$container.find('tbody th.htRemoveRow').length).toBe(0);
 
@@ -56,7 +67,9 @@ describe('RemoveRowSpec', function () {
 
   it("should be possible to disable plugin using updateSettings", function () {
     handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      rowHeaders: true,
+      colHeaders: true
     });
 
     expect(this.$container.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
@@ -72,7 +85,9 @@ describe('RemoveRowSpec', function () {
     this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
     var hot1 = handsontable({
-      removeRowPlugin: true
+      removeRowPlugin: true,
+      rowHeaders: true,
+      colHeaders: true
     });
 
     this.$container2.handsontable({

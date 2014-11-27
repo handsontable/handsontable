@@ -14,12 +14,7 @@ function WalkontableScrollbars(instance) {
 WalkontableScrollbars.prototype.registerListeners = function () {
   var that = this;
 
-  var oldVerticalScrollPosition
-    , oldHorizontalScrollPosition
-    , oldBoxTop
-    , oldBoxLeft;
-
-  function refreshAll() {
+  this.refreshAll = function refreshAll() {
     if(!that.instance.drawn) {
       return;
     }
@@ -30,42 +25,34 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       return;
     }
 
-    that.vertical.windowScrollPosition = that.vertical.getScrollPosition();
-    that.horizontal.windowScrollPosition = that.horizontal.getScrollPosition();
-    that.box = that.instance.wtTable.hider.getBoundingClientRect();
+    that.vertical.onScroll();
+    that.horizontal.onScroll();
+  };
 
-    if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
-      that.vertical.onScroll();
-      that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
+  var eventManager = Handsontable.eventManager(that.instance);
 
-      oldVerticalScrollPosition = that.vertical.windowScrollPosition;
-      oldHorizontalScrollPosition = that.horizontal.windowScrollPosition;
-      oldBoxTop = that.box.top;
-      oldBoxLeft = that.box.left;
-    }
-  }
-
-  var $window = $(window);
-  this.vertical.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
+  eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', this.refreshAll);
   if (this.vertical.scrollHandler !== this.horizontal.scrollHandler) {
-    this.horizontal.$scrollHandler.on('scroll.' + this.instance.guid, refreshAll);
+    eventManager.addEventListener(this.horizontal.scrollHandler, 'scroll', this.refreshAll);
   }
 
   if (this.vertical.scrollHandler !== window && this.horizontal.scrollHandler !== window) {
-    $window.on('scroll.' + this.instance.guid, refreshAll);
+    eventManager.addEventListener(window,'scroll', this.refreshAll);
   }
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
+  var eventManager = Handsontable.eventManager(this.instance);
+
   if (this.vertical) {
     this.vertical.destroy();
-    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+    eventManager.removeEventListener(this.vertical.scrollHandler,'scroll', this.refreshAll);
   }
   if (this.horizontal) {
     this.horizontal.destroy();
-    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+    eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
   }
-  $(window).off('scroll.' + this.instance.guid);
+  eventManager.removeEventListener(window,'scroll', this.refreshAll);
   this.corner && this.corner.destroy();
   this.debug && this.debug.destroy();
 };

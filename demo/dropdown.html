@@ -5,11 +5,10 @@
   <title>Dropdown cell type - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -66,21 +65,22 @@
         <div class="rowLayout">
   <div class="descLayout">
     <div class="pad" data-jsfiddle="example1">
-          <h2>Dropdown cell type</h2>
+      <h2>Dropdown cell type</h2>
 
-          <p>This example shows the usage of the Dropdown feature.</p>
+      <p>This example shows the usage of the Dropdown feature.</p>
 
-          <p>Dropdown is based on <a href="autocomplete.html">Autocomplete</a> cell type. All options used by <code>autocomplete</code>
-            cell type apply to <code>dropdown</code> as well.</p>
+      <p>Dropdown is based on <a href="autocomplete.html">Autocomplete</a> cell type. All options used by <code>autocomplete</code>
+        cell type apply to <code>dropdown</code> as well.</p>
 
-          <p>Internally, cell <code>{type: "dropdown"}</code> is equivalent to cell <code>{type: "autocomplete", strict: true, filter: false}</code>.</p>
+      <p>Internally, cell <code>{type: "dropdown"}</code> is equivalent to cell <code>{type: "autocomplete", strict:
+        true, filter: false}</code>.</p>
 
-          <p>Therefore you can think of <code>dropdown</code> as a searchable <code>&lt;select&gt;</code>. </p>
+      <p>Therefore you can think of <code>dropdown</code> as a searchable <code>&lt;select&gt;</code>. </p>
 
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -94,7 +94,8 @@
       </div>
 
       <script data-jsfiddle="example1">
-        $("#example1").handsontable({
+        var container = document.getElementById('example1');
+        var hot = new Handsontable(container,{
           data: getCarData(),
           startRows: 7,
           startCols: 4,

@@ -1,5 +1,6 @@
 describe('WalkontableScrollbar', function () {
   var $table
+    , $container
     , debug = false;
 
   beforeEach(function () {
@@ -22,10 +23,7 @@ describe('WalkontableScrollbar', function () {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 100
+      totalColumns: getTotalColumns
     });
     wt.draw();
 
@@ -40,17 +38,14 @@ describe('WalkontableScrollbar', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        offsetRow: 0,
-        height: 200,
-        width: 500
+        totalColumns: getTotalColumns
       });
       wt.draw();
 
       wt.wtScrollbars.vertical.onScroll(1);
-      expect(wt.getSetting('offsetRow') + 2).toEqual(2); //+2 so it can be distinguished from previous one
+      expect(wt.getViewport()[0]).toEqual(0);
       wt.wtScrollbars.vertical.onScroll(-1);
-      expect(wt.getSetting('offsetRow') + 3).toEqual(3); //+3 so it can be distinguished from previous one
+      expect(wt.getViewport()[0]).toEqual(0);
     }
     catch (e) {
       expect(e).toBeUndefined();

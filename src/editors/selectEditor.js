@@ -6,7 +6,7 @@
     this.select = document.createElement('SELECT');
     Handsontable.Dom.addClass(this.select, 'htSelectEditor');
     this.select.style.display = 'none';
-    this.instance.rootElement[0].appendChild(this.select);
+    this.instance.rootElement.appendChild(this.select);
   };
 
   SelectEditor.prototype.prepare = function(){
@@ -90,18 +90,55 @@
     }
   };
 
+  // TODO: Refactor this with the use of new getCell() after 0.12.1
+  SelectEditor.prototype.checkEditorSection = function () {
+    if(this.row < this.instance.getSettings().fixedRowsTop) {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'corner';
+      } else {
+        return 'top';
+      }
+    } else {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'left';
+      }
+    }
+  };
+
   SelectEditor.prototype.open = function () {
     var width = Handsontable.Dom.outerWidth(this.TD); //important - group layout reads together for better performance
     var height = Handsontable.Dom.outerHeight(this.TD);
-    var rootOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
+    var rootOffset = Handsontable.Dom.offset(this.instance.rootElement);
     var tdOffset = Handsontable.Dom.offset(this.TD);
+    var editorSection = this.checkEditorSection();
+    var cssTransformOffset;
 
-    this.select.style.height = height + 'px';
-    this.select.style.minWidth = width + 'px';
-    this.select.style.top = tdOffset.top - rootOffset.top + 'px';
-    this.select.style.left = tdOffset.left - rootOffset.left + 'px';
-    this.select.style.margin = '0px';
-    this.select.style.display = '';
+    switch(editorSection) {
+      case 'top':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode);
+        break;
+      case 'left':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode);
+        break;
+      case 'corner':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode);
+        break;
+    }
+
+    var selectStyle = this.select.style;
+
+    if(cssTransformOffset && cssTransformOffset != -1) {
+      selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    } else {
+      Handsontable.Dom.resetCssTransform(this.select);
+    }
+
+    selectStyle.height = height + 'px';
+    selectStyle.minWidth = width + 'px';
+    selectStyle.top = tdOffset.top - rootOffset.top + 'px';
+    selectStyle.left = tdOffset.left - rootOffset.left + 'px';
+    selectStyle.margin = '0px';
+    selectStyle.display = '';
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };

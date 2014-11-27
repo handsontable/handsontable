@@ -21,7 +21,7 @@
       , startOffset
       , handle = document.createElement('DIV')
       , guide = document.createElement('DIV')
-      , $window = $(window);
+      , eventManager = Handsontable.eventManager(this);
 
     handle.className = 'manualRowResizer';
     guide.className = 'manualRowResizerGuide';
@@ -50,7 +50,7 @@
         startHeight = parseInt(box.height, 10);
         handle.style.left = box.left + 'px';
         handle.style.top = startOffset + startHeight + 'px';
-        instance.rootElement[0].appendChild(handle);
+        instance.rootElement.appendChild(handle);
       }
     }
 
@@ -65,7 +65,7 @@
       guide.style.top = handle.style.top;
       guide.style.left = handle.style.left;
       guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
-      instance.rootElement[0].appendChild(guide);
+      instance.rootElement.appendChild(guide);
     }
 
     function refreshGuidePosition() {
@@ -77,51 +77,81 @@
       Handsontable.Dom.removeClass(guide, 'active');
     }
 
+    var checkRowHeader = function (element) {
+      if (element.tagName != 'BODY') {
+        if (element.parentNode.tagName == 'TBODY') {
+          return true;
+        } else {
+          element = element.parentNode;
+          return checkRowHeader(element);
+        }
+      }
+      return false;
+    };
+
+    var getTHFromTargetElement = function (element) {
+      if (element.tagName != 'TABLE') {
+        if (element.tagName == 'TH') {
+          return element;
+        } else {
+          return getTHFromTargetElement(element.parentNode);
+        }
+      }
+      return null;
+    };
+
     var bindEvents = function () {
       var instance = this;
       var pressed;
       var dblclick = 0;
       var autoresizeTimeout = null;
 
-      instance.rootElement.on('mouseenter.manualRowResize.' + instance.guid, 'table tbody tr > th', function (e) {
-        if (!pressed) {
-          setupHandlePosition.call(instance, e.currentTarget);
-        }
-      });
-
-      instance.rootElement.on('mousedown.manualRowResize.' + instance.guid, '.manualRowResizer', function (e) {
-        setupGuidePosition.call(instance);
-        pressed = instance;
-
-        if (autoresizeTimeout == null) {
-          autoresizeTimeout = setTimeout(function () {
-            if (dblclick >= 2) {
-              setManualSize(currentRow, null); //double click sets auto row size
-              instance.forceFullRender = true;
-              instance.view.render(); //updates all
-              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
+      eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
+        if(checkRowHeader(e.target)) {
+          var th = getTHFromTargetElement(e.target)
+          if (th) {
+            if (!pressed) {
+              setupHandlePosition.call(instance, th);
             }
-            dblclick = 0;
-            autoresizeTimeout = null;
-          }, 500);
-          instance._registerTimeout(autoresizeTimeout);
+          }
         }
-        dblclick++;
-
-        startY = e.pageY;
-        newSize = startHeight;
       });
 
-      $window.on('mousemove.manualRowResize.' + instance.guid, function (e) {
+      eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
+        if (Handsontable.Dom.hasClass(e.target, 'manualRowResizer')) {
+          setupGuidePosition.call(instance);
+          pressed = instance;
+
+          if (autoresizeTimeout == null) {
+            autoresizeTimeout = setTimeout(function () {
+              if (dblclick >= 2) {
+                setManualSize(currentRow, null); //double click sets auto row size
+                instance.forceFullRender = true;
+                instance.view.render(); //updates all
+                Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
+              }
+              dblclick = 0;
+              autoresizeTimeout = null;
+            }, 500);
+            instance._registerTimeout(autoresizeTimeout);
+          }
+          dblclick++;
+
+          startY = Handsontable.helper.pageY(e);
+          newSize = startHeight;
+        }
+      });
+
+      eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
-          currentHeight = startHeight + (e.pageY - startY);
+          currentHeight = startHeight + (Handsontable.helper.pageY(e) - startY);
           newSize = setManualSize(currentRow, currentHeight);
           refreshHandlePosition();
           refreshGuidePosition();
         }
       });
 
-      $window.on('mouseup.manualRowResize.' + instance.guid, function () {
+      eventManager.addEventListener(window,'mouseup',function (e) {
         if (pressed) {
           hideHandleAndGuide();
           pressed = false;
@@ -143,11 +173,7 @@
     };
 
     var unbindEvents = function(){
-      var instance = this;
-      instance.rootElement.off('mouseenter.manualRowResize.' + instance.guid, 'table tbody tr > th');
-      instance.rootElement.off('mousedown.manualRowResize.' + instance.guid, '.manualRowResizer');
-      $window.off('mousemove.manualRowResize.' + instance.guid);
-      $window.off('mouseup.manualRowResize.' + instance.guid);
+      eventManager.clear();
     };
 
     this.beforeInit = function () {
@@ -155,7 +181,6 @@
     };
 
     this.init = function (source) {
-
       var instance = this;
       var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
 

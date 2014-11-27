@@ -31,11 +31,13 @@
 
   Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
     var schema;
-    if ($.isPlainObject(obj)) {
+    if (Handsontable.Dom.isPlainObject(obj)){
+//    if ($.isPlainObject(obj)) {
       schema = {};
       for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
-          if ($.isPlainObject(obj[i])) {
+          if (Handsontable.Dom.isPlainObject(obj[i])) {
+//          if ($.isPlainObject(obj[i])) {
             schema[i] = this.recursiveDuckSchema(obj[i]);
           }
           else {
@@ -56,7 +58,8 @@
       lastCol = 0;
       parent = '';
     }
-    if ($.isPlainObject(schema)) {
+    if(Handsontable.Dom.isPlainObject(schema)) {
+    //if ($.isPlainObject(schema)) {
       for (i in schema) {
         if (schema.hasOwnProperty(i)) {
           if (schema[i] === null) {
@@ -162,7 +165,8 @@
         row = this.instance.getSettings().dataSchema(index);
       }
       else {
-        row = $.extend(true, {}, this.getSchema());
+        row = Handsontable.Dom.extend(true, {}, this.getSchema());
+
       }
 
       if (index === this.instance.countRows()) {

@@ -16,7 +16,7 @@ describe('Core_count', function () {
         data: createSpreadsheetData(10, 10),
         height: 100
       });
-      expect(instance.countVisibleRows()).toEqual(5);
+      expect(instance.countVisibleRows()).toEqual(4);
     });
 
     it('should return -1 if table is not rendered', function () {
@@ -26,6 +26,35 @@ describe('Core_count', function () {
         width: 100
       });
       expect(instance.countVisibleRows()).toEqual(-1);
+    });
+  });
+
+  describe('countRenderedRows', function () {
+    it('should return number of rendered rows', function () {
+      var instance = handsontable({
+        data: createSpreadsheetData(10, 10),
+        height: 100,
+        viewportRowRenderingOffset: 0
+      });
+      expect(instance.countRenderedRows()).toEqual(5);
+    });
+
+    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', function () {
+      var instance = handsontable({
+        data: createSpreadsheetData(50, 10),
+        height: 100,
+        viewportRowRenderingOffset: 20
+      });
+      expect(instance.countRenderedRows()).toEqual(25);
+    });
+
+    it('should return -1 if table is not rendered', function () {
+      this.$container.remove();
+      var instance = handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 100
+      });
+      expect(instance.countRenderedRows()).toEqual(-1);
     });
   });
 

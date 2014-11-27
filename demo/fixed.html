@@ -5,11 +5,10 @@
   <title>Fixed Rows &amp; Columns - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -88,7 +87,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-instance="ht" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -109,8 +108,9 @@
              */
 
             var myData = createSpreadsheetData(1000, 100);
+            var container = document.getElementById('example1');
 
-            $("#example1").handsontable({
+            var ht = new Handsontable(container, {
               data: myData,
               colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
               rowHeaders: true,
@@ -120,12 +120,12 @@
               contextMenu: true
             });
 
-            var ht = $("#example1").data('handsontable');
+            var positions = document.getElementById('positions');
 
             setInterval(function () {
               var str = '';
-              str += 'offsetRow: ' + ht.view.wt.getSetting('offsetRow');
-              $('#positions').html(str);
+              str += 'rowOffset: ' + ht.rowOffset();
+              positions.innerHTML = str;
             }, 100);
           </script>
         </div>

@@ -5,11 +5,10 @@
   <title>Backbone.js - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -77,7 +76,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
             <button id="add_car">Simulate a new Car</button>
@@ -131,8 +130,8 @@
               {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
             ]);
 
-            var $container = $("#example1");
-            $container.handsontable({
+            var container = document.getElementById("example1");
+            var hot = new Handsontable(container,{
               data: cars,
               dataSchema: makeCar,
               contextMenu: true,
@@ -148,10 +147,10 @@
             // this will log all the Backbone events getting fired!
             cars.on("all", log_events)
               .on("add", function () {
-                $container.handsontable("render");
+                hot.render();
               })
               .on("remove", function () {
-                $container.handsontable("render");
+                hot.render();
               });
 
             // you'll have to make something like these until there is a better
@@ -182,22 +181,20 @@
               return removed;
             }
 
+            var eventHolder = document.getElementById('example1_events');
+
             // show a log of events getting fired
             function log_events(event, model) {
               var now = new Date();
-              $("#example1_events").prepend(
-                  $("<option/>").text([
-                    ":", now.getSeconds(), ":", now.getMilliseconds(),
-                    "[" + event + "]",
-                    JSON.stringify(model)
-                  ].join(" "))
-                )
-                .scrollTop(0);
+              var option = document.createElement('OPTION');
+              option.innerHTML = [":", now.getSeconds(), ":", now.getMilliseconds(),"[" + event + "]",JSON.stringify(model)].join(" ");
+              eventHolder.insertBefore(option, eventHolder.firstChild);
             }
 
-            $("#add_car").click(function () {
+            var addCar = document.getElementById('add_car');
+            Handsontable.Dom.addEvent(addCar, 'click', function () {
               cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
-            })
+            });
           </script>
         </div>
       </div>

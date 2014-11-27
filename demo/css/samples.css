@@ -333,6 +333,11 @@ kbd {
   padding: 2px 4px;
 }
 
+.warning li,
+.warning p:last-child {
+  margin-bottom: 0;
+}
+
 /**
  * Handsontable
  */
