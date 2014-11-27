@@ -30,7 +30,8 @@ function callback(obj) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+//cross browser DOMContentLoaded, works also in async scripts
+contentLoaded(window, function() {
   jsonp('https://api.github.com/repos/' + user + '/' + repo);
 });
 
