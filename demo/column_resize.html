@@ -7,6 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
+
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
@@ -125,37 +126,41 @@
       </div>
     </div>
 
-<script type="text/javascript">
-  (function(){
+        <script type="text/javascript">
+          (function(HOT){
+            var reset = document.querySelector('.reset-state1');
+            var stateLoaded = document.querySelector('.state-loaded');
 
-    $('.reset-state1').on('click', function(){
+            Handsontable.Dom.addEvent(reset, 'click', function(){
 
-      HOT.runHooks('persistentStateReset');
+              HOT.runHooks('persistentStateReset');
 
-      HOT.updateSettings({
-        manualColumnResize: true,
-        manualRowResize: true
-      });
+              HOT.updateSettings({
+                manualColumnMove: true,
+                manualRowMove: true,
+                manualColumnResize: true,
+                manualRowResize: true
+              });
 
-      $(".state-loaded.example1").fadeOut(300, function () {
-        // render table after hidden state-loaded alert
-        HOT.render();
-      });
-    });
+              stateLoaded.style.display = 'none';
+              HOT.render();
+            });
+
+            var storedData = {};
+
+            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
+
+            var savedKeys = storedData.value;
+
+            if(savedKeys && savedKeys.length > 0){
+              stateLoaded.style.display = 'block';
+              HOT.render();
+            }
+          })(HOT);
+
+        </script>
 
 
-    var storedData = {};
-
-    HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
-
-    var savedKeys = storedData.value;
-
-    if(savedKeys && savedKeys.length > 0){
-      $(".state-loaded.example1").show();
-      HOT.render();
-    }
-  })();
-</script>
 
         <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.
