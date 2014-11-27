@@ -18,7 +18,7 @@ First, include all the dependencies. All the files that you need are in the `dis
 Then, create a new `Handsontable` object, passing a reference to an empty div as a first argument. After that, load some data if you wish:
 
 ```html
-<div id="dataTable"></div>
+<div id="hot"></div>
 <script>
   var data = [
     ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -27,7 +27,7 @@ Then, create a new `Handsontable` object, passing a reference to an empty div as
     ["2010", 30, 15, 12, 13]
   ];
   
-  var container = document.getElementById('dataTable');
+  var container = document.getElementById('hot');
   var hot = new Handsontable(container,
     {
       data: data,
