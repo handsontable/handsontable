@@ -5,7 +5,7 @@
  */
 
 var user = "handsontable",
-  repo = "jquery-handsontable",
+  repo = "handsontable",
   head = document.getElementsByTagName('head')[0];
 
 // Add commas to numbers

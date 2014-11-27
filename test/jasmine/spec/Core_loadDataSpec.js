@@ -175,7 +175,7 @@ describe('Core_loadData', function () {
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
-  //https://github.com/handsontable/jquery-handsontable/pull/233
+  //https://github.com/handsontable/handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
     var cellsSpy = jasmine.createSpy('cellsSpy');
 
@@ -399,7 +399,7 @@ describe('Core_loadData', function () {
 
   });
 
-  // https://github.com/handsontable/jquery-handsontable/issues/1700
+  // https://github.com/handsontable/handsontable/issues/1700
   // can't edit anything after starting editing cell with no nested object
   it('should correct behave with cell with no nested object data source corresponding to column mapping', function () {
 

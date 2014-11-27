@@ -19,7 +19,7 @@
 .wtHolder table {
   border-collapse: separate;
   /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
-  position: relative;
+  /*position: relative;*/
   /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -33,7 +33,7 @@
   table-layout: fixed;
   width: 0;
   outline-width: 0;
-  /* reset bootstrap table style. for more info see: https://github.com/handsontable/jquery-handsontable/issues/224 */
+  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
   max-width: none;
   max-height: none;
 }

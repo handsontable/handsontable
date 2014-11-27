@@ -8,8 +8,8 @@
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -59,9 +59,43 @@
 
               <p>
                 jQuery is a library, which makes DOM manipulations and event handling easier. <br><br>
-                Handsontable is fully compatible with jQuery - the small example below shows that the integration between the two is quick and intuitive.
+                Handsontable is fully compatible with jQuery - the small example below shows that the integration
+                between the two is quick and intuitive.
               </p>
 
+              <p>
+                In order to use Handsontable as a jQuery plugin, you need to do some preparation:
+              <ul>
+                <li>Include jQuery to your page, before including Handsontable<br>
+                <pre><code style="white-space: pre-line;">
+                  &lt;script src="../lib/jquery.min.js"&gt;&lt;/script&gt;<br>
+                  &lt;script src="dist/handsontable.full.js"&gt;&lt;/script&gt;<br>
+                  &lt;link rel="stylesheet" media="screen" href="dist/handsontable.full.css"&gt;<br>
+                </code></pre>
+                </li>
+              <li>
+                Run `handsontable()` constructor on an empty div. After that, load some data if you wish:
+                <pre>
+                  <code style="white-space: pre-line;">
+                    &lt;div id="dataTable"&gt;&lt;/div&gt;<br>
+                    &lt;script&gt;<br>
+                      var data = [<br>
+                        ["", "Kia", "Nissan", "Toyota", "Honda"],<br>
+                        ["2008", 10, 11, 12, 13],<br>
+                        ["2009", 20, 11, 14, 13],<br>
+                        ["2010", 30, 15, 12, 13]<br>
+                      ];<br>
+                      $("#dataTable").handsontable({<br>
+                        data: data,<br>
+                        startRows: 6,<br>
+                        startCols: 8<br>
+                      });<br>
+                    &lt;/script&gt;
+                  </code>
+                </pre>
+              </li>
+              </ul>
+              </p>
 
               <div id="example1"></div>
 
@@ -87,7 +121,6 @@
 
                 // Instead of creating a new Handsontable instance with the container element passed as an argument,
                 // you can simply call .handsontable method on a jQuery DOM object.
-
                 var $container = $("#example1");
                 $container.handsontable({
                   data: getData(),
@@ -105,7 +138,6 @@
 
 
                 // This way, you can access Handsontable api methods by passing their names as an argument, e.g.:
-
                 var hotInstance = $("#example1").handsontable('getInstance');
 
               </script>

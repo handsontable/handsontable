@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.11.4
- * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
+ * Handsontable 0.12.0
+ * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 05 2014 09:31:12 GMT+0100 (Środkowoeuropejski czas stand.)
+ * Date: Thu Nov 27 2014 12:23:10 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -248,7 +248,7 @@ Handsontable.activeGuid = null;
 
 /**
  * Handsontable constructor
- * @param rootElement The jQuery element in which Handsontable DOM will be inserted
+ * @param rootElement The DOM element in which Handsontable DOM will be inserted
  * @param userSettings
  * @constructor
  */
@@ -321,7 +321,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         case "insert_col":
           // //column order may have changes, so we need to translate the selection column index -> source array index
           // index = instance.runHooksAndReturn('modifyCol', index);
-          delta = datamap.createCol(index, amount);
+            delta = datamap.createCol(index, amount);
 
           if (delta) {
 
@@ -573,13 +573,13 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
           for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
+            if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
               break;
             }
             current.col = start.col;
             clen = input[r] ? input[r].length : 0;
             for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
+              if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
 
@@ -969,7 +969,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3])) {
+          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format )) {
             var len = changes[i][3].length;
             if (typeof cellProperties.language == 'undefined') {
               numeral.language('en');
@@ -1048,13 +1048,13 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue;
       }
 
-      if (priv.settings.minSpareRows) {
+      if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
           datamap.createRow();
         }
       }
 
-      if (instance.dataType === 'array' && priv.settings.minSpareCols) {
+      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -1276,7 +1276,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
    */
-  this.getSelected = function () { //https://github.com/handsontable/jquery-handsontable/issues/44  //cjl
+  this.getSelected = function () { //https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
     }
@@ -1287,7 +1287,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    * @return {WalkontableCellRange}
    */
-  this.getSelectedRange = function () { //https://github.com/handsontable/jquery-handsontable/issues/44  //cjl
+  this.getSelectedRange = function () { //https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return priv.selRange;
     }
@@ -2225,7 +2225,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
     Handsontable.Dom.empty(instance.rootElement);
-    delete instance.rootElement.data;
     eventManager.clear();
 
     Handsontable.hooks.run(instance, 'afterDestroy');
@@ -2326,7 +2325,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.11.4'; //inserted by grunt from package.json
+  this.version = '0.12.0'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -2350,6 +2349,10 @@ DefaultSettings.prototype = {
   maxCols: Infinity,
   minSpareRows: 0,
   minSpareCols: 0,
+  allowInsertRow:true,
+  allowInsertColumn: true,
+  allowRemoveRow: true,
+  allowRemoveColumn: true,
   multiSelect: true,
   fillHandle: true,
   fixedRowsTop: 0,
@@ -2488,7 +2491,7 @@ Handsontable.Dom.class2type = {};
 Handsontable.Dom.type = function( obj ) {
   return obj == null ?
     String( obj ) :
-  Handsontable.Dom.class2type[ toString.call(obj) ] || "object";
+  Handsontable.Dom.class2type[ Object.prototype.toString.call(this,obj) ] || "object";
 };
 
 Handsontable.Dom.isWindow = function( obj ) {
@@ -3072,10 +3075,10 @@ Handsontable.Dom.addEvent = function(element, event, callback) {
 };
 
 Handsontable.Dom.removeEvent = function(element, event, callback) {
-  if (window.detachEvent) {
-    element.detachEvent('on' + event, callback);
-  } else {
+  if (window.removeEventListener) {
     element.removeEventListener(event, callback, false);
+  } else {
+    element.detachEvent('on' + event, callback);
   }
 };
 
@@ -3216,6 +3219,56 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     }
     return cachedScrollbarWidth;
   }
+
+  var isIE8 = !(document.createTextNode('test').textContent);
+  Handsontable.Dom.isIE8 = function () {
+    return isIE8;
+  };
+
+  var isIE9 = !!(document.documentMode);
+  Handsontable.Dom.isIE9 = function () {
+    return isIE9;
+  };
+
+  var isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
+  Handsontable.Dom.isSafari = function () {
+    return isSafari;
+  };
+
+  /**
+   * Sets overlay position depending on it's type and used browser
+   */
+  Handsontable.Dom.setOverlayPosition = function (overlayElem, left, top) {
+    if (isIE8 || isIE9) {
+      overlayElem.style.top = top;
+      overlayElem.style.left = left;
+    } else if (isSafari) {
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    } else {
+      overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    }
+  };
+
+  Handsontable.Dom.getCssTransform = function (elem) {
+    var transform;
+
+    if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
+      return ['transform', transform];
+    } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
+      return ['-webkit-transform', transform];
+    } else {
+      return -1;
+    }
+  };
+
+  Handsontable.Dom.resetCssTransform = function (elem) {
+    if(elem['transform'] && elem['transform'] != "") {
+      elem['transform'] = "";
+    } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
+      elem['-webkit-transform'] = "";
+    }
+  };
+
 })();
 
 
@@ -3225,7 +3278,7 @@ if(!window.Handsontable){
 
 Handsontable.eventManager = function (instance) {
   if (!instance) {
-    throw  new Error ('instance not defined');
+    throw new Error ('instance not defined');
   }
 
   if (!instance.eventListeners) {
@@ -3233,16 +3286,46 @@ Handsontable.eventManager = function (instance) {
   }
 
   var addEvent = function (element, event, callback) {
+
+      var callbackProxy = function (event) {
+        if(event.target == void 0 && event.srcElement != void 0) {
+          if(event.definePoperty) {
+            event.definePoperty('target', {
+              value: event.srcElement
+            });
+          } else {
+            event.target = event.srcElement;
+          }
+        }
+
+        if(event.preventDefault == void 0) {
+          if(event.definePoperty) {
+            event.definePoperty('preventDefault', {
+              value: function() {
+                this.returnValue = false;
+              }
+            });
+          } else {
+            event.preventDefault = function () {
+              this.returnValue = false;
+            }
+          }
+        }
+
+        callback.call(this, event);
+      };
+
       instance.eventListeners.push({
         element: element,
         event: event,
-        callback: callback
+        callback: callback,
+        callbackProxy: callbackProxy
       });
 
       if (window.addEventListener) {
-        element.addEventListener(event, callback, false)
+        element.addEventListener(event, callbackProxy, false)
       } else {
-        element.attachEvent('on' + event, callback);
+        element.attachEvent('on' + event, callbackProxy);
       }
     },
     removeEvent = function (element, event, callback){
@@ -3256,10 +3339,10 @@ Handsontable.eventManager = function (instance) {
           }
 
           instance.eventListeners.splice(len, 1);
-          if (tmpEv.element.detachEvent) {
-            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callback);
+          if (tmpEv.element.removeEventListener) {
+            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callbackProxy, false);
           } else {
-            tmpEv.element.removeEventListener(tmpEv.event, tmpEv.callback, false);
+            tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
           }
         }
       }
@@ -3317,10 +3400,10 @@ Handsontable.eventManager = function (instance) {
 
 
 
-      if (element.detachEvent) {
-        element.fireEvent('on' + type, event);
-      } else {
+      if (element.dispatchEvent) {
         element.dispatchEvent(event);
+      } else {
+        element.fireEvent('on' + type, event);
       }
     };
 
@@ -3330,7 +3413,6 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     serveImmediatePropagation : serveImmediatePropagation,
     fireEvent: fireEvent
-
   }
 };
 
@@ -3347,8 +3429,10 @@ Handsontable.TableView = function (instance) {
   this.settings = instance.getSettings();
 
 
-  instance.rootElement.data = {'originalStyle':instance.rootElement.getAttribute('style')}; //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
-  // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
+  var originalStyle = instance.rootElement.getAttribute('style');
+  if(originalStyle) {
+    instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  }
 
   Handsontable.Dom.addClass(instance.rootElement,'handsontable');
 //  instance.rootElement.addClass('handsontable');
@@ -3432,7 +3516,7 @@ Handsontable.TableView = function (instance) {
       return;
     }
 
-    //https://github.com/handsontable/jquery-handsontable/issues/160
+    //https://github.com/handsontable/handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
     event.preventDefault();
   });
@@ -3665,13 +3749,15 @@ Handsontable.TableView = function (instance) {
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     }
   });
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     }
   });
 
@@ -3953,7 +4039,8 @@ Handsontable.TableView.prototype.destroy = function () {
                     selection.selectAll(); //select all cells
 
                     event.preventDefault();
-                    event.stopPropagation();
+                    Handsontable.helper.stopPropagation(event);
+                    //event.stopPropagation();
                   }
                   break;
 
@@ -3966,7 +4053,8 @@ Handsontable.TableView.prototype.destroy = function () {
                   moveSelectionUp(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_DOWN:
@@ -3977,7 +4065,8 @@ Handsontable.TableView.prototype.destroy = function () {
                   moveSelectionDown(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_RIGHT:
@@ -3988,7 +4077,8 @@ Handsontable.TableView.prototype.destroy = function () {
                   moveSelectionRight(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_LEFT:
@@ -3999,7 +4089,8 @@ Handsontable.TableView.prototype.destroy = function () {
                   moveSelectionLeft(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.TAB:
@@ -4011,7 +4102,8 @@ Handsontable.TableView.prototype.destroy = function () {
                     selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
                   }
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.BACKSPACE:
@@ -4064,7 +4156,8 @@ Handsontable.TableView.prototype.destroy = function () {
                     rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
                   }
                   event.preventDefault(); //don't scroll the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.END:
@@ -4075,19 +4168,22 @@ Handsontable.TableView.prototype.destroy = function () {
                     rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
                   }
                   event.preventDefault(); //don't scroll the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.PAGE_UP:
                   selection.transformStart(-instance.countVisibleRows(), 0);
                   event.preventDefault(); //don't page up the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.PAGE_DOWN:
                   selection.transformStart(instance.countVisibleRows(), 0);
                   event.preventDefault(); //don't page down the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
               }
 
@@ -4430,7 +4526,7 @@ Handsontable.helper.randomString = function () {
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
- * Described in ticket: https://github.com/handsontable/jquery-handsontable/pull/516
+ * Described in ticket: https://github.com/handsontable/handsontable/pull/516
  * @param  {Object} Child  child class
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
@@ -4730,8 +4826,38 @@ Handsontable.helper.toString = function (obj) {
   return '' + obj;
 };
 
+Handsontable.helper.stopPropagation = function (event) {
+  // ie8
+  //http://msdn.microsoft.com/en-us/library/ie/ff975462(v=vs.85).aspx
+  if (typeof (event.stopPropagation) === 'function') {
+    event.stopPropagation();
+  }
+  else {
+    event.cancelBubble = true;
+  }
+};
 
+Handsontable.helper.pageX = function (event) {
+  if (event.pageX) {
+    return event.pageX;
+  }
 
+  var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+  var cursorX = event.clientX + scrollLeft;
+
+  return cursorX;
+};
+
+Handsontable.helper.pageY = function (event) {
+  if (event.pageY) {
+    return event.pageY;
+  }
+
+  var scrollTop = Handsontable.Dom.getWindowScrollTop();
+  var cursorY = event.clientY + scrollTop;
+
+  return cursorY;
+};
 
 (function (Handsontable) {
   'use strict';
@@ -5344,7 +5470,7 @@ Handsontable.helper.toString = function (obj) {
       TD.appendChild(TEMPLATE);
     }
     else {
-      Handsontable.Dom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      Handsontable.Dom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
   };
@@ -5363,7 +5489,7 @@ Handsontable.helper.toString = function (obj) {
   var clonableARROW = document.createElement('DIV');
   clonableARROW.className = 'htAutocompleteArrow';
   clonableARROW.appendChild(document.createTextNode('\u25BC'));
-//this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+//this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
 
   var wrapTdContentWithWrapper = function(TD, WRAPPER){
     WRAPPER.innerHTML = TD.innerHTML;
@@ -5395,7 +5521,7 @@ Handsontable.helper.toString = function (obj) {
     if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
       //otherwise empty fields appear borderless in demo/renderers.html (IE)
       TD.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
-      //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
 
@@ -5471,7 +5597,7 @@ Handsontable.helper.toString = function (obj) {
       TD.appendChild(INPUT);
     }
     else {
-      Handsontable.Dom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      Handsontable.Dom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
     if (cellProperties.readOnly) {
@@ -5481,11 +5607,13 @@ Handsontable.helper.toString = function (obj) {
     }
     else {
       eventManager.addEventListener(INPUT,'mousedown',function (event) {
-        event.stopPropagation(); //otherwise can confuse cell mousedown handler
+        Handsontable.helper.stopPropagation(event);
+        //event.stopPropagation(); //otherwise can confuse cell mousedown handler
       });
 
       eventManager.addEventListener(INPUT,'mouseup',function (event) {
-        event.stopPropagation(); //otherwise can confuse cell dblclick handler
+        Handsontable.helper.stopPropagation(event);
+        //event.stopPropagation(); //otherwise can confuse cell dblclick handler
       });
 
       eventManager.addEventListener(INPUT,'change',function () {
@@ -5941,8 +6069,10 @@ Handsontable.helper.toString = function (obj) {
 
   };
 
+
+
   TextEditor.prototype.open = function(){
-    this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/jquery-handsontable/issues/348
+    this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
@@ -6058,7 +6188,20 @@ Handsontable.helper.toString = function (obj) {
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
     var colHeadersCount = settings.colHeaders === false ? 0 : 1;
     var editorSection = this.checkEditorSection();
+    var cssTransformOffset;
 
+    // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
+    switch(editorSection) {
+      case 'top':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode);
+        break;
+      case 'left':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode);
+        break;
+      case 'corner':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode);
+        break;
+    }
 
     if (editTop < 0) {
       editTop = 0;
@@ -6073,6 +6216,13 @@ Handsontable.helper.toString = function (obj) {
     //if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       editLeft += 1;
+    }
+
+
+    if(cssTransformOffset && cssTransformOffset != -1) {
+      this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    } else {
+      Handsontable.Dom.resetCssTransform(this.textareaParentStyle);
     }
 
     this.textareaParentStyle.top = editTop + 'px';
@@ -6119,11 +6269,13 @@ Handsontable.helper.toString = function (obj) {
     var eventManager = Handsontable.eventManager(editor);
 
     eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     this.instance.addHook('afterScrollVertically', function () {
@@ -6169,7 +6321,16 @@ Handsontable.helper.toString = function (obj) {
 (function (Handsontable) {
   var DateEditor = Handsontable.editors.TextEditor.prototype.extend();
 
+  var $;
+
   DateEditor.prototype.init = function () {
+
+    if(typeof jQuery != 'undefined') {
+      $ = jQuery;
+    } else {
+      throw new Error("You need to include jQuery to your project in order to use the jQuery UI Datepicker.");
+    }
+
     if (!$.datepicker) {
       throw new Error("jQuery UI Datepicker dependency not found. Did you forget to include jquery-ui.custom.js or its substitute?");
     }
@@ -6217,7 +6378,8 @@ Handsontable.helper.toString = function (obj) {
      * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
      */
     eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     this.hideDatepicker();
@@ -6511,12 +6673,23 @@ Handsontable.helper.toString = function (obj) {
     skipOne = false;
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-
+    
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
+      var timeOffset = 0;
+
+      // on ctl+c / cmd+c don't update suggestion list
+      if(event.keyCode === keyCodes.C && (event.ctrlKey || event.metaKey)) {
+        return;
+      }
+
+      if(!editor.isOpened()) {
+        timeOffset += 10;
+      }
+
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, 0));
+      }, timeOffset));
     }
   };
 
@@ -6859,18 +7032,55 @@ Handsontable.helper.toString = function (obj) {
     }
   };
 
+  // TODO: Refactor this with the use of new getCell() after 0.12.1
+  SelectEditor.prototype.checkEditorSection = function () {
+    if(this.row < this.instance.getSettings().fixedRowsTop) {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'corner';
+      } else {
+        return 'top';
+      }
+    } else {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'left';
+      }
+    }
+  };
+
   SelectEditor.prototype.open = function () {
     var width = Handsontable.Dom.outerWidth(this.TD); //important - group layout reads together for better performance
     var height = Handsontable.Dom.outerHeight(this.TD);
     var rootOffset = Handsontable.Dom.offset(this.instance.rootElement);
     var tdOffset = Handsontable.Dom.offset(this.TD);
+    var editorSection = this.checkEditorSection();
+    var cssTransformOffset;
 
-    this.select.style.height = height + 'px';
-    this.select.style.minWidth = width + 'px';
-    this.select.style.top = tdOffset.top - rootOffset.top + 'px';
-    this.select.style.left = tdOffset.left - rootOffset.left + 'px';
-    this.select.style.margin = '0px';
-    this.select.style.display = '';
+    switch(editorSection) {
+      case 'top':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode);
+        break;
+      case 'left':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode);
+        break;
+      case 'corner':
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode);
+        break;
+    }
+
+    var selectStyle = this.select.style;
+
+    if(cssTransformOffset && cssTransformOffset != -1) {
+      selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    } else {
+      Handsontable.Dom.resetCssTransform(this.select);
+    }
+
+    selectStyle.height = height + 'px';
+    selectStyle.minWidth = width + 'px';
+    selectStyle.top = tdOffset.top - rootOffset.top + 'px';
+    selectStyle.left = tdOffset.left - rootOffset.left + 'px';
+    selectStyle.margin = '0px';
+    selectStyle.display = '';
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
@@ -6907,6 +7117,39 @@ Handsontable.helper.toString = function (obj) {
 
 
 })(Handsontable);
+(function (Handsontable) {
+
+  'use strict';
+
+  var NumericEditor = Handsontable.editors.TextEditor.prototype.extend();
+
+  NumericEditor.prototype.beginEditing = function (initialValue) {
+
+    var BaseEditor = Handsontable.editors.TextEditor.prototype;
+
+    if (typeof (initialValue) === 'undefined' && this.originalValue) {
+
+      var value = '' + this.originalValue;
+
+      if (typeof this.cellProperties.language !== 'undefined') {
+        numeral.language(this.cellProperties.language)
+      }
+
+      var decimalDelimiter = numeral.languageData().delimiters.decimal;
+      value = value.replace('.', decimalDelimiter);
+
+      BaseEditor.beginEditing.apply(this, [value]);
+    } else {
+      BaseEditor.beginEditing.apply(this, arguments);
+    }
+
+  };
+
+  Handsontable.editors.NumericEditor = NumericEditor;
+  Handsontable.editors.registerEditor('numeric', NumericEditor);
+
+})(Handsontable);
+
 /**
  * Numeric cell validator
  * @param {*} value - Value of edited cell
@@ -6980,7 +7223,7 @@ Handsontable.TextCell = {
 };
 
 Handsontable.NumericCell = {
-  editor: Handsontable.editors.TextEditor,
+  editor: Handsontable.editors.NumericEditor,
   renderer: Handsontable.renderers.NumericRenderer,
   validator: Handsontable.NumericValidator,
   dataType: 'number'
@@ -7027,6 +7270,7 @@ Handsontable.cellLookup = {
     autocomplete: Handsontable.AutocompleteValidator
   }
 };
+
 /**
  * autoResize - resizes a DOM element to the width and height of another DOM element
  *
@@ -7052,10 +7296,10 @@ var autoResize = function () {
       }
     },
     unObserve = function (element, event, handler) {
-      if (window.detachEvent) {
-        element.detachEvent('on' + event, handler);
-      } else {
+      if (window.removeEventListener) {
         element.removeEventListener(event, handler, false);
+      } else {
+        element.detachEvent('on' + event, handler);
       }
     },
     resize = function () {
@@ -7332,6 +7576,12 @@ CopyPasteClass.prototype.init = function () {
 
     this.elTextarea = document.createElement('TEXTAREA');
     this.elTextarea.className = 'copyPaste';
+    this.elTextarea.onpaste = function (event) {
+      if('WebkitAppearance' in document.documentElement.style) { // chrome and safari
+        this.value = event.clipboardData.getData("Text");
+        return false;
+      }
+    };
     style = this.elTextarea.style;
     style.width = '10000px';
     style.height = '10000px';
@@ -7398,7 +7648,9 @@ CopyPasteClass.prototype.init = function () {
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPasteClass.prototype.selectNodeText = function (el) {
-  el.select();
+  if (el) {
+    el.select();
+  }
 };
 
 //http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
@@ -8528,8 +8780,10 @@ function HandsontableColumnSorting() {
 
     var eventManager = Handsontable.eventManager(instance);
     eventManager.addEventListener(instance.rootElement, 'click', function (e){
+      if(Handsontable.Dom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
         plugin.sortByColumn.call(instance, col);
+      }
     });
 
     function countRowHeaders() {
@@ -9098,6 +9352,44 @@ Handsontable.hooks.register('afterColumnSort');
       return hasAlignment;
     };
 
+		if(!this.instance.getSettings().allowInsertRow) {
+      var rowAboveIndex = findIndexByKey(this.defaultOptions.items, 'row_above');
+      this.defaultOptions.items.splice(rowAboveIndex,1);
+      var rowBelowIndex = findIndexByKey(this.defaultOptions.items, 'row_above');
+      this.defaultOptions.items.splice(rowBelowIndex,1);
+      this.defaultOptions.items.splice(rowBelowIndex,1); // FOR SEPARATOR
+
+		}
+
+		if(!this.instance.getSettings().allowInsertColumn) {
+      var colLeftIndex = findIndexByKey(this.defaultOptions.items, 'col_left');
+      this.defaultOptions.items.splice(colLeftIndex,1);
+      var colRightIndex = findIndexByKey(this.defaultOptions.items, 'col_right');
+      this.defaultOptions.items.splice(colRightIndex,1);
+      this.defaultOptions.items.splice(colRightIndex,1); // FOR SEPARATOR
+
+    }
+
+		var removeRow = false;
+		var removeCol = false;
+    var removeRowIndex, removeColumnIndex;
+
+		if(!this.instance.getSettings().allowRemoveRow) {
+      removeRowIndex = findIndexByKey(this.defaultOptions.items, 'remove_row');
+      this.defaultOptions.items.splice(removeRowIndex,1);
+			removeRow = true;
+		}
+
+		if(!this.instance.getSettings().allowRemoveColumn) {
+      removeColumnIndex = findIndexByKey(this.defaultOptions.items, 'remove_col');
+      this.defaultOptions.items.splice(removeColumnIndex,1);
+      removeCol = true;
+		}
+
+		if (removeRow && removeCol) {
+      this.defaultOptions.items.splice(removeColumnIndex,1); // SEPARATOR
+		}
+
     this.checkSelectionReadOnlyConsistency = function (hot) {
       var atLeastOneReadOnly = false;
 
@@ -9161,7 +9453,7 @@ Handsontable.hooks.register('afterColumnSort');
       this.closeAll();
 
       event.preventDefault();
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
         showColHeaders = this.instance.getSettings().colHeaders;
@@ -9555,6 +9847,14 @@ Handsontable.hooks.register('afterColumnSort');
     }
   }
 
+  function findIndexByKey(items, key) {
+    for (var i = 0, ilen = items.length; i < ilen; i++) {
+      if (items[i].key === key) {
+        return i;
+      }
+    }
+  }
+
   ContextMenu.prototype.getItems = function (items) {
     var menu, item;
 
@@ -9637,10 +9937,12 @@ Handsontable.hooks.register('afterColumnSort');
   };
 
   ContextMenu.prototype.setMenuPosition = function (event, menu) {
-    var cursorY = event.pageY;
-    var cursorX = event.pageX;
+    // for ie8
+    // http://msdn.microsoft.com/en-us/library/ie/ff974655(v=vs.85).aspx
     var scrollTop = Handsontable.Dom.getWindowScrollTop();
     var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+    var cursorY = event.pageY || (event.clientY + scrollTop);
+    var cursorX = event.pageX || (event.clientX + scrollLeft);
 
     var cursor = {
       top: cursorY,
@@ -9684,6 +9986,7 @@ Handsontable.hooks.register('afterColumnSort');
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
+
     menu.style.top = cursor.top + 'px';
   };
 
@@ -10134,7 +10437,7 @@ function HandsontableManualColumnMove() {
         		if(col >= 0) { //not TH above row header
           			endCol = col;
           			refreshHandlePosition(e.target, endCol - startCol);
-        		}     	
+        		}
             }
             else {
               setupHandlePosition.call(instance, th);
@@ -10145,7 +10448,7 @@ function HandsontableManualColumnMove() {
 
     eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
       if (Handsontable.Dom.hasClass(e.target, 'manualColumnMover')){
-        startX = e.pageX;
+        startX = Handsontable.helper.pageX(e);
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -10156,7 +10459,7 @@ function HandsontableManualColumnMove() {
 
     eventManager.addEventListener(window,'mousemove',function (e) {
       if (pressed) {
-        refreshGuidePosition(e.pageX - startX);
+        refreshGuidePosition(Handsontable.helper.pageX(e) - startX);
       }
     });
 
@@ -10264,7 +10567,6 @@ function HandsontableManualColumnMove() {
      });
 
       this.manualColumnPositions = colpos;
-      // saveManualColumnPositions()
     };
 
     // need to reconstruct manualcolpositions after adding columns
@@ -10293,7 +10595,6 @@ function HandsontableManualColumnMove() {
       }
 
       this.manualColumnPositions = colpos;
-      // saveManualColumnPositions()
     };
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
@@ -10457,14 +10758,14 @@ function HandsontableManualColumnResize() {
         }
         dblclick++;
 
-        startX = e.pageX;
+        startX = Handsontable.helper.pageX(e);
         newSize = startWidth;
       }
     });
 
     eventManager.addEventListener(window,'mousemove', function (e) {
       if (pressed) {
-        currentWidth = startWidth + (e.pageX - startX);
+        currentWidth = startWidth + (Handsontable.helper.pageX(e) - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
         refreshHandlePosition();
         refreshGuidePosition();
@@ -10707,14 +11008,14 @@ Handsontable.hooks.register('afterColumnResize');
           }
           dblclick++;
 
-          startY = e.pageY;
+          startY = Handsontable.helper.pageY(e);
           newSize = startHeight;
         }
       });
 
       eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
-          currentHeight = startHeight + (e.pageY - startY);
+          currentHeight = startHeight + (Handsontable.helper.pageY(e) - startY);
           newSize = setManualSize(currentRow, currentHeight);
           refreshHandlePosition();
           refreshGuidePosition();
@@ -10751,7 +11052,6 @@ Handsontable.hooks.register('afterColumnResize');
     };
 
     this.init = function (source) {
-
       var instance = this;
       var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
 
@@ -13041,7 +13341,7 @@ Handsontable.MergeCells = MergeCells;
 
       eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowMover')) {
-          startY = e.pageY;
+          startY = Handsontable.helper.pageY(e);
           setupGuidePosition.call(instance);
           pressed = instance;
 
@@ -13052,7 +13352,7 @@ Handsontable.MergeCells = MergeCells;
 
       eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
-          refreshGuidePosition(e.pageY - startY);
+          refreshGuidePosition(Handsontable.helper.pageY(e) - startY);
         }
       });
 
@@ -13154,6 +13454,7 @@ Handsontable.MergeCells = MergeCells;
   Handsontable.hooks.register('afterRowMove');
 
 })(Handsontable);
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
  * using the small square in the right bottom of the cell selection.
@@ -16028,7 +16329,7 @@ Walkontable.prototype.getViewport = function () {
 };
 
 Walkontable.prototype.getSetting = function (key, param1, param2, param3, param4) {
-  return this.wtSettings.getSetting(key, param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+  return this.wtSettings.getSetting(key, param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
 };
 
 Walkontable.prototype.hasSetting = function (key) {
@@ -16430,23 +16731,28 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
+    var finalLeft
+      , finalTop;
+    var bottom = Math.ceil(box.bottom);
 
-    if (left < 0) {
-      elem.style.left = -left + 'px';
+    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
+      finalLeft = -left + 'px';
     } else {
-      elem.style.left = '0';
+      finalLeft = '0';
     }
 
-    if (top < 0) {
-      elem.style.top = -top + "px";
+    if (top < 0 && (bottom - elem.offsetHeight) > 0) {
+      finalTop = -top + "px";
     } else {
-      elem.style.top = "0";
+      finalTop = "0";
     }
   }
   else {
-    elem.style.top = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
-    elem.style.left = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
+    finalLeft = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
+    finalTop = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
@@ -16470,21 +16776,26 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   var elem = this.clone.wtTable.holder.parentNode;
 
   if (this.scrollHandler === window) {
+
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var left = Math.ceil(box.left);
+    var finalLeft
+      , finalTop;
 
-    if (left < 0) {
-      elem.style.left = -left + 'px';
+    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
+      finalLeft = -left + 'px';
     } else {
-      elem.style.left = '0';
+      finalLeft = '0';
     }
 
-    elem.style.top = this.instance.wtTable.hider.style.top;
+    finalTop = this.instance.wtTable.hider.style.top;
   }
   else {
-    elem.style.top = this.instance.wtTable.hider.style.top;
-    elem.style.left = this.getScrollPosition() + "px";
+    finalLeft = this.getScrollPosition() + "px";
+    finalTop = this.instance.wtTable.hider.style.top;
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
@@ -16559,19 +16870,24 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
+    var finalLeft
+      , finalTop;
+    var bottom = Math.ceil(box.bottom);
 
-    elem.style.left = '0';
+    finalLeft = '0';
 
-    if (top < 0) {
-      elem.style.top = -top + "px";
+    if (top < 0 && (bottom - elem.offsetHeight) > 0) {
+      finalTop = -top + "px";
     } else {
-      elem.style.top = "0";
+      finalTop = "0";
     }
   }
   else {
-    elem.style.top = this.getScrollPosition() + "px";
-    elem.style.left = '0';
+    finalTop = this.getScrollPosition() + "px";
+    finalLeft = '0';
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   if (this.instance.wtScrollbars.horizontal.scrollHandler === window) {
     elem.style.width = this.instance.wtViewport.getWorkspaceActualWidth() + 'px';
@@ -16984,7 +17300,7 @@ WalkontableSettings.prototype.update = function (settings, value) {
 
 WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3, param4) {
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
   else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') { //perhaps this can be removed, it is only used in tests
     return this.settings[key][param1];
@@ -18273,7 +18589,7 @@ if (window.jQuery) {
         return output;
       }
     };
-  })(window, $, Handsontable);
+  })(window, jQuery, Handsontable);
 }
 
 
