@@ -140,7 +140,7 @@
           <div id="example2"></div>
 
           <p>
-            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -156,7 +156,7 @@
 
           <script data-jsfiddle="example2">
             var example2 = document.getElementById('example2');
-            new Handsontable(example2,{
+            var hot2 = new Handsontable(example2,{
               data: getCarData(),
               startRows: 7,
               startCols: 4,
