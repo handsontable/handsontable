@@ -54,7 +54,7 @@
 
         <div class="rowLayout">
           <div class="descLayout">
-            <div class="pad" data-jsfiddle="example1">
+            <div class="pad" data-jsfiddle="hot">
               <h2>jQuery</h2>
 
               <p>
@@ -68,36 +68,18 @@
               <ul>
                 <li>Include jQuery to your page, before including Handsontable<br>
                 <pre><code style="white-space: pre-line;">
-                  &lt;script src="../lib/jquery.min.js"&gt;&lt;/script&gt;<br>
-                  &lt;script src="dist/handsontable.full.js"&gt;&lt;/script&gt;<br>
-                  &lt;link rel="stylesheet" media="screen" href="dist/handsontable.full.css"&gt;<br>
+                  &lt;script src="handsontable/lib/jquery.min.js"&gt;&lt;/script&gt;<br>
+                  &lt;script src="handsontable/dist/handsontable.full.js"&gt;&lt;/script&gt;<br>
+                  &lt;link rel="stylesheet" media="screen" href="handsontable/dist/handsontable.full.css"&gt;<br>
                 </code></pre>
                 </li>
               <li>
-                Run `handsontable()` constructor on an empty div. After that, load some data if you wish:
-                <pre>
-                  <code style="white-space: pre-line;">
-                    &lt;div id="dataTable"&gt;&lt;/div&gt;<br>
-                    &lt;script&gt;<br>
-                      var data = [<br>
-                        ["", "Kia", "Nissan", "Toyota", "Honda"],<br>
-                        ["2008", 10, 11, 12, 13],<br>
-                        ["2009", 20, 11, 14, 13],<br>
-                        ["2010", 30, 15, 12, 13]<br>
-                      ];<br>
-                      $("#dataTable").handsontable({<br>
-                        data: data,<br>
-                        startRows: 6,<br>
-                        startCols: 8<br>
-                      });<br>
-                    &lt;/script&gt;
-                  </code>
-                </pre>
+                Run <code>handsontable()</code> plugin constructor on an empty div as in the below code example:
               </li>
               </ul>
               </p>
 
-              <div id="example1"></div>
+              <div id="hot"></div>
 
             </div>
           </div>
@@ -105,7 +87,7 @@
           <div class="codeLayout">
             <div class="pad">
               <div class="jsFiddle">
-                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+                <button class="jsFiddleLink" data-runfiddle="hot">Edit in jsFiddle</button>
               </div>
               <script data-jsfiddle="common">
                 function getData() {
@@ -117,11 +99,11 @@
                   ];
                 }
               </script>
-              <script data-jsfiddle="example1">
+              <script data-jsfiddle="hot">
 
                 // Instead of creating a new Handsontable instance with the container element passed as an argument,
                 // you can simply call .handsontable method on a jQuery DOM object.
-                var $container = $("#example1");
+                var $container = $("#hot");
                 $container.handsontable({
                   data: getData(),
                   startRows: 5,
@@ -138,7 +120,7 @@
 
 
                 // This way, you can access Handsontable api methods by passing their names as an argument, e.g.:
-                var hotInstance = $("#example1").handsontable('getInstance');
+                var hotInstance = $("#hot").handsontable('getInstance');
 
               </script>
             </div>

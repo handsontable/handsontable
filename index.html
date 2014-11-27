@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Handsontable - JavaScript grid editor. Excel-like grid editing with HTML &amp; JavaScript</title>
+  <title>Handsontable - JavaScript data grid editor. Excel-like grid editing with HTML &amp; JavaScript</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -267,10 +267,21 @@
             for HTML &amp; JavaScript</p>
 
           <div class="warning">
-            This is Handsontable <a href="https://github.com/handsontable/handsontable/releases" class="ver"></a>, a release published on Nov 27, 2014. Most prominent changes include
-            <a href="demo/jquery.html">removing jQuery dependencies</a> while keeping backward compatibility (in the code, as well as the name) and more efficient row rendering algorithm.
+            This is Handsontable <a href="https://github.com/handsontable/handsontable/releases" class="ver"></a>, a
+            release published on Nov 27, 2014.
 
-            <br>If you experience some rough edges, please report an
+            <p>The most prominent changes are:</p>
+
+            <ul>
+              <li>the removal of jQuery from dependencies and the filename,</li>
+              <li>(but we still keep <a href="demo/jquery.html">the jQuery plugin API</a> for backward compatibility),
+              </li>
+              <li>dropped support for IE 8 and 9 (if it bothers you, please email us),</li>
+              <li>more efficient row rendering algorithm.</li>
+            </ul>
+
+            Check out the <a href="https://github.com/handsontable/handsontable/releases/tag/0.12.0">full release
+            notes</a>. If you experience some rough edges, please report an
             <a href="https://github.com/handsontable/handsontable/issues">issue</a> or temporarily stick to
             version <a href="http://old.handsontable.com">0.10.5 <sup><i
             class="icon-external-link"></i></sup></a>.
