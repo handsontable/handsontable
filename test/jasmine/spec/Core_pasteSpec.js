@@ -21,10 +21,12 @@ describe('Core_paste', function () {
     ];
   };
 
-  it('should not create new rows or columns of minSpareRows and minSpareCols equal 0', function () {
+  it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_down'
+      pasteMode: 'shift_down',
+      allowInsertRow:false,
+      allowInsertColumn: false
     });
 
     selectCell(3, 4); //selectAll
@@ -40,10 +42,11 @@ describe('Core_paste', function () {
 
   });
 
- it('should shift data down instead of overwrite when paste', function () {
+ it('should shift data down instead of overwrite when paste (when allowInsertRow = false)', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_down'
+      pasteMode: 'shift_down',
+      allowInsertRow:false
     });
 
     selectCell(1, 0); //selectAll
@@ -80,7 +83,8 @@ describe('Core_paste', function () {
   it('should shift right insert instead of overwrite when paste', function () {
     handsontable({
       data: arrayOfArrays(),
-      pasteMode: 'shift_right'
+      pasteMode: 'shift_right',
+      allowInsertColumn: false
     });
 
     selectCell(1, 0); //selectAll
@@ -195,12 +199,12 @@ describe('Core_paste', function () {
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
-    this.$container.find('tbody tr:eq(1) td:eq(0)').mousedown();
-    this.$container.find('tbody tr:eq(1) td:eq(0)').mouseup();
+    this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
+    this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([1, 0, 1, 0]);
 
-    $('html').mousedown();
+    $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
 

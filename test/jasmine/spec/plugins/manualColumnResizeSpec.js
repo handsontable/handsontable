@@ -16,20 +16,23 @@ describe('manualColumnResize', function () {
     var $container = spec().$container;
     var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
 
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = $container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
+    $resizer.simulate('mousedown',{
+      clientX:resizerPosition.left
+    });
 
-    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.trigger(mouseDownEvent);
 
     var delta = width - $th.width() - 2;
-    var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
-    $resizer.trigger(mouseMoveEvent);
+    var newPosition = resizerPosition.left + delta;
+    $resizer.simulate('mousemove',
+      {clientX: newPosition}
+    );
 
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
   }
 
   it("should change column widths at init", function () {
@@ -178,17 +181,18 @@ describe('manualColumnResize', function () {
     expect(colWidth(this.$container, 0)).toEqual(50);
 
     var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
-
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
 
-    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.trigger(mouseDownEvent);
+//    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
+//    $resizer.trigger(mouseDownEvent);
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
 
-    $resizer.trigger('mouseup');
+//    $resizer.trigger('mouseup');
+    $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -210,19 +214,16 @@ describe('manualColumnResize', function () {
 
     var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
 
-    $th.trigger('mouseenter');
+    $th.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
 
-    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.trigger(mouseDownEvent);
-    $resizer.trigger('mouseup');
-
-    mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
-    $resizer.trigger(mouseDownEvent);
-    $resizer.trigger('mouseup');
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
 
 
     waitsFor(function(){
@@ -239,7 +240,7 @@ describe('manualColumnResize', function () {
     });
 
   });
-  
+
   it("should adjust resize handles position after table size changed", function(){
     var maxed = false;
 
@@ -252,7 +253,7 @@ describe('manualColumnResize', function () {
       }
     });
 
-    this.$container.find('thead th:eq(0)').mouseenter();
+    this.$container.find('thead th:eq(0)').simulate('mouseover');
 
     var handle = this.$container.find('.manualColumnResizer');
     var handleBox = handle[0].getBoundingClientRect();
@@ -264,8 +265,7 @@ describe('manualColumnResize', function () {
     maxed = true;
 
     render();
-
-    this.$container.find('thead th:eq(0)').mouseenter();
+    this.$container.find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
     thBox = th0[0].getBoundingClientRect();
@@ -282,7 +282,7 @@ describe('manualColumnResize', function () {
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnResizer');
     $handle[0].style.background = "red";
 
@@ -293,7 +293,7 @@ describe('manualColumnResize', function () {
     this.$container.scroll();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
-    $colHeader.trigger("mouseenter");
+    $colHeader.simulate("mouseover");
     expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });

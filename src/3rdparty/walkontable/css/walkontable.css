@@ -5,15 +5,21 @@
   font-size: 13px;
 }
 
-.wtHolder * {
+.wtHolder table,
+.wtHolder tbody,
+.wtHolder thead,
+.wtHolder td,
+.wtHolder th,
+.wtHolder div {
   box-sizing: content-box;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
 }
 
 .wtHolder table {
-  border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
-  position: relative;
+  border-collapse: separate;
+  /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
+  /*position: relative;*/
   /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -26,6 +32,10 @@
   border-width: 0;
   table-layout: fixed;
   width: 0;
+  outline-width: 0;
+  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
+  max-width: none;
+  max-height: none;
 }
 
 .wtHolder col {
@@ -41,12 +51,16 @@
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   height: 22px;
+  empty-cells: show;
   line-height: 21px;
-  padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+  padding: 0 4px 0 4px;
+  /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
-  font-size: 12px;
   vertical-align: top;
   overflow: hidden;
+  outline-width: 0;
+  white-space: pre-line;
+  /* preserve new line character in cell */
 }
 
 .wtHolder th:last-child {

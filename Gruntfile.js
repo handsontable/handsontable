@@ -12,32 +12,36 @@
  *
  * Result:
  * building Handsontable will create files:
- *  - dist/jquery.handsontable.js
- *  - dist/jquery.handsontable.css
- *  - dist/jquery.handsontable.full.js
- *  - dist/jquery.handsontable.full.css
+ *  - dist/handsontable.js
+ *  - dist/handsontable.css
+ *  - dist/handsontable.full.js
+ *  - dist/handsontable.full.css
  *
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
 var browsers = [
-  /*{
+  {
    browserName: 'firefox',
    platform: 'Windows 7'
    },
    {
    browserName: 'chrome',
    platform: 'Windows 7'
-   },*/
+   },
   {
-    browserName: 'internet explorer',
-    version: '8',
+    browserName: 'opera',
     platform: 'Windows 7'
   },
-  {
-    browserName: 'internet explorer',
-    version: '9',
-    platform: 'Windows 7'
-  },
+  //{
+  //  browserName: 'internet explorer',
+  //  version: '8',
+  //  platform: 'Windows 7'
+  //},
+  //{
+  //  browserName: 'internet explorer',
+  //  version: '9',
+  //  platform: 'Windows 7'
+  //},
   {
     browserName: 'internet explorer',
     version: '10',
@@ -55,6 +59,7 @@ module.exports = function (grunt) {
         'tmp/core.js',
         'src/multiMap.js',
         'src/dom.js',
+        'src/eventManager.js',
         'src/tableView.js',
         'src/editors.js',
         'src/editorManager.js',
@@ -79,6 +84,7 @@ module.exports = function (grunt) {
         'src/editors/passwordEditor.js',
         'src/editors/selectEditor.js',
         'src/editors/dropdownEditor.js',
+        'src/editors/numericEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',
@@ -122,6 +128,8 @@ module.exports = function (grunt) {
       shims: [
         'lib/shims/array.indexOf.js',
         'lib/shims/array.filter.js',
+        'lib/shims/array.isArray.js',
+        'lib/shims/object.keys.js',
         'lib/shims/weakmap.js'
       ]
     },
@@ -129,27 +137,28 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         files: {
-          'dist/jquery.handsontable.js': [
+          'dist/handsontable.js': [
             'tmp/intro.js',
             '<%= meta.shims %>',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
+            'plugins/jqueryHandsontable.js',
             'src/outro.js'
           ]
         }
       },
       full_js: {
         files: {
-          'dist/jquery.handsontable.full.js': [
-            'dist/jquery.handsontable.js',
+          'dist/handsontable.full.js': [
+            'dist/handsontable.js',
             '<%= meta.vendor %>'
           ]
         }
       },
       full_css: {
         files: {
-          'dist/jquery.handsontable.full.css': [
-            'dist/jquery.handsontable.css'
+          'dist/handsontable.full.css': [
+            'dist/handsontable.css'
           ]
         }
       }
@@ -185,19 +194,19 @@ module.exports = function (grunt) {
         files: {
           'tmp/intro.js': 'src/intro.js',
           'tmp/core.js': 'src/core.js',
-          'dist/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
+          'dist/handsontable.css': 'src/css/handsontable.css'
         }
       }
     },
     jasmine: {
       handsontable: {
         src: [
-          'dist/jquery.handsontable.js',
+          'dist/handsontable.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
           'lib/jquery-ui/js/jquery-ui.custom.js',
-          'plugins/removeRow/jquery.handsontable.removeRow.js'
+          'plugins/removeRow/handsontable.removeRow.js'
         ],
         options: {
           specs: [
@@ -208,8 +217,8 @@ module.exports = function (grunt) {
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
-            'dist/jquery.handsontable.css',
-            'plugins/removeRow/jquery.handsontable.removeRow.css',
+            'dist/handsontable.css',
+            'plugins/removeRow/handsontable.removeRow.css',
             'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
           ],
           vendor: [
@@ -231,6 +240,7 @@ module.exports = function (grunt) {
       walkontable: {
         src: [
           'src/dom.js',
+          'src/eventManager.js',
           'src/3rdparty/walkontable/src/*.js',
           'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],
@@ -260,13 +270,13 @@ module.exports = function (grunt) {
       options: {
         preserveComments: 'some'
       },
-      "dist/jquery.handsontable.full.min.js": ["dist/jquery.handsontable.full.js" ]
+      "dist/handsontable.full.min.js": ["dist/handsontable.full.js" ]
     },
     cssmin: {
       minify: {
         expand: true,
         cwd: 'dist/',
-        src: ['jquery.handsontable.full.css'],
+        src: ['handsontable.full.css'],
         dest: 'dist/',
         extDot: 'last',
         ext: '.min.css'

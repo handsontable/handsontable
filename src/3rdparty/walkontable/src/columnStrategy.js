@@ -9,8 +9,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
   var size
     , i = 0;
 
-  WalkontableAbstractStrategy.apply(this, arguments);
-
+  this.instance = instance;
   this.containerSizeFn = containerSizeFn;
   this.cellSizesSum = 0;
   this.cellSizes = [];
@@ -26,7 +25,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
     if (size === void 0) {
       break; //total columns exceeded
     }
-    if (this.cellSizesSum < this.getContainerSize(this.cellSizesSum + size)) {
+    if (this.cellSizesSum < this.getContainerSize()) {
       this.visibleCellCount++;
     }
     this.cellSizes.push(size);
@@ -36,13 +35,15 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
     i++;
   }
 
-  var containerSize = this.getContainerSize(this.cellSizesSum);
+  var containerSize = this.getContainerSize();
   this.remainingSize = this.cellSizesSum - containerSize;
   //negative value means the last cell is fully visible and there is some space left for stretching
   //positive value means the last cell is not fully visible
 }
 
-WalkontableColumnStrategy.prototype = new WalkontableAbstractStrategy();
+WalkontableColumnStrategy.prototype.getContainerSize = function () {
+  return typeof this.containerSizeFn === 'function' ? this.containerSizeFn() : this.containerSizeFn;
+};
 
 WalkontableColumnStrategy.prototype.getSize = function (index) {
   return this.cellSizes[index] + (this.cellStretch[index] || 0);
@@ -50,10 +51,8 @@ WalkontableColumnStrategy.prototype.getSize = function (index) {
 
 WalkontableColumnStrategy.prototype.stretch = function () {
   //step 2 - apply stretching strategy
-  var containerSize
+  var containerSize = this.getContainerSize()
     , i = 0;
-
-  containerSize = this.instance.wtTable.allRowsInViewport() ? this.getContainerSize() : this.getContainerSize(Infinity);
 
   this.remainingSize = this.cellSizesSum - containerSize;
 

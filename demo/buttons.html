@@ -5,13 +5,12 @@
   <title>Custom buttons - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
-  <script data-jsfiddle="common" src="../plugins/removeRow/jquery.handsontable.removeRow.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/removeRow/jquery.handsontable.removeRow.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../plugins/removeRow/handsontable.removeRow.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/removeRow/handsontable.removeRow.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -62,7 +61,7 @@
           <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external
             buttons.
             The below example uses the a custom made
-            <b>jquery.handsontable.removeRow.js</b> plugin for that matter. Move your mouse over a row to see it.</p>
+            <b>handsontable.removeRow.js</b> plugin for that matter. Move your mouse over a row to see it.</p>
 
           <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
@@ -75,7 +74,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -88,10 +87,12 @@
 
       <div class="codeLayout">
         <div class="pad">
-          <script>
-            var container = $("#example1");
-
-            container.handsontable({
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+          <script data-jsfiddle="example1">
+            var container = document.getElementById("example1");
+            var hot = new Handsontable(container, {
               startRows: 15,
               startCols: 16,
               rowHeaders: true,
@@ -110,18 +111,27 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            container.handsontable("loadData", data);
 
-            $("button#selectFirst").on('click', function () {
-                container.handsontable("selectCell", 0, 0);
+            hot.loadData(data);
+
+            var selectFirst = document.getElementById('selectFirst'),
+              rowHeaders = document.getElementById('rowHeaders'),
+              colHeaders = document.getElementById('colHeaders');
+
+            Handsontable.Dom.addEvent(selectFirst, 'click', function () {
+              hot.selectCell(0,0);
             });
 
-            $("input#rowHeaders").change(function () {
-              container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
+            Handsontable.Dom.addEvent(rowHeaders, 'click', function () {
+              hot.updateSettings({
+                rowHeaders: this.checked
+              });
             });
 
-            $("input#colHeaders").change(function () {
-              container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
+            Handsontable.Dom.addEvent(colHeaders, 'click', function () {
+              hot.updateSettings({
+                colHeaders: this.checked
+              });
             });
           </script>
         </div>

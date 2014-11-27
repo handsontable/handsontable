@@ -5,11 +5,10 @@
   <title>Merge cells - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -75,23 +74,25 @@
             <div class="pad" data-jsfiddle="example1">
               <h2>Merge cells</h2>
 
-          <p>To enable the merge cells feature, set the <code>mergeCells</code> option to be <code>true</code> or an
-            array.
-          </p>
+              <p>To enable the merge cells feature, set the <code>mergeCells</code> option to be <code>true</code> or an
+                array.
+              </p>
 
-          <p>To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
-            <code>mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]</code></p>
+              <p>To initialize Handsontable with predefined merged cells, provide merged cells details in form of an
+                array:
+                <code>mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]</code></p>
 
-          <div style="overflow: scroll; height: 200px; width: 400px">
-            <div id="example1"></div>
-          </div>
+              <div style="overflow: scroll; height: 200px; width: 400px">
+                <div id="example1"></div>
+              </div>
 
-          <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
-          </p>
+              <p>
+                <button name="dump" data-dump="#example1" data-instance="hot"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
         </div>
       </div>
 
@@ -101,8 +102,9 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
 
-          <script data-jsfiddle="example">
-            $('#example1').handsontable({
+          <script data-jsfiddle="example1">
+            var container = document.getElementById('example1');
+            var hot = new Handsontable(container,{
               data: createBigData(),
               colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,

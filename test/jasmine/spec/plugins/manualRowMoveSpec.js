@@ -18,22 +18,45 @@ describe('manualRowMove', function () {
       $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
       $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
-    $secondRowHeader.trigger('mouseenter');
+    $secondRowHeader.simulate('mouseover');
     var $manualRowMover = $mainContainer.find('.manualRowMover');
 
     if($manualRowMover.length) {
-      var mouseDownEvent = $.Event('mousedown');
-      mouseDownEvent.pageY = $manualRowMover[0].getBoundingClientRect().top;
-      $manualRowMover.trigger(mouseDownEvent);
+      $manualRowMover.simulate('mousedown',{
+        clientY: $manualRowMover[0].getBoundingClientRect().top
+      });
 
-      var mouseMoveEvent = $.Event('mousemove');
-      mouseMoveEvent.pageY = $manualRowMover[0].getBoundingClientRect().top - 20;
-      $manualRowMover.trigger(mouseMoveEvent);
+      $manualRowMover.simulate('mousemove',{
+        clientY:$manualRowMover[0].getBoundingClientRect().top - 20
+      });
 
-      $firstRowHeader.trigger('mouseenter');
-      $secondRowHeader.trigger('mouseup');
+      $firstRowHeader.simulate('mouseover');
+      $secondRowHeader.simulate('mouseup');
     }
-  }
+  };
+
+  var moveFirstDisplayedRowAfterSecondRow = function(container, firstDisplayedRowIndex) {
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first(),
+      $rowHeaders = container.find('tbody tr th'),
+      $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
+      $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
+
+    $secondRowHeader.simulate('mouseover');
+    var $manualRowMover = $mainContainer.find('.manualRowMover');
+
+    if($manualRowMover.length) {
+      $manualRowMover.simulate('mousedown',{
+        clientY: $manualRowMover[0].getBoundingClientRect().top
+      });
+
+      $manualRowMover.simulate('mousemove',{
+        clientY:$manualRowMover[0].getBoundingClientRect().top + 20
+      });
+
+      $firstRowHeader.simulate('mouseover');
+      $secondRowHeader.simulate('mouseup');
+    }
+  };
 
   it('should change row order at init', function () {
     handsontable({
@@ -177,18 +200,18 @@ describe('manualRowMove', function () {
 
     selectCell(7, 0);
 
-    var lastVisibleRowIndex = hot.view.wt.wtTable.getLastVisibleRow();
+    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
 
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
 
     waits(500);
 
     runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex);
 
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('9');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('9');
     });
   });
 
@@ -221,17 +244,17 @@ describe('manualRowMove', function () {
 
     selectCell(7, 0);
 
-    var lastVisibleRowIndex = hot.view.wt.wtTable.getLastVisibleRow();
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
 
     waits(500);
 
     runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex - 1);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex - 1);
 
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('10');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
+      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
     });
   });
 
@@ -298,10 +321,10 @@ describe('manualRowMove', function () {
     });
 
     var $rowHeader = this.$container.find('tbody tr:eq(2) th:eq(1)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
 
     var $manualRowMover = this.$container.find('.manualRowMover');
-    $manualRowMover.eq(1).trigger('mousedown');
+    $manualRowMover.eq(1).simulate('mousedown');
 
     expect(hot.getSelected()).toEqual(undefined);
   });
@@ -316,7 +339,8 @@ describe('manualRowMove', function () {
     });
 
     var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader.simulate("mouseover");
+
     var $handle = this.$container.find('.manualRowMover');
     $handle[0].style.background = "red";
 
@@ -326,10 +350,114 @@ describe('manualRowMove', function () {
     this.$container.scrollTop(200);
     this.$container.scroll();
 
-    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
-    $rowHeader.trigger("mouseenter");
+    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+    $rowHeader.simulate("mouseover");
     expect($rowHeader.offset().left).toEqual($handle.offset().left);
     expect($rowHeader.offset().top).toEqual($handle.offset().top);
+  });
+
+  it("should move the first row to the second row", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 0);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+  });
+
+  it("should move the second row to the third row", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+  });
+
+  it("moving row should keep cell meta created using cells function", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true,
+      cells: function (row, col) {
+        if (row == 1 && col == 0) {
+          this.readOnly = true;
+        }
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+  });
+
+  it("moving row should keep cell meta created using cell array", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true,
+      manualRowMove: true,
+      cell: [
+        {row: 1, col: 0, readOnly: true}
+      ]
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
   });
 
 });

@@ -5,14 +5,10 @@
   <title>Custom HTML in cells and headers - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
-  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <script data-jsfiddle="common" src="js/jquery.ui.position.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
   <link data-jsfiddle="common" rel="stylesheet" media="screen"
         href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
@@ -97,7 +93,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -147,36 +143,38 @@
           escaped = strip_tags(escaped, '<em><b><strong><a><big>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
           td.innerHTML = escaped;
           return td;
-        };
+          },
+          coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+            var escaped = Handsontable.helper.stringify(value);
+            if (escaped.indexOf('http') === 0) {
+              var img = document.createElement('IMG');
+              img.src = value;
 
-        var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-          var escaped = Handsontable.helper.stringify(value);
-          if (escaped.indexOf('http') === 0) {
-            var $img = $('<img>');
-            $img.attr('src', value);
-            $img.on('mousedown', function (event) {
-              event.preventDefault(); //prevent selection quirk
-            });
-            $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
-          }
-          else {
-            Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
-          }
-          return td;
-        };
+              Handsontable.Dom.addEvent(img, 'mousedown', function (e){
+                e.preventDefault();//prevent selection quirk
+              });
 
-        var $container = $("#example1");
-        $container.handsontable({
-          data: data,
-          colWidths: [200, 200, 200, 60],
-          colHeaders: ["Title", "Description", "Comments", "Cover"],
-          columns: [
-            {data: "title", renderer: "html"},
-            {data: "description", renderer: "html"},
-            {data: "comments", renderer: safeHtmlRenderer},
-            {data: "cover", renderer: coverRenderer}
-          ]
-        });
+              Handsontable.Dom.empty(td);
+              td.appendChild(img);
+
+            }
+            else {
+              Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
+            }
+            return td;
+          },
+          container = document.getElementById("example1"),
+            hot1 = new Handsontable(container, {
+            data: data,
+            colWidths: [200, 200, 200, 60],
+            colHeaders: ["Title", "Description", "Comments", "Cover"],
+            columns: [
+              {data: "title", renderer: "html"},
+              {data: "description", renderer: "html"},
+              {data: "comments", renderer: safeHtmlRenderer},
+              {data: "cover", renderer: coverRenderer}
+            ]
+          });
       </script>
     </div>
   </div>
@@ -198,7 +196,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -212,48 +210,51 @@
       </div>
 
       <script data-jsfiddle="example2">
-        var isChecked;
-
-        var customRenderer = function (instance, td) {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
-          if (isChecked) {
-            td.style.backgroundColor = 'yellow';
-          }
-          else {
-            td.style.backgroundColor = 'white';
-          }
-          return td;
-        };
-
-        var $container = $("#example2");
-        $container.handsontable({
-          startCols: 2,
-          columns: [
-            {},
-            {renderer: customRenderer}
-          ],
-          colHeaders: function (col) {
-            switch (col) {
-              case 0:
-                return "<b>Bold</b> and <em>Beautiful</em>";
-
-              case 1:
-                var txt = "Some <input type='checkbox' class='checker' ";
-                txt += isChecked ? 'checked="checked"' : '';
-                txt += "> checkbox";
-                return txt;
+        var isChecked,
+          customRenderer = function (instance, td) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            if (isChecked) {
+              td.style.backgroundColor = 'yellow';
             }
-          }
-        });
+            else {
+              td.style.backgroundColor = 'white';
+            }
+            return td;
+          },
+          container = document.getElementById("example2"),
+          hot2 = new Handsontable(container,{
+            startCols: 2,
+            columns: [
+              {},
+              {renderer: customRenderer}
+            ],
+            colHeaders: function (col) {
+              switch (col) {
+                case 0:
+                  return "<b>Bold</b> and <em>Beautiful</em>";
 
-        $container.on('mousedown', 'input.checker', function (event) {
-          event.stopPropagation();
-        });
+                case 1:
+                  var txt = "Some <input type='checkbox' class='checker' ";
+                  txt += isChecked ? 'checked="checked"' : '';
+                  txt += "> checkbox";
+                  return txt;
+              }
+            }
+          });
 
-        $container.on('mouseup', 'input.checker', function (event) {
-          isChecked = !$(this).is(':checked');
-          $container.handsontable('render');
-        });
+          Handsontable.Dom.addEvent(container, 'mousedown', function (e) {
+            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
+              e.stopPropagation();
+            }
+          });
+
+          Handsontable.Dom.addEvent(container, 'mouseup', function (e) {
+            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
+              isChecked = !e.target.checked;
+              hot2.render();
+
+            }
+          });
       </script>
     </div>
   </div>
@@ -271,7 +272,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">
           Dump data to console
         </button>
       </p>
@@ -340,68 +341,72 @@
       </style>
 
       <script data-jsfiddle="example3">
+
         var data = [
           ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
           ["2009", 0, 2941, 4303, 354, 5814],
           ["2010", 3, 2905, 2867, 412, 5284],
           ["2011", 4, 2517, 4822, 552, 6127],
           ["2012", 2, 2422, 5399, 776, 4151]
-        ];
-
-        var columns = [
+          ],
+          columns = [
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'}
-          ];
+          ],
+          container = document.getElementById('example3'),
+          hot3 = new Handsontable(container,{
+            data: data,
+            colHeaders: true,
+            minSpareRows: 1,
+            type: 'numeric',
+            columns: columns,
+            afterGetColHeader: function (col, TH) {
+              var instance = this;
+              var menu = buildMenu(columns[col].type);
+              var button = buildButton();
 
+              Handsontable.Dom.addEvent(button,'click', function (e){
+                instance.rootElement.appendChild(menu);
 
-        $('#example3').handsontable({
-          data: data,
-          colHeaders: true,
-          minSpareRows: 1,
-          type: 'numeric',
-          columns: columns,
-          afterGetColHeader: function (col, TH) {
-            var instance = this;
-            var menu = buildMenu(columns[col].type);
+                console.log(button);
 
-            var $button = buildButton();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            $button.click(function (e) {
-              instance.rootElement[0].appendChild(menu[0]);
+                var changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
+                for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
+                  changeTypeMenu[i].style.display = 'none';
+                }
 
-              e.preventDefault();
-              e.stopImmediatePropagation();
+                menu.style.display = 'block';
+                var position = button.getBoundingClientRect();
+                menu.style.top = (position.top - 70) + 'px';
+                menu.style.left = (position.left -310) + 'px';
 
-              $('.changeTypeMenu').hide();
-              menu.show();
-              menu.position({
-                 my: 'left top',
-                 at: 'left bottom',
-                 of: $button,
-                 within: instance.rootElement
+                var removeMenu = function (e) {
+                  console.log(e.target);
+                    if (e.target.nodeName == 'LI' && e.target.parentNode.className.indexOf('changeTypeMenu') != -1 ){
+                      instance.rootElement.removeChild(menu);
+                    }
+                };
+
+                Handsontable.Dom.removeEvent(document, 'click', removeMenu);
+                Handsontable.Dom.addEvent(document, 'click', removeMenu);
               });
 
-              $(document).off('click.changeTypeMenu.hide');
-
-              $(document).one('click.changeTypeMenu.hide', function () {
-//                 menu.hide();
-                instance.rootElement[0].removeChild(menu[0]);
+              Handsontable.Dom.addEvent(menu, 'click', function (e) {
+                if (e.target.nodeName == 'LI') {
+                  setColumnType(col, e.target.data['colType'], instance);
+                }
               });
 
+              TH.firstChild.appendChild(button);
 
-            });
 
-            menu.on('click', 'li', function () {
-               setColumnType(col, $(this).data('colType'), instance);
-            });
-
-            TH.firstChild.appendChild($button[0]);
-
-            //TH.appendChild(menu[0]);
           },
           cells: function (row, col, prop) {
             if (row === 0) {
@@ -413,36 +418,42 @@
           }
         });
 
-        function buildMenu(activeCellType){
-          var menu = $('<ul></ul>').addClass('changeTypeMenu');
+          function buildMenu(activeCellType){
+            var menu = document.createElement('UL');
+            menu.className = 'changeTypeMenu';
 
-          $.each(['text', 'numeric', 'date'], function (i, type) {
-            var item = $('<li></li>').data('colType', type).text(type);
+            var types = ['text', 'numeric', 'date'];
 
-            if(activeCellType == type){
-              item.addClass('active');
+
+            for (var i = 0, len = types.length; i< len; i++) {
+              var item = document.createElement('LI');
+              item.innerText = types[i];
+              item.data = {'colType': types[i]};
+
+              if (activeCellType == types[i]) {
+                item.className = 'active';
+              }
+              menu.appendChild(item);
             }
 
-            menu.append(item);
+            return menu;
 
-          });
+          }
 
+          function buildButton() {
+            var button = document.createElement('BUTTON');
+            button.innerHTML = '\u25BC';
+            button.className = 'changeType';
+            return button;
+          }
 
-          return menu;
-
-        }
-
-        function buildButton() {
-          return $('<button></button>').addClass('changeType').html('\u25BC');
-        }
-
-        function setColumnType(i, type, instance) {
-          columns[i].type = type;
-          instance.updateSettings({columns: columns});
-          instance.validateCells(function(){
-            instance.render();
-          });
-        }
+          function setColumnType(i, type, instance) {
+            columns[i].type = type;
+            instance.updateSettings({columns: columns});
+            instance.validateCells(function(){
+              instance.render();
+            });
+          }
 
 
       </script>

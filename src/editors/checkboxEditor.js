@@ -7,7 +7,7 @@
     var checkbox = this.TD.querySelector('input[type="checkbox"]');
 
     if (checkbox) {
-      $(checkbox).trigger('click');
+      checkbox.click();
     }
 
   };

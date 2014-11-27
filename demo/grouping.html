@@ -5,11 +5,10 @@
   <title>Grouping &amp; ungrouping of rows and columns - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -79,7 +78,7 @@
 
               <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
               <p>
-                <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+                <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
                   Dump
                   data to console
                 </button>
@@ -94,7 +93,8 @@
               </div>
 
               <script data-jsfiddle="example1">
-                $("#example1").handsontable({
+                var example1 = document.getElementById('example1');
+                var settings = {
                   data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
@@ -119,7 +119,9 @@
                       rows: [2, 4]
                     }
                   ]
-                });
+                };
+                var hot = new Handsontable(example1,settings);
+
               </script>
 
             </div>

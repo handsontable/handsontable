@@ -35,6 +35,25 @@ describe('Core_view', function () {
     expect(isEditorVisible()).toEqual(true);
   });
 
+  it("should not render 'undefined' class name", function() {
+    this.$container[0].style.width = '501px';
+    this.$container[0].style.height = '100px';
+    this.$container[0].style.overflow = 'auto';
+
+    var hot = handsontable({
+      startRows: 10,
+      startCols: 5,
+      colWidths: [47, 47, 47, 47, 47],
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('.undefined').length).toBe(0);
+  });
+
   xit('should scroll viewport when partially visible cell is clicked', function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
@@ -53,7 +72,7 @@ describe('Core_view', function () {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
-    htCore.find('tr:eq(3) td:eq(0)').trigger('mousedown');
+    htCore.find('tr:eq(3) td:eq(0)').simulate('mousedown');
     expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A2"); //test whether it scrolled
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4"); //test whether it scrolled
@@ -372,7 +391,7 @@ describe('Core_view', function () {
 
   });
 
-  //TODO fix these tests - https://github.com/handsontable/jquery-handsontable/issues/1559
+  //TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
   describe('maximumVisibleElementWidth', function () {
     it('should return maximum width until right edge of the viewport', function () {
       var hot = handsontable({
@@ -592,11 +611,14 @@ describe('Core_view', function () {
       var masterTH = this.$container[0].querySelectorAll(".ht_master thead tr th");
       var overlayTH = this.$container[0].querySelectorAll(".ht_clone_top thead tr th");
 
+
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
-      expect(masterTH[1].offsetWidth).toEqual(87);
-      expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
+
+      var result = navigator.platform == "Win32" ? 86 : 87;
+      expect(masterTH[1].offsetWidth).toEqual(result);
+      expect(overlayTH[1].offsetWidth).toEqual(result); //if you get 90, it means it is calculated before scrollbars were applied
 
       expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
       expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);

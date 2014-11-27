@@ -60,14 +60,14 @@ describe('WalkontableRowFilter', function () {
     });
   });
 
-  describe('visibleToSource', function () {
+  describe('renderedToSource', function () {
     it("should translate visible column to source", function () {
       var filter = new WalkontableRowFilter();
       filter.fixedCount = 1; //only cell index 0 falls into this
       filter.offset = 4;
-      expect(filter.visibleToSource(0)).toEqual(4);
-      expect(filter.visibleToSource(1)).toEqual(5);
-      expect(filter.visibleToSource(2)).toEqual(6);
+      expect(filter.renderedToSource(0)).toEqual(4);
+      expect(filter.renderedToSource(1)).toEqual(5);
+      expect(filter.renderedToSource(2)).toEqual(6);
     })
   });
 });

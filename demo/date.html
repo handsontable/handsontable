@@ -15,8 +15,8 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -88,8 +88,8 @@
           <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
 
           <ul>
-            <li><code>dist/jquery.handsontable.full.js</code></li>
-            <li><code>dist/jquery.handsontable.full.css</code></li>
+            <li><code>dist/handsontable.full.js</code></li>
+            <li><code>dist/handsontable.full.css</code></li>
             <li><code>lib/jquery-ui/js/jquery-ui.custom.min.js</code></li>
             <li><code>lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css</code> (or another <a
                 href="http://jqueryui.com/themeroller/"> theme of your choice</a>)
@@ -100,7 +100,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -140,6 +140,9 @@
                 }
               ]
             });
+
+            var hot = $("#example1").handsontable('getInstance');
+
           </script>
         </div>
       </div>

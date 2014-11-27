@@ -5,11 +5,10 @@
   <title>Select editor - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -57,30 +56,36 @@
             <div class="pad" data-jsfiddle="example1">
               <h2>Select editor</h2>
 
-          <p>Select editor should be considered an example how to write editors rather than used as a fully featured
-            editor. It  is a much simpler form of the <a href="dropdown.html">Dropdown editor</a>. It is suggested to use the latter
-            in your projects.</p>
+              <p>Select editor should be considered an example how to write editors rather than used as a fully featured
+                editor. It is a much simpler form of the <a href="dropdown.html">Dropdown editor</a>. It is suggested to
+                use the latter
+                in your projects.</p>
 
-          <div id="example1"></div>
+              <div id="example1"></div>
 
-          <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
+              <p>
+                <button name="dump" data-dump="#example1" data-instance="hot1"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
 
-          <style>
+              <style>
 
-          </style>
+              </style>
         </div>
       </div>
 
       <div class="codeLayout">
         <div class="pad">
-          <script>
-            var container = $("#example1");
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+          <script data-jsfiddle="example1">
 
-            container.handsontable({
+            var container = document.getElementById("example1");
+
+            var hot1 = new Handsontable(container,{
               data: [
                 ["2008", 'Nissan', 11],
                 ["2009", 'Honda', 11],

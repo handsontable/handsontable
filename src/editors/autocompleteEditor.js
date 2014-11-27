@@ -5,7 +5,7 @@
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
     // set choices list initial height, so Walkontable can assign it's scroll handler
-    var choicesListHot = this.$htContainer.handsontable('getInstance');
+    var choicesListHot = this.htEditor.getInstance();
     choicesListHot.updateSettings({
       height: 1
     });
@@ -25,8 +25,10 @@
       }
     };
 
-    this.$htContainer.addClass('autocompleteEditor');
-    this.$htContainer.addClass(getSystemSpecificPaddingClass());
+    Handsontable.Dom.addClass(this.htContainer, 'autocompleteEditor');
+    Handsontable.Dom.addClass(this.htContainer, getSystemSpecificPaddingClass());
+    //this.$htContainer.addClass('autocompleteEditor');
+    //this.$htContainer.addClass(getSystemSpecificPaddingClass());
 
   };
 
@@ -35,12 +37,23 @@
     skipOne = false;
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-
+    
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
+      var timeOffset = 0;
+
+      // on ctl+c / cmd+c don't update suggestion list
+      if(event.keyCode === keyCodes.C && (event.ctrlKey || event.metaKey)) {
+        return;
+      }
+
+      if(!editor.isOpened()) {
+        timeOffset += 10;
+      }
+
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, 0));
+      }, timeOffset));
     }
   };
 
@@ -55,18 +68,22 @@
     this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
-    var choicesListHot = this.$htContainer.handsontable('getInstance');
+
+    var choicesListHot = this.htEditor.getInstance();
     var that = this;
 
     choicesListHot.updateSettings({
       'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
         var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
-        var indexOfMatch =  caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
 
-        if(indexOfMatch != -1){
-          var match = value.substr(indexOfMatch, that.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+        if(value){
+          var indexOfMatch =  caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
+
+          if(indexOfMatch != -1){
+            var match = value.substr(indexOfMatch, that.query.length);
+            TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          }
         }
       }
     });
@@ -145,8 +162,10 @@
 
     this.choices = choices;
 
-    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
-    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
+    this.htEditor.loadData(Handsontable.helper.pivot([choices]));
+    this.htEditor.updateSettings({height: this.getDropdownHeight()});
+    //Handsontable.tmpHandsontable(this.htContainer,'loadData', Handsontable.helper.pivot([choices]));
+    //Handsontable.tmpHandsontable(this.htContainer,'updateSettings', {height: this.getDropdownHeight()});
 
     if (this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice(highlightIndex);
@@ -166,9 +185,9 @@
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function (index) {
     if (typeof index === "number") {
-      this.$htContainer.handsontable('selectCell', index, 0);
+       this.htEditor.selectCell(index, 0);
     } else {
-      this.$htContainer.handsontable('deselectCell');
+      this.htEditor.deselectCell();
     }
   };
 
@@ -246,7 +265,9 @@
   };
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){
-    var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
+    //var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
+    var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
+    //var firstRowHeight = Handsontable.tmpHandsontable(this.htContainer,'getInstance').getRowHeight(0) || 23;
     return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
     //sorry, we can't measure row height before it was rendered. Let's use fixed height for now

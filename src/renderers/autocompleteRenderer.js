@@ -6,7 +6,7 @@
   var clonableARROW = document.createElement('DIV');
   clonableARROW.className = 'htAutocompleteArrow';
   clonableARROW.appendChild(document.createTextNode('\u25BC'));
-//this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+//this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
 
   var wrapTdContentWithWrapper = function(TD, WRAPPER){
     WRAPPER.innerHTML = TD.innerHTML;
@@ -38,20 +38,26 @@
     if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
       //otherwise empty fields appear borderless in demo/renderers.html (IE)
       TD.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
-      //this is faster than innerHTML. See: https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
+
+
     if (!instance.acArrowListener) {
+      var eventManager = Handsontable.eventManager(instance);
+
       //not very elegant but easy and fast
-      instance.acArrowListener = function () {
-        instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
+      instance.acArrowListener = function (event) {
+        if (Handsontable.Dom.hasClass(event.target,'htAutocompleteArrow')) {
+          instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
+        }
       };
 
-      instance.rootElement.on('mousedown.htAutocompleteArrow', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+      eventManager.addEventListener(instance.rootElement,'mousedown',instance.acArrowListener);
 
       //We need to unbind the listener after the table has been destroyed
       instance.addHookOnce('afterDestroy', function () {
-        this.rootElement.off('mousedown.htAutocompleteArrow');
+        eventManager.clear();
       });
 
     }

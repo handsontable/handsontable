@@ -1129,11 +1129,10 @@ describe('Core_validate', function () {
     keyDownUp('enter'); //should be accepted but only after 100 ms
     expect(getSelected()).toEqual([3, 2, 3, 2]);
 
-
-    this.$container.trigger(new $.Event('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
-    this.$container.trigger(new $.Event('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
-    this.$container.trigger(new $.Event('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
-    this.$container.trigger(new $.Event('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
+    this.$container.simulate('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT});
+    this.$container.simulate('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT});
+    this.$container.simulate('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT});
+    this.$container.simulate('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT});
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([3, 0, 3, 0]);

@@ -6,7 +6,7 @@
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
- * http://github.com/handsontable/jquery-handsontable/
+ * http://github.com/handsontable/handsontable/
  */
 
 require_once('functions.php');
@@ -20,15 +20,15 @@ try {
   if(!carsTableExists($db)){
       resetCarsTable($db);
   }
-  
+
   //select all data from the table
   $result = loadCars($db);
-  
+
   $out = array(
     'cars' => $result->fetchAll(PDO::FETCH_ASSOC)
   );
   echo json_encode($out);
-  
+
   // close the database connection
   closeConnection($db);
 }

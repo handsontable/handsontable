@@ -159,7 +159,6 @@ describe('Core_keepEmptyRows', function () {
       expect(data.length).toEqual(3);
     });
 
-
   });
 
   it('should not create more rows that maxRows', function () {

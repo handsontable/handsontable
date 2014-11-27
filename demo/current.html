@@ -5,11 +5,10 @@
   <title>Highlight current row or column - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable (full distribution that includes all dependencies)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -75,7 +74,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -107,7 +106,8 @@
               ["2010", 30, 15, 12, 13]
             ];
 
-            $("#example1").handsontable({
+            var container = document.getElementById('example1');
+            var hot = Handsontable(container,{
               data: data,
               minRows: 5,
               minCols: 6,
@@ -119,7 +119,8 @@
               colHeaders: true
             });
 
-            $("#example1").handsontable('selectCell', 3, 3);
+            hot.selectCell(3,3);
+
           </script>
         </div>
       </div>
