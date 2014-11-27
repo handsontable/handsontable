@@ -1979,7 +1979,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
     Handsontable.Dom.empty(instance.rootElement);
-    delete instance.rootElement.data;
     eventManager.clear();
 
     Handsontable.hooks.run(instance, 'afterDestroy');

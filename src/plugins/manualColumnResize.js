@@ -139,14 +139,14 @@ function HandsontableManualColumnResize() {
         }
         dblclick++;
 
-        startX = e.pageX;
+        startX = Handsontable.helper.pageX(e);
         newSize = startWidth;
       }
     });
 
     eventManager.addEventListener(window,'mousemove', function (e) {
       if (pressed) {
-        currentWidth = startWidth + (e.pageX - startX);
+        currentWidth = startWidth + (Handsontable.helper.pageX(e) - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
         refreshHandlePosition();
         refreshGuidePosition();

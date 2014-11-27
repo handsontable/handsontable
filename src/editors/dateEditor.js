@@ -58,7 +58,8 @@
      * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
      */
     eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     });
 
     this.hideDatepicker();

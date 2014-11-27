@@ -23,10 +23,10 @@ var autoResize = function () {
       }
     },
     unObserve = function (element, event, handler) {
-      if (window.detachEvent) {
-        element.detachEvent('on' + event, handler);
-      } else {
+      if (window.removeEventListener) {
         element.removeEventListener(event, handler, false);
+      } else {
+        element.detachEvent('on' + event, handler);
       }
     },
     resize = function () {

@@ -128,7 +128,7 @@
 
       eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowMover')) {
-          startY = e.pageY;
+          startY = Handsontable.helper.pageY(e);
           setupGuidePosition.call(instance);
           pressed = instance;
 
@@ -139,7 +139,7 @@
 
       eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
-          refreshGuidePosition(e.pageY - startY);
+          refreshGuidePosition(Handsontable.helper.pageY(e) - startY);
         }
       });
 

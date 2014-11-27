@@ -14,7 +14,7 @@ Handsontable.Dom.class2type = {};
 Handsontable.Dom.type = function( obj ) {
   return obj == null ?
     String( obj ) :
-  Handsontable.Dom.class2type[ toString.call(obj) ] || "object";
+  Handsontable.Dom.class2type[ Object.prototype.toString.call(this,obj) ] || "object";
 };
 
 Handsontable.Dom.isWindow = function( obj ) {
@@ -598,10 +598,10 @@ Handsontable.Dom.addEvent = function(element, event, callback) {
 };
 
 Handsontable.Dom.removeEvent = function(element, event, callback) {
-  if (window.detachEvent) {
-    element.detachEvent('on' + event, callback);
-  } else {
+  if (window.removeEventListener) {
     element.removeEventListener(event, callback, false);
+  } else {
+    element.detachEvent('on' + event, callback);
   }
 };
 

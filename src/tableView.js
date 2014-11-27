@@ -11,8 +11,10 @@ Handsontable.TableView = function (instance) {
   this.settings = instance.getSettings();
 
 
-  instance.rootElement.data = {'originalStyle':instance.rootElement.getAttribute('style')}; //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
-  // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
+  var originalStyle = instance.rootElement.getAttribute('style');
+  if(originalStyle) {
+    instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  }
 
   Handsontable.Dom.addClass(instance.rootElement,'handsontable');
 //  instance.rootElement.addClass('handsontable');
@@ -329,13 +331,15 @@ Handsontable.TableView = function (instance) {
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     }
   });
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      event.stopPropagation();
+      Handsontable.helper.stopPropagation(event);
+      //event.stopPropagation();
     }
   });
 

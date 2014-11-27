@@ -131,7 +131,7 @@ function HandsontableManualColumnMove() {
 
     eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
       if (Handsontable.Dom.hasClass(e.target, 'manualColumnMover')){
-        startX = e.pageX;
+        startX = Handsontable.helper.pageX(e);
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -142,7 +142,7 @@ function HandsontableManualColumnMove() {
 
     eventManager.addEventListener(window,'mousemove',function (e) {
       if (pressed) {
-        refreshGuidePosition(e.pageX - startX);
+        refreshGuidePosition(Handsontable.helper.pageX(e) - startX);
       }
     });
 

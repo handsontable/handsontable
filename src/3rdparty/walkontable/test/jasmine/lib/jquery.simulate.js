@@ -135,7 +135,14 @@
           });
         }
       } else if ( document.createEventObject ) {
-        event = document.createEventObject(options);
+
+        try {
+          event = document.createEventObject(options);
+        } catch (e) {
+          event = document.createEventObject();
+          $.extend( event, options );
+        }
+
 
         // standards event.button uses constants defined here: http://msdn.microsoft.com/en-us/library/ie/ff974877(v=vs.85).aspx
         // old IE event.button uses constants defined here: http://msdn.microsoft.com/en-us/library/ie/ms533544(v=vs.85).aspx

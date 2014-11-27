@@ -137,14 +137,14 @@
           }
           dblclick++;
 
-          startY = e.pageY;
+          startY = Handsontable.helper.pageY(e);
           newSize = startHeight;
         }
       });
 
       eventManager.addEventListener(window,'mousemove',function (e) {
         if (pressed) {
-          currentHeight = startHeight + (e.pageY - startY);
+          currentHeight = startHeight + (Handsontable.helper.pageY(e) - startY);
           newSize = setManualSize(currentRow, currentHeight);
           refreshHandlePosition();
           refreshGuidePosition();
@@ -181,7 +181,6 @@
     };
 
     this.init = function (source) {
-
       var instance = this;
       var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
 
