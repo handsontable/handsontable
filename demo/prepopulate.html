@@ -96,8 +96,7 @@
             }
 
             function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-//              var args = $.extend(true, [], arguments);
-              var args = Handsontable.Dom.extend(true, [], arguments);
+              var args = arguments;
               if (args[5] === null && isEmptyRow(instance, row)) {
                 args[5] = tpl[col];
                 td.style.color = '#999';

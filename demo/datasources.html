@@ -379,11 +379,17 @@
 
         function model(opts) {
           var _pub = {},
-            _priv = Handsontable.Dom.extend({
-              id: undefined,
-              name: undefined,
-              address: undefined
-            }, opts);
+            _priv = {
+              "id": undefined,
+              "name": undefined,
+              "address": undefined
+            };
+
+          for (var i in opts) {
+            if (opts.hasOwnProperty(i)) {
+              _priv[i] = opts[i];
+            }
+          }
 
           _pub.attr = function (attr, val) {
             if (typeof val === 'undefined') {
