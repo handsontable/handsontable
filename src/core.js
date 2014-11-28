@@ -864,9 +864,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (typeof row === "object") { //is it an array of changes
       return row;
     }
-    else if (Handsontable.Dom.isPlainObject(value)) { //backwards compatibility
-      return value;
-    }
     else {
       return [
         [row, prop_or_col, value]

@@ -47,8 +47,7 @@
     };
 
     if (this.cellProperties.handsontable) {
-      options = Handsontable.Dom.extend(options, cellProperties.handsontable);
-//      options = $.extend(options, cellProperties.handsontable);
+      Handsontable.helper.extend(options, cellProperties.handsontable);
     }
     if (this.htEditor) {
       this.htEditor.destroy();

@@ -169,6 +169,47 @@ Handsontable.helper.extend = function (target, extension) {
   }
 };
 
+/**
+ * Perform deep extend of a target object with extension's own properties
+ * @param {Object} target An object that will receive the new properties
+ * @param {Object} extension An object containing additional properties to merge into the target
+ */
+Handsontable.helper.deepExtend = function (target, extension) {
+  for (var key in extension) {
+    if (extension.hasOwnProperty(key)) {
+      if (extension[key] && typeof extension[key] === 'object') {
+        if (!target[key]) {
+          if (Handsontable.helper.isArray(extension[key])) {
+            target[key] = [];
+          }
+          else {
+            target[key] = {};
+          }
+        }
+        Handsontable.helper.deepExtend(target[key], extension[key]);
+      }
+      else {
+        target[key] = extension[key];
+      }
+    }
+  }
+};
+
+/**
+ * Perform deep clone of an object
+ * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc
+ * @param {Object} obj An object that will be cloned
+ * @return {Object}
+ */
+Handsontable.helper.deepClone = function (obj) {
+  if (typeof obj === "object") {
+    return JSON.parse(JSON.stringify(obj));
+  }
+  else {
+    return obj;
+  }
+};
+
 Handsontable.helper.getPrototypeOf = function (obj) {
   var prototype;
 
