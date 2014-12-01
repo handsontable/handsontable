@@ -213,7 +213,8 @@ module.exports = function (grunt) {
             'test/jasmine/spec/*Spec.js',
             'test/jasmine/spec/*/*Spec.js',
             'src/plugins/*/test/*.spec.js',
-            'plugins/*/test/*.spec.js'
+            'plugins/*/test/*.spec.js',
+            'test/jasmine/spec/MemoryLeakTest.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',

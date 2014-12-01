@@ -3,6 +3,8 @@ if(!window.Handsontable){
   var Handsontable = {};
 }
 
+Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
+
 Handsontable.eventManager = function (instance) {
   if (!instance) {
     throw new Error ('instance not defined');
@@ -54,6 +56,8 @@ Handsontable.eventManager = function (instance) {
       } else {
         element.attachEvent('on' + event, callbackProxy);
       }
+
+      Handsontable.countEventManagerListeners++;
     },
     removeEvent = function (element, event, callback){
       var len = instance.eventListeners.length;
@@ -71,6 +75,8 @@ Handsontable.eventManager = function (instance) {
           } else {
             tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
           }
+
+          Handsontable.countEventManagerListeners--;
         }
       }
     },
