@@ -46,7 +46,7 @@ function WalkontableEvent(instance) {
     var currentSelection
       , properTarget;
 
-    if(event.target.className.indexOf('SelectionHandle') > 0) {
+    if(Handsontable.Dom.hasClass(event.target,'SelectionHandle')) {
       if(that.instance.selections[0].cellRange) {
         currentSelection = that.instance.selections[0].cellRange.highlight;
 
