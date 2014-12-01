@@ -765,7 +765,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.execute(instance, "beforeChange", changes, source);
-        if (beforeChangeResult === false) {
+        if (typeof beforeChangeResult === 'function') {
+          console.warn("Your beforeChange callback returns a function. It's not supported since Handsontable 1.12.1 (and the returned function will not be executed).");
+        } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
         }
       }
