@@ -15,11 +15,12 @@ function WalkontableBorder(instance, settings) {
     this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
     this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
 
-    this.selectionHandles.styles = {};
-    this.selectionHandles.styles.topLeft = this.selectionHandles.topLeft.style;
-    this.selectionHandles.styles.topLeftHitArea = this.selectionHandles.topLeftHitArea.style;
-    this.selectionHandles.styles.bottomRight = this.selectionHandles.bottomRight.style;
-    this.selectionHandles.styles.bottomRightHitArea = this.selectionHandles.bottomRightHitArea.style;
+    this.selectionHandles.styles = {
+      topLeft: this.selectionHandles.topLeft.style,
+      topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
+      bottomRight: this.selectionHandles.bottomRight.style,
+      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+    };
 
     var hitAreaStyle = {
       'position': 'absolute',
