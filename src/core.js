@@ -765,18 +765,11 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.execute(instance, "beforeChange", changes, source);
-        if (typeof beforeChangeResult === 'function') {
-          $.when(result).then(function () {
-            callback(); //called when async validators and async beforeChange are resolved
-          });
-        }
-        else if (beforeChangeResult === false) {
+        if (beforeChangeResult === false) {
           changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
         }
       }
-      if (typeof beforeChangeResult !== 'function') {
         callback(); //called when async validators are resolved and beforeChange was not async
-      }
     }
   }
 
