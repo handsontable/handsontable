@@ -269,6 +269,7 @@
         };
 
         that.eventManager.addEventListener(this, "touchmove", function (event) {
+          var touch = event.touches[0];
           that.updateEditorPosition(touch.pageX - onTouchOffset.x, touch.pageY - onTouchOffset.y);
           that.hideCellPointer();
           event.preventDefault();

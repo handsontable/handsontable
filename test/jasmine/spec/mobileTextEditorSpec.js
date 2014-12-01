@@ -14,7 +14,6 @@ if (Handsontable.mobileBrowser) {
     });
 
     describe("at init: ", function () {
-
       it("tap (touchstart) should be translated to mousedown", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
@@ -72,9 +71,7 @@ if (Handsontable.mobileBrowser) {
           runs(function () {
             expect(document.getElementById("mobile-editor-container").offsetParent).toBeFalsy();
           });
-
         });
-
       });
 
       it("should set the cell pointer's position to point to the edited cell", function () {
@@ -132,7 +129,7 @@ if (Handsontable.mobileBrowser) {
         });
       });
 
-      it("should snap the editor to the ride side of the screen if the edited cell is on the right side of the editor", function () {
+      it("should snap the editor to the right side of the screen if the edited cell is on the right side of the editor", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
           data: createSpreadsheetObjectData(10, 24),
@@ -323,7 +320,6 @@ if (Handsontable.mobileBrowser) {
               expect(selected[1]).toEqual(3);
             });
           });
-
         });
 
         it("should change the editor's input value to the value of the newly selected cell", function () {
@@ -355,7 +351,7 @@ if (Handsontable.mobileBrowser) {
               expect(editor.getValue()).toEqual(getCell(newSelection[0], newSelection[1]).innerText);
             });
 
-            runs(function() {
+            runs(function () {
               triggerTouchEvent('touchend', editor.controls.upButton);
               waits(10);
               runs(function () {
@@ -364,7 +360,7 @@ if (Handsontable.mobileBrowser) {
               });
             });
 
-            runs(function() {
+            runs(function () {
               triggerTouchEvent('touchend', editor.controls.rightButton);
               waits(10);
               runs(function () {
@@ -373,7 +369,7 @@ if (Handsontable.mobileBrowser) {
               });
             });
 
-            runs(function() {
+            runs(function () {
               triggerTouchEvent('touchend', editor.controls.downButton);
               waits(10);
               runs(function () {
@@ -407,7 +403,7 @@ if (Handsontable.mobileBrowser) {
             var editor = getActiveEditor();
 
             expect(cell.innerText).toEqual('D3');
-            editor.setValue('done!');
+            editor.TEXTAREA.value = 'done!';
             triggerTouchEvent('touchend', editor.controls.leftButton);
             waits(10);
             runs(function () {
@@ -417,7 +413,7 @@ if (Handsontable.mobileBrowser) {
             runs(function () {
               var newSelection = getSelected();
               expect(getCell(newSelection[0], newSelection[1]).innerText).toEqual('C3');
-              editor.setValue('done!');
+              editor.TEXTAREA.value = 'done!';
               triggerTouchEvent('touchend', editor.controls.upButton);
               waits(10);
               runs(function () {
@@ -428,7 +424,7 @@ if (Handsontable.mobileBrowser) {
             runs(function () {
               var newSelection = getSelected();
               expect(getCell(newSelection[0], newSelection[1]).innerText).toEqual('C2');
-              editor.setValue('done!');
+              editor.TEXTAREA.value = 'done!';
               triggerTouchEvent('touchend', editor.controls.rightButton);
               waits(10);
               runs(function () {
@@ -439,7 +435,7 @@ if (Handsontable.mobileBrowser) {
             runs(function () {
               var newSelection = getSelected();
               expect(getCell(newSelection[0], newSelection[1]).innerText).toEqual('D2');
-              editor.setValue('done!');
+              editor.TEXTAREA.value = 'done!';
               triggerTouchEvent('touchend', editor.controls.downButton);
               waits(10);
               runs(function () {
@@ -450,7 +446,7 @@ if (Handsontable.mobileBrowser) {
             runs(function () {
               var newSelection = getSelected();
               expect(getCell(newSelection[0], newSelection[1]).innerText).toEqual('done!');
-              editor.setValue('done.');
+              editor.TEXTAREA.value = 'done.';
               triggerTouchEvent('touchend', editor.controls.downButton);
               waits(10);
               runs(function () {
@@ -462,73 +458,91 @@ if (Handsontable.mobileBrowser) {
         });
       });
 
-      //xdescribe(" Editor position handle:", function () {
-      //  it("should move the editor after touch-and-dragging the position handle", function () {
-      //
-      //    var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
-      //    var hot = handsontable({
-      //      data: createSpreadsheetObjectData(10, 5),
-      //      width: 400,
-      //      height: 400,
-      //      afterOnCellMouseDown: onAfterOnCellMouseDown
-      //    });
-      //
-      //    var cell = hot.getCell(2, 3);
-      //
-      //    mouseDoubleClick(cell);
-      //
-      //    waitsFor(function () {
-      //      return onAfterOnCellMouseDown.calls.length > 1; // doubleclicked on a cell -> editor should open
-      //    }, 'Mousedown on Cell event', 1000);
-      //
-      //    runs(function () {
-      //      var editor = getActiveEditor();
-      //
-      //      debugger;
-      //      triggerTouchEvent('touchstart', editor.moveHandle);
-      //      waits(10);
-      //
-      //      runs(function() {
-      //        triggerTouchEvent('touchmove', getCell(0,0));
-      //        debugger;
-      //      });
-      //
-      //
-      //    });
-      //
-      //  });
-      //});
+      describe("Editor moving:", function () {
+        it("should move the editor after touch-and-dragging the position handle", function () {
+
+          var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
+          var hot = handsontable({
+            data: createSpreadsheetObjectData(10, 5),
+            width: 400,
+            height: 400,
+            afterOnCellMouseDown: onAfterOnCellMouseDown
+          });
+          var targetCoords;
+          var editor;
+
+          var cell = hot.getCell(2, 3);
+          mouseDoubleClick(cell); // should work fine as a doubletouch if previous tests passed
+
+          waitsFor(function () {
+            return onAfterOnCellMouseDown.calls.length > 1; // doubleclicked on a cell -> editor should open
+          }, 'Mousedown on Cell event', 1000);
+
+          runs(function () {
+            editor = getActiveEditor();
+            triggerTouchEvent('touchstart', editor.moveHandle);
+          });
+          waits(10);
+
+          runs(function () {
+            targetCoords = getCell(3, 1).getBoundingClientRect();
+            var pageX = parseInt(targetCoords.left + 3, 10);
+            var pageY = parseInt(targetCoords.top + 3, 10);
+
+            triggerTouchEvent('touchmove', editor.moveHandle, pageX, pageY);
+          });
+
+          waits(10);
+
+          runs(function () {
+            expect(parseInt(editor.editorContainer.style.left, 10)).toBeLessThan(targetCoords.left);
+            expect(parseInt(editor.editorContainer.style.top, 10)).toBeLessThan(targetCoords.top);
+          });
+
+        });
+
+        it("should hide the editor's cell pointer after manually moving the editor", function () {
+          var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
+          var hot = handsontable({
+            data: createSpreadsheetObjectData(10, 5),
+            width: 400,
+            height: 400,
+            afterOnCellMouseDown: onAfterOnCellMouseDown
+          });
+          var targetCoords;
+          var editor;
+
+          var cell = hot.getCell(2, 3);
+          mouseDoubleClick(cell); // should work fine as a doubletouch if previous tests passed
+
+          waitsFor(function () {
+            return onAfterOnCellMouseDown.calls.length > 1; // doubleclicked on a cell -> editor should open
+          }, 'Mousedown on Cell event', 1000);
+
+          runs(function () {
+            editor = getActiveEditor();
+
+            expect(Handsontable.Dom.hasClass(editor.cellPointer, 'hidden')).toEqual(false);
+
+            triggerTouchEvent('touchstart', editor.moveHandle);
+          });
+          waits(10);
+
+          runs(function () {
+            targetCoords = getCell(3, 1).getBoundingClientRect();
+            var pageX = parseInt(targetCoords.left + 3, 10);
+            var pageY = parseInt(targetCoords.top + 3, 10);
+
+            triggerTouchEvent('touchmove', editor.moveHandle, pageX, pageY);
+          });
+
+          waits(10);
+
+          runs(function () {
+            expect(Handsontable.Dom.hasClass(editor.cellPointer, 'hidden')).toEqual(true);
+          });
+        });
+      });
     });
-
   });
-
 }
-
-
-//it("should open the editor on double-tap", function () {
-//  var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
-//
-//  var hot = handsontable({
-//    data: createSpreadsheetObjectData(10, 5),
-//    width: 400,
-//    height: 400,
-//    afterOnCellMouseDown: onAfterOnCellMouseDown
-//  });
-//
-//  var cell = hot.getCell(1,1);
-//
-//  expect(getSelected()).toBeUndefined();
-//
-//  triggerTouchEvent('touchstart', cell);
-//  triggerTouchEvent('touchstend', cell);
-//  triggerTouchEvent('touchstart', cell);
-//  triggerTouchEvent('touchstend', cell);
-//
-//  waitsFor(function () {
-//    return onAfterOnCellMouseDown.calls.length > 1;
-//  }, 'Mousedown on Cell event', 1000);
-//
-//  runs(function () {
-//    expect(getSelected()).toBeDefined();
-//  });
-//});
