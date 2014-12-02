@@ -384,7 +384,7 @@
    * @returns {string}
    */
   var markSelected = function (label) {
-    return "<span class='selected'>✓</span>" + label;
+    return "<span class='selected'>" + String.fromCharCode(10003) + "</span>" + label; // workaround for https://github.com/handsontable/handsontable/issues/1946
   };
 
   /***
