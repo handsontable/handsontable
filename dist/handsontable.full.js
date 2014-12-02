@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 27 2014 12:23:10 GMT+0100 (CET)
+ * Date: Tue Dec 02 2014 12:40:52 GMT-0800 (PST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -971,10 +971,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format )) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
-            }
-            else if (changes[i][3].indexOf(".") === len - 3 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
+            var old_language = numeral.language();
+            if (changes[i][3].indexOf(".") >= 0 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
               numeral.language('en');
             }
             else {
@@ -982,6 +980,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             }
 
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+            numeral.language(old_language);
           }
         }
 
@@ -5703,10 +5702,12 @@ Handsontable.helper.pageY = function (event) {
 
   var NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
     if (Handsontable.helper.isNumeric(value)) {
+      var old_language = numeral.language();
       if (typeof cellProperties.language !== 'undefined') {
         numeral.language(cellProperties.language)
       }
       value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
+      numeral.language(old_language);
       Handsontable.Dom.addClass(TD, 'htNumeric');
     }
     Handsontable.renderers.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
@@ -7131,12 +7132,14 @@ Handsontable.helper.pageY = function (event) {
 
       var value = '' + this.originalValue;
 
+      var old_language = numeral.language();
       if (typeof this.cellProperties.language !== 'undefined') {
         numeral.language(this.cellProperties.language)
       }
 
       var decimalDelimiter = numeral.languageData().delimiters.decimal;
       value = value.replace('.', decimalDelimiter);
+      numeral.language(old_language);
 
       BaseEditor.beginEditing.apply(this, [value]);
     } else {
@@ -7504,6 +7507,10 @@ var autoResize = function () {
             else {
               str += val;
             }
+          }
+          else if (typeof val === 'number') {
+            var decimalDelimiter = numeral.languageData().delimiters.decimal;
+            str += ('' + val).replace('.', decimalDelimiter);
           }
           else if (val === null || val === void 0) { //void 0 resolves to undefined
             str += '';

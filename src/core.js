@@ -725,10 +725,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format )) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
-            }
-            else if (changes[i][3].indexOf(".") === len - 3 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
+            var old_language = numeral.language();
+            if (changes[i][3].indexOf(".") >= 0 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
               numeral.language('en');
             }
             else {
@@ -736,6 +734,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             }
 
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+            numeral.language(old_language);
           }
         }
 

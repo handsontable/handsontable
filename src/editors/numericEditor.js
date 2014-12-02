@@ -12,12 +12,14 @@
 
       var value = '' + this.originalValue;
 
+      var old_language = numeral.language();
       if (typeof this.cellProperties.language !== 'undefined') {
         numeral.language(this.cellProperties.language)
       }
 
       var decimalDelimiter = numeral.languageData().delimiters.decimal;
       value = value.replace('.', decimalDelimiter);
+      numeral.language(old_language);
 
       BaseEditor.beginEditing.apply(this, [value]);
     } else {

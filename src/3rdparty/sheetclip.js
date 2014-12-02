@@ -72,6 +72,10 @@
               str += val;
             }
           }
+          else if (typeof val === 'number') {
+            var decimalDelimiter = numeral.languageData().delimiters.decimal;
+            str += ('' + val).replace('.', decimalDelimiter);
+          }
           else if (val === null || val === void 0) { //void 0 resolves to undefined
             str += '';
           }
