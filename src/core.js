@@ -726,10 +726,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format )) {
             var len = changes[i][3].length;
             var old_language = numeral.language();
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
-            }
-            else if (changes[i][3].indexOf(".") === len - 3 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
+            if (changes[i][3].indexOf(".") === len - 3 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
               numeral.language('en');
             }
             else {
