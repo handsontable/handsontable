@@ -14,10 +14,12 @@
 
   var NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
     if (Handsontable.helper.isNumeric(value)) {
+      var old_language = numeral.language();
       if (typeof cellProperties.language !== 'undefined') {
         numeral.language(cellProperties.language)
       }
       value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
+      numeral.language(old_language);
       Handsontable.Dom.addClass(TD, 'htNumeric');
     }
     Handsontable.renderers.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
