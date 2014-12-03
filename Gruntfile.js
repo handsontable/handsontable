@@ -144,7 +144,7 @@ module.exports = function (grunt) {
             'src/outro.js'
           ],
           'dist/jquery.handsontable.css': [
-            'src/css/jquery.handsontable.css',
+            'tmp/jquery.handsontable.css',
             'src/css/mobile.jquery.handsontable.css'
           ]
         }
@@ -195,7 +195,8 @@ module.exports = function (grunt) {
         },
         files: {
           'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js'
+          'tmp/core.js': 'src/core.js',
+          'tmp/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       }
     },
