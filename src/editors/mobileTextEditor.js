@@ -4,6 +4,23 @@
 
   var domDimensionsCache = {};
 
+  var createControls = function () {
+    this.controls = {};
+
+    this.controls.leftButton = document.createElement('DIV');
+    this.controls.leftButton.className = 'leftButton';
+    this.controls.rightButton = document.createElement('DIV');
+    this.controls.rightButton.className = 'rightButton';
+    this.controls.upButton = document.createElement('DIV');
+    this.controls.upButton.className = 'upButton';
+    this.controls.downButton = document.createElement('DIV');
+    this.controls.downButton.className = 'downButton';
+
+    for(var button in this.controls) {
+      this.positionControls.appendChild(this.controls[button]);
+    }
+  };
+
   MobileTextEditor.prototype.valueChanged = function () {
     return this.initValue != this.getValue();
   };
@@ -32,37 +49,20 @@
   };
 
   MobileTextEditor.prototype.createElements = function () {
-    var createcontrols = function () {
-      this.controls = [];
-
-      this.controls.leftButton = document.createElement('DIV');
-      this.controls.leftButton.className = 'left-button';
-      this.controls.rightButton = document.createElement('DIV');
-      this.controls.rightButton.className = 'right-button';
-      this.controls.upButton = document.createElement('DIV');
-      this.controls.upButton.className = 'up-button';
-      this.controls.downButton = document.createElement('DIV');
-      this.controls.downButton.className = 'down-button';
-
-      for(var button in this.controls) {
-        this.positionControls.appendChild(this.controls[button]);
-      }
-    };
-
     this.editorContainer = document.createElement('DIV');
-    this.editorContainer.id = "mobile-editor-container";
+    this.editorContainer.className = "htMobileEditorContainer";
 
     this.cellPointer = document.createElement('DIV');
-    this.cellPointer.className = "cell-pointer";
+    this.cellPointer.className = "cellPointer";
 
     this.moveHandle = document.createElement('DIV');
-    this.moveHandle.className = "move-handle";
+    this.moveHandle.className = "moveHandle";
 
     this.inputPane = document.createElement('DIV');
     this.inputPane.className = "inputs";
 
     this.positionControls = document.createElement('DIV');
-    this.positionControls.className = "position-controls";
+    this.positionControls.className = "positionControls";
 
     this.TEXTAREA = document.createElement('TEXTAREA');
     Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
@@ -74,7 +74,7 @@
     this.editorContainer.appendChild(this.inputPane);
     this.editorContainer.appendChild(this.positionControls);
 
-    createcontrols.call(this);
+    createControls.call(this);
 
     document.body.appendChild(this.editorContainer);
   };
@@ -83,7 +83,7 @@
     var instance = this;
     var that = instance.getActiveEditor();
 
-    event = that.eventManager.serveImmediatePropagation(event);
+    Handsontable.Dom.enableImmediatePropagation(event);
 
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
       return;

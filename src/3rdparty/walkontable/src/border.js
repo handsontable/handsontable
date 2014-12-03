@@ -192,10 +192,10 @@ WalkontableBorder.prototype.appear = function (corners) {
     , s;
 
   var isPartRange = function () {
-    if(this.instance.selections[1].cellRange) {
+    if(this.instance.selections.area.cellRange) {
 
-      if(toRow != this.instance.selections[1].cellRange.to.row
-        || toColumn != this.instance.selections[1].cellRange.to.col) {
+      if(toRow != this.instance.selections.area.cellRange.to.row
+        || toColumn != this.instance.selections.area.cellRange.to.col) {
         return true;
       }
     }

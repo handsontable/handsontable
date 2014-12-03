@@ -2,7 +2,6 @@ function WalkontableEvent(instance) {
   var that = this;
 
   var eventManager = Handsontable.eventManager(instance);
-  this.eventManager = eventManager;
 
   //reference to instance
   this.instance = instance;
@@ -38,10 +37,11 @@ function WalkontableEvent(instance) {
 
   var longTouchTimeout;
 
-  /**
-   * Update touch event target - if user taps on resize handle 'hit area', update the target to the cell itself
-   * @param event
-   */
+  ///**
+  // * Update touch event target - if user taps on resize handle 'hit area', update the target to the cell itself
+  // * @param event
+  // */
+  /*
   var adjustTapTarget = function (event) {
     var currentSelection
       , properTarget;
@@ -61,11 +61,14 @@ function WalkontableEvent(instance) {
     }
 
     return event;
-  };
+  };*/
 
   var onTouchStart = function (event) {
     var container = this;
-    this.addEventListener("touchmove", onTouchMove, false);
+
+    eventManager.addEventListener(this, 'touchmove', onTouchMove);
+
+    //this.addEventListener("touchmove", onTouchMove, false);
 
     // touch-and-hold event
     //longTouchTimeout = setTimeout(function () {
@@ -88,7 +91,7 @@ function WalkontableEvent(instance) {
         if (that.instance.touchMoving == true) {
           that.instance.touchMoving = void 0;
 
-          container.removeEventListener("touchmove", onTouchMove, false);
+          eventManager.removeEventListener("touchmove", onTouchMove, false);
 
           return;
         } else {
@@ -98,7 +101,7 @@ function WalkontableEvent(instance) {
         }
       }, 30);
 
-    that.instance.wtTable.holder.removeEventListener("mousedown");
+    //eventManager.removeEventListener(that.instance.wtTable.holder, "mousedown", onMouseDown);
   };
 
   var lastMouseOver;
@@ -161,9 +164,8 @@ function WalkontableEvent(instance) {
 
     onMouseUp(event);
 
-    that.instance.wtTable.holder.removeEventListener("mouseup");
+    //eventManager.removeEventListener(that.instance.wtTable.holder, "mouseup", onMouseUp);
   };
-
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
 
@@ -174,28 +176,16 @@ function WalkontableEvent(instance) {
 
   if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser) { // check if full HOT instance, or detached WOT AND run on mobile device
     var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
-    var queryParents = function (elem) {
-      var level = 0
-        , queriedParent = document.querySelector(classSelector)
-        , parent = elem.parentNode;
-
-      while(level < 8 && parent != queriedParent) {
-        parent = parent.parentNode;
-        level++;
-      }
-
-      return parent == queriedParent;
-    };
 
     eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchstart', function (event) {
       that.instance.touchApplied = true;
-      if (queryParents(event.target)) {
+      if (Handsontable.Dom.isChildOf(event.target, classSelector)) {
         onTouchStart.call(event.target, event);
       }
     });
     eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchend', function (event) {
       that.instance.touchApplied = false;
-      if (queryParents(event.target)) {
+      if (Handsontable.Dom.isChildOf(event.target, classSelector)) {
         onTouchEnd.call(event.target, event);
       }
     });
@@ -224,6 +214,13 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(window, 'resize', function () {
     that.instance.draw();
   });
+
+  this.destroy = function () {
+    clearTimeout(this.dblClickTimeout[0]);
+    clearTimeout(this.dblClickTimeout[1]);
+
+    eventManager.clear();
+  };
 }
 
 WalkontableEvent.prototype.parentCell = function (elem) {
@@ -235,11 +232,11 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
   } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
+    cell.coords = this.instance.selections.current.cellRange.highlight; //selections.current is current selected cell
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
-    if (this.instance.selections[1].cellRange) {
-      cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
+    if (this.instance.selections.area.cellRange) {
+      cell.coords = this.instance.selections.area.cellRange.to; //selections.area is area selected cells
       cell.TD = this.instance.wtTable.getCell(cell.coords);
     }
   }
@@ -247,10 +244,4 @@ WalkontableEvent.prototype.parentCell = function (elem) {
   return cell;
 };
 
-WalkontableEvent.prototype.destroy = function () {
-  clearTimeout(this.dblClickTimeout[0]);
-  clearTimeout(this.dblClickTimeout[1]);
 
-  var rootElement = this.instance.wtTable.holder.parentNode.parentNode;
-  this.eventManager.clear();
-};

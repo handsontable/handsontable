@@ -2,7 +2,7 @@
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
-Handsontable.helper.isMobileBrowser(); // check if viewed on a mobile device
+Handsontable.mobileBrowser = Handsontable.helper.isMobileBrowser();  // check if viewed on a mobile device
 
 Handsontable.AutocompleteCell = {
   editor: Handsontable.editors.AutocompleteEditor,

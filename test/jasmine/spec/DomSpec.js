@@ -188,4 +188,21 @@ describe('Handsontable.Dom', function () {
     $html.remove();
   });
 
+  it("should set the immediatePropagation properties properly for given event", function () {
+    var event = document.createEvent('MouseEvents');
+    event.initMouseEvent('mousedown',true,true,document);
+
+    expect(event.isImmediatePropagationEnabled).toBeUndefined();
+    expect(event.isImmediatePropagationStopped).toBeUndefined();
+
+    Handsontable.Dom.enableImmediatePropagation(event);
+
+    expect(event.isImmediatePropagationEnabled).toBe(true);
+
+    event.stopImmediatePropagation();
+
+    expect(event.isImmediatePropagationEnabled).toBe(false);
+    expect(event.isImmediatePropagationStopped()).toBe(true);
+  });
+
 });

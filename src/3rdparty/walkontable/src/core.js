@@ -68,7 +68,7 @@ Walkontable.prototype.draw = function (fastDraw) {
  * @returns {Object}
  */
 Walkontable.prototype.getCell = function (coords, topmost) {
-  if(topmost === void 0 || topmost === false) {
+  if(!topmost) {
     return this.wtTable.getCell(coords);
   } else {
     var fixedRows = this.wtSettings.getSetting('fixedRowsTop')
@@ -141,8 +141,6 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this);
-  eventManager.clear();
   this.wtScrollbars.destroy();
   this.wtEvent && this.wtEvent.destroy();
 };

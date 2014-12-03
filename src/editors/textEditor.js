@@ -2,9 +2,15 @@
   var TextEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   TextEditor.prototype.init = function(){
+    var that = this;
     this.createElements();
+    this.eventManager = new Handsontable.eventManager(this);
     this.bindEvents();
     this.autoResize = autoResize();
+
+    this.instance.addHook('afterDestroy', function () {
+      that.destroy();
+    });
   };
 
   TextEditor.prototype.getValue = function(){
@@ -23,9 +29,7 @@
     var keyCodes = Handsontable.helper.keyCode;
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
-    var eventManager = new Handsontable.eventManager(instance);
-
-    event = eventManager.serveImmediatePropagation(event);
+    Handsontable.Dom.enableImmediatePropagation(event);
 
     //Process only events that have been fired in the editor
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
@@ -260,19 +264,21 @@
   TextEditor.prototype.bindEvents = function () {
     var editor = this;
 
-    var eventManager = Handsontable.eventManager(editor);
-
-    eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
       event.stopPropagation();
     });
 
-    eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
       event.stopPropagation();
     });
 
     this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
+  };
+
+  TextEditor.prototype.destroy = function () {
+    this.eventManager.clear();
   };
 
 

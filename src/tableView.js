@@ -122,8 +122,6 @@ Handsontable.TableView = function (instance) {
         color: '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function () {
-        var selectedRange = instance.getSelectedRange();
-
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
         },
         multipleSelectionHandlesVisible: function () {
@@ -227,7 +225,7 @@ Handsontable.TableView = function (instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      event = that.eventManager.serveImmediatePropagation(event);
+      Handsontable.Dom.enableImmediatePropagation(event);
 
       if (!event.isImmediatePropagationStopped()) {
 

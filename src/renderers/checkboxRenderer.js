@@ -78,7 +78,7 @@
 
       instance.addHook('beforeKeyDown', function(event){
 
-        event = eventManager.serveImmediatePropagation(event);
+        Handsontable.Dom.enableImmediatePropagation(event);
 
         if(event.keyCode == Handsontable.helper.keyCode.SPACE || event.keyCode == Handsontable.helper.keyCode.ENTER){
 

@@ -142,6 +142,10 @@ module.exports = function (grunt) {
             '<%= meta.walkontable %>',
             'plugins/jqueryHandsontable.js',
             'src/outro.js'
+          ],
+          'dist/jquery.handsontable.css': [
+            'src/css/jquery.handsontable.css',
+            'src/css/mobile.jquery.handsontable.css'
           ]
         }
       },
@@ -191,8 +195,7 @@ module.exports = function (grunt) {
         },
         files: {
           'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js',
-          'dist/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
+          'tmp/core.js': 'src/core.js'
         }
       }
     },
@@ -209,7 +212,7 @@ module.exports = function (grunt) {
         options: {
           specs: [
             'test/jasmine/spec/*Spec.js',
-            'test/jasmine/spec/*/*Spec.js',
+            'test/jasmine/spec/!(mobile)*/*Spec.js',
             'src/plugins/*/test/*.spec.js',
             'plugins/*/test/*.spec.js'
           ],
@@ -259,6 +262,43 @@ module.exports = function (grunt) {
 
           ],
           outfile: 'src/3rdparty/walkontable/test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
+          keepRunner: true
+        }
+      },
+      mobile: {
+        src: [
+          'dist/jquery.handsontable.js',
+          'demo/js/backbone/lodash.underscore.js',
+          'demo/js/backbone/backbone.js',
+          'demo/js/backbone/backbone-relational/backbone-relational.js',
+          'lib/jquery-ui/js/jquery-ui.custom.js',
+          'plugins/removeRow/jquery.handsontable.removeRow.js'
+        ],
+        options: {
+          specs: [
+            'test/jasmine/spec/mobile/*Spec.js',
+            'src/plugins/*/test/mobile/*.spec.js'
+          ],
+          styles: [
+            'test/jasmine/css/SpecRunner.css',
+            'dist/jquery.handsontable.css',
+            'plugins/removeRow/jquery.handsontable.removeRow.css',
+            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
+          ],
+          vendor: [
+            'lib/jquery.min.js',
+            'lib/numeral.js',
+            'lib/numeral.de-de.js',
+            'test/jasmine/lib/jasmine-extensions.js'
+          ],
+          helpers: [
+            'test/jasmine/spec/SpecHelper.js',
+            'test/jasmine/spec/MobileSpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
+            'test/jasmine/spec/test-init.js'
+          ],
+          outfile: 'test/jasmine/MobileSpecRunner.html',
           template: 'test/jasmine/templates/SpecRunner.tmpl',
           keepRunner: true
         }
@@ -322,9 +362,10 @@ module.exports = function (grunt) {
 
   // Default task.
   grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
-  grunt.registerTask('test', ['default', 'jasmine']);
+  grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
+  grunt.registerTask('test:mobile', ['default', 'jasmine:mobile:build']);
   grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);

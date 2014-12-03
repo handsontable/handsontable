@@ -24,7 +24,7 @@
           return;
         }
 
-        event = eventManager.serveImmediatePropagation(event);
+        Handsontable.Dom.enableImmediatePropagation(event);
 
         if (!event.isImmediatePropagationStopped()) {
 
