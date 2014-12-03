@@ -534,19 +534,17 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
-      renderAllRows: true
-    };
-
-    var htContextMenu = new Handsontable(menu, settings);
-
-    htContextMenu.updateSettings({
+      renderAllRows: true,
       beforeKeyDown: function (event) {
         that.onBeforeKeyDown(event, htContextMenu);
       },
       afterOnCellMouseOver: function (event, coords, TD) {
         that.onCellMouseOver(event, coords, TD, htContextMenu);
       }
-    });
+    };
+
+    var htContextMenu = new Handsontable(menu, settings);
+
 
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
