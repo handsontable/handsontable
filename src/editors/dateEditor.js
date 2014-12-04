@@ -87,12 +87,11 @@
     this.datePickerStyle.top = (offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = offset.left + 'px';
 
-    var dateOptions = {
-      defaultDate: this.originalValue || void 0
-    };
-    Handsontable.Dom.extend(dateOptions, this.cellProperties);
-//    $.extend(dateOptions, this.cellProperties);
-    this.$datePicker.datepicker("option", dateOptions);
+    var DatepickerSettings = function () {};
+    DatepickerSettings.prototype = this.cellProperties;
+    var datepickerSettings = new DatepickerSettings();
+    datepickerSettings.defaultDate = this.originalValue || void 0;
+    this.$datePicker.datepicker("option", datepickerSettings);
     if (this.originalValue) {
       this.$datePicker.datepicker("setDate", this.originalValue);
     }

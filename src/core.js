@@ -433,10 +433,10 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Starts selection range on given td object
      * @param {WalkontableCellCoords} coords
      */
-    setRangeStart: function (coords) {
+    setRangeStart: function (coords, keepEditorOpened) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
-      selection.setRangeEnd(coords);
+      selection.setRangeEnd(coords, null, keepEditorOpened);
     },
 
     /**
@@ -444,7 +444,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {WalkontableCellCoords} coords
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
-    setRangeEnd: function (coords, scrollToCell) {
+    setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
 
@@ -480,7 +480,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
         instance.view.scrollViewport(coords);
       }
-      selection.refreshBorders();
+      selection.refreshBorders(null, keepEditorOpened);
     },
 
     /**
@@ -514,7 +514,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Selects cell relative to current cell (if possible)
      */
-    transformStart: function (rowDelta, colDelta, force) {
+    transformStart: function (rowDelta, colDelta, force, keepEditorOpened) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta);
       instance.runHooks('modifyTransformStart', delta);
 
@@ -564,7 +564,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         coords.col = totalCols - 1;
       }
 
-      selection.setRangeStart(coords);
+      selection.setRangeStart(coords, keepEditorOpened);
     },
 
     /**
@@ -669,6 +669,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.init = function () {
     Handsontable.hooks.run(instance, 'beforeInit');
 
+    if(Handsontable.mobileBrowser) {
+      Handsontable.Dom.addClass(instance.rootElement, 'mobile');
+    }
+
     this.updateSettings(priv.settings, true);
 
     this.view = new Handsontable.TableView(this);
@@ -766,17 +770,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.execute(instance, "beforeChange", changes, source);
         if (typeof beforeChangeResult === 'function') {
-          $.when(result).then(function () {
-            callback(); //called when async validators and async beforeChange are resolved
-          });
-        }
-        else if (beforeChangeResult === false) {
+          console.warn("Your beforeChange callback returns a function. It's not supported since Handsontable 0.12.1 (and the returned function will not be executed).");
+        } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
         }
       }
-      if (typeof beforeChangeResult !== 'function') {
         callback(); //called when async validators are resolved and beforeChange was not async
-      }
     }
   }
 
@@ -863,9 +862,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   function setDataInputToArray(row, prop_or_col, value) {
     if (typeof row === "object") { //is it an array of changes
       return row;
-    }
-    else if (Handsontable.Dom.isPlainObject(value)) { //backwards compatibility
-      return value;
     }
     else {
       return [
@@ -1342,11 +1338,21 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Returns <td> element corresponding to params row, col
    * @param {Number} row
    * @param {Number} col
+   * @param {Boolean} topmost
    * @public
    * @return {Element}
    */
-  this.getCell = function (row, col) {
-    return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col));
+  this.getCell = function (row, col, topmost) {
+    return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col), topmost);
+  };
+
+  /**
+   * Returns coordinates for the provided element
+   * @param elem
+   * @returns {WalkontableCellCoords|*}
+   */
+  this.getCoords = function(elem) {
+    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, elem);
   };
 
   /**

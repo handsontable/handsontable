@@ -1,0 +1,214 @@
+/*
+
+ Handsontable Mobile Text Editor stylesheet
+
+ */
+
+.handsontable.mobile {
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  -khtml-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-overflow-scrolling: touch;
+}
+
+.htMobileEditorContainer {
+  display: none;
+  position: absolute;
+  top: 0;
+  width: 70%;
+  height: 54pt;
+  background: #f8f8f8;
+  border-radius: 20px;
+  border: 1px solid #ebebeb;
+  z-index: 999;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -webkit-text-size-adjust: none;
+}
+
+.topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
+.topLeftSelectionHandle-HitArea:not(.ht_master .topLeftSelectionHandle-HitArea) {
+  z-index: 9999;
+}
+
+/* Initial left/top coordinates - overwritten when actual position is set */
+.topLeftSelectionHandle,
+.topLeftSelectionHandle-HitArea,
+.bottomRightSelectionHandle,
+.bottomRightSelectionHandle-HitArea {
+  left: -10000px;
+  top: -10000px;
+}
+
+.htMobileEditorContainer.active {
+  display: block;
+}
+
+.htMobileEditorContainer .inputs {
+  position: absolute;
+  right: 210pt;
+  bottom: 10pt;
+  top: 10pt;
+  left: 14px;
+  height: 34pt;
+}
+
+.htMobileEditorContainer .inputs textarea {
+  font-size: 13pt;
+  border: 1px solid #a1a1a1;
+  -webkit-appearance: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 0;
+  bottom: 0;
+  padding: 7pt;
+}
+
+.htMobileEditorContainer .cellPointer {
+  position: absolute;
+  top: -13pt;
+  height: 0;
+  width: 0;
+  left: 30px;
+
+  border-left: 13pt solid transparent;
+  border-right: 13pt solid transparent;
+  border-bottom: 13pt solid #ebebeb;
+}
+
+.htMobileEditorContainer .cellPointer.hidden {
+  display: none;
+}
+
+.htMobileEditorContainer .cellPointer:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 2px;
+  height: 0;
+  width: 0;
+  left: -13pt;
+
+  border-left: 13pt solid transparent;
+  border-right: 13pt solid transparent;
+  border-bottom: 13pt solid #f8f8f8;
+}
+
+.htMobileEditorContainer .moveHandle {
+  position: absolute;
+  top: 10pt;
+  left: 5px;
+  width: 30px;
+  bottom: 0px;
+  cursor: move;
+  z-index: 9999;
+}
+
+.htMobileEditorContainer .moveHandle:after {
+  content: "..\a..\a..\a..";
+  white-space: pre;
+  line-height: 10px;
+  font-size: 20pt;
+  display: inline-block;
+  margin-top: -8px;
+  color: #ebebeb;
+}
+
+.htMobileEditorContainer .positionControls {
+  width: 205pt;
+  position: absolute;
+  right: 5pt;
+  top: 0;
+  bottom: 0;
+}
+
+.htMobileEditorContainer .positionControls > div {
+  width: 50pt;
+  height: 100%;
+  float: left;
+}
+
+.htMobileEditorContainer .positionControls > div:after {
+  content: " ";
+  display: block;
+  width: 15pt;
+  height: 15pt;
+  text-align: center;
+  line-height: 50pt;
+}
+
+.htMobileEditorContainer .leftButton:after,
+.htMobileEditorContainer .rightButton:after,
+.htMobileEditorContainer .upButton:after,
+.htMobileEditorContainer .downButton:after {
+  transform-origin: 5pt 5pt;
+  -webkit-transform-origin: 5pt 5pt;
+  margin: 21pt 0 0 21pt;
+}
+
+.htMobileEditorContainer .leftButton:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(-45deg);
+  /*margin-top: 17pt;*/
+  /*margin-left: 20pt;*/
+}
+.htMobileEditorContainer .leftButton:active:after {
+  border-color: #cfcfcf;
+}
+
+.htMobileEditorContainer .rightButton:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(135deg);
+  /*margin-top: 17pt;*/
+  /*margin-left: 10pt;*/
+}
+.htMobileEditorContainer .rightButton:active:after {
+  border-color: #cfcfcf;
+}
+
+.htMobileEditorContainer .upButton:after {
+  /*border-top: 2px solid #cfcfcf;*/
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(45deg);
+  /*margin-top: 22pt;*/
+  /*margin-left: 15pt;*/
+}
+.htMobileEditorContainer .upButton:active:after {
+  border-color: #cfcfcf;
+}
+
+.htMobileEditorContainer .downButton:after {
+  border-top: 2px solid #288ffe;
+  border-left: 2px solid #288ffe;
+  -webkit-transform: rotate(225deg);
+  /*margin-top: 15pt;*/
+  /*margin-left: 15pt;*/
+}
+.htMobileEditorContainer .downButton:active:after {
+  border-color: #cfcfcf;
+}
+
+.handsontable.hide-tween {
+  -webkit-animation: opacity-hide 0.3s;
+  animation: opacity-hide 0.3s;
+  animation-fill-mode: forwards;
+  -webkit-animation-fill-mode: forwards;
+}
+
+.handsontable.show-tween {
+  -webkit-animation: opacity-show 0.3s;
+  animation: opacity-show 0.3s;
+  animation-fill-mode: forwards;
+  -webkit-animation-fill-mode: forwards;
+}
