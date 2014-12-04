@@ -37,7 +37,7 @@ Handsontable.eventManager = function (instance) {
           } else {
             event.preventDefault = function () {
               this.returnValue = false;
-            }
+            };
           }
         }
 
@@ -52,7 +52,7 @@ Handsontable.eventManager = function (instance) {
       });
 
       if (window.addEventListener) {
-        element.addEventListener(event, callbackProxy, false)
+        element.addEventListener(event, callbackProxy, false);
       } else {
         element.attachEvent('on' + event, callbackProxy);
       }
@@ -146,5 +146,5 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     serveImmediatePropagation : serveImmediatePropagation,
     fireEvent: fireEvent
-  }
+  };
 };

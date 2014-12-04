@@ -34,7 +34,7 @@
       cells: function () {
         return {
           readOnly: true
-        }
+        };
       },
       fillHandle: false,
       afterOnCellMouseDown: function () {

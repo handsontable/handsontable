@@ -42,9 +42,11 @@ Handsontable.Dom.isChildOf = function (child, parent) {
 Handsontable.Dom.index = function (elem) {
   var i = 0;
   if (elem.previousSibling) {
+    /* jshint ignore:start */
     while (elem = elem.previousSibling) {
-      ++i
+      ++i;
     }
+    /* jshint ignore:end */
   }
   return i;
 };
@@ -72,8 +74,10 @@ else {
   };
 
   Handsontable.Dom.addClass = function (ele, cls) {
+    /* jshint ignore:start */
     if(ele.className == "") ele.className = cls;
     else if (!this.hasClass(ele, cls)) ele.className += " " + cls;
+    /* jshint ignore:end */
   };
 
   Handsontable.Dom.removeClass = function (ele, cls) {
@@ -107,9 +111,11 @@ Handsontable.Dom.removeTextNodes = function (elem, parent) {
 //
 Handsontable.Dom.empty = function (element) {
   var child;
+  /* jshint ignore:start */
   while (child = element.lastChild) {
     element.removeChild(child);
   }
+  /* jshint ignore:end */
 };
 
 Handsontable.Dom.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
@@ -219,6 +225,7 @@ Handsontable.Dom.offset = function (elem) {
     , offsetTop = elem.offsetTop
     , lastElem = elem;
 
+  /* jshint ignore:start */
   while (elem = elem.offsetParent) {
     if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
       break;
@@ -227,6 +234,7 @@ Handsontable.Dom.offset = function (elem) {
     offsetTop += elem.offsetTop;
     lastElem = elem;
   }
+  /* jshint ignore:end */
 
   if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
     //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
@@ -308,7 +316,7 @@ Handsontable.Dom.innerWidth = function (elem) {
 
 Handsontable.Dom.addEvent = function(element, event, callback) {
   if (window.addEventListener) {
-    element.addEventListener(event, callback, false)
+    element.addEventListener(event, callback, false);
   } else {
     element.attachEvent('on' + event, callback);
   }
@@ -442,7 +450,9 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     var w1 = inner.offsetWidth;
     outer.style.overflow = 'scroll';
     var w2 = inner.offsetWidth;
-    if (w1 == w2) w2 = outer.clientWidth;
+    if (w1 == w2) {
+      w2 = outer.clientWidth;
+    }
 
     (document.body || document.documentElement).removeChild(outer);
 
@@ -458,7 +468,7 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
     return cachedScrollbarWidth;
-  }
+  };
 
   var isIE8 = !(document.createTextNode('test').textContent);
   Handsontable.Dom.isIE8 = function () {
@@ -492,6 +502,7 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
   Handsontable.Dom.getCssTransform = function (elem) {
     var transform;
 
+    /* jshint ignore:start */
     if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
       return ['transform', transform];
     } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
@@ -499,14 +510,17 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     } else {
       return -1;
     }
+    /* jshint ignore:end */
   };
 
   Handsontable.Dom.resetCssTransform = function (elem) {
+    /* jshint ignore:start */
     if(elem['transform'] && elem['transform'] != "") {
       elem['transform'] = "";
     } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
       elem['-webkit-transform'] = "";
     }
+    /* jshint ignore:end */
   };
 
 })();

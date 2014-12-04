@@ -113,7 +113,7 @@
 
       eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
         if(checkRowHeader(e.target)){
-          var th = getTHFromTargetElement(e.target)
+          var th = getTHFromTargetElement(e.target);
           if (th) {
             if (pressed) {
               endRow = instance.view.wt.wtTable.getCoords(th).row;

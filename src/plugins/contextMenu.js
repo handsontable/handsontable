@@ -33,6 +33,7 @@
   }
 
   function doAlign(row, col, type, alignment) {
+    /* jshint ignore:start */
     var cellMeta = this.getCellMeta(row, col),
       className = alignment;
 
@@ -46,9 +47,11 @@
 
     this.setCellMeta(row, col, 'className', className);
     this.render();
+    /* jshint ignore:end */
   }
 
   function align(range, type, alignment) {
+    /* jshint ignore:start */
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
       doAlign.call(this, range.from.row, range.from.col, type, alignment);
     } else {
@@ -58,6 +61,7 @@
         }
       }
     }
+    /* jshint ignore:end */
   }
 
   function ContextMenu(instance, customOptions) {
@@ -67,7 +71,7 @@
     contextMenu.htMenus = {};
     contextMenu.triggerRows = [];
 
-    contextMenu.eventManager = Handsontable.eventManager(contextMenu)
+    contextMenu.eventManager = Handsontable.eventManager(contextMenu);
 
 
     this.enabled = true;
@@ -443,7 +447,7 @@
   };
 
   ContextMenu.prototype.bindMouseEvents = function () {
-
+    /* jshint ignore:start */
     function contextMenuOpenListener(event) {
       var settings = this.instance.getSettings();
 
@@ -469,6 +473,7 @@
 
       this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
+    /* jshint ignore:end */
     var eventManager = Handsontable.eventManager(this.instance);
 
     eventManager.addEventListener(this.instance.rootElement, 'contextmenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
@@ -550,7 +555,7 @@
 
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
-      that.performAction(event, htContextMenu)
+      that.performAction(event, htContextMenu);
     });
 
     this.bindTableEvents();
@@ -1017,7 +1022,7 @@
     return {
       start: selRange.getTopLeftCorner(),
       end: selRange.getBottomRightCorner()
-    }
+    };
   };
 
   ContextMenu.utils.isSeparator = function (cell) {
@@ -1090,7 +1095,7 @@
   ContextMenu.SEPARATOR = {name: "---------"};
 
   function updateHeight() {
-
+    /* jshint ignore:start */
     if (this.rootElement.className.indexOf('htContextMenu')) {
       return;
     }
@@ -1108,10 +1113,13 @@
     }
 
     this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+    /* jshint ignore:end */
   }
 
   function init() {
+    /* jshint ignore:start */
     var instance = this;
+    /* jshint ignore:end */
     var contextMenuSetting = instance.getSettings().contextMenu;
     var customOptions = Handsontable.helper.isObject(contextMenuSetting) ? contextMenuSetting : {};
 

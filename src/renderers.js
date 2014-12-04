@@ -14,7 +14,7 @@
      * @param {Function} rendererFunction
      */
     registerRenderer: function (rendererName, rendererFunction) {
-      registeredRenderers[rendererName] = rendererFunction
+      registeredRenderers[rendererName] = rendererFunction;
     },
 
     /**

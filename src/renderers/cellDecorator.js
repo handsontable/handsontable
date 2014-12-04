@@ -29,6 +29,6 @@
     if (!value && cellProperties.placeholder) {
       Handsontable.Dom.addClass(TD, cellProperties.placeholderCellClassName);
     }
-  }
+  };
 
 })(Handsontable);

@@ -3,7 +3,7 @@
  * @param {Object} instance
  */
 Handsontable.TableView = function (instance) {
-  var that = this
+  var that = this;
 
 
   this.eventManager = Handsontable.eventManager(instance);
@@ -124,7 +124,7 @@ Handsontable.TableView = function (instance) {
         color: '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function () {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
         }
       }
     }),
@@ -135,7 +135,7 @@ Handsontable.TableView = function (instance) {
         color: '#89AFF9',
         //style: 'solid', // not used
         cornerVisible: function () {
-          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
         }
       }
     }),

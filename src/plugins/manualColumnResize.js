@@ -239,10 +239,10 @@ var htManualColumnResize = new HandsontableManualColumnResize();
 
 Handsontable.hooks.add('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.hooks.add('afterInit', function () {
-  htManualColumnResize.init.call(this, 'afterInit')
+  htManualColumnResize.init.call(this, 'afterInit');
 });
 Handsontable.hooks.add('afterUpdateSettings', function () {
-  htManualColumnResize.init.call(this, 'afterUpdateSettings')
+  htManualColumnResize.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 

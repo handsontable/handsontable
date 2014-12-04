@@ -52,7 +52,7 @@
 
   Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
 
-    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length == 0){
+    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0){
       return false;
     }
 
@@ -95,7 +95,7 @@
       setDefaultSearchResultClass: function (newSearchResultClass) {
         defaultSearchResultClass = newSearchResultClass;
       }
-    }
+    };
 
   })();
 
@@ -122,7 +122,9 @@
   };
 
   function init() {
+    /* jshint ignore:start */
     var instance = this;
+    /* jshint ignore:end */
 
     var pluginEnabled = !!instance.getSettings().search;
 
@@ -131,7 +133,6 @@
     } else {
       delete instance.search;
     }
-
   }
 
   Handsontable.hooks.add('afterInit', init);

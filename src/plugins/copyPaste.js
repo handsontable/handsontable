@@ -43,7 +43,7 @@
       });
 
       instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
-    };
+    }
 
     function onBeforeKeyDown (event) {
       if (instance.getSelected()) {

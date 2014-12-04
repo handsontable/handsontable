@@ -87,6 +87,7 @@ CopyPasteClass.prototype.init = function () {
       isCtrlDown = true;
     }
 
+    /* jshint ignore:start */
     if (isCtrlDown) {
       if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
@@ -97,6 +98,7 @@ CopyPasteClass.prototype.init = function () {
         that.selectNodeText(that.elTextarea);
       }, 0);
     }
+    /* jshint ignore:end */
 
     /* 67 = c
      * 86 = v
@@ -209,6 +211,7 @@ CopyPasteClass.prototype.triggerPaste = function (event, str) {
 
 CopyPasteClass.prototype.destroy = function () {
 
+  /* jshint ignore:start */
   if(!this.hasBeenDestroyed() && --this.refCounter == 0){
     if (this.elDiv && this.elDiv.parentNode) {
       this.elDiv.parentNode.removeChild(this.elDiv);
@@ -220,6 +223,7 @@ CopyPasteClass.prototype.destroy = function () {
 //    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
 
   }
+  /* jshint ignore:end */
 
 };
 

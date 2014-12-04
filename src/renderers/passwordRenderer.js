@@ -1,4 +1,4 @@
-(function(Handosntable){
+(function(Handsontable){
 
   'use strict';
 
@@ -11,14 +11,14 @@
     var hashLength = cellProperties.hashLength || value.length;
     var hashSymbol = cellProperties.hashSymbol || '*';
 
-    for( hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol);
+    for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {}
 
     Handsontable.Dom.fastInnerHTML(TD, hash);
 
   };
 
-  Handosntable.PasswordRenderer = PasswordRenderer;
-  Handosntable.renderers.PasswordRenderer = PasswordRenderer;
-  Handosntable.renderers.registerRenderer('password', PasswordRenderer);
+  Handsontable.PasswordRenderer = PasswordRenderer;
+  Handsontable.renderers.PasswordRenderer = PasswordRenderer;
+  Handsontable.renderers.registerRenderer('password', PasswordRenderer);
 
 })(Handsontable);

@@ -17,7 +17,7 @@
     var options;
 
     if (typeof selectOptions == 'function'){
-      options =  this.prepareOptions(selectOptions(this.row, this.col, this.prop))
+      options =  this.prepareOptions(selectOptions(this.row, this.col, this.prop));
     } else {
       options =  this.prepareOptions(selectOptions);
     }

@@ -50,6 +50,9 @@ var browsers = [
 ];
 
 module.exports = function (grunt) {
+
+  require('time-grunt')(grunt);
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     gitinfo: {
@@ -320,7 +323,17 @@ module.exports = function (grunt) {
           testname: "Development test (Walkontable)"
         }
       }
-    }
+    },
+    jshint: (function() {
+      var options = {
+        options: {
+          jshintrc: true
+        }
+      };
+      options['src'] = '<%= meta.src %>';
+
+      return options;
+    }())
   });
 
   // Default task.
@@ -370,4 +383,5 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-saucelabs');
   grunt.loadNpmTasks('grunt-gitinfo');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 };

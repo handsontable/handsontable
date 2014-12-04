@@ -230,7 +230,9 @@ function HandsontableManualColumnMove() {
 
   // need to reconstruct manualcolpositions after removing columns
   this.afterRemoveCol = function (index, amount) {
-    if (!this.getSettings().manualColumnMove) return;
+    if (!this.getSettings().manualColumnMove) {
+      return;
+    }
 
     var rmindx,
         colpos = this.manualColumnPositions;
@@ -243,7 +245,9 @@ function HandsontableManualColumnMove() {
         var i, newpos = colpos;
 
        for (i = 0; i < rmindx.length; i++) {
-         if (colpos > rmindx[i]) newpos--;
+         if (colpos > rmindx[i]) {
+           newpos--;
+         }
        }
 
        return newpos;
@@ -254,10 +258,14 @@ function HandsontableManualColumnMove() {
 
     // need to reconstruct manualcolpositions after adding columns
     this.afterCreateCol = function (index, amount) {
-      if (!this.getSettings().manualColumnMove) return;
+      if (!this.getSettings().manualColumnMove) {
+        return;
+      }
 
       var colpos = this.manualColumnPositions;
-      if (!colpos.length) return;
+      if (!colpos.length) {
+        return;
+      }
 
       var addindx = [];
       for (var i = 0; i < amount; i++) {
@@ -284,11 +292,11 @@ var htManualColumnMove = new HandsontableManualColumnMove();
 
 Handsontable.hooks.add('beforeInit', htManualColumnMove.beforeInit);
 Handsontable.hooks.add('afterInit', function () {
-  htManualColumnMove.init.call(this, 'afterInit')
+  htManualColumnMove.init.call(this, 'afterInit');
 });
 
 Handsontable.hooks.add('afterUpdateSettings', function () {
-  htManualColumnMove.init.call(this, 'afterUpdateSettings')
+  htManualColumnMove.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
 
