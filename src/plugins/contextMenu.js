@@ -680,7 +680,7 @@
 
   ContextMenu.prototype.onBeforeKeyDown = function (event, instance) {
 
-    event = this.eventManager.serveImmediatePropagation(event);
+    Handsontable.Dom.enableImmediatePropagation(event);
     var contextMenu = this;
 
     var selection = instance.getSelected();

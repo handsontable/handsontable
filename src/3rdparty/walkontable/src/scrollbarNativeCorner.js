@@ -33,7 +33,7 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
       finalTop = "0";
     }
   }
-  else {
+  else if(!Handsontable.freezeOverlays) {
     finalLeft = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
     finalTop = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
   }

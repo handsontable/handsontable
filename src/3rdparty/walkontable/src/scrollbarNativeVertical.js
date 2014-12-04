@@ -29,7 +29,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
       finalTop = "0";
     }
   }
-  else {
+  else if(!Handsontable.freezeOverlays) {
     finalTop = this.getScrollPosition() + "px";
     finalLeft = '0';
   }

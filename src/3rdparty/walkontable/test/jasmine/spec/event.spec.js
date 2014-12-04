@@ -244,7 +244,8 @@ describe('WalkontableEvent', function () {
           myTD = TD;
         }
       });
-    wt.selections[0].add(new WalkontableCellCoords(1, 1));
+    shimSelectionProperties(wt);
+    wt.selections.current.add(new WalkontableCellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -278,7 +279,8 @@ describe('WalkontableEvent', function () {
           myTD = TD;
         }
       });
-    wt.selections[0].add(new WalkontableCellCoords(1, 1));
+    shimSelectionProperties(wt);
+    wt.selections.current.add(new WalkontableCellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -314,7 +316,8 @@ describe('WalkontableEvent', function () {
           clicked = true;
         }
       });
-    wt.selections[0].add(new WalkontableCellCoords(10, 2));
+    shimSelectionProperties(wt);
+    wt.selections.current.add(new WalkontableCellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
@@ -340,7 +343,8 @@ describe('WalkontableEvent', function () {
           })
         ]
       });
-    wt.selections[0].add(new WalkontableCellCoords(10, 2));
+    shimSelectionProperties(wt);
+    wt.selections.current.add(new WalkontableCellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');

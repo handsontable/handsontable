@@ -8,6 +8,20 @@ if(!window.Handsontable) {
 }
 Handsontable.Dom = {};
 
+
+Handsontable.Dom.enableImmediatePropagation = function (event) {
+  if (event != null && event.isImmediatePropagationEnabled == null) {
+    event.stopImmediatePropagation = function () {
+      this.isImmediatePropagationEnabled = false;
+      this.cancelBubble = true;
+    };
+    event.isImmediatePropagationEnabled = true;
+    event.isImmediatePropagationStopped = function () {
+      return !this.isImmediatePropagationEnabled;
+    };
+  }
+};
+
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
 Handsontable.Dom.closest = function (elem, nodeNames, until) {
   while (elem != null && elem !== until) {
@@ -19,11 +33,23 @@ Handsontable.Dom.closest = function (elem, nodeNames, until) {
   return null;
 };
 
-//goes up the DOM tree and checks if element is child of another element
+/**
+ * Goes up the DOM tree and checks if element is child of another element
+ * @param child Child element
+ * @param {Object|string} parent Parent element OR selector of the parent element. If classname provided, function returns true for the first occurance of element with that class.
+ * @returns {boolean}
+ */
 Handsontable.Dom.isChildOf = function (child, parent) {
   var node = child.parentNode;
+  var queriedParents = [];
+  if(typeof parent === "string") {
+    queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
+  } else {
+    queriedParents.push(parent);
+  }
+
   while (node != null) {
-    if (node == parent) {
+    if (queriedParents.indexOf(node) > - 1) {
       return true;
     }
     node = node.parentNode;
@@ -458,7 +484,7 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
     return cachedScrollbarWidth;
-  }
+  };
 
   var isIE8 = !(document.createTextNode('test').textContent);
   Handsontable.Dom.isIE8 = function () {
