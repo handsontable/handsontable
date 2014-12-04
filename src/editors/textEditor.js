@@ -299,6 +299,10 @@
     this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
+
+    this.instance.addHook('afterDestroy', function () {
+      eventManager.clear();
+    });
   };
 
   TextEditor.prototype.destroy = function () {
