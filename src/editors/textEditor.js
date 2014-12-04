@@ -301,7 +301,7 @@
     });
 
     this.instance.addHook('afterDestroy', function () {
-      eventManager.clear();
+      editor.eventManager.clear();
     });
   };
 
