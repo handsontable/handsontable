@@ -2,9 +2,15 @@
   var TextEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   TextEditor.prototype.init = function(){
+    var that = this;
     this.createElements();
+    this.eventManager = new Handsontable.eventManager(this);
     this.bindEvents();
     this.autoResize = autoResize();
+
+    this.instance.addHook('afterDestroy', function () {
+      that.destroy();
+    });
   };
 
   TextEditor.prototype.getValue = function(){
@@ -23,17 +29,7 @@
     var keyCodes = Handsontable.helper.keyCode;
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
-    if (event != null && event.isImmediatePropagationEnabled == null) {
-      event.stopImmediatePropagation = function () {
-        this.isImmediatePropagationEnabled = false;
-        this.cancelBubble = true;
-      };
-      event.isImmediatePropagationEnabled = true;
-      event.isImmediatePropagationStopped = function () {
-        return !this.isImmediatePropagationEnabled;
-      };
-    }
-
+    Handsontable.Dom.enableImmediatePropagation(event);
 
     //Process only events that have been fired in the editor
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
@@ -290,14 +286,12 @@
   TextEditor.prototype.bindEvents = function () {
     var editor = this;
 
-    var eventManager = Handsontable.eventManager(editor);
-
-    eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
       Handsontable.helper.stopPropagation(event);
       //event.stopPropagation();
     });
 
-    eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
       Handsontable.helper.stopPropagation(event);
       //event.stopPropagation();
     });
@@ -305,6 +299,14 @@
     this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
+
+    this.instance.addHook('afterDestroy', function () {
+      editor.eventManager.clear();
+    });
+  };
+
+  TextEditor.prototype.destroy = function () {
+    this.eventManager.clear();
   };
 
 

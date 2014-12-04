@@ -23,7 +23,14 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
 };
 
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
-  var width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  var width;
+
+  if(Handsontable.freezeOverlays) {
+    width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  } else {
+    width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  }
+
   var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
   if (scrollHandler != window) {
     var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
@@ -59,7 +66,7 @@ WalkontableViewport.prototype.getContainerFillWidth = function() {
   mainContainer.removeChild(dummyElement);
 
   return fillWidth;
-}
+};
 
 WalkontableViewport.prototype.getWorkspaceOffset = function () {
   return Handsontable.Dom.offset(this.instance.wtTable.TABLE);

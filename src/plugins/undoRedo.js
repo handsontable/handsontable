@@ -143,7 +143,7 @@
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
-    var data = Handsontable.Dom.extend(true, [], this.changes),
+    var data = Handsontable.helper.deepClone(this.changes),
         emptyRowsAtTheEnd = instance.countEmptyRows(true),
         emptyColsAtTheEnd = instance.countEmptyCols(true);
 
@@ -176,7 +176,7 @@
 
   };
   Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance, onFinishCallback) {
-    var data = Handsontable.Dom.extend(true, [], this.changes);
+    var data = Handsontable.helper.deepClone(this.changes);
 
     for (var i = 0, len = data.length; i < len; i++) {
       data[i].splice(2, 1);

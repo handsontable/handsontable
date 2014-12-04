@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>iPad Integration - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="iPad Integration">
+  <meta property="og:description"
+        content=".">
+  <meta property="og:url" content="http://handsontable.com/demo/i[ad.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/ipad.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 100; i++) {
+        var row = [];
+        for (j = 0; j < 15; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>iPad Integration</h2>
+
+              <p>Mobile editor and selecting modes are enabled automatically if you're viewing Handsontable on a mobile device.<BR>
+              This mode was developed using iPad 4, and currently it's the only device we support.</p>
+
+              <div id="example1" style="width: 500px; height: 300px; overflow: scroll"></div>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example1">
+                var example1 = document.getElementById('example1');
+                var HOT = new Handsontable(example1,{
+                  data: createBigData(),
+                  rowHeaders: true,
+                  colHeaders: true,
+                  fixedRowsTop: 2,
+                  fixedColumnsLeft: 2
+                });
+
+              </script>
+
+            </div>
+          </div>
+        </div>
+
+
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>

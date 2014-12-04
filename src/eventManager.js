@@ -3,6 +3,8 @@ if(!window.Handsontable){
   var Handsontable = {};
 }
 
+Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
+
 Handsontable.eventManager = function (instance) {
   if (!instance) {
     throw new Error ('instance not defined');
@@ -54,6 +56,8 @@ Handsontable.eventManager = function (instance) {
       } else {
         element.attachEvent('on' + event, callbackProxy);
       }
+
+      Handsontable.countEventManagerListeners++;
     },
     removeEvent = function (element, event, callback){
       var len = instance.eventListeners.length;
@@ -71,21 +75,10 @@ Handsontable.eventManager = function (instance) {
           } else {
             tmpEv.element.detachEvent('on' + tmpEv.event, tmpEv.callbackProxy);
           }
+
+          Handsontable.countEventManagerListeners--;
         }
       }
-    },
-    serveImmediatePropagation = function (event) {
-      if (event != null && event.isImmediatePropagationEnabled == null) {
-        event.stopImmediatePropagation = function () {
-          this.isImmediatePropagationEnabled = false;
-          this.cancelBubble = true;
-        };
-        event.isImmediatePropagationEnabled = true;
-        event.isImmediatePropagationStopped = function () {
-          return !this.isImmediatePropagationEnabled;
-        };
-      }
-      return event;
     },
     clearEvents = function () {
       var len = instance.eventListeners.length;
@@ -138,7 +131,6 @@ Handsontable.eventManager = function (instance) {
     addEventListener: addEvent,
     removeEventListener: removeEvent,
     clear: clearEvents,
-    serveImmediatePropagation : serveImmediatePropagation,
     fireEvent: fireEvent
   }
 };
