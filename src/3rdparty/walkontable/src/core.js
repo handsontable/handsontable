@@ -45,7 +45,8 @@ function Walkontable(settings) {
 
 /**
  * Force rerender of Walkontable
- * @param fastDraw {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data. It will only work if WalkontableTable.draw() does not force rendering anyway
+ * @param fastDraw {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data.
+ *                           It will only work if WalkontableTable.draw() does not force rendering anyway
  * @returns {Walkontable}
  */
 Walkontable.prototype.draw = function (fastDraw) {
@@ -118,5 +119,8 @@ Walkontable.prototype.destroy = function () {
   var eventManager = Handsontable.eventManager(this);
   eventManager.clear();
   this.wtScrollbars.destroy();
-  this.wtEvent && this.wtEvent.destroy();
+
+  if ( this.wtEvent ) {
+    this.wtEvent.destroy();
+  }
 };

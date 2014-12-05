@@ -72,9 +72,10 @@ function WalkontableBorder(instance, settings) {
 
 
   eventManager.addEventListener(document.body, 'mouseup', function () {
-    down = false
+    down = false;
   });
 
+  /* jshint ignore:start */
   for (var c = 0, len = this.main.childNodes.length; c < len; c++) {
 
     eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function (event) {
@@ -109,9 +110,10 @@ function WalkontableBorder(instance, settings) {
           this.style.display = 'block';
         }
       };
-      eventManager.addEventListener(document.body, 'mousemove', handler);;
+      eventManager.addEventListener(document.body, 'mousemove', handler);
     });
   }
+  /* jshint ignore:end */
 }
 
 /**

@@ -12,13 +12,13 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
-  var elem = this.clone.wtTable.holder.parentNode;
+  var elem = this.clone.wtTable.holder.parentNode,
+    finalLeft,
+    finalTop;
 
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
-    var finalLeft
-      , finalTop;
     var bottom = Math.ceil(box.bottom);
 
     finalLeft = '0';
@@ -71,7 +71,8 @@ WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while (from < length) {
-    sum += this.instance.wtTable.getRowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
+    //TODO optimize getSetting, because this is MUCH faster then getSetting
+    sum += this.instance.wtTable.getRowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight;
     from++;
   }
   return sum;
@@ -86,7 +87,8 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 4 + 'px';
   if (typeof this.instance.wtViewport.rowsCalculator.renderStartPosition === 'number') {
     this.fixed.style.top = this.instance.wtViewport.rowsCalculator.renderStartPosition + 'px';
   }

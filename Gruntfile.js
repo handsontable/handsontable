@@ -331,6 +331,7 @@ module.exports = function (grunt) {
         }
       };
       options['src'] = '<%= meta.src %>';
+      options['walkontable'] = '<%= meta.walkontable %>';
 
       return options;
     }())

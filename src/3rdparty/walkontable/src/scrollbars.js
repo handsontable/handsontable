@@ -53,11 +53,13 @@ WalkontableScrollbars.prototype.destroy = function () {
     eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
   }
   eventManager.removeEventListener(window,'scroll', this.refreshAll);
+  /* jshint -W030 */
   this.corner && this.corner.destroy();
   this.debug && this.debug.destroy();
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
+  /* jshint -W030 */
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.refresh(selectionsOnly);
@@ -67,6 +69,7 @@ WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
 };
 
 WalkontableScrollbars.prototype.applyToDOM = function () {
+  /* jshint -W030 */
   this.horizontal && this.horizontal.applyToDOM();
   this.vertical && this.vertical.applyToDOM();
 };

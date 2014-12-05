@@ -107,6 +107,8 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
  * @returns {WalkontableTable}
  */
 WalkontableTable.prototype.draw = function (fastDraw) {
+  var oldRowsCalculator;
+
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
     this.instance.wtViewport.createPreCalculators();
@@ -119,7 +121,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
 
   if (!this.isWorkingOnClone()) {
-    var oldRowsCalculator = this.instance.wtViewport.rowsCalculator;
+    oldRowsCalculator = this.instance.wtViewport.rowsCalculator;
     this.instance.wtViewport.rowsCalculator = null; //delete temporarily to make sure that renderers always use rowsPreCalculator, not rowsCalculator
   }
 
@@ -133,9 +135,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.instance.wtScrollbars.horizontal.readSettings();
     }
     var renderStartRow;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
-        || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
-        || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative ||
+        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       renderStartRow = 0;
     }
     else {
@@ -155,8 +157,10 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createCalculators(oldRowsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      this.instance.wtViewport.createCalculators(oldRowsCalculator);
     }
+    /* jshint -W030 */
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
@@ -257,6 +261,7 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
  *
  */
 WalkontableTable.prototype.getRowHeader = function(row) {
+  /* jshint -W041 */
   if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) == 0) {
     return null;
   }

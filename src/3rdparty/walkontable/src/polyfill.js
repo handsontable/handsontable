@@ -18,7 +18,7 @@ window.cancelRequestAnimFrame = (function () {
     window.mozCancelRequestAnimationFrame ||
     window.oCancelRequestAnimationFrame ||
     window.msCancelRequestAnimationFrame ||
-    clearTimeout
+    clearTimeout;
 })();
 
 //http://snipplr.com/view/13523/
@@ -30,7 +30,9 @@ if (!window.getComputedStyle) {
 
     var styleObj = {
       getPropertyValue: function getPropertyValue(prop) {
-        if (prop == 'float') prop = 'styleFloat';
+        if (prop == 'float') {
+          prop = 'styleFloat';
+        }
         return elem.currentStyle[prop.toUpperCase()] || null;
       }
     };
@@ -38,7 +40,7 @@ if (!window.getComputedStyle) {
     window.getComputedStyle = function (el) {
       elem = el;
       return styleObj;
-    }
+    };
   })();
 }
 
@@ -47,6 +49,7 @@ if (!window.getComputedStyle) {
  */
 if (!String.prototype.trim) {
   var trimRegex = /^\s+|\s+$/g;
+  /* jshint -W121 */
   String.prototype.trim = function () {
     return this.replace(trimRegex, '');
   };

@@ -59,7 +59,7 @@ WalkontableViewport.prototype.getContainerFillWidth = function() {
   mainContainer.removeChild(dummyElement);
 
   return fillWidth;
-}
+};
 
 WalkontableViewport.prototype.getWorkspaceOffset = function () {
   return Handsontable.Dom.offset(this.instance.wtTable.TABLE);
@@ -70,7 +70,9 @@ WalkontableViewport.prototype.getWorkspaceActualHeight = function () {
 };
 
 WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
-  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) || Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) || Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) ||
+      Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) ||
+      Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
 WalkontableViewport.prototype.getColumnHeaderHeight = function () {
@@ -167,7 +169,7 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
     pos,
     this.instance.getSetting('totalRows'),
     function(sourceRow) {
-      return that.instance.wtTable.getRowHeight(sourceRow)
+      return that.instance.wtTable.getRowHeight(sourceRow);
     },
     this.instance.wtSettings.settings.viewportRowCalculatorOverride
   );
@@ -213,7 +215,9 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
     if (this.rowsPreCalculator.visibleStartRow < this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow > this.rowsCalculator.renderEndRow) {
       return false;
     }
-    else if (this.rowsPreCalculator.scrollOffset !== this.rowsCalculator.scrollOffset && (this.rowsPreCalculator.visibleStartRow <= this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow >= this.rowsCalculator.renderEndRow)) {
+    else if (this.rowsPreCalculator.scrollOffset !== this.rowsCalculator.scrollOffset &&
+            (this.rowsPreCalculator.visibleStartRow <= this.rowsCalculator.renderStartRow ||
+            this.rowsPreCalculator.visibleEndRow >= this.rowsCalculator.renderEndRow)) {
       return false;
     }
     else {

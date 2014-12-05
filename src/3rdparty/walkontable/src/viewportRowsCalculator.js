@@ -89,4 +89,4 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   if (this.visibleStartRow != null) {
     this.countVisible = this.visibleEndRow - this.visibleStartRow + 1;
   }
-};
+}

@@ -134,7 +134,8 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
 
     if (TR.firstChild) {
-      var height = this.instance.wtTable.getRowHeight(sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      var height = this.instance.wtTable.getRowHeight(sourceRowIndex);
       if (height) {
         TR.firstChild.style.height = height + 'px';
       }
@@ -415,9 +416,10 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   var that = this;
 
   var columnWidthFn = function (i) {
-    var source_c = that.columnFilter.renderedToSource(i);
-    if (source_c < totalColumns) {
-      return instance.getSetting('columnWidth', source_c);
+    var sourceC = that.columnFilter.renderedToSource(i);
+
+    if (sourceC < totalColumns) {
+      return instance.getSetting('columnWidth', sourceC);
     }
   };
 
