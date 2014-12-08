@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.12.1
+ * Handsontable 0.12.2
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 04 2014 15:17:59 GMT+0100 (CET)
+ * Date: Mon Dec 08 2014 10:47:06 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2331,7 +2331,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.12.1'; //inserted by grunt from package.json
+  this.version = '0.12.2'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -6255,11 +6255,14 @@ Handsontable.helper.pageY = function (event) {
       }
 
       if(selectedCell != undefined) {
+        var scrollLeft = this.instance.view.wt.wtScrollbars.horizontal.scrollHandler == window ? 0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler);
+        var scrollTop = this.instance.view.wt.wtScrollbars.vertical.scrollHandler == window ? 0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtScrollbars.vertical.scrollHandler);
+
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
           , currentScrollPosition = {
-            x: this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollLeft,
-            y: this.instance.view.wt.wtScrollbars.vertical.scrollHandler.scrollTop
+            x: scrollLeft,
+            y: scrollTop
           };
 
         this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) - currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
@@ -6378,11 +6381,15 @@ Handsontable.helper.pageY = function (event) {
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler, "scroll", function (event) {
-      that.hideCellPointer();
+      if(that.instance.view.wt.wtScrollbars.horizontal.scrollHandler != window) {
+        that.hideCellPointer();
+      }
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.vertical.scrollHandler, "scroll", function (event) {
-      that.hideCellPointer();
+      if(that.instance.view.wt.wtScrollbars.vertical.scrollHandler != window) {
+        that.hideCellPointer();
+      }
     });
 
   };

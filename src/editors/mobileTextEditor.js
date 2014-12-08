@@ -162,11 +162,14 @@
       }
 
       if(selectedCell != undefined) {
+        var scrollLeft = this.instance.view.wt.wtScrollbars.horizontal.scrollHandler == window ? 0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler);
+        var scrollTop = this.instance.view.wt.wtScrollbars.vertical.scrollHandler == window ? 0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtScrollbars.vertical.scrollHandler);
+
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
           , currentScrollPosition = {
-            x: this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollLeft,
-            y: this.instance.view.wt.wtScrollbars.vertical.scrollHandler.scrollTop
+            x: scrollLeft,
+            y: scrollTop
           };
 
         this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) - currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
@@ -285,11 +288,15 @@
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler, "scroll", function (event) {
-      that.hideCellPointer();
+      if(that.instance.view.wt.wtScrollbars.horizontal.scrollHandler != window) {
+        that.hideCellPointer();
+      }
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.vertical.scrollHandler, "scroll", function (event) {
-      that.hideCellPointer();
+      if(that.instance.view.wt.wtScrollbars.vertical.scrollHandler != window) {
+        that.hideCellPointer();
+      }
     });
 
   };
