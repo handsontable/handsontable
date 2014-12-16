@@ -22,11 +22,9 @@ Handsontable.activeGuid = null;
  * ht.setDataAtCell(0, 0, 'new value');
  * ```
  *
- * Alternatively, you can call the method using jQuery wrapper (obsolete, requires initialization using our jQuery guide
+ * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
  * @example
  * ```js
- * var exampleContainer = document.getElementById('example');
- * var hot = new Handsontable(exampleContainer, {
  *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
  * ---
