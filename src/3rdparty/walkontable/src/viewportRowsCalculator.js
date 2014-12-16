@@ -18,6 +18,7 @@
  * @param rowHeightFn - function that returns the height of the row at a given index (in px)
  * @param overrideFn - function that changes calculated this.renderStartRow, this.renderEndRow (used by mergeCells.js plugin)
  * @constructor
+ * @private
  */
 function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn) {
   this.scrollOffset = scrollOffset;

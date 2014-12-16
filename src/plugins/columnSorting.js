@@ -1,6 +1,7 @@
 /**
  * This plugin sorts the view by a column (but does not sort the data source!)
  * @constructor
+ * @private
  */
 function HandsontableColumnSorting() {
   var plugin = this;

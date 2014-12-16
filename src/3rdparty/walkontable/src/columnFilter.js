@@ -1,6 +1,7 @@
 /**
  * WalkontableColumnFilter
  * @constructor
+ * @private
  */
 function WalkontableColumnFilter(total, countTH) {
   this.total = total;

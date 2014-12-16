@@ -1,3 +1,9 @@
+/**
+ * This plugin provides copy and paste functionalities.
+ *
+ * @plugin
+ * @class Handsontable.CopyPaste
+ */
 (function (Handsontable, CopyPaste, SheetClip) {
 
   function CopyPastePlugin(instance) {
@@ -63,6 +69,12 @@
       }
     }
 
+    /**
+     * Destroy plugin instance.
+     *
+     * @function destroy
+     * @memberof Handsontable.CopyPaste#
+     */
     this.destroy = function () {
       this.copyPasteInstance.removeCallback(onCut);
       this.copyPasteInstance.removeCallback(onPaste);
@@ -72,11 +84,23 @@
 
     instance.addHook('afterDestroy', Handsontable.helper.proxy(this.destroy, this));
 
+    /**
+     * @function triggerPaste
+     * @memberof Handsontable.CopyPaste#
+     */
     this.triggerPaste = Handsontable.helper.proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
+
+    /**
+     * @function triggerCut
+     * @memberof Handsontable.CopyPaste#
+     */
     this.triggerCut = Handsontable.helper.proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
 
     /**
-     * Prepares copyable text in the invisible textarea
+     * Prepares copyable text in the invisible textarea.
+     *
+     * @function setCopyable
+     * @memberof Handsontable.CopyPaste#
      */
     this.setCopyableText = function () {
 
@@ -104,13 +128,23 @@
   }
 
 
-
+  /**
+   * Init plugin
+   *
+   * @function init
+   * @memberof Handsontable.CopyPaste#
+   */
   function init() {
     var instance  = this;
     var pluginEnabled = instance.getSettings().copyPaste !== false;
 
     if(pluginEnabled && !instance.copyPaste){
-
+      /**
+       * Instance of CopyPaste Plugin {@link Handsontable.CopyPaste}
+       * @alias copyPaste
+       * @memberof! Handsontable.Core#
+       * @type {CopyPaste}
+       */
       instance.copyPaste = new CopyPastePlugin(instance);
 
     } else if (!pluginEnabled && instance.copyPaste) {

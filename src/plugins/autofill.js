@@ -7,10 +7,17 @@
  *
  * "Copy-down" copies the value of the selection to all empty cells
  * below when you double click the small square.
+ *
+ * @plugin
+ * @class Handsontable.Autofill
  */
 (function (Handsontable) {
   'use strict';
 
+  /**
+   * @param instance
+   * @constructor
+   */
   function Autofill(instance) {
     this.instance = instance;
     this.addingStarted = false;
@@ -95,6 +102,9 @@
 
   /**
    * Create fill handle and fill border objects
+   *
+   * @function init
+   * @memberof Handsontable.Autofill#
    */
   Autofill.prototype.init = function () {
     this.handle = {};
@@ -102,13 +112,19 @@
 
   /**
    * Hide fill handle and fill border permanently
+   *
+   * @function disable
+   * @memberof Handsontable.Autofill#
    */
-    Autofill.prototype.disable = function () {
-      this.handle.disabled = true;
-    },
+  Autofill.prototype.disable = function () {
+    this.handle.disabled = true;
+  },
 
   /**
    * Selects cells down to the last row in the left column, then fills down to that cell
+   *
+   * @function selectAdjacent
+   * @memberof Handsontable.Autofill#
    */
     Autofill.prototype.selectAdjacent = function () {
       var select, data, r, maxR, c;
@@ -141,6 +157,9 @@
 
   /**
    * Apply fill values to the area in fill border, omitting the selection border
+   *
+   * @function apply
+   * @memberof Handsontable.Autofill#
    */
     Autofill.prototype.apply = function () {
       var drag, select, start, end, _data;
@@ -276,6 +295,9 @@
 
   /**
    * Show fill border
+   *
+   * @function showBorder
+   * @memberof Handsontable.Autofill#
    * @param {WalkontableCellCoords} coords
    */
     Autofill.prototype.showBorder = function (coords) {
@@ -298,6 +320,10 @@
       this.instance.view.render();
     };
 
+  /**
+   * @function checkIfNewRowNeeded
+   * @memberof Handsontable.Autofill#
+   */
   Autofill.prototype.checkIfNewRowNeeded = function () {
     var fillCorners,
       selection,
@@ -329,6 +355,12 @@
         autofill.disable();
       }
       else if (!autofill.handle && this.getSettings().fillHandle !== false) {
+        /**
+         * Instance of Autofill Plugin {@link Handsontable.Autofill}
+         * @alias autofill
+         * @memberof! Handsontable.Core#
+         * @type {Autofill}
+         */
         this.autofill = autofill;
         this.autofill.init();
       }

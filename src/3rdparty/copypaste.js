@@ -1,8 +1,8 @@
 /**
- * CopyPaste.js
  * Creates a textarea that stays hidden on the page and gets focused when user presses CTRL while not having a form input focused
  * In future we may implement a better driver when better APIs are available
  * @constructor
+ * @private
  */
 var CopyPaste = (function () {
   var instance;

@@ -3,13 +3,14 @@
 
   /**
    * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
-   * TODO refactor arguments of methods getRange, getText to be numbers (not objects)
-   * TODO remove priv, GridSettings from object constructor
+   * @todo refactor arguments of methods getRange, getText to be numbers (not objects)
+   * @todo remove priv, GridSettings from object constructor
    *
-   * @param instance
-   * @param priv
-   * @param GridSettings
-   * @constructor
+   * @param {Object} instance Instance of Handsontable
+   * @param {*} priv
+   * @param {*} GridSettings Grid settings
+   * @util
+   * @class Handsontable.DataMap
    */
   Handsontable.DataMap = function (instance, priv, GridSettings) {
     this.instance = instance;
@@ -29,6 +30,10 @@
   Handsontable.DataMap.prototype.DESTINATION_RENDERER = 1;
   Handsontable.DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
 
+  /**
+   * @param {Object} obj
+   * @returns {*}
+   */
   Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
     var schema;
     if (!Handsontable.helper.isArray(obj)){
@@ -50,6 +55,12 @@
     return schema;
   };
 
+  /**
+   * @param {Object} schema
+   * @param {Number} lastCol
+   * @param {Number} parent
+   * @returns {Number}
+   */
   Handsontable.DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
     var prop, i;
     if (typeof lastCol === 'undefined') {
@@ -98,6 +109,12 @@
     }
   };
 
+  /**
+   * Returns property name that corresponds with the given column index.
+   *
+   * @param {Number} col
+   * @returns {Number}
+   */
   Handsontable.DataMap.prototype.colToProp = function (col) {
     col = Handsontable.hooks.execute(this.instance, 'modifyCol', col);
     if (this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
@@ -108,6 +125,10 @@
     }
   };
 
+  /**
+   * @param {Object} prop
+   * @returns {*}
+   */
   Handsontable.DataMap.prototype.propToCol = function (prop) {
     var col;
     if (typeof this.propToColCache.get(prop) !== 'undefined') {
@@ -119,6 +140,9 @@
     return col;
   };
 
+  /**
+   * @returns {Object}
+   */
   Handsontable.DataMap.prototype.getSchema = function () {
     var schema = this.instance.getSettings().dataSchema;
     if (schema) {
@@ -131,8 +155,10 @@
   };
 
   /**
-   * Creates row at the bottom of the data array
-   * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
+   * Creates row at the bottom of the data array.
+   *
+   * @param {Number} [index] Index of the row before which the new row will be inserted
+   * @returns {Number} Returns number of created rows
    */
   Handsontable.DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
     var row
@@ -185,9 +211,11 @@
   };
 
   /**
-   * Creates col at the right of the data array
-   * @param {Number} [index] Optional. Index of the column before which the new column will be inserted
-   *   * @param {Number} [amount] Optional.
+   * Creates col at the right of the data array.
+   *
+   * @param {Number} [index] Index of the column before which the new column will be inserted
+   * @param {Number} [amount]
+   * @returns {Number} Returns number of created columns
    */
   Handsontable.DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
     if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
@@ -239,9 +267,10 @@
   };
 
   /**
-   * Removes row from the data array
-   * @param {Number} [index] Optional. Index of the row to be removed. If not provided, the last row will be removed
-   * @param {Number} [amount] Optional. Amount of the rows to be removed. If not provided, one row will be removed
+   * Removes row from the data array.
+   *
+   * @param {Number} [index] Index of the row to be removed. If not provided, the last row will be removed
+   * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
    */
   Handsontable.DataMap.prototype.removeRow = function (index, amount) {
     if (!amount) {
@@ -276,9 +305,10 @@
   };
 
   /**
-   * Removes column from the data array
-   * @param {Number} [index] Optional. Index of the column to be removed. If not provided, the last column will be removed
-   * @param {Number} [amount] Optional. Amount of the columns to be removed. If not provided, one column will be removed
+   * Removes column from the data array.
+   *
+   * @param {Number} [index] Index of the column to be removed. If not provided, the last column will be removed
+   * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
    */
   Handsontable.DataMap.prototype.removeCol = function (index, amount) {
     if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
@@ -310,11 +340,12 @@
   };
 
   /**
-   * Add / removes data from the column
-   * @param {Number} col Index of column in which do you want to do splice.
+   * Add/Removes data from the column.
+   *
+   * @param {Number} col Index of column in which do you want to do splice
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * @returns {Array} Returns removed portion of columns
    */
   Handsontable.DataMap.prototype.spliceCol = function (col, index, amount/*, elements...*/) {
     var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
@@ -336,11 +367,12 @@
   };
 
   /**
-   * Add / removes data from the row
-   * @param {Number} row Index of row in which do you want to do splice.
+   * Add/Removes data from the row.
+   *
+   * @param {Number} row Index of row in which do you want to do splice
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * @returns {Array} Returns removed portion of rows
    */
   Handsontable.DataMap.prototype.spliceRow = function (row, index, amount/*, elements...*/) {
     var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
@@ -361,7 +393,8 @@
   };
 
   /**
-   * Returns single value from the data array
+   * Returns single value from the data array.
+   *
    * @param {Number} row
    * @param {Number} prop
    */
@@ -387,13 +420,13 @@
        *  d3/jQuery getter/setter properties:
        *
        *    {columns: [{
-         *      data: function(row, value){
-         *        if(arguments.length === 1){
-         *          return row.property();
-         *        }
-         *        row.property(value);
-         *      }
-         *    }]}
+       *      data: function(row, value){
+       *        if(arguments.length === 1){
+       *          return row.property();
+       *        }
+       *        row.property(value);
+       *      }
+       *    }]}
        */
       return prop(this.dataSource.slice(
         row,
@@ -408,10 +441,11 @@
   var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable', false);
 
   /**
-   * Returns single value from the data array (intended for clipboard copy to an external application)
+   * Returns single value from the data array (intended for clipboard copy to an external application).
+   *
    * @param {Number} row
    * @param {Number} prop
-   * @return {String}
+   * @returns {String}
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
@@ -421,11 +455,12 @@
   };
 
   /**
-   * Saves single value to the data array
+   * Saves single value to the data array.
+   *
    * @param {Number} row
    * @param {Number} prop
    * @param {String} value
-   * @param {String} [source] Optional. Source of hook runner.
+   * @param {String} [source] Source of hook runner.
    */
   Handsontable.DataMap.prototype.set = function (row, prop, value, source) {
     row = Handsontable.hooks.execute(this.instance, 'modifyRow', row, source || "datamapGet");
@@ -457,6 +492,10 @@
    * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
    * The trick is, the physical row id (stored in settings.data) is not necessary the same
    * as the logical (displayed) row id (e.g. when sorting is applied).
+   *
+   * @param {Number} index
+   * @param {Number} amount
+   * @returns {Number}
    */
   Handsontable.DataMap.prototype.physicalRowsToLogical = function (index, amount) {
     var totalRows = this.instance.countRows();
@@ -477,7 +516,7 @@
   };
 
   /**
-   * Clears the data array
+   * Clears the data array.
    */
   Handsontable.DataMap.prototype.clear = function () {
     for (var r = 0; r < this.instance.countRows(); r++) {
@@ -488,19 +527,21 @@
   };
 
   /**
-   * Returns the data array
-   * @return {Array}
+   * Returns the data array.
+   *
+   * @returns {Array}
    */
   Handsontable.DataMap.prototype.getAll = function () {
     return this.dataSource;
   };
 
   /**
-   * Returns data range as array
-   * @param {Object} start Start selection position
-   * @param {Object} end End selection position
+   * Returns data range as array.
+   *
+   * @param {Object} [start] Start selection position
+   * @param {Object} [end] End selection position
    * @param {Number} destination Destination of datamap.get
-   * @return {Array}
+   * @returns {Array}
    */
   Handsontable.DataMap.prototype.getRange = function (start, end, destination) {
     var r, rlen, c, clen, output = [], row;
@@ -518,20 +559,22 @@
   };
 
   /**
-   * Return data as text (tab separated columns)
-   * @param {Object} start (Optional) Start selection position
-   * @param {Object} end (Optional) End selection position
-   * @return {String}
+   * Return data as text (tab separated columns).
+   *
+   * @param {Object} [start] Start selection position
+   * @param {Object} [end] End selection position
+   * @returns {String}
    */
   Handsontable.DataMap.prototype.getText = function (start, end) {
     return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_RENDERER));
   };
 
   /**
-   * Return data as copyable text (tab separated columns intended for clipboard copy to an external application)
-   * @param {Object} start (Optional) Start selection position
-   * @param {Object} end (Optional) End selection position
-   * @return {String}
+   * Return data as copyable text (tab separated columns intended for clipboard copy to an external application).
+   *
+   * @param {Object} [start] Start selection position
+   * @param {Object} [end] End selection position
+   * @returns {String}
    */
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
     return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
