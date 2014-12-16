@@ -1210,8 +1210,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (typeof settings.cell !== 'undefined') {
       for(i in settings.cell) {
-        var cell = settings.cell[i];
-        instance.setCellMetaObject(cell.row, cell.col, cell);
+        if (settings.cell.hasOwnProperty(i)) {
+          var cell = settings.cell[i];
+          instance.setCellMetaObject(cell.row, cell.col, cell);
+        }
       }
     }
 
