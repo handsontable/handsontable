@@ -455,7 +455,7 @@ describe('WalkontableTable', function () {
       //debugger;
         createDataArray(20, 2);
 
-      $container.width(301).height(201);
+      $container.width(500).height(400);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -469,16 +469,15 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      var wtHider = $table.parents('.wtHider');
-      expect(wtHider.outerWidth()).toBe($table[0].clientWidth);
-      expect(wtHider.find('col:eq(2)').width() - wtHider.find('col:eq(1)').width()).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
+      expect($table.outerWidth()).toBe($container[0].clientWidth - 1);
+      expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
     });
 
     it("should stretch all visible columns when stretchH equals 'all' and window is resized", function () {
       //debugger;
       createDataArray(20, 2);
 
-      $container.width(301).height(201);
+      $container.width(500).height(400);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -492,18 +491,17 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      var wtHider = $table.parents('.wtHider');
-      var initialTableWidth = wtHider.outerWidth();
+      var initialTableWidth = $table.outerWidth();
       expect(initialTableWidth).toBe($table[0].clientWidth);
 
-      $container.width(401).height(201);
+      $container.width(600).height(500);
 
       var evt = document.createEvent('CustomEvent');  // MUST be 'CustomEvent'
       evt.initCustomEvent('resize', false, false, null);
       window.dispatchEvent(evt);
 
       runs(function() {
-        var currentTableWidth = wtHider.outerWidth();
+        var currentTableWidth = $table.outerWidth();
         expect(currentTableWidth).toBe($table[0].clientWidth);
         expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
       });
