@@ -469,7 +469,7 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      expect($table.outerWidth()).toBe($container[0].clientWidth - 1);
+      expect($table.outerWidth()).toBeAroundValue($container[0].clientWidth);
       expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
     });
 
@@ -492,7 +492,7 @@ describe('WalkontableTable', function () {
       wt.draw();
 
       var initialTableWidth = $table.outerWidth();
-      expect(initialTableWidth).toBe($table[0].clientWidth);
+      expect(initialTableWidth).toBeAroundValue($table[0].clientWidth);
 
       $container.width(600).height(500);
 
@@ -502,7 +502,7 @@ describe('WalkontableTable', function () {
 
       runs(function() {
         var currentTableWidth = $table.outerWidth();
-        expect(currentTableWidth).toBe($table[0].clientWidth);
+        expect(currentTableWidth).toBeAroundValue($table[0].clientWidth);
         expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
       });
     });
