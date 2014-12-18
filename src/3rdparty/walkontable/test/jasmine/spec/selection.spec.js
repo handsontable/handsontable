@@ -209,6 +209,9 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
+
+    $container.width(300);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -287,12 +290,16 @@ describe('WalkontableSelection', function () {
     wt.selections[0].add(new WalkontableCellCoords(2, 2));
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(wt.wtTable.columnStrategy.countVisible() * 2 + 2 - 4);
+    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsCalculator.countVisibleColumns * 2 + 2 - 4);
 
+    // left side:
+    // -2 -> because one row is partially visible
+
+    // right side:
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 + 2 - 4);
+    expect($table.find('.highlightColumn').length - 2).toEqual(wt.wtViewport.rowsCalculator.visibleCount * 2 + 2 - 4);
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");

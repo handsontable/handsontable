@@ -69,8 +69,11 @@ describe('WalkontableTable', function () {
       }]
     });
     wt.draw();
-    expect($table.find('thead tr:first th').length).toBe(headers.length);
-    expect($table.find('thead tr:first th').text()).toEqual(headers.join(''));
+
+    var visibleHeaders = headers.slice(0, wt.wtTable.getLastRenderedColumn() + 1); // headers for rendered columns only
+
+    expect($table.find('thead tr:first th').length).toBe(visibleHeaders.length);
+    expect($table.find('thead tr:first th').text()).toEqual(visibleHeaders.join(''));
   });
 
   it("should use rowHeaders function to generate row headers", function () {
@@ -145,6 +148,9 @@ describe('WalkontableTable', function () {
   });
 
   it("getCoords should return coords of TD (with row header)", function () {
+
+    $container.width(300);
+
     function plusOne(i) {
       return i + 1;
     }
@@ -203,7 +209,7 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr').length).toBe(7);
   });
 
-  it("should render all columns if width is null", function () {
+  it("should render as much columns as the container width allows, if width is null", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -214,11 +220,16 @@ describe('WalkontableTable', function () {
       }]
     });
     wt.draw();
+    expect($table.find('thead tr:first').children().length).toBe(2);
+    expect($table.find('tbody tr:first').children().length).toBe(2);
+
+    $container.width(200);
+    wt.draw();
     expect($table.find('thead tr:first').children().length).toBe(4);
     expect($table.find('tbody tr:first').children().length).toBe(4);
   });
 
-  it("should render all columns if width is null (with row header)", function () {
+  it("should render as much columns as the container width allows, if width is null (with row header)", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -232,8 +243,13 @@ describe('WalkontableTable', function () {
       }]
     });
     wt.draw();
-    expect($table.find('thead tr:first').children().length).toBe(5);
-    expect($table.find('tbody tr:first').children().length).toBe(5);
+    expect($table.find('thead tr:first').children().length).toBe(2);
+    expect($table.find('tbody tr:first').children().length).toBe(2);
+
+    $container.width(200);
+    wt.draw();
+    expect($table.find('thead tr:first').children().length).toBe(4);
+    expect($table.find('tbody tr:first').children().length).toBe(4);
   });
 
   it("row header column should have 'rowHeader' class", function () {
@@ -254,6 +270,9 @@ describe('WalkontableTable', function () {
   });
 
   it("should use column width function to get column width", function () {
+
+    $container.width(600);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -277,6 +296,9 @@ describe('WalkontableTable', function () {
   });
 
   it("should use column width array to get column width", function () {
+
+    $container.width(600);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -297,50 +319,55 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(201);
   });
 
-  //it("should use column width integer to get column width", function () {
-  //  var wt = new Walkontable({
-  //    table: $table[0],
-  //    data: getData,
-  //    totalRows: getTotalRows,
-  //    totalColumns: getTotalColumns,
-  //    rowHeaders: [function (row, TH) {
-  //      TH.innerHTML = row + 1;
-  //    }],
-  //    columnHeaders: [function (col, TH) {
-  //      TH.innerHTML = col + 1;
-  //    }],
-  //    columnWidth: 100
-  //  });
-  //  wt.draw();
-  //  expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(100);
-  //  expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
-  //  expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBe(100);
-  //  expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(100);
-  //});
+  it("should use column width integer to get column width", function () {
 
-  //it("should use column width also when there are no rows", function () {
-  //  this.data.length = 0;
-	//
-  //  var wt = new Walkontable({
-  //    table: $table[0],
-  //    data: getData,
-  //    totalRows: getTotalRows,
-  //    totalColumns: 4,
-  //    rowHeaders: [function (row, TH) {
-  //      TH.innerHTML = row + 1;
-  //    }],
-  //    columnHeaders: [function (col, TH) {
-  //      TH.innerHTML = col + 1;
-  //    }],
-  //    columnWidth: 100
-  //  });
-  //  wt.draw();
-  //  //start from eq(1) because eq(0) is corner header
-  //  expect($table.find('thead tr:first th:eq(1)').outerWidth()).toBe(100);
-  //  expect($table.find('thead tr:first th:eq(2)').outerWidth()).toBe(100);
-  //  expect($table.find('thead tr:first th:eq(3)').outerWidth()).toBe(100);
-  //  expect($table.find('thead tr:first th:eq(4)').outerWidth()).toBe(100);
-  //});
+    $container.width(600);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      columnWidth: 100
+    });
+    wt.draw();
+    expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(100);
+    expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
+    expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBe(100);
+    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(100);
+  });
+
+  it("should use column width also when there are no rows", function () {
+    this.data.length = 0;
+
+    $container.width(600);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: 4,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      columnWidth: 100
+    });
+    wt.draw();
+    //start from eq(1) because eq(0) is corner header
+    expect($table.find('thead tr:first th:eq(1)').outerWidth()).toBe(100);
+    expect($table.find('thead tr:first th:eq(2)').outerWidth()).toBe(100);
+    expect($table.find('thead tr:first th:eq(3)').outerWidth()).toBe(100);
+    expect($table.find('thead tr:first th:eq(4)').outerWidth()).toBe(100);
+  });
 
   it("should render a cell that is outside of the viewport horizontally", function () {
     var wt = new Walkontable({
@@ -571,8 +598,8 @@ describe('WalkontableTable', function () {
       wt.draw();
 
       var wtHider = $table.parents('.wtHider');
-      expect(wtHider.width()).toBeGreaterThan(getTableWidth($table));
-      expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width());
+      expect($table.width()).toBeLessThan($container.width());
+      expect($table.find('col:eq(1)').width()).toBe($table.find('col:eq(2)').width());
     });
 
   });

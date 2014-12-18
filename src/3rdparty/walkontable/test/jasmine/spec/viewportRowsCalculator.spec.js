@@ -35,38 +35,38 @@ describe('WalkontableViewportRowsCalculator', function () {
 
   it("should return number of rendered rows", function () {
     var calc = new WalkontableViewportRowsCalculator(100, 50, 1000, allRows20);
-    expect(calc.countRendered).toBe(6);
-    expect(calc.countVisible).toBe(4);
+    expect(calc.renderedCount).toBe(6);
+    expect(calc.visibleCount).toBe(4);
   });
 
   it("should render all rows if their size is smaller than viewport", function () {
     var calc = new WalkontableViewportRowsCalculator(200, 0, 8, allRows20);
     expect(calc.renderStartRow).toBe(0);
     expect(calc.renderEndRow).toBe(7);
-    expect(calc.countRendered).toBe(8);
+    expect(calc.renderedCount).toBe(8);
     expect(calc.visibleStartRow).toBe(0);
     expect(calc.visibleEndRow).toBe(7);
-    expect(calc.countVisible).toBe(8);
+    expect(calc.visibleCount).toBe(8);
   });
 
   it("should render all rows if their size is exactly the viewport", function () {
     var calc = new WalkontableViewportRowsCalculator(200, 0, 10, allRows20);
     expect(calc.renderStartRow).toBe(0);
     expect(calc.renderEndRow).toBe(9);
-    expect(calc.countRendered).toBe(10);
+    expect(calc.renderedCount).toBe(10);
     expect(calc.visibleStartRow).toBe(0);
     expect(calc.visibleEndRow).toBe(9);
-    expect(calc.countVisible).toBe(10);
+    expect(calc.visibleCount).toBe(10);
   });
 
   it("should render all rows if their size is slightly larger than viewport", function () {
     var calc = new WalkontableViewportRowsCalculator(199, 0, 10, allRows20);
     expect(calc.renderStartRow).toBe(0);
     expect(calc.renderEndRow).toBe(9);
-    expect(calc.countRendered).toBe(10);
+    expect(calc.renderedCount).toBe(10);
     expect(calc.visibleStartRow).toBe(0);
     expect(calc.visibleEndRow).toBe(8);
-    expect(calc.countVisible).toBe(9);
+    expect(calc.visibleCount).toBe(9);
   });
 
   it("should set null values if total rows is 0", function () {
@@ -74,7 +74,7 @@ describe('WalkontableViewportRowsCalculator', function () {
     expect(calc.renderStartRow).toBe(null);
     expect(calc.renderStartPosition).toBe(null);
     expect(calc.renderEndRow).toBe(null);
-    expect(calc.countRendered).toBe(0);
+    expect(calc.renderedCount).toBe(0);
     expect(calc.visibleStartRow).toBe(null);
     expect(calc.visibleEndRow).toBe(null);
   });
@@ -87,7 +87,7 @@ describe('WalkontableViewportRowsCalculator', function () {
     expect(calc.renderStartRow).toBe(null);
     expect(calc.renderStartPosition).toBe(null);
     expect(calc.renderEndRow).toBe(null);
-    expect(calc.countRendered).toBe(0);
+    expect(calc.renderedCount).toBe(0);
     expect(calc.visibleStartRow).toBe(null);
     expect(calc.visibleEndRow).toBe(null);
   });
@@ -97,7 +97,7 @@ describe('WalkontableViewportRowsCalculator', function () {
     expect(calc.renderStartRow).toBe(10);
     expect(calc.renderStartPosition).toBe(200);
     expect(calc.renderEndRow).toBe(19);
-    expect(calc.countRendered).toBe(10);
+    expect(calc.renderedCount).toBe(10);
     expect(calc.visibleStartRow).toBe(11);
     expect(calc.visibleEndRow).toBe(19);
   });

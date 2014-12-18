@@ -4,7 +4,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   this.renderEndColumn = null;
   this.renderStartPosition = null;
   this.visibleStartColumn = null;
-  this.visibleEndColumn = null;
+  this.visibleEndColumn = null; // the last FULLY visible column
   this.countRenderedColumns = 0;
   this.countVisibleColumns = 0;
   this.stretchAllRatio = 0;
@@ -53,7 +53,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
       this.renderStartColumn = i;
     }
 
-    if (sum >= scrollOffset && sum + columnWidth <=scrollOffset + width) {
+    if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + width) {
       if (this.visibleStartColumn == null) {
         this.visibleStartColumn = i;
       }

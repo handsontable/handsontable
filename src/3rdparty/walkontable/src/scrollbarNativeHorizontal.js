@@ -1,7 +1,6 @@
 function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
-  this.cellSize = 50;
   this.offset = 0;
   this.init();
   this.clone = this.makeClone('left');
@@ -68,7 +67,7 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while(from < length) {
-    sum +=this.instance.wtTable.getStretchedColumnWidth(from);
+    sum += this.instance.wtTable.getStretchedColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
     from++;
   }
   return sum;
@@ -96,8 +95,20 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * Scrolls horizontally to a column at the left edge of the viewport
  * @param sourceCol {Number}
  */
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol) {
-  this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
+WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+  //this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
+
+  var newX = this.getTableParentOffset();
+
+  if (beyondRendered) {
+    newX += this.sumCellSizes(0, sourceCol + 1);
+    newX -= this.instance.wtViewport.getViewportWidth()
+  }
+  else {
+    newX += this.sumCellSizes(0, sourceCol);
+  }
+
+  this.setScrollPosition(newX);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {

@@ -390,11 +390,11 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
   else if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     return this.instance.getSetting('fixedRowsTop');
   }
-  return this.instance.wtViewport.rowsPreCalculator.countRendered;
+  return this.instance.wtViewport.rowsPreCalculator.renderedCount;
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.instance.wtViewport.rowsCalculator.countVisible;
+  return this.instance.wtViewport.rowsCalculator.visibleCount;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {
@@ -428,7 +428,13 @@ WalkontableTable.prototype.allColumnsInViewport = function () {
 
 
 WalkontableTable.prototype.getColumnWidth = function (sourceColumn) {
-  var width = this.instance.wtSettings.settings.columnWidth(sourceColumn);
+  var width = this.instance.wtSettings.settings.columnWidth;
+  if(typeof width === 'function') {
+    width = width(sourceColumn);
+  } else if(typeof width === 'object') {
+    width = width[sourceColumn];
+  }
+
   var oversizedWidth = this.instance.wtViewport.oversizedCols[sourceColumn];
   if (oversizedWidth !== void 0) {
     width = width ? Math.max(width, oversizedWidth) : oversizedWidth;
@@ -438,7 +444,7 @@ WalkontableTable.prototype.getColumnWidth = function (sourceColumn) {
 
 WalkontableTable.prototype.getStretchedColumnWidth = function (sourceColumn) {
   var allColumns = this.instance.getSetting('totalColumns');
-  var width = this.getColumnWidth(sourceColumn);
+  var width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth;
 
   if (this.instance.wtViewport.columnsPreCalculator.stretchAllRatio != 0) {
     width = width * this.instance.wtViewport.columnsPreCalculator.stretchAllRatio;
