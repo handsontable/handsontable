@@ -86,7 +86,8 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) + 1 + 'px'; // + 1 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
   if (typeof this.instance.wtViewport.rowsCalculator.renderStartPosition === 'number') {
     this.fixed.style.top = this.instance.wtViewport.rowsCalculator.renderStartPosition + 'px';
   }
