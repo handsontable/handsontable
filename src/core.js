@@ -1846,7 +1846,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.countVisibleCols = function () {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : - 1;
-    //return instance.view.wt.drawn ? instance.view.wt.wtTable.columnStrategy.countVisible() : -1;
   };
 
   /**

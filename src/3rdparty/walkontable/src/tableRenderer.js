@@ -172,36 +172,35 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
   var TD, sourceColIndex;
 
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-      sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
-      if (visibleColIndex === 0) {
-        TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
-      }
-      else {
-        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
-      }
-
-      //If the number of headers has been reduced, we need to replace excess TH with TD
-      if (TD.nodeName == 'TH') {
-        TD = this.utils.replaceThWithTd(TD, TR);
-      }
-
-      if (!Handsontable.Dom.hasClass(TD, 'hide')) {
-        TD.className = '';
-      }
-
-      TD.removeAttribute('style');
-
-      this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
-
+    sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
+    if (visibleColIndex === 0) {
+      TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
+    }
+    else {
+      TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
     }
 
+    //If the number of headers has been reduced, we need to replace excess TH with TD
+    if (TD.nodeName == 'TH') {
+      TD = this.utils.replaceThWithTd(TD, TR);
+    }
+
+    if (!Handsontable.Dom.hasClass(TD, 'hide')) {
+      TD.className = '';
+    }
+
+    TD.removeAttribute('style');
+
+    this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
+
+  }
 
   return TD;
 };
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   var width;
-  this.instance.wtViewport.columnsPreCalculator.doStretch(this.instance.wtViewport.getViewportWidth());
+  this.instance.wtViewport.columnsPreCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
 
   for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
     width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
@@ -383,35 +382,6 @@ WalkontableTableRenderer.prototype.removeRedundantColumns = function (renderedCo
     this.wtTable.tbodyChildrenLength--;
   }
 };
-
-//WalkontableTableRenderer.prototype.refreshStretching = function () {
-//  if (this.wtTable.isWorkingOnClone()) {
-//    return;
-//  }
-//
-//  var instance = this.instance
-//    , stretchH = instance.getSetting('stretchH')
-//    , totalColumns = instance.getSetting('totalColumns');
-//
-//  var containerWidthFn = function () {
-//    var viewportWidth = that.instance.wtViewport.getViewportWidth();
-//    return viewportWidth;
-//  };
-//
-//  var that = this;
-//
-//  var columnWidthFn = function (i) {
-//    var source_c = that.columnFilter.renderedToSource(i);
-//    if (source_c < totalColumns) {
-//      return instance.getSetting('columnWidth', source_c);
-//    }
-//  };
-//
-//
-//  //this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
-//
-//  // TODO NEW STRETCH-H
-//};
 
 /*
  Helper functions, which does not have any side effects

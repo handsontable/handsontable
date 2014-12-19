@@ -54,14 +54,11 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
 };
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
-  //this.readSettings(); //read window scroll position
-
   this.instance.getSetting('onScrollHorizontally');
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
   return this.instance.wtViewport.columnsPreCalculator.renderEndColumn;
-  //return this.instance.wtTable.getLastVisibleColumn();
 };
 
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -96,8 +93,6 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param sourceCol {Number}
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
-  //this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
-
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {

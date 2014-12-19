@@ -17,12 +17,10 @@ WalkontableColumnFilter.prototype.unOffsetted = function (n) {
 };
 
 WalkontableColumnFilter.prototype.renderedToSource = function (n) {
-  //return n;
   return this.offsetted(n);
 };
 
 WalkontableColumnFilter.prototype.sourceToRendered = function (n) {
-  //return n;
   return this.unOffsetted(n);
 };
 

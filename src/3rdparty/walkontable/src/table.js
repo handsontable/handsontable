@@ -84,10 +84,6 @@ function WalkontableTable(instance, table) {
   this.columnFilter = null;
 }
 
-//WalkontableTable.prototype.getColumnStrategy = function () {
-//  return this.isWorkingOnClone() ? this.instance.cloneSource.wtTable.columnStrategy : this.columnStrategy;
-//};
-
 WalkontableTable.prototype.isWorkingOnClone = function () {
   return !!this.instance.cloneSource;
 };
@@ -368,7 +364,7 @@ WalkontableTable.prototype.isLastRowFullyVisible = function () {
 };
 
 WalkontableTable.prototype.isLastColumnFullyVisible = function () {
-  //return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.getColumnStrategy().isLastIncomplete());
+  return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
 };
 
 WalkontableTable.prototype.getRenderedColumnsCount = function () {

@@ -22,7 +22,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
 
   var ratio = 1;
 
-  var setColumnWidth = function (i) {
+  var getColumnWidth = function (i) {
     ratio = ratio || 1;
     var width = columnWidthFn(i);
     if (width === undefined) {
@@ -31,9 +31,9 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     return width;
   };
 
-  this.doStretch = function (width) {
+  this.refreshStretching = function (width) {
     for(i = 0; i < totalColumns; i++) {
-      columnWidth = setColumnWidth(i);
+      columnWidth = getColumnWidth(i);
       sumAll +=columnWidth;
     }
 
@@ -41,13 +41,13 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     if (this.stretch === 'all' && remainingSize < 0){
       this.stretchAllRatio = width / sumAll;
     } else if (this.stretch === 'last' && width !== Infinity) {
-      this.stretchLastWidth = -remainingSize + setColumnWidth(totalColumns-1);
+      this.stretchLastWidth = -remainingSize + getColumnWidth(totalColumns-1);
     }
   };
 
 
   for (i = 0; i< totalColumns; i++) {
-    columnWidth = setColumnWidth(i);
+    columnWidth = getColumnWidth(i);
 
     if (sum <= scrollOffset){
       this.renderStartColumn = i;
@@ -68,14 +68,6 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
       break;
     }
   }
-
-
-
-
-
-
-
-
 
   if (this.renderEndColumn == totalColumns - 1 && needReverse) {
     this.renderStartColumn = this.renderEndColumn;

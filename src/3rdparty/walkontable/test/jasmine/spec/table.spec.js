@@ -452,7 +452,6 @@ describe('WalkontableTable', function () {
 
   describe("stretchH", function () {
     it("should stretch all visible columns when stretchH equals 'all'", function () {
-      //debugger;
         createDataArray(20, 2);
 
       $container.width(500).height(400);
@@ -474,7 +473,6 @@ describe('WalkontableTable', function () {
     });
 
     it("should stretch all visible columns when stretchH equals 'all' and window is resized", function () {
-      //debugger;
       createDataArray(20, 2);
 
       $container.width(500).height(400);
