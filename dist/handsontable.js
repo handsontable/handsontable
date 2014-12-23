@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 08 2014 10:47:06 GMT+0100 (CET)
+ * Date: Tue Dec 23 2014 10:24:52 GMT-0600 (Central Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -10235,7 +10235,7 @@ Handsontable.hooks.register('afterColumnSort');
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+	this.view.wt.wtScrollbars.vertical.fixedContainer.parentElement.style.height = realEntrySize + realSeparatorHeight + "px";
   }
 
   function init() {
