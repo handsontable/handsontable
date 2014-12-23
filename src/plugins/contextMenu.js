@@ -1107,7 +1107,7 @@
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+	this.view.wt.wtScrollbars.vertical.fixedContainer.parentElement.style.height = realEntrySize + realSeparatorHeight + "px";
   }
 
   function init() {
