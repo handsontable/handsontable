@@ -369,7 +369,7 @@ var jsonpatch;
             var oldVal = mirror[key];
             if (obj.hasOwnProperty(key)) {
                 var newVal = obj[key];
-                if (oldVal instanceof Object) {
+                if (oldVal instanceof Object && newVal instanceof Object) {
                     _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
                 } else {
                     if (oldVal != newVal) {
