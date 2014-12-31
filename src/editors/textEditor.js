@@ -86,7 +86,7 @@
         event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
         break;
     }
-    
+
     that.autoResize.resize(String.fromCharCode(event.keyCode));
   };
 
