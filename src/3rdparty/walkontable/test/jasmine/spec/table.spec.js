@@ -412,7 +412,7 @@ describe('WalkontableTable', function () {
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportRowCalculatorOverride: function(calc) {
-          calc.renderEndRow += 10;
+          calc.endRow += 10;
         }
       });
     wt.draw();
@@ -435,7 +435,7 @@ describe('WalkontableTable', function () {
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportRowCalculatorOverride: function(calc) {
-          calc.renderEndRow += 10;
+          calc.endRow += 10;
         }
       });
     wt.draw();

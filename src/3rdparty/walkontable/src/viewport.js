@@ -258,10 +258,10 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, ol
  */
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (rowsRenderCalculator) {
   if (this.rowsVisibleCalculator) {
-    if (rowsRenderCalculator.visibleStartRow < this.rowsVisibleCalculator.renderStartRow || rowsRenderCalculator.visibleEndRow > this.rowsVisibleCalculator.renderEndRow) {
+    if (rowsRenderCalculator.visibleStartRow < this.rowsVisibleCalculator.startRow || rowsRenderCalculator.visibleEndRow > this.rowsVisibleCalculator.endRow) {
       return false;
     }
-    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.visibleStartRow <= this.rowsVisibleCalculator.renderStartRow || rowsRenderCalculator.visibleEndRow >= this.rowsVisibleCalculator.renderEndRow)) {
+    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.visibleStartRow <= this.rowsVisibleCalculator.startRow || rowsRenderCalculator.visibleEndRow >= this.rowsVisibleCalculator.endRow)) {
       return false;
     }
     else {
@@ -273,10 +273,10 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
 
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (rowsRenderCalculator) {
   if (this.rowsVisibleCalculator) {
-    if (rowsRenderCalculator.renderStartRow < this.rowsVisibleCalculator.renderStartRow || rowsRenderCalculator.renderEndRow > this.rowsVisibleCalculator.renderEndRow) {
+    if (rowsRenderCalculator.startRow < this.rowsVisibleCalculator.startRow || rowsRenderCalculator.endRow > this.rowsVisibleCalculator.endRow) {
       return false;
     }
-    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.renderEndRow <= this.rowsVisibleCalculator.renderStartRow || rowsRenderCalculator.renderEndRow >= this.rowsVisibleCalculator.renderEndRow)) {
+    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.endRow <= this.rowsVisibleCalculator.startRow || rowsRenderCalculator.endRow >= this.rowsVisibleCalculator.endRow)) {
       return false;
     }
     else {

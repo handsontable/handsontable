@@ -65,7 +65,7 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
 };
 
 WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.rowsRenderCalculator.renderEndRow;
+  return this.instance.wtViewport.rowsRenderCalculator.endRow;
 };
 
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -87,8 +87,8 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';// + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
-  if (typeof this.instance.wtViewport.rowsVisibleCalculator.renderStartPosition === 'number') {
-    this.fixed.style.top = this.instance.wtViewport.rowsVisibleCalculator.renderStartPosition + 'px';
+  if (typeof this.instance.wtViewport.rowsVisibleCalculator.startPosition === 'number') {
+    this.fixed.style.top = this.instance.wtViewport.rowsVisibleCalculator.startPosition + 'px';
   }
   else if (total === 0) {
     this.fixed.style.top = '0'; //can happen if there are 0 rows

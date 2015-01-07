@@ -129,14 +129,14 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
     }
-    var renderStartRow;
+    var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
         || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
         || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-      renderStartRow = 0;
+      startRow = 0;
     }
     else {
-      renderStartRow = this.instance.wtViewport.rowsRenderCalculator.renderStartRow;
+      startRow = this.instance.wtViewport.rowsRenderCalculator.startRow;
     }
 
 
@@ -150,7 +150,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
 
     this.rowFilter = new WalkontableRowFilter(
-      renderStartRow,
+      startRow,
       this.instance.getSetting('totalRows'),
       this.instance.getSetting('columnHeaders').length
     );
@@ -302,7 +302,7 @@ WalkontableTable.prototype.getTrForRow = function (row) {
 };
 
 WalkontableTable.prototype.getFirstRenderedRow = function () {
-  return this.instance.wtViewport.rowsRenderCalculator.renderStartRow;
+  return this.instance.wtViewport.rowsRenderCalculator.startRow;
 };
 
 WalkontableTable.prototype.getFirstVisibleRow = function () {
@@ -323,7 +323,7 @@ WalkontableTable.prototype.getFirstVisibleColumn = function () {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getLastRenderedRow = function () {
-  return this.instance.wtViewport.rowsRenderCalculator.renderEndRow;
+  return this.instance.wtViewport.rowsRenderCalculator.endRow;
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
@@ -387,7 +387,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
   else if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     return this.instance.getSetting('fixedRowsTop');
   }
-  return this.instance.wtViewport.rowsRenderCalculator.renderedCount;
+  return this.instance.wtViewport.rowsRenderCalculator.count;
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {

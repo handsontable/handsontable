@@ -6,7 +6,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
   it("should render first 5 columns in unscrolled container", function () {
     var calc = new WalkontableViewportColumnsCalculator(100, 0, 1000, allColumns20);
     expect(calc.renderStartColumn).toBe(0);
-    expect(calc.renderStartPosition).toBe(0);
+    expect(calc.startPosition).toBe(0);
     expect(calc.renderEndColumn).toBe(4);
     expect(calc.visibleStartColumn).toBe(0);
     expect(calc.visibleEndColumn).toBe(4);
@@ -15,7 +15,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
   it("should render 6 columns, starting from 3 in container scrolled to half of fourth column", function () {
     var calc = new WalkontableViewportColumnsCalculator(100, 70, 1000, allColumns20);
     expect(calc.renderStartColumn).toBe(3);
-    expect(calc.renderStartPosition).toBe(60);
+    expect(calc.startPosition).toBe(60);
     expect(calc.renderEndColumn).toBe(8);
     expect(calc.visibleStartColumn).toBe(4);
     expect(calc.visibleEndColumn).toBe(7);
@@ -27,7 +27,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
       calc.renderEndColumn += 2;
     });
     expect(calc.renderStartColumn).toBe(1);
-    expect(calc.renderStartPosition).toBe(20);
+    expect(calc.startPosition).toBe(20);
     expect(calc.renderEndColumn).toBe(10);
     expect(calc.visibleStartColumn).toBe(4);
     expect(calc.visibleEndColumn).toBe(7);
@@ -72,7 +72,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
   it("should set null values if total columns is 0", function () {
     var calc = new WalkontableViewportColumnsCalculator(200, 0, 0, allColumns20);
     expect(calc.renderStartColumn).toBe(null);
-    expect(calc.renderStartPosition).toBe(null);
+    expect(calc.startPosition).toBe(null);
     expect(calc.renderEndColumn).toBe(null);
     expect(calc.countRenderedColumns).toBe(0);
     expect(calc.visibleStartColumn).toBe(null);
@@ -85,7 +85,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
       myCalc.renderEndColumn = 0;
     });
     expect(calc.renderStartColumn).toBe(null);
-    expect(calc.renderStartPosition).toBe(null);
+    expect(calc.startPosition).toBe(null);
     expect(calc.renderEndColumn).toBe(null);
     expect(calc.countRenderedColumns).toBe(0);
     expect(calc.visibleStartColumn).toBe(null);
@@ -95,7 +95,7 @@ describe('WalkontableViewportColumnsCalculator', function () {
   it("should scroll backwards if total columns is reached", function () {
     var calc = new WalkontableViewportColumnsCalculator(190, 350, 20, allColumns20);
     expect(calc.renderStartColumn).toBe(10);
-    expect(calc.renderStartPosition).toBe(200);
+    expect(calc.startPosition).toBe(200);
     expect(calc.renderEndColumn).toBe(19);
     expect(calc.countRenderedColumns).toBe(10);
     expect(calc.visibleStartColumn).toBe(11);

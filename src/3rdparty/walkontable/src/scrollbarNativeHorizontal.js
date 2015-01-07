@@ -82,8 +82,8 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 
   this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
 
-  if (typeof this.instance.wtViewport.columnsVisibleCalculator.renderStartPosition === 'number'){
-    this.fixed.style.left = this.instance.wtViewport.columnsVisibleCalculator.renderStartPosition + 'px';
+  if (typeof this.instance.wtViewport.columnsVisibleCalculator.startPosition === 'number'){
+    this.fixed.style.left = this.instance.wtViewport.columnsVisibleCalculator.startPosition + 'px';
   }
   else if (total === 0) {
     this.fixed.style.left = '0';
