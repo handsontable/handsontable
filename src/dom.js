@@ -226,27 +226,37 @@ Handsontable.Dom.isVisible = function (elem) {
 };
 
 /**
- * Returns elements top and left offset relative to the document. In our usage case compatible with jQuery but 2x faster
+ * Returns elements top and left offset relative to the document. Function is not compatible with jQuery offset.
+ *
  * @param {HTMLElement} elem
- * @return {Object}
+ * @return {Object} Returns object with `top` and `left` props
  */
 Handsontable.Dom.offset = function (elem) {
+  var offsetLeft,
+    offsetTop,
+    lastElem,
+    docElem,
+    box;
+
+  docElem = document.documentElement;
+
   if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
-    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also Handsontable.Dom.outerHeight)
-    //http://jsperf.com/offset-vs-getboundingclientrect/8
-    var box = elem.getBoundingClientRect();
+    // fixes problem with Firefox ignoring <caption> in TABLE offset (see also Handsontable.Dom.outerHeight)
+    // http://jsperf.com/offset-vs-getboundingclientrect/8
+    box = elem.getBoundingClientRect();
+
     return {
-      top: box.top + (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0),
-      left: box.left + (window.pageXOffset || document.documentElement.scrollLeft) - (document.documentElement.clientLeft || 0)
+      top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
+      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
     };
   }
-
-  var offsetLeft = elem.offsetLeft
-    , offsetTop = elem.offsetTop
-    , lastElem = elem;
+  offsetLeft = elem.offsetLeft;
+  offsetTop = elem.offsetTop;
+  lastElem = elem;
 
   while (elem = elem.offsetParent) {
-    if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
+    // from my observation, document.body always has scrollLeft/scrollTop == 0
+    if (elem === document.body) {
       break;
     }
     offsetLeft += elem.offsetLeft;
@@ -254,10 +264,11 @@ Handsontable.Dom.offset = function (elem) {
     lastElem = elem;
   }
 
-  if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+  //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+  if (lastElem && lastElem.style.position === 'fixed') {
     //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
-    offsetLeft += window.pageXOffset || document.documentElement.scrollLeft;
-    offsetTop += window.pageYOffset || document.documentElement.scrollTop;
+    offsetLeft += window.pageXOffset || docElem.scrollLeft;
+    offsetTop += window.pageYOffset || docElem.scrollTop;
   }
 
   return {
