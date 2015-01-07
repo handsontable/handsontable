@@ -27,6 +27,10 @@
   top: 0;
 }
 
+.handsontable .wtHider {
+  width: 0;
+}
+
 .handsontable table,
 .handsontable tbody,
 .handsontable thead,

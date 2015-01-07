@@ -159,7 +159,7 @@ describe('WalkontableScroll', function () {
       var height = $container[0].clientHeight;
       var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-      expect(wt.getViewport()).toEqual([0, 0, visibleRowCount - 1, 2]);
+      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge", function () {
@@ -176,11 +176,11 @@ describe('WalkontableScroll', function () {
       var height = $container[0].clientHeight;
       var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
+      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
 
 
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
-      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
+      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 1]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge (with row header)", function () {
@@ -201,7 +201,7 @@ describe('WalkontableScroll', function () {
       var visibleRowCount = Math.floor(height/23);
 
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
+      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
     });
@@ -232,7 +232,7 @@ describe('WalkontableScroll', function () {
       wt.draw();
 
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([5, 0, 12, 2]);
+      expect(wt.getViewport()).toEqual([5, 0, 12, 1]);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {
@@ -406,7 +406,7 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
     });
@@ -423,7 +423,7 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
 
@@ -448,15 +448,15 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(6);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(5);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(6);//nothing changed
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(5);//nothing changed
 
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
@@ -474,7 +474,7 @@ describe('WalkontableScroll', function () {
       });
       wt.draw();
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
@@ -499,11 +499,11 @@ describe('WalkontableScroll', function () {
       });
 
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(0);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
+      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(2);
     });
 
     xit("should scroll to a very wide column that is after viewport", function () {

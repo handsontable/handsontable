@@ -52,7 +52,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(4); //2 for autoColumnSize, 1 for getColWidth and 1 for actual cell render
+    expect(count).toEqual(13); //changed for the dynamic column loading feature
   });
 
   it('should call renderer twice for each cell (auto column width)', function () {
@@ -78,6 +78,6 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(40); //16 in main table and 16 in autocellsize and 8 in getColWidth
+    expect(count).toEqual(76); //changed for the dynamic column loading feature
   });
 });

@@ -334,7 +334,7 @@ describe('Core_view', function () {
       width: 107
     });
 
-    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    expect(this.$container.width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
   it('should allow width to be a function', function () {
@@ -346,7 +346,7 @@ describe('Core_view', function () {
       }
     });
 
-    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    expect(this.$container.width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
   it("should fire beforeRender event after table has been scrolled", function () {

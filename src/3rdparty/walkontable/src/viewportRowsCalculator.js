@@ -7,10 +7,10 @@
  *   this.renderStartRow - index of the first rendered row (can be overwritten using overrideFn)
  *   this.renderStartPosition - position of the first rendered row (in px)
  *   this.renderEndRow - index of the last rendered row (can be overwritten using overrideFn)
- *   this.countRendered - number of rendered rows
+ *   this.renderedCount - number of rendered rows
  *   this.visibleStartRow - index of the first fully visible row
  *   this.visibleEndRow - index of the last fully visible row
- *   this.countRendered - number of visible rows
+ *   this.renderedCount - number of visible rows
  *
  * @param height - height of the viewport
  * @param scrollOffset - current vertical scroll position of the viewport
@@ -24,10 +24,10 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   this.renderStartRow = null;
   this.renderStartPosition = null;
   this.renderEndRow = null;
-  this.countRendered = 0;
+  this.renderedCount = 0;
   this.visibleStartRow = null;
-  this.visibleEndRow = null;
-  this.countVisible = 0;
+  this.visibleEndRow = null; // the last FULLY visible row
+  this.visibleCount = 0;
   var sum = 0;
   var rowHeight;
   var needReverse = true;
@@ -84,9 +84,9 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   }
 
   if (this.renderStartRow != null) {
-    this.countRendered = this.renderEndRow - this.renderStartRow + 1;
+    this.renderedCount = this.renderEndRow - this.renderStartRow + 1;
   }
   if (this.visibleStartRow != null) {
-    this.countVisible = this.visibleEndRow - this.visibleStartRow + 1;
+    this.visibleCount = this.visibleEndRow - this.visibleStartRow + 1;
   }
 };

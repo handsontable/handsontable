@@ -25,6 +25,11 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       return;
     }
 
+
+
+    that.vertical.readSettings();
+    that.horizontal.readSettings();
+    that.instance.draw(true);
     that.vertical.onScroll();
     that.horizontal.onScroll();
   };

@@ -1,6 +1,7 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
   this.oversizedRows = [];
+  this.oversizedCols = [];
 
   var that = this;
 
@@ -153,10 +154,9 @@ WalkontableViewport.prototype.getViewportWidth = function () {
  */
 WalkontableViewport.prototype.createRowsCalculator = function () {
   this.rowHeaderWidth = NaN;
-  this.columnHeaderHeight = NaN;
 
   var height;
-  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.wtSettings.settings.renderAllRows) {
+  if (this.instance.wtSettings.settings.renderAllRows) {
     height = Infinity;
   }
   else {
@@ -180,19 +180,43 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
   );
 };
 
+WalkontableViewport.prototype.createColumnsCalculator = function () {
+  this.columnHeaderHeight = NaN;
+
+  var width = this.getViewportWidth();
+
+  var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  if (pos < 0) {
+    pos = 0;
+  }
+
+  var that = this;
+  return new WalkontableViewportColumnsCalculator(
+    width,
+    pos,
+    this.instance.getSetting('totalColumns'),
+    function (sourceCol) {
+      return that.instance.wtTable.getColumnWidth(sourceCol);
+    },
+    this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
+    this.instance.getSetting('stretchH')
+  )
+};
+
+
 /**
  * Creates rowsPreCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
  */
 WalkontableViewport.prototype.createPreCalculators = function () {
   this.rowsPreCalculator = this.createRowsCalculator();
-  //TODO this.colsPreCalculator = this.createColsCalculator();
+  this.columnsPreCalculator = this.createColumnsCalculator();
 };
 
 /**
  * Creates rowsCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
  * @param oldRowCalculator {WalkontableViewportRowsCalculator} If given, only visibleStartRow, visibleEndRow, visibleCellCount will be updated in oldRowCalculator object. This prevents
  */
-WalkontableViewport.prototype.createCalculators = function (oldRowCalculator) {
+WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, oldColumnsCalculator) {
   if(oldRowCalculator) {
     var tmp = this.createRowsCalculator();
     this.rowsCalculator = oldRowCalculator;
@@ -203,7 +227,17 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator) {
   else {
     this.rowsCalculator = this.createRowsCalculator();
   }
-  //TODO repeat the above for colsCalculator
+
+  if (oldColumnsCalculator) {
+    var cTmp = this.createColumnsCalculator();
+    this.columnsCalculator = oldColumnsCalculator;
+    this.columnsCalculator.visibleStartColumn = cTmp.visibleStartColumn;
+    this.columnsCalculator.visibleEndColumn = cTmp. visibleEndColumn;
+    this.columnsCalculator.visibleCellCount = cTmp.visibleCellCount;
+  }
+  else {
+    this.columnsCalculator = this.createColumnsCalculator();
+  }
 };
 
 /**
@@ -221,6 +255,30 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
       return false;
     }
     else if (this.rowsPreCalculator.scrollOffset !== this.rowsCalculator.scrollOffset && (this.rowsPreCalculator.visibleStartRow <= this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow >= this.rowsCalculator.renderEndRow)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Returns information whether the current columnsPreCalculator viewport
+ * is contained inside column rendered in previous draw (cached in columnsCalculator)
+ *
+ * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
+ * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
+ *
+ * @returns {boolean}
+ */
+WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function () {
+  if (this.columnsCalculator) {
+    if (this.columnsPreCalculator.visibleStartColumn < this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn > this.columnsCalculator.renderEndColumn) {
+      return false;
+    }
+    else if (this.columnsPreCalculator.scrollOffset !== this.columnsCalculator.scrollOffset && (this.columnsPreCalculator.visibleStartColumn <= this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn >= this.columnsCalculator.renderEndColumn)) {
       return false;
     }
     else {

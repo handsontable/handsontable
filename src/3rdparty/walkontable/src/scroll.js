@@ -27,10 +27,30 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     if (coords.col >= this.instance.getSetting('fixedColumnsLeft')) {
       this.scrollToRenderedCell(TD);
     }
-  }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
-    this.instance.wtScrollbars.vertical.scrollTo(coords.row, true);
-  } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
-    this.instance.wtScrollbars.vertical.scrollTo(coords.row);
+  } else {
+    var verticalScrollParams = [],
+        horizontalScrollParams = [];
+
+    if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
+      verticalScrollParams[0] = coords.row;
+      verticalScrollParams[1] = true;
+    } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
+      verticalScrollParams[0] = coords.row;
+    }
+
+    if (coords.col >= this.instance.wtTable.getLastVisibleColumn()) {
+      horizontalScrollParams[0] = coords.col;
+      horizontalScrollParams[1] = true;
+    } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft')){
+      horizontalScrollParams[0] = coords.col;
+    }
+
+    if(verticalScrollParams.length != 0) {
+      this.instance.wtScrollbars.vertical.scrollTo(verticalScrollParams[0], verticalScrollParams[1]);
+    }
+    if(horizontalScrollParams.length != 0) {
+      this.instance.wtScrollbars.horizontal.scrollTo(horizontalScrollParams[0],horizontalScrollParams[1]);
+    }
   }
 };
 
