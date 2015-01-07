@@ -382,7 +382,7 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr:first td').length).toBe(2);
   });
 
-  it("should not render a cell when selectionsOnly == true", function () {
+  it("should not render a cell when fastDraw == true", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
@@ -400,7 +400,7 @@ describe('WalkontableTable', function () {
     expect(count).toBe(oldCount);
   });
 
-  it("should not ignore selectionsOnly == true when grid was scrolled by amount of rows that doesn't exceed renderRowEnd", function () {
+  it("should not ignore fastDraw == true when grid was scrolled by amount of rows that doesn't exceed renderRowEnd", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],
@@ -423,7 +423,7 @@ describe('WalkontableTable', function () {
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
-  it("should ignore selectionsOnly == true when grid was scrolled by amount of rows that exceeds renderRowEnd", function () {
+  it("should ignore fastDraw == true when grid was scrolled by amount of rows that exceeds renderRowEnd", function () {
     var count = 0
       , wt = new Walkontable({
         table: $table[0],

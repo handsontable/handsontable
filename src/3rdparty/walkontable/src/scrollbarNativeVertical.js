@@ -77,9 +77,9 @@ WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, leng
   return sum;
 };
 
-WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+WalkontableVerticalScrollbarNative.prototype.refresh = function (fastDraw) {
   this.applyToDOM();
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
 //applyToDOM (in future merge it with this.refresh?)

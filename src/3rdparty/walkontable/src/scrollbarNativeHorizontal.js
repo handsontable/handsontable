@@ -41,9 +41,9 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
   this.applyToDOM();
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
