@@ -104,15 +104,13 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
     this.instance.wtViewport.createPreCalculators();
-  }
 
-  if (fastDraw) {
-    if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered() && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
-      fastDraw = false;
+    if (fastDraw) {
+      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered() && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
+        fastDraw = false;
+      }
     }
-  }
 
-  if (!this.isWorkingOnClone()) {
     var oldRowsCalculator = this.instance.wtViewport.rowsVisibleCalculator;
     var oldColumnsCalculator = this.instance.wtViewport.columnsVisibleCalculator;
     this.instance.wtViewport.rowsVisibleCalculator = null; //delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
