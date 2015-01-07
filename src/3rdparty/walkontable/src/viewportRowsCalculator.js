@@ -1,22 +1,20 @@
 /**
- * Viewport calculator constructor. Calculates indexes of rows to render and the indexes of rows that are visible.
+ * Viewport calculator constructor. Calculates indexes of rows to render OR rows that are visible.
  * To redo the calculation, you need to create a new calculator.
  *
  * Object properties:
  *   this.scrollOffset - position of vertical scroll (in px)
- *   this.startRow - index of the first rendered row (can be overwritten using overrideFn)
- *   this.startPosition - position of the first rendered row (in px)
- *   this.endRow - index of the last rendered row (can be overwritten using overrideFn)
- *   this.count - number of rendered rows
- *   this.visibleStartRow - index of the first fully visible row
- *   this.visibleEndRow - index of the last fully visible row
- *   this.count - number of visible rows
+ *   this.startRow - index of the first rendered/visible row (can be overwritten using overrideFn)
+ *   this.startPosition - position of the first rendered/visible row (in px)
+ *   this.endRow - index of the last rendered/visible row (can be overwritten using overrideFn)
+ *   this.count - number of rendered/visible rows
  *
  * @param height - height of the viewport
  * @param scrollOffset - current vertical scroll position of the viewport
  * @param totalRows - total number of rows
  * @param rowHeightFn - function that returns the height of the row at a given index (in px)
  * @param overrideFn - function that changes calculated this.startRow, this.endRow (used by mergeCells.js plugin)
+ * @param onlyFullyVisible {bool} - if TRUE, only startRow and endRow will be indexes of rows that are FULLY in viewport
  * @constructor
  */
 function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible) {
@@ -25,9 +23,6 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   this.startPosition = null;
   this.endRow = null;
   this.count = 0;
-  this.visibleStartRow = null;
-  this.visibleEndRow = null; // the last FULLY visible row
-  this.visibleCount = 0;
   var sum = 0;
   var rowHeight;
   var needReverse = true;
@@ -45,10 +40,6 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
       if (this.startRow == null) {
         this.startRow = i;
       }
-      if (this.visibleStartRow == null) {
-        this.visibleStartRow = i;
-      }
-      this.visibleEndRow = i;
       this.endRow = i;
     }
     startPositions.push(sum);
@@ -61,17 +52,15 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
       break;
     }
   }
+
   //If the rendering has reached the last row and there is still some space available in the viewport, we need to render in reverse in order to fill the whole viewport with rows
   if (this.endRow == totalRows - 1 && needReverse) {
     this.startRow = this.endRow;
-    this.visibleStartRow = this.endRow;
-    this.visibleEndRow = this.endRow;
     while(this.startRow > 0) {
-      this.startRow--;
-      var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow]; //rowHeight is the height of the last row
-      if (viewportSum <= height)
+      var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1]; //rowHeight is the height of the last row
+      if (viewportSum <= height || !onlyFullyVisible)
       {
-        this.visibleStartRow = this.startRow;
+        this.startRow--;
       }
       if (viewportSum >= height)
       {
@@ -92,7 +81,4 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   if (this.startRow != null) {
     this.count = this.endRow - this.startRow + 1;
   }
-  if (this.visibleStartRow != null) {
-    this.visibleCount = this.visibleEndRow - this.visibleStartRow + 1;
-  }
-};
+}

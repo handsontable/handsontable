@@ -221,19 +221,9 @@ WalkontableViewport.prototype.createPreCalculators = function () {
 
 /**
  * Creates rowsVisibleCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
- * @param oldRowCalculator {WalkontableViewportRowsCalculator} If given, only visibleStartRow, visibleEndRow, visibleCellCount will be updated in oldRowCalculator object. This prevents
  */
 WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, oldColumnsCalculator) {
-  if(oldRowCalculator) {
-    var tmp = this.createRowsCalculator();
-    this.rowsVisibleCalculator = oldRowCalculator;
-    this.rowsVisibleCalculator.visibleStartRow = tmp.visibleStartRow;
-    this.rowsVisibleCalculator.visibleEndRow = tmp.visibleEndRow;
-    this.rowsVisibleCalculator.visibleCellCount = tmp.visibleCellCount;
-  }
-  else {
-    this.rowsVisibleCalculator = this.createRowsCalculator();
-  }
+  this.rowsVisibleCalculator = this.createRowsCalculator(true);
 
   if (oldColumnsCalculator) {
     var cTmp = this.createColumnsCalculator();
@@ -256,27 +246,12 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, ol
  *
  * @returns {boolean}
  */
-WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (rowsRenderCalculator) {
+WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (proposedRowsVisibleCalculator) {
   if (this.rowsVisibleCalculator) {
-    if (rowsRenderCalculator.visibleStartRow < this.rowsVisibleCalculator.startRow || rowsRenderCalculator.visibleEndRow > this.rowsVisibleCalculator.endRow) {
+    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow || (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow && proposedRowsVisibleCalculator.startRow > 0)) {
       return false;
     }
-    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.visibleStartRow <= this.rowsVisibleCalculator.startRow || rowsRenderCalculator.visibleEndRow >= this.rowsVisibleCalculator.endRow)) {
-      return false;
-    }
-    else {
-      return true;
-    }
-  }
-  return false;
-};
-
-WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (rowsRenderCalculator) {
-  if (this.rowsVisibleCalculator) {
-    if (rowsRenderCalculator.startRow < this.rowsVisibleCalculator.startRow || rowsRenderCalculator.endRow > this.rowsVisibleCalculator.endRow) {
-      return false;
-    }
-    else if (rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (rowsRenderCalculator.endRow <= this.rowsVisibleCalculator.startRow || rowsRenderCalculator.endRow >= this.rowsVisibleCalculator.endRow)) {
+    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow || (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow && proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
       return false;
     }
     else {

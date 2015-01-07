@@ -106,9 +106,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     var rowsRenderCalculator = this.instance.wtViewport.createRowsCalculator();
     var columnsRenderCalculator = this.instance.wtViewport.createColumnsCalculator();
 
-    var proposedRowsVisibleCalculator = this.instance.wtViewport.createRowsCalculator(true);
-
     if (fastDraw) {
+      var proposedRowsVisibleCalculator = this.instance.wtViewport.createRowsCalculator(true);
       if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
         fastDraw = false;
       }
@@ -306,7 +305,7 @@ WalkontableTable.prototype.getFirstRenderedRow = function () {
 };
 
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  return this.instance.wtViewport.rowsVisibleCalculator.visibleStartRow;
+  return this.instance.wtViewport.rowsVisibleCalculator.startRow;
 };
 
 WalkontableTable.prototype.getFirstRenderedColumn = function () {
@@ -327,7 +326,7 @@ WalkontableTable.prototype.getLastRenderedRow = function () {
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.instance.wtViewport.rowsVisibleCalculator.visibleEndRow;
+  return this.instance.wtViewport.rowsVisibleCalculator.endRow;
 };
 
 WalkontableTable.prototype.getLastRenderedColumn = function () {
@@ -391,7 +390,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
 };
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
-  return this.instance.wtViewport.rowsVisibleCalculator.visibleCount;
+  return this.instance.wtViewport.rowsVisibleCalculator.count;
 };
 
 WalkontableTable.prototype.allRowsInViewport = function () {
