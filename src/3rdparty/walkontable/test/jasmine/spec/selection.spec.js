@@ -300,7 +300,7 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add(new WalkontableCellCoords(2, 2));
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsVisibleCalculator.countVisibleColumns * 2 + 2 - 4);
+    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsVisibleCalculator.count * 2 + 2 - 4);
 
     // left side:
     // -2 -> because one row is partially visible

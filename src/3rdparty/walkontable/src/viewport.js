@@ -189,7 +189,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
  *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
  * @returns {WalkontableViewportRowsCalculator}
  */
-WalkontableViewport.prototype.createColumnsCalculator = function () {
+WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   this.columnHeaderHeight = NaN;
 
   var width = this.getViewportWidth();
@@ -207,39 +207,30 @@ WalkontableViewport.prototype.createColumnsCalculator = function () {
     function (sourceCol) {
       return that.instance.wtTable.getColumnWidth(sourceCol);
     },
-    this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
+    visible ? null : this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
+    visible ? true : false,
     this.instance.getSetting('stretchH')
   )
 };
 
 
 /**
- * Creates rowsRenderCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
+ * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and cols should be rendered)
  */
 WalkontableViewport.prototype.createPreCalculators = function () {
 };
 
 /**
- * Creates rowsVisibleCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
+ * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are the actually visible rows and columns)
  */
-WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, oldColumnsCalculator) {
+WalkontableViewport.prototype.createCalculators = function () {
   this.rowsVisibleCalculator = this.createRowsCalculator(true);
-
-  if (oldColumnsCalculator) {
-    var cTmp = this.createColumnsCalculator();
-    this.columnsVisibleCalculator = oldColumnsCalculator;
-    this.columnsVisibleCalculator.visibleStartColumn = cTmp.visibleStartColumn;
-    this.columnsVisibleCalculator.visibleEndColumn = cTmp. visibleEndColumn;
-    this.columnsVisibleCalculator.visibleCellCount = cTmp.visibleCellCount;
-  }
-  else {
-    this.columnsVisibleCalculator = this.createColumnsCalculator();
-  }
+  this.columnsVisibleCalculator = this.createColumnsCalculator(true);
 };
 
 /**
- * Returns information whether the current rowsRenderCalculator viewport
- * is contained inside rows rendered in previous draw (cached in rowsVisibleCalculator)
+ * Returns information whether proposedRowsVisibleCalculator viewport
+ * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator)
  *
  * Returns TRUE if all proposed visible rows are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible row is not already rendered (meaning: redraw is needed)
@@ -262,20 +253,20 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
 };
 
 /**
- * Returns information whether the current columnsRenderCalculator viewport
- * is contained inside column rendered in previous draw (cached in columnsVisibleCalculator)
+ * Returns information whether proposedColumnsVisibleCalculator viewport
+ * is contained inside column rendered in previous draw (cached in columnsRenderCalculator)
  *
  * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
  *
  * @returns {boolean}
  */
-WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function () {
+WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
   if (this.columnsVisibleCalculator) {
-    if (this.columnsRenderCalculator.visibleStartColumn < this.columnsVisibleCalculator.startColumn || this.columnsRenderCalculator.visibleEndColumn > this.columnsVisibleCalculator.endColumn) {
+    if (proposedColumnsVisibleCalculator.startRow < this.columnsRenderCalculator.startRow || (proposedColumnsVisibleCalculator.startRow === this.columnsRenderCalculator.startRow && proposedColumnsVisibleCalculator.startRow > 0)) {
       return false;
     }
-    else if (this.columnsRenderCalculator.scrollOffset !== this.columnsVisibleCalculator.scrollOffset && (this.columnsRenderCalculator.visibleStartColumn <= this.columnsVisibleCalculator.startColumn || this.columnsRenderCalculator.visibleEndColumn >= this.columnsVisibleCalculator.endColumn)) {
+    else if (proposedColumnsVisibleCalculator.endRow > this.columnsRenderCalculator.endRow || (proposedColumnsVisibleCalculator.endRow === this.columnsRenderCalculator.endRow && proposedColumnsVisibleCalculator.endRow < this.instance.getSetting('totalColumns') - 1)) {
       return false;
     }
     else {

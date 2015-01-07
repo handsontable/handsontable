@@ -108,7 +108,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
     if (fastDraw) {
       var proposedRowsVisibleCalculator = this.instance.wtViewport.createRowsCalculator(true);
-      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
+      var proposedColumnsVisibleCalculator = this.instance.wtViewport.createColumnsCalculator(true);
+      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) ) ) {
         fastDraw = false;
       }
     }
@@ -162,7 +163,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createCalculators(this.instance.wtViewport.rowsRenderCalculator, this.instance.wtViewport.columnsRenderCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      this.instance.wtViewport.createCalculators(); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
@@ -309,15 +310,12 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 };
 
 WalkontableTable.prototype.getFirstRenderedColumn = function () {
-  //TODO change to this.instance.wtViewport.colsCalculator.renderedStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
-  //return 0; //currently all columns are rendered
-  return this.instance.wtViewport.columnsVisibleCalculator.startColumn;
+  return this.instance.wtViewport.columnsRenderCalculator.startColumn;
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
-  //TODO change to this.instance.wtViewport.colsCalculator.visibleStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
-  return this.instance.wtViewport.columnsVisibleCalculator.visibleStartColumn;
+  return this.instance.wtViewport.columnsVisibleCalculator.startColumn;
 };
 
 //returns -1 if no row is visible
@@ -335,8 +333,7 @@ WalkontableTable.prototype.getLastRenderedColumn = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  return this.instance.wtViewport.columnsVisibleCalculator.visibleEndColumn;
-  //TODO change to this.instance.wtViewport.colsCalculator.visibleEndCol when implemented; make sure code calls to getLastVisibleColumn/getLastRenderedColumn correctly
+  return this.instance.wtViewport.columnsVisibleCalculator.endColumn;
 };
 
 WalkontableTable.prototype.isRowBeforeRenderedRows = function (r) {
@@ -413,7 +410,7 @@ WalkontableTable.prototype.getRowHeight = function (sourceRow) {
 
 
 WalkontableTable.prototype.getVisibleColumnsCount = function () {
-  return this.instance.wtViewport.columnsVisibleCalculator.countVisibleColumns;
+  return this.instance.wtViewport.columnsVisibleCalculator.count;
 };
 
 
