@@ -103,16 +103,17 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 WalkontableTable.prototype.draw = function (fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
-    this.instance.wtViewport.createPreCalculators();
+    var rowsRenderCalculator = this.instance.wtViewport.createRowsCalculator();
+    var columnsRenderCalculator = this.instance.wtViewport.createColumnsCalculator();
+
+    var proposedRowsVisibleCalculator = this.instance.wtViewport.createRowsCalculator(true);
 
     if (fastDraw) {
-      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered() && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
+      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered() ) ) {
         fastDraw = false;
       }
     }
 
-    var oldRowsCalculator = this.instance.wtViewport.rowsVisibleCalculator;
-    var oldColumnsCalculator = this.instance.wtViewport.columnsVisibleCalculator;
     this.instance.wtViewport.rowsVisibleCalculator = null; //delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
     this.instance.wtViewport.columnsVisibleCalculator = null;
   }
@@ -122,6 +123,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
     else {
+      this.instance.wtViewport.rowsRenderCalculator = rowsRenderCalculator;
+      this.instance.wtViewport.columnsRenderCalculator = columnsRenderCalculator;
       this.tableOffset = Handsontable.Dom.offset(this.TABLE);
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
@@ -160,7 +163,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createCalculators(oldRowsCalculator, oldColumnsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      this.instance.wtViewport.createCalculators(this.instance.wtViewport.rowsRenderCalculator, this.instance.wtViewport.columnsRenderCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }

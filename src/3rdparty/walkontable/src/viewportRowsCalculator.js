@@ -19,7 +19,7 @@
  * @param overrideFn - function that changes calculated this.renderStartRow, this.renderEndRow (used by mergeCells.js plugin)
  * @constructor
  */
-function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn) {
+function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible) {
   this.scrollOffset = scrollOffset;
   this.renderStartRow = null;
   this.renderStartPosition = null;
@@ -38,18 +38,24 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
     if (rowHeight === undefined) {
       rowHeight = defaultRowHeight;
     }
-    if (sum <= scrollOffset) {
+    if (sum <= scrollOffset && !onlyFullyVisible) {
       this.renderStartRow = i;
     }
     if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + height) {
+      if (this.renderStartRow == null) {
+        this.renderStartRow = i;
+      }
       if (this.visibleStartRow == null) {
         this.visibleStartRow = i;
       }
       this.visibleEndRow = i;
+      this.renderEndRow = i;
     }
     startPositions.push(sum);
     sum += rowHeight;
-    this.renderEndRow = i;
+    if(!onlyFullyVisible) {
+      this.renderEndRow = i;
+    }
     if (sum >= scrollOffset + height) {
       needReverse = false;
       break;
