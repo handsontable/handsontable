@@ -63,7 +63,7 @@ WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.columnsPreCalculator.renderEndColumn;
+  return this.instance.wtViewport.columnsRenderCalculator.renderEndColumn;
 };
 
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -82,13 +82,13 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 
   this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
 
-  if (typeof this.instance.wtViewport.columnsCalculator.renderStartPosition === 'number'){
-    this.fixed.style.left = this.instance.wtViewport.columnsCalculator.renderStartPosition + 'px';
+  if (typeof this.instance.wtViewport.columnsVisibleCalculator.renderStartPosition === 'number'){
+    this.fixed.style.left = this.instance.wtViewport.columnsVisibleCalculator.renderStartPosition + 'px';
   }
   else if (total === 0) {
     this.fixed.style.left = '0';
   } else {
-    throw  new Error('Incorrect value of the columnsCalculator');
+    throw  new Error('Incorrect value of the columnsVisibleCalculator');
   }
   this.fixed.style.right = '';
 };

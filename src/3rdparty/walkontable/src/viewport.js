@@ -149,7 +149,9 @@ WalkontableViewport.prototype.getViewportWidth = function () {
 };
 
 /**
- * Creates rowsPreCalculator (before draw, to qualify rows for rendering) and rowsCalculator (after draw, to measure rows are actually visible)
+ * Creates:
+ *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
+ *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
  * @returns {WalkontableViewportRowsCalculator}
  */
 WalkontableViewport.prototype.createRowsCalculator = function () {
@@ -180,6 +182,12 @@ WalkontableViewport.prototype.createRowsCalculator = function () {
   );
 };
 
+/**
+ * Creates:
+ *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
+ *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
+ * @returns {WalkontableViewportRowsCalculator}
+ */
 WalkontableViewport.prototype.createColumnsCalculator = function () {
   this.columnHeaderHeight = NaN;
 
@@ -205,44 +213,44 @@ WalkontableViewport.prototype.createColumnsCalculator = function () {
 
 
 /**
- * Creates rowsPreCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
+ * Creates rowsRenderCalculator and colsPreCalculator (before draw, to determine what rows and cols should be rendered)
  */
 WalkontableViewport.prototype.createPreCalculators = function () {
-  this.rowsPreCalculator = this.createRowsCalculator();
-  this.columnsPreCalculator = this.createColumnsCalculator();
+  this.rowsRenderCalculator = this.createRowsCalculator();
+  this.columnsRenderCalculator = this.createColumnsCalculator();
 };
 
 /**
- * Creates rowsCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
+ * Creates rowsVisibleCalculator and colsCalculator (after draw, to determine what are the actually visible rows and columns)
  * @param oldRowCalculator {WalkontableViewportRowsCalculator} If given, only visibleStartRow, visibleEndRow, visibleCellCount will be updated in oldRowCalculator object. This prevents
  */
 WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, oldColumnsCalculator) {
   if(oldRowCalculator) {
     var tmp = this.createRowsCalculator();
-    this.rowsCalculator = oldRowCalculator;
-    this.rowsCalculator.visibleStartRow = tmp.visibleStartRow;
-    this.rowsCalculator.visibleEndRow = tmp.visibleEndRow;
-    this.rowsCalculator.visibleCellCount = tmp.visibleCellCount;
+    this.rowsVisibleCalculator = oldRowCalculator;
+    this.rowsVisibleCalculator.visibleStartRow = tmp.visibleStartRow;
+    this.rowsVisibleCalculator.visibleEndRow = tmp.visibleEndRow;
+    this.rowsVisibleCalculator.visibleCellCount = tmp.visibleCellCount;
   }
   else {
-    this.rowsCalculator = this.createRowsCalculator();
+    this.rowsVisibleCalculator = this.createRowsCalculator();
   }
 
   if (oldColumnsCalculator) {
     var cTmp = this.createColumnsCalculator();
-    this.columnsCalculator = oldColumnsCalculator;
-    this.columnsCalculator.visibleStartColumn = cTmp.visibleStartColumn;
-    this.columnsCalculator.visibleEndColumn = cTmp. visibleEndColumn;
-    this.columnsCalculator.visibleCellCount = cTmp.visibleCellCount;
+    this.columnsVisibleCalculator = oldColumnsCalculator;
+    this.columnsVisibleCalculator.visibleStartColumn = cTmp.visibleStartColumn;
+    this.columnsVisibleCalculator.visibleEndColumn = cTmp. visibleEndColumn;
+    this.columnsVisibleCalculator.visibleCellCount = cTmp.visibleCellCount;
   }
   else {
-    this.columnsCalculator = this.createColumnsCalculator();
+    this.columnsVisibleCalculator = this.createColumnsCalculator();
   }
 };
 
 /**
- * Returns information whether the current rowsPreCalculator viewport
- * is contained inside rows rendered in previous draw (cached in rowsCalculator)
+ * Returns information whether the current rowsRenderCalculator viewport
+ * is contained inside rows rendered in previous draw (cached in rowsVisibleCalculator)
  *
  * Returns TRUE if all proposed visible rows are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible row is not already rendered (meaning: redraw is needed)
@@ -250,11 +258,11 @@ WalkontableViewport.prototype.createCalculators = function (oldRowCalculator, ol
  * @returns {boolean}
  */
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function () {
-  if (this.rowsCalculator) {
-    if (this.rowsPreCalculator.visibleStartRow < this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow > this.rowsCalculator.renderEndRow) {
+  if (this.rowsVisibleCalculator) {
+    if (this.rowsRenderCalculator.visibleStartRow < this.rowsVisibleCalculator.renderStartRow || this.rowsRenderCalculator.visibleEndRow > this.rowsVisibleCalculator.renderEndRow) {
       return false;
     }
-    else if (this.rowsPreCalculator.scrollOffset !== this.rowsCalculator.scrollOffset && (this.rowsPreCalculator.visibleStartRow <= this.rowsCalculator.renderStartRow || this.rowsPreCalculator.visibleEndRow >= this.rowsCalculator.renderEndRow)) {
+    else if (this.rowsRenderCalculator.scrollOffset !== this.rowsVisibleCalculator.scrollOffset && (this.rowsRenderCalculator.visibleStartRow <= this.rowsVisibleCalculator.renderStartRow || this.rowsRenderCalculator.visibleEndRow >= this.rowsVisibleCalculator.renderEndRow)) {
       return false;
     }
     else {
@@ -265,8 +273,8 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
 };
 
 /**
- * Returns information whether the current columnsPreCalculator viewport
- * is contained inside column rendered in previous draw (cached in columnsCalculator)
+ * Returns information whether the current columnsRenderCalculator viewport
+ * is contained inside column rendered in previous draw (cached in columnsVisibleCalculator)
  *
  * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
@@ -274,11 +282,11 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  * @returns {boolean}
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function () {
-  if (this.columnsCalculator) {
-    if (this.columnsPreCalculator.visibleStartColumn < this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn > this.columnsCalculator.renderEndColumn) {
+  if (this.columnsVisibleCalculator) {
+    if (this.columnsRenderCalculator.visibleStartColumn < this.columnsVisibleCalculator.renderStartColumn || this.columnsRenderCalculator.visibleEndColumn > this.columnsVisibleCalculator.renderEndColumn) {
       return false;
     }
-    else if (this.columnsPreCalculator.scrollOffset !== this.columnsCalculator.scrollOffset && (this.columnsPreCalculator.visibleStartColumn <= this.columnsCalculator.renderStartColumn || this.columnsPreCalculator.visibleEndColumn >= this.columnsCalculator.renderEndColumn)) {
+    else if (this.columnsRenderCalculator.scrollOffset !== this.columnsVisibleCalculator.scrollOffset && (this.columnsRenderCalculator.visibleStartColumn <= this.columnsVisibleCalculator.renderStartColumn || this.columnsRenderCalculator.visibleEndColumn >= this.columnsVisibleCalculator.renderEndColumn)) {
       return false;
     }
     else {
