@@ -327,8 +327,8 @@ Handsontable.TableView = function (instance) {
     },
     viewportColumnCalculatorOverride: function (calc) {
       if (that.settings.viewportColumnRenderingOffset) {
-        calc.renderStartColumn = Math.max(calc.renderStartColumn - that.settings.viewportColumnRenderingOffset, 0);
-        calc.renderEndColumn = Math.min(calc.renderEndColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }

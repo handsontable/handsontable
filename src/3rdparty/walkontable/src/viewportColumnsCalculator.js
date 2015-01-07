@@ -1,11 +1,11 @@
 function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, stretchH) {
   this.scrollOffset = scrollOffset;
-  this.renderStartColumn = null;
-  this.renderEndColumn = null;
+  this.startColumn = null;
+  this.endColumn = null;
   this.startPosition = null;
   this.visibleStartColumn = null;
   this.visibleEndColumn = null; // the last FULLY visible column
-  this.countRenderedColumns = 0;
+  this.count = 0;
   this.countVisibleColumns = 0;
   this.stretchAllRatio = 0;
   this.stretchLastWidth = 0;
@@ -50,7 +50,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     columnWidth = getColumnWidth(i);
 
     if (sum <= scrollOffset){
-      this.renderStartColumn = i;
+      this.startColumn = i;
     }
 
     if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + width) {
@@ -61,7 +61,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
     startPositions.push(sum);
     sum += columnWidth;
-    this.renderEndColumn = i;
+    this.endColumn = i;
 
     if(sum >= scrollOffset + width) {
       needReverse = false;
@@ -69,16 +69,16 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
   }
 
-  if (this.renderEndColumn == totalColumns - 1 && needReverse) {
-    this.renderStartColumn = this.renderEndColumn;
-    this.visibleStartColumn = this.renderEndColumn;
-    this.visibleEndColumn = this.renderEndColumn;
+  if (this.endColumn == totalColumns - 1 && needReverse) {
+    this.startColumn = this.endColumn;
+    this.visibleStartColumn = this.endColumn;
+    this.visibleEndColumn = this.endColumn;
 
-    while(this.renderStartColumn > 0) {
-      this.renderStartColumn--;
-      var viewportSum = startPositions[this.renderEndColumn] + columnWidth - startPositions[this.renderStartColumn];
+    while(this.startColumn > 0) {
+      this.startColumn--;
+      var viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn];
       if (viewportSum <= width) {
-        this.visibleStartColumn = this.renderStartColumn;
+        this.visibleStartColumn = this.startColumn;
       }
       if (viewportSum > width) {
         break;
@@ -86,17 +86,17 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
   }
 
-  if (this.renderStartColumn !== null && overrideFn){
+  if (this.startColumn !== null && overrideFn){
     overrideFn(this);
   }
 
-  this.startPosition = startPositions[this.renderStartColumn];
+  this.startPosition = startPositions[this.startColumn];
   if (this.startPosition == void 0) {
     this.startPosition = null;
   }
 
-  if (this.renderStartColumn != null) {
-    this.countRenderedColumns = this.renderEndColumn - this.renderStartColumn + 1;
+  if (this.startColumn != null) {
+    this.count = this.endColumn - this.startColumn + 1;
   }
   if (this.visibleStartColumn != null) {
     this.countVisibleColumns = this.visibleEndColumn - this.visibleStartColumn + 1;

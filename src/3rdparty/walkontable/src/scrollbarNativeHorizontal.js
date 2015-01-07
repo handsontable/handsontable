@@ -63,7 +63,7 @@ WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.columnsRenderCalculator.renderEndColumn;
+  return this.instance.wtViewport.columnsRenderCalculator.endColumn;
 };
 
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {

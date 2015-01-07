@@ -139,13 +139,13 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
 
 
-    var renderStartColumn;
+    var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
     || this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative
     || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-      renderStartColumn = 0;
+      startColumn = 0;
     } else {
-      renderStartColumn = this.instance.wtViewport.columnsRenderCalculator.renderStartColumn;
+      startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
     }
 
     this.rowFilter = new WalkontableRowFilter(
@@ -154,7 +154,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
-      renderStartColumn,
+      startColumn,
       this.instance.getSetting('totalColumns'),
       this.instance.getSetting('rowHeaders').length
     );
@@ -311,7 +311,7 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 WalkontableTable.prototype.getFirstRenderedColumn = function () {
   //TODO change to this.instance.wtViewport.colsCalculator.renderedStartCol when implemented; make sure code calls to getFirstVisibleColumn/getFirstRenderedColumn correctly
   //return 0; //currently all columns are rendered
-  return this.instance.wtViewport.columnsVisibleCalculator.renderStartColumn;
+  return this.instance.wtViewport.columnsVisibleCalculator.startColumn;
 };
 
 //returns -1 if no column is visible
@@ -330,7 +330,7 @@ WalkontableTable.prototype.getLastVisibleRow = function () {
 };
 
 WalkontableTable.prototype.getLastRenderedColumn = function () {
-  return this.instance.wtViewport.columnsRenderCalculator.renderEndColumn;
+  return this.instance.wtViewport.columnsRenderCalculator.endColumn;
 };
 
 //returns -1 if no column is visible
@@ -375,7 +375,7 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {
-    return this.instance.wtViewport.columnsRenderCalculator.countRenderedColumns;
+    return this.instance.wtViewport.columnsRenderCalculator.count;
   }
 };
 

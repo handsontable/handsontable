@@ -272,10 +272,10 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function () {
   if (this.columnsVisibleCalculator) {
-    if (this.columnsRenderCalculator.visibleStartColumn < this.columnsVisibleCalculator.renderStartColumn || this.columnsRenderCalculator.visibleEndColumn > this.columnsVisibleCalculator.renderEndColumn) {
+    if (this.columnsRenderCalculator.visibleStartColumn < this.columnsVisibleCalculator.startColumn || this.columnsRenderCalculator.visibleEndColumn > this.columnsVisibleCalculator.endColumn) {
       return false;
     }
-    else if (this.columnsRenderCalculator.scrollOffset !== this.columnsVisibleCalculator.scrollOffset && (this.columnsRenderCalculator.visibleStartColumn <= this.columnsVisibleCalculator.renderStartColumn || this.columnsRenderCalculator.visibleEndColumn >= this.columnsVisibleCalculator.renderEndColumn)) {
+    else if (this.columnsRenderCalculator.scrollOffset !== this.columnsVisibleCalculator.scrollOffset && (this.columnsRenderCalculator.visibleStartColumn <= this.columnsVisibleCalculator.startColumn || this.columnsRenderCalculator.visibleEndColumn >= this.columnsVisibleCalculator.endColumn)) {
       return false;
     }
     else {
