@@ -31,7 +31,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   }
   else if(!Handsontable.freezeOverlays) {
     finalTop = this.getScrollPosition() + "px";
-    finalLeft = '0';
+    finalLeft = this.instance.wtTable.hider.style.left;
   }
 
   Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
@@ -43,7 +43,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
     elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 'px';
   }
 
-  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 1 + 'px';// + 4 + 'px';
+  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
