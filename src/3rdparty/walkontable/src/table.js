@@ -112,8 +112,6 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     else {
       this.tableOffset = Handsontable.Dom.offset(this.TABLE);
-      this.instance.wtScrollbars.vertical.readSettings();
-      this.instance.wtScrollbars.horizontal.readSettings();
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay

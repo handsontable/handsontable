@@ -59,13 +59,7 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
-  //this.readSettings(); //read window scroll position
-  //this.instance.draw(true);//
   this.instance.getSetting('onScrollVertically');
-};
-
-WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.rowsRenderCalculator.endRow;
 };
 
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -94,7 +88,7 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
     this.fixed.style.top = '0'; //can happen if there are 0 rows
   }
   else {
-    throw new Error("Incorrect value of the rowCalculator");
+    throw new Error("Incorrect value of the rowsRenderCalculator");
   }
   this.fixed.style.bottom = '';
 };
@@ -124,8 +118,4 @@ WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () 
   else {
     return 0;
   }
-};
-
-WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  //throw new Error("not here")
 };

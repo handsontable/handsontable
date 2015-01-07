@@ -62,10 +62,6 @@ WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
   this.instance.getSetting('onScrollHorizontally');
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.columnsRenderCalculator.endColumn;
-};
-
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while(from < length) {
@@ -96,6 +92,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 /**
  * Scrolls horizontally to a column at the left edge of the viewport
  * @param sourceCol {Number}
+ * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
   var newX = this.getTableParentOffset();
@@ -118,8 +115,4 @@ WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function (
   else {
     return 0;
   }
-};
-
-WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  this.total = this.instance.getSetting('totalColumns');
 };

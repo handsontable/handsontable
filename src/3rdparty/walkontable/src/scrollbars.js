@@ -25,10 +25,6 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       return;
     }
 
-
-
-    that.vertical.readSettings();
-    that.horizontal.readSettings();
     that.instance.draw(true);
     that.vertical.onScroll();
     that.horizontal.onScroll();
@@ -63,8 +59,6 @@ WalkontableScrollbars.prototype.destroy = function () {
 };
 
 WalkontableScrollbars.prototype.refresh = function (fastDraw) {
-  this.horizontal && this.horizontal.readSettings();
-  this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.refresh(fastDraw);
   this.vertical && this.vertical.refresh(fastDraw);
   this.corner && this.corner.refresh(fastDraw);
