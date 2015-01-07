@@ -37,7 +37,7 @@
     skipOne = false;
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-    
+
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
       var timeOffset = 0;
 
@@ -111,7 +111,7 @@
         that.updateChoicesList(choices);
       });
 
-    } else if (Handsontable.helper.isArray(this.cellProperties.source)) {
+    } else if (Array.isArray(this.cellProperties.source)) {
 
       var choices;
 
