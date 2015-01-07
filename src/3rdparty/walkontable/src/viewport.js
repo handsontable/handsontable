@@ -216,8 +216,26 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
 
 /**
  * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and cols should be rendered)
+ * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
  */
-WalkontableViewport.prototype.createPreCalculators = function () {
+WalkontableViewport.prototype.createPreCalculators = function (fastDraw) {
+  if (fastDraw) {
+    var proposedRowsVisibleCalculator = this.createRowsCalculator(true);
+    var proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
+    if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) ) ) {
+      fastDraw = false;
+    }
+  }
+
+  if(!fastDraw) {
+    this.rowsRenderCalculator = this.createRowsCalculator();
+    this.columnsRenderCalculator = this.createColumnsCalculator();
+  }
+
+  this.rowsVisibleCalculator = null; //delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
+  this.columnsVisibleCalculator = null;
+
+  return fastDraw;
 };
 
 /**

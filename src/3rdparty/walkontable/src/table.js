@@ -103,19 +103,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 WalkontableTable.prototype.draw = function (fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
-    var rowsRenderCalculator = this.instance.wtViewport.createRowsCalculator();
-    var columnsRenderCalculator = this.instance.wtViewport.createColumnsCalculator();
-
-    if (fastDraw) {
-      var proposedRowsVisibleCalculator = this.instance.wtViewport.createRowsCalculator(true);
-      var proposedColumnsVisibleCalculator = this.instance.wtViewport.createColumnsCalculator(true);
-      if (!(this.instance.wtViewport.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.instance.wtViewport.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) ) ) {
-        fastDraw = false;
-      }
-    }
-
-    this.instance.wtViewport.rowsVisibleCalculator = null; //delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
-    this.instance.wtViewport.columnsVisibleCalculator = null;
+    fastDraw = this.instance.wtViewport.createPreCalculators(fastDraw);
   }
 
   if (!fastDraw) {
@@ -123,8 +111,6 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
     else {
-      this.instance.wtViewport.rowsRenderCalculator = rowsRenderCalculator;
-      this.instance.wtViewport.columnsRenderCalculator = columnsRenderCalculator;
       this.tableOffset = Handsontable.Dom.offset(this.TABLE);
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
