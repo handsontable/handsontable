@@ -38,7 +38,7 @@
 
     var preparedOptions = {};
 
-    if (Handsontable.helper.isArray(optionsToPrepare)){
+    if (Array.isArray(optionsToPrepare)){
       for(var i = 0, len = optionsToPrepare.length; i < len; i++){
         preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
       }

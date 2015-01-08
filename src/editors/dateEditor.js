@@ -4,8 +4,7 @@
   var $;
 
   DateEditor.prototype.init = function () {
-
-    if(typeof jQuery != 'undefined') {
+    if (typeof jQuery != 'undefined') {
       $ = jQuery;
     } else {
       throw new Error("You need to include jQuery to your project in order to use the jQuery UI Datepicker.");
@@ -83,17 +82,21 @@
   };
 
   DateEditor.prototype.showDatepicker = function () {
-    var offset = Handsontable.Dom.offset(this.TD); //$td.offset();
-    this.datePickerStyle.top = (offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
-    this.datePickerStyle.left = offset.left + 'px';
+    var offset = this.TD.getBoundingClientRect(),
+      DatepickerSettings,
+      datepickerSettings;
 
-    var DatepickerSettings = function () {};
+    this.datePickerStyle.top = (window.pageYOffset + offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
+    this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
+
+    DatepickerSettings = function () {};
     DatepickerSettings.prototype = this.cellProperties;
-    var datepickerSettings = new DatepickerSettings();
+    datepickerSettings = new DatepickerSettings();
     datepickerSettings.defaultDate = this.originalValue || void 0;
-    this.$datePicker.datepicker("option", datepickerSettings);
+    this.$datePicker.datepicker('option', datepickerSettings);
+
     if (this.originalValue) {
-      this.$datePicker.datepicker("setDate", this.originalValue);
+      this.$datePicker.datepicker('setDate', this.originalValue);
     }
     this.datePickerStyle.display = 'block';
   };

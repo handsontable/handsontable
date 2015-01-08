@@ -53,7 +53,7 @@
       }
 
       var headers;
-      if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+      if(Array.isArray(instance.getSettings().colHeaders)){
         headers = instance.getSettings().colHeaders.slice(index, index + removedData.length);
       }
 

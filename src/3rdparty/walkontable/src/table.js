@@ -115,8 +115,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
-        || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
-        || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+      || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
+      || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       startRow = 0;
     }
     else {

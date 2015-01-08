@@ -148,6 +148,7 @@
       if (restoreOriginalValue) {
 
         this.cancelChanges();
+        this.instance.view.render();
         return;
 
       }
