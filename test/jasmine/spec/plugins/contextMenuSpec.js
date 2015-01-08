@@ -47,6 +47,57 @@ describe('ContextMenu', function () {
 
 
     });
+
+    it("should open below the cursor coords if there's enough space below the cursor in the window viewport", function () {
+      var hot = handsontable({
+        contextMenu: true,
+        height: 100
+      }),
+      contextMenu = new Handsontable.ContextMenu(hot),
+      viewportHeight = 555;
+
+      var fakeMenu = {
+        offsetHeight: 100
+      };
+
+      var fakeCursor = {
+        topRelative: viewportHeight - fakeMenu.offsetHeight - 10
+      };
+
+      expect(contextMenu.menuFitsBelowCursor(fakeCursor,fakeMenu, viewportHeight)).toBe(true);
+      expect(contextMenu.menuFitsAboveCursor(fakeCursor,fakeMenu)).toBe(fakeCursor.topRelative >= fakeMenu.offsetHeight);
+
+      fakeMenu = {
+        offsetHeight: 300
+      };
+
+      fakeCursor = {
+        topRelative: document.body.clientHeight - fakeMenu.offsetHeight - 10
+      };
+
+      expect(contextMenu.menuFitsAboveCursor(fakeCursor,fakeMenu)).toBe(fakeCursor.topRelative >= fakeMenu.offsetHeight);
+    });
+
+    it("should open above the cursor coords if there's not enough space below the cursor in the window viewport", function () {
+      var hot = handsontable({
+          contextMenu: true,
+          height: 100
+        }),
+        contextMenu = new Handsontable.ContextMenu(hot),
+        viewportHeight = 555;
+
+      var fakeMenu = {
+        offsetHeight: 100
+      };
+
+      var fakeCursor = {
+        topRelative: viewportHeight - fakeMenu.offsetHeight + 20
+      };
+
+      expect(contextMenu.menuFitsBelowCursor(fakeCursor,fakeMenu, viewportHeight)).toBe(false);
+      expect(contextMenu.menuFitsAboveCursor(fakeCursor,fakeMenu)).toBe(fakeCursor.topRelative >= fakeMenu.offsetHeight);
+    });
+
   });
 
   describe('menu closing', function () {
