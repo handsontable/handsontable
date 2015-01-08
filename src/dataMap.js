@@ -31,11 +31,11 @@
 
   Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
     var schema;
-    if (!Handsontable.helper.isArray(obj)){
+    if (!Array.isArray(obj)){
       schema = {};
       for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
-          if (typeof obj[i] === "object" && !Handsontable.helper.isArray(obj[i])) {
+          if (typeof obj[i] === "object" && !Array.isArray(obj[i])) {
             schema[i] = this.recursiveDuckSchema(obj[i]);
           }
           else {
@@ -56,7 +56,7 @@
       lastCol = 0;
       parent = '';
     }
-    if (typeof schema === "object" && !Handsontable.helper.isArray(schema)) {
+    if (typeof schema === "object" && !Array.isArray(schema)) {
       for (i in schema) {
         if (schema.hasOwnProperty(i)) {
           if (schema[i] === null) {

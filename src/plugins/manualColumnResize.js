@@ -193,7 +193,7 @@ function HandsontableManualColumnResize() {
 
       if (typeof loadedManualColumnWidths != 'undefined') {
         this.manualColumnWidths = loadedManualColumnWidths;
-      } else if (initialColumnWidths instanceof Array) {
+      } else if (Array.isArray(initialColumnWidths)) {
         this.manualColumnWidths = initialColumnWidths;
       } else {
         this.manualColumnWidths = [];
