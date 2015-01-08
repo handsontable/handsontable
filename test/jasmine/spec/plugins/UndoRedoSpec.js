@@ -17,7 +17,7 @@ describe('UndoRedo', function () {
       describe("undo", function () {
         it('should undo single change', function () {
           handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
           var HOT = getInstance();
 
@@ -35,7 +35,7 @@ describe('UndoRedo', function () {
           });
 
           handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             validator: validatorSpy
           });
           var HOT = getInstance();
@@ -66,7 +66,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of a single row', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -82,7 +82,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple rows', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -98,7 +98,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple rows with minSpareRows', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 1),
+            data: Handsontable.helper.createSpreadsheetData(2, 1),
             minSpareRows: 2
           });
 
@@ -117,7 +117,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of single row', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(3, 2)
+            data: Handsontable.helper.createSpreadsheetData(3, 2)
           });
 
           expect(countRows()).toEqual(3);
@@ -149,7 +149,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of multiple rows', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(4, 2)
+            data: Handsontable.helper.createSpreadsheetData(4, 2)
           });
 
           expect(countRows()).toEqual(4);
@@ -185,7 +185,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of a single column (colHeaders: undefined)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 3)
+            data: Handsontable.helper.createSpreadsheetData(2, 3)
           });
 
           expect(countCols()).toEqual(3);
@@ -201,7 +201,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of a single column (colHeaders: true)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 3),
+            data: Handsontable.helper.createSpreadsheetData(2, 3),
             colHeaders: true
           });
 
@@ -221,7 +221,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of a single column (colHeaders: Array)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 3),
+            data: Handsontable.helper.createSpreadsheetData(2, 3),
             colHeaders: ['Header1', 'Header2', 'Header3']
           });
 
@@ -241,7 +241,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple columns (colHeaders: undefined)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countCols()).toEqual(2);
@@ -257,7 +257,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple columns (colHeaders: true)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             colHeaders: true
           });
 
@@ -278,7 +278,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple columns (colHeaders: Array)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             colHeaders: ['Header1', 'Header2']
           });
 
@@ -299,7 +299,7 @@ describe('UndoRedo', function () {
 
         it('should undo creation of multiple columns with minSpareCols', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(1, 1),
+            data: Handsontable.helper.createSpreadsheetData(1, 1),
             minSpareCols: 2
           });
 
@@ -318,7 +318,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of single column (colHeaders: undefined)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 3)
+            data: Handsontable.helper.createSpreadsheetData(2, 3)
           });
 
           expect(countCols()).toEqual(3);
@@ -350,7 +350,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of single column (colHeaders: true)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             colHeaders: true
           });
 
@@ -384,7 +384,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of single column (colHeaders: Array)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             colHeaders: ['Header1', 'Header2']
           });
 
@@ -420,7 +420,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of multiple columns (colHeaders: undefined)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 4)
+            data: Handsontable.helper.createSpreadsheetData(2, 4)
           });
 
           expect(countCols()).toEqual(4);
@@ -460,7 +460,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of multiple columns (colHeaders: true)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 4),
+            data: Handsontable.helper.createSpreadsheetData(2, 4),
             colHeaders: true
           });
 
@@ -504,7 +504,7 @@ describe('UndoRedo', function () {
 
         it('should undo removal of multiple columns (colHeaders: Array)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 4),
+            data: Handsontable.helper.createSpreadsheetData(2, 4),
             colHeaders: ['Header1', 'Header2', 'Header3', 'Header4']
           });
 
@@ -548,7 +548,7 @@ describe('UndoRedo', function () {
 
         it("should undo multiple changes", function () {
           handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
           var HOT = getInstance();
 
@@ -601,7 +601,7 @@ describe('UndoRedo', function () {
           });
 
           handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             validator: validatorSpy
           });
           var HOT = getInstance();
@@ -696,7 +696,7 @@ describe('UndoRedo', function () {
 
         it('should undo multiple row creations', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -727,7 +727,7 @@ describe('UndoRedo', function () {
 
         it('should undo multiple row removals', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(4, 2)
+            data: Handsontable.helper.createSpreadsheetData(4, 2)
           });
 
           expect(countRows()).toEqual(4);
@@ -827,7 +827,7 @@ describe('UndoRedo', function () {
       describe("redo", function () {
         it('should redo single change', function () {
           handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
           var HOT = getInstance();
 
@@ -848,7 +848,7 @@ describe('UndoRedo', function () {
           });
 
           handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             validator: validatorSpy
           });
           var HOT = getInstance();
@@ -889,7 +889,7 @@ describe('UndoRedo', function () {
 
         it('should redo creation of a single row', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -909,7 +909,7 @@ describe('UndoRedo', function () {
 
         it('should redo creation of multiple rows', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -929,7 +929,7 @@ describe('UndoRedo', function () {
 
         it('should redo removal of single row', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(3, 2)
+            data: Handsontable.helper.createSpreadsheetData(3, 2)
           });
 
           expect(countRows()).toEqual(3);
@@ -971,7 +971,7 @@ describe('UndoRedo', function () {
 
         it('should redo removal of multiple rows', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(4, 2)
+            data: Handsontable.helper.createSpreadsheetData(4, 2)
           });
 
           expect(countRows()).toEqual(4);
@@ -1015,7 +1015,7 @@ describe('UndoRedo', function () {
 
         it('should redo creation of a single column', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countCols()).toEqual(2);
@@ -1035,7 +1035,7 @@ describe('UndoRedo', function () {
 
         it('should redo creation of multiple columns', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countCols()).toEqual(2);
@@ -1055,7 +1055,7 @@ describe('UndoRedo', function () {
 
         it('should redo removal of single column', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countCols()).toEqual(2);
@@ -1091,7 +1091,7 @@ describe('UndoRedo', function () {
 
         it('should redo removal of multiple columns', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 4)
+            data: Handsontable.helper.createSpreadsheetData(2, 4)
           });
 
           expect(countCols()).toEqual(4);
@@ -1143,7 +1143,7 @@ describe('UndoRedo', function () {
 
         it("should redo multiple changes", function () {
           handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
           var HOT = getInstance();
 
@@ -1206,7 +1206,7 @@ describe('UndoRedo', function () {
           });
 
           handsontable({
-            data: createSpreadsheetData(2, 2),
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
             validator: validatorSpy
           });
           var HOT = getInstance();
@@ -1343,7 +1343,7 @@ describe('UndoRedo', function () {
 
         it('should redo multiple row creations', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
           });
 
           expect(countRows()).toEqual(2);
@@ -1384,7 +1384,7 @@ describe('UndoRedo', function () {
 
         it('should undo multiple row removals', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(4, 2)
+            data: Handsontable.helper.createSpreadsheetData(4, 2)
           });
 
           expect(countRows()).toEqual(4);
@@ -2405,7 +2405,7 @@ describe('UndoRedo', function () {
     describe("Keyboard shortcuts", function () {
       it('should undo single change after hitting CTRL+Z', function () {
         handsontable({
-          data: createSpreadsheetData(2, 2)
+          data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
         var HOT = getInstance();
 
@@ -2420,7 +2420,7 @@ describe('UndoRedo', function () {
 
       it('should redo single change after hitting CTRL+Y', function () {
         handsontable({
-          data: createSpreadsheetData(2, 2)
+          data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
         var HOT = getInstance();
 
@@ -2441,7 +2441,7 @@ describe('UndoRedo', function () {
 
       it('should redo single change after hitting CTRL+SHIFT+Z', function () {
         handsontable({
-          data: createSpreadsheetData(2, 2)
+          data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
         var HOT = getInstance();
 

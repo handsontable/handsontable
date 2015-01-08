@@ -368,48 +368,6 @@ var addHook = handsontableMethodFactory('addHook');
 var getActiveEditor = handsontableMethodFactory('getActiveEditor');
 
 /**
- * Creates 2D array of Excel-like values "A1", "A2", ...
- * @param rowCount
- * @param colCount
- * @returns {Array}
- */
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
-    for (j = 0; j < colCount; j++) {
-      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
-function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = {};
-    for (j = 0; j < colCount; j++) {
-      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1)
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
-/**
  * Returns column width for HOT container
  * @param $elem
  * @param col

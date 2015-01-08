@@ -156,7 +156,7 @@ describe('DateEditor', function () {
 
   it("should display jQuery Calendar bottom of the selected cell", function() {
     var hot = handsontable({
-        data: createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
         columns: [
           {type: 'date'},
           {type: 'date'}
@@ -184,7 +184,7 @@ describe('DateEditor', function () {
     container[0].style.overflow = 'auto';
 
     var hot = handsontable({
-        data: createSpreadsheetData(30, 10),
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
         columns: [
           {type: 'date'},
           {type: 'date'},

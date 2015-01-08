@@ -221,7 +221,7 @@ describe('TextEditor', function () {
   it('should open editor after double clicking on a cell', function () {
 
     var hot = handsontable({
-      data: createSpreadsheetData(5, 2)
+      data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
 
     var cell = $(getCell(0, 0));
@@ -270,7 +270,7 @@ describe('TextEditor', function () {
   it('editor size should not exceed the viewport after text edit', function () {
 
     handsontable({
-      data: createSpreadsheetData(10, 5),
+      data: Handsontable.helper.createSpreadsheetData(10, 5),
       width: 200,
       height: 200
     });
@@ -337,7 +337,7 @@ describe('TextEditor', function () {
 
   it("should open editor after pressing a printable character", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -360,7 +360,7 @@ describe('TextEditor', function () {
 
   it("should open editor after pressing a printable character with shift key", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -400,7 +400,7 @@ describe('TextEditor', function () {
 
   it("should be able to open editor after clearing cell data with DELETE", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -421,7 +421,7 @@ describe('TextEditor', function () {
 
   it("should be able to open editor after clearing cell data with BACKSPACE", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -444,7 +444,7 @@ describe('TextEditor', function () {
 
   it("should scroll editor to a cell, if trying to edit cell that is outside of the viewport", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: Handsontable.helper.createSpreadsheetData(20, 20),
       width: 100,
       height: 50
     });
@@ -468,7 +468,7 @@ describe('TextEditor', function () {
 
   it("should open empty editor after clearing cell value width BACKSPACE", function () {
      var hot = handsontable({
-       data: createSpreadsheetData(4, 4)
+       data: Handsontable.helper.createSpreadsheetData(4, 4)
      });
 
      expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -488,7 +488,7 @@ describe('TextEditor', function () {
 
   it("should open empty editor after clearing cell value width DELETE", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(4, 4)
+      data: Handsontable.helper.createSpreadsheetData(4, 4)
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -508,7 +508,7 @@ describe('TextEditor', function () {
 
   it("should not open editor after hitting ALT (#1239)", function () {
     var hot = handsontable({
-      data: createSpreadsheetData(4, 4)
+      data: Handsontable.helper.createSpreadsheetData(4, 4)
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -523,7 +523,7 @@ describe('TextEditor', function () {
 
   it("should open editor at the same coordinates as the edited cell", function() {
     var hot = handsontable({
-      data: createSpreadsheetData(16, 8),
+      data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
@@ -558,7 +558,7 @@ describe('TextEditor', function () {
 
   it("should open editor at the same coordinates as the edited cell after the table had been scrolled", function() {
     var hot = handsontable({
-      data: createSpreadsheetData(16, 8),
+      data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     })
@@ -601,7 +601,7 @@ describe('TextEditor', function () {
 
   it("should display editor with the proper size, when the edited column is beyond the tables container", function() {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 8)
+      data: Handsontable.helper.createSpreadsheetData(3, 8)
     });
 
     this.$container.css('overflow','');
@@ -614,7 +614,7 @@ describe('TextEditor', function () {
 
   it("should display editor with the proper size, when editing a last row after the table is scrolled to the bottom", function() {
     var hot = handsontable({
-      data: createSpreadsheetData(3, 8),
+      data: Handsontable.helper.createSpreadsheetData(3, 8),
       minSpareRows: 1,
       height: 100
     });

@@ -36,24 +36,6 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
-
-  <script data-jsfiddle="common">
-    function createBigData() {
-      var rows = []
-        , i
-        , j;
-
-      for (i = 0; i < 40; i++) {
-        var row = [];
-        for (j = 0; j < 30; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-        }
-        rows.push(row);
-      }
-
-      return rows;
-    }
-  </script>
 </head>
 
 <body>
@@ -137,7 +119,7 @@
 
         Handsontable.Dom.addEvent(window, 'resize', calculateSize);
         var hot1 = new Handsontable(example,{
-          data: createBigData(),
+          data: Handsontable.helper.createSpreadsheetData(40, 30),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
@@ -202,7 +184,7 @@
          */
         var container2 = document.getElementById('example2');
         var hot2 = new Handsontable(container2,{
-          data: createBigData(),
+          data: Handsontable.helper.createSpreadsheetData(40, 6),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
@@ -253,7 +235,7 @@
          */
         var container3 = document.getElementById('example3');
         var hot3 = new Handsontable(container3,{
-          data: createBigData(),
+          data: Handsontable.helper.createSpreadsheetData(40, 6),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
@@ -297,7 +279,7 @@
          */
         var container4 = document.getElementById('example4');
         var hot4 = new Handsontable(container4,{
-          data: createBigData(),
+          data: Handsontable.helper.createSpreadsheetData(40, 6),
           colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,

@@ -17,7 +17,7 @@ describe('Performance', function () {
   it('should call renderer once for one cell (fixed column width)', function () {
     var count = 0;
     handsontable({
-      data: createSpreadsheetData(1, 1),
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 100,
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -31,7 +31,7 @@ describe('Performance', function () {
   it('should call renderer twice for one cell (auto column width)', function () {
     var count = 0;
     handsontable({
-      data: createSpreadsheetData(1, 1),
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
@@ -45,7 +45,7 @@ describe('Performance', function () {
     var count = 0;
 
     handsontable({
-      data: createSpreadsheetData(1, 1),
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
       beforeGetCellMeta: function(){
         count++;
 
@@ -58,7 +58,7 @@ describe('Performance', function () {
   it('should call renderer twice for each cell (auto column width)', function () {
     var count = 0;
     handsontable({
-      data: createSpreadsheetData(4, 4),
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
@@ -72,7 +72,7 @@ describe('Performance', function () {
     var count = 0;
 
     handsontable({
-      data: createSpreadsheetData(4, 4),
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
       beforeGetCellMeta: function(){
         count++;
       }

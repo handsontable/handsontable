@@ -36,26 +36,6 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
-
-  <script data-jsfiddle="common">
-    function createSpreadsheetData(rowCount, colCount) {
-      rowCount = typeof rowCount === 'number' ? rowCount : 100;
-      colCount = typeof colCount === 'number' ? colCount : 4;
-
-      var rows = []
-        , i
-        , j;
-
-      for (i = 0; i < rowCount; i++) {
-        var row = [];
-        for (j = 0; j < colCount; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-        }
-        rows.push(row);
-      }
-      return rows;
-    }
-  </script>
 </head>
 
 <body>
@@ -107,7 +87,7 @@
              <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
              */
 
-            var myData = createSpreadsheetData(1000, 100);
+            var myData = Handsontable.helper.createSpreadsheetData(1000, 100);
             var container = document.getElementById('example1');
 
             var ht = new Handsontable(container, {

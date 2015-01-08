@@ -331,7 +331,7 @@ describe('manualRowMove', function () {
 
   it("should display the move handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
       manualRowMove: true,
       height: 100,

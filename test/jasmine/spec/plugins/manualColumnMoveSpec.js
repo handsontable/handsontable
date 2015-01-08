@@ -343,7 +343,7 @@ describe('manualColumnMove', function () {
 
   it("should display the move handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: createSpreadsheetData(10, 20),
+      data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnMove: true,
       height: 100,
@@ -535,7 +535,7 @@ describe('manualColumnMove', function () {
 
   it("should display the resize handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: createSpreadsheetData(10, 20),
+      data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnMove: true,
       height: 100,

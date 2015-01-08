@@ -132,7 +132,7 @@ describe('manualColumnResize', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(3, 3),
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -152,7 +152,7 @@ describe('manualColumnResize', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(3, 3),
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -172,7 +172,7 @@ describe('manualColumnResize', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(3, 3),
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -204,7 +204,7 @@ describe('manualColumnResize', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(3, 3),
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -274,7 +274,7 @@ describe('manualColumnResize', function () {
 
   it("should display the resize handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: createSpreadsheetData(10, 20),
+      data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true,
       height: 100,
