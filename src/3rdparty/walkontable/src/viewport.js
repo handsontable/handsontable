@@ -281,10 +281,10 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
   if (this.columnsVisibleCalculator) {
-    if (proposedColumnsVisibleCalculator.startRow < this.columnsRenderCalculator.startRow || (proposedColumnsVisibleCalculator.startRow === this.columnsRenderCalculator.startRow && proposedColumnsVisibleCalculator.startRow > 0)) {
+    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn || (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn && proposedColumnsVisibleCalculator.startColumn > 0)) {
       return false;
     }
-    else if (proposedColumnsVisibleCalculator.endRow > this.columnsRenderCalculator.endRow || (proposedColumnsVisibleCalculator.endRow === this.columnsRenderCalculator.endRow && proposedColumnsVisibleCalculator.endRow < this.instance.getSetting('totalColumns') - 1)) {
+    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn || (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn && proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
       return false;
     }
     else {
