@@ -973,11 +973,11 @@
   };
 
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu) {
-    return cursor.topRelative + menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
+    return cursor.topRelative + menu.offsetHeight <= document.body.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu) {
-    return cursor.leftRelative + menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
+    return cursor.leftRelative + menu.offsetWidth <= document.body.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
