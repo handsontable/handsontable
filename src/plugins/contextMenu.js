@@ -914,7 +914,7 @@
       cellWidth: coords.width
     };
 
-    if (this.menuFitsBelowCursor(cursor, menu)) {
+    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuBelowCursor(cursor, menu, true);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
@@ -924,7 +924,7 @@
       }
     }
 
-    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
+    if (this.menuFitsOnRightOfCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuOnRightOfCursor(cursor, menu, true);
     } else {
       this.positionMenuOnLeftOfCursor(cursor, menu, true);
@@ -950,7 +950,7 @@
       cellWidth: event.target.clientWidth
     };
 
-    if (this.menuFitsBelowCursor(cursor, menu)) {
+    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuBelowCursor(cursor, menu);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
@@ -960,7 +960,7 @@
       }
     }
 
-    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
+    if (this.menuFitsOnRightOfCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuOnRightOfCursor(cursor, menu);
     } else {
       this.positionMenuOnLeftOfCursor(cursor, menu);
@@ -972,12 +972,12 @@
     return cursor.topRelative >= menu.offsetHeight;
   };
 
-  ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu) {
-    return cursor.topRelative + menu.offsetHeight <= document.body.clientHeight;
+  ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu, viewportHeight) {
+    return cursor.topRelative + menu.offsetHeight <= viewportHeight;
   };
 
-  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu) {
-    return cursor.leftRelative + menu.offsetWidth <= document.body.clientWidth;
+  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu, viewportHeight) {
+    return cursor.leftRelative + menu.offsetWidth <= viewportHeight;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
