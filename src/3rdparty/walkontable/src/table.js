@@ -103,6 +103,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 WalkontableTable.prototype.draw = function (fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.holderOffset = Handsontable.Dom.offset(this.holder);
+    var oldPreCalculator = this.instance.wtViewport.rowsPreCalculator;
     this.instance.wtViewport.createPreCalculators();
   }
 
@@ -130,8 +131,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     var renderStartRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
-        || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
-        || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+      || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
+      || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       renderStartRow = 0;
     }
     else {
@@ -162,6 +163,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
+      this.instance.wtViewport.rowsPreCalculator = oldPreCalculator;
       this.instance.wtViewport.createCalculators(oldRowsCalculator, oldColumnsCalculator); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
     }
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
