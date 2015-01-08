@@ -568,8 +568,6 @@ describe('Core_view', function () {
         stretchH: 'all'
       }),
       rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth(),
-      expectedCellWidth = 0;
-
       expectedCellWidth = (parseInt(this.$container[0].style.width,10) - rowHeaderWidth) / 5;
 
       expect(getCell(0,0).offsetWidth).toEqual(expectedCellWidth);
