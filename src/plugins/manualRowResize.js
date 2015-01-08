@@ -192,7 +192,7 @@
 
         if (typeof loadedManualRowHeights != 'undefined') {
           this.manualRowHeights = loadedManualRowHeights;
-        } else if (initialRowHeights instanceof Array) {
+        } else if (Array.isArray(initialRowHeights)) {
           this.manualRowHeights = initialRowHeights;
         } else {
           this.manualRowHeights = [];
