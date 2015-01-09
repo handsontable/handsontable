@@ -67,7 +67,7 @@
     contextMenu.htMenus = {};
     contextMenu.triggerRows = [];
 
-    contextMenu.eventManager = Handsontable.eventManager(contextMenu)
+    contextMenu.eventManager = Handsontable.eventManager(contextMenu);
 
 
     this.enabled = true;
