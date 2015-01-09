@@ -88,13 +88,6 @@ WalkontableTable.prototype.isWorkingOnClone = function () {
   return !!this.instance.cloneSource;
 };
 
-WalkontableTable.prototype.refreshHiderDimensions = function () {
-  var spreaderStyle = this.spreader.style;
-  spreaderStyle.position = 'relative';
-  spreaderStyle.width = '0';
-  spreaderStyle.height = 'auto';
-};
-
 /**
  * Redraws the table
  * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
@@ -152,7 +145,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
-  this.refreshPositions(fastDraw);
+  this.refreshSelections(fastDraw);
 
   if (!this.isWorkingOnClone()) {
     this.instance.wtScrollbars.vertical.resetFixedPosition();
@@ -167,11 +160,6 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 WalkontableTable.prototype._doDraw = function () {
   var wtRenderer = new WalkontableTableRenderer(this);
   wtRenderer.render();
-};
-
-WalkontableTable.prototype.refreshPositions = function (fastDraw) {
-  this.refreshHiderDimensions();
-  this.refreshSelections(fastDraw);
 };
 
 WalkontableTable.prototype.removeClassFromCells = function (className) {
