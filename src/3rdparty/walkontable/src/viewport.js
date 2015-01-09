@@ -23,30 +23,50 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
   }
 };
 
+
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
   var width;
 
+  var totalColumns = this.instance.getSetting("totalColumns");
   var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
-  if (scrollHandler === window) {
+
+  if(Handsontable.freezeOverlays) {
+    width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  } else {
+    width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  }
+
+  if (scrollHandler === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
+    //in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
+    //otherwise continue below, which will allow stretching
+    //this is used in `scroll_window.html`
+    //TODO test me
     return document.documentElement.clientWidth;
   }
-  else {
-    if(Handsontable.freezeOverlays) {
-      width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
-    } else {
-      width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
-    }
 
+  if (scrollHandler !== window){
     var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
+      //this is used in `scroll.html`
+      //TODO test me
       return Math.max(width, scrollHandler.clientWidth);
     }
-    else {
-      return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
-    }
   }
+
+  //this is used in `stretch.html`, `stretch_window.html`
+  //TODO test me
+  return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
 };
 
+WalkontableViewport.prototype.sumColumnWidths = function (from, length) {
+  var sum = 0;
+  while(from < length) {
+    sum += this.instance.wtTable.getColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
+    from++;
+  }
+  return sum;
+};
 WalkontableViewport.prototype.getContainerFillWidth = function() {
 
   if(this.containerWidth) {

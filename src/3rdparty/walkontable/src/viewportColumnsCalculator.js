@@ -11,7 +11,6 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
 
   var i;
   var sum = 0;
-  var sumAll = 0;
   var columnWidth;
   var needReverse = true;
   var defaultColumnWidth = 50;
@@ -29,7 +28,10 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   };
 
   this.refreshStretching = function (width) {
-    for(i = 0; i < totalColumns; i++) {
+    var columnWidth;
+    var sumAll = 0;
+
+    for(var i = 0; i < totalColumns; i++) {
       columnWidth = getColumnWidth(i);
       sumAll +=columnWidth;
     }
