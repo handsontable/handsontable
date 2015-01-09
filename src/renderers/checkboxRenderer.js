@@ -19,6 +19,8 @@
 
   var CheckboxRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
 
+    Handsontable.renderers.cellDecorator.apply(this, arguments);
+
     var eventManager = Handsontable.eventManager(instance);
 
     if (typeof cellProperties.checkedTemplate === "undefined") {
