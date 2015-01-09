@@ -298,11 +298,6 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add(new WalkontableCellCoords(2, 2));
     wt.draw();
 
-<<<<<<< HEAD
-    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsVisibleCalculator.count * 2 + 2 - 4);
-
-=======
->>>>>>> feature/issue-1939
     // left side:
     // -2 -> because one row is partially visible
 
@@ -310,18 +305,13 @@ describe('WalkontableSelection', function () {
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-<<<<<<< HEAD
+    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsVisibleCalculator.count * 2 + 2 - 4);
     expect($table.find('.highlightColumn').length - 2).toEqual(wt.wtViewport.rowsVisibleCalculator.count * 2 + 2 - 4);
-=======
-    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsCalculator.countVisibleColumns * 2 + 2 - 4);
-    expect($table.find('.highlightRow').length).toEqual(wt.wtViewport.columnsCalculator.countVisibleColumns * 2 + 2 - 4);
-    expect($table.find('.highlightColumn').length - 2).toEqual(wt.wtViewport.rowsCalculator.visibleCount * 2 + 2 - 4);
     expect($table.find('.highlightColumn').length).toEqual(14);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(2);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
->>>>>>> feature/issue-1939
 
     var $colHeaders = $table.find("thead tr:first-child th"),
         $rowHeaders = $table.find("tbody tr th:first-child");
