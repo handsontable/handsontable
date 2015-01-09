@@ -103,7 +103,8 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
     newX -= this.instance.wtViewport.getViewportWidth()
   }
   else {
-    newX += this.sumCellSizes(0, sourceCol);
+    var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
+    newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
 
   this.setScrollPosition(newX);

@@ -531,7 +531,7 @@ describe('TextEditor', function () {
     // corner
     selectCell(1, 1);
     keyDown(Handsontable.helper.keyCode.ENTER);
-    $inputHolder = $('.handsontableInputHolder');
+    var $inputHolder = $('.handsontableInputHolder');
     expect($(getCell(1,1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1,1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -556,13 +556,12 @@ describe('TextEditor', function () {
     this.$container.scrollTop(1000);
   });
 
-  it("should open editor at the same coordinates as the edited cell after the table had been scrolled", function() {
+  it("should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)", function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
-    })
-      , currentCell = null;
+    });
 
     this.$container.scrollTop(100);
     this.$container.scrollLeft(100);
@@ -571,32 +570,86 @@ describe('TextEditor', function () {
 
     // corner
     selectCell(1, 1);
+    var currentCell = hot.getCell(1, 1, true);
+    var left = $(currentCell).offset().left;
+    var top = $(currentCell).offset().top;
+
+    var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.keyCode.ENTER);
-    currentCell = hot.view.wt.wtScrollbars.corner.clone.wtTable.getCell({row: 1, col: 1});
-    $inputHolder = $('.handsontableInputHolder');
-    expect($(currentCell).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect(left).toEqual($inputHolder.offset().left + 1);
+    expect(top).toEqual($inputHolder.offset().top + 1);
+  });
+
+  it("should open editor at the same coordinates as the edited cell after the table had been scrolled (top)", function() {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2
+    });
+
+    this.$container.scrollTop(500);
+    this.$container.scrollLeft(500);
+
+    hot.render();
 
     // top
     selectCell(1, 6);
+    var currentCell = hot.getCell(1, 6, true);
+    var left = $(currentCell).offset().left;
+    var top = $(currentCell).offset().top;
+
+    var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.keyCode.ENTER);
-    currentCell = hot.view.wt.wtScrollbars.vertical.clone.wtTable.getCell({row: 1, col: 6});
-    expect($(currentCell).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect(left).toEqual($inputHolder.offset().left + 1);
+    expect(top).toEqual($inputHolder.offset().top + 1);
+  });
+
+  it("should open editor at the same coordinates as the edited cell after the table had been scrolled (left)", function() {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2
+    });
+
+    this.$container.scrollTop(500);
+    this.$container.scrollLeft(500);
+
+    hot.render();
 
     // left
     selectCell(6, 1);
+    var currentCell = hot.getCell(6, 1, true);
+    var left = $(currentCell).offset().left;
+    var top = $(currentCell).offset().top;
+
+    var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.keyCode.ENTER);
-    currentCell = hot.view.wt.wtScrollbars.horizontal.clone.wtTable.getCell({row: 6, col: 1});
-    expect($(currentCell).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect(left).toEqual($inputHolder.offset().left + 1);
+    expect(top).toEqual($inputHolder.offset().top + 1);
+  });
+
+  it("should open editor at the same coordinates as the edited cell after the table had been scrolled (non-fixed)", function() {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2
+    });
+
+    this.$container.scrollTop(500);
+    this.$container.scrollLeft(500);
+
+    hot.render();
 
     // non-fixed
     selectCell(7, 7);
+    var currentCell = hot.getCell(7, 7, true);
+    var left = $(currentCell).offset().left;
+    var top = $(currentCell).offset().top;
+
+    var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.keyCode.ENTER);
-    currentCell = hot.view.wt.wtTable.getCell({row: 7, col: 7});
-    expect($(currentCell).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect(left).toEqual($inputHolder.offset().left + 1);
+    expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
   it("should display editor with the proper size, when the edited column is beyond the tables container", function() {

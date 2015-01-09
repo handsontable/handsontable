@@ -105,7 +105,8 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bot
     newY -= this.instance.wtViewport.getViewportHeight();
   }
   else {
-    newY += this.sumCellSizes(0, sourceRow);
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+    newY += this.sumCellSizes(fixedRowsTop, sourceRow);
   }
 
   this.setScrollPosition(newY);

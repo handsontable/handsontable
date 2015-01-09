@@ -22,9 +22,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     throw new Error('column ' + coords.col + ' does not exist');
   }
 
-  var TD = this.instance.wtTable.getCell(coords);
+  var TD = this.instance.getCell(coords, true);
   if (typeof TD === 'object') {
-    if (coords.col >= this.instance.getSetting('fixedColumnsLeft')) {
+    if (coords.col >= this.instance.getSetting('fixedColumnsLeft') && coords.row >= this.instance.getSetting('fixedRowsTop')) {
       this.scrollToRenderedCell(TD);
     }
   } else {
@@ -82,10 +82,12 @@ WalkontableScroll.prototype.scrollToRenderedCell = function (TD) {
   if (cellWidth < workspaceWidth) {
     if (cellOffset.left < viewportScrollPosition.left + leftCloneWidth) {
       this.instance.wtScrollbars.horizontal.setScrollPosition(cellOffset.left - leftCloneWidth);
+      this.instance.wtScrollbars.horizontal.onScroll();
     }
     else if (cellOffset.left + cellWidth > workspaceOffset.left + viewportScrollPosition.left + workspaceWidth) {
       var delta = (cellOffset.left + cellWidth) - (workspaceOffset.left + viewportScrollPosition.left + workspaceWidth);
       this.instance.wtScrollbars.horizontal.setScrollPosition(viewportScrollPosition.left + delta);
+      this.instance.wtScrollbars.horizontal.onScroll();
     }
   }
 
