@@ -461,5 +461,37 @@ describe("handsontable.MergeCells", function () {
 
       expect(hot.countRenderedRows()).toBe(39);
     });
+
+    it("should render whole merged cell even when most columns are not in the viewport - scrolled to the left", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
+        mergeCells: [
+          {row: 0, col: 1, rowspan: 2, colspan: 21},
+          {row: 2, col: 21, rowspan: 2, colspan: 18}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      expect(hot.countRenderedCols()).toBe(39);
+    });
+
+    it("should render whole merged cell even when most columns are not in the viewport - scrolled to the right", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
+        mergeCells: [
+          {row: 0, col: 1, rowspan: 2, colspan: 21},
+          {row: 2, col: 21, rowspan: 2, colspan: 18}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      this.$container.scrollLeft(99999);
+      hot.render();
+
+      expect(hot.countRenderedCols()).toBe(39);
+    });
+
   });
 });
