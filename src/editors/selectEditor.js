@@ -106,6 +106,7 @@
   };
 
   SelectEditor.prototype.open = function () {
+    this.TD = this.getEditedCell();
     var width = Handsontable.Dom.outerWidth(this.TD); //important - group layout reads together for better performance
     var height = Handsontable.Dom.outerHeight(this.TD);
     var rootOffset = Handsontable.Dom.offset(this.instance.rootElement);
@@ -150,6 +151,10 @@
 
   SelectEditor.prototype.focus = function () {
     this.select.focus();
+  };
+
+  SelectEditor.prototype.setZIndex = function(index){
+    this.select.style.zIndex = index;
   };
 
   Handsontable.editors.SelectEditor = SelectEditor;
