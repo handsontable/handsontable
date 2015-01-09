@@ -21,8 +21,9 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     var left = Math.ceil(box.left);
     var finalLeft
       , finalTop;
+    var right = Math.ceil(box.right);
 
-    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
+    if (left < 0 && (right - elem.offsetWidth) > 0) {
       finalLeft = -left + 'px';
     } else {
       finalLeft = '0';
@@ -41,9 +42,9 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
   this.applyToDOM();
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
@@ -62,10 +63,6 @@ WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
   this.instance.getSetting('onScrollHorizontally');
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.columnsPreCalculator.renderEndColumn;
-};
-
 WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while(from < length) {
@@ -82,13 +79,13 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 
   this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
 
-  if (typeof this.instance.wtViewport.columnsCalculator.renderStartPosition === 'number'){
-    this.fixed.style.left = this.instance.wtViewport.columnsCalculator.renderStartPosition + 'px';
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
+    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
   }
   else if (total === 0) {
     this.fixed.style.left = '0';
   } else {
-    throw  new Error('Incorrect value of the columnsCalculator');
+    throw  new Error('Incorrect value of the columnsRenderCalculator');
   }
   this.fixed.style.right = '';
 };
@@ -96,6 +93,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 /**
  * Scrolls horizontally to a column at the left edge of the viewport
  * @param sourceCol {Number}
+ * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
   var newX = this.getTableParentOffset();
@@ -118,8 +116,4 @@ WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function (
   else {
     return 0;
   }
-};
-
-WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  this.total = this.instance.getSetting('totalColumns');
 };

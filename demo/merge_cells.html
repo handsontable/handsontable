@@ -36,24 +36,6 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
-
-  <script data-jsfiddle="common">
-    function createBigData() {
-      var rows = []
-        , i
-        , j;
-
-      for (i = 0; i < 1000; i++) {
-        var row = [];
-        for (j = 0; j < 16; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-        }
-        rows.push(row);
-      }
-
-      return rows;
-    }
-  </script>
 </head>
 
 <body>
@@ -105,7 +87,7 @@
           <script data-jsfiddle="example1">
             var container = document.getElementById('example1');
             var hot = new Handsontable(container,{
-              data: createBigData(),
+              data: Handsontable.helper.createSpreadsheetData(1000, 16),
               colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,

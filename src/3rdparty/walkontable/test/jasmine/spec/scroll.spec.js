@@ -395,7 +395,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll to last column on the right", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       $container.width(201).height(201);
       var wt = new Walkontable({
@@ -412,7 +412,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should not scroll back to a column that is in viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
 
       var wt = new Walkontable({
@@ -438,7 +438,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll back to a column that is before viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -463,7 +463,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll to a column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -481,7 +481,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll to a wide column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -507,7 +507,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very wide column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -547,7 +547,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
-      this.data = createSpreadsheetData(1, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(1, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -589,7 +589,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very high row that is after viewport", function () {
-      this.data = createSpreadsheetData(20, 1);
+      this.data = Handsontable.helper.createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
       this.data[4][0] = txt;
@@ -618,7 +618,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very high row that is after viewport (at the end)", function () {
-      this.data = createSpreadsheetData(20, 1);
+      this.data = Handsontable.helper.createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
       this.data[19][0] = txt;

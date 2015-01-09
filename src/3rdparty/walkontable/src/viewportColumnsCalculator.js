@@ -1,12 +1,9 @@
-function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, stretchH) {
+function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
   this.scrollOffset = scrollOffset;
-  this.renderStartColumn = null;
-  this.renderEndColumn = null;
-  this.renderStartPosition = null;
-  this.visibleStartColumn = null;
-  this.visibleEndColumn = null; // the last FULLY visible column
-  this.countRenderedColumns = 0;
-  this.countVisibleColumns = 0;
+  this.startColumn = null;
+  this.endColumn = null;
+  this.startPosition = null;
+  this.count = 0;
   this.stretchAllRatio = 0;
   this.stretchLastWidth = 0;
   this.stretch = stretchH;
@@ -14,7 +11,6 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
 
   var i;
   var sum = 0;
-  var sumAll = 0;
   var columnWidth;
   var needReverse = true;
   var defaultColumnWidth = 50;
@@ -32,7 +28,10 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   };
 
   this.refreshStretching = function (width) {
-    for(i = 0; i < totalColumns; i++) {
+    var columnWidth;
+    var sumAll = 0;
+
+    for(var i = 0; i < totalColumns; i++) {
       columnWidth = getColumnWidth(i);
       sumAll +=columnWidth;
     }
@@ -49,19 +48,21 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
   for (i = 0; i< totalColumns; i++) {
     columnWidth = getColumnWidth(i);
 
-    if (sum <= scrollOffset){
-      this.renderStartColumn = i;
+    if (sum <= scrollOffset && !onlyFullyVisible){
+      this.startColumn = i;
     }
 
     if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + width) {
-      if (this.visibleStartColumn == null) {
-        this.visibleStartColumn = i;
+      if (this.startColumn == null) {
+        this.startColumn = i;
       }
-      this.visibleEndColumn = i;
+      this.endColumn = i;
     }
     startPositions.push(sum);
     sum += columnWidth;
-    this.renderEndColumn = i;
+    if(!onlyFullyVisible) {
+      this.endColumn = i;
+    }
 
     if(sum >= scrollOffset + width) {
       needReverse = false;
@@ -69,16 +70,12 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
   }
 
-  if (this.renderEndColumn == totalColumns - 1 && needReverse) {
-    this.renderStartColumn = this.renderEndColumn;
-    this.visibleStartColumn = this.renderEndColumn;
-    this.visibleEndColumn = this.renderEndColumn;
-
-    while(this.renderStartColumn > 0) {
-      this.renderStartColumn--;
-      var viewportSum = startPositions[this.renderEndColumn] + columnWidth - startPositions[this.renderStartColumn];
-      if (viewportSum <= width) {
-        this.visibleStartColumn = this.renderStartColumn;
+  if (this.endColumn == totalColumns - 1 && needReverse) {
+    this.startColumn = this.endColumn;
+    while(this.startColumn > 0) {
+      var viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
+      if (viewportSum <= width || !onlyFullyVisible) {
+        this.startColumn--;
       }
       if (viewportSum > width) {
         break;
@@ -86,20 +83,17 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     }
   }
 
-  if (this.renderStartColumn !== null && overrideFn){
+  if (this.startColumn !== null && overrideFn){
     overrideFn(this);
   }
 
-  this.renderStartPosition = startPositions[this.renderStartColumn];
-  if (this.renderStartPosition == void 0) {
-    this.renderStartPosition = null;
+  this.startPosition = startPositions[this.startColumn];
+  if (this.startPosition == void 0) {
+    this.startPosition = null;
   }
 
-  if (this.renderStartColumn != null) {
-    this.countRenderedColumns = this.renderEndColumn - this.renderStartColumn + 1;
-  }
-  if (this.visibleStartColumn != null) {
-    this.countVisibleColumns = this.visibleEndColumn - this.visibleStartColumn + 1;
+  if (this.startColumn != null) {
+    this.count = this.endColumn - this.startColumn + 1;
   }
 }
 

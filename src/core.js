@@ -1844,7 +1844,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
   };
 
-
+  /**
+   * Return number of rendered columns (including columns partially or fully rendered outside viewport). Returns -1 if table is not visible
+   * @return {Number}
+   */
+  this.countRenderedCols = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
+  };
 
   /**
    * Return number of visible columns. Returns -1 if table is not visible
