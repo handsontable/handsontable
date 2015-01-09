@@ -21,7 +21,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
       , finalTop;
     var bottom = Math.ceil(box.bottom);
 
-    finalLeft = '0';
+    finalLeft = this.instance.wtTable.hider.style.left;
 
     if (top < 0 && (bottom - elem.offsetHeight) > 0) {
       finalTop = -top + "px";
