@@ -658,7 +658,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       for (r = topLeft.row; r <= bottomRight.row; r++) {
         for (c = topLeft.col; c <= bottomRight.col; c++) {
           if (!instance.getCellMeta(r, c).readOnly) {
-            changes.push([r, c, '']);
+            changes.push([r, c, instance.getCellMeta(r, c).type === 'checkbox' ? null : '']);
           }
         }
       }
