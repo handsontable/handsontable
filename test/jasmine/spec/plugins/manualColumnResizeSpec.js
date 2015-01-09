@@ -273,7 +273,7 @@ describe('manualColumnResize', function () {
   });
 
   it("should display the resize handle in the correct place after the table has been scrolled", function () {
-    handsontable({
+    var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true,
@@ -290,9 +290,9 @@ describe('manualColumnResize', function () {
     expect($colHeader.offset().top).toEqual($handle.offset().top);
 
     this.$container.scrollLeft(200);
-    this.$container.scroll();
+    hot.render();
 
-    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
+    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
     $colHeader.simulate("mouseover");
     expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
