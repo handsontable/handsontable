@@ -341,6 +341,10 @@ TextRenderer readOnly cell
   color: #777;
 }
 
+.handsontable .htSubmenu {
+  position: relative;
+}
+
 .handsontable .htSubmenu :after{
   content: '▶';
   color: #777;
