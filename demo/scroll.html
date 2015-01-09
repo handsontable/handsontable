@@ -58,6 +58,9 @@
 
       <p>If you want scrollbars, just set container width, height and <code>overflow: scroll</code> in CSS.</p>
 
+      <p>This demo shows table of <strong>1000</strong> rows and columns. Only visible part is rendered. Native div scrollbar is used to
+        scroll through the table.</p>
+
       <p>
         <button class="maximize">Maximize HOT table</button>
       </p>
@@ -100,16 +103,14 @@
 
         Handsontable.Dom.addEvent(window, 'resize', calculateSize);
         var hot1 = new Handsontable(example,{
-          data: Handsontable.helper.createSpreadsheetData(40, 30),
+          data: Handsontable.helper.createSpreadsheetData(1000, 1000),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
           fixedColumnsLeft: 2,
           fixedRowsTop: 2,
           minSpareRows: 1,
-          stretchH: 'all',
-//          contextMenu: true,
-          debug: true
+          contextMenu: true
         });
 
         var maximize = document.querySelector('.maximize');
