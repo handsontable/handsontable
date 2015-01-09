@@ -593,8 +593,8 @@ describe('TextEditor', function () {
 
     // non-fixed
     selectCell(7, 7);
-    currentCell = hot.view.wt.wtTable.getCell({row: 7, col: 7});
     keyDown(Handsontable.helper.keyCode.ENTER);
+    currentCell = hot.view.wt.wtTable.getCell({row: 7, col: 7});
     expect($(currentCell).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(currentCell).offset().top).toEqual($inputHolder.offset().top + 1);
   });
