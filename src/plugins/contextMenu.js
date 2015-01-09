@@ -950,7 +950,7 @@
       cellWidth: event.target.clientWidth
     };
 
-    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientWidth)) {
+    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientHeight)) {
       this.positionMenuBelowCursor(cursor, menu);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
