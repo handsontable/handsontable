@@ -87,3 +87,15 @@ function shimSelectionProperties(instance) {
 
   return instance;
 }
+
+function getTableTopClone() {
+  return $('.ht_clone_top');
+}
+
+function getTableLeftClone() {
+  return $('.ht_clone_left');
+}
+
+function getTableCornerClone() {
+  return $('.ht_clone_corner');
+}
