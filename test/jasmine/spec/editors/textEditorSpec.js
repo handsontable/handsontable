@@ -600,16 +600,15 @@ describe('TextEditor', function () {
   });
 
   it("should display editor with the proper size, when the edited column is beyond the tables container", function() {
-    var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 8)
-    });
-
     this.$container.css('overflow','');
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 9)
+    });
 
     selectCell(0,7);
     keyDown(Handsontable.helper.keyCode.ENTER);
 
-    expect(Handsontable.Dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toEqual(Handsontable.Dom.outerWidth(hot.getCell(0,7)));
+    expect(Handsontable.Dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toBeAroundValue(Handsontable.Dom.outerWidth(hot.getCell(0,7)));
   });
 
   it("should display editor with the proper size, when editing a last row after the table is scrolled to the bottom", function() {

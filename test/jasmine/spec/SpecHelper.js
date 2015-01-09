@@ -9,6 +9,25 @@ var handsontable = function (options) {
   return currentSpec.$container.data('handsontable');
 };
 
+beforeEach(function () {
+  var matchers = {
+    toBeInArray: function (arr) {
+      return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeAroundValue: function (val) {
+      this.message = function (val) {
+        return [
+          "Expected " + this.actual + " to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")",
+          "Expected " + this.actual + " NOT to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")"
+        ];
+      };
+      return (this.actual >= val - 1 && this.actual <= val + 1);
+    }
+  };
+
+  this.addMatchers(matchers);
+});
+
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original
