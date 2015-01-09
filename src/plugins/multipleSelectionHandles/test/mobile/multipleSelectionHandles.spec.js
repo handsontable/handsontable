@@ -17,7 +17,7 @@ describe("MultipleSelectionHandles", function () {
 
     it("should add 2 visible selection handles (for each overlay) if mobile device is detected", function () {
       var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           fixedRowsTop: 2,
@@ -63,7 +63,7 @@ describe("MultipleSelectionHandles", function () {
 
     it("should add a larger hit area to each selection handle if mobile device is detected", function () {
       var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           fixedRowsTop: 2,
@@ -107,7 +107,7 @@ describe("MultipleSelectionHandles", function () {
 
     it("should NOT add any selection handles if mobile device is NOT detected", function () {
       var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           fixedRowsTop: 2,
@@ -151,7 +151,7 @@ describe("MultipleSelectionHandles", function () {
 
     it("should not display any selection handles between overlays, if selection is spread over more than one overlay", function () {
       var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 7),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 7),
           width: 400,
           height: 400,
           fixedRowsTop: 2,

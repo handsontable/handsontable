@@ -21,7 +21,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
       , finalTop;
     var bottom = Math.ceil(box.bottom);
 
-    finalLeft = '0';
+    finalLeft = this.instance.wtTable.hider.style.left;
 
     if (top < 0 && (bottom - elem.offsetHeight) > 0) {
       finalTop = -top + "px";
@@ -59,13 +59,7 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
-  //this.readSettings(); //read window scroll position
-  //this.instance.draw(true);//
   this.instance.getSetting('onScrollVertically');
-};
-
-WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtViewport.rowsPreCalculator.renderEndRow;
 };
 
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
@@ -77,9 +71,9 @@ WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, leng
   return sum;
 };
 
-WalkontableVerticalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+WalkontableVerticalScrollbarNative.prototype.refresh = function (fastDraw) {
   this.applyToDOM();
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
 //applyToDOM (in future merge it with this.refresh?)
@@ -87,14 +81,14 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';// + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
-  if (typeof this.instance.wtViewport.rowsCalculator.renderStartPosition === 'number') {
-    this.fixed.style.top = this.instance.wtViewport.rowsCalculator.renderStartPosition + 'px';
+  if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+    this.fixed.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';
   }
   else if (total === 0) {
     this.fixed.style.top = '0'; //can happen if there are 0 rows
   }
   else {
-    throw new Error("Incorrect value of the rowCalculator");
+    throw new Error("Incorrect value of the rowsRenderCalculator");
   }
   this.fixed.style.bottom = '';
 };
@@ -124,8 +118,4 @@ WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () 
   else {
     return 0;
   }
-};
-
-WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  //throw new Error("not here")
 };
