@@ -386,6 +386,26 @@ describe('WalkontableScroll', function () {
       wt.draw();
       expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
+
+    it("should scroll the desired cell to the bottom edge even if it's located in a fixed column", function () {
+      createDataArray(20, 100);
+      $container.width(260).height(201);
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2
+      });
+
+      wt.draw().scrollViewport(new WalkontableCellCoords(8,1)).draw();
+      waits(20);
+      runs(function() {
+        expect(wt.wtTable.getLastVisibleRow()).toBe(8);
+      });
+
+    });
+
   });
 
   describe('scrollViewport - horizontally', function () {

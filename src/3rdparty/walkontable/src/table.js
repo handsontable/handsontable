@@ -414,11 +414,13 @@ WalkontableTable.prototype.getStretchedColumnWidth = function (sourceColumn) {
   var allColumns = this.instance.getSetting('totalColumns');
   var width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth;
 
-  if (this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio != 0) {
-    width = width * this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio;
-  } else if (this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth != 0) {
-    if (sourceColumn == allColumns - 1) {
-      width = this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth;
+  if(this.instance.wtViewport.columnsRenderCalculator) {
+    if (this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio != 0) {
+      width = width * this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio;
+    } else if (this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth != 0) {
+      if (sourceColumn == allColumns - 1) {
+        width = this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth;
+      }
     }
   }
   return width;

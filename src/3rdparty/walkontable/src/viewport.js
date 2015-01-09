@@ -195,6 +195,13 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
     pos = 0;
   }
 
+  var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+  if(fixedRowsTop) {
+    var fixedRowsHeight = this.instance.wtScrollbars.vertical.sumCellSizes(0, fixedRowsTop);
+    pos += fixedRowsHeight;
+    height -= fixedRowsHeight;
+  }
+
   var that = this;
   return new WalkontableViewportRowsCalculator(
     height,
@@ -222,6 +229,13 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
   if (pos < 0) {
     pos = 0;
+  }
+
+  var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
+  if(fixedColumnsLeft) {
+    var fixedColumnsWidth = this.instance.wtScrollbars.horizontal.sumCellSizes(0, fixedColumnsLeft);
+    pos += fixedColumnsWidth;
+    width -= fixedColumnsWidth;
   }
 
   var that = this;
