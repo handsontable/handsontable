@@ -48,6 +48,43 @@ describe('WalkontableSelection', function () {
     expect($td2.hasClass('current')).toEqual(true);
   });
 
+  it("should add class to selection on all overlays", function () {
+    $container.width(300).height(300);
+
+    this.data = Handsontable.helper.createSpreadsheetData(10, 10);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: [
+        new WalkontableSelection({
+          className: 'current'
+        }),
+        new WalkontableSelection({
+          className: 'area'
+        })
+      ],
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2
+    });
+    shimSelectionProperties(wt);
+
+    wt.selections.area.add(new WalkontableCellCoords(1, 1));
+    wt.selections.area.add(new WalkontableCellCoords(1, 2));
+    wt.selections.area.add(new WalkontableCellCoords(2, 1));
+    wt.selections.area.add(new WalkontableCellCoords(2, 2));
+
+    wt.draw();
+
+    var tds = $container.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
+    expect(tds.length).toBeGreaterThan(4);
+    for (var i = 0, ilen = tds.length; i < ilen; i++) {
+      expect(tds[i].className).toContain("area");
+    }
+  });
+
   it("should not add class to selection until it is rerendered", function () {
     var wt = new Walkontable({
       table: $table[0],

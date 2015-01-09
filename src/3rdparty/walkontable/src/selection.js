@@ -88,11 +88,8 @@ WalkontableSelection.prototype.addClassAtCoords = function (instance, sourceRow,
 WalkontableSelection.prototype.draw = function (instance) {
   var
     _this = this,
-    visibleRows = instance.wtTable.getRenderedRowsCount(),
+    renderedRows = instance.wtTable.getRenderedRowsCount(),
     renderedColumns = instance.wtTable.getRenderedColumnsCount(),
-    drawVerticalOverlay,
-    drawHorizontalOverlay,
-    draw,
     corners, sourceRow, sourceCol, border, TH;
 
   if (this.isEmpty()) {
@@ -106,85 +103,56 @@ WalkontableSelection.prototype.draw = function (instance) {
 
     return;
   }
-  drawVerticalOverlay = function drawVerticalOverlay() {
+
+  corners = this.getCorners();
+
+  for (var column = 0; column < renderedColumns; column++) {
+    sourceCol = instance.wtTable.columnFilter.renderedToSource(column);
+
+    if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
+      TH = instance.wtTable.getColumnHeader(sourceCol);
+
+      if (TH && _this.settings.highlightColumnClassName) {
+        Handsontable.Dom.addClass(TH, _this.settings.highlightColumnClassName);
+      }
+    }
+  }
+
+  for (var row = 0; row < renderedRows; row++) {
+    sourceRow = instance.wtTable.rowFilter.renderedToSource(row);
+
+    if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
+      TH = instance.wtTable.getRowHeader(sourceRow);
+
+      if (TH && _this.settings.highlightRowClassName) {
+        Handsontable.Dom.addClass(TH, _this.settings.highlightRowClassName);
+      }
+    }
+
     for (var column = 0; column < renderedColumns; column++) {
       sourceCol = instance.wtTable.columnFilter.renderedToSource(column);
 
-      if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
-        TH = instance.wtTable.getColumnHeader(sourceCol);
-
-        if (TH && _this.settings.highlightColumnClassName) {
-          Handsontable.Dom.addClass(TH, _this.settings.highlightColumnClassName);
+      if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
+        // selected cell
+        if (_this.settings.className) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.className);
+        }
+      }
+      else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
+        // selection is in this row
+        if (_this.settings.highlightRowClassName) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightRowClassName);
+        }
+      }
+      else if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
+        // selection is in this column
+        if (_this.settings.highlightColumnClassName) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightColumnClassName);
         }
       }
     }
-  };
-  drawHorizontalOverlay = function drawHorizontalOverlay() {
-    for (var row = 0; row < visibleRows; row++) {
-      sourceRow = instance.wtTable.rowFilter.renderedToSource(row);
-
-      if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
-        TH = instance.wtTable.getRowHeader(sourceRow);
-
-        if (TH && _this.settings.highlightRowClassName) {
-          Handsontable.Dom.addClass(TH, _this.settings.highlightRowClassName);
-        }
-      }
-    }
-  };
-  draw = function draw() {
-    for (var row = 0; row < visibleRows; row++) {
-      sourceRow = instance.wtTable.rowFilter.renderedToSource(row);
-
-      for (var column = 0; column < renderedColumns; column++) {
-        sourceCol = instance.wtTable.columnFilter.renderedToSource(column);
-
-        if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
-          // selected cell
-          if (_this.settings.className) {
-            _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.className);
-          }
-          // selected row headers
-          if (sourceCol === corners[1]) {
-            TH = instance.wtTable.getRowHeader(sourceRow);
-
-            if (TH && _this.settings.highlightRowClassName) {
-              Handsontable.Dom.addClass(TH, _this.settings.highlightRowClassName);
-            }
-          }
-          // selected column headers
-          if (sourceRow === corners[0] || (sourceRow > corners[0] && row == 0)) {
-            TH = instance.wtTable.getColumnHeader(sourceCol);
-
-            if (TH && _this.settings.highlightColumnClassName) {
-              Handsontable.Dom.addClass(TH, _this.settings.highlightColumnClassName);
-            }
-          }
-        }
-        else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
-          // selection is in this row
-          if (_this.settings.highlightRowClassName) {
-            _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightRowClassName);
-          }
-        }
-        else if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
-          // selection is in this column
-          if (_this.settings.highlightColumnClassName) {
-            _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightColumnClassName);
-          }
-        }
-      }
-    }
-  };
-  corners = this.getCorners();
-
-  if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
-    drawHorizontalOverlay();
-  } else if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative) {
-    drawVerticalOverlay();
-  } else {
-    draw();
   }
+
   instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
   if (this.settings.border) {
