@@ -197,26 +197,29 @@ WalkontableTable.prototype.removeClassFromCells = function (className) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (fastDraw) {
-  var i, ilen;
-  if (this.instance.selections) {
-    if(fastDraw) {
-    for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-        //there was no rerender, so we need to remove classNames by ourselves
-        if (this.instance.selections[i].settings.className) {
-          this.removeClassFromCells(this.instance.selections[i].settings.className);
-        }
-        if (this.instance.selections[i].settings.highlightRowClassName) {
-          this.removeClassFromCells(this.instance.selections[i].settings.highlightRowClassName);
-        }
-        if (this.instance.selections[i].settings.highlightColumnClassName) {
-          this.removeClassFromCells(this.instance.selections[i].settings.highlightColumnClassName);
-        }
+  var i, len;
+
+  if (!this.instance.selections) {
+    return;
+  }
+  len = this.instance.selections.length;
+
+  if (fastDraw) {
+    for (i = 0; i < len; i++) {
+      // there was no rerender, so we need to remove classNames by ourselves
+      if (this.instance.selections[i].settings.className) {
+        this.removeClassFromCells(this.instance.selections[i].settings.className);
+      }
+      if (this.instance.selections[i].settings.highlightRowClassName) {
+        this.removeClassFromCells(this.instance.selections[i].settings.highlightRowClassName);
+      }
+      if (this.instance.selections[i].settings.highlightColumnClassName) {
+        this.removeClassFromCells(this.instance.selections[i].settings.highlightColumnClassName);
       }
     }
-
-    for (i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw(this.instance, fastDraw);
-    }
+  }
+  for (i = 0; i < len; i++) {
+    this.instance.selections[i].draw(this.instance, fastDraw);
   }
 };
 
