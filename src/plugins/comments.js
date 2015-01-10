@@ -18,7 +18,7 @@ function Comments(instance) {
 
 			function commentsListener(event) {
         eventManager.removeEventListener(document, 'mouseover');
-        if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
+        if (!(event.target.className == 'htCommentTextArea' || event.target.nodeName.toLowerCase() === "div" /* coming from context menu */))) {
           var value = document.querySelector('.htCommentTextArea').value;
           if (value.trim().length > 1) {
             saveComment(range, value, instance);
