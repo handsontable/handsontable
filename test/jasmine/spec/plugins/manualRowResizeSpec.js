@@ -109,7 +109,7 @@ describe('manualRowResize', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
       afterRowResize: afterRowResizeCallback
@@ -126,7 +126,7 @@ describe('manualRowResize', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
       afterRowResize: afterRowResizeCallback
@@ -143,7 +143,7 @@ describe('manualRowResize', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
       afterRowResize: afterRowResizeCallback
@@ -172,7 +172,7 @@ describe('manualRowResize', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
       afterRowResize: afterRowResizeCallback
@@ -213,7 +213,7 @@ describe('manualRowResize', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
       afterRowResize: afterRowResizeCallback
@@ -238,7 +238,7 @@ describe('manualRowResize', function () {
 
   it("should display the resize handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
       manualRowResize: true,
       height: 100,

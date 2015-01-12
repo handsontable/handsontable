@@ -149,7 +149,7 @@ describe('Core_paste', function () {
   it("should not paste any data, if no cell is selected", function () {
 
     var hot = handsontable({
-      data: createSpreadsheetData(3, 1)
+      data: Handsontable.helper.createSpreadsheetData(3, 1)
     });
 
     var copiedData1 = "foo";
@@ -190,7 +190,7 @@ describe('Core_paste', function () {
   it("should not paste any data, if no cell is selected (select/deselect cell using mouse)", function () {
 
     var hot = handsontable({
-      data: createSpreadsheetData(3, 1)
+      data: Handsontable.helper.createSpreadsheetData(3, 1)
     });
 
     var copiedData = "foo";

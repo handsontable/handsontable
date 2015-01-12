@@ -18,6 +18,7 @@ Handsontable.PluginHookClass = (function () {
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
       beforeCellCopy : [],
+      beforeTouchScroll: [],
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
@@ -47,6 +48,7 @@ Handsontable.PluginHookClass = (function () {
       afterCellMetaReset: [],
       afterIsMultipleSelectionCheck: [],
       afterDocumentKeyDown: [],
+      afterMomentumScroll: [],
 
       // Modifiers
       modifyColWidth: [],
@@ -88,7 +90,7 @@ Handsontable.PluginHookClass = (function () {
 
   PluginHookClass.prototype.add = function (key, fn, instance) {
     //if fn is array, run this for all the array items
-    if (Handsontable.helper.isArray(fn)) {
+    if (Array.isArray(fn)) {
       for (var i = 0, len = fn.length; i < len; i++) {
         this.add(key, fn[i]);
       }
@@ -116,7 +118,7 @@ Handsontable.PluginHookClass = (function () {
 
   PluginHookClass.prototype.once = function(key, fn, instance){
 
-    if(Handsontable.helper.isArray(fn)){
+    if(Array.isArray(fn)){
 
       for(var i = 0, len = fn.length; i < len; i++){
         fn[i].runOnce = true;

@@ -2,9 +2,15 @@
   var TextEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   TextEditor.prototype.init = function(){
+    var that = this;
     this.createElements();
+    this.eventManager = new Handsontable.eventManager(this);
     this.bindEvents();
     this.autoResize = autoResize();
+
+    this.instance.addHook('afterDestroy', function () {
+      that.destroy();
+    });
   };
 
   TextEditor.prototype.getValue = function(){
@@ -23,17 +29,7 @@
     var keyCodes = Handsontable.helper.keyCode;
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
-    if (event != null && event.isImmediatePropagationEnabled == null) {
-      event.stopImmediatePropagation = function () {
-        this.isImmediatePropagationEnabled = false;
-        this.cancelBubble = true;
-      };
-      event.isImmediatePropagationEnabled = true;
-      event.isImmediatePropagationStopped = function () {
-        return !this.isImmediatePropagationEnabled;
-      };
-    }
-
+    Handsontable.Dom.enableImmediatePropagation(event);
 
     //Process only events that have been fired in the editor
     if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
@@ -91,6 +87,7 @@
         break;
     }
 
+    that.autoResize.resize(String.fromCharCode(event.keyCode));
   };
 
 
@@ -233,11 +230,9 @@
     if (editLeft < 0) {
       editLeft = 0;
     }
-    //if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     if (rowHeadersCount > 0 && parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       editTop += 1;
     }
-    //if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       editLeft += 1;
     }
@@ -263,11 +258,9 @@
       , height = Handsontable.Dom.outerHeight(this.TD) - 4  //$td.outerHeight() - 4
       , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2; //10 is TEXTAREAs border and padding
 
-    //if (parseInt($td.css('border-top-width'), 10) > 0) {
     if (parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       height -= 1;
     }
-    //if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       if (rowHeadersCount > 0) {
         width -= 1;
@@ -282,7 +275,7 @@
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
       maxWidth: maxWidth //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-    });
+    }, true);
 
     this.textareaParentStyle.display = 'block';
   };
@@ -290,14 +283,12 @@
   TextEditor.prototype.bindEvents = function () {
     var editor = this;
 
-    var eventManager = Handsontable.eventManager(editor);
-
-    eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut',function (event){
       Handsontable.helper.stopPropagation(event);
       //event.stopPropagation();
     });
 
-    eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', function (event){
       Handsontable.helper.stopPropagation(event);
       //event.stopPropagation();
     });
@@ -305,6 +296,14 @@
     this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
+
+    this.instance.addHook('afterDestroy', function () {
+      editor.eventManager.clear();
+    });
+  };
+
+  TextEditor.prototype.destroy = function () {
+    this.eventManager.clear();
   };
 
 

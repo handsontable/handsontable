@@ -41,7 +41,7 @@ function CellInfoCollection() {
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
 
-  if (Handsontable.helper.isArray(mergeCellsSetting)) {
+  if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
       this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
     }
@@ -96,12 +96,16 @@ MergeCells.prototype.unmergeSelection = function (cellRange) {
 
 MergeCells.prototype.applySpanProperties = function (TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
+
   if (info) {
     if (info.row === row && info.col === col) {
       TD.setAttribute('rowspan', info.rowspan);
       TD.setAttribute('colspan', info.colspan);
     }
     else {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+
       TD.style.display = "none";
     }
   }
@@ -397,7 +401,7 @@ var beforeSetRangeEnd = function (coords) {
  * @param className
  */
 var beforeDrawAreaBorders = function (corners, className) {
-  if (className && className == 'area'){
+  if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
       var selRange = this.getSelectedRange();
@@ -424,7 +428,7 @@ var beforeDrawAreaBorders = function (corners, className) {
   }
 };
 
-var afterGetCellMeta = function(row, col, cellProperties) {
+var afterGetCellMeta = function (row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
@@ -440,18 +444,18 @@ var afterViewportRowCalculatorOverride = function (calc) {
     var colCount = this.countCols();
     var mergeParent;
     for (var c = 0; c < colCount; c++) {
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.renderStartRow, c);
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.startRow, c);
       if (mergeParent) {
-        if (mergeParent.row < calc.renderStartRow) {
-          calc.renderStartRow = mergeParent.row;
+        if (mergeParent.row < calc.startRow) {
+          calc.startRow = mergeParent.row;
           return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
         }
       }
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.renderEndRow, c);
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.endRow, c);
       if (mergeParent) {
         var mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
-        if (mergeEnd > calc.renderEndRow) {
-          calc.renderEndRow = mergeEnd;
+        if (mergeEnd > calc.endRow) {
+          calc.endRow = mergeEnd;
           return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
         }
       }
@@ -459,13 +463,39 @@ var afterViewportRowCalculatorOverride = function (calc) {
   }
 };
 
-var isMultipleSelection = function(isMultiple) {
-  if(isMultiple && this.mergeCells) {
+var afterViewportColumnCalculatorOverride = function (calc) {
+  var mergeCellsSetting = this.getSettings().mergeCells;
+  if (mergeCellsSetting) {
+    var rowCount = this.countRows();
+    var mergeParent;
+    for (var r = 0; r < rowCount; r++) {
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.startColumn);
+
+      if (mergeParent) {
+        if (mergeParent.col < calc.startColumn) {
+          calc.startColumn = mergeParent.col;
+          return afterViewportColumnCalculatorOverride.call(this, calc); //recursively search upwards
+        }
+      }
+      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.endColumn);
+      if (mergeParent) {
+        var mergeEnd = mergeParent.col + mergeParent.colspan - 1;
+        if (mergeEnd > calc.endColumn) {
+          calc.endColumn = mergeEnd;
+          return afterViewportColumnCalculatorOverride.call(this, calc); //recursively search upwards
+        }
+      }
+    }
+  }
+};
+
+var isMultipleSelection = function (isMultiple) {
+  if (isMultiple && this.mergeCells) {
     var mergedCells = this.mergeCells.mergedCellInfoCollection
       , selectionRange = this.getSelectedRange();
 
-    for(var group in mergedCells) {
-      if(selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
+    for (var group in mergedCells) {
+      if (selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
         && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1
         && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
         return false;
@@ -487,6 +517,7 @@ Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
+Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
 
 Handsontable.MergeCells = MergeCells;
 

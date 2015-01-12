@@ -54,8 +54,8 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
   return window;
 };
 
-WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
-  this.clone && this.clone.draw(selectionsOnly);
+WalkontableOverlay.prototype.refresh = function (fastDraw) {
+  this.clone && this.clone.draw(fastDraw);
 };
 
 WalkontableOverlay.prototype.destroy = function () {

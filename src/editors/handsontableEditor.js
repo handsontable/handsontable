@@ -16,6 +16,7 @@
     this.htContainer = DIV;
     this.htEditor = new Handsontable(DIV);
 
+    this.assignHooks();
   };
 
   HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cellProperties) {
@@ -47,17 +48,13 @@
     };
 
     if (this.cellProperties.handsontable) {
-      options = Handsontable.Dom.extend(options, cellProperties.handsontable);
-//      options = $.extend(options, cellProperties.handsontable);
+      Handsontable.helper.extend(options, cellProperties.handsontable);
     }
     if (this.htEditor) {
       this.htEditor.destroy();
     }
 
     this.htEditor = new Handsontable(this.htContainer, options);
-
-    //Handsontable.tmpHandsontable(this.htContainer,'destroy');
-    //Handsontable.tmpHandsontable(this.htContainer,options);
 
     //this.$htContainer.handsontable('destroy');
     //this.$htContainer.handsontable(options);
@@ -84,7 +81,6 @@
 
     var innerHOT = editor.htEditor.getInstance(); //Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
 
-    //var innerHOT = editor.$htContainer.handsontable('getInstance');
     var rowToSelect;
 
     if (event.keyCode == Handsontable.helper.keyCode.ARROW_DOWN) {
@@ -132,13 +128,9 @@
     this.htEditor.render();
 
     if (this.cellProperties.strict) {
-      //this.$htContainer.handsontable('selectCell', 0, 0);
-      //Handsontable.tmpHandsontable(this.htContainer, 'selectCell',0,0);
       this.htEditor.selectCell(0,0);
       this.TEXTAREA.style.visibility = 'hidden';
     } else {
-      //this.$htContainer.handsontable('deselectCell');
-      //Handsontable.tmpHandsontable(this.htContainer, 'deselectCell');
       this.htEditor.deselectCell();
       this.TEXTAREA.style.visibility = 'visible';
     }
@@ -194,8 +186,20 @@
     return Handsontable.editors.TextEditor.prototype.finishEditing.apply(this, arguments);
   };
 
+  HandsontableEditor.prototype.assignHooks = function () {
+  var that = this;
+    this.instance.addHook('afterDestroy', function () {
+      if (that.htEditor) {
+        that.htEditor.destroy();
+      }
+    });
+
+  };
+
   Handsontable.editors.HandsontableEditor = HandsontableEditor;
   Handsontable.editors.registerEditor('handsontable', HandsontableEditor);
+
+
 
 })(Handsontable);
 

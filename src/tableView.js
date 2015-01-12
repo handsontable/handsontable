@@ -124,7 +124,10 @@ Handsontable.TableView = function (instance) {
         color: '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function () {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
+        },
+        multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && !instance.selection.isMultiple();
         }
       }
     }),
@@ -136,6 +139,9 @@ Handsontable.TableView = function (instance) {
         //style: 'solid', // not used
         cornerVisible: function () {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        },
+          multipleSelectionHandlesVisible: function () {
+          return !that.isCellEdited() && instance.selection.isMultiple();
         }
       }
     }),
@@ -221,16 +227,7 @@ Handsontable.TableView = function (instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (event != null && event.isImmediatePropagationEnabled == null) {
-        event.stopImmediatePropagation = function () {
-          this.isImmediatePropagationEnabled = false;
-          this.cancelBubble = true;
-        };
-        event.isImmediatePropagationEnabled = true;
-        event.isImmediatePropagationStopped = function () {
-          return !this.isImmediatePropagationEnabled;
-        };
-      }
+      Handsontable.Dom.enableImmediatePropagation(event);
 
       if (!event.isImmediatePropagationStopped()) {
 
@@ -315,12 +312,25 @@ Handsontable.TableView = function (instance) {
     onBeforeDrawBorders: function (corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
     },
+    onBeforeTouchScroll: function () {
+      instance.runHooks('beforeTouchScroll');
+    },
+    onAfterMomentumScroll: function () {
+      instance.runHooks('afterMomentumScroll');
+    },
     viewportRowCalculatorOverride: function (calc) {
       if (that.settings.viewportRowRenderingOffset) {
-        calc.renderStartRow = Math.max(calc.renderStartRow - that.settings.viewportRowRenderingOffset, 0);
-        calc.renderEndRow = Math.min(calc.renderEndRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+        calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
+        calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
+    },
+    viewportColumnCalculatorOverride: function (calc) {
+      if (that.settings.viewportColumnRenderingOffset) {
+        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      }
+      instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
   };
 
@@ -390,9 +400,11 @@ Handsontable.TableView.prototype.render = function () {
 /**
  * Returns td object given coordinates
  * @param {WalkontableCellCoords} coords
+ * @param {Boolean} topmost
  */
-Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-  var td = this.wt.wtTable.getCell(coords);
+Handsontable.TableView.prototype.getCellAtCoords = function (coords, topmost) {
+  var td = this.wt.getCell(coords, topmost);
+  //var td = this.wt.wtTable.getCell(coords);
   if (td < 0) { //there was an exit code (cell is out of bounds)
     return null;
   }
@@ -424,7 +436,7 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   if (row > -1) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
+    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
 
   DIV.appendChild(SPAN);
@@ -450,7 +462,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   if (col > -1) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
+    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
   DIV.appendChild(SPAN);
 

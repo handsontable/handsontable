@@ -9,6 +9,25 @@ var handsontable = function (options) {
   return currentSpec.$container.data('handsontable');
 };
 
+beforeEach(function () {
+  var matchers = {
+    toBeInArray: function (arr) {
+      return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeAroundValue: function (val) {
+      this.message = function (val) {
+        return [
+          "Expected " + this.actual + " to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")",
+          "Expected " + this.actual + " NOT to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")"
+        ];
+      };
+      return (this.actual >= val - 1 && this.actual <= val + 1);
+    }
+  };
+
+  this.addMatchers(matchers);
+});
+
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original
@@ -43,6 +62,16 @@ var isEditorVisible = function () {
 var isFillHandleVisible = function () {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
+
+var getCorrespondingOverlay = function (cell, container) {
+  var overlay = $(cell).parents(".handsontable");
+  if(overlay[0] == container[0]) {
+    return $(".ht_master");
+  } else {
+    return $(overlay[0]);
+  }
+};
+
 
 /**
  * Shows context menu
@@ -225,6 +254,34 @@ var serveImmediatePropagation = function (event) {
   return event;
 };
 
+var triggerTouchEvent = function (type, target, pageX, pageY) {
+  var e = document.createEvent('TouchEvent');
+  var targetCoords = target.getBoundingClientRect();
+  var touches
+    , targetTouches
+    , changedTouches;
+
+  if(!pageX && !pageY) {
+    pageX = parseInt(targetCoords.left + 3,10);
+    pageY = parseInt(targetCoords.top + 3,10);
+  }
+
+  var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
+
+  if (type == 'touchend') {
+    touches = document.createTouchList();
+    targetTouches = document.createTouchList();
+    changedTouches = document.createTouchList(touch);
+  } else {
+    touches = document.createTouchList(touch);
+    targetTouches = document.createTouchList(touch);
+    changedTouches = document.createTouchList(touch);
+  }
+
+  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
+  target.dispatchEvent(e);
+};
+
 var autocompleteEditor = function () {
   return spec().$container.find('.handsontableInput');
 };
@@ -327,48 +384,7 @@ var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
 var addHook = handsontableMethodFactory('addHook');
-
-/**
- * Creates 2D array of Excel-like values "A1", "A2", ...
- * @param rowCount
- * @param colCount
- * @returns {Array}
- */
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
-    for (j = 0; j < colCount; j++) {
-      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
-function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = {};
-    for (j = 0; j < colCount; j++) {
-      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1)
-    }
-    rows.push(row);
-  }
-  return rows;
-}
+var getActiveEditor = handsontableMethodFactory('getActiveEditor');
 
 /**
  * Returns column width for HOT container

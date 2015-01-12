@@ -12,6 +12,7 @@
 .handsontable {
   position: relative;
 }
+
 .handsontable .hide{
   display: none;
 }
@@ -26,15 +27,32 @@
   top: 0;
 }
 
+.handsontable .wtHider {
+  width: 0;
+}
+
+.handsontable .wtSpreader {
+  position: relative;
+  width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  height: auto;
+}
+
 .handsontable table,
 .handsontable tbody,
 .handsontable thead,
 .handsontable td,
 .handsontable th,
+.handsontable input,
+.handsontable textarea,
 .handsontable div {
   box-sizing: content-box;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
+}
+
+.handsontable input,
+.handsontable textarea {
+  min-height: initial;
 }
 
 .handsontable table.htCore {
@@ -298,6 +316,10 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  border: 2px solid #5292F7;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
@@ -308,6 +330,7 @@
 .htSelectEditor {
   -webkit-appearance: menulist-button !important;
   position: absolute;
+  width: auto;
 }
 
 /*
@@ -318,11 +341,15 @@ TextRenderer readOnly cell
   color: #777;
 }
 
+.handsontable .htSubmenu {
+  position: relative;
+}
+
 .handsontable .htSubmenu :after{
-    content: '▶';
-    color: #777;
-    position: absolute;
-    right: 5px;
+  content: '▶';
+  color: #777;
+  position: absolute;
+  right: 5px;
 }
 
 
@@ -408,6 +435,47 @@ Comment For Cell
   right: 0;
   border-left: 6px solid transparent;
   border-top: 6px solid red;
+}
+
+@-webkit-keyframes opacity-hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+@keyframes opacity-hide {
+  from {
+    /*display: block;*/
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+
+@-webkit-keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
+}
+@keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
 }
 
 /**

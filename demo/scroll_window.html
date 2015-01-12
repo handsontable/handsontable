@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Native Scrollbar - Handsontable</title>
+  <title>Native Scrollbar (window) - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies)
@@ -22,9 +22,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Native Scrollbar">
+  <meta property="og:title" content="Native Scrollbar (window)">
   <meta property="og:description"
-        content="This demo shows table of 1000 rows. Only visible part is rendered. Native window scrollbar is used to
+        content="This demo shows table of 1000 rows and columns. Only visible part is rendered. Native window scrollbar is used to
             scroll through the table.">
   <meta property="og:url" content="http://handsontable.com/demo/scroll_window.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
@@ -37,24 +37,6 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
-
-  <script data-jsfiddle="common">
-    function createBigData() {
-      var rows = []
-        , i
-        , j;
-
-      for (i = 0; i < 1000; i++) {
-        var row = [];
-        for (j = 0; j < 36; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-        }
-        rows.push(row);
-      }
-
-      return rows;
-    }
-  </script>
 </head>
 
 <body>
@@ -75,19 +57,12 @@
         <div class="pad" data-jsfiddle="example1">
           <h2>Native Scrollbar (window)</h2>
 
-          <p>This demo shows table of 1000 rows. Only visible part is rendered. Native window scrollbar is used to
+          <p>This demo shows table of <strong>1000</strong> rows and columns. Only visible part is rendered. Native window scrollbar is used to
             scroll through the table.</p>
 
-          <p>This feature is considered <strong>experimental</strong> - not for production use. Normally you should use
-            the
-            <a href="http://handsontable.com/demo/scroll.html">built-in scrollbars</a> that come with Handsontable.
-          </p>
+          <div id="example1"></div>
 
-          <p>This feature will continue to be developed. Comments are welcome.</p>
-
-          <div id="example1" style="width: 700px;"></div>
-
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad at, commodi dicta distinctio doloremque dolores facilis in iure nam nesciunt obcaecati, omnis placeat quae quas quo repellat reprehenderit, sequi tenetur.</p>
+          <p>This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table.</p>
 
           <p>
             <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -107,12 +82,11 @@
           <script data-jsfiddle="example1">
             var example1 = document.getElementById('example1');
             var hot1 = new Handsontable(example1,{
-              data: createBigData(),
+              data: Handsontable.helper.createSpreadsheetData(1000, 1000),
               colWidths: [55, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
               minSpareRows: 1,
-              stretchH: 'all',
               contextMenu: true,
               fixedRowsTop: 2,
               fixedColumnsLeft: 2

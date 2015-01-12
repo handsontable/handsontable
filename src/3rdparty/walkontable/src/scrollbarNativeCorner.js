@@ -20,8 +20,9 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     var finalLeft
       , finalTop;
     var bottom = Math.ceil(box.bottom);
+    var right = Math.ceil(box.right);
 
-    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
+    if (left < 0 && (right - elem.offsetWidth) > 0) {
       finalLeft = -left + 'px';
     } else {
       finalLeft = '0';
@@ -33,7 +34,7 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
       finalTop = "0";
     }
   }
-  else {
+  else if(!Handsontable.freezeOverlays) {
     finalLeft = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
     finalTop = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
   }

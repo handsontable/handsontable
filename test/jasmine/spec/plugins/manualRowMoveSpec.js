@@ -330,8 +330,8 @@ describe('manualRowMove', function () {
   });
 
   it("should display the move handle in the correct place after the table has been scrolled", function () {
-    handsontable({
-      data: createSpreadsheetData(20, 20),
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
       manualRowMove: true,
       height: 100,
@@ -348,7 +348,7 @@ describe('manualRowMove', function () {
     expect($rowHeader.offset().top).toEqual($handle.offset().top);
 
     this.$container.scrollTop(200);
-    this.$container.scroll();
+    hot.render();
 
     $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
     $rowHeader.simulate("mouseover");
