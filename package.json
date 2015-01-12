@@ -6,7 +6,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Marcin Warpechowski <hello@handsontable.com>",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-replace": "~0.7.8",
