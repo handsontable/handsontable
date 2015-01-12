@@ -320,10 +320,17 @@ Handsontable.TableView = function (instance) {
     },
     viewportRowCalculatorOverride: function (calc) {
       if (that.settings.viewportRowRenderingOffset) {
-        calc.renderStartRow = Math.max(calc.renderStartRow - that.settings.viewportRowRenderingOffset, 0);
-        calc.renderEndRow = Math.min(calc.renderEndRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+        calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
+        calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
+    },
+    viewportColumnCalculatorOverride: function (calc) {
+      if (that.settings.viewportColumnRenderingOffset) {
+        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      }
+      instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
   };
 
@@ -429,7 +436,7 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   if (row > -1) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
+    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
 
   DIV.appendChild(SPAN);
@@ -455,7 +462,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   if (col > -1) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
+    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
   DIV.appendChild(SPAN);
 

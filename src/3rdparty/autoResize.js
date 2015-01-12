@@ -29,18 +29,25 @@ var autoResize = function () {
         element.detachEvent('on' + event, handler);
       }
     },
-    resize = function () {
+    resize = function (newChar) {
+      if(!newChar) {
+        newChar = "";
+      } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
+        newChar = ".";
+      }
+
       if (text.textContent !== void 0) {
-        text.textContent = el.value;
+        text.textContent = el.value + newChar;
       }
       else {
-        text.data = el.value; //IE8
+        text.data = el.value + newChar; //IE8
       }
       span.style.fontSize = Handsontable.Dom.getComputedStyle(el).fontSize;
       span.style.fontFamily = Handsontable.Dom.getComputedStyle(el).fontFamily;
+      span.style['white-space'] = "pre";
 
       body.appendChild(span);
-      var width = span.clientWidth;
+      var width = span.clientWidth + 2;
       body.removeChild(span);
 
       el.style.height = defaults.minHeight + 'px';
@@ -119,7 +126,7 @@ var autoResize = function () {
         span.appendChild(text);
       }
     },
-    init = function (el_, config) {
+    init = function (el_, config, doObserve) {
       el = el_;
       extendDefaults(config);
 
@@ -133,19 +140,20 @@ var autoResize = function () {
         el.style.overflowY = 'hidden';
       }
 
-
-      observe(el, 'change', resize);
-      observe(el, 'cut', delayedResize);
-      observe(el, 'paste', delayedResize);
-      observe(el, 'drop', delayedResize);
-      observe(el, 'keydown', delayedResize);
+      if(doObserve) {
+        observe(el, 'change', resize);
+        observe(el, 'cut', delayedResize);
+        observe(el, 'paste', delayedResize);
+        observe(el, 'drop', delayedResize);
+        observe(el, 'keydown', delayedResize);
+      }
 
       resize();
     };
 
   return {
-    init: function (el_, config) {
-      init(el_, config);
+    init: function (el_, config, doObserve) {
+      init(el_, config, doObserve);
     },
     unObserve: function () {
       unObserve(el, 'change', resize);
@@ -153,7 +161,8 @@ var autoResize = function () {
       unObserve(el, 'paste', delayedResize);
       unObserve(el, 'drop', delayedResize);
       unObserve(el, 'keydown', delayedResize);
-    }
+    },
+    resize: resize
   }
 
 };

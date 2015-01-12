@@ -2210,6 +2210,10 @@ describe('AutocompleteEditor', function () {
       ]
     });
 
+    this.$container.css({
+      height: 600
+    });
+
     expect(choices.length).toBeGreaterThan(10);
 
     selectCell(0, 0);
@@ -2217,17 +2221,20 @@ describe('AutocompleteEditor', function () {
 
     var dropdown = hot.getActiveEditor().htContainer;
 
-    expect(dropdown.scrollHeight).toBeGreaterThan(dropdown.clientHeight);
+    waits(30);
+    runs(function() {
+      expect(dropdown.scrollHeight).toBeGreaterThan(dropdown.clientHeight);
 
-    keyDownUp('esc');
+      keyDownUp('esc');
 
-    hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
+      hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
 
-    hot.updateSettings({});
+      hot.updateSettings({});
 
-    selectCell(0, 0);
-    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-
+      selectCell(0, 0);
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+    });
+    
     waits(30);
 
     runs(function() {

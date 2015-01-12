@@ -66,6 +66,18 @@ describe('FillHandle', function () {
     expect(isFillHandleVisible()).toBe(false);
   });
 
+  it('should appear when editor is discarded using the ESC key', function () {
+    handsontable({
+      fillHandle: true
+    });
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyDown('esc');
+
+    expect(isFillHandleVisible()).toBe(true);
+  });
+
   it('should add custom value after autofill', function () {
     handsontable({
       data: [

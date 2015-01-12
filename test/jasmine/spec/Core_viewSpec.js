@@ -59,7 +59,7 @@ describe('Core_view', function () {
     this.$container[0].style.height = '60px';
 
     handsontable({
-      data: createSpreadsheetData(10, 3),
+      data: Handsontable.helper.createSpreadsheetData(10, 3),
       height: 60
     });
 
@@ -84,7 +84,7 @@ describe('Core_view', function () {
     this.$container[0].style.height = '100px';
 
     handsontable({
-      data: createSpreadsheetData(10, 9),
+      data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedRowsTop: 1
     });
 
@@ -112,7 +112,7 @@ describe('Core_view', function () {
     this.$container[0].style.height = '60px';
 
     var HOT = handsontable({
-      data: createSpreadsheetData(10, 9),
+      data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
       width: 200,
       height: 100
@@ -181,7 +181,7 @@ describe('Core_view', function () {
     this.$container[0].style.height = '100px';
 
     handsontable({
-      data: createSpreadsheetData(10, 9),
+      data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedColumnsLeft: 1
     });
 
@@ -217,7 +217,7 @@ describe('Core_view', function () {
     this.$container[0].style.height = '100px';
 
     var HOT = handsontable({
-      data: createSpreadsheetData(10, 9),
+      data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedColumnsLeft: 1
     });
 
@@ -334,7 +334,7 @@ describe('Core_view', function () {
       width: 107
     });
 
-    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    expect(this.$container.width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
   it('should allow width to be a function', function () {
@@ -346,7 +346,7 @@ describe('Core_view', function () {
       }
     });
 
-    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    expect(this.$container.width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
   it("should fire beforeRender event after table has been scrolled", function () {
@@ -355,7 +355,7 @@ describe('Core_view', function () {
     this.$container[0].style.overflow = 'auto';
 
     var hot = handsontable({
-      data: createSpreadsheetData(100, 3)
+      data: Handsontable.helper.createSpreadsheetData(100, 3)
     });
 
     var beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
@@ -376,7 +376,7 @@ describe('Core_view', function () {
     this.$container[0].style.overflow = 'auto';
 
     var hot = handsontable({
-      data: createSpreadsheetData(20, 3)
+      data: Handsontable.helper.createSpreadsheetData(20, 3)
     });
 
     var afterRenderCallback = jasmine.createSpy('afterRenderCallback');
@@ -457,7 +457,7 @@ describe('Core_view', function () {
     });
 
     it('should be the same as the row heights in the main table (after scroll)', function () {
-      var myData = createSpreadsheetData(20, 4);
+      var myData = Handsontable.helper.createSpreadsheetData(20, 4);
       myData[1][3] = "very\nlong\ntext";
       myData[5][3] = "very\nlong\ntext";
       myData[10][3] = "very\nlong\ntext";
@@ -483,7 +483,7 @@ describe('Core_view', function () {
     });
 
     it('should be the same as the row heights in the main table (after scroll, in corner)', function () {
-      var myData = createSpreadsheetData(20, 4);
+      var myData = Handsontable.helper.createSpreadsheetData(20, 4);
       myData[1][3] = "very\nlong\ntext";
       myData[5][3] = "very\nlong\ntext";
       myData[10][3] = "very\nlong\ntext";
@@ -568,8 +568,6 @@ describe('Core_view', function () {
         stretchH: 'all'
       }),
       rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth(),
-      expectedCellWidth = 0;
-
       expectedCellWidth = (parseInt(this.$container[0].style.width,10) - rowHeaderWidth) / 5;
 
       expect(getCell(0,0).offsetWidth).toEqual(expectedCellWidth);
@@ -616,7 +614,7 @@ describe('Core_view', function () {
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
 
-      var result = navigator.platform == "Win32" ? 86 : 87;
+      var result = navigator.platform == "Win32" && !navigator.userAgent.match(/MSIE 10/) ? 86 : 87; // IE10 hack
       expect(masterTH[1].offsetWidth).toEqual(result);
       expect(overlayTH[1].offsetWidth).toEqual(result); //if you get 90, it means it is calculated before scrollbars were applied
 

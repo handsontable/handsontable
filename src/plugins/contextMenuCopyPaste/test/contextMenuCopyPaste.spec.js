@@ -31,7 +31,7 @@ describe("ContextMenuCopyPaste", function () {
 
   it("should add Copy and Paste context menu options at the beginning by default", function () {
     var hot = handsontable({
-      data: createSpreadsheetObjectData(10, 5),
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
       minSpareRows: 1,
@@ -60,7 +60,7 @@ describe("ContextMenuCopyPaste", function () {
 
   it("should add Copy and Paste context menu options at the provided index", function () {
     var hot = handsontable({
-      data: createSpreadsheetObjectData(10, 5),
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
       minSpareRows: 1,
@@ -92,7 +92,7 @@ describe("ContextMenuCopyPaste", function () {
 
     xit("should allow to copy single cell's data", function () {
       var hot = handsontable({
-        data: createSpreadsheetObjectData(10, 5),
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         rowHeaders: true,
         colHeaders: true,
         minSpareRows: 1,

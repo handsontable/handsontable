@@ -58,7 +58,7 @@
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -84,7 +84,7 @@
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -117,7 +117,7 @@
       it("should set the cell pointer's position to point to the edited cell", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -146,7 +146,7 @@
       it("should center the editor after opening if the edited cell horizontal position is within editor boundaries", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -172,7 +172,7 @@
       it("should snap the editor to the right side of the screen if the edited cell is on the right side of the editor", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 24),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 24),
           width: window.innerWidth,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -198,7 +198,7 @@
       it("should snap the editor to the left side of the screen if the edited cell is on the left side of the editor", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -223,7 +223,7 @@
       it("should be positioned right below the edited cell", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -251,7 +251,7 @@
       it("should apply the changes after tapping outside the editor", function () {
         var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
         var hot = handsontable({
-          data: createSpreadsheetObjectData(10, 5),
+          data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
           width: 400,
           height: 400,
           afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -288,7 +288,7 @@
         it("should change the selected cell in the appropriate direction after hitting the controller button", function () {
           var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
           var hot = handsontable({
-            data: createSpreadsheetObjectData(10, 5),
+            data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
             width: 400,
             height: 400,
             afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -365,7 +365,7 @@
         it("should change the editor's input value to the value of the newly selected cell", function () {
           var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
           var hot = handsontable({
-            data: createSpreadsheetObjectData(10, 5),
+            data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
             width: 400,
             height: 400,
             afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -425,7 +425,7 @@
         it("should apply the changes after moving selection elsewhere", function () {
           var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
           var hot = handsontable({
-            data: createSpreadsheetObjectData(10, 5),
+            data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
             width: 400,
             height: 400,
             afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -503,7 +503,7 @@
 
           var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
           var hot = handsontable({
-            data: createSpreadsheetObjectData(10, 5),
+            data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
             width: 400,
             height: 400,
             afterOnCellMouseDown: onAfterOnCellMouseDown
@@ -544,7 +544,7 @@
         it("should hide the editor's cell pointer after manually moving the editor", function () {
           var onAfterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
           var hot = handsontable({
-            data: createSpreadsheetObjectData(10, 5),
+            data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
             width: 400,
             height: 400,
             afterOnCellMouseDown: onAfterOnCellMouseDown

@@ -25,6 +25,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       return;
     }
 
+    that.instance.draw(true);
     that.vertical.onScroll();
     that.horizontal.onScroll();
   };
@@ -57,13 +58,11 @@ WalkontableScrollbars.prototype.destroy = function () {
   this.debug && this.debug.destroy();
 };
 
-WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
-  this.horizontal && this.horizontal.readSettings();
-  this.vertical && this.vertical.readSettings();
-  this.horizontal && this.horizontal.refresh(selectionsOnly);
-  this.vertical && this.vertical.refresh(selectionsOnly);
-  this.corner && this.corner.refresh(selectionsOnly);
-  this.debug && this.debug.refresh(selectionsOnly);
+WalkontableScrollbars.prototype.refresh = function (fastDraw) {
+  this.horizontal && this.horizontal.refresh(fastDraw);
+  this.vertical && this.vertical.refresh(fastDraw);
+  this.corner && this.corner.refresh(fastDraw);
+  this.debug && this.debug.refresh(fastDraw);
 };
 
 WalkontableScrollbars.prototype.applyToDOM = function () {
