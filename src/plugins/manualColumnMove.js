@@ -197,7 +197,7 @@ function HandsontableManualColumnMove() {
 
       if (typeof loadedManualColumnPositions != 'undefined') {
         this.manualColumnPositions = loadedManualColumnPositions;
-      } else if (initialManualColumnPositions instanceof Array) {
+      } else if (Array.isArray(initialManualColumnPositions)) {
         this.manualColumnPositions = initialManualColumnPositions;
       } else {
         this.manualColumnPositions = [];

@@ -1,3 +1,5 @@
+Handsontable.helper = {};
+
 /**
  * Returns true if keyCode represents a printable character
  * @param {Number} keyCode
@@ -101,6 +103,48 @@ Handsontable.helper.spreadsheetColumnLabel = function (index) {
 };
 
 /**
+ * Creates 2D array of Excel-like values "A1", "A2", ...
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+Handsontable.helper.createSpreadsheetData = function(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+Handsontable.helper.createSpreadsheetObjectData = function(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = {};
+    for (j = 0; j < colCount; j++) {
+      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1)
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+/**
  * Checks if value of n is a numeric one
  * http://jsperf.com/isnan-vs-isnumeric/4
  * @param n
@@ -113,24 +157,6 @@ Handsontable.helper.isNumeric = function (n) {
            n.length == 1 ? /\d/.test(n) :
            /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) :
            t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
-};
-
-/**
- * Checks if child is a descendant of given parent node
- * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
- * @param parent
- * @param child
- * @returns {boolean}
- */
-Handsontable.helper.isDescendant = function (parent, child) {
-  var node = child.parentNode;
-  while (node != null) {
-    if (node == parent) {
-      return true;
-    }
-    node = node.parentNode;
-  }
-  return false;
 };
 
 /**
@@ -179,7 +205,7 @@ Handsontable.helper.deepExtend = function (target, extension) {
     if (extension.hasOwnProperty(key)) {
       if (extension[key] && typeof extension[key] === 'object') {
         if (!target[key]) {
-          if (Handsontable.helper.isArray(extension[key])) {
+          if (Array.isArray(extension[key])) {
             target[key] = [];
           }
           else {
@@ -371,16 +397,6 @@ Handsontable.helper.isObject = function (obj) {
   return Object.prototype.toString.call(obj) == '[object Object]';
 };
 
-/**
- * Determines whether given object is an Array.
- * Note: String is not an Array
- * @param {*} obj
- * @returns {boolean}
- */
-Handsontable.helper.isArray = function(obj){
-  return Array.isArray ? Array.isArray(obj) : Object.prototype.toString.call(obj) == '[object Array]';
-};
-
 Handsontable.helper.pivot = function (arr) {
   var pivotedArr = [];
 
@@ -479,10 +495,6 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
     return type;
   }
 
-};
-
-Handsontable.helper.toString = function (obj) {
-  return '' + obj;
 };
 
 Handsontable.helper.isMobileBrowser = function (userAgent) {

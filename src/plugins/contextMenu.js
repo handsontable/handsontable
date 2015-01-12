@@ -67,7 +67,7 @@
     contextMenu.htMenus = {};
     contextMenu.triggerRows = [];
 
-    contextMenu.eventManager = Handsontable.eventManager(contextMenu)
+    contextMenu.eventManager = Handsontable.eventManager(contextMenu);
 
 
     this.enabled = true;
@@ -332,7 +332,7 @@
     this.bindMouseEvents();
 
     this.markSelected = function (label) {
-      return "<span class='selected'>✓</span>" + label;
+      return "<span class='selected'>" + String.fromCharCode(10003) + "</span>" + label; // workaround for https://github.com/handsontable/handsontable/issues/1946
     };
 
     this.checkSelectionAlignment = function (hot, className) {
@@ -534,19 +534,17 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
-      renderAllRows: true
-    };
-
-    var htContextMenu = new Handsontable(menu, settings);
-
-    htContextMenu.updateSettings({
+      renderAllRows: true,
       beforeKeyDown: function (event) {
         that.onBeforeKeyDown(event, htContextMenu);
       },
       afterOnCellMouseOver: function (event, coords, TD) {
         that.onCellMouseOver(event, coords, TD, htContextMenu);
       }
-    });
+    };
+
+    var htContextMenu = new Handsontable(menu, settings);
+
 
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
@@ -916,7 +914,7 @@
       cellWidth: coords.width
     };
 
-    if (this.menuFitsBelowCursor(cursor, menu)) {
+    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuBelowCursor(cursor, menu, true);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
@@ -926,7 +924,7 @@
       }
     }
 
-    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
+    if (this.menuFitsOnRightOfCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuOnRightOfCursor(cursor, menu, true);
     } else {
       this.positionMenuOnLeftOfCursor(cursor, menu, true);
@@ -952,7 +950,7 @@
       cellWidth: event.target.clientWidth
     };
 
-    if (this.menuFitsBelowCursor(cursor, menu)) {
+    if (this.menuFitsBelowCursor(cursor, menu, document.body.clientHeight)) {
       this.positionMenuBelowCursor(cursor, menu);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
@@ -962,7 +960,7 @@
       }
     }
 
-    if (this.menuFitsOnRightOfCursor(cursor, menu)) {
+    if (this.menuFitsOnRightOfCursor(cursor, menu, document.body.clientWidth)) {
       this.positionMenuOnRightOfCursor(cursor, menu);
     } else {
       this.positionMenuOnLeftOfCursor(cursor, menu);
@@ -974,12 +972,12 @@
     return cursor.topRelative >= menu.offsetHeight;
   };
 
-  ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu) {
-    return cursor.topRelative + menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
+  ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu, viewportHeight) {
+    return cursor.topRelative + menu.offsetHeight <= viewportHeight;
   };
 
-  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu) {
-    return cursor.leftRelative + menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
+  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu, viewportHeight) {
+    return cursor.leftRelative + menu.offsetWidth <= viewportHeight;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {

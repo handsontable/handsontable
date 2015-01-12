@@ -1,7 +1,6 @@
 function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
-  this.cellSize = 50;
   this.offset = 0;
   this.init();
   this.clone = this.makeClone('left');
@@ -22,8 +21,9 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     var left = Math.ceil(box.left);
     var finalLeft
       , finalTop;
+    var right = Math.ceil(box.right);
 
-    if (left < 0 && (left + Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE)) > 0) {
+    if (left < 0 && (right - elem.offsetWidth) > 0) {
       finalLeft = -left + 'px';
     } else {
       finalLeft = '0';
@@ -39,11 +39,12 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
-  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
-  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
+WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
+  this.applyToDOM();
+  WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
@@ -59,24 +60,54 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
 };
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
-  this.readSettings(); //read window scroll position
   this.instance.getSetting('onScrollHorizontally');
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtTable.getLastVisibleColumn();
+WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
+  var sum = 0;
+  while(from < length) {
+    sum += this.instance.wtTable.getStretchedColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
+    from++;
+  }
+  return sum;
 };
 
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
+  var total = this.instance.getSetting('totalColumns');
+  var headerSize = this.instance.wtViewport.getRowHeaderWidth();
+
+  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
+
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
+    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
+  }
+  else if (total === 0) {
+    this.fixed.style.left = '0';
+  } else {
+    throw  new Error('Incorrect value of the columnsRenderCalculator');
+  }
+  this.fixed.style.right = '';
 };
 
 /**
  * Scrolls horizontally to a column at the left edge of the viewport
  * @param sourceCol {Number}
+ * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol) {
-  this.setScrollPosition(this.getTableParentOffset() + sourceCol * this.cellSize);
+WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+  var newX = this.getTableParentOffset();
+
+  if (beyondRendered) {
+    newX += this.sumCellSizes(0, sourceCol + 1);
+    newX -= this.instance.wtViewport.getViewportWidth()
+  }
+  else {
+    var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
+    newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
+  }
+
+  this.setScrollPosition(newX);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
@@ -86,8 +117,4 @@ WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function (
   else {
     return 0;
   }
-};
-
-WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  this.total = this.instance.getSetting('totalColumns');
 };

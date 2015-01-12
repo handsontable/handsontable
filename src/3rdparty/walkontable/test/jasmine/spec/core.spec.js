@@ -67,7 +67,6 @@ describe('WalkontableCore', function () {
   });
 
   it("should figure out how many columns to display if width param given", function () {
-
     $container.width(100);
 
     var wt = new Walkontable({
@@ -77,7 +76,7 @@ describe('WalkontableCore', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
-    expect($table.find('tbody tr:first td').length).toBe(4);
+    expect($table.find('tbody tr:first td').length).toBe(2);
   });
 
   it("should not render table that is removed from DOM", function () {

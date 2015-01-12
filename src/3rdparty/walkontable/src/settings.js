@@ -28,14 +28,19 @@ function WalkontableSettings(instance, settings) {
       var cellData = that.getSetting('data', row, column);
       Handsontable.Dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
-    columnWidth: 50,
+    //columnWidth: 50,
+    columnWidth: function (col) {
+      return; //return undefined means use default size for the rendered cell content
+    },
     rowHeight: function (row) {
       return; //return undefined means use default size for the rendered cell content
     },
     defaultRowHeight: 23,
+    defaultColumnWidth: 50,
     selections: null,
     hideBorderOnMouseDownOver: false,
     viewportRowCalculatorOverride: null,
+    viewportColumnCalculatorOverride: null,
 
     //callbacks
     onCellMouseDown: null,
@@ -99,7 +104,7 @@ WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3
   if (typeof this.settings[key] === 'function') {
     return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
-  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') { //perhaps this can be removed, it is only used in tests
+  else if (param1 !== void 0 && Array.isArray(this.settings[key])) { //perhaps this can be removed, it is only used in tests
     return this.settings[key][param1];
   }
   else {

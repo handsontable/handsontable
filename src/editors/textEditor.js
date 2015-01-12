@@ -87,6 +87,7 @@
         break;
     }
 
+    that.autoResize.resize(String.fromCharCode(event.keyCode));
   };
 
 
@@ -229,11 +230,9 @@
     if (editLeft < 0) {
       editLeft = 0;
     }
-    //if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     if (rowHeadersCount > 0 && parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       editTop += 1;
     }
-    //if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       editLeft += 1;
     }
@@ -259,11 +258,9 @@
       , height = Handsontable.Dom.outerHeight(this.TD) - 4  //$td.outerHeight() - 4
       , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2; //10 is TEXTAREAs border and padding
 
-    //if (parseInt($td.css('border-top-width'), 10) > 0) {
     if (parseInt(this.TD.style.borderTopWidth, 10) > 0) {
       height -= 1;
     }
-    //if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
       if (rowHeadersCount > 0) {
         width -= 1;
@@ -278,7 +275,7 @@
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
       maxWidth: maxWidth //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-    });
+    }, true);
 
     this.textareaParentStyle.display = 'block';
   };

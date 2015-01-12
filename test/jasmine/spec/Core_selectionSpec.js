@@ -445,6 +445,47 @@ describe('Core_selection', function () {
     expect(getSelected()).toEqual([0, 0, 49, 0]);
   });
 
+  it("should allow to scroll the table when a whole column is selected and table is longer than it's container", function () {
+    var errCount = 0;
+    $(window).on("error.selectionTest", function () {
+      errCount++;
+    });
+
+    var onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
+
+    var hot = handsontable({
+      height: 100,
+      width: 300,
+      startRows: 100,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+      afterScrollVertically: onAfterScrollVertically
+    });
+
+    this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+    this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+    this.$container[0].scrollTop = 0;
+
+    waitsFor(function () {
+      return onAfterScrollVertically.calls.length > 0;
+    }, 'Vertical scroll callback call', 1000);
+
+    runs(function () {
+      this.$container[0].scrollTop = 120;
+    });
+
+    waits(100);
+
+    runs(function () {
+      expect(errCount).toEqual(0); // expect no errors to be thrown
+
+      $(window).off("error.selectionTest");
+    });
+
+  });
+
   it("should select the entire row after row header is clicked", function(){
     handsontable({
       startRows: 5,

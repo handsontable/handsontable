@@ -9,6 +9,25 @@ var handsontable = function (options) {
   return currentSpec.$container.data('handsontable');
 };
 
+beforeEach(function () {
+  var matchers = {
+    toBeInArray: function (arr) {
+      return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeAroundValue: function (val) {
+      this.message = function (val) {
+        return [
+          "Expected " + this.actual + " to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")",
+          "Expected " + this.actual + " NOT to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")"
+        ];
+      };
+      return (this.actual >= val - 1 && this.actual <= val + 1);
+    }
+  };
+
+  this.addMatchers(matchers);
+});
+
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original
@@ -366,48 +385,6 @@ var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
 var addHook = handsontableMethodFactory('addHook');
 var getActiveEditor = handsontableMethodFactory('getActiveEditor');
-
-/**
- * Creates 2D array of Excel-like values "A1", "A2", ...
- * @param rowCount
- * @param colCount
- * @returns {Array}
- */
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
-    for (j = 0; j < colCount; j++) {
-      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
-function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = {};
-    for (j = 0; j < colCount; j++) {
-      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1)
-    }
-    rows.push(row);
-  }
-  return rows;
-}
 
 /**
  * Returns column width for HOT container

@@ -30,23 +30,13 @@ WalkontableTableRenderer.prototype.render = function () {
     , displayTds
     , adjusted = false
     , workspaceWidth
-    , cloneLimit = this.instance.wtViewport.rowsPreCalculator.countRendered;
+    , cloneLimit = this.wtTable.getRenderedRowsCount();
 
   if (totalColumns > 0) {
-    if (this.wtTable.isWorkingOnClone()) {
-      if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-        cloneLimit = this.fixedRowsTop;
-      }
-      else if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-        cloneLimit = totalRows;
-      }
-    }
-
     this.adjustAvailableNodes();
     adjusted = true;
 
     this.renderColGroups();
-
 
     this.renderColumnHeaders();
 
@@ -58,7 +48,6 @@ WalkontableTableRenderer.prototype.render = function () {
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.instance.wtViewport.containerWidth = null;
-      this.wtTable.getColumnStrategy().stretch();
     }
 
     this.adjustColumnWidths(displayTds);
@@ -73,19 +62,21 @@ WalkontableTableRenderer.prototype.render = function () {
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
 
-    this.instance.wtViewport.createCalculators();
+    this.instance.wtViewport.createVisibleCalculators();
 
     this.instance.wtScrollbars.applyToDOM();
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
-      this.wtTable.getColumnStrategy().stretch();
-      var cache = this.instance.wtTable.columnWidthCache;
-      for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-        var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
-        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
-        cache[visibleColIndex] = width;
+
+      var firstRendered = this.wtTable.getFirstRenderedColumn();
+      var lastRendered = this.wtTable.getLastRenderedColumn();
+
+      for (var i = firstRendered ; i < lastRendered; i++) {
+        var width = this.wtTable.getStretchedColumnWidth(i);
+        var renderedIndex = this.columnFilter.sourceToRendered(i);
+        this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
       }
     }
 
@@ -179,6 +170,7 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
+
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
     sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
     if (visibleColIndex === 0) {
@@ -199,7 +191,7 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 
     TD.removeAttribute('style');
 
-    this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
+    this.instance.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
 
   }
 
@@ -207,21 +199,12 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 };
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
-  var cache = this.instance.wtTable.columnWidthCache;
-  var cacheChanged = false;
   var width;
-  for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-    if (this.wtTable.isWorkingOnClone()) {
-      width = this.instance.cloneSource.wtTable.columnWidthCache[visibleColIndex];
-    }
-    else {
-      width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
-    }
-    if (width !== cache[visibleColIndex]) {
-      this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
-      cache[visibleColIndex] = width;
-      cacheChanged = true;
-    }
+  this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
+
+  for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
+    width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
   }
 };
 
@@ -277,15 +260,11 @@ WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
 };
 
 WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
-
-  this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
-
   //adjust COLGROUP
   this.adjustColGroups();
 
   //adjust THEAD
   this.adjustThead();
-
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
@@ -293,15 +272,17 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
     return;
   }
 
-    var columnCount = this.wtTable.getRenderedColumnsCount()
-    , TR;
+  var columnCount = this.wtTable.getRenderedColumnsCount(),
+    TR,
+    renderedColumnIndex;
 
   for (var i = 0; i < this.columnHeaderCount; i++) {
     TR = this.getTrForColumnHeaders(i);
 
-    for (var columnIndex = (-1) * this.rowHeaderCount; columnIndex < columnCount; columnIndex++) {
-      this.renderColumnHeader(i, columnIndex, TR.childNodes[columnIndex + this.rowHeaderCount]);
-    }
+    for (renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+      }
   }
 };
 
@@ -316,9 +297,6 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
   while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.wtTable.colgroupChildrenLength--;
-    if (this.wtTable.columnWidthCache) {
-      this.wtTable.columnWidthCache.splice(-1, 1);
-    }
   }
 };
 
@@ -398,30 +376,11 @@ WalkontableTableRenderer.prototype.adjustColumns = function (TR, desiredCount) {
   }
 };
 
-WalkontableTableRenderer.prototype.refreshStretching = function () {
-  if (this.wtTable.isWorkingOnClone()) {
-    return;
+WalkontableTableRenderer.prototype.removeRedundantColumns = function (renderedColumnsCount) {
+  while (this.wtTable.tbodyChildrenLength > renderedColumnsCount) {
+    this.TBODY.removeChild(this.TBODY.lastChild);
+    this.wtTable.tbodyChildrenLength--;
   }
-
-  var instance = this.instance
-    , stretchH = instance.getSetting('stretchH')
-    , totalColumns = instance.getSetting('totalColumns');
-
-  var containerWidthFn = function () {
-    var viewportWidth = that.instance.wtViewport.getViewportWidth();
-    return viewportWidth;
-  };
-
-  var that = this;
-
-  var columnWidthFn = function (i) {
-    var source_c = that.columnFilter.renderedToSource(i);
-    if (source_c < totalColumns) {
-      return instance.getSetting('columnWidth', source_c);
-    }
-  };
-
-  this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
 };
 
 /*
