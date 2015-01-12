@@ -478,7 +478,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       Handsontable.hooks.run(instance, "afterSelectionByProp", priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
-        instance.view.scrollViewport(coords);
+        if(priv.selRange.from) {
+          instance.view.scrollViewport(priv.selRange.from);
+        } else {
+          instance.view.scrollViewport(coords);
+        }
+
       }
       selection.refreshBorders(null, keepEditorOpened);
     },
