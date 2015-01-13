@@ -221,17 +221,19 @@ function HandsontableManualColumnResize() {
      *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
      *  in data source. For instance, this order can be modified by manualColumnMove plugin.
      */
-    col = Handsontable.hooks.execute(instance, 'modifyCol', col);
-
+    col = Handsontable.hooks.run(instance, 'modifyCol', col);
     instance.manualColumnWidths[col] = width;
+
     return width;
   };
 
   this.modifyColWidth = function (width, col) {
-    col = this.runHooksAndReturn('modifyCol', col);
+    col = this.runHooks('modifyCol', col);
+
     if (this.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
       return this.manualColumnWidths[col];
     }
+
     return width;
   };
 }

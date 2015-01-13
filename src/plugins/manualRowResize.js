@@ -218,19 +218,21 @@
     };
 
     var setManualSize = function (row, height) {
-      row = Handsontable.hooks.execute(instance, 'modifyRow', row);
-
+      row = Handsontable.hooks.run(instance, 'modifyRow', row);
       instance.manualRowHeights[row] = height;
+
       return height;
     };
 
     this.modifyRowHeight = function (height, row) {
       if (this.getSettings().manualRowResize) {
-        row = this.runHooksAndReturn('modifyRow', row);
+        row = this.runHooks('modifyRow', row);
+
         if (this.manualRowHeights[row] !== void 0) {
           return this.manualRowHeights[row];
         }
       }
+
       return height;
     };
   }
