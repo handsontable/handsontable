@@ -577,16 +577,16 @@ describe('Core_validate', function () {
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
-    waitsFor(function(){
+    waitsFor(function() {
       return onAfterValidate.calls.length > 0 && onAfterChange.calls.length > 0;
     }, 'Cell validation and value change', 1000);
 
     runs(function () {
       expect(isEditorVisibleBeforeChange).toBe(true);
-      expect(isEditorVisibleAfterChange).toBe(false);
+      expect(isEditorVisibleAfterChange).toBe(true);
+      expect(isEditorVisible()).toBe(false);
       expect(document.activeElement.nodeName).toEqual('BODY');
     });
-
   });
 
   it('should validate edited cell after selecting another cell', function () {

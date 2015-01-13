@@ -738,8 +738,9 @@ Handsontable.Core = function (rootElement, userSettings) {
             else {
               numeral.language(cellProperties.language);
             }
-
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+            if (numeral.validate(changes[i][3])) {
+              changes[i][3] = numeral().unformat(changes[i][3]);
+            }
           }
         }
 
@@ -769,13 +770,17 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.execute(instance, "beforeChange", changes, source);
+
         if (typeof beforeChangeResult === 'function') {
           console.warn("Your beforeChange callback returns a function. It's not supported since Handsontable 0.12.1 (and the returned function will not be executed).");
+
         } else if (beforeChangeResult === false) {
-          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+          // invalidate all changes (remove everything from array)
+          changes.splice(0, changes.length);
         }
       }
-        callback(); //called when async validators are resolved and beforeChange was not async
+      // called when async validators are resolved and beforeChange was not async
+      callback();
     }
   }
 
@@ -812,7 +817,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.createCol();
         }
       }
-
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
@@ -835,28 +839,24 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (typeof validator == 'function') {
-
       value = Handsontable.hooks.execute(instance, "beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(function () {
         validator.call(cellProperties, value, function (valid) {
+          valid = Handsontable.hooks.execute(instance, "afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
           cellProperties.valid = valid;
 
-          valid = Handsontable.hooks.execute(instance, "afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
-
           callback(valid);
+          Handsontable.hooks.run(instance, "postAfterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         });
-
-        return value;
       }, 0));
-    } else { //resolve callback even if validator function was not found
+
+    } else {
+      //resolve callback even if validator function was not found
       cellProperties.valid = true;
       callback(true);
     }
-
-
-
   };
 
   function setDataInputToArray(row, prop_or_col, value) {
