@@ -60,10 +60,10 @@
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           if(that.isOpened()){
-            that.setValue(that.getValue() + '\n');
+            that.setValue(typeof that.getValue() === string ? that.getValue() + '\n' : that.getValue());
             that.focus();
           } else {
-            that.beginEditing(that.originalValue + '\n')
+            that.beginEditing(typeof that.originalValue === string ? that.originalValue + '\n' : that.originalValue);
           }
           event.stopImmediatePropagation();
         }

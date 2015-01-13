@@ -106,10 +106,11 @@
     this.instance.view.render();
 
     this.state = Handsontable.EditorState.EDITING;
+    //initialValue = initialValue === undefined ? initialValue : this.originalValue;
+    //initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
+    initialValue = (typeof initialValue !== "undefined" && initialValue !== null) ? initialValue : this.originalValue;
 
-    initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
-
-    this.setValue(Handsontable.helper.stringify(initialValue));
+    this.setValue(initialValue);
 
     this.open();
     this._opened = true;

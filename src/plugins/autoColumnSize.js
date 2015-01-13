@@ -60,8 +60,9 @@
       var samples = {};
       var maxLen = 0;
       for (var r = 0; r < rows; r++) {
-        var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
-        var len = value.length;
+        var strValue = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
+        var value = instance.getDataAtCell(r, col);
+        var len = strValue.length;
         if (len > maxLen) {
           maxLen = len;
         }
