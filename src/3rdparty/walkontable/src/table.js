@@ -160,8 +160,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       this.instance.wtViewport.createCalculators(oldRowsCalculator);
     }
-    /* jshint -W030 */
-    this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
+    if (this.instance.wtScrollbars) {
+      this.instance.wtScrollbars.refresh(true);
+    }
   }
 
   this.refreshPositions(fastDraw);

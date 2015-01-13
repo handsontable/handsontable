@@ -53,23 +53,41 @@ WalkontableScrollbars.prototype.destroy = function () {
     eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
   }
   eventManager.removeEventListener(window,'scroll', this.refreshAll);
-  /* jshint -W030 */
-  this.corner && this.corner.destroy();
-  this.debug && this.debug.destroy();
+
+  if (this.corner) {
+    this.corner.destroy();
+  }
+  if (this.debug) {
+    this.debug.destroy();
+  }
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
-  /* jshint -W030 */
-  this.horizontal && this.horizontal.readSettings();
-  this.vertical && this.vertical.readSettings();
-  this.horizontal && this.horizontal.refresh(selectionsOnly);
-  this.vertical && this.vertical.refresh(selectionsOnly);
-  this.corner && this.corner.refresh(selectionsOnly);
-  this.debug && this.debug.refresh(selectionsOnly);
+  if (this.horizontal) {
+    this.horizontal.readSettings();
+  }
+  if (this.vertical) {
+    this.vertical.readSettings();
+  }
+  if (this.horizontal) {
+    this.horizontal.refresh(selectionsOnly);
+  }
+  if (this.vertical) {
+    this.vertical.refresh(selectionsOnly);
+  }
+  if (this.corner) {
+    this.corner.refresh(selectionsOnly);
+  }
+  if (this.debug) {
+    this.debug.refresh(selectionsOnly);
+  }
 };
 
 WalkontableScrollbars.prototype.applyToDOM = function () {
-  /* jshint -W030 */
-  this.horizontal && this.horizontal.applyToDOM();
-  this.vertical && this.vertical.applyToDOM();
+  if (this.horizontal) {
+    this.horizontal.applyToDOM();
+  }
+  if (this.vertical) {
+    this.vertical.applyToDOM();
+  }
 };

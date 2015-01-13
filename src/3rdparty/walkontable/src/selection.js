@@ -84,7 +84,7 @@ WalkontableSelection.prototype.draw = function (instance) {
     renderedColumns = instance.wtTable.getRenderedColumnsCount(),
     border;
 
-/* jshint -W073 */
+  /* jshint -W073 */
   if (!this.isEmpty()) {
     corners = this.getCorners();
 
