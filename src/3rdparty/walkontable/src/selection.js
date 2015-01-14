@@ -13,7 +13,8 @@ WalkontableSelection.prototype.getBorder = function (instance) {
   if (this.instanceBorders[instance.guid]) {
     return this.instanceBorders[instance.guid];
   }
-  this.instanceBorders[instance.guid] = new WalkontableBorder(instance, this.settings); //where is this returned?
+  //where is this returned?
+  this.instanceBorders[instance.guid] = new WalkontableBorder(instance, this.settings);
 };
 
 /**
@@ -21,7 +22,7 @@ WalkontableSelection.prototype.getBorder = function (instance) {
  * @returns {boolean}
  */
 WalkontableSelection.prototype.isEmpty = function () {
-  return (this.cellRange === null);
+  return this.cellRange === null;
 };
 
 /**
@@ -45,15 +46,18 @@ WalkontableSelection.prototype.add = function (coords) {
  */
 WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
   if (!this.isEmpty()) {
-    if(this.cellRange.from.isEqual(oldCoords)) {
+    if (this.cellRange.from.isEqual(oldCoords)) {
       this.cellRange.from = newCoords;
+
       return true;
     }
-    if(this.cellRange.to.isEqual(oldCoords)) {
+    if (this.cellRange.to.isEqual(oldCoords)) {
       this.cellRange.to = newCoords;
+
       return true;
     }
   }
+
   return false;
 };
 
@@ -66,83 +70,97 @@ WalkontableSelection.prototype.clear = function () {
  * @returns {Object}
  */
 WalkontableSelection.prototype.getCorners = function () {
-  var topLeft = this.cellRange.getTopLeftCorner();
-  var bottomRight = this.cellRange.getBottomRightCorner();
+  var
+    topLeft = this.cellRange.getTopLeftCorner(),
+    bottomRight = this.cellRange.getBottomRightCorner();
+
   return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
 };
 
-WalkontableSelection.prototype.addClassAtCoords = function (instance, source_r, source_c, cls) {
-  var TD = instance.wtTable.getCell(new WalkontableCellCoords(source_r, source_c));
-  if(typeof TD === 'object') {
+WalkontableSelection.prototype.addClassAtCoords = function (instance, sourceRow, sourceColumn, cls) {
+  var TD = instance.wtTable.getCell(new WalkontableCellCoords(sourceRow, sourceColumn));
+
+  if (typeof TD === 'object') {
     Handsontable.Dom.addClass(TD, cls);
   }
 };
 
 WalkontableSelection.prototype.draw = function (instance) {
-  var corners, r, c, source_r, source_c,
-    visibleRows = instance.wtTable.getRenderedRowsCount(),
-    renderedColumns = instance.wtTable.getRenderedColumnsCount();
+  var
+    _this = this,
+    renderedRows = instance.wtTable.getRenderedRowsCount(),
+    renderedColumns = instance.wtTable.getRenderedColumnsCount(),
+    corners, sourceRow, sourceCol, border, TH;
 
-  if (!this.isEmpty()) {
-    corners = this.getCorners();
-
-    for (r = 0; r < visibleRows; r++) {
-      source_r = instance.wtTable.rowFilter.renderedToSource(r);
-
-      for (c = 0; c < renderedColumns; c++) {
-        source_c = instance.wtTable.columnFilter.renderedToSource(c);
-
-        if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
-          //selected cell
-          if (this.settings.className) {
-            this.addClassAtCoords(instance, source_r, source_c, this.settings.className);
-          }
-
-          // selected row headers
-          if(source_c === corners[1]) {
-            var TH = instance.wtTable.getRowHeader(source_r);
-            if (TH && this.settings.highlightRowClassName) {
-              Handsontable.Dom.addClass(TH, this.settings.highlightRowClassName);
-            }
-          }
-
-          // selected column headers
-          if(source_r === corners[0] || (source_r > corners[0] && r == 0)) {
-            var TH = instance.wtTable.getColumnHeader(source_c);
-            if (TH && this.settings.highlightColumnClassName) {
-              Handsontable.Dom.addClass(TH, this.settings.highlightColumnClassName);
-            }
-          }
-        }
-        else if (source_r >= corners[0] && source_r <= corners[2]) {
-          //selection is in this row
-          if (this.settings.highlightRowClassName) {
-            this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightRowClassName);
-          }
-        }
-        else if (source_c >= corners[1] && source_c <= corners[3]) {
-          //selection is in this column
-          if(this.settings.highlightColumnClassName) {
-            this.addClassAtCoords(instance, source_r, source_c, this.settings.highlightColumnClassName);
-          }
-        }
-      }
-    }
-
-    instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
+  if (this.isEmpty()) {
     if (this.settings.border) {
-      var border = this.getBorder(instance);
-      if (border) {
-        border.appear(corners); //warning! border.appear modifies corners!
-      }
-    }
-  }
-  else {
-    if (this.settings.border) {
-      var border = this.getBorder(instance);
+      border = this.getBorder(instance);
+
       if (border) {
         border.disappear();
       }
+    }
+
+    return;
+  }
+
+  corners = this.getCorners();
+
+  for (var column = 0; column < renderedColumns; column++) {
+    sourceCol = instance.wtTable.columnFilter.renderedToSource(column);
+
+    if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
+      TH = instance.wtTable.getColumnHeader(sourceCol);
+
+      if (TH && _this.settings.highlightColumnClassName) {
+        Handsontable.Dom.addClass(TH, _this.settings.highlightColumnClassName);
+      }
+    }
+  }
+
+  for (var row = 0; row < renderedRows; row++) {
+    sourceRow = instance.wtTable.rowFilter.renderedToSource(row);
+
+    if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
+      TH = instance.wtTable.getRowHeader(sourceRow);
+
+      if (TH && _this.settings.highlightRowClassName) {
+        Handsontable.Dom.addClass(TH, _this.settings.highlightRowClassName);
+      }
+    }
+
+    for (var column = 0; column < renderedColumns; column++) {
+      sourceCol = instance.wtTable.columnFilter.renderedToSource(column);
+
+      if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
+        // selected cell
+        if (_this.settings.className) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.className);
+        }
+      }
+      else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
+        // selection is in this row
+        if (_this.settings.highlightRowClassName) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightRowClassName);
+        }
+      }
+      else if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
+        // selection is in this column
+        if (_this.settings.highlightColumnClassName) {
+          _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightColumnClassName);
+        }
+      }
+    }
+  }
+
+  instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
+
+  if (this.settings.border) {
+    border = this.getBorder(instance);
+
+    if (border) {
+      // warning! border.appear modifies corners!
+      border.appear(corners);
     }
   }
 };

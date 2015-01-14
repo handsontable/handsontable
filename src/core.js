@@ -79,7 +79,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           if (delta) {
 
-            if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+            if(Array.isArray(instance.getSettings().colHeaders)){
               var spliceArray = [index, 0];
               spliceArray.length += delta; //inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
@@ -114,7 +114,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             }
           }
 
-          if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+          if(Array.isArray(instance.getSettings().colHeaders)){
             if(typeof index == 'undefined'){
               index = -1;
             }
@@ -1085,7 +1085,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     priv.isPopulated = false;
     GridSettings.prototype.data = data;
 
-    if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
+    if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
     else if (typeof priv.settings.dataSchema === 'function') {
@@ -1160,7 +1160,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       else {
         if (Handsontable.hooks.hooks[i] !== void 0 || Handsontable.hooks.legacy[i] !== void 0) {
-          if (typeof settings[i] === 'function' || Handsontable.helper.isArray(settings[i])) {
+          if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
         }
@@ -1621,7 +1621,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       return out;
     }
-    else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
+    else if (Array.isArray(priv.settings.rowHeaders) && priv.settings.rowHeaders[row] !== void 0) {
       return priv.settings.rowHeaders[row];
     }
     else if (typeof priv.settings.rowHeaders === 'function') {
@@ -1679,7 +1679,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
         return priv.settings.columns[col].title;
       }
-      else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+      else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[col] !== void 0) {
         return priv.settings.colHeaders[col];
       }
       else if (typeof priv.settings.colHeaders === 'function') {
@@ -1845,11 +1845,19 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Return number of rendered columns (including columns partially or fully rendered outside viewport). Returns -1 if table is not visible
+   * @return {Number}
+   */
+  this.countRenderedCols = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
+  };
+
+  /**
    * Return number of visible columns. Returns -1 if table is not visible
    * @return {Number}
    */
   this.countVisibleCols = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.columnStrategy.countVisible() : -1;
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : - 1;
   };
 
   /**
@@ -2171,6 +2179,7 @@ DefaultSettings.prototype = {
   manualRowMove: void 0,
   manualRowResize: void 0,
   viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
+  viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
   groups: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

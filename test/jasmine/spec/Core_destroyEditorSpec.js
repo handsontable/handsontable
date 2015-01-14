@@ -61,7 +61,7 @@ describe('Core_destroyEditor', function () {
     });
 
     handsontable({
-      data: createSpreadsheetData(20, 10)
+      data: Handsontable.helper.createSpreadsheetData(20, 10)
     });
 
     selectCell(0, 0);

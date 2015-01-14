@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Fixed Rows &amp; Columns - Handsontable</title>
+  <title>Column stretch (window) - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies)
@@ -22,15 +22,16 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Fixed Rows &amp; Columns">
+  <meta property="og:title" content="Column stretch (window)">
   <meta property="og:description"
-        content="This page shows how to configure Handsontable fixed rows/columns">
-  <meta property="og:url" content="http://handsontable.com/demo/fixed.html">
+        content="This demo shows table of 1000 rows and 6 columns (stretched to the container width of 700px). Only visible part is rendered. Native window scrollbar is used to
+            scroll through the table.">
+  <meta property="og:url" content="http://handsontable.com/demo/stretch_window.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/fixed.html">
+  <link rel="canonical" href="http://handsontable.com/demo/stretch_window.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -54,21 +55,19 @@
         <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
-          <h2>Fixed rows and columns</h2>
+          <h2>Column stretch (window)</h2>
 
-          <p>Specify two fixed rows with <code>fixedRowsTop: 2</code> and two fixed columns with <code>fixedColumnsLeft:
-            2</code> option.</p>
+          <p>This demo shows table of 1000 rows and 6 columns (stretched to the container width of 700px). Only visible part is rendered. Native window scrollbar is used to
+            scroll through the table.</p>
 
-          <p>Note: You'll need horizontal scrollbars, so just set a container <code>width</code> and <code>overflow:
-            scroll</code> in CSS.</p>
+          <div id="example1" style="width: 700px"></div>
 
-          <pre id="positions"></pre>
-
-          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+          <p>This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table. This paragraph exists to present that there may be additional content below the table.</p>
 
           <p>
-            <button name="dump" data-instance="ht" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
+            <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
             </button>
           </p>
         </div>
@@ -81,32 +80,18 @@
           </div>
 
           <script data-jsfiddle="example1">
-            /*
-             Container looks like this:
-
-             <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-             */
-
-            var myData = Handsontable.helper.createSpreadsheetData(1000, 100);
-            var container = document.getElementById('example1');
-
-            var ht = new Handsontable(container, {
-              data: myData,
-              colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
+            var example1 = document.getElementById('example1');
+            var hot1 = new Handsontable(example1,{
+              data: Handsontable.helper.createSpreadsheetData(1000, 6),
+              colWidths: [55, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
+              minSpareRows: 1,
+              stretchH: 'all',
+              contextMenu: true,
               fixedRowsTop: 2,
-              fixedColumnsLeft: 2,
-              contextMenu: true
+              fixedColumnsLeft: 2
             });
-
-            var positions = document.getElementById('positions');
-
-            setInterval(function () {
-              var str = '';
-              str += 'rowOffset: ' + ht.rowOffset();
-              positions.innerHTML = str;
-            }, 100);
           </script>
         </div>
       </div>

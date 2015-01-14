@@ -21,7 +21,6 @@ var Handsontable = function (rootElement, userSettings) {
   instance.init();
   return instance;
 };
-Handsontable.helper = {};
 Handsontable.plugins = {};
 
 (function (window, Handsontable) {

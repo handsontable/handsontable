@@ -159,7 +159,7 @@ describe('WalkontableScroll', function () {
       var height = $container[0].clientHeight;
       var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-      expect(wt.getViewport()).toEqual([0, 0, visibleRowCount - 1, 2]);
+      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge", function () {
@@ -176,11 +176,11 @@ describe('WalkontableScroll', function () {
       var height = $container[0].clientHeight;
       var visibleRowCount = Math.floor(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
+      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
 
 
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
-      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
+      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 1]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge (with row header)", function () {
@@ -201,7 +201,7 @@ describe('WalkontableScroll', function () {
       var visibleRowCount = Math.floor(height/23);
 
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
+      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
     });
@@ -232,7 +232,7 @@ describe('WalkontableScroll', function () {
       wt.draw();
 
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([5, 0, 12, 2]);
+      expect(wt.getViewport()).toEqual([5, 0, 12, 1]);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {
@@ -386,6 +386,26 @@ describe('WalkontableScroll', function () {
       wt.draw();
       expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
+
+    it("should scroll the desired cell to the bottom edge even if it's located in a fixed column", function () {
+      createDataArray(20, 100);
+      $container.width(260).height(201);
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2
+      });
+
+      wt.draw().scrollViewport(new WalkontableCellCoords(8,1)).draw();
+      waits(20);
+      runs(function() {
+        expect(wt.wtTable.getLastVisibleRow()).toBe(8);
+      });
+
+    });
+
   });
 
   describe('scrollViewport - horizontally', function () {
@@ -395,7 +415,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll to last column on the right", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       $container.width(201).height(201);
       var wt = new Walkontable({
@@ -406,13 +426,13 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
     });
 
     it("should not scroll back to a column that is in viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
 
       var wt = new Walkontable({
@@ -423,7 +443,7 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
 
@@ -438,7 +458,7 @@ describe('WalkontableScroll', function () {
     });
 
     it("should scroll back to a column that is before viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -448,22 +468,22 @@ describe('WalkontableScroll', function () {
         columnWidth: 50
       });
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(6);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(5);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(6);//nothing changed
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(5);//nothing changed
 
       wt.scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
     });
 
     it("should scroll to a column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -474,14 +494,14 @@ describe('WalkontableScroll', function () {
       });
       wt.draw();
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
 
       wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
     });
 
     it("should scroll to a wide column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -499,15 +519,15 @@ describe('WalkontableScroll', function () {
       });
 
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(0);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
+      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(2);
     });
 
     xit("should scroll to a very wide column that is after viewport", function () {
-      this.data = createSpreadsheetData(10, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -547,7 +567,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
-      this.data = createSpreadsheetData(1, 10);
+      this.data = Handsontable.helper.createSpreadsheetData(1, 10);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -589,7 +609,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very high row that is after viewport", function () {
-      this.data = createSpreadsheetData(20, 1);
+      this.data = Handsontable.helper.createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
       this.data[4][0] = txt;
@@ -618,7 +638,7 @@ describe('WalkontableScroll', function () {
     });
 
     xit("should scroll to a very high row that is after viewport (at the end)", function () {
-      this.data = createSpreadsheetData(20, 1);
+      this.data = Handsontable.helper.createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
       this.data[19][0] = txt;

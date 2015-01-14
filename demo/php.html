@@ -90,6 +90,7 @@
             var $parent = $container.parent();
             var autosaveNotification;
             $container.handsontable({
+              columnSorting: true,
               startRows: 8,
               startCols: 3,
               rowHeaders: true,
@@ -103,9 +104,16 @@
               minSpareRows: 1,
               contextMenu: true,
               afterChange: function (change, source) {
+                var data;
+
                 if (source === 'loadData') {
-                  return; //don't save this change
+                  return;
                 }
+                data = change[0];
+
+                // transform sorted row to original row
+                data[0] = hot.sortIndex[data[0]] ? hot.sortIndex[data[0]][0] : data[0];
+
                 if ($parent.find('input[name=autosave]').is(':checked')) {
                   clearTimeout(autosaveNotification);
                   $.ajax({
@@ -123,7 +131,8 @@
                 }
               }
             });
-            var handsontable = $container.data('handsontable');
+            var handsontable = $container.data('handsontable'),
+              hot = handsontable;
 
             $parent.find('button[name=load]').click(function () {
               $.ajax({

@@ -24,7 +24,7 @@ describe('HandsontableObserveChanges', function () {
   describe("refreshing table after changes have been detected", function () {
     describe("array data", function () {
       it('should render newly added row', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -45,7 +45,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render newly added column', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var htCore = getHtCore();
@@ -67,7 +67,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render removed row', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -87,7 +87,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render removed column', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -108,7 +108,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render cell change from string to string', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -127,7 +127,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render cell change in a new row', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -156,7 +156,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should not render cell change when turned off (`observeChanges: false`)', function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         createHOT(data, false);
         var htCore = getHtCore();
 
@@ -171,7 +171,7 @@ describe('HandsontableObserveChanges', function () {
     });
     describe("object data", function () {
       it('should render newly added row', function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -191,7 +191,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render removed row', function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -211,7 +211,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render cell change from string to string', function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -230,7 +230,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should render cell change in a new row', function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -259,7 +259,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it('should not render cell change when turned off (`observeChanges: false`)', function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         createHOT(data, false);
         var htCore = getHtCore();
 
@@ -276,7 +276,7 @@ describe('HandsontableObserveChanges', function () {
 
   describe("enabling/disabling plugin", function () {
     it("should be possible to enable plugin using updateSettings", function () {
-      var data = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, false);
       var htCore = getHtCore();
 
@@ -308,7 +308,7 @@ describe('HandsontableObserveChanges', function () {
     });
 
     it("should be possible to disable plugin using updateSettings", function () {
-      var data = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
 
@@ -353,7 +353,7 @@ describe('HandsontableObserveChanges', function () {
     });
 
     it("should be possible to pause observing changes without disabling the plugin", function () {
-      var data = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
 
@@ -396,7 +396,7 @@ describe('HandsontableObserveChanges', function () {
     });
 
     it("should be possible to resume observing changes after it was paused", function () {
-      var data = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
 
@@ -435,7 +435,7 @@ describe('HandsontableObserveChanges', function () {
   describe('observeChanges fires appropriate events when changes are detected', function () {
     describe("array data", function () {
       it("should fire afterChangesObserved event after changes has been noticed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
@@ -454,7 +454,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterCreateRow event after detecting that new row has been added", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -474,7 +474,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveRow event after detecting that row has been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
@@ -494,7 +494,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
@@ -520,7 +520,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterCreateCol event after detecting that new col has been added", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
@@ -541,7 +541,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveCol event after detecting that col has been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
@@ -562,7 +562,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveCol event after detecting that multiple cols have been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
@@ -591,7 +591,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterChange event after detecting that table data has changed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -612,7 +612,7 @@ describe('HandsontableObserveChanges', function () {
     });
     describe("object data", function () {
       it("should fire afterChangesObserved event after changes has been noticed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
@@ -631,7 +631,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterCreateRow event after detecting that new row has been added", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -651,7 +651,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveRow event after detecting that row has been removed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
@@ -671,7 +671,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
@@ -697,7 +697,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should fire afterChange event after detecting that table data has changed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -721,7 +721,7 @@ describe('HandsontableObserveChanges', function () {
   describe("using HOT data manipulation methods, when observeChanges plugin is enabled", function () {
     describe("array data", function () {
       it("should run render ONCE after detecting that new row has been added", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -743,7 +743,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that row has been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -767,7 +767,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that new column has been added", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -789,7 +789,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that column has been removed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -813,7 +813,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that table data has changed", function () {
-        var data = createSpreadsheetData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
@@ -839,7 +839,7 @@ describe('HandsontableObserveChanges', function () {
     });
     describe("object data", function () {
       it("should run render ONCE after detecting that new row has been added", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -861,7 +861,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that row has been removed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -885,7 +885,7 @@ describe('HandsontableObserveChanges', function () {
       });
 
       it("should run render ONCE after detecting that table data has changed", function () {
-        var data = createSpreadsheetObjectData(2, 2);
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
@@ -912,8 +912,8 @@ describe('HandsontableObserveChanges', function () {
 
   describe("refreshing table after changes have been detected", function () {
     it("should observe changes to new data bound using loadData", function () {
-      var data = createSpreadsheetData(2, 2);
-      var newData = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
+      var newData = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
       hot.loadData(newData);
@@ -935,8 +935,8 @@ describe('HandsontableObserveChanges', function () {
     });
 
     it("should not observe changes to old data after it was replaced using loadData", function () {
-      var data = createSpreadsheetData(2, 2);
-      var newData = createSpreadsheetData(2, 2);
+      var data = Handsontable.helper.createSpreadsheetData(2, 2);
+      var newData = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
       hot.loadData(newData);
