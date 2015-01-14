@@ -27,8 +27,6 @@
 
     Handsontable.Dom.addClass(this.htContainer, 'autocompleteEditor');
     Handsontable.Dom.addClass(this.htContainer, getSystemSpecificPaddingClass());
-    //this.$htContainer.addClass('autocompleteEditor');
-    //this.$htContainer.addClass(getSystemSpecificPaddingClass());
 
   };
 
@@ -68,6 +66,7 @@
     this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
+    this.htContainer.style.overflow = 'hidden'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
 
     var choicesListHot = this.htEditor.getInstance();
     var that = this;
@@ -93,6 +92,7 @@
     }
     that.instance._registerTimeout(setTimeout(function () {
       that.queryChoices(that.TEXTAREA.value);
+      that.htContainer.style.overflow = 'auto'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
     }, 0));
 
   };
