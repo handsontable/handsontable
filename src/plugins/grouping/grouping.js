@@ -280,7 +280,7 @@ var Grouping = function (instance) {
   var getColGroups = function () {
     var result = [];
     for (var i = 0, groupsLength = groups.length; i < groupsLength; i++) {
-      if (groups[i]['cols'] instanceof Array) result.push(groups[i]);
+      if (Array.isArray(groups[i]['cols'])) result.push(groups[i]);
     }
     return result;
   };
@@ -305,7 +305,7 @@ var Grouping = function (instance) {
   var getRowGroups = function () {
     var result = [];
     for (var i = 0, groupsLength = groups.length; i < groupsLength; i++) {
-      if (groups[i]['rows'] instanceof Array) result.push(groups[i]);
+      if (Array.isArray(groups[i]['rows'])) result.push(groups[i]);
     }
     return result;
   };
@@ -767,7 +767,7 @@ var Grouping = function (instance) {
     init: function () {
       var groupsSetting = instance.getSettings().groups;
       if (groupsSetting) {
-        if (groupsSetting instanceof Array) {
+        if (Array.isArray(groupsSetting)) {
           Handsontable.Grouping.initGroups(groupsSetting);
         }
       }
@@ -786,10 +786,10 @@ var Grouping = function (instance) {
           isRow = false,
           isCol = false;
 
-        if (item.rows instanceof Array) {
+        if (Array.isArray(item.rows)) {
           _group = item.rows;
           isRow = true;
-        } else if (item.cols instanceof Array) {
+        } else if (Array.isArray(item.cols)) {
           _group = item.cols;
           isCol = true;
         }
@@ -864,7 +864,7 @@ var Grouping = function (instance) {
     },
     afterGetColHeader: function (col, TH) {
       var rowHeaders = this.view.wt.wtSettings.getSetting('rowHeaders').length
-        , thisColgroup = instance.rootElement[0].querySelectorAll('colgroup col:nth-child(' + parseInt(col + rowHeaders + 1, 10) + ')');
+        , thisColgroup = instance.rootElement.querySelectorAll('colgroup col:nth-child(' + parseInt(col + rowHeaders + 1, 10) + ')');
 
       if (thisColgroup.length === 0) {
         return;
@@ -1042,7 +1042,7 @@ var Grouping = function (instance) {
 
       if (counters[dataType] > 0) {
         for (var i = 0; i < levels[dataType] + 1; i++) { // for each level of col groups add a header renderer
-          if (!(renderersArr instanceof Array)) {
+          if (!Array.isArray(renderersArr)) {
             renderersArr = typeof renderersArr === 'function' ? renderersArr() : new Array(renderersArr);
           }
           renderersArr.unshift(makeGroupIndicatorsForLevel());

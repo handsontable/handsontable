@@ -1,6 +1,7 @@
 function Comments(instance) {
 
-  var doSaveComment = function (row, col, comment, instance) {
+  var eventManager = Handsontable.eventManager(instance),
+    doSaveComment = function (row, col, comment, instance) {
       instance.setCellMeta(row, col, 'comment', comment);
       instance.render();
     },
@@ -16,9 +17,9 @@ function Comments(instance) {
     bindMouseEvent = function (range) {
 
 			function commentsListener(event) {
-				$(document).off('mouseover.htCommment');
+        eventManager.removeEventListener(document, 'mouseover');
         if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
-          var value = document.getElementsByClassName('htCommentTextArea')[0].value;
+          var value = document.querySelector('.htCommentTextArea').value;
           if (value.trim().length > 1) {
             saveComment(range, value, instance);
           }
@@ -27,11 +28,11 @@ function Comments(instance) {
         }
       }
 
-      $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsListener));
+      eventManager.addEventListener(document, 'mousedown',Handsontable.helper.proxy(commentsListener));
     },
     unBindMouseEvent = function () {
-      $(document).off('mousedown.htCommment');
-			$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+      eventManager.removeEventListener(document, 'mousedown');
+      eventManager.addEventListener(document, 'mousedown', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
@@ -45,7 +46,7 @@ function Comments(instance) {
       bindMouseEvent(range, commentBox);
     },
     createCommentBox = function (value) {
-      var comments = document.getElementsByClassName('htComments')[0];
+      var comments = document.querySelector('.htComments');
 
       if (!comments) {
         comments = document.createElement('DIV');
@@ -60,7 +61,7 @@ function Comments(instance) {
 
 			value = value ||'';
 
-      document.getElementsByClassName('htCommentTextArea')[0].value = value;
+      document.querySelector('.htCommentTextArea').value = value;
 
       //var tA = document.getElementsByClassName('htCommentTextArea')[0];
       //tA.focus();
@@ -83,7 +84,7 @@ function Comments(instance) {
 
   return {
     init: function () {
-        $(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+      eventManager.addEventListener(document, 'mouseover', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     showComment: function (range) {
 			var meta = instance.getCellMeta(range.from.row, range.from.col),
@@ -171,4 +172,4 @@ var init = function () {
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addCommentsActionsToContextMenu);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
-//$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+

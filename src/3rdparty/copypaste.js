@@ -34,8 +34,9 @@ CopyPasteClass.prototype.init = function () {
   this.copyCallbacks = [];
   this.cutCallbacks = [];
   this.pasteCallbacks = [];
+  this._eventManager = Handsontable.eventManager(this);
 
-  this.listenerElement = document.documentElement;
+//  this.listenerElement = document.documentElement;
   parent = document.body;
 
   if (document.getElementById('CopyPasteDiv')) {
@@ -53,6 +54,12 @@ CopyPasteClass.prototype.init = function () {
 
     this.elTextarea = document.createElement('TEXTAREA');
     this.elTextarea.className = 'copyPaste';
+    this.elTextarea.onpaste = function (event) {
+      if('WebkitAppearance' in document.documentElement.style) { // chrome and safari
+        this.value = event.clipboardData.getData("Text");
+        return false;
+      }
+    };
     style = this.elTextarea.style;
     style.width = '10000px';
     style.height = '10000px';
@@ -109,15 +116,19 @@ CopyPasteClass.prototype.init = function () {
         }, 0);
       }
     }
-  }
+  };
 
-  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
+  this._eventManager.addEventListener(document.documentElement,'keydown',this.keydownListener, false);
+
+//  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };
 
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPasteClass.prototype.selectNodeText = function (el) {
-  el.select();
+  if (el) {
+    el.select();
+  }
 };
 
 //http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
@@ -205,7 +216,8 @@ CopyPasteClass.prototype.destroy = function () {
       this.elTextarea = null;
     }
 
-    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
+    this._eventManager.removeEventListener(document.documentElement, 'keydown', this.keydownListener, false);
+//    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
 
   }
 
@@ -215,32 +227,4 @@ CopyPasteClass.prototype.hasBeenDestroyed = function () {
   return !this.refCounter;
 };
 
-//old version used this:
-// - http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
-// - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
-//but that cannot work with jQuery.trigger
-CopyPasteClass.prototype._bindEvent = (function () {
-  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-    return function (elem, type, cb) {
-      $(elem).on(type + '.copypaste', cb);
-    };
-  }
-  else {
-    return function (elem, type, cb) {
-      elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-    };
-  }
-})();
 
-CopyPasteClass.prototype._unbindEvent = (function () {
-  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
-    return function (elem, type, cb) {
-      $(elem).off(type + '.copypaste', cb);
-    };
-  }
-  else {
-    return function (elem, type, cb) {
-      elem.removeEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
-    };
-  }
-})();

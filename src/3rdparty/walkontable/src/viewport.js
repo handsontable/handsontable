@@ -1,9 +1,12 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
-  this.resetSettings();
+  this.oversizedRows = [];
+  this.oversizedCols = [];
 
   var that = this;
-  $(window).on('resize.walkontable.' + this.instance.guid, function () {
+
+  var eventManager = Handsontable.eventManager(instance);
+  eventManager.addEventListener(window,'resize',function () {
     that.clientHeight = that.getWorkspaceHeight();
   });
 }
@@ -20,18 +23,50 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
   }
 };
 
+
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
-  var width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  var width;
+
+  var totalColumns = this.instance.getSetting("totalColumns");
   var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
-  if (scrollHandler != window) {
+
+  if(Handsontable.freezeOverlays) {
+    width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  } else {
+    width = Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+  }
+
+  if (scrollHandler === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
+    //in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
+    //otherwise continue below, which will allow stretching
+    //this is used in `scroll_window.html`
+    //TODO test me
+    return document.documentElement.clientWidth;
+  }
+
+  if (scrollHandler !== window){
     var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
+      //this is used in `scroll.html`
+      //TODO test me
       return Math.max(width, scrollHandler.clientWidth);
     }
   }
+
+  //this is used in `stretch.html`, `stretch_window.html`
+  //TODO test me
   return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
 };
 
+WalkontableViewport.prototype.sumColumnWidths = function (from, length) {
+  var sum = 0;
+  while(from < length) {
+    sum += this.instance.wtTable.getColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
+    from++;
+  }
+  return sum;
+};
 WalkontableViewport.prototype.getContainerFillWidth = function() {
 
   if(this.containerWidth) {
@@ -57,7 +92,7 @@ WalkontableViewport.prototype.getContainerFillWidth = function() {
   mainContainer.removeChild(dummyElement);
 
   return fillWidth;
-}
+};
 
 WalkontableViewport.prototype.getWorkspaceOffset = function () {
   return Handsontable.Dom.offset(this.instance.wtTable.TABLE);
@@ -78,9 +113,9 @@ WalkontableViewport.prototype.getColumnHeaderHeight = function () {
   return this.columnHeaderHeight;
 };
 
-WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
+WalkontableViewport.prototype.getViewportHeight = function () {
 
-  var containerHeight = this.getWorkspaceHeight(proposedHeight);
+  var containerHeight = this.getWorkspaceHeight();
 
   if (containerHeight === Infinity) {
     return containerHeight;
@@ -122,8 +157,8 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
 };
 
 // Viewport width = Workspace width - Row Headers width
-WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
-  var containerWidth = this.getWorkspaceWidth(proposedWidth);
+WalkontableViewport.prototype.getViewportWidth = function () {
+  var containerWidth = this.getWorkspaceWidth();
 
   if (containerWidth === Infinity) {
     return containerWidth;
@@ -138,7 +173,162 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
   }
 };
 
-WalkontableViewport.prototype.resetSettings = function () {
+/**
+ * Creates:
+ *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
+ *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
+ * @returns {WalkontableViewportRowsCalculator}
+ */
+WalkontableViewport.prototype.createRowsCalculator = function (visible) {
   this.rowHeaderWidth = NaN;
+
+  var height;
+  if (this.instance.wtSettings.settings.renderAllRows) {
+    height = Infinity;
+  }
+  else {
+    height = this.getViewportHeight();
+  }
+
+  var pos = this.instance.wtScrollbars.vertical.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  if (pos < 0) {
+    pos = 0;
+  }
+
+  var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+  if(fixedRowsTop) {
+    var fixedRowsHeight = this.instance.wtScrollbars.vertical.sumCellSizes(0, fixedRowsTop);
+    pos += fixedRowsHeight;
+    height -= fixedRowsHeight;
+  }
+
+  var that = this;
+  return new WalkontableViewportRowsCalculator(
+    height,
+    pos,
+    this.instance.getSetting('totalRows'),
+    function(sourceRow) {
+      return that.instance.wtTable.getRowHeight(sourceRow)
+    },
+    visible ? null : this.instance.wtSettings.settings.viewportRowCalculatorOverride,
+    visible ? true : false
+  );
+};
+
+/**
+ * Creates:
+ *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
+ *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
+ * @returns {WalkontableViewportRowsCalculator}
+ */
+WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   this.columnHeaderHeight = NaN;
+
+  var width = this.getViewportWidth();
+
+  var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  if (pos < 0) {
+    pos = 0;
+  }
+
+  var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
+  if(fixedColumnsLeft) {
+    var fixedColumnsWidth = this.instance.wtScrollbars.horizontal.sumCellSizes(0, fixedColumnsLeft);
+    pos += fixedColumnsWidth;
+    width -= fixedColumnsWidth;
+  }
+
+  var that = this;
+  return new WalkontableViewportColumnsCalculator(
+    width,
+    pos,
+    this.instance.getSetting('totalColumns'),
+    function (sourceCol) {
+      return that.instance.wtTable.getColumnWidth(sourceCol);
+    },
+    visible ? null : this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
+    visible ? true : false,
+    this.instance.getSetting('stretchH')
+  )
+};
+
+
+/**
+ * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and cols should be rendered)
+ * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+ */
+WalkontableViewport.prototype.createRenderCalculators = function (fastDraw) {
+  if (fastDraw) {
+    var proposedRowsVisibleCalculator = this.createRowsCalculator(true);
+    var proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
+    if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) ) ) {
+      fastDraw = false;
+    }
+  }
+
+  if(!fastDraw) {
+    this.rowsRenderCalculator = this.createRowsCalculator();
+    this.columnsRenderCalculator = this.createColumnsCalculator();
+  }
+
+  this.rowsVisibleCalculator = null; //delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
+  this.columnsVisibleCalculator = null;
+
+  return fastDraw;
+};
+
+/**
+ * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are the actually visible rows and columns)
+ */
+WalkontableViewport.prototype.createVisibleCalculators = function () {
+  this.rowsVisibleCalculator = this.createRowsCalculator(true);
+  this.columnsVisibleCalculator = this.createColumnsCalculator(true);
+};
+
+/**
+ * Returns information whether proposedRowsVisibleCalculator viewport
+ * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator)
+ *
+ * Returns TRUE if all proposed visible rows are already rendered (meaning: redraw is not needed)
+ * Returns FALSE if at least one proposed visible row is not already rendered (meaning: redraw is needed)
+ *
+ * @returns {boolean}
+ */
+WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (proposedRowsVisibleCalculator) {
+  if (this.rowsVisibleCalculator) {
+    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow || (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow && proposedRowsVisibleCalculator.startRow > 0)) {
+      return false;
+    }
+    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow || (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow && proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Returns information whether proposedColumnsVisibleCalculator viewport
+ * is contained inside column rendered in previous draw (cached in columnsRenderCalculator)
+ *
+ * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
+ * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
+ *
+ * @returns {boolean}
+ */
+WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
+  if (this.columnsVisibleCalculator) {
+    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn || (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn && proposedColumnsVisibleCalculator.startColumn > 0)) {
+      return false;
+    }
+    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn || (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn && proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return false;
 };

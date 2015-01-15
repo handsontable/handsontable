@@ -34,6 +34,15 @@ beforeEach(function () {
   var matchers = {
     toBeInArray: function (arr) {
       return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeAroundValue: function (val) {
+      this.message = function (val) {
+        return [
+          "Expected " + this.actual + " to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")",
+          "Expected " + this.actual + " NOT to be around " + val + " (between " + (val - 1) + " and " + (val + 1) + ")"
+        ];
+      };
+      return (this.actual >= val - 1 && this.actual <= val + 1);
     }
   };
 
@@ -63,45 +72,30 @@ var range = function (from, to) {
   while (to++ < from) result.push(to);
 
   return result;
-}
+};
 
 /**
- * Creates 2D array of Excel-like values "A0", "A1", ...
- * @param rowCount
- * @param colCount
- * @returns {Array}
+ * Rewrite all existing selections from selections[0] etc. to selections.current etc
+ * @param instance
+ * @returns {object} modified instance
  */
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
+function shimSelectionProperties(instance) {
+  if(instance.selections[0]) instance.selections.current = instance.selections[0];
+  if(instance.selections[1]) instance.selections.area = instance.selections[1];
+  if(instance.selections[2]) instance.selections.highlight = instance.selections[2];
+  if(instance.selections[3]) instance.selections.fill = instance.selections[3];
 
-  var rows = []
-    , i
-    , j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
-    for (j = 0; j < colCount; j++) {
-      row.push(spreadsheetColumnLabel(j) + i);
-    }
-    rows.push(row);
-  }
-  return rows;
+  return instance;
 }
 
-/**
- * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
- * @param index
- * @returns {String}
- */
-function spreadsheetColumnLabel(index) {
-  var dividend = index + 1;
-  var columnLabel = '';
-  var modulo;
-  while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
-    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
-  }
-  return columnLabel;
+function getTableTopClone() {
+  return $('.ht_clone_top');
+}
+
+function getTableLeftClone() {
+  return $('.ht_clone_left');
+}
+
+function getTableCornerClone() {
+  return $('.ht_clone_corner');
 }

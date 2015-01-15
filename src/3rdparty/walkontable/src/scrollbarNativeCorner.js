@@ -17,23 +17,29 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
+    var finalLeft
+      , finalTop;
+    var bottom = Math.ceil(box.bottom);
+    var right = Math.ceil(box.right);
 
-    if (left < 0) {
-      elem.style.left = -left + 'px';
+    if (left < 0 && (right - elem.offsetWidth) > 0) {
+      finalLeft = -left + 'px';
     } else {
-      elem.style.left = '0';
+      finalLeft = '0';
     }
 
-    if (top < 0) {
-      elem.style.top = -top + "px";
+    if (top < 0 && (bottom - elem.offsetHeight) > 0) {
+      finalTop = -top + "px";
     } else {
-      elem.style.top = "0";
+      finalTop = "0";
     }
   }
-  else {
-    elem.style.top = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
-    elem.style.left = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
+  else if(!Handsontable.freezeOverlays) {
+    finalLeft = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
+    finalTop = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
   }
+
+  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';

@@ -8,6 +8,20 @@ if(!window.Handsontable) {
 }
 Handsontable.Dom = {};
 
+
+Handsontable.Dom.enableImmediatePropagation = function (event) {
+  if (event != null && event.isImmediatePropagationEnabled == null) {
+    event.stopImmediatePropagation = function () {
+      this.isImmediatePropagationEnabled = false;
+      this.cancelBubble = true;
+    };
+    event.isImmediatePropagationEnabled = true;
+    event.isImmediatePropagationStopped = function () {
+      return !this.isImmediatePropagationEnabled;
+    };
+  }
+};
+
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
 Handsontable.Dom.closest = function (elem, nodeNames, until) {
   while (elem != null && elem !== until) {
@@ -19,11 +33,23 @@ Handsontable.Dom.closest = function (elem, nodeNames, until) {
   return null;
 };
 
-//goes up the DOM tree and checks if element is child of another element
+/**
+ * Goes up the DOM tree and checks if element is child of another element
+ * @param child Child element
+ * @param {Object|string} parent Parent element OR selector of the parent element. If classname provided, function returns true for the first occurance of element with that class.
+ * @returns {boolean}
+ */
 Handsontable.Dom.isChildOf = function (child, parent) {
   var node = child.parentNode;
+  var queriedParents = [];
+  if(typeof parent === "string") {
+    queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
+  } else {
+    queriedParents.push(parent);
+  }
+
   while (node != null) {
-    if (node == parent) {
+    if (queriedParents.indexOf(node) > - 1) {
       return true;
     }
     node = node.parentNode;
@@ -41,8 +67,10 @@ Handsontable.Dom.isChildOf = function (child, parent) {
  */
 Handsontable.Dom.index = function (elem) {
   var i = 0;
-  while (elem = elem.previousSibling) {
-    ++i
+  if (elem.previousSibling) {
+    while (elem = elem.previousSibling) {
+      ++i
+    }
   }
   return i;
 };
@@ -54,7 +82,9 @@ if (document.documentElement.classList) {
   };
 
   Handsontable.Dom.addClass = function (ele, cls) {
-    ele.classList.add(cls);
+    if (cls) {
+      ele.classList.add(cls);
+    }
   };
 
   Handsontable.Dom.removeClass = function (ele, cls) {
@@ -79,69 +109,6 @@ else {
     }
   };
 }
-
-/*//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
- Handsontable.Dom.addEvent = (function () {
- var that = this;
- if (document.addEventListener) {
- return function (elem, type, cb) {
- if ((elem && !elem.length) || elem === window) {
- elem.addEventListener(type, cb, false);
- }
- else if (elem && elem.length) {
- var len = elem.length;
- for (var i = 0; i < len; i++) {
- that.addEvent(elem[i], type, cb);
- }
- }
- };
- }
- else {
- return function (elem, type, cb) {
- if ((elem && !elem.length) || elem === window) {
- elem.attachEvent('on' + type, function () {
-
- //normalize
- //http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
- var e = window['event'];
- e.target = e.srcElement;
- //e.offsetX = e.layerX;
- //e.offsetY = e.layerY;
- e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
- if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
-
- return cb.call(elem, e)
- });
- }
- else if (elem.length) {
- var len = elem.length;
- for (var i = 0; i < len; i++) {
- that.addEvent(elem[i], type, cb);
- }
- }
- };
- }
- })();
-
- Handsontable.Dom.triggerEvent = function (element, eventName, target) {
- var event;
- if (document.createEvent) {
- event = document.createEvent("MouseEvents");
- event.initEvent(eventName, true, true);
- } else {
- event = document.createEventObject();
- event.eventType = eventName;
- }
-
- event.eventName = eventName;
- event.target = target;
-
- if (document.createEvent) {
- target.dispatchEvent(event);
- } else {
- target.fireEvent("on" + event.eventType, event);
- }
- };*/
 
 Handsontable.Dom.removeTextNodes = function (elem, parent) {
   if (elem.nodeType === 3) {
@@ -222,48 +189,11 @@ else { //IE8
 }
 
 /**
- * Returns true/false depending if element has offset parent
- * @param elem
- * @returns {boolean}
- */
-/*if (document.createTextNode('test').textContent) { //STANDARDS
-  Handsontable.Dom.hasOffsetParent = function (elem) {
-    return !!elem.offsetParent;
-  }
-}
-else {
-  Handsontable.Dom.hasOffsetParent = function (elem) {
-    try {
-      if (!elem.offsetParent) {
-        return false;
-      }
-    }
-    catch (e) {
-      return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
-    }
-    return true;
-  }
-}*/
-
-/**
  * Returns true if element is attached to the DOM and visible, false otherwise
  * @param elem
  * @returns {boolean}
  */
 Handsontable.Dom.isVisible = function (elem) {
-  //fast method according to benchmarks, but requires layout so slow in our case
-  /*
-  if (!Handsontable.Dom.hasOffsetParent(elem)) {
-    return false; //fixes problem with UI Bootstrap <tabs> directive
-  }
-
-//  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
-  if (elem.offsetWidth > 0) {
-    return true;
-  }
-  */
-
-  //slow method
   var next = elem;
   while (next !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
@@ -296,27 +226,37 @@ Handsontable.Dom.isVisible = function (elem) {
 };
 
 /**
- * Returns elements top and left offset relative to the document. In our usage case compatible with jQuery but 2x faster
+ * Returns elements top and left offset relative to the document. Function is not compatible with jQuery offset.
+ *
  * @param {HTMLElement} elem
- * @return {Object}
+ * @return {Object} Returns object with `top` and `left` props
  */
 Handsontable.Dom.offset = function (elem) {
+  var offsetLeft,
+    offsetTop,
+    lastElem,
+    docElem,
+    box;
+
+  docElem = document.documentElement;
+
   if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
-    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also Handsontable.Dom.outerHeight)
-    //http://jsperf.com/offset-vs-getboundingclientrect/8
-    var box = elem.getBoundingClientRect();
+    // fixes problem with Firefox ignoring <caption> in TABLE offset (see also Handsontable.Dom.outerHeight)
+    // http://jsperf.com/offset-vs-getboundingclientrect/8
+    box = elem.getBoundingClientRect();
+
     return {
-      top: box.top + (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0),
-      left: box.left + (window.pageXOffset || document.documentElement.scrollLeft) - (document.documentElement.clientLeft || 0)
+      top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
+      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
     };
   }
-
-  var offsetLeft = elem.offsetLeft
-    , offsetTop = elem.offsetTop
-    , lastElem = elem;
+  offsetLeft = elem.offsetLeft;
+  offsetTop = elem.offsetTop;
+  lastElem = elem;
 
   while (elem = elem.offsetParent) {
-    if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
+    // from my observation, document.body always has scrollLeft/scrollTop == 0
+    if (elem === document.body) {
       break;
     }
     offsetLeft += elem.offsetLeft;
@@ -324,10 +264,11 @@ Handsontable.Dom.offset = function (elem) {
     lastElem = elem;
   }
 
-  if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+  //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+  if (lastElem && lastElem.style.position === 'fixed') {
     //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
-    offsetLeft += window.pageXOffset || document.documentElement.scrollLeft;
-    offsetTop += window.pageYOffset || document.documentElement.scrollTop;
+    offsetLeft += window.pageXOffset || docElem.scrollLeft;
+    offsetTop += window.pageYOffset || docElem.scrollTop;
   }
 
   return {
@@ -395,12 +336,29 @@ Handsontable.Dom.outerHeight = function (elem) {
 };
 
 Handsontable.Dom.innerHeight = function (elem) {
-  return elem.clientHeight;
+  return elem.clientHeight || elem.innerHeight;
 };
 
 Handsontable.Dom.innerWidth = function (elem) {
-  return elem.innerWidth;
+  return elem.clientWidth || elem.innerWidth;
 };
+
+Handsontable.Dom.addEvent = function(element, event, callback) {
+  if (window.addEventListener) {
+    element.addEventListener(event, callback, false)
+  } else {
+    element.attachEvent('on' + event, callback);
+  }
+};
+
+Handsontable.Dom.removeEvent = function(element, event, callback) {
+  if (window.removeEventListener) {
+    element.removeEventListener(event, callback, false);
+  } else {
+    element.detachEvent('on' + event, callback);
+  }
+};
+
 
 (function () {
   var hasCaptionProblem;
@@ -537,5 +495,55 @@ Handsontable.Dom.innerWidth = function (elem) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
     return cachedScrollbarWidth;
-  }
+  };
+
+  var isIE8 = !(document.createTextNode('test').textContent);
+  Handsontable.Dom.isIE8 = function () {
+    return isIE8;
+  };
+
+  var isIE9 = !!(document.documentMode);
+  Handsontable.Dom.isIE9 = function () {
+    return isIE9;
+  };
+
+  var isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
+  Handsontable.Dom.isSafari = function () {
+    return isSafari;
+  };
+
+  /**
+   * Sets overlay position depending on it's type and used browser
+   */
+  Handsontable.Dom.setOverlayPosition = function (overlayElem, left, top) {
+    if (isIE8 || isIE9) {
+      overlayElem.style.top = top;
+      overlayElem.style.left = left;
+    } else if (isSafari) {
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    } else {
+      overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    }
+  };
+
+  Handsontable.Dom.getCssTransform = function (elem) {
+    var transform;
+
+    if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
+      return ['transform', transform];
+    } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
+      return ['-webkit-transform', transform];
+    } else {
+      return -1;
+    }
+  };
+
+  Handsontable.Dom.resetCssTransform = function (elem) {
+    if(elem['transform'] && elem['transform'] != "") {
+      elem['transform'] = "";
+    } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
+      elem['-webkit-transform'] = "";
+    }
+  };
+
 })();

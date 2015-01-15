@@ -6,7 +6,7 @@
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
- * http://github.com/handsontable/jquery-handsontable/
+ * http://github.com/handsontable/handsontable/
  */
 
 require_once('functions.php');
@@ -15,19 +15,19 @@ try {
   //open the database
   $db =  getConnection();
   createCarsTable($db);
-  
+
   $colMap = array(
     0 => 'manufacturer',
     1 => 'year',
     2 => 'price'
   );
-  
+
   if (isset($_POST['changes']) && $_POST['changes']) {
     foreach ($_POST['changes'] as $change) {
       $rowId  = $change[0] + 1;
       $colId  = $change[1];
       $newVal = $change[3];
-      
+
       if (!isset($colMap[$colId])) {
         echo "\n spadam";
         continue;
@@ -37,7 +37,7 @@ try {
       $select->execute(array(
         $rowId
       ));
-      
+
       if ($row = $select->fetch()) {
         $query = $db->prepare('UPDATE cars SET `' . $colMap[$colId] . '` = :newVal WHERE id = :id');
       } else {
@@ -50,21 +50,21 @@ try {
   } elseif (isset($_POST['data']) && $_POST['data']) {
     $select = $db->prepare('DELETE FROM cars');
     $select->execute();
-    
+
     for ($r = 0, $rlen = count($_POST['data']); $r < $rlen; $r++) {
       $rowId = $r + 1;
       for ($c = 0, $clen = count($_POST['data'][$r]); $c < $clen; $c++) {
         if (!isset($colMap[$c])) {
           continue;
         }
-        
+
         $newVal = $_POST['data'][$r][$c];
-        
+
         $select = $db->prepare('SELECT id FROM cars WHERE id=? LIMIT 1');
         $select->execute(array(
           $rowId
         ));
-        
+
         if ($row = $select->fetch()) {
           $query = $db->prepare('UPDATE cars SET `' . $colMap[$c] . '` = :newVal WHERE id = :id');
         } else {
@@ -81,7 +81,7 @@ try {
     'result' => 'ok'
   );
   echo json_encode($out);
-  
+
   closeConnection($db);
 }
 catch (PDOException $e) {

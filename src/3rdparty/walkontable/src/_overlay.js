@@ -17,13 +17,14 @@ WalkontableOverlay.prototype.init = function () {
   this.fixed = this.instance.wtTable.hider;
   this.fixedContainer = this.instance.wtTable.holder;
   this.scrollHandler = this.getScrollableElement(this.TABLE);
-  this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
 };
 
 WalkontableOverlay.prototype.makeClone = function (direction) {
   var clone = document.createElement('DIV');
   clone.className = 'ht_clone_' + direction + ' handsontable';
 	clone.style.position = 'absolute';
+	clone.style.top = 0;
+	clone.style.left = 0;
   clone.style.overflow = 'hidden';
 
   var table2 = document.createElement('TABLE');
@@ -53,13 +54,11 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
   return window;
 };
 
-WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
-  this.clone && this.clone.draw(selectionsOnly);
+WalkontableOverlay.prototype.refresh = function (fastDraw) {
+  this.clone && this.clone.draw(fastDraw);
 };
 
 WalkontableOverlay.prototype.destroy = function () {
-  this.$scrollHandler.off('.' + this.clone.guid);
-  $(window).off('.' + this.clone.guid);
-  $(document).off('.' + this.clone.guid);
-  $(document.body).off('.' + this.clone.guid);
+  var eventManager = Handsontable.eventManager(this.clone);
+  eventManager.clear();
 };

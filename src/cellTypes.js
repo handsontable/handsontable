@@ -2,6 +2,8 @@
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
+Handsontable.mobileBrowser = Handsontable.helper.isMobileBrowser();  // check if viewed on a mobile device
+
 Handsontable.AutocompleteCell = {
   editor: Handsontable.editors.AutocompleteEditor,
   renderer: Handsontable.renderers.AutocompleteRenderer,
@@ -14,12 +16,12 @@ Handsontable.CheckboxCell = {
 };
 
 Handsontable.TextCell = {
-  editor: Handsontable.editors.TextEditor,
+  editor: Handsontable.mobileBrowser ? Handsontable.editors.MobileTextEditor : Handsontable.editors.TextEditor,
   renderer: Handsontable.renderers.TextRenderer
 };
 
 Handsontable.NumericCell = {
-  editor: Handsontable.editors.TextEditor,
+  editor: Handsontable.editors.NumericEditor,
   renderer: Handsontable.renderers.NumericRenderer,
   validator: Handsontable.NumericValidator,
   dataType: 'number'

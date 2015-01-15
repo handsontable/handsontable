@@ -31,11 +31,11 @@
 
   Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
     var schema;
-    if ($.isPlainObject(obj)) {
+    if (!Array.isArray(obj)){
       schema = {};
       for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
-          if ($.isPlainObject(obj[i])) {
+          if (typeof obj[i] === "object" && !Array.isArray(obj[i])) {
             schema[i] = this.recursiveDuckSchema(obj[i]);
           }
           else {
@@ -56,7 +56,7 @@
       lastCol = 0;
       parent = '';
     }
-    if ($.isPlainObject(schema)) {
+    if (typeof schema === "object" && !Array.isArray(schema)) {
       for (i in schema) {
         if (schema.hasOwnProperty(i)) {
           if (schema[i] === null) {
@@ -76,10 +76,10 @@
   };
 
   Handsontable.DataMap.prototype.createMap = function () {
-    if (typeof this.getSchema() === "undefined") {
+    var i, ilen, schema = this.getSchema();
+    if (typeof schema === "undefined") {
       throw new Error("trying to create `columns` definition but you didnt' provide `schema` nor `data`");
     }
-    var i, ilen, schema = this.getSchema();
     this.colToPropCache = [];
     this.propToColCache = new MultiMap();
     var columns = this.instance.getSettings().columns;
@@ -162,7 +162,8 @@
         row = this.instance.getSettings().dataSchema(index);
       }
       else {
-        row = $.extend(true, {}, this.getSchema());
+        row = {};
+        Handsontable.helper.deepExtend(row, this.getSchema());
       }
 
       if (index === this.instance.countRows()) {

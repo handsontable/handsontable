@@ -45,7 +45,7 @@ describe('AutocompleteRenderer', function () {
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
 
@@ -56,7 +56,7 @@ describe('AutocompleteRenderer', function () {
       type: 'autocomplete'
     });
 
-    hot.destroy();
+    destroy();
 
     hot = handsontable({
       type: 'autocomplete'
@@ -67,7 +67,7 @@ describe('AutocompleteRenderer', function () {
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });

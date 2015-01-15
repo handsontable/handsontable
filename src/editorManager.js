@@ -3,9 +3,10 @@
 
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
-    var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
     var destroyed = false;
+
+    var eventManager = Handsontable.eventManager(instance);
 
     var activeEditor;
 
@@ -22,6 +23,8 @@
         if(destroyed) {
           return;
         }
+
+        Handsontable.Dom.enableImmediatePropagation(event);
 
         if (!event.isImmediatePropagationStopped()) {
 
@@ -45,7 +48,8 @@
                     selection.selectAll(); //select all cells
 
                     event.preventDefault();
-                    event.stopPropagation();
+                    Handsontable.helper.stopPropagation(event);
+                    //event.stopPropagation();
                   }
                   break;
 
@@ -58,7 +62,8 @@
                   moveSelectionUp(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_DOWN:
@@ -69,7 +74,8 @@
                   moveSelectionDown(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_RIGHT:
@@ -80,7 +86,8 @@
                   moveSelectionRight(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.ARROW_LEFT:
@@ -91,7 +98,8 @@
                   moveSelectionLeft(event.shiftKey);
 
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.TAB:
@@ -103,7 +111,8 @@
                     selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
                   }
                   event.preventDefault();
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.BACKSPACE:
@@ -156,7 +165,8 @@
                     rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
                   }
                   event.preventDefault(); //don't scroll the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.END:
@@ -167,23 +177,22 @@
                     rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
                   }
                   event.preventDefault(); //don't scroll the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.PAGE_UP:
                   selection.transformStart(-instance.countVisibleRows(), 0);
-                  instance.view.wt.scrollVertical(-instance.countVisibleRows());
-                  instance.view.render();
                   event.preventDefault(); //don't page up the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
 
                 case keyCodes.PAGE_DOWN:
                   selection.transformStart(instance.countVisibleRows(), 0);
-                  instance.view.wt.scrollVertical(instance.countVisibleRows());
-                  instance.view.render();
                   event.preventDefault(); //don't page down the window
-                  event.stopPropagation(); //required by HandsontableEditor
+                  Handsontable.helper.stopPropagation(event);
+                  //event.stopPropagation(); //required by HandsontableEditor
                   break;
               }
 
@@ -195,13 +204,12 @@
         onKeyDown(originalEvent);
       });
 
-      $document.on('keydown.' + instance.guid, function(ev) {
+      eventManager.addEventListener(document, 'keydown', function (ev){
         instance.runHooks('afterDocumentKeyDown', ev);
       });
 
       function onDblClick(event, coords, elem) {
         if(elem.nodeName == "TD") { //may be TD or TH
-          //that.instance.destroyEditor();
           that.openEditor();
         }
       }

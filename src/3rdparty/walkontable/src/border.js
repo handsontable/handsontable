@@ -1,9 +1,64 @@
 function WalkontableBorder(instance, settings) {
   var style;
+  var createMultipleSelectorHandles = function () {
+    this.selectionHandles = {
+      topLeft: document.createElement('DIV'),
+      topLeftHitArea: document.createElement('DIV'),
+      bottomRight: document.createElement('DIV'),
+      bottomRightHitArea: document.createElement('DIV')
+    };
+    var width = 10
+      , hitAreaWidth = 40;
+
+    this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
+    this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
+    this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
+
+    this.selectionHandles.styles = {
+      topLeft: this.selectionHandles.topLeft.style,
+      topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
+      bottomRight: this.selectionHandles.bottomRight.style,
+      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+    };
+
+    var hitAreaStyle = {
+      'position': 'absolute',
+      'height': hitAreaWidth + 'px',
+      'width': hitAreaWidth + 'px',
+      'border-radius': parseInt(hitAreaWidth/1.5,10) + 'px'
+    };
+
+    for (var prop in hitAreaStyle) {
+      this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
+      this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
+    }
+
+    var handleStyle = {
+      'position': 'absolute',
+      'height': width + 'px',
+      'width': width + 'px',
+      'border-radius': parseInt(width/1.5,10) + 'px',
+      'background': '#F5F5FF',
+      'border': '1px solid #4285c8'
+    };
+
+    for (var prop in handleStyle) {
+      this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
+      this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
+    }
+
+    this.main.appendChild(this.selectionHandles.topLeft);
+    this.main.appendChild(this.selectionHandles.bottomRight);
+    this.main.appendChild(this.selectionHandles.topLeftHitArea);
+    this.main.appendChild(this.selectionHandles.bottomRightHitArea);
+  };
 
   if(!settings){
     return;
   }
+
+  var eventManager = Handsontable.eventManager(instance);
 
   //reference to instance
   this.instance = instance;
@@ -51,6 +106,10 @@ function WalkontableBorder(instance, settings) {
   this.cornerStyle.height = '5px';
   this.cornerStyle.border = '2px solid #FFF';
 
+  if(Handsontable.mobileBrowser) {
+    createMultipleSelectorHandles.call(this);
+  }
+
   this.disappear();
   if (!instance.wtTable.bordersHolder) {
     instance.wtTable.bordersHolder = document.createElement('div');
@@ -61,50 +120,55 @@ function WalkontableBorder(instance, settings) {
   instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
-  var $body = $(document.body);
 
-  $body.on('mousedown.walkontable.' + instance.guid, function () {
+
+
+  eventManager.addEventListener(document.body, 'mousedown', function () {
     down = true;
   });
 
-  $body.on('mouseup.walkontable.' + instance.guid, function () {
+
+  eventManager.addEventListener(document.body, 'mouseup', function () {
     down = false
   });
 
-  $(this.main.childNodes).on('mouseenter', function (event) {
-    if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
-      return;
-    }
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  for (var c = 0, len = this.main.childNodes.length; c < len; c++) {
 
-    var bounds = this.getBoundingClientRect();
+    eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function (event) {
+      if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
-    var $this = $(this);
-    $this.hide();
+      var bounds = this.getBoundingClientRect();
 
-    var isOutside = function (event) {
-      if (event.clientY < Math.floor(bounds.top)) {
-        return true;
-      }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
-        return true;
-      }
-      if (event.clientX < Math.floor(bounds.left)) {
-        return true;
-      }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
-        return true;
-      }
-    };
+      this.style.display = 'none';
 
-    $body.on('mousemove.border.' + instance.guid, function (event) {
-      if (isOutside(event)) {
-        $body.off('mousemove.border.' + instance.guid);
-        $this.show();
-      }
+      var isOutside = function (event) {
+        if (event.clientY < Math.floor(bounds.top)) {
+          return true;
+        }
+        if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+          return true;
+        }
+        if (event.clientX < Math.floor(bounds.left)) {
+          return true;
+        }
+        if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+          return true;
+        }
+      };
+
+      var handler = function (event) {
+        if (isOutside(event)) {
+          eventManager.removeEventListener(document.body, 'mousemove', handler);
+          this.style.display = 'block';
+        }
+      };
+      eventManager.addEventListener(document.body, 'mousemove', handler);;
     });
-  });
+  }
 }
 
 /**
@@ -127,15 +191,70 @@ WalkontableBorder.prototype.appear = function (corners) {
     , ilen
     , s;
 
+  var isPartRange = function () {
+    if(this.instance.selections.area.cellRange) {
+
+      if(toRow != this.instance.selections.area.cellRange.to.row
+        || toColumn != this.instance.selections.area.cellRange.to.col) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  var updateMultipleSelectionHandlesPosition = function (top, left, width, height) {
+    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10)
+      , hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+
+    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth,10) + "px";
+    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth,10) + "px";
+
+    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth/4)*3,10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth/4)*3,10) + "px";
+
+    this.selectionHandles.styles.bottomRight.top = parseInt(top + height,10) + "px";
+    this.selectionHandles.styles.bottomRight.left = parseInt(left + width,10) + "px";
+
+    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth/4,10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth/4,10) + "px";
+
+    if(this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+      this.selectionHandles.styles.topLeft.display = "block";
+      this.selectionHandles.styles.topLeftHitArea.display = "block";
+      if(!isPartRange.call(this)) {
+        this.selectionHandles.styles.bottomRight.display = "block";
+        this.selectionHandles.styles.bottomRightHitArea.display = "block";
+      } else {
+        this.selectionHandles.styles.bottomRight.display = "none";
+        this.selectionHandles.styles.bottomRightHitArea.display = "none";
+      }
+    } else {
+      this.selectionHandles.styles.topLeft.display = "none";
+      this.selectionHandles.styles.bottomRight.display = "none";
+      this.selectionHandles.styles.topLeftHitArea.display = "none";
+      this.selectionHandles.styles.bottomRightHitArea.display = "none";
+    }
+
+    if(fromRow == this.instance.wtSettings.getSetting('fixedRowsTop') || fromColumn == this.instance.wtSettings.getSetting('fixedColumnsLeft')) {
+      this.selectionHandles.styles.topLeft.zIndex = "9999";
+      this.selectionHandles.styles.topLeftHitArea.zIndex = "9999";
+    } else {
+      this.selectionHandles.styles.topLeft.zIndex = "";
+      this.selectionHandles.styles.topLeftHitArea.zIndex = "";
+    }
+
+  };
+
   if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     ilen = instance.getSetting('fixedRowsTop');
   }
   else {
-    ilen = instance.wtTable.getRowStrategy().countVisible();
+    ilen = instance.wtTable.getRenderedRowsCount();
   }
 
   for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.rowFilter.visibleToSource(i);
+    s = instance.wtTable.rowFilter.renderedToSource(i);
     if (s >= corners[0] && s <= corners[2]) {
       fromRow = s;
       break;
@@ -143,22 +262,17 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.rowFilter.visibleToSource(i);
+    s = instance.wtTable.rowFilter.renderedToSource(i);
     if (s >= corners[0] && s <= corners[2]) {
       toRow = s;
       break;
     }
   }
 
-  if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-    ilen = instance.getSetting('fixedColumnsLeft');
-  }
-  else {
-    ilen = instance.wtTable.getColumnStrategy().cellCount;
-  }
+  ilen = instance.wtTable.getRenderedColumnsCount();
 
   for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.columnFilter.visibleToSource(i);
+    s = instance.wtTable.columnFilter.renderedToSource(i);
     if (s >= corners[1] && s <= corners[3]) {
       fromColumn = s;
       break;
@@ -166,7 +280,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.columnFilter.visibleToSource(i);
+    s = instance.wtTable.columnFilter.renderedToSource(i);
     if (s >= corners[1] && s <= corners[3]) {
       toColumn = s;
       break;
@@ -226,13 +340,17 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.rightStyle.height = height + 1 + 'px';
   this.rightStyle.display = 'block';
 
-  if (!this.hasSetting(this.settings.border.cornerVisible)) {
+  if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this))) {
     this.cornerStyle.display = 'none';
   }
   else {
     this.cornerStyle.top = top + height - 4 + 'px';
     this.cornerStyle.left = left + width - 4 + 'px';
     this.cornerStyle.display = 'block';
+  }
+
+  if(Handsontable.mobileBrowser) {
+    updateMultipleSelectionHandlesPosition.call(this,top, left, width, height);
   }
 };
 
@@ -245,6 +363,13 @@ WalkontableBorder.prototype.disappear = function () {
   this.bottomStyle.display = 'none';
   this.rightStyle.display = 'none';
   this.cornerStyle.display = 'none';
+
+  if(Handsontable.mobileBrowser) {
+    this.selectionHandles.styles.topLeft.display = 'none';
+    this.selectionHandles.styles.bottomRight.display = 'none';
+  }
+
+
 };
 
 WalkontableBorder.prototype.hasSetting = function (setting) {

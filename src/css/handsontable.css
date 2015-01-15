@@ -1,17 +1,18 @@
 /*!
- * Handsontable 0.11.4
- * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
+ * Handsontable @@version
+ * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 22 2014 15:46:37 GMT-0200 (Horário brasileiro de verão)
+ * Date: @@timestamp
  */
 
 .handsontable {
   position: relative;
 }
+
 .handsontable .hide{
   display: none;
 }
@@ -26,21 +27,37 @@
   top: 0;
 }
 
+.handsontable .wtHider {
+  width: 0;
+}
+
+.handsontable .wtSpreader {
+  position: relative;
+  width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  height: auto;
+}
+
 .handsontable table,
 .handsontable tbody,
 .handsontable thead,
 .handsontable td,
 .handsontable th,
+.handsontable input,
+.handsontable textarea,
 .handsontable div {
   box-sizing: content-box;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
 }
 
+.handsontable input,
+.handsontable textarea {
+  min-height: initial;
+}
+
 .handsontable table.htCore {
   border-collapse: separate;
   /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
-  position: relative;
   /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -54,7 +71,7 @@
   table-layout: fixed;
   width: 0;
   outline-width: 0;
-  /* reset bootstrap table style. for more info see: https://github.com/handsontable/jquery-handsontable/issues/224 */
+  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
   max-width: none;
   max-height: none;
 }
@@ -299,6 +316,10 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  border: 2px solid #5292F7;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
@@ -309,6 +330,7 @@
 .htSelectEditor {
   -webkit-appearance: menulist-button !important;
   position: absolute;
+  width: auto;
 }
 
 /*
@@ -319,11 +341,15 @@ TextRenderer readOnly cell
   color: #777;
 }
 
+.handsontable .htSubmenu {
+  position: relative;
+}
+
 .handsontable .htSubmenu :after{
-    content: '▶';
-    color: #777;
-    position: absolute;
-    right: 5px;
+  content: '▶';
+  color: #777;
+  position: absolute;
+  right: 5px;
 }
 
 
@@ -411,6 +437,47 @@ Comment For Cell
   border-top: 6px solid red;
 }
 
+@-webkit-keyframes opacity-hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+@keyframes opacity-hide {
+  from {
+    /*display: block;*/
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /*display: none;*/
+  }
+}
+
+@-webkit-keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
+}
+@keyframes opacity-show {
+  from {
+    opacity: 0;
+    /*display: none;*/
+  }
+  to {
+    opacity: 1;
+    /*display: block;*/
+  }
+}
+
 /**
  * Handsontable in Handsontable
  */
@@ -486,7 +553,8 @@ Comment For Cell
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner {
+.htContextMenu .ht_clone_corner,
+.htContextMenu .ht_clone_debug {
   display: none;
 }
 
@@ -499,6 +567,10 @@ Comment For Cell
 }
 
 .ht_clone_corner {
+  z-index: 103;
+}
+
+.ht_clone_debug {
   z-index: 103;
 }
 
