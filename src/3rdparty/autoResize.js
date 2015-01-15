@@ -30,7 +30,9 @@ var autoResize = function () {
       }
     },
     resize = function (newChar) {
-      if(!newChar) {
+      var width, scrollHeight;
+
+      if (!newChar) {
         newChar = "";
       } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
         newChar = ".";
@@ -44,32 +46,35 @@ var autoResize = function () {
       }
       span.style.fontSize = Handsontable.Dom.getComputedStyle(el).fontSize;
       span.style.fontFamily = Handsontable.Dom.getComputedStyle(el).fontFamily;
-      span.style['white-space'] = "pre";
+      span.style.whiteSpace = "pre";
 
       body.appendChild(span);
-      var width = span.clientWidth + 2;
+      width = span.clientWidth + 2;
       body.removeChild(span);
 
       el.style.height = defaults.minHeight + 'px';
 
       if (defaults.minWidth > width) {
         el.style.width = defaults.minWidth + 'px';
+
       } else if (width > defaults.maxWidth) {
         el.style.width = defaults.maxWidth + 'px';
+
       } else {
         el.style.width = width + 'px';
       }
+      scrollHeight = el.scrollHeight ? el.scrollHeight - 1 : 0;
 
-      var scrollHeight = el.scrollHeight;
       if (defaults.minHeight > scrollHeight) {
         el.style.height = defaults.minHeight + 'px';
+
       } else if (defaults.maxHeight < scrollHeight) {
         el.style.height = defaults.maxHeight + 'px';
         el.style.overflowY = 'visible';
+
       } else {
         el.style.height = scrollHeight + 'px';
       }
-
     },
     delayedResize = function () {
       window.setTimeout(resize, 0);
