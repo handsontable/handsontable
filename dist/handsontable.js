@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 12 2015 10:24:46 GMT+0100 (CET)
+ * Date: Thu Jan 15 2015 10:04:22 GMT+0700 (ICT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -22,6 +22,11 @@ var Handsontable = function (rootElement, userSettings) {
   return instance;
 };
 Handsontable.plugins = {};
+
+// Meteor support
+if (typeof Package !== 'undefined') {
+  window.Handsontable = Handsontable;
+}
 
 (function (window, Handsontable) {
   "use strict";

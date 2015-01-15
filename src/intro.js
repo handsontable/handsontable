@@ -23,5 +23,10 @@ var Handsontable = function (rootElement, userSettings) {
 };
 Handsontable.plugins = {};
 
+// Meteor support
+if (typeof Package !== 'undefined') {
+  window.Handsontable = Handsontable;
+}
+
 (function (window, Handsontable) {
   "use strict";
