@@ -183,6 +183,24 @@ describe('FillHandle', function () {
     expect(getDataAtCell(3,3)).toEqual(4);
 
   });
+    
+  it('should not add new row after dragging the handle to the last table row', function () {
+      var hot = handsontable({
+          data: [
+              [1, 2, "test", 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6]
+          ]
+      });
+      
+      selectCell(0, 2);
+  
+      this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+      this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+      
+      expect(hot.countRows()).toBe(4);
+  });
 
   it('should add new row after dragging the handle to the last table row', function () {
     var hot = handsontable({
@@ -191,7 +209,8 @@ describe('FillHandle', function () {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
-      ]
+      ],
+      minSpareRows : 1
     });
 
     selectCell(0, 2);
@@ -199,18 +218,21 @@ describe('FillHandle', function () {
     this.$container.find('.wtBorder.current.corner').simulate('mousedown');
     this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    // expect(hot.countRows()).toBe(4);
+    expect(hot.countRows()).toBe(5);
     waits(300);
 
     runs(function () {
-      expect(hot.countRows()).toBe(5);
-
+      //expect(hot.countRows()).toBe(5);
+      expect(hot.countRows()).toBe(6);
+        
       this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
       waits(300);
 
       runs(function () {
-        expect(hot.countRows()).toBe(6);
+        //expect(hot.countRows()).toBe(6);
+          expect(hot.countRows()).toBe(7);
       });
 
     });

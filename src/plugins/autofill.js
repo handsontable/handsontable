@@ -303,21 +303,24 @@
       selection,
       tableRows = this.instance.countRows(),
       that = this;
+      
+    var minSpareRows = this.instance.getSettings().minSpareRows;
+      
+    if(minSpareRows > 0){
+        if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+          selection = this.instance.getSelected();
+          fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-    if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
-      selection = this.instance.getSelected();
-      fillCorners = this.instance.view.wt.selections.fill.getCorners();
+          if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
+            this.addingStarted = true;
 
-      if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
-        this.addingStarted = true;
-
-        this.instance._registerTimeout(setTimeout(function () {
-          that.instance.alter('insert_row');
-          that.addingStarted = false;
-        }, 200));
-      }
+            this.instance._registerTimeout(setTimeout(function () {
+              that.instance.alter('insert_row');
+              that.addingStarted = false;
+            }, 200));
+          }
+        }
     }
-
   };
 
 
