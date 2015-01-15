@@ -170,6 +170,46 @@ describe('WalkontableTable', function () {
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(1, 1));
   });
 
+  it("getStretchedColumnWidth should return valid column width when stretchH is set as 'all'", function () {
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      stretchH: 'all'
+    });
+    wt.draw();
+    wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
+
+    expect(wt.wtTable.getStretchedColumnWidth(0, 50)).toBe(125);
+    expect(wt.wtTable.getStretchedColumnWidth(1, 50)).toBe(125);
+    expect(wt.wtTable.getStretchedColumnWidth(2, 50)).toBe(125);
+    expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(127);
+  });
+
+  it("getStretchedColumnWidth should return valid column width when stretchH is set as 'last'", function () {
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      stretchH: 'last'
+    });
+    wt.draw();
+    wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
+
+    expect(wt.wtTable.getStretchedColumnWidth(0, 50)).toBe(50);
+    expect(wt.wtTable.getStretchedColumnWidth(1, 50)).toBe(50);
+    expect(wt.wtTable.getStretchedColumnWidth(2, 50)).toBe(50);
+    expect(wt.wtTable.getStretchedColumnWidth(3, 50)).toBe(352);
+  });
+
   it("should use custom cell renderer if provided", function () {
     var wt = new Walkontable({
       table: $table[0],

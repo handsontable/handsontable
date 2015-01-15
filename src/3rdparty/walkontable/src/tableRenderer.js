@@ -200,11 +200,12 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   var width;
+
   this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
 
   for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
     width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+    this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
   }
 };
 

@@ -311,6 +311,31 @@ Handsontable.Dom.getScrollLeft = function (elem) {
   }
 };
 
+Handsontable.Dom.getScrollableElement = function (element) {
+  var el = element.parentNode,
+    props = ['auto', 'scroll'],
+    overflow, overflowX, overflowY;
+
+  while (el && el.style) {
+    overflow = el.style.overflow;
+    overflowX = el.style.overflowX;
+    overflowY = el.style.overflowY;
+
+    if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
+      return el;
+    }
+    if (el.clientHeight < el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1)) {
+      return el;
+    }
+    if (el.clientWidth < el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1)) {
+      return el;
+    }
+    el = el.parentNode;
+  }
+
+  return window;
+};
+
 Handsontable.Dom.getComputedStyle = function (elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 };

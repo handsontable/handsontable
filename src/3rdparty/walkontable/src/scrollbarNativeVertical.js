@@ -95,14 +95,18 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
 
 /**
  * Scrolls vertically to a row
+ *
  * @param sourceRow {Number}
  * @param bottomEdge {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bottomEdge) {
   var newY = this.getTableParentOffset();
+
   if (bottomEdge) {
     newY += this.sumCellSizes(0, sourceRow + 1);
     newY -= this.instance.wtViewport.getViewportHeight();
+    // Fix 1 pixel offset when cell is selected
+    newY += 1;
   }
   else {
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');

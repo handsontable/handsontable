@@ -158,19 +158,19 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
 
 // Viewport width = Workspace width - Row Headers width
 WalkontableViewport.prototype.getViewportWidth = function () {
-  var containerWidth = this.getWorkspaceWidth();
+  var containerWidth = this.getWorkspaceWidth(),
+    rowHeaderWidth;
 
   if (containerWidth === Infinity) {
     return containerWidth;
   }
+  rowHeaderWidth = this.getRowHeaderWidth();
 
-  var rowHeaderWidth = this.getRowHeaderWidth();
   if (rowHeaderWidth > 0) {
     return containerWidth - rowHeaderWidth;
   }
-  else {
-    return containerWidth;
-  }
+
+  return containerWidth;
 };
 
 /**
