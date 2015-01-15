@@ -28,9 +28,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.instance.wtScrollbars.vertical.scrollTo(coords.row);
     }
 
-    if (coords.col >= this.instance.wtTable.getLastVisibleColumn()) {
+    if (coords.col > this.instance.wtTable.getLastVisibleColumn()) {
       this.instance.wtScrollbars.horizontal.scrollTo(coords.col, true);
-    } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft') && coords.col < this.instance.wtTable.getFirstVisibleColumn()){
+    } else if (coords.col > this.instance.getSetting('fixedColumnsLeft') && coords.col < this.instance.wtTable.getFirstVisibleColumn()){
       this.instance.wtScrollbars.horizontal.scrollTo(coords.col);
     }
 

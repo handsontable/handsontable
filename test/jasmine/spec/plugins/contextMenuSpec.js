@@ -2349,6 +2349,33 @@ describe('ContextMenu', function () {
 
     });
 
+    it("should not scroll the window when hovering over context menu items (#1897 reopen)", function () {
+      this.$wrapper.css("overflow","visible");
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(403, 303),
+        colWidths: 50, //can also be a number or a function
+        contextMenu: true
+      });
+
+      var beginningScrollX = window.scrollX;
+
+      selectCell(2, 4);
+      contextMenu();
+
+      var htCMguid = Object.keys(hot.contextMenu.htMenus)[0];
+      var cmInstance = hot.contextMenu.htMenus[htCMguid];
+
+      cmInstance.selectCell(3,0);
+      expect(window.scrollX).toEqual(beginningScrollX);
+
+      cmInstance.selectCell(4,0);
+      expect(window.scrollX).toEqual(beginningScrollX);
+
+      cmInstance.selectCell(6,0);
+      expect(window.scrollX).toEqual(beginningScrollX);
+    });
+
   });
 
   describe("afterContextMenuDefaultOptions hook", function() {
