@@ -245,7 +245,8 @@ describe('FillHandle', function () {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
-      ]
+      ],
+      minSpareRows : 1
     });
 
     selectCell(0, 2);
@@ -254,7 +255,7 @@ describe('FillHandle', function () {
     var ev = {}
       , $lastRow = this.$container.find('tr:last-child td:eq(2)');
 
-    expect(hot.countRows()).toBe(4);
+    expect(hot.countRows()).toBe(5);
 
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
@@ -264,7 +265,7 @@ describe('FillHandle', function () {
     waits(300);
 
     runs(function () {
-      expect(hot.countRows()).toBe(5);
+      expect(hot.countRows()).toBe(6);
 
       ev.clientY = $lastRow.offset().top + 150;
       $(document).simulate('mousemove',ev);
@@ -272,7 +273,7 @@ describe('FillHandle', function () {
       waits(300);
 
       runs(function () {
-        expect(hot.countRows()).toBe(6);
+        expect(hot.countRows()).toBe(7);
       });
     });
   });

@@ -58,8 +58,10 @@
 
       if (this.mouseDragOutside) {
         setTimeout(function () {
-          plugin.addingStarted = false;
-          plugin.instance.alter('insert_row');
+          if(plugin.instance.getSettings().minSpareRows > 0){
+          	plugin.addingStarted = false;
+          	plugin.instance.alter('insert_row');
+          }
         }, 200);
       }
     });
