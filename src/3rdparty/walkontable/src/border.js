@@ -30,8 +30,10 @@ function WalkontableBorder(instance, settings) {
     };
 
     for (var prop in hitAreaStyle) {
-      this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
-      this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
+      if (hitAreaStyle.hasOwnProperty(prop)) {
+        this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
+        this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
+      }
     }
 
     var handleStyle = {
@@ -44,8 +46,10 @@ function WalkontableBorder(instance, settings) {
     };
 
     for (var prop in handleStyle) {
-      this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
-      this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
+      if (handleStyle.hasOwnProperty(prop)) {
+        this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
+        this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
+      }
     }
 
     this.main.appendChild(this.selectionHandles.topLeft);
@@ -129,9 +133,10 @@ function WalkontableBorder(instance, settings) {
 
 
   eventManager.addEventListener(document.body, 'mouseup', function () {
-    down = false
+    down = false;
   });
 
+  /* jshint ignore:start */
   for (var c = 0, len = this.main.childNodes.length; c < len; c++) {
 
     eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function (event) {
@@ -166,9 +171,10 @@ function WalkontableBorder(instance, settings) {
           this.style.display = 'block';
         }
       };
-      eventManager.addEventListener(document.body, 'mousemove', handler);;
+      eventManager.addEventListener(document.body, 'mousemove', handler);
     });
   }
+  /* jshint ignore:end */
 }
 
 /**
@@ -194,8 +200,8 @@ WalkontableBorder.prototype.appear = function (corners) {
   var isPartRange = function () {
     if(this.instance.selections.area.cellRange) {
 
-      if(toRow != this.instance.selections.area.cellRange.to.row
-        || toColumn != this.instance.selections.area.cellRange.to.col) {
+      if (toRow != this.instance.selections.area.cellRange.to.row ||
+          toColumn != this.instance.selections.area.cellRange.to.col) {
         return true;
       }
     }

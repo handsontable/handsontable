@@ -103,7 +103,9 @@ WalkontableViewport.prototype.getWorkspaceActualHeight = function () {
 };
 
 WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
-  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) || Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) || Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) ||
+    Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) ||
+    Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
 WalkontableViewport.prototype.getColumnHeaderHeight = function () {
@@ -208,7 +210,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
     pos,
     this.instance.getSetting('totalRows'),
     function(sourceRow) {
-      return that.instance.wtTable.getRowHeight(sourceRow)
+      return that.instance.wtTable.getRowHeight(sourceRow);
     },
     visible ? null : this.instance.wtSettings.settings.viewportRowCalculatorOverride,
     visible ? true : false
@@ -249,7 +251,7 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
     visible ? null : this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
     visible ? true : false,
     this.instance.getSetting('stretchH')
-  )
+  );
 };
 
 
@@ -296,10 +298,14 @@ WalkontableViewport.prototype.createVisibleCalculators = function () {
  */
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (proposedRowsVisibleCalculator) {
   if (this.rowsVisibleCalculator) {
-    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow || (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow && proposedRowsVisibleCalculator.startRow > 0)) {
+    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow ||
+        (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow &&
+        proposedRowsVisibleCalculator.startRow > 0)) {
       return false;
     }
-    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow || (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow && proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
+    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow ||
+        (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow &&
+        proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
       return false;
     }
     else {
@@ -320,10 +326,14 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
   if (this.columnsVisibleCalculator) {
-    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn || (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn && proposedColumnsVisibleCalculator.startColumn > 0)) {
+    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn ||
+        (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn &&
+        proposedColumnsVisibleCalculator.startColumn > 0)) {
       return false;
     }
-    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn || (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn && proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
+    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn ||
+        (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn &&
+        proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
       return false;
     }
     else {

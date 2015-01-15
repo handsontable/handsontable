@@ -24,7 +24,7 @@
       this._closeCallback = null;
     }
 
-  }
+  };
 
   BaseEditor.prototype.init = function(){};
 

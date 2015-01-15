@@ -5,18 +5,18 @@
   'use strict';
 
   function RegisteredEditor(editorClass) {
-    var clazz, instances;
+    var Clazz, instances;
 
     instances = {};
-    clazz = editorClass;
+    Clazz = editorClass;
 
     this.getInstance = function (hotInstance) {
       if (!(hotInstance.guid in instances)) {
-        instances[hotInstance.guid] = new clazz(hotInstance);
+        instances[hotInstance.guid] = new Clazz(hotInstance);
       }
 
       return instances[hotInstance.guid];
-    }
+    };
 
   }
 

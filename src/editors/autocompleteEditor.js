@@ -148,6 +148,7 @@
     var orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
     var highlightIndex;
 
+    /* jshint ignore:start */
     if (this.cellProperties.filter != false) {
       var sorted = [];
       for(var i = 0, choicesCount = orderByRelevance.length; i < choicesCount; i++) {
@@ -159,6 +160,7 @@
     else {
       highlightIndex = orderByRelevance[0];
     }
+    /* jshint ignore:end */
 
     this.choices = choices;
 
@@ -239,8 +241,12 @@
 
     choicesRelevance.sort(function(a, b) {
 
-      if(b.index === -1) return -1;
-      if(a.index === -1) return 1;
+      if(b.index === -1) {
+        return -1;
+      }
+      if(a.index === -1) {
+        return 1;
+      }
 
       if(a.index < b.index) {
         return -1;
@@ -271,7 +277,7 @@
     return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
     //sorry, we can't measure row height before it was rendered. Let's use fixed height for now
-    return 230;
+    //return 230;
   };
 
 

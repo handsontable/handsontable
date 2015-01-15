@@ -54,7 +54,7 @@ Handsontable.PluginHookClass = (function () {
       modifyRowHeight: [],
       modifyRow: [],
       modifyCol: []
-    }
+    };
   };
 
   var legacy = {
@@ -70,8 +70,9 @@ Handsontable.PluginHookClass = (function () {
   };
 
   function PluginHookClass() {
-
+    /* jshint ignore:start */
     this.hooks = Hooks();
+    /* jshint ignore:end */
     this.globalBucket = {};
     this.legacy = legacy;
 

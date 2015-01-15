@@ -10,6 +10,8 @@ WalkontableHorizontalScrollbarNative.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {
+  var finalLeft, finalTop;
+
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
@@ -19,8 +21,6 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
 
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var left = Math.ceil(box.left);
-    var finalLeft
-      , finalTop;
     var right = Math.ceil(box.right);
 
     if (left < 0 && (right - elem.offsetWidth) > 0) {
@@ -100,7 +100,7 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
 
   if (beyondRendered) {
     newX += this.sumCellSizes(0, sourceCol + 1);
-    newX -= this.instance.wtViewport.getViewportWidth()
+    newX -= this.instance.wtViewport.getViewportWidth();
   }
   else {
     var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');

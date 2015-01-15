@@ -14,7 +14,7 @@
   };
 
   TextEditor.prototype.getValue = function(){
-    return this.TEXTAREA.value
+    return this.TEXTAREA.value;
   };
 
   TextEditor.prototype.setValue = function(newValue){
@@ -63,7 +63,7 @@
             that.setValue(that.getValue() + '\n');
             that.focus();
           } else {
-            that.beginEditing(that.originalValue + '\n')
+            that.beginEditing(that.originalValue + '\n');
           }
           event.stopImmediatePropagation();
         }

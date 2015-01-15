@@ -10,13 +10,13 @@ var TouchScroll = (function(instance) {
       this.instance.view.wt.wtScrollbars.vertical,
       this.instance.view.wt.wtScrollbars.horizontal,
       this.instance.view.wt.wtScrollbars.corner
-    ]
+    ];
 
     this.clones = [
       this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode,
       this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode,
       this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode
-    ]
+    ];
   };
 
   TouchScroll.prototype.bindEvents = function () {

@@ -54,18 +54,34 @@ WalkontableScrollbars.prototype.destroy = function () {
     eventManager.removeEventListener(this.horizontal.scrollHandler,'scroll', this.refreshAll);
   }
   eventManager.removeEventListener(window,'scroll', this.refreshAll);
-  this.corner && this.corner.destroy();
-  this.debug && this.debug.destroy();
+  if (this.corner ) {
+    this.corner.destroy();
+  }
+  if (this.debug) {
+    this.debug.destroy();
+  }
 };
 
 WalkontableScrollbars.prototype.refresh = function (fastDraw) {
-  this.horizontal && this.horizontal.refresh(fastDraw);
-  this.vertical && this.vertical.refresh(fastDraw);
-  this.corner && this.corner.refresh(fastDraw);
-  this.debug && this.debug.refresh(fastDraw);
+  if (this.horizontal) {
+    this.horizontal.refresh(fastDraw);
+  }
+  if (this.vertical) {
+    this.vertical.refresh(fastDraw);
+  }
+  if (this.corner) {
+    this.corner.refresh(fastDraw);
+  }
+  if (this.debug) {
+    this.debug.refresh(fastDraw);
+  }
 };
 
 WalkontableScrollbars.prototype.applyToDOM = function () {
-  this.horizontal && this.horizontal.applyToDOM();
-  this.vertical && this.vertical.applyToDOM();
+  if (this.horizontal) {
+    this.horizontal.applyToDOM();
+  }
+  if (this.vertical) {
+    this.vertical.applyToDOM();
+  }
 };

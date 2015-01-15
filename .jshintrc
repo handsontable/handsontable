@@ -1,0 +1,35 @@
+{
+  "boss": false,
+  "browser": true,
+  "camelcase": true,
+  "curly": true,
+  "debug": false,
+  "devel": false,
+  "eqeqeq": false, // Should be true
+  "eqnull": true, // Should be false
+  "evil": false,
+  "forin": true,
+  "freeze": true,
+  "funcscope": false,
+  "immed": true,
+  "indent": 2,
+  "latedef": false,
+  "laxbreak": false,
+  "laxcomma": true, // Should be false
+  "loopfunc": false,
+  "maxdepth": 5,
+  "maxlen": 190,
+  "maxparams": 9,
+  "multistr": false,
+  "newcap": true,
+  "nonbsp": true,
+  "nonew": true,
+  "notypeof": false,
+  "predef": [],
+  "proto": false,
+  "shadow": true, // Should be false
+  "sub": true, // Should be false
+  "supernew": false,
+  "undef": false,
+  "unused": false
+}

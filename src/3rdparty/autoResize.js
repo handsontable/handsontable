@@ -82,7 +82,7 @@ var autoResize = function () {
         } else {
           var minHeight = parseInt(config.minHeight);
           if (!isNaN(minHeight)) {
-            defaults.minHeight = minHeight
+            defaults.minHeight = minHeight;
           }
         }
       }
@@ -93,7 +93,7 @@ var autoResize = function () {
         } else {
           var maxHeight = parseInt(config.maxHeight);
           if (!isNaN(maxHeight)) {
-            defaults.maxHeight = maxHeight
+            defaults.maxHeight = maxHeight;
           }
         }
       }
@@ -104,7 +104,7 @@ var autoResize = function () {
         } else {
           var minWidth = parseInt(config.minWidth);
           if (!isNaN(minWidth)) {
-            defaults.minWidth = minWidth
+            defaults.minWidth = minWidth;
           }
         }
       }
@@ -115,7 +115,7 @@ var autoResize = function () {
         } else {
           var maxWidth = parseInt(config.maxWidth);
           if (!isNaN(maxWidth)) {
-            defaults.maxWidth = maxWidth
+            defaults.maxWidth = maxWidth;
           }
         }
       }
@@ -163,6 +163,6 @@ var autoResize = function () {
       unObserve(el, 'keydown', delayedResize);
     },
     resize: resize
-  }
+  };
 
 };

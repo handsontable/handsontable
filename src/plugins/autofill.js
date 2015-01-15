@@ -98,14 +98,14 @@
    */
   Autofill.prototype.init = function () {
     this.handle = {};
-  },
+  };
 
   /**
    * Hide fill handle and fill border permanently
    */
     Autofill.prototype.disable = function () {
       this.handle.disabled = true;
-    },
+    };
 
   /**
    * Selects cells down to the last row in the left column, then fills down to that cell
@@ -137,7 +137,7 @@
         this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
         this.apply();
       }
-    },
+    };
 
   /**
    * Apply fill values to the area in fill border, omitting the selection border
@@ -272,7 +272,7 @@
        //reset to avoid some range bug
        this.instance.selection.refreshBorders();
      }
-    },
+    };
 
   /**
    * Show fill border

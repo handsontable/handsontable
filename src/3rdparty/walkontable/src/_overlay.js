@@ -55,10 +55,13 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
 };
 
 WalkontableOverlay.prototype.refresh = function (fastDraw) {
-  this.clone && this.clone.draw(fastDraw);
+  if (this.clone) {
+    this.clone.draw(fastDraw);
+  }
 };
 
 WalkontableOverlay.prototype.destroy = function () {
   var eventManager = Handsontable.eventManager(this.clone);
+
   eventManager.clear();
 };

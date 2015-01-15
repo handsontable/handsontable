@@ -29,7 +29,7 @@ function HandsontableColumnSorting() {
       instance.sort = function(){
         var args = Array.prototype.slice.call(arguments);
 
-        return plugin.sortByColumn.apply(instance, args)
+        return plugin.sortByColumn.apply(instance, args);
       };
 
       if (typeof instance.getSettings().observeChanges == 'undefined'){
@@ -149,8 +149,12 @@ function HandsontableColumnSorting() {
 
   function defaultSort(sortOrder) {
     return function (a, b) {
-      if(typeof a[1] == "string") a[1] = a[1].toLowerCase();
-      if(typeof b[1] == "string") b[1] = b[1].toLowerCase();
+      if(typeof a[1] == "string") {
+        a[1] = a[1].toLowerCase();
+      }
+      if(typeof b[1] == "string") {
+        b[1] = b[1].toLowerCase();
+      }
 
       if (a[1] === b[1]) {
         return 0;
@@ -161,10 +165,14 @@ function HandsontableColumnSorting() {
       if (b[1] === null || b[1] === "") {
         return -1;
       }
-      if (a[1] < b[1]) return sortOrder ? -1 : 1;
-      if (a[1] > b[1]) return sortOrder ? 1 : -1;
+      if (a[1] < b[1]) {
+        return sortOrder ? -1 : 1;
+      }
+      if (a[1] > b[1]) {
+        return sortOrder ? 1 : -1;
+      }
       return 0;
-    }
+    };
   }
 
   function dateSort(sortOrder) {
@@ -182,11 +190,15 @@ function HandsontableColumnSorting() {
       var aDate = new Date(a[1]);
       var bDate = new Date(b[1]);
 
-      if (aDate < bDate) return sortOrder ? -1 : 1;
-      if (aDate > bDate) return sortOrder ? 1 : -1;
+      if (aDate < bDate) {
+        return sortOrder ? -1 : 1;
+      }
+      if (aDate > bDate) {
+        return sortOrder ? 1 : -1;
+      }
 
       return 0;
-    }
+    };
   }
 
   this.sort = function () {
@@ -330,10 +342,10 @@ function HandsontableColumnSorting() {
 var htSortColumn = new HandsontableColumnSorting();
 
 Handsontable.hooks.add('afterInit', function () {
-  htSortColumn.init.call(this, 'afterInit')
+  htSortColumn.init.call(this, 'afterInit');
 });
 Handsontable.hooks.add('afterUpdateSettings', function () {
-  htSortColumn.init.call(this, 'afterUpdateSettings')
+  htSortColumn.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyRow', htSortColumn.translateRow);
 Handsontable.hooks.add('afterGetColHeader', htSortColumn.getColHeader);

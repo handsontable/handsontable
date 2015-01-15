@@ -157,7 +157,7 @@ var init = function () {
     defaultOptions.items.push({
       key: 'commentsRemove',
       name: function () {
-        return "Delete Comment"
+        return "Delete Comment";
       },
       callback: function (key, selection, event) {
         Handsontable.Comments.removeComment(selection.start.row, selection.start.col);

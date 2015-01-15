@@ -67,6 +67,7 @@
 
     var data = cmInstance.getData();
     for (var i = 0, ilen = data.length; i < ilen; i++) { //find position of 'copy' option
+      /*jshint -W083 */
       if (data[i].key === 'copy') {
         this.zeroClipboardInstance = new ZeroClipboard(cmInstance.getCell(i, 0));
 
@@ -140,21 +141,22 @@
       cmCopyPaste.swfPath = this.getSettings().contextMenuCopyPaste.swfPath;
     }
 
+    /* jshint ignore:start */
     if (typeof ZeroClipboard === 'undefined') {
       throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
 
       return false;
     }
-
     try {
       var flashTest = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
     } catch(exception) {
-      if(!('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash'])) {
+      if (!('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash'])) {
         throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
 
         return false;
       }
     }
+    /* jshint ignore:end */
 
     cmCopyPaste.instance = this;
     cmCopyPaste.prepareZeroClipboard();

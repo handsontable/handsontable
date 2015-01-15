@@ -127,9 +127,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
+        /* jshint ignore:start */
         default:
           throw new Error('There is no such action "' + action + '"');
           break;
+        /* jshint ignore:end */
       }
 
       if (!keepEmptyRows) {
@@ -301,8 +303,10 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
           break;
 
-        case 'overwrite' :
+        /* jshint ignore:start */
+        case 'overwrite':
         default:
+        /* jshint ignore:end */
           // overwrite and other not specified options
           current.row = start.row;
           current.col = start.col;
@@ -317,7 +321,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             iterators = {
               row: Math.ceil(selected.row / rlen) || 1,
               col: Math.ceil(selected.col / input[0].length) || 1
-            }
+            };
           } else if (['down', 'right'].indexOf(direction) !== -1) {
             iterators = {
               row: 1,
@@ -518,6 +522,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta);
       instance.runHooks('modifyTransformStart', delta);
 
+      /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > instance.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
@@ -545,6 +550,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         delta.row = priv.selRange.highlight.row + delta.row == 0 ? instance.countRows() - 1 : -1;
         delta.col = instance.countCols() - 1;
       }
+      /* jshint ignore:end */
 
       var totalRows = instance.countRows();
       var totalCols = instance.countCols();
@@ -704,10 +710,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       onQueueEmpty: function () {
       },
       checkIfQueueIsEmpty: function () {
+        /* jshint ignore:start */
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
           this.onQueueEmpty();
         }
+        /* jshint ignore:end */
       }
     };
   }
@@ -743,6 +751,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
         }
 
+        /* jshint ignore:start */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
@@ -756,10 +765,11 @@ Handsontable.Core = function (rootElement, userSettings) {
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
-            }
+            };
           })(i, cellProperties)
             , source);
         }
+        /* jshint ignore:end */
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
@@ -830,7 +840,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       validator = (function (validator) {
         return function (value, callback) {
           callback(validator.test(value));
-        }
+        };
       })(validator);
     }
 
@@ -1248,9 +1258,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
 
+    /* jshint ignore:start */
     if (height){
       instance.rootElement.style.overflow = 'auto';
     }
+    /* jshint ignore:end */
 
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
@@ -1465,9 +1477,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.removeCellMeta = function(row, col, key) {
     var cellMeta = instance.getCellMeta(row, col);
+    /* jshint ignore:start */
     if(cellMeta[key] != undefined){
       delete priv.cellSettings[row][col][key];
     }
+    /* jshint ignore:end */
   };
 
   /**
@@ -1594,6 +1608,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = callback;
 
+    /* jshint ignore:start */
     var i = instance.countRows() - 1;
     while (i >= 0) {
       var j = instance.countCols() - 1;
@@ -1606,6 +1621,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       i--;
     }
+    /* jshint ignore:end */
     waitingForValidator.checkIfQueueIsEmpty();
   };
 
@@ -1971,11 +1987,13 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   this.selectCellByProp = function (row, prop, endRow, endProp, scrollToCell) {
+    /* jshint ignore:start */
     arguments[1] = datamap.propToCol(arguments[1]);
     if (typeof arguments[3] !== "undefined") {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
     return instance.selectCell.apply(instance, arguments);
+    /* jshint ignore:end */
   };
 
   /**

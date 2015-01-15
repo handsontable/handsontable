@@ -9,6 +9,8 @@ WalkontableVerticalScrollbarNative.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
+  var finalLeft, finalTop;
+
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
@@ -17,8 +19,6 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
-    var finalLeft
-      , finalTop;
     var bottom = Math.ceil(box.bottom);
 
     finalLeft = this.instance.wtTable.hider.style.left;
@@ -80,7 +80,8 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (fastDraw) {
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';// + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  // + 4 + 'px'; //+4 is needed, otherwise vertical scroll appears in Chrome (window scroll mode) - maybe because of fill handle in last row or because of box shadow
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';
   if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
     this.fixed.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';
   }

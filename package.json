@@ -18,7 +18,9 @@
     "grunt-contrib-uglify": "~0.5.1",
     "grunt-contrib-cssmin": "~0.10.0",
     "grunt-saucelabs": "~8.3.3",
-    "grunt-gitinfo": "~0.1.6"
+    "grunt-gitinfo": "~0.1.6",
+    "grunt-contrib-jshint": "~0.10.0",
+    "time-grunt": "~1.0.0"
   },
   "scripts": {
     "test": "grunt test -v"

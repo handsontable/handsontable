@@ -108,7 +108,7 @@
 
       eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
         if(checkRowHeader(e.target)) {
-          var th = getTHFromTargetElement(e.target)
+          var th = getTHFromTargetElement(e.target);
           if (th) {
             if (!pressed) {
               setupHandlePosition.call(instance, th);
@@ -245,7 +245,7 @@
   });
 
   Handsontable.hooks.add('afterUpdateSettings', function () {
-    htManualRowResize.init.call(this, 'afterUpdateSettings')
+    htManualRowResize.init.call(this, 'afterUpdateSettings');
   });
 
   Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
