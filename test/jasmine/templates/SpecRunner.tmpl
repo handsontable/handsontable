@@ -17,7 +17,9 @@ if(style.search(/jasmine.css$/) == -1) { %>
 
 <% with (scripts) { %>
   <% [].concat(vendor, helpers, src, specs).forEach(function(script){ %>
-  <script src="<%= script %>"></script>
+  <script>
+    document.writeln('<scr' + 'ipt src="<%= script %>?v=' + parseInt(Math.random() * 99999, 10) + '"></scr' + 'ipt>');
+  </script>
   <% }) %>
 <% }; %>
 
