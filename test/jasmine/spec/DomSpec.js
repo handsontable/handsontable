@@ -205,4 +205,68 @@ describe('Handsontable.Dom', function () {
     expect(event.isImmediatePropagationStopped()).toBe(true);
   });
 
+  describe('getScrollableElement', function() {
+    it("should return scrollable element with 'scroll' value of 'overflow', 'overflowX' or 'overflowY' property", function () {
+      var $html = $([
+        '<div style="overflow: scroll"><span class="overflow"></span></div>',
+        '<div style="overflow-x: scroll"><span class="overflowX"></span></div>',
+        '<div style="overflow-y: scroll"><span class="overflowY"></span></div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.Dom.getScrollableElement($html.find('.overflow')[0])).toBe($html[0]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.overflowX')[0])).toBe($html[1]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.overflowY')[0])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it("should return scrollable element with 'auto' value of 'overflow' or 'overflowY' property", function () {
+      var $html = $([
+        '<div style="overflow: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
+        '<div style="overflow-y: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
+        '<div style="overflow-y: auto; height: 50px;">',
+          '<div>',
+            '<div class="knob" style="height: 100px;"></div>',
+          '</div>',
+        '</div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[1])).toBe($html[1]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[2])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it("should return scrollable element with 'auto' value of 'overflow' or 'overflowX' property", function () {
+      var $html = $([
+        '<div style="overflow: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow-x: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow-x: auto; width: 50px; height: 10px">',
+          '<div>',
+            '<div class="knob" style="width: 100px; height: 5px"></div>',
+          '</div>',
+        '</div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[1])).toBe($html[1]);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[2])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it("should return window object as scrollable element", function () {
+      var $html = $([
+        '<div style="overflow: hidden; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[0])).toBe(window);
+      expect(Handsontable.Dom.getScrollableElement($html.find('.knob')[1])).toBe(window);
+
+      $html.remove();
+    });
+  });
+
 });

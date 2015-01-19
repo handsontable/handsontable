@@ -125,4 +125,81 @@ describe('WalkontableViewportColumnsCalculator', function () {
     expect(visibleCalc.startColumn).toBe(11);
     expect(visibleCalc.endColumn).toBe(19);
   });
+
+  it("should update stretchAllRatio after refreshStretching call (stretch: all)", function () {
+    var calc = new WalkontableViewportColumnsCalculator(250, 0, 20, allColumns20, null, true, 'all');
+
+    expect(calc.stretchAllRatio).toBe(0);
+    expect(calc.stretchLastWidth).toBe(0);
+
+    calc.refreshStretching(414);
+
+    expect(calc.stretchAllRatio).toBe(1.035);
+    expect(calc.stretchLastWidth).toBe(0);
+  });
+
+  it("should update stretchAllRatio after refreshStretching call (stretch: last)", function () {
+    var calc = new WalkontableViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
+
+    expect(calc.stretchAllRatio).toBe(0);
+    expect(calc.stretchLastWidth).toBe(0);
+
+    calc.refreshStretching(414);
+
+    expect(calc.stretchAllRatio).toBe(0);
+    expect(calc.stretchLastWidth).toBe(334);
+  });
+
+  it("should return valid stretched column width (stretch: all)", function () {
+    var calc = new WalkontableViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
+
+    expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
+    expect(calc.needVerifyLastColumnWidth).toBe(true);
+
+    calc.refreshStretching(417);
+
+    expect(calc.getStretchedColumnWidth(0, allColumns20())).toBe(83);
+    expect(calc.getStretchedColumnWidth(1, allColumns20())).toBe(83);
+    expect(calc.getStretchedColumnWidth(2, allColumns20())).toBe(83);
+    expect(calc.getStretchedColumnWidth(3, allColumns20())).toBe(83);
+    expect(calc.needVerifyLastColumnWidth).toBe(true);
+    expect(calc.getStretchedColumnWidth(4, allColumns20())).toBe(85);
+    expect(calc.needVerifyLastColumnWidth).toBe(false);
+  });
+
+  it("should return valid stretched column width (stretch: last)", function () {
+    var calc = new WalkontableViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
+
+    expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
+
+    calc.refreshStretching(417);
+
+    expect(calc.getStretchedColumnWidth(0, allColumns20())).toBe(null);
+    expect(calc.getStretchedColumnWidth(1, allColumns20())).toBe(null);
+    expect(calc.getStretchedColumnWidth(2, allColumns20())).toBe(null);
+    expect(calc.getStretchedColumnWidth(3, allColumns20())).toBe(null);
+    expect(calc.getStretchedColumnWidth(4, allColumns20())).toBe(337);
+  });
+
+  it("call refreshStretching should clear stretchAllColumnsWidth and needVerifyLastColumnWidth property", function () {
+    var calc = new WalkontableViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
+
+    expect(calc.stretchAllColumnsWidth.length).toBe(0);
+    expect(calc.needVerifyLastColumnWidth).toBe(true);
+
+    calc.refreshStretching(417);
+    calc.getStretchedColumnWidth(0, allColumns20());
+    calc.getStretchedColumnWidth(1, allColumns20());
+    calc.getStretchedColumnWidth(2, allColumns20());
+    calc.getStretchedColumnWidth(3, allColumns20());
+    calc.getStretchedColumnWidth(4, allColumns20());
+
+    expect(calc.stretchAllColumnsWidth.length).toBe(5);
+    expect(calc.needVerifyLastColumnWidth).toBe(false);
+
+    calc.refreshStretching(201);
+
+    expect(calc.stretchAllColumnsWidth.length).toBe(0);
+    expect(calc.needVerifyLastColumnWidth).toBe(true);
+  });
 });

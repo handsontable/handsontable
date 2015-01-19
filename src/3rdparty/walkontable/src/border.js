@@ -103,12 +103,24 @@ function WalkontableBorder(instance, settings) {
   this.bottomStyle = this.bottom.style;
   this.rightStyle = this.right.style;
 
+  this.cornerDefaultStyle = {
+    width: '5px',
+    height: '5px',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: '#FFF'
+  };
+
   this.corner = this.main.childNodes[4];
   this.corner.className += ' corner';
   this.cornerStyle = this.corner.style;
-  this.cornerStyle.width = '5px';
-  this.cornerStyle.height = '5px';
-  this.cornerStyle.border = '2px solid #FFF';
+  this.cornerStyle.width = this.cornerDefaultStyle.width;
+  this.cornerStyle.height = this.cornerDefaultStyle.height;
+  this.cornerStyle.border = [
+    this.cornerDefaultStyle.borderWidth,
+    this.cornerDefaultStyle.borderStyle,
+    this.cornerDefaultStyle.borderColor
+  ].join(' ');
 
   if(Handsontable.mobileBrowser) {
     createMultipleSelectorHandles.call(this);
@@ -352,11 +364,23 @@ WalkontableBorder.prototype.appear = function (corners) {
   else {
     this.cornerStyle.top = top + height - 4 + 'px';
     this.cornerStyle.left = left + width - 4 + 'px';
+    this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
+    this.cornerStyle.width = this.cornerDefaultStyle.width;
     this.cornerStyle.display = 'block';
+
+    if (!instance.cloneOverlay && toColumn === instance.wtTable.getRenderedColumnsCount() - 1) {
+      var scrollableElement = Handsontable.Dom.getScrollableElement(instance.wtTable.TABLE),
+        needShrinkCorner = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(scrollableElement);
+
+      if (needShrinkCorner) {
+        this.cornerStyle.borderRightWidth = '0px';
+        this.cornerStyle.width = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2) + 'px';
+      }
+    }
   }
 
-  if(Handsontable.mobileBrowser) {
-    updateMultipleSelectionHandlesPosition.call(this,top, left, width, height);
+  if (Handsontable.mobileBrowser) {
+    updateMultipleSelectionHandlesPosition.call(this, top, left, width, height);
   }
 };
 
