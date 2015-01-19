@@ -92,18 +92,18 @@
               <script data-jsfiddle="common">
                 function getData() {
                   return [
-                    ["", "Kia", "Nissan", "Toyota", "Honda"],
-                    ["2008", 10, 11, 12, 13],
-                    ["2009", 20, 11, 14, 13],
-                    ["2010", 30, 15, 12, 13]
+                    ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                    ['2008', 10, 11, 12, 13],
+                    ['2009', 20, 11, 14, 13],
+                    ['2010', 30, 15, 12, 13]
                   ];
                 }
               </script>
               <script data-jsfiddle="hot">
-
                 // Instead of creating a new Handsontable instance with the container element passed as an argument,
                 // you can simply call .handsontable method on a jQuery DOM object.
                 var $container = $("#hot");
+
                 $container.handsontable({
                   data: getData(),
                   startRows: 5,
@@ -118,10 +118,8 @@
                   contextMenu: true
                 });
 
-
                 // This way, you can access Handsontable api methods by passing their names as an argument, e.g.:
                 var hotInstance = $("#hot").handsontable('getInstance');
-
               </script>
             </div>
           </div>

@@ -106,34 +106,36 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById('example1');
-            var hot = new Handsontable(container,{
+            var container = document.getElementById('example1'),
+              hot;
+
+            hot = new Handsontable(container, {
               data: getCarData(),
               startRows: 7,
               startCols: 4,
-              colHeaders: ["Car", "Year", "Price ($)", "Price (€)"],
+              colHeaders: ['Car', 'Year', 'Price ($)', 'Price (€)'],
               columnSorting: true,
               columns: [
                 {
-                  data: "car"
-                  //1nd column is simple text, no special options here
+                  data: 'car'
+                  // 1nd column is simple text, no special options here
                 },
                 {
-                  data: "year",
+                  data: 'year',
                   type: 'numeric'
                 },
                 {
-                  data: "price_usd",
+                  data: 'price_usd',
                   type: 'numeric',
                   format: '$0,0.00',
-                  language: 'en' //this is the default locale, set up for USD
+                  language: 'en' // this is the default locale, set up for USD
                 },
                 {
-                  data: "price_eur",
+                  data: 'price_eur',
                   type: 'numeric',
                   format: '0,0.00 $',
-                  language: 'de' //i18n: use this for EUR (German)
-                  //more locales available on numeraljs.com
+                  language: 'de' // i18n: use this for EUR (German)
+                  // more locales available on numeraljs.com
                 }
               ]
             });

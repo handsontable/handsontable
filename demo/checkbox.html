@@ -96,26 +96,28 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var example1 = document.getElementById('example1');
-            var hot1 = new Handsontable(example1,{
+            var example1 = document.getElementById('example1'),
+              hot1;
+
+            hot1 = new Handsontable(example1, {
               data: getCarData(),
               startRows: 7,
               startCols: 4,
-              colHeaders: ["Car", "Year", "Available"],
+              colHeaders: ['Car', 'Year', 'Available'],
               colWidths: [120, 50, 60],
               columnSorting: true,
               columns: [
                 {
-                  data: "car"
-                  //1nd column is simple text, no special options here
+                  data: 'car'
+                  // 1nd column is simple text, no special options here
                 },
                 {
-                  data: "year",
+                  data: 'year',
                   type: 'numeric'
                 },
                 {
-                  data: "available",
-                  type: "checkbox"
+                  data: 'available',
+                  type: 'checkbox'
                 }
               ]
             });

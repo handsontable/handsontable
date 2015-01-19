@@ -103,27 +103,30 @@
                   </style>
 
                   <script data-jsfiddle="example1">
-                      var data = [
-                                  ["Nissan", 2009, "black", "black"],
-                                  ["Nissan", 2006, "blue", "blue"],
-                                  ["Chrysler", 2004, "yellow", "black"],
-                                  ["Volvo", 2012, "white", "gray"]
-                              ]
-                              , example = document.getElementById("example1");
+                      var
+                        data = [
+                          ['Nissan', 2009, 'black', 'black'],
+                          ['Nissan', 2006, 'blue', 'blue'],
+                          ['Chrysler', 2004, 'yellow', 'black'],
+                          ['Volvo', 2012, 'yellow', 'gray']
+                        ],
+                        example = document.getElementById('example1'),
+                        searchFiled = document.getElementById('search_field'),
+                        hot;
 
-                      var hot = new Handsontable(example,{
-                          data: data,
-                          colHeaders: true,
-                          search: true
+                      hot = new Handsontable(example, {
+                        data: data,
+                        colHeaders: true,
+                        search: true
                       });
 
-                      var onlyExactMatch = function (queryStr, value) {
+                      function onlyExactMatch(queryStr, value) {
                         return queryStr.toString() === value.toString();
-                      };
+                      }
 
-                      var searchFiled = document.getElementById('search_field');
-                      Handsontable.Dom.addEvent(searchFiled,'keyup', function (event) {
+                      Handsontable.Dom.addEvent(searchFiled, 'keyup', function (event) {
                           var queryResult = hot.search.query(this.value);
+
                           console.log(queryResult);
                           hot.render();
                       });

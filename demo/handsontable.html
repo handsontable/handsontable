@@ -116,33 +116,35 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var carData = getCarData();
+            var carData = getCarData(),
+              container = document.getElementById('example1'),
+              manufacturerData,
+              colors,
+              color,
+              colorData = [],
+              hot;
 
-            var manufacturerData = [
-              {name: "BMW", country: "Germany", owner: "Bayerische Motoren Werke AG"},
-              {name: "Chrysler", country: "USA", owner: "Chrysler Group LLC"},
-              {name: "Nissan", country: "Japan", owner: "Nissan Motor Company Ltd"},
-              {name: "Suzuki", country: "Japan", owner: "Suzuki Motor Corporation"},
-              {name: "Toyota", country: "Japan", owner: "Toyota Motor Corporation"},
-              {name: "Volvo", country: "Sweden", owner: "Zhejiang Geely Holding Group"}
+            manufacturerData = [
+              {name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG'},
+              {name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC'},
+              {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
+              {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
+              {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
+              {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
             ];
+            colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
-
-            var colors = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
-            var colorData = [];
-            var color;
             while (color = colors.shift()) {
               colorData.push([
                 [color]
               ]);
             }
-            var container = document.getElementById('example1');
 
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: carData,
               startRows: 7,
               startCols: 4,
-              colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+              colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
               columns: [
                 {
                   type: 'handsontable',

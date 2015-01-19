@@ -82,25 +82,25 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById('example1');
-            var hot1 = new Handsontable(container,{
+            var data = [
+                ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                ['2008', 10, 11, 12, 13],
+                ['2009', 20, 11, 14, 13],
+                ['20010', 30, 15, 12, 13],
+                ['20011', '', '', '', ''],
+                ['20012', '', '', '', '']
+              ],
+              container = document.getElementById('example1'),
+              hot1;
+
+            hot1 = new Handsontable(container, {
               startRows: 8,
               startCols: 5,
               rowHeaders: true,
               colHeaders: true,
               minSpareRows: 1,
-              fillHandle: true //possible values: true, false, "horizontal", "vertical"
+              fillHandle: true // possible values: true, false, "horizontal", "vertical"
             });
-
-            var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13],
-              ["2011", "", "", "", ""],
-              ["2012", "", "", "", ""]
-            ];
-
             hot1.loadData(data);
           </script>
         </div>
