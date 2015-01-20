@@ -615,8 +615,8 @@ describe('Core_view', function () {
 
 
       var result = navigator.platform == "Win32" && !navigator.userAgent.match(/MSIE 10/) ? 86 : 87; // IE10 hack
-      expect(masterTH[1].offsetWidth).toEqual(result);
-      expect(overlayTH[1].offsetWidth).toEqual(result); //if you get 90, it means it is calculated before scrollbars were applied
+      expect(masterTH[1].offsetWidth).toBeAroundValue(result);
+      expect(overlayTH[1].offsetWidth).toBeAroundValue(result); //if you get 90, it means it is calculated before scrollbars were applied
 
       expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
       expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);
