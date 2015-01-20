@@ -204,6 +204,14 @@ function HandsontableManualColumnMove() {
       }
 
       if (source == 'afterInit') {
+
+        // update plugin usages count for manualColumnPositions
+        if (typeof instance.manualColumnPositionsPluginUsages != 'undefined') {
+          instance.manualColumnPositionsPluginUsages.push('manualColumnMove');
+        } else {
+          instance.manualColumnPositionsPluginUsages = ['manualColumnMove'];
+        }
+
         bindEvents.call(this);
         if (this.manualColumnPositions.length > 0) {
           this.forceFullRender = true;
@@ -213,7 +221,13 @@ function HandsontableManualColumnMove() {
 
     } else {
       unbindEvents.call(this);
-      this.manualColumnPositions = [];
+
+      var pluginUsagesIndex = instance.manualColumnPositionsPluginUsages ? instance.manualColumnPositionsPluginUsages.indexOf('manualColumnMove') : -1;
+      if(pluginUsagesIndex > -1) {
+        this.manualColumnPositions = [];
+        console.log('another init');
+        instance.manualColumnPositionsPluginUsages[pluginUsagesIndex] = void 0;
+      }
     }
   };
 
