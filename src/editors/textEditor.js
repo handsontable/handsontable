@@ -301,6 +301,10 @@
       editor.refreshDimensions();
     });
 
+    this.instance.addHook('afterRowResize', function () {
+      editor.refreshDimensions();
+    });
+
     this.instance.addHook('afterDestroy', function () {
       editor.eventManager.clear();
     });
