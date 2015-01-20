@@ -225,7 +225,6 @@ function HandsontableManualColumnMove() {
       var pluginUsagesIndex = instance.manualColumnPositionsPluginUsages ? instance.manualColumnPositionsPluginUsages.indexOf('manualColumnMove') : -1;
       if(pluginUsagesIndex > -1) {
         this.manualColumnPositions = [];
-        console.log('another init');
         instance.manualColumnPositionsPluginUsages[pluginUsagesIndex] = void 0;
       }
     }
