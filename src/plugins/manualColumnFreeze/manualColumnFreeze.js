@@ -32,7 +32,7 @@
           },
           disabled: function () {
             var selection = instance.getSelected();
-            return !(selection[1] == selection[3]);
+            return selection[1] !== selection[3];
           },
           callback: function () {
             var selectedColumn = instance.getSelected()[1];
