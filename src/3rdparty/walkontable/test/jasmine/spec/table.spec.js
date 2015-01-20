@@ -622,7 +622,7 @@ describe('WalkontableTable', function () {
       expectedColWidth = Math.floor(expectedColWidth);
 
       var wtHider = $table.parents('.wtHider');
-      expect(wtHider.find('col:eq(0)').width()).toBe(expectedColWidth);
+      expect(wtHider.find('col:eq(0)').width()).toBeAroundValue(expectedColWidth);
       expect(wtHider.find('col:eq(1)').width() - expectedColWidth).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
     });
 
