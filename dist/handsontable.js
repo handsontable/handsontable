@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 12 2015 10:24:46 GMT+0100 (CET)
+ * Date: Thu Jan 15 2015 15:44:14 GMT-0200 (Horário brasileiro de verão)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -5126,7 +5126,8 @@ Handsontable.helper.pageY = function (event) {
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+      var value = this.get(row, prop);
+      return Handsontable.hooks.execute(this.instance, 'beforeCellCopy', value, row, prop);
     }
     return '';
   };
@@ -5245,7 +5246,8 @@ Handsontable.helper.pageY = function (event) {
    * @return {String}
    */
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
-    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+    var outputs = this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+    return SheetClip.stringify(outputs);
   };
 
 })(Handsontable);
@@ -8396,6 +8398,7 @@ Handsontable.PluginHookClass = (function () {
       beforeAutofill: [],
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
+      beforeCellCopy : [],
       beforeTouchScroll: [],
       afterInit : [],
       afterLoadData : [],
@@ -13717,8 +13720,10 @@ Handsontable.MergeCells = MergeCells;
 
       if (this.mouseDragOutside) {
         setTimeout(function () {
-          plugin.addingStarted = false;
-          plugin.instance.alter('insert_row');
+          if(plugin.instance.getSettings().minSpareRows > 0){
+          	plugin.addingStarted = false;
+          	plugin.instance.alter('insert_row');
+          }
         }, 200);
       }
     });
@@ -13962,21 +13967,24 @@ Handsontable.MergeCells = MergeCells;
       selection,
       tableRows = this.instance.countRows(),
       that = this;
+      
+    var minSpareRows = this.instance.getSettings().minSpareRows;
+      
+    if(minSpareRows > 0){
+        if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+          selection = this.instance.getSelected();
+          fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-    if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
-      selection = this.instance.getSelected();
-      fillCorners = this.instance.view.wt.selections.fill.getCorners();
+          if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
+            this.addingStarted = true;
 
-      if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
-        this.addingStarted = true;
-
-        this.instance._registerTimeout(setTimeout(function () {
-          that.instance.alter('insert_row');
-          that.addingStarted = false;
-        }, 200));
-      }
+            this.instance._registerTimeout(setTimeout(function () {
+              that.instance.alter('insert_row');
+              that.addingStarted = false;
+            }, 200));
+          }
+        }
     }
-
   };
 
 

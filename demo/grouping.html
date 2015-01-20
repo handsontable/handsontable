@@ -5,10 +5,11 @@
   <title>Grouping &amp; ungrouping of rows and columns - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies)
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -36,6 +37,24 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 1000; i++) {
+        var row = [];
+        for (j = 0; j < 10; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
 </head>
 
 <body>
@@ -60,7 +79,7 @@
 
               <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
               <p>
-                <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+                <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
                   Dump
                   data to console
                 </button>
@@ -75,9 +94,8 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var example1 = document.getElementById('example1');
-                var settings = {
-                  data: Handsontable.helper.createSpreadsheetData(1000, 10),
+                $("#example1").handsontable({
+                  data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
                   contextMenu: true,
@@ -101,9 +119,7 @@
                       rows: [2, 4]
                     }
                   ]
-                };
-                var hot = new Handsontable(example1,settings);
-
+                });
               </script>
 
             </div>

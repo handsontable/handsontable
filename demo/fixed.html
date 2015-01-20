@@ -5,10 +5,11 @@
   <title>Fixed Rows &amp; Columns - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies)
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -36,6 +37,26 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createSpreadsheetData(rowCount, colCount) {
+      rowCount = typeof rowCount === 'number' ? rowCount : 100;
+      colCount = typeof colCount === 'number' ? colCount : 4;
+
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < rowCount; i++) {
+        var row = [];
+        for (j = 0; j < colCount; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
+        }
+        rows.push(row);
+      }
+      return rows;
+    }
+  </script>
 </head>
 
 <body>
@@ -67,7 +88,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-instance="ht" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -87,10 +108,9 @@
              <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
              */
 
-            var myData = Handsontable.helper.createSpreadsheetData(1000, 100);
-            var container = document.getElementById('example1');
+            var myData = createSpreadsheetData(1000, 100);
 
-            var ht = new Handsontable(container, {
+            $("#example1").handsontable({
               data: myData,
               colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
               rowHeaders: true,
@@ -100,12 +120,12 @@
               contextMenu: true
             });
 
-            var positions = document.getElementById('positions');
+            var ht = $("#example1").data('handsontable');
 
             setInterval(function () {
               var str = '';
-              str += 'rowOffset: ' + ht.rowOffset();
-              positions.innerHTML = str;
+              str += 'offsetRow: ' + ht.view.wt.getSetting('offsetRow');
+              $('#positions').html(str);
             }, 100);
           </script>
         </div>
