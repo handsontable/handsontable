@@ -2198,6 +2198,7 @@ DefaultSettings.prototype = {
   manualColumnResize: void 0,
   manualRowMove: void 0,
   manualRowResize: void 0,
+  manualColumnFreeze: void 0,
   viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
   viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
   groups: void 0

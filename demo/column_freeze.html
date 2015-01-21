@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Manual Column Freeze - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies)
+  -->
+  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Manual Column Freeze">
+  <meta property="og:description"
+        content="This page shows how to configure Handsontable Manual Column Freeze Plugin">
+  <meta property="og:url" content="http://handsontable.com/demo/column_freeze.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/column_freeze.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Manual Column Freeze</h2>
+
+              <p>In order to manually freeze a column (in another words - make it fixed), you need to set the <code>manualColumnFreeze</code>
+                config item to <code>true</code> in Handsontable initialization.</p>
+
+              <p>When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any
+                fixed column in your Handsontable instance using the Context Menu.</p>
+
+              <p>Note: to properly use this plugin, you need to have the Context Menu plugin enabled.</p>
+
+              <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+              <p>
+                <button name="dump" data-instance="ht" data-dump="#example1"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example1">
+                var myData = Handsontable.helper.createSpreadsheetData(1000, 100);
+                var container = document.getElementById('example1');
+
+                var ht = new Handsontable(container, {
+                  data: myData,
+                  rowHeaders: true,
+                  colHeaders: true,
+                  fixedColumnsLeft: 2,
+                  contextMenu: true,
+                  manualColumnFreeze: true
+                });
+
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and
+          documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>
