@@ -1,0 +1,9 @@
+{
+  "name": "сhosen",
+  "description": "Table view engine that will enable virtual rendering in HTML/JavaScript",
+  "author": "Vitalii Sergey",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "~0.4.0"
+  }
+}

@@ -86,6 +86,7 @@ module.exports = function (grunt) {
         'src/editors/selectEditor.js',
         'src/editors/dropdownEditor.js',
         'src/editors/numericEditor.js',
+        'src/editors/chosenSelectEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',
@@ -213,11 +214,12 @@ module.exports = function (grunt) {
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
           'lib/jquery-ui/js/jquery-ui.custom.js',
-          'plugins/removeRow/handsontable.removeRow.js'
+          'plugins/removeRow/handsontable.removeRow.js',
+          'lib/chosen/src/chosen.jquery.js'
         ],
         options: {
           specs: [
-            'test/jasmine/spec/*Spec.js',
+            'test/jasmine/spec/editors/*Spec.js',
             'test/jasmine/spec/!(mobile)*/*Spec.js',
             'src/plugins/*/test/*.spec.js',
             'plugins/*/test/*.spec.js',
@@ -227,7 +229,8 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
+            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
+            'lib/chosen/chosen.jquery.css'
           ],
           vendor: [
             'lib/jquery.min.js',
