@@ -40,22 +40,12 @@
   <script data-jsfiddle="common">
     function getCarData() {
       return [
-        {car: "Nissan", year: 2009, chassis: "black", bumper: "black"},
-        {car: "Nissan", year: 2006, chassis: "blue", bumper: "blue"},
-        {car: "Chrysler", year: 2004, chassis: "yellow", bumper: "black"},
-        {car: "Volvo", year: 2012, chassis: "white", bumper: "gray"}
+        {car: 'Nissan', year: 2009, chassis: 'black', bumper: 'black'},
+        {car: 'Nissan', year: 2006, chassis: 'blue', bumper: 'blue'},
+        {car: 'Chrysler', year: 2004, chassis: 'yellow', bumper: 'black'},
+        {car: 'Volvo', year: 2012, chassis: 'white', bumper: 'gray'}
       ];
     }
-
-//    $(document).ready(function () {
-//      $('button[name=dumpToConsole]').on('click', function () {
-//        var dump = $(this).data('dump');
-//        var $container = $(dump);
-//        console.log('data of ' + dump, $container.handsontable('getData'));
-//      });
-//    });
-
-
   </script>
 </head>
 
@@ -117,25 +107,26 @@
           </div>
 
           <script data-jsfiddle="example1">
+            var container1 = document.getElementById('example1'),
+              hot1;
 
-            var container1 = document.getElementById('example1');
-            var hot1 = new Handsontable(container1,{
+            hot1 = new Handsontable(container1, {
                 data: getCarData(),
                 minSpareRows: 1,
-                colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+                colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
                 columns: [
                   {
-                    data: "car",
+                    data: 'car',
                     readOnly: true
                   },
                   {
-                    data: "year"
+                    data: 'year'
                   },
                   {
-                    data: "chassis"
+                    data: 'chassis'
                   },
                   {
-                    data: "bumper"
+                    data: 'bumper'
                   }
                 ]
               });
@@ -173,19 +164,23 @@
           </div>
 
           <script data-jsfiddle="example2">
-            var container2 = document.getElementById('example2');
-            var hot2 = new Handsontable(container2,{
+            var container2 = document.getElementById('example2'),
+              hot2;
+
+            hot2 = new Handsontable(container2, {
               data: getCarData(),
               minSpareRows: 1,
-              colHeaders: ["Car", "Year", "Chassis color", "Bumper color"]
+              colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color']
 
             });
             hot2.updateSettings({
               cells: function (row, col, prop) {
                 var cellProperties = {};
-                if (hot2.getData()[row][prop] === 'Nissan'){
+
+                if (hot2.getData()[row][prop] === 'Nissan') {
                   cellProperties.readOnly = true;
                 }
+
                 return cellProperties;
               }
             })

@@ -94,22 +94,24 @@
       </div>
 
       <script data-jsfiddle="example1">
-        var container = document.getElementById('example1');
-        var hot = new Handsontable(container,{
+        var container = document.getElementById('example1'),
+          hot;
+
+        hot = new Handsontable(container, {
           data: getCarData(),
           startRows: 7,
           startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
           columns: [
             {},
             {type: 'numeric'},
             {
               type: 'dropdown',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
             },
             {
               type: 'dropdown',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
             }
           ]
         });

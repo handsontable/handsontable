@@ -94,8 +94,6 @@
           </style>
 
           <script data-jsfiddle="example1">
-
-
             var getData = (function () {
               var data = [
                     [1,2,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],
@@ -114,16 +112,16 @@
                     [1,2,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],
                     [0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0],
                     [0,0,0,0,0,0,0,0,0],[1,2,3,4,5,6,7,8,9,0],[0,0,0,0,0,0,0,0,0,0]
-                  ];
+                ];
 
               return function () {
-                var page  = parseInt(window.location.hash.replace('#', ''), 10) || 1
-                  , limit = 6
-                  , row   = (page - 1) * limit
-                  , count = page * limit
-                  , part  = [];
+                var page  = parseInt(window.location.hash.replace('#', ''), 10) || 1,
+                  limit = 6,
+                  row   = (page - 1) * limit,
+                  count = page * limit,
+                  part  = [];
 
-                for(;row < count;row++) {
+                for (;row < count;row++) {
                   part.push(data[row]);
                 }
 
@@ -131,17 +129,17 @@
               }
             })();
 
-            var container = document.getElementById('example1');
+            var container = document.getElementById('example1'),
+              hot;
 
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: getData(),
               colHeaders: true
             });
 
-            Handsontable.Dom.addEvent(window,'hashchange', function (event) {
+            Handsontable.Dom.addEvent(window, 'hashchange', function (event) {
               hot.loadData(getData());
             });
-
           </script>
         </div>
       </div>

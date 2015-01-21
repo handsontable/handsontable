@@ -91,8 +91,19 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
           <script data-jsfiddle="example1">
-            var container = document.getElementById("example1");
-            var hot = new Handsontable(container, {
+            var data = [
+                ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                ['2008', 10, 11, 12, 13],
+                ['2009', 20, 11, 14, 13],
+                ['2010', 30, 15, 12, 13]
+              ],
+              container = document.getElementById('example1'),
+              selectFirst = document.getElementById('selectFirst'),
+              rowHeaders = document.getElementById('rowHeaders'),
+              colHeaders = document.getElementById('colHeaders'),
+              hot;
+
+            hot = new Handsontable(container, {
               startRows: 15,
               startCols: 16,
               rowHeaders: true,
@@ -103,31 +114,16 @@
               outsideClickDeselects: false,
               removeRowPlugin: true
             });
-
-            var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
-            ];
-
-
             hot.loadData(data);
-
-            var selectFirst = document.getElementById('selectFirst'),
-              rowHeaders = document.getElementById('rowHeaders'),
-              colHeaders = document.getElementById('colHeaders');
 
             Handsontable.Dom.addEvent(selectFirst, 'click', function () {
               hot.selectCell(0,0);
             });
-
             Handsontable.Dom.addEvent(rowHeaders, 'click', function () {
               hot.updateSettings({
                 rowHeaders: this.checked
               });
             });
-
             Handsontable.Dom.addEvent(colHeaders, 'click', function () {
               hot.updateSettings({
                 colHeaders: this.checked

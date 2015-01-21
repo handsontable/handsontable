@@ -114,27 +114,29 @@
       </div>
 
       <script data-jsfiddle="example1">
-        var example1 = document.getElementById('example1');
-        var hot1 = new Handsontable(example1,{
+        var example1 = document.getElementById('example1'),
+          hot1;
+
+        hot1 = new Handsontable(example1, {
           data: getCarData(),
           startRows: 7,
           startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
           columns: [
             {
               type: 'autocomplete',
-              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
               strict: false
             },
             {type: 'numeric'},
             {
               type: 'autocomplete',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
               strict: false
             },
             {
               type: 'autocomplete',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
               strict: false
             }
           ]
@@ -192,30 +194,31 @@
       </div>
 
       <script data-jsfiddle="example2">
-        var container2 = document.getElementById('example2');
-        var hot2 = new Handsontable(container2,{
+        var container2 = document.getElementById('example2'),
+          hot2;
+
+        hot2 = new Handsontable(container2, {
           data: getCarData(),
           startRows: 7,
           startCols: 4,
-          colHeaders: ["Car<br>(allowInvalid true)", "Year", "Chassis color<br>(allowInvalid false)", "Bumper color<br>(allowInvalid true)"],
+          colHeaders: ['Car<br>(allowInvalid true)', 'Year', 'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'],
           columns: [
             {
               type: 'autocomplete',
-              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
               strict: true
-              //allowInvalid: true //true is default
-
+              // allowInvalid: true // true is default
             },
             {},
             {
               type: 'autocomplete',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
               strict: true,
               allowInvalid: false
             },
             {
               type: 'autocomplete',
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+              source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
               strict: true,
               allowInvalid: true //true is default
             }
@@ -259,18 +262,20 @@
       </div>
 
       <script>
-        var container3 = document.getElementById('example3');
-        var hot3 = new Handsontable(container3,{
+        var container3 = document.getElementById('example3'),
+          hot3;
+
+        hot3 = new Handsontable(container3, {
           data: getCarData(),
           startRows: 7,
           startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
           columns: [
             {
               type: 'autocomplete',
               source: function (query, process) {
                 $.ajax({
-                  //url: 'php/cars.php', //commented out because our website is hosted on static GitHub Pages
+                  //url: 'php/cars.php', // commented out because our website is hosted on static GitHub Pages
                   url: 'json/autocomplete.json',
                   dataType: 'json',
                   data: {
@@ -278,7 +283,7 @@
                   },
                   success: function (response) {
                       console.log("response", response);
-                      //process(JSON.parse(response.data)); //JSON.parse takes string as a argument
+                      //process(JSON.parse(response.data)); // JSON.parse takes string as a argument
                       process(response.data);
 
                   }
@@ -286,9 +291,9 @@
               },
               strict: true
             },
-            {} /*Year is a default text column*/,
-            {} /*Chassis color is a default text column*/,
-            {} /*Bumper color is a default text column*/
+            {}, // Year is a default text column
+            {}, // Chassis color is a default text column
+            {} // Bumper color is a default text column
           ]
         });
       </script>

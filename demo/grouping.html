@@ -75,8 +75,11 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var example1 = document.getElementById('example1');
-                var settings = {
+                var example1 = document.getElementById('example1'),
+                  settings,
+                  hot;
+
+                settings = {
                   data: Handsontable.helper.createSpreadsheetData(1000, 10),
                   rowHeaders: true,
                   colHeaders: true,
@@ -102,8 +105,7 @@
                     }
                   ]
                 };
-                var hot = new Handsontable(example1,settings);
-
+                hot = new Handsontable(example1, settings);
               </script>
 
             </div>

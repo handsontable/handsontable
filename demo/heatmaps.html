@@ -85,8 +85,7 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById("example1"),
-            data = [
+            var data = [
                 [2002, 190251, 5090, 195341],
                 [2003, 224495, 6486, 230981],
                 [2004, 254044, 6765, 260809],
@@ -99,47 +98,16 @@
                 [2011, 290652, 10891, 301543],
                 [2012, 283863, 10402, 294265],
                 [2013, 267646, 10104, 255850]
-              ];
+              ],
+              container = document.getElementById('example1'),
+              lastChange = null,
+              heatmap,
+              heatmapScale,
+              hot;
 
-            var lastChange = null;
+            heatmapScale  = chroma.scale(['#17F556', '#ED6D47']);
 
-            var heatmap;
-            var heatmapScale  = chroma.scale(['#17F556', '#ED6D47']);
-
-            function updateHeatmap(change,source) {
-              if(change) {
-                heatmap[change[0][1]] = generateHeatmapData.call(this, change[0][1]);
-              } else {
-                heatmap = [];
-                for(var i = 1, colCount = this.countCols(); i < colCount ; i++) {
-                  heatmap[i] = generateHeatmapData.call(this, i);
-                }
-              }
-            }
-
-            function point(min, max, value) {
-              return (value - min) / (max - min);
-            }
-
-            function generateHeatmapData(colId) {
-              var values = this.getDataAtCol(colId);
-              return {
-                min: Math.min.apply(null, values),
-                max: Math.max.apply(null, values)
-              };
-            }
-
-            function heatmapRenderer(instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
-
-              if(heatmap[col]) {
-                td.style.backgroundColor = heatmapScale(point(heatmap[col].min, heatmap[col].max, parseInt(value, 10))).hex();
-                td.style.textAlign = 'right';
-                td.style.fontWeight = 'bold';
-              }
-            }
-
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container,{
               data: data,
               colHeaders: ["Year", "Domestic Flights", "International Flights", "Total Flights"],
               columns: [
@@ -166,6 +134,40 @@
               beforeChangeRender: updateHeatmap
             });
 
+            function updateHeatmap(change, source) {
+              if (change) {
+                heatmap[change[0][1]] = generateHeatmapData.call(this, change[0][1]);
+              } else {
+                heatmap = [];
+
+                for(var i = 1, colCount = this.countCols(); i < colCount ; i++) {
+                  heatmap[i] = generateHeatmapData.call(this, i);
+                }
+              }
+            }
+
+            function point(min, max, value) {
+              return (value - min) / (max - min);
+            }
+
+            function generateHeatmapData(colId) {
+              var values = this.getDataAtCol(colId);
+
+              return {
+                min: Math.min.apply(null, values),
+                max: Math.max.apply(null, values)
+              };
+            }
+
+            function heatmapRenderer(instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+              if (heatmap[col]) {
+                td.style.backgroundColor = heatmapScale(point(heatmap[col].min, heatmap[col].max, parseInt(value, 10))).hex();
+                td.style.textAlign = 'right';
+                td.style.fontWeight = 'bold';
+              }
+            }
           </script>
         </div>
       </div>

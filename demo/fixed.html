@@ -67,7 +67,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-instance="ht" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -81,16 +81,17 @@
           </div>
 
           <script data-jsfiddle="example1">
-            /*
-             Container looks like this:
-
-             <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+            /**
+             * Container looks like this:
+             *
+             * <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
              */
+            var myData = Handsontable.helper.createSpreadsheetData(1000, 100),
+              container = document.getElementById('example1'),
+              positions = document.getElementById('positions'),
+              hot;
 
-            var myData = Handsontable.helper.createSpreadsheetData(1000, 100);
-            var container = document.getElementById('example1');
-
-            var ht = new Handsontable(container, {
+            hot = new Handsontable(container, {
               data: myData,
               colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
               rowHeaders: true,
@@ -100,11 +101,11 @@
               contextMenu: true
             });
 
-            var positions = document.getElementById('positions');
-
             setInterval(function () {
               var str = '';
-              str += 'rowOffset: ' + ht.rowOffset();
+
+              str += 'rowOffset: ' + hot.rowOffset();
+
               positions.innerHTML = str;
             }, 100);
           </script>

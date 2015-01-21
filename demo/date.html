@@ -115,20 +115,23 @@
           </div>
 
           <script data-jsfiddle="example1">
-            $("#example1").handsontable({
+            var element = $('#example1'),
+              hot;
+
+            element.handsontable({
               data: getCarData(),
               startRows: 7,
               startCols: 4,
-              colHeaders: ["Car", "Model", "Registration date", "Price"],
+              colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
               columnSorting: true,
               columns: [
                 {
                   type: 'autocomplete',
-                  source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
+                  source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
                   strict: false
                 },
                 {
-                  //2nd cell is simple text, no special options here
+                  // 2nd cell is simple text, no special options here
                 },
                 {
                   type: 'date',
@@ -141,8 +144,7 @@
               ]
             });
 
-            var hot = $("#example1").handsontable('getInstance');
-
+            hot = element.handsontable('getInstance');
           </script>
         </div>
       </div>

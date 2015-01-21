@@ -320,8 +320,16 @@ describe('NumericEditor', function () {
 
     runs(function () {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
+      manuallySetValueTo('99d99');
     });
 
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
+    });
   });
 
   it("should paste formatted data if source cell has format", function () {
