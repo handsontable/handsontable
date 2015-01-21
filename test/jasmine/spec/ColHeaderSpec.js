@@ -216,4 +216,18 @@ describe('ColHeader', function () {
     expect(htCore.find('thead th:eq(0)').text()).toEqual('Special title');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
+
+  it("should resize all the column headers in the overlays, according to the other overlays' height", function () {
+    var hot = handsontable({
+      startCols: 5,
+      colHeaders: ['a','a','a','a<BR>a','a'],
+      fixedColumnsLeft: 2
+    });
+
+    var topHeaderExample = $(".ht_clone_top").find('thead tr:first-child th:nth-child(1)'),
+      masterHeaderExample = $(".ht_master").find('thead tr:first-child th:nth-child(3)');
+
+    expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
+  });
+
 });
