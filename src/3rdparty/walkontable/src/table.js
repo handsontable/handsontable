@@ -225,13 +225,18 @@ WalkontableTable.prototype.getCell = function (coords) {
 /**
  * getColumnHeader
  * @param col
+ * @param level Header level (0 = most distant to the table)
  * @return {Object} HTMLElement on success or undefined on error
  *
  */
-WalkontableTable.prototype.getColumnHeader = function(col) {
-  var THEAD = this.THEAD.childNodes[0];
-  if (THEAD) {
-    return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+WalkontableTable.prototype.getColumnHeader = function(col, level) {
+  if(!level) {
+    level = 0;
+  }
+
+  var TR = this.THEAD.childNodes[level];
+  if (TR) {
+    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
 };
 
@@ -386,6 +391,14 @@ WalkontableTable.prototype.getRowHeight = function (sourceRow) {
   return height;
 };
 
+WalkontableTable.prototype.getColumnHeaderHeight = function (level) {
+  var height = this.instance.wtSettings.settings.defaultRowHeight,
+    oversizedHeight = this.instance.wtViewport.oversizedColumnHeaders[level];
+  if (oversizedHeight !== void 0) {
+    height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+  }
+  return height;
+};
 
 WalkontableTable.prototype.getVisibleColumnsCount = function () {
   return this.instance.wtViewport.columnsVisibleCalculator.count;

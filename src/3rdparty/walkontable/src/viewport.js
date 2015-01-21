@@ -2,6 +2,7 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.oversizedRows = [];
   this.oversizedCols = [];
+  this.oversizedColumnHeaders = [];
 
   var that = this;
 
