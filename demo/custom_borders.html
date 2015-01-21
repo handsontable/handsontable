@@ -111,8 +111,10 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById('example1');
-            var hot = Handsontable(container, {
+            var container = document.getElementById('example1'),
+              hot;
+
+            hot = Handsontable(container, {
               data: Handsontable.helper.createSpreadsheetData(1000, 7),
               rowHeaders: true,
               fixedColumnsLeft: 2,
@@ -131,7 +133,6 @@
                       col: 4
                     }
                   },
-
                   top: {
                     width: 2,
                     color: '#5292F7'

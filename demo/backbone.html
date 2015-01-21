@@ -112,44 +112,50 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var CarModel = Backbone.Model.extend({});
+            var
+              container = document.getElementById('example1'),
+              addCar = document.getElementById('add_car'),
+              eventHolder = document.getElementById('example1_events'),
+              CarModel = Backbone.Model.extend({}),
+              CarCollection,
+              cars,
+              hot;
 
-            var CarCollection = Backbone.Collection.extend({
+            CarCollection = Backbone.Collection.extend({
               model: CarModel,
               // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-              splice: hacked_splice
+              splice: hackedSplice
             });
 
-            var cars = new CarCollection();
+            cars = new CarCollection();
 
             // since we're not using a server... make up some data. This will make
             // a couple CarModels from these plain old objects
             cars.add([
-              {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
-              {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
-              {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+              {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
+              {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
+              {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808}
             ]);
 
-            var container = document.getElementById("example1");
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: cars,
               dataSchema: makeCar,
               contextMenu: true,
               columns: [
-                attr("make"),
-                attr("model"),
-                attr("year")
+                attr('make'),
+                attr('model'),
+                attr('year')
               ],
-              colHeaders: ["Make", "Model", "Year"]
-              //minSpareRows: 1 //see notes on the left for `minSpareRows`
+              colHeaders: ['Make', 'Model', 'Year']
+              // minSpareRows: 1 //see notes on the left for `minSpareRows`
             });
 
             // this will log all the Backbone events getting fired!
-            cars.on("all", log_events)
-              .on("add", function () {
+            cars.on('all', logEvents)
+              .on('add', function () {
                 hot.render();
               })
-              .on("remove", function () {
+              .on('remove', function () {
                 hot.render();
               });
 
@@ -174,24 +180,25 @@
             }
 
             // use the "good" Collection methods to emulate Array.splice
-            function hacked_splice(index, howMany /* model1, ... modelN */) {
+            function hackedSplice(index, howMany /* model1, ... modelN */) {
               var args = _.toArray(arguments).slice(2).concat({at: index}),
                 removed = this.models.slice(index, index + howMany);
+
               this.remove(removed).add.apply(this, args);
+
               return removed;
             }
 
-            var eventHolder = document.getElementById('example1_events');
-
             // show a log of events getting fired
-            function log_events(event, model) {
-              var now = new Date();
-              var option = document.createElement('OPTION');
-              option.innerHTML = [":", now.getSeconds(), ":", now.getMilliseconds(),"[" + event + "]",JSON.stringify(model)].join(" ");
+            function logEvents(event, model) {
+              var now = new Date(),
+                option = document.createElement('OPTION');
+
+              option.innerHTML = [':', now.getSeconds(), ':', now.getMilliseconds(), '[' + event + ']',
+                JSON.stringify(model)].join(' ');
               eventHolder.insertBefore(option, eventHolder.firstChild);
             }
 
-            var addCar = document.getElementById('add_car');
             Handsontable.Dom.addEvent(addCar, 'click', function () {
               cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
             });

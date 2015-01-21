@@ -122,7 +122,7 @@
           <div id="example1" style="width: 600px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -137,9 +137,14 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById('example1');
+            var container = document.getElementById('example1'),
+              storedData = {},
+              savedKeys,
+              resetState,
+              stateLoaded,
+              hot;
 
-            var HOT = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: createBigData(),
               rowHeaders: true,
               colHeaders: true,
@@ -157,34 +162,29 @@
               contextMenu: true,
               persistentState: true
             });
-            var resetState = document.querySelector('.reset-state');
-            var stateLoaded = document.querySelector('.state-loaded');
 
-
+            resetState = document.querySelector('.reset-state');
+            stateLoaded = document.querySelector('.state-loaded');
 
             Handsontable.Dom.addEvent(resetState, 'click', function() {
-              HOT.runHooks('persistentStateReset');
-              HOT.updateSettings({
+              hot.runHooks('persistentStateReset');
+              hot.updateSettings({
                 columnSorting: true,
                 manualColumnMove:true,
                 manualColumnResize: true
               });
               stateLoaded.style.display = 'none';
-              HOT.render();
+              hot.render();
             });
 
+            // `storedData` will be modified by reference
+            hot.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
 
-            var storedData = {};
+            savedKeys = storedData.value;
 
-            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
-
-            var savedKeys = storedData.value;
-
-            if(savedKeys && savedKeys.length > 0){
+            if (savedKeys && savedKeys.length > 0){
               stateLoaded.style.display = 'block';
             }
-
-
           </script>
         </div>
       </div>

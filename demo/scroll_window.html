@@ -80,10 +80,12 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var example1 = document.getElementById('example1');
-            var hot1 = new Handsontable(example1,{
+            var container1 = document.getElementById('example1'),
+              hot1;
+
+            hot1 = new Handsontable(container1, {
               data: Handsontable.helper.createSpreadsheetData(1000, 1000),
-              colWidths: [55, 47, 47, 47, 47, 47], //can also be a number or a function
+              colWidths: [55, 47, 47, 47, 47, 47], // can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
               minSpareRows: 1,

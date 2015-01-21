@@ -82,14 +82,14 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
           <script data-jsfiddle="example1">
+            var container = document.getElementById("example1"),
+              hot1;
 
-            var container = document.getElementById("example1");
-
-            var hot1 = new Handsontable(container,{
+            hot1 = new Handsontable(container, {
               data: [
-                ["2008", 'Nissan', 11],
-                ["2009", 'Honda', 11],
-                ["2010", 'Kia', 15]
+                ['2008', 'Nissan', 11],
+                ['2009', 'Honda', 11],
+                ['2010', 'Kia', 15]
               ],
               colHeaders: true,
               contextMenu: false,
@@ -97,12 +97,11 @@
                 {},
                 {
                   editor: 'select',
-                  selectOptions: ["Kia", "Nissan", "Toyota", "Honda"]
+                  selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
                 },
                 {}
               ]
             });
-
           </script>
         </div>
       </div>

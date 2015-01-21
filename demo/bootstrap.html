@@ -112,52 +112,51 @@
           </div>
 
           <script data-jsfiddle="example1">
-
             var data = [
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6],
-              [1, 2, 3, 4, 5, 6]
-            ];
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6],
+                [1, 2, 3, 4, 5, 6]
+              ],
+              container = document.getElementById('example1'),
+              options = document.querySelectorAll('.options input'),
+              table,
+              hot;
 
-            var container = document.getElementById('example1');
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: data,
               colHeaders: true,
               rowHeaders: true,
               minSpareRows: 1
             });
+            table = document.querySelector('table');
 
-            var table = document.querySelector('table');
             Handsontable.Dom.addClass(table, 'table');
 
-            var options = document.querySelectorAll('.options input');
-
             for (var i = 0, len = options.length; i < len; i++) {
-              Handsontable.Dom.addEvent(options[i], 'click', function (){
-                if (this.checked){
-                  Handsontable.Dom.addClass(table,this.getAttribute('data-type'))
+              Handsontable.Dom.addEvent(options[i], 'click', function () {
+                if (this.checked) {
+                  Handsontable.Dom.addClass(table, this.getAttribute('data-type'))
                 }
                 else{
-                  Handsontable.Dom.removeClass(table,this.getAttribute('data-type'))
+                  Handsontable.Dom.removeClass(table, this.getAttribute('data-type'))
                 }
-              })
+              });
             }
-
           </script>
         </div>
       </div>
