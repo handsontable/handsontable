@@ -86,6 +86,7 @@ module.exports = function (grunt) {
         'src/editors/selectEditor.js',
         'src/editors/dropdownEditor.js',
         'src/editors/numericEditor.js',
+        'src/editors/chosenSelectEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',
