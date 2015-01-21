@@ -486,7 +486,12 @@ Handsontable.Core = function (rootElement, userSettings) {
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
-        instance.view.scrollViewport(coords);
+        if(priv.selRange.from) {
+          instance.view.scrollViewport(priv.selRange.from);
+        } else {
+          instance.view.scrollViewport(coords);
+        }
+
       }
       selection.refreshBorders(null, keepEditorOpened);
     },
@@ -2220,6 +2225,7 @@ DefaultSettings.prototype = {
   manualColumnResize: void 0,
   manualRowMove: void 0,
   manualRowResize: void 0,
+  manualColumnFreeze: void 0,
   viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
   viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
   groups: void 0

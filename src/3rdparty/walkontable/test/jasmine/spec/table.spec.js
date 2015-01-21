@@ -607,7 +607,10 @@ describe('WalkontableTable', function () {
         }
       }
 
-      $container.width(301);
+      $container.width(300);
+      $container.css({
+        "overflow": "hidden"
+      });
 
       var wt = new Walkontable({
         table: $table[0],
@@ -618,7 +621,7 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      var expectedColWidth = (301 - wt.getSetting('scrollbarWidth')) / 2;
+      var expectedColWidth = (300 / 2);
       expectedColWidth = Math.floor(expectedColWidth);
 
       var wtHider = $table.parents('.wtHider');
