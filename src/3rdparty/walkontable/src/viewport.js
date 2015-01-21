@@ -25,10 +25,11 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
 
 
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
-  var width;
-
-  var totalColumns = this.instance.getSetting("totalColumns");
-  var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
+  var width,
+    totalColumns = this.instance.getSetting("totalColumns"),
+    scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler,
+    overflow,
+    stretchSetting = this.instance.getSetting('stretchH');
 
   if(Handsontable.freezeOverlays) {
     width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
@@ -45,7 +46,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function () {
   }
 
   if (scrollHandler !== window){
-    var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+      overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
 
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
       //this is used in `scroll.html`
@@ -54,9 +55,13 @@ WalkontableViewport.prototype.getWorkspaceWidth = function () {
     }
   }
 
-  //this is used in `stretch.html`, `stretch_window.html`
-  //TODO test me
-  return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
+  if(stretchSetting === 'none' || !stretchSetting) {
+    // if no stretching is used, return the maximum used workspace width
+    return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
+  } else {
+    // if stretching is used, return the actual container width, so the columns can fit inside it
+    return width;
+  }
 };
 
 WalkontableViewport.prototype.sumColumnWidths = function (from, length) {
