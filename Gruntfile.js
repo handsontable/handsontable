@@ -375,8 +375,9 @@ module.exports = function (grunt) {
           jshintrc: true
         }
       };
-      options['src'] = '<%= meta.src %>';
-      options['walkontable'] = '<%= meta.walkontable %>';
+      options.core = 'src/core.js';
+      options.src = '<%= meta.src %>';
+      options.walkontable = '<%= meta.walkontable %>';
 
       return options;
     }())
