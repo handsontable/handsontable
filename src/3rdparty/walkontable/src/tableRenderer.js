@@ -184,7 +184,7 @@ WalkontableTableRenderer.prototype.adjustColumnHeaderHeights = function () {
 };
 
 WalkontableTableRenderer.prototype.markIfOversizedColumnHeader = function (col) {
-  var colCount = this.instance.wtTable.THEAD.childNodes.length != 0 ? this.instance.wtTable.THEAD.childNodes[0].childNodes.length : 0,
+  var colCount = this.instance.wtTable.THEAD.childNodes.length !== 0 ? this.instance.wtTable.THEAD.childNodes[0].childNodes.length : 0,
     sourceColIndex,
     previousColHeaderHeight,
     currentHeader,
