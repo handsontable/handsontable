@@ -396,8 +396,7 @@ describe("handsontable.MergeCells", function () {
       expect(mergedCellHidden).toBe(mergedCellParent);
     });
 
-    // TODO: Temporarily commented due to 0.12.3 reported merged cells issue
-    xit("should scroll viewport to beginning of a merged cell when it's clicked", function () {
+    it("should scroll viewport to beginning of a merged cell when it's clicked", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
