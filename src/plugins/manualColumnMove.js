@@ -220,10 +220,9 @@ function HandsontableManualColumnMove() {
       }
 
     } else {
-      unbindEvents.call(this);
-
       var pluginUsagesIndex = instance.manualColumnPositionsPluginUsages ? instance.manualColumnPositionsPluginUsages.indexOf('manualColumnMove') : -1;
-      if(pluginUsagesIndex > -1) {
+      if (pluginUsagesIndex > -1) {
+        unbindEvents.call(this);
         this.manualColumnPositions = [];
         instance.manualColumnPositionsPluginUsages[pluginUsagesIndex] = void 0;
       }
