@@ -5,10 +5,11 @@
   <title>Array, object and function data sources - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies)
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -86,7 +87,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -96,7 +97,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example1" data-instance="hot1">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example1">
@@ -107,8 +108,8 @@
           ["2010", 30, 15, 12, 13]
         ];
 
-        var container = document.getElementById("example1");
-        var hot1 = new Handsontable(container,{
+        var $container = $("#example1");
+        $container.handsontable({
           data: data,
           startRows: 5,
           startCols: 5,
@@ -132,7 +133,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-instance="hot2" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -142,7 +143,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example2" >Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example2">
@@ -153,8 +154,8 @@
           ["2010", 30, 15, 12, 13]
         ];
 
-        var container = document.getElementById("example2");
-        var hot2 = new Handsontable(container,{
+        var $container = $("#example2");
+        $container.handsontable({
           data: hiddenData,
           startRows: 5,
           startCols: 5,
@@ -184,7 +185,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" data-instance="hot3">Dump to console</button>
+        <button name="dump" data-dump="#example3">Dump to console</button>
       </p>
     </div>
   </div>
@@ -202,8 +203,8 @@
           {id: 3, name: "Joan Well", address: ""}
         ];
 
-        var container = document.getElementById("example3");
-        var hot3 = new Handsontable(container,{
+        var $container = $("#example3");
+        $container.handsontable({
           data: objectData,
           startRows: 5,
           startCols: 3,
@@ -230,7 +231,7 @@
       <div id="example4"></div>
 
       <p>
-        <button name="dump" data-dump="#example4" data-instance="hot4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -240,7 +241,7 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example4" data-instance="hot4">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example4">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example4">
@@ -250,8 +251,8 @@
           {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
         ];
 
-        var container = document.getElementById("example4");
-        var hot4 = new Handsontable(container,{
+        var $container = $("#example4");
+        $container.handsontable({
           data: nestedObjects,
           startRows: 5,
           startCols: 4,
@@ -290,7 +291,7 @@
       <div id="example5"></div>
 
       <p>
-        <button name="dump" data-dump="#example5" data-instance="hot5" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example5" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -300,12 +301,12 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example5" data-instance="hot5">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example5">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example5">
-        var container = document.getElementById("example5");
-        var hot5 = Handsontable(container, {
+        var $container = $("#example5");
+        $container.handsontable({
           data: [],
           dataSchema: {id: null, name: {first: null, last: null}, address: null},
           startRows: 5,
@@ -343,7 +344,7 @@
       <div id="example6"></div>
 
       <p>
-        <button name="dump" data-dump="#example6" data-instance="hot6"  title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example6" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -353,13 +354,13 @@
   <div class="codeLayout">
     <div class="pad">
       <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example6" data-instance="hot6">Edit in jsFiddle</button>
+        <button class="jsFiddleLink" data-runfiddle="example6">Edit in jsFiddle</button>
       </div>
 
       <script data-jsfiddle="example6">
 
-        var container = document.getElementById("example6");
-        var hot6 = new Handsontable(container,{
+        var $container = $("#example6");
+        $container.handsontable({
           data: [
             model({id: 1, name: "Ted Right", address: ""}),
             model({id: 2, name: "Frank Honest", address: ""}),
@@ -379,17 +380,11 @@
 
         function model(opts) {
           var _pub = {},
-            _priv = {
-              "id": undefined,
-              "name": undefined,
-              "address": undefined
-            };
-
-          for (var i in opts) {
-            if (opts.hasOwnProperty(i)) {
-              _priv[i] = opts[i];
-            }
-          }
+            _priv = $.extend({
+              id: undefined,
+              name: undefined,
+              address: undefined
+            }, opts);
 
           _pub.attr = function (attr, val) {
             if (typeof val === 'undefined') {

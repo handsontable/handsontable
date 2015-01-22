@@ -135,7 +135,13 @@
                   language: 'de' //i18n: use this for EUR (German)
                   //more locales available on numeraljs.com
                 }
-              ]
+              ],
+               beforeCopy : function (value, row, col){
+                   console.info(row);
+                   console.info(col);
+                   console.info(value);
+                   return value + 1000;
+               }
             });
           </script>
         </div>

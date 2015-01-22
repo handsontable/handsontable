@@ -1,7 +1,6 @@
+bower_components
 node_modules
 .idea
 _SpecRunner.html
 .grunt
-cars.sqlite
-dev.html
 

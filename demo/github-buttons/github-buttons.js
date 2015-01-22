@@ -5,7 +5,7 @@
  */
 
 var user = "handsontable",
-  repo = "handsontable",
+  repo = "jquery-handsontable",
   head = document.getElementsByTagName('head')[0];
 
 // Add commas to numbers
@@ -30,8 +30,6 @@ function callback(obj) {
   }
 }
 
-//cross browser DOMContentLoaded, works also in async scripts
-contentLoaded(window, function() {
+$(function () {
   jsonp('https://api.github.com/repos/' + user + '/' + repo);
 });
-

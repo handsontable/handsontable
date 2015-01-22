@@ -7,8 +7,9 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -36,6 +37,24 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 1000; i++) {
+        var row = [];
+        for (j = 0; j < 10; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
 </head>
 
 <body>
@@ -78,9 +97,8 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var example1 = document.getElementById('example1');
-                var HOT = new Handsontable(example1,{
-                  data: Handsontable.helper.createSpreadsheetData(1000, 10),
+                $("#example1").handsontable({
+                  data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
                   colWidths: [55, 80, 80, 80, 80, 80, 80],
@@ -99,11 +117,10 @@
 
 
         <script type="text/javascript">
-          (function(HOT){
-            var reset = document.querySelector('.reset-state1');
-            var stateLoaded = document.querySelector('.state-loaded');
+          (function(){
+            var HOT = $('#example1').handsontable('getInstance');
 
-            Handsontable.Dom.addEvent(reset, 'click', function(){
+            $('.reset-state1').on('click', function(){
 
               HOT.runHooks('persistentStateReset');
 
@@ -114,9 +131,12 @@
                 manualRowResize: true
               });
 
-              stateLoaded.style.display = 'none';
-              HOT.render();
+              $(".state-loaded.example1").fadeOut(300, function () {
+                // render table after hidden state-loaded alert
+                HOT.render();
+              });
             });
+
 
             var storedData = {};
 
@@ -125,10 +145,10 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-              stateLoaded.style.display = 'block';
+              $(".state-loaded.example1").show();
               HOT.render();
             }
-          })(HOT);
+          })();
 
         </script>
 

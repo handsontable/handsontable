@@ -5,10 +5,11 @@
   <title>Autocomplete cell type - Handsontable</title>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies)
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -100,7 +101,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -114,8 +115,7 @@
       </div>
 
       <script data-jsfiddle="example1">
-        var example1 = document.getElementById('example1');
-        var hot1 = new Handsontable(example1,{
+        $("#example1").handsontable({
           data: getCarData(),
           startRows: 7,
           startCols: 4,
@@ -178,7 +178,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -192,8 +192,7 @@
       </div>
 
       <script data-jsfiddle="example2">
-        var container2 = document.getElementById('example2');
-        var hot2 = new Handsontable(container2,{
+        $("#example2").handsontable({
           data: getCarData(),
           startRows: 7,
           startCols: 4,
@@ -242,7 +241,7 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
         </button>
       </p>
@@ -259,8 +258,7 @@
       </div>
 
       <script>
-        var container3 = document.getElementById('example3');
-        var hot3 = new Handsontable(container3,{
+        $("#example3").handsontable({
           data: getCarData(),
           startRows: 7,
           startCols: 4,

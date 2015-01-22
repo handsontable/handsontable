@@ -270,7 +270,7 @@ ul ul {
   border: 1px solid #ECECEC;
   background-color: #FAFAFA;
   border-radius: 3px;
-  font-size: 90%;
+  font-size: 12px;
   font-family: Consolas, Courier, monospace;
 }
 
@@ -331,11 +331,6 @@ kbd {
   color: #FFF;
   border-radius: 4px;
   padding: 2px 4px;
-}
-
-.warning li,
-.warning p:last-child {
-  margin-bottom: 0;
 }
 
 /**
