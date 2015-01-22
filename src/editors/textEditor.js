@@ -299,10 +299,12 @@
 
     this.instance.addHook('afterColumnResize', function () {
       editor.refreshDimensions();
+      editor.focus();
     });
 
     this.instance.addHook('afterRowResize', function () {
       editor.refreshDimensions();
+      editor.focus();
     });
 
     this.instance.addHook('afterDestroy', function () {
