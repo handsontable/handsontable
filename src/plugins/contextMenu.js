@@ -46,8 +46,7 @@
     }
 
     this.setCellMeta(row, col, 'className', className);
-    this.render();
-    /* jshint ignore:end */
+
   }
 
   function align(range, type, alignment) {
@@ -61,6 +60,9 @@
         }
       }
     }
+
+    this.render();
+    
     /* jshint ignore:end */
   }
 
