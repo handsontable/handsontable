@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 15 2015 15:44:14 GMT-0200 (Horário brasileiro de verão)
+ * Date: Thu Jan 22 2015 14:48:01 GMT-0200 (Horário brasileiro de verão)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -12090,7 +12090,7 @@ if (typeof Handsontable !== 'undefined') {
       instance.dragToScrollListening = false;
     });
 
-    eventManager.addEventListener(document,'mousemove', function () {
+    eventManager.addEventListener(document,'mousemove', function (event) {
       if (instance.dragToScrollListening) {
         dragToScroll.check(event.clientX, event.clientY);
       }
