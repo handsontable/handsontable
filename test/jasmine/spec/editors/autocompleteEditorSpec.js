@@ -288,6 +288,44 @@ describe('AutocompleteEditor', function () {
 
     });
 
+    it("should not initialize the dropdown with unneeded scrollbars (scrollbar causing a scrollbar issue)", function () {
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
+      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+
+      var hot = handsontable({
+        data: [
+          [
+            "blue"
+          ],
+          [],
+          [],
+          []
+        ],
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = hot.getActiveEditor();
+
+      updateChoicesList.reset();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 1000);
+
+      runs(function () {
+        expect(editor.htContainer.scrollWidth).toEqual(editor.htContainer.clientWidth);
+      });
+    });
+
     it('autocomplete list should have textarea dimensions', function () {
       var syncSources = jasmine.createSpy('syncSources');
 
@@ -2234,7 +2272,7 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     });
-    
+
     waits(30);
 
     runs(function() {

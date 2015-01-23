@@ -89,17 +89,17 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById("example1")
-              , data = [
-                ["Nissan", 2009, "black", "black"],
-                ["Nissan", 2006, "blue", "blue"],
-                ["Chrysler", 2004, "yellow", "black"],
-                ["Volvo", 2012, "white", "gray"]
-              ];
+            var data = [
+                ['Nissan', 2009, 'black', 'black'],
+                ['Nissan', 2006, 'blue', 'blue'],
+                ['Chrysler', 2004, 'yellow', 'black'],
+                ['Volvo', 2012, 'yellow', 'gray']
+              ],
+              container = document.getElementById("example1"),
+              lastChange = null,
+              hot;
 
-            var lastChange = null;
-
-            var hot = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: data,
               colHeaders: true,
               rowHeaders: true,
@@ -109,29 +109,31 @@
               }
             });
 
-            hot.updateSettings(
-              {
+            hot.updateSettings({
                 beforeKeyDown: function (e) {
                   var selection = hot.getSelected();
 
-                  if (e.keyCode === 8 || e.keyCode === 46) { //BACKSPACE or DELETE
+                  // BACKSPACE or DELETE
+                  if (e.keyCode === 8 || e.keyCode === 46) {
                     e.stopImmediatePropagation();
-                    hot.spliceCol(selection[1], selection[0], 1); //remove data at cell, shift up
+                    // remove data at cell, shift up
+                    hot.spliceCol(selection[1], selection[0], 1);
                     e.preventDefault();
                   }
-                  else if (e.keyCode === 13) { //ENTER
-                    if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) { //if last change affected a single cell and did not change it's values
+                  // ENTER
+                  else if (e.keyCode === 13) {
+                    // if last change affected a single cell and did not change it's values
+                    if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
                       e.stopImmediatePropagation();
-                      hot.spliceCol(selection[1], selection[0], 0, ''); //add new cell
-                      hot.selectCell(selection[0], selection[1]); //select new cell
+                      hot.spliceCol(selection[1], selection[0], 0, ''); // add new cell
+                      hot.selectCell(selection[0], selection[1]); // select new cell
                     }
                   }
 
                   lastChange = null;
                 }
               }
-            )
-
+            );
           </script>
         </div>
       </div>

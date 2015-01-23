@@ -51,24 +51,26 @@
 
           <script>
             var myData = [
-              {"car": "Mercedes A 160", "year": 2006, "price": 6999.99},
-              {"car": "Citroen C4 Coupe", "year": 2008, "price": 8330},
-              {"car": "Audi A4 Avant", "year": 2011, "price": 33900},
-              {"car": "Opel Astra", "year": 2004, "price": 7000},
-              {"car": "BMW 320i Coupe", "year": 2011, "price": 30500}
-            ];
+                {"car": "Mercedes A 160", "year": 2006, "price": 6999.99},
+                {"car": "Citroen C4 Coupe", "year": 2008, "price": 8330},
+                {"car": "Audi A4 Avant", "year": 2011, "price": 33900},
+                {"car": "Opel Astra", "year": 2004, "price": 7000},
+                {"car": "BMW 320i Coupe", "year": 2011, "price": 30500}
+              ],
+              goGOT = document.getElementById('goGOT');
 
-            var goGOT = document.getElementById('goGOT');
             Handsontable.Dom.addEvent(goGOT, 'click', function () {
-              var test = document.getElementById("test");
-              var container = document.createElement('DIV');
+              var test = document.getElementById('test'),
+                container = document.createElement('DIV'),
+                hot;
+
               test.appendChild(container);
 
-              var hot = new Handsontable(container,{
+              hot = new Handsontable(container, {
                 data: myData,
                 startRows: 7,
                 startCols: 4,
-                colHeaders: ["Car", "Year", "Price ($)", "Price (€)"]
+                colHeaders: ['Car', 'Year', 'Price ($)', 'Price (€)']
               });
               hot.destroy();
               test.removeChild(container);

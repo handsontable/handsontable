@@ -107,9 +107,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.tableOffset = Handsontable.Dom.offset(this.TABLE);
     }
     var startRow;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
-      || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
-      || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative ||
+        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       startRow = 0;
     }
     else {
@@ -118,9 +118,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
 
     var startColumn;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
-    || this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative
-    || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
+        this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative ||
+        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
@@ -140,9 +140,12 @@ WalkontableTable.prototype.draw = function (fastDraw) {
   }
   else {
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createVisibleCalculators(); //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      this.instance.wtViewport.createVisibleCalculators();
     }
-    this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
+    if (this.instance.wtScrollbars) {
+      this.instance.wtScrollbars.refresh(true);
+    }
   }
 
   this.refreshSelections(fastDraw);
@@ -222,13 +225,18 @@ WalkontableTable.prototype.getCell = function (coords) {
 /**
  * getColumnHeader
  * @param col
+ * @param level Header level (0 = most distant to the table)
  * @return {Object} HTMLElement on success or undefined on error
  *
  */
-WalkontableTable.prototype.getColumnHeader = function(col) {
-  var THEAD = this.THEAD.childNodes[0];
-  if (THEAD) {
-    return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+WalkontableTable.prototype.getColumnHeader = function(col, level) {
+  if(!level) {
+    level = 0;
+  }
+
+  var TR = this.THEAD.childNodes[level];
+  if (TR) {
+    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
 };
 
@@ -240,7 +248,7 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
  *
  */
 WalkontableTable.prototype.getRowHeader = function(row) {
-  if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) == 0) {
+  if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
     return null;
   }
 
@@ -383,6 +391,14 @@ WalkontableTable.prototype.getRowHeight = function (sourceRow) {
   return height;
 };
 
+WalkontableTable.prototype.getColumnHeaderHeight = function (level) {
+  var height = this.instance.wtSettings.settings.defaultRowHeight,
+    oversizedHeight = this.instance.wtViewport.oversizedColumnHeaders[level];
+  if (oversizedHeight !== void 0) {
+    height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+  }
+  return height;
+};
 
 WalkontableTable.prototype.getVisibleColumnsCount = function () {
   return this.instance.wtViewport.columnsVisibleCalculator.count;
@@ -411,18 +427,19 @@ WalkontableTable.prototype.getColumnWidth = function (sourceColumn) {
 };
 
 WalkontableTable.prototype.getStretchedColumnWidth = function (sourceColumn) {
-  var allColumns = this.instance.getSetting('totalColumns');
-  var width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth;
+  var
+    width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth,
+    calculator = this.instance.wtViewport.columnsRenderCalculator,
+    stretchedWidth;
 
-  if(this.instance.wtViewport.columnsRenderCalculator) {
-    if (this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio != 0) {
-      width = width * this.instance.wtViewport.columnsRenderCalculator.stretchAllRatio;
-    } else if (this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth != 0) {
-      if (sourceColumn == allColumns - 1) {
-        width = this.instance.wtViewport.columnsRenderCalculator.stretchLastWidth;
-      }
+  if (calculator) {
+    stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
+
+    if (stretchedWidth) {
+      width = stretchedWidth;
     }
   }
+
   return width;
 };
 

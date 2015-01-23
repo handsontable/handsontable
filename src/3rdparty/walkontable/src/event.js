@@ -88,7 +88,7 @@ function WalkontableEvent(instance) {
 
       // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
       that.checkIfTouchMove = setTimeout(function () {
-        if (that.instance.touchMoving == true) {
+        if (that.instance.touchMoving === true) {
           that.instance.touchMoving = void 0;
 
           eventManager.removeEventListener("touchmove", onTouchMove, false);

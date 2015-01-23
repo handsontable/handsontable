@@ -1,5 +1,5 @@
 describe('Handsontable.eventManager', function () {
-  it('should add event via addEvent', function () {
+  it('should add/remove/clear event for multiple instances', function () {
     var instance = {
       subinstance: {}
     };
@@ -33,6 +33,69 @@ describe('Handsontable.eventManager', function () {
 
     eM2.clear();
     expect(instance2.eventListeners.length).toEqual(0);
+  });
+
+  it('should clear all events', function () {
+    var instance = {};
+    var em = Handsontable.eventManager(instance);
+
+    var test = jasmine.createSpy('test');
+    var test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(window, 'click', test);
+    em.addEventListener(window, 'click', test1);
+    em.addEventListener(window, 'click', test1);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(test1.calls.length).toEqual(2);
+
+    em.clear(window);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(test1.calls.length).toEqual(2);
+  });
+
+  it('should fire event', function () {
+    var instance = {};
+    var em = Handsontable.eventManager(instance);
+
+    var test = jasmine.createSpy('test');
+    var test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(window, 'click', test);
+    em.addEventListener(window, 'click', test1);
+    em.addEventListener(window, 'click', test1);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(test1.calls.length).toEqual(2);
+
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(2);
+    expect(test1.calls.length).toEqual(4);
+
+    em.clear(window, 'click');
+  });
+
+  it('should remove event by calling function returned from addEvent', function () {
+    var instance = {};
+    var em = Handsontable.eventManager(instance);
+
+    var test = jasmine.createSpy('test');
+
+    var clickRemoveEvent = em.addEventListener(window, 'click', test);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(instance.eventListeners.length).toEqual(1);
+
+    clickRemoveEvent();
+
+    expect(test.calls.length).toEqual(1);
+    expect(instance.eventListeners.length).toEqual(0);
   });
 
 });

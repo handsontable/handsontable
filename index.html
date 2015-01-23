@@ -111,6 +111,9 @@
             <a href="demo/fixed.html">Fixed rows/columns</a>
           </li>
           <li>
+            <a href="demo/column_freeze.html">Column freeze<sup>NEW</sup></a>
+          </li>
+          <li>
             <a href="demo/pagination.html">Pagination</a>
           </li>
           <li>
@@ -274,21 +277,21 @@
 
           <div class="warning">
             This is Handsontable <a href="https://github.com/handsontable/handsontable/releases" class="ver"></a>, a
-            release published on Jan 12, 2015.
+            release published on Jan 23, 2015.
 
             <p>The most prominent changes are:</p>
 
             <ul>
-              <li>more efficient column rendering algorithm,</li>
+              <li>more efficient row and column rendering algorithm,</li>
               <li>the removal of jQuery from dependencies and the filename,</li>
               <li>(but we still keep <a href="demo/jquery.html">the jQuery plugin API</a> for backward compatibility),
               </li>
               <li>dropped support for IE 8 and 9 (if it bothers you, please email us),</li>
-              <li>more efficient row rendering algorithm.</li>
-              <li>Basic iPad 4 support</li>
+              <li>basic iPad 4 support</li>
+              <li>manual column freeze functionality</li>
             </ul>
 
-            Check out the <a href="https://github.com/handsontable/handsontable/releases/tag/0.12.3">full release
+            Check out the <a href="https://github.com/handsontable/handsontable/releases/tag/0.12.4">full release
             notes</a>. If you experience some rough edges, please report an
             <a href="https://github.com/handsontable/handsontable/issues">issue</a> or temporarily stick to
             version <a href="http://old.handsontable.com">0.10.5 <sup><i
@@ -309,17 +312,18 @@
 
 
         <script data-jsfiddle="example">
-          var data = [
-            ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-            ["2009", 0, 2941, 4303, 354, 5814],
-            ["2010", 5, 2905, 2867, 412, 5284],
-            ["2011", 4, 2517, 4822, 552, 6127],
-            ["2012", 2, 2422, 5399, 776, 4151]
-          ];
+          var
+            data = [
+              ['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
+              ['2009', 0, 2941, 4303, 354, 5814],
+              ['2010', 3, 2905, 2867, 412, 5284],
+              ['2011', 4, 2517, 4822, 552, 6127],
+              ['2012', 2, 2422, 5399, 776, 4151]
+            ],
+            container = document.getElementById('example'),
+            hot;
 
-          var container = document.getElementById('example');
-          var hot = new Handsontable(container,
-          {
+          hot = new Handsontable(container, {
             data: data,
             minSpareRows: 1,
             colHeaders: true,

@@ -96,15 +96,17 @@
               </div>
 
               <script data-jsfiddle="example2">
-                /*
-                 Container looks like this:
-
-                 <div id="example2" style="width: height: 300px; overflow: auto"></div>
+                /**
+                 * Container looks like this:
+                 *
+                 * <div id="example2" style="width: height: 300px; overflow: auto"></div>
                  */
-                var container2 = document.getElementById('example2');
-                var hot2 = new Handsontable(container2,{
+                var container2 = document.getElementById('example2'),
+                    hot2;
+
+                hot2 = new Handsontable(container2, {
                   data: Handsontable.helper.createSpreadsheetData(40, 6),
-                  colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+                  colWidths: [55, 47, 47, 47, 47, 47, 47], // can also be a number or a function
                   rowHeaders: true,
                   colHeaders: true,
                   stretchH: 'last',
@@ -147,15 +149,17 @@
               </div>
 
               <script data-jsfiddle="example3">
-                /*
-                 Container looks like this:
-
-                 <div id="example3" style="width: height: 300px; overflow: auto"></div>
+                /**
+                 * Container looks like this:
+                 *
+                 * <div id="example3" style="width: height: 300px; overflow: auto"></div>
                  */
-                var container3 = document.getElementById('example3');
-                var hot3 = new Handsontable(container3,{
+                var container3 = document.getElementById('example3'),
+                  hot3;
+
+                hot3 = new Handsontable(container3, {
                   data: Handsontable.helper.createSpreadsheetData(40, 6),
-                  colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+                  colWidths: [55, 47, 47, 47, 47, 47, 47], // can also be a number or a function
                   rowHeaders: true,
                   colHeaders: true,
                   stretchH: 'all',
@@ -191,18 +195,20 @@
               </div>
 
               <script data-jsfiddle="example4">
-                /*
-                 Container looks like this:
-
-                 <div id="example4" style="width: height: 300px; overflow: auto"></div>
+                /**
+                 * Container looks like this:
+                 *
+                 * <div id="example4" style="width: height: 300px; overflow: auto"></div>
                  */
-                var container4 = document.getElementById('example4');
-                var hot4 = new Handsontable(container4,{
+                var container4 = document.getElementById('example4'),
+                  hot4;
+
+                hot4 = new Handsontable(container4, {
                   data: Handsontable.helper.createSpreadsheetData(40, 6),
-                  colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+                  colWidths: [55, 47, 47, 47, 47, 47, 47], // can also be a number or a function
                   rowHeaders: true,
                   colHeaders: true,
-                  stretchH: 'none', //actually you don't have to declare it because it is default
+                  stretchH: 'none', // actually you don't have to declare it because it is default
                   minSpareRows: 1,
                   contextMenu: true
                 });

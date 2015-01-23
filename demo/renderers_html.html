@@ -9,8 +9,6 @@
   -->
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
-  <link data-jsfiddle="common" rel="stylesheet" media="screen"
-        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -108,73 +106,84 @@
 
       <script data-jsfiddle="example1">
         var data = [
-          {
-            title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
-            description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
-            comments: "I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;",
-            cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
-          },
-          {
-            title: "<a href='http://shop.oreilly.com/product/9780596517748.do'>JavaScript: The Good Parts</a>",
-            description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
-            comments: "This is <big>the</big> book about JavaScript",
-            cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
-          },
-          {
-            title: "<a href='http://shop.oreilly.com/product/9780596805531.do'>JavaScript: The Definitive Guide</a>",
-            description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
-            comments: "I've never actually read it, but the <a href='http://shop.oreilly.com/product/9780596805531.do'>comments</a> are highly <strong>positive</strong>.",
-            cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
-          }
-        ];
+            {
+              title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
+              description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
+              comments: "I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;",
+              cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
+            },
+            {
+              title: "<a href='http://shop.oreilly.com/product/9780596517748.do'>JavaScript: The Good Parts</a>",
+              description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
+              comments: "This is <big>the</big> book about JavaScript",
+              cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
+            },
+            {
+              title: "<a href='http://shop.oreilly.com/product/9780596805531.do'>JavaScript: The Definitive Guide</a>",
+              description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
+              comments: "I've never actually read it, but the <a href='http://shop.oreilly.com/product/9780596805531.do'>comments</a> are highly <strong>positive</strong>.",
+              cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
+            }
+          ],
+          container1,
+          hot1;
 
+        container1 = document.getElementById('example1');
+        hot1 = new Handsontable(container1, {
+          data: data,
+          colWidths: [200, 200, 200, 60],
+          colHeaders: ["Title", "Description", "Comments", "Cover"],
+          columns: [
+            {data: "title", renderer: "html"},
+            {data: "description", renderer: "html"},
+            {data: "comments", renderer: safeHtmlRenderer},
+            {data: "cover", renderer: coverRenderer}
+          ]
+        });
+
+        // original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
         function strip_tags(input, allowed) {
-          // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-          allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
           var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
             commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+
+          // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+          allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join('');
+
           return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
             return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
           });
         }
 
-        var safeHtmlRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+        function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
           var escaped = Handsontable.helper.stringify(value);
           escaped = strip_tags(escaped, '<em><b><strong><a><big>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
           td.innerHTML = escaped;
+
           return td;
-          },
-          coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-            var escaped = Handsontable.helper.stringify(value);
-            if (escaped.indexOf('http') === 0) {
-              var img = document.createElement('IMG');
-              img.src = value;
+        }
 
-              Handsontable.Dom.addEvent(img, 'mousedown', function (e){
-                e.preventDefault();//prevent selection quirk
-              });
+        function coverRenderer (instance, td, row, col, prop, value, cellProperties) {
+          var escaped = Handsontable.helper.stringify(value),
+            img;
 
-              Handsontable.Dom.empty(td);
-              td.appendChild(img);
+          if (escaped.indexOf('http') === 0) {
+            img = document.createElement('IMG');
+            img.src = value;
 
-            }
-            else {
-              Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
-            }
-            return td;
-          },
-          container = document.getElementById("example1"),
-            hot1 = new Handsontable(container, {
-            data: data,
-            colWidths: [200, 200, 200, 60],
-            colHeaders: ["Title", "Description", "Comments", "Cover"],
-            columns: [
-              {data: "title", renderer: "html"},
-              {data: "description", renderer: "html"},
-              {data: "comments", renderer: safeHtmlRenderer},
-              {data: "cover", renderer: coverRenderer}
-            ]
-          });
+            Handsontable.Dom.addEvent(img, 'mousedown', function (e){
+              e.preventDefault(); // prevent selection quirk
+            });
+
+            Handsontable.Dom.empty(td);
+            td.appendChild(img);
+          }
+          else {
+            // render as text
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+          }
+
+          return td;
+        }
       </script>
     </div>
   </div>
@@ -210,49 +219,57 @@
       </div>
 
       <script data-jsfiddle="example2">
-        var isChecked,
-          customRenderer = function (instance, td) {
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
-            if (isChecked) {
-              td.style.backgroundColor = 'yellow';
-            }
-            else {
-              td.style.backgroundColor = 'white';
-            }
-            return td;
-          },
-          container = document.getElementById("example2"),
-          hot2 = new Handsontable(container,{
+        var
+          isChecked,
+          container2 = document.getElementById('example2'),
+          hot2;
+
+          hot2 = new Handsontable(container2, {
             startCols: 2,
             columns: [
               {},
               {renderer: customRenderer}
             ],
             colHeaders: function (col) {
+              var txt;
+
               switch (col) {
                 case 0:
-                  return "<b>Bold</b> and <em>Beautiful</em>";
+                  return '"<b>Bold</b> and <em>Beautiful</em>';
 
                 case 1:
-                  var txt = "Some <input type='checkbox' class='checker' ";
+                  txt = "Some <input type='checkbox' class='checker' ";
                   txt += isChecked ? 'checked="checked"' : '';
                   txt += "> checkbox";
+
                   return txt;
               }
             }
           });
 
-          Handsontable.Dom.addEvent(container, 'mousedown', function (e) {
-            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker'){
-              e.stopPropagation();
+          function customRenderer(instance, td) {
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+            if (isChecked) {
+              td.style.backgroundColor = 'yellow';
+            }
+            else {
+              td.style.backgroundColor = 'white';
+            }
+
+            return td;
+          }
+
+          Handsontable.Dom.addEvent(container, 'mousedown', function (event) {
+            if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+              event.stopPropagation();
             }
           });
 
-          Handsontable.Dom.addEvent(container, 'mouseup', function (e) {
-            if (e.target.nodeName == 'INPUT' && e.target.className == 'checker') {
-              isChecked = !e.target.checked;
+          Handsontable.Dom.addEvent(container, 'mouseup', function (event) {
+            if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+              isChecked = !event.target.checked;
               hot2.render();
-
             }
           });
       </script>
@@ -320,11 +337,12 @@
           z-index: 10;
         }
 
-        .changeTypeMenu li{
+        .changeTypeMenu li {
           text-align: left;
           list-style: none;
           padding: 2px 20px;
           cursor: pointer;
+          margin-bottom: 0;
         }
 
         .changeTypeMenu li.active:before {
@@ -341,13 +359,13 @@
       </style>
 
       <script data-jsfiddle="example3">
-
-        var data = [
-          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-          ["2009", 0, 2941, 4303, 354, 5814],
-          ["2010", 3, 2905, 2867, 412, 5284],
-          ["2011", 4, 2517, 4822, 552, 6127],
-          ["2012", 2, 2422, 5399, 776, 4151]
+        var
+          data3 = [
+            ['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
+            ['2009', 0, 2941, 4303, 354, 5814],
+            ['2010', 3, 2905, 2867, 412, 5284],
+            ['2011', 4, 2517, 4822, 552, 6127],
+            ['2012', 2, 2422, 5399, 776, 4151]
           ],
           columns = [
             {type: 'numeric'},
@@ -358,104 +376,112 @@
             {type: 'numeric'}
           ],
           container = document.getElementById('example3'),
-          hot3 = new Handsontable(container,{
-            data: data,
-            colHeaders: true,
-            minSpareRows: 1,
-            type: 'numeric',
-            columns: columns,
-            afterGetColHeader: function (col, TH) {
-              var instance = this;
-              var menu = buildMenu(columns[col].type);
-              var button = buildButton();
+          hot3;
 
-              Handsontable.Dom.addEvent(button,'click', function (e){
-                instance.rootElement.appendChild(menu);
+        hot3 = new Handsontable(container,{
+          data: data3,
+          colHeaders: true,
+          minSpareRows: 1,
+          type: 'numeric',
+          columns: columns,
 
-                console.log(button);
+          afterGetColHeader: function (col, TH) {
+            var instance = this,
+              menu = buildMenu(columns[col].type),
+              button = buildButton();
 
-                e.preventDefault();
-                e.stopImmediatePropagation();
+            addButtonMenuEvent(button, menu);
 
-                var changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
-                for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
-                  changeTypeMenu[i].style.display = 'none';
-                }
-
-                menu.style.display = 'block';
-                var position = button.getBoundingClientRect();
-                menu.style.top = (position.top - 70) + 'px';
-                menu.style.left = (position.left -310) + 'px';
-
-                var removeMenu = function (e) {
-                  console.log(e.target);
-                    if (e.target.nodeName == 'LI' && e.target.parentNode.className.indexOf('changeTypeMenu') != -1 ){
-                      instance.rootElement.removeChild(menu);
-                    }
-                };
-
-                Handsontable.Dom.removeEvent(document, 'click', removeMenu);
-                Handsontable.Dom.addEvent(document, 'click', removeMenu);
-              });
-
-              Handsontable.Dom.addEvent(menu, 'click', function (e) {
-                if (e.target.nodeName == 'LI') {
-                  setColumnType(col, e.target.data['colType'], instance);
-                }
-              });
-
-              TH.firstChild.appendChild(button);
-
-
+            Handsontable.Dom.addEvent(menu, 'click', function (event) {
+              if (event.target.nodeName == 'LI') {
+                setColumnType(col, event.target.data['colType'], instance);
+              }
+            });
+            TH.firstChild.appendChild(button);
           },
           cells: function (row, col, prop) {
+            var cellProperties;
+
             if (row === 0) {
-              var cellProperties = {
-                type: 'text' //force text type for first row
+              cellProperties = {
+                type: 'text' // force text type for first row
               };
+
               return cellProperties;
             }
           }
         });
 
-          function buildMenu(activeCellType){
-            var menu = document.createElement('UL');
-            menu.className = 'changeTypeMenu';
+        function addButtonMenuEvent(button, menu) {
+          Handsontable.Dom.addEvent(button, 'click', function (event) {
+            var changeTypeMenu, position, removeMenu;
 
-            var types = ['text', 'numeric', 'date'];
+            document.body.appendChild(menu);
 
+            event.preventDefault();
+            event.stopImmediatePropagation();
 
-            for (var i = 0, len = types.length; i< len; i++) {
-              var item = document.createElement('LI');
-              item.innerText = types[i];
-              item.data = {'colType': types[i]};
+            changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
 
-              if (activeCellType == types[i]) {
-                item.className = 'active';
-              }
-              menu.appendChild(item);
+            for (var i = 0, len = changeTypeMenu.length; i < len; i++) {
+              changeTypeMenu[i].style.display = 'none';
             }
+            menu.style.display = 'block';
+            position = button.getBoundingClientRect();
 
-            return menu;
+            menu.style.top = (position.top + (window.scrollY || window.pageYOffset)) + 2 + 'px';
+            menu.style.left = (position.left) + 'px';
 
+            removeMenu = function (event) {
+              if (event.target.nodeName == 'LI' && event.target.parentNode.className.indexOf('changeTypeMenu') !== -1) {
+                if (menu.parentNode) {
+                  menu.parentNode.removeChild(menu);
+                }
+              }
+            };
+            Handsontable.Dom.removeEvent(document, 'click', removeMenu);
+            Handsontable.Dom.addEvent(document, 'click', removeMenu);
+          });
+        }
+
+        function buildMenu(activeCellType){
+          var
+            menu = document.createElement('UL'),
+            types = ['text', 'numeric', 'date'],
+            item;
+
+          menu.className = 'changeTypeMenu';
+
+          for (var i = 0, len = types.length; i< len; i++) {
+            item = document.createElement('LI');
+            item.innerText = types[i];
+            item.data = {'colType': types[i]};
+
+            if (activeCellType == types[i]) {
+              item.className = 'active';
+            }
+            menu.appendChild(item);
           }
 
-          function buildButton() {
-            var button = document.createElement('BUTTON');
-            button.innerHTML = '\u25BC';
-            button.className = 'changeType';
-            return button;
-          }
+          return menu;
+        }
 
-          function setColumnType(i, type, instance) {
-            columns[i].type = type;
-            instance.updateSettings({columns: columns});
-            instance.validateCells(function(){
-              instance.render();
-            });
-          }
+        function buildButton() {
+          var button = document.createElement('BUTTON');
 
+          button.innerHTML = '\u25BC';
+          button.className = 'changeType';
 
+          return button;
+        }
+
+        function setColumnType(i, type, instance) {
+          columns[i].type = type;
+          instance.updateSettings({columns: columns});
+          instance.validateCells(function() {
+            instance.render();
+          });
+        }
       </script>
     </div>
   </div>

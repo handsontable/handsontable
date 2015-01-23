@@ -734,6 +734,25 @@ describe('Core_alter', function () {
       expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
 
     });
+
+    it("should stretch the table after adding another column (if stretching is set to 'all')", function () {
+      this.$container.css({
+        "width": 500
+      });
+
+      var hot = handsontable({
+        startCols: 5,
+        startRows: 10,
+        stretchH: 'all'
+      });
+
+      expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
+      alter('insert_col', null, 1);
+      expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
+      alter('insert_col', null, 1);
+      expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
+    });
+
   });
 
 });

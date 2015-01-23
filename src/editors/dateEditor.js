@@ -21,7 +21,7 @@
 
     this.instance.addHook('afterDestroy', function () {
       that.destroyElements();
-    })
+    });
 
   };
 

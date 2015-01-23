@@ -2,6 +2,7 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.oversizedRows = [];
   this.oversizedCols = [];
+  this.oversizedColumnHeaders = [];
 
   var that = this;
 
@@ -25,10 +26,11 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
 
 
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
-  var width;
-
-  var totalColumns = this.instance.getSetting("totalColumns");
-  var scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler;
+  var width,
+    totalColumns = this.instance.getSetting("totalColumns"),
+    scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler,
+    overflow,
+    stretchSetting = this.instance.getSetting('stretchH');
 
   if(Handsontable.freezeOverlays) {
     width = Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
@@ -45,7 +47,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function () {
   }
 
   if (scrollHandler !== window){
-    var overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+      overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
 
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
       //this is used in `scroll.html`
@@ -54,9 +56,13 @@ WalkontableViewport.prototype.getWorkspaceWidth = function () {
     }
   }
 
-  //this is used in `stretch.html`, `stretch_window.html`
-  //TODO test me
-  return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
+  if(stretchSetting === 'none' || !stretchSetting) {
+    // if no stretching is used, return the maximum used workspace width
+    return Math.max(width, Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE));
+  } else {
+    // if stretching is used, return the actual container width, so the columns can fit inside it
+    return width;
+  }
 };
 
 WalkontableViewport.prototype.sumColumnWidths = function (from, length) {
@@ -103,7 +109,9 @@ WalkontableViewport.prototype.getWorkspaceActualHeight = function () {
 };
 
 WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
-  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) || Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) || Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) ||
+    Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) ||
+    Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
 WalkontableViewport.prototype.getColumnHeaderHeight = function () {
@@ -158,19 +166,19 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
 
 // Viewport width = Workspace width - Row Headers width
 WalkontableViewport.prototype.getViewportWidth = function () {
-  var containerWidth = this.getWorkspaceWidth();
+  var containerWidth = this.getWorkspaceWidth(),
+    rowHeaderWidth;
 
   if (containerWidth === Infinity) {
     return containerWidth;
   }
+  rowHeaderWidth = this.getRowHeaderWidth();
 
-  var rowHeaderWidth = this.getRowHeaderWidth();
   if (rowHeaderWidth > 0) {
     return containerWidth - rowHeaderWidth;
   }
-  else {
-    return containerWidth;
-  }
+
+  return containerWidth;
 };
 
 /**
@@ -208,7 +216,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
     pos,
     this.instance.getSetting('totalRows'),
     function(sourceRow) {
-      return that.instance.wtTable.getRowHeight(sourceRow)
+      return that.instance.wtTable.getRowHeight(sourceRow);
     },
     visible ? null : this.instance.wtSettings.settings.viewportRowCalculatorOverride,
     visible ? true : false
@@ -249,7 +257,7 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
     visible ? null : this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
     visible ? true : false,
     this.instance.getSetting('stretchH')
-  )
+  );
 };
 
 
@@ -296,10 +304,14 @@ WalkontableViewport.prototype.createVisibleCalculators = function () {
  */
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (proposedRowsVisibleCalculator) {
   if (this.rowsVisibleCalculator) {
-    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow || (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow && proposedRowsVisibleCalculator.startRow > 0)) {
+    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow ||
+        (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow &&
+        proposedRowsVisibleCalculator.startRow > 0)) {
       return false;
     }
-    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow || (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow && proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
+    else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow ||
+        (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow &&
+        proposedRowsVisibleCalculator.endRow < this.instance.getSetting('totalRows') - 1)) {
       return false;
     }
     else {
@@ -320,10 +332,14 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
   if (this.columnsVisibleCalculator) {
-    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn || (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn && proposedColumnsVisibleCalculator.startColumn > 0)) {
+    if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn ||
+        (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn &&
+        proposedColumnsVisibleCalculator.startColumn > 0)) {
       return false;
     }
-    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn || (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn && proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
+    else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn ||
+        (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn &&
+        proposedColumnsVisibleCalculator.endColumn < this.instance.getSetting('totalColumns') - 1)) {
       return false;
     }
     else {

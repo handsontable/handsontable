@@ -13,7 +13,7 @@
       var value = '' + this.originalValue;
 
       if (typeof this.cellProperties.language !== 'undefined') {
-        numeral.language(this.cellProperties.language)
+        numeral.language(this.cellProperties.language);
       }
 
       var decimalDelimiter = numeral.languageData().delimiters.decimal;

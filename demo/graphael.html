@@ -118,44 +118,43 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var container = document.getElementById("example1")
-                  , data = [
-                    ["Nissan", 2009, "black"],
-                    ["Nissan", 2006, "blue"],
-                    ["Chrysler", 2004, "yellow"],
-                    ["Volvo", 2012, "white"],
-                    ["Nissan", 2006, "blue"],
-                    ["Chevrolet", 2004, "yellow"],
-                    ["Volvo", 2012, "red"],
-                    ["Ford", 2006, "yellow"],
-                    ["Chevrolet", 2004, "yellow"],
-                    ["Ford", 2012, "yellow"]
-                  ];
-
-                var lastChange = null;
-
-                var ht = new Handsontable(container,{
-                    data: data,
-                    width: 250,
-                    colHeaders: ["Car", "Year", "Color"],
-                    rowHeaders: true,
-                    afterChange: refreshChart
-                  }
-                  ),
-                  r = Raphael("graphael-example", 250, 250),
-                  chartData = [
-                    gatherColData(0),
-                    gatherColData(1),
-                    gatherColData(2)
+                var data = [
+                    ['Nissan', 2009, 'black'],
+                    ['Nissan', 2006, 'blue'],
+                    ['Chrysler', 2004, 'yellow'],
+                    ['Volvo', 2012, 'white'],
+                    ['Nissan', 2006, 'blue'],
+                    ['Chevrolet', 2004, 'yellow'],
+                    ['Volvo', 2012, "red"],
+                    ['Ford', 2006, 'yellow'],
+                    ['Chevrolet', 2004, 'yellow'],
+                    ['Ford', 2012, 'yellow']
                   ],
-                  activeColumn = 0;
+                  container = document.getElementById('example1'),
+                  r = Raphael('graphael-example', 250, 250),
+                  chartData = [],
+                  activeColumn = 0,
+                  lastChange = null,
+                  hot;
 
+                hot = new Handsontable(container, {
+                  data: data,
+                  width: 250,
+                  colHeaders: ['Car', 'Year', 'Color'],
+                  rowHeaders: true,
+                  afterChange: refreshChart
+                });
+                chartData = [
+                  gatherColData(0),
+                  gatherColData(1),
+                  gatherColData(2)
+                ];
                 renderChart();
 
-
                 function fin() {
-                  var label = chartData[activeColumn].labels[$("path").toArray().indexOf(this.bar[0])];
-                  this.flag = r.popup(this.bar.x, this.bar.y, label + " - " + this.bar.value || "0").insertBefore(this);
+                  var label = chartData[activeColumn].labels[$('path').toArray().indexOf(this.bar[0])];
+
+                  this.flag = r.popup(this.bar.x, this.bar.y, label + " - " + this.bar.value || '0').insertBefore(this);
                 }
 
                 function fout() {
@@ -165,7 +164,7 @@
                 }
 
                 function refreshChart(changes, source) {
-                  if (source != "loadData") {
+                  if (source != 'loadData') {
                     chartData[changes[0][1]] = gatherColData(changes[0][1]);
                     activeColumn = changes[0][1];
 
@@ -175,19 +174,19 @@
 
                 function renderChart() {
                   r.clear();
-                  r.text(125, 25, "Aggregated by " + $(".aggregation button[data-aggregate='" + activeColumn + "']").text()).attr({ font: "20px sans-serif" });
-
+                  r.text(125, 25, 'Aggregated by ' + $(".aggregation button[data-aggregate='" + activeColumn + "']").text()).attr({ font: "20px sans-serif" });
                   r.barchart(10, 75, 220, 200, [chartData[activeColumn].values]).hover(fin, fout);
                 }
 
                 function gatherColData(colNum) {
-                  var data = ht.getDataAtCol(colNum),
+                  var data = hot.getDataAtCol(colNum),
                     chartData = {labels: [], values: []},
                     entryIndex = -1,
                     labelsSize;
 
                   for (var i = 0; i < data.length; i++) {
                     entryIndex = chartData.labels.indexOf(data[i]);
+
                     if (entryIndex != -1) {
                       chartData.values[entryIndex]++;
                     } else {
@@ -200,8 +199,8 @@
                   return chartData;
                 }
 
-                $(".aggregation").on("click", "button", function () {
-                  activeColumn = $(this).attr("data-aggregate");
+                $('.aggregation').on('click', 'button', function () {
+                  activeColumn = $(this).attr('data-aggregate');
                   renderChart();
                 });
 

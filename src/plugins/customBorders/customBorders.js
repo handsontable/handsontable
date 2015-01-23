@@ -20,7 +20,7 @@
    */
   var checkEnable = function (customBorders) {
     if(typeof customBorders === "boolean"){
-      if (customBorders == true){
+      if (customBorders === true){
         return true;
       }
     }
@@ -176,7 +176,7 @@
   var createSingleEmptyBorder = function () {
     return {
       hide: true
-    }
+    };
   };
 
 
@@ -189,7 +189,7 @@
       width: 1,
       color: '#000',
       cornerVisible: false
-    }
+    };
   };
 
   /***
@@ -209,7 +209,7 @@
       right: createSingleEmptyBorder(),
       bottom: createSingleEmptyBorder(),
       left: createSingleEmptyBorder()
-    }
+    };
   };
 
 
@@ -281,9 +281,11 @@
   var setBorder = function (row, col,place, remove){
 
     var bordersMeta = this.getCellMeta(row, col).borders;
+    /* jshint ignore:start */
     if (!bordersMeta || bordersMeta.border == undefined){
       bordersMeta = createEmptyBorders(row, col);
     }
+    /* jshint ignore:end */
 
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
@@ -458,7 +460,7 @@
                 label = markSelected(label);
               }
 
-              return label
+              return label;
             },
             callback: function () {
               var hasBorder = checkSelectionBorders(this, 'left');

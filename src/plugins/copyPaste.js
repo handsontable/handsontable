@@ -1,11 +1,11 @@
 (function (Handsontable, CopyPaste, SheetClip) {
 
   function CopyPastePlugin(instance) {
-    this.copyPasteInstance = CopyPaste.getInstance();
+    var _this = this;
 
+    this.copyPasteInstance = CopyPaste.getInstance();
     this.copyPasteInstance.onCut(onCut);
     this.copyPasteInstance.onPaste(onPaste);
-    var plugin = this;
 
     instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
@@ -13,28 +13,38 @@
       if (!instance.isListening()) {
         return;
       }
-
       instance.selection.empty();
     }
 
     function onPaste(str) {
+      var
+        input,
+        inputArray,
+        selected,
+        coordsFrom,
+        coordsTo,
+        cellRange,
+        topLeftCorner,
+        bottomRightCorner,
+        areaStart,
+        areaEnd;
+
       if (!instance.isListening() || !instance.selection.isSelected()) {
         return;
       }
-
-      var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
-        , inputArray = SheetClip.parse(input)
-        , selected = instance.getSelected()
-        , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
-        , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
-        , cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo)
-        , topLeftCorner = cellRange.getTopLeftCorner()
-        , bottomRightCorner = cellRange.getBottomRightCorner()
-        , areaStart = topLeftCorner
-        , areaEnd = new WalkontableCellCoords(
-          Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-          Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
-        );
+      input = str;
+      inputArray = SheetClip.parse(input);
+      selected = instance.getSelected();
+      coordsFrom = new WalkontableCellCoords(selected[0], selected[1]);
+      coordsTo = new WalkontableCellCoords(selected[2], selected[3]);
+      cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo);
+      topLeftCorner = cellRange.getTopLeftCorner();
+      bottomRightCorner = cellRange.getBottomRightCorner();
+      areaStart = topLeftCorner;
+      areaEnd = new WalkontableCellCoords(
+        Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+        Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
+      );
 
       instance.addHookOnce('afterChange', function (changes, source) {
         if (changes && changes.length) {
@@ -43,22 +53,25 @@
       });
 
       instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
-    };
+    }
 
     function onBeforeKeyDown (event) {
+      var ctrlDown;
+
       if (instance.getSelected()) {
         if (Handsontable.helper.isCtrlKey(event.keyCode)) {
-          //when CTRL is pressed, prepare selectable text in textarea
-          //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-          plugin.setCopyableText();
+          // when CTRL is pressed, prepare selectable text in textarea
+          // http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+          _this.setCopyableText();
           event.stopImmediatePropagation();
+
           return;
         }
-
-        var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+        // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+        ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
         if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
-          instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
+          instance._registerTimeout(setTimeout(Handsontable.helper.proxy(_this.setCopyableText, _this), 0));
         }
       }
     }
@@ -79,7 +92,6 @@
      * Prepares copyable text in the invisible textarea
      */
     this.setCopyableText = function () {
-
       var settings = instance.getSettings();
       var copyRowsLimit = settings.copyRowsLimit;
       var copyColsLimit = settings.copyColsLimit;
@@ -100,26 +112,19 @@
         Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
       }
     };
-
   }
 
-
-
   function init() {
-    var instance  = this;
-    var pluginEnabled = instance.getSettings().copyPaste !== false;
+    var instance  = this,
+      pluginEnabled = instance.getSettings().copyPaste !== false;
 
-    if(pluginEnabled && !instance.copyPaste){
-
+    if (pluginEnabled && !instance.copyPaste) {
       instance.copyPaste = new CopyPastePlugin(instance);
 
     } else if (!pluginEnabled && instance.copyPaste) {
-
       instance.copyPaste.destroy();
       delete instance.copyPaste;
-
     }
-
   }
 
   Handsontable.hooks.add('afterInit', init);

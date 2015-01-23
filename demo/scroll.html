@@ -82,27 +82,16 @@
       </div>
 
       <script data-jsfiddle="example1">
+        var
+          example = document.getElementById('example1'),
+          maximize = document.querySelector('.maximize'),
+          maxed = false,
+          resizeTimeout,
+          availableWidth,
+          availableHeight,
+          hot1;
 
-
-        var maxed = false
-          , resizeTimeout
-          , availableWidth
-          , availableHeight
-          , example = document.getElementById('example1');
-
-        var calculateSize = function () {
-          if(maxed) {
-            var offset = Handsontable.Dom.offset(example);
-            availableWidth = Handsontable.Dom.innerWidth(document.body) - offset.left + window.scrollX;
-            availableHeight = Handsontable.Dom.innerHeight(document.body) - offset.top + window.scrollY;
-
-            example.style.width = availableWidth + 'px';
-            example.style.height = availableHeight + 'px';
-          }
-        };
-
-        Handsontable.Dom.addEvent(window, 'resize', calculateSize);
-        var hot1 = new Handsontable(example,{
+        hot1 = new Handsontable(example,{
           data: Handsontable.helper.createSpreadsheetData(1000, 1000),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
@@ -113,10 +102,24 @@
           contextMenu: true
         });
 
-        var maximize = document.querySelector('.maximize');
-        Handsontable.Dom.addEvent(maximize, 'click', function () {
+        function calculateSize() {
+          var offset;
+
+          if (maxed) {
+            offset = Handsontable.Dom.offset(example);
+            availableWidth = Handsontable.Dom.innerWidth(document.body) - offset.left + window.scrollX;
+            availableHeight = Handsontable.Dom.innerHeight(document.body) - offset.top + window.scrollY;
+
+            example.style.width = availableWidth + 'px';
+            example.style.height = availableHeight + 'px';
+          }
+        }
+
+        Handsontable.Dom.addEvent(window, 'resize', calculateSize);
+        Handsontable.Dom.addEvent(maximize, 'click', function() {
           maxed = !maxed;
-          if(maxed) {
+
+          if (maxed) {
             calculateSize();
           }
           else {
@@ -124,9 +127,7 @@
             example.style.height = 400 + 'px';
           }
           hot1.render();
-
         });
-
       </script>
     </div>
   </div>

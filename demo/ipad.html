@@ -70,15 +70,16 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var example1 = document.getElementById('example1');
-                var HOT = new Handsontable(example1,{
+                var example1 = document.getElementById('example1'),
+                  hot;
+
+                hot = new Handsontable(example1,{
                   data: Handsontable.helper.createSpreadsheetData(100, 15),
                   rowHeaders: true,
                   colHeaders: true,
                   fixedRowsTop: 2,
                   fixedColumnsLeft: 2
                 });
-
               </script>
 
             </div>

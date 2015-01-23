@@ -114,35 +114,38 @@
 
           <script data-jsfiddle="example1">
             var data = [
-              {id: 1, name: "Ted", isActive: true, color: "orange", date: "2008-01-01"},
-              {id: 2, name: "John", isActive: false, color: "black", date: null},
-              {id: 3, name: "Al", isActive: true, color: "red", date: null},
-              {id: 4, name: "Ben", isActive: false, color: "blue", date: null}
-            ];
+                {id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2008-01-01'},
+                {id: 2, name: 'John', isActive: false, color: 'black', date: null},
+                {id: 3, name: 'Al', isActive: true, color: 'red', date: null},
+                {id: 4, name: 'Ben', isActive: false, color: 'blue', date: null}
+              ],
+              container = document.getElementById('example1'),
+              hot1,
+              yellowRenderer,
+              greenRenderer;
 
-            var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+            yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
               Handsontable.renderers.TextRenderer.apply(this, arguments);
               td.style.backgroundColor = 'yellow';
 
             };
 
-            var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+            greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
               Handsontable.renderers.TextRenderer.apply(this, arguments);
               td.style.backgroundColor = 'green';
 
             };
 
-            var container = document.getElementById("example1");
-            var hot1 = new Handsontable(container,{
+            hot1 = new Handsontable(container, {
               data: data,
               startRows: 5,
               colHeaders: true,
               minSpareRows: 1,
               columns: [
                 {data: "id", type: 'text'},
-                //'text' is default, you don't actually have to declare it
+                // 'text' is default, you don't actually have to declare it
                 {data: "name", renderer: yellowRenderer},
-                //use default 'text' cell type but overwrite its renderer with yellowRenderer
+                // use default 'text' cell type but overwrite its renderer with yellowRenderer
                 {data: "isActive", type: 'checkbox'},
                 {data: "date", type: 'date'},
                 {data: "color",
@@ -178,22 +181,18 @@
           <p>For example writing:</p>
 
         <pre class="javascript"><code>
-          columns: [
-          {
-          type: 'text'
-          }
-          ]
+          columns: [{
+            type: 'text'
+          }]
         </code></pre>
 
           <p>Equals:</p>
 
         <pre class="javascript"><code>
-          columns: [
-          {
-          renderer: Handsontable.renderers.TextRenderer,
-          editor: Handsontable.editors.TextEditor
-          }
-          ]
+          columns: [{
+            renderer: Handsontable.renderers.TextRenderer,
+            editor: Handsontable.editors.TextEditor
+          }]
         </code></pre>
 
           This mapping is defined in file <a

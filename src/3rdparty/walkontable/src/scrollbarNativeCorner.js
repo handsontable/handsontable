@@ -11,14 +11,14 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
-  var elem = this.clone.wtTable.holder.parentNode;
+  var elem = this.clone.wtTable.holder.parentNode,
+    finalLeft,
+    finalTop;
 
   if (this.scrollHandler === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
-    var finalLeft
-      , finalTop;
     var bottom = Math.ceil(box.bottom);
     var right = Math.ceil(box.right);
 
