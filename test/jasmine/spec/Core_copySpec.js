@@ -63,25 +63,4 @@ describe('Core_copy', function () {
     keyDownUp('ctrl');
     expect(result).toEqual([4, 5, 2, 2]);
   });
-
-  it('should copy to clipboard the original value when there is no beforeCellCopy callback', function (){
-    handsontable({
-      data : arrayOfArrays()
-    });
-
-    var result = getCopyableData(1, 1, 1, 1); // select '2008'/'Kia'
-    expect(result).toBe('10\n');
-  });
-
-  it('should call beforeCellCopy callback before copy a cell value to clipboard', function (){
-    handsontable({
-      data: arrayOfArrays(),
-      beforeCellCopy : function (value, row, col){
-        return "cell{row=" + row + ",col=" + col + ",value=" + value + "}";
-      }
-    });
-
-    var result = getCopyableData(1, 1, 1, 1); // select '2008'/'Kia'
-    expect(result).toBe("cell{row=1,col=1,value=10}\n");
-  });
 });
