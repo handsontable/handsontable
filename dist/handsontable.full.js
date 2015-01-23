@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 23 2015 16:02:44 GMT-0200 (Horário brasileiro de verão)
+ * Date: Fri Jan 23 2015 16:43:58 GMT-0200 (Horário brasileiro de verão)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
