@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 23 2015 10:07:24 GMT+0100 (CET)
+ * Date: Fri Jan 23 2015 16:02:44 GMT-0200 (Horário brasileiro de verão)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -14025,8 +14025,10 @@ Handsontable.MergeCells = MergeCells;
 
       if (this.mouseDragOutside) {
         setTimeout(function () {
-          plugin.addingStarted = false;
-          plugin.instance.alter('insert_row');
+          if(plugin.instance.getSettings().minSpareRows > 0){
+            plugin.addingStarted = false;
+            plugin.instance.alter('insert_row');
+          }
         }, 200);
       }
     });
@@ -14271,17 +14273,19 @@ Handsontable.MergeCells = MergeCells;
       tableRows = this.instance.countRows(),
       that = this;
 
-    if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
-      selection = this.instance.getSelected();
-      fillCorners = this.instance.view.wt.selections.fill.getCorners();
+    if(this.instance.getSettings().minSpareRows > 0){
+      if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+        selection = this.instance.getSelected();
+        fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-      if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
-        this.addingStarted = true;
+        if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
+          this.addingStarted = true;
 
-        this.instance._registerTimeout(setTimeout(function () {
-          that.instance.alter('insert_row');
-          that.addingStarted = false;
-        }, 200));
+          this.instance._registerTimeout(setTimeout(function () {
+            that.instance.alter('insert_row');
+            that.addingStarted = false;
+          }, 200));
+        }
       }
     }
 
