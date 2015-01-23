@@ -99,23 +99,25 @@
   };
 
   Handsontable.DataMap.prototype.colToProp = function (col) {
-    col = Handsontable.hooks.execute(this.instance, 'modifyCol', col);
+    col = Handsontable.hooks.run(this.instance, 'modifyCol', col);
+
     if (this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
       return this.colToPropCache[col];
     }
-    else {
-      return col;
-    }
+
+    return col;
   };
 
   Handsontable.DataMap.prototype.propToCol = function (prop) {
     var col;
+
     if (typeof this.propToColCache.get(prop) !== 'undefined') {
       col = this.propToColCache.get(prop);
     } else {
       col = prop;
     }
-    col = Handsontable.hooks.execute(this.instance, 'modifyCol', col);
+    col = Handsontable.hooks.run(this.instance, 'modifyCol', col);
+
     return col;
   };
 
@@ -256,7 +258,7 @@
     // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
     var logicRows = this.physicalRowsToLogical(index, amount);
 
-    var actionWasNotCancelled = Handsontable.hooks.execute(this.instance, 'beforeRemoveRow', index, amount);
+    var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount);
 
     if (actionWasNotCancelled === false) {
       return;
@@ -293,7 +295,7 @@
 
     index = (this.instance.countCols() + index) % this.instance.countCols();
 
-    var actionWasNotCancelled = Handsontable.hooks.execute(this.instance, 'beforeRemoveCol', index, amount);
+    var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount);
 
     if (actionWasNotCancelled === false) {
       return;
@@ -366,7 +368,8 @@
    * @param {Number} prop
    */
   Handsontable.DataMap.prototype.get = function (row, prop) {
-    row = Handsontable.hooks.execute(this.instance, 'modifyRow', row);
+    row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+
     if (typeof prop === 'string' && prop.indexOf('.') > -1) {
       var sliced = prop.split(".");
       var out = this.dataSource[row];
@@ -428,7 +431,8 @@
    * @param {String} [source] Optional. Source of hook runner.
    */
   Handsontable.DataMap.prototype.set = function (row, prop, value, source) {
-    row = Handsontable.hooks.execute(this.instance, 'modifyRow', row, source || "datamapGet");
+    row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || "datamapGet");
+
     if (typeof prop === 'string' && prop.indexOf('.') > -1) {
       var sliced = prop.split(".");
       var out = this.dataSource[row];
@@ -466,7 +470,7 @@
     var row;
 
     while (physicRow < totalRows && rowsToRemove) {
-      row = Handsontable.hooks.execute(this.instance, 'modifyRow', physicRow);
+      row = Handsontable.hooks.run(this.instance, 'modifyRow', physicRow);
       logicRows.push(row);
 
       rowsToRemove--;

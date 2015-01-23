@@ -12,14 +12,14 @@
   function HandsontableManualRowMove() {
 
     var startRow,
-        endRow,
-        startY,
-        startOffset,
-        currentRow,
-        currentTH,
-        handle = document.createElement('DIV'),
-        guide = document.createElement('DIV'),
-        eventManager = Handsontable.eventManager(this);
+      endRow,
+      startY,
+      startOffset,
+      currentRow,
+      currentTH,
+      handle = document.createElement('DIV'),
+      guide = document.createElement('DIV'),
+      eventManager = Handsontable.eventManager(this);
 
     handle.className = 'manualRowMover';
     guide.className = 'manualRowMoverGuide';
@@ -31,7 +31,7 @@
 
     var loadManualRowPositions = function () {
       var instance = this,
-          storedState = {};
+        storedState = {};
       Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowPositions', storedState);
       return storedState.value;
     };
@@ -111,9 +111,9 @@
       var pressed;
 
 
-      eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
-        if(checkRowHeader(e.target)){
-          var th = getTHFromTargetElement(e.target)
+      eventManager.addEventListener(instance.rootElement, 'mouseover', function (e) {
+        if (checkRowHeader(e.target)) {
+          var th = getTHFromTargetElement(e.target);
           if (th) {
             if (pressed) {
               endRow = instance.view.wt.wtTable.getCoords(th).row;
@@ -126,7 +126,7 @@
         }
       });
 
-      eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
+      eventManager.addEventListener(instance.rootElement, 'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowMover')) {
           startY = Handsontable.helper.pageY(e);
           setupGuidePosition.call(instance);
@@ -137,13 +137,13 @@
         }
       });
 
-      eventManager.addEventListener(window,'mousemove',function (e) {
+      eventManager.addEventListener(window, 'mousemove', function (e) {
         if (pressed) {
           refreshGuidePosition(Handsontable.helper.pageY(e) - startY);
         }
       });
 
-      eventManager.addEventListener(window,'mouseup',function (e) {
+      eventManager.addEventListener(window, 'mouseup', function (e) {
         if (pressed) {
           hideHandleAndGuide();
           pressed = false;
@@ -183,17 +183,22 @@
 
     this.init = function (source) {
       var instance = this;
-
       var manualRowMoveEnabled = !!(instance.getSettings().manualRowMove);
 
       if (manualRowMoveEnabled) {
         var initialManualRowPositions = instance.getSettings().manualRowMove;
-
         var loadedManualRowPostions = loadManualRowPositions.call(instance);
+
+        // update plugin usages count for manualColumnPositions
+        if (typeof instance.manualRowPositionsPluginUsages != 'undefined') {
+          instance.manualRowPositionsPluginUsages.push('manualColumnMove');
+        } else {
+          instance.manualRowPositionsPluginUsages = ['manualColumnMove'];
+        }
 
         if (typeof loadedManualRowPostions != 'undefined') {
           this.manualRowPositions = loadedManualRowPostions;
-        } else if(Array.isArray(initialManualRowPositions)) {
+        } else if (Array.isArray(initialManualRowPositions)) {
           this.manualRowPositions = initialManualRowPositions;
         } else {
           this.manualRowPositions = [];
@@ -207,8 +212,12 @@
           }
         }
       } else {
-        unbindEvents.call(this);
-        instance.manualRowPositions = [];
+        var pluginUsagesIndex = instance.manualRowPositionsPluginUsages ? instance.manualRowPositionsPluginUsages.indexOf('manualColumnMove') : -1;
+        if (pluginUsagesIndex > -1) {
+          unbindEvents.call(this);
+          instance.manualRowPositions = [];
+          instance.manualRowPositionsPluginUsages[pluginUsagesIndex] = void 0;
+        }
       }
 
     };
@@ -229,7 +238,7 @@
   var htManualRowMove = new HandsontableManualRowMove();
 
   Handsontable.hooks.add('beforeInit', htManualRowMove.beforeInit);
-  Handsontable.hooks.add('afterInit',  function () {
+  Handsontable.hooks.add('afterInit', function () {
     htManualRowMove.init.call(this, 'afterInit');
   });
 

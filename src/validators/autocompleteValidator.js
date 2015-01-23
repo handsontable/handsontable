@@ -23,17 +23,21 @@ var process = function (value, callback) {
     }
 
     callback(found);
-  }
+  };
 };
 
 /**
  * Autocomplete cell validator
  * @param {*} value - Value of edited cell
- * @param {*} calback - Callback called with validation result
+ * @param {*} callback - Callback called with validation result
  */
 Handsontable.AutocompleteValidator = function (value, callback) {
   if (this.strict && this.source) {
-    typeof this.source === 'function' ? this.source(value, process(value, callback)) : process(value, callback)(this.source);
+    if ( typeof this.source === 'function' ) {
+      this.source(value, process(value, callback));
+    } else {
+      process(value, callback)(this.source);
+    }
   } else {
     callback(true);
   }

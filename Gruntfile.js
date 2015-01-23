@@ -50,6 +50,9 @@ var browsers = [
 ];
 
 module.exports = function (grunt) {
+
+  require('time-grunt')(grunt);
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     gitinfo: {
@@ -119,7 +122,8 @@ module.exports = function (grunt) {
         'src/plugins/grouping/grouping.js',
         'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js',
         'src/plugins/multipleSelectionHandles/multipleSelectionHandles.js',
-        'src/plugins/touchScroll/touchScroll.js'
+        'src/plugins/touchScroll/touchScroll.js',
+        'src/plugins/manualColumnFreeze/manualColumnFreeze.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
@@ -365,11 +369,23 @@ module.exports = function (grunt) {
           testname: "Development test (Walkontable)"
         }
       }
-    }
+    },
+    jshint: (function() {
+      var options = {
+        options: {
+          jshintrc: true
+        }
+      };
+      options.core = 'src/core.js';
+      options.src = '<%= meta.src %>';
+      options.walkontable = '<%= meta.walkontable %>';
+
+      return options;
+    }())
   });
 
   // Default task.
-  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['jshint', 'gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -416,4 +432,5 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-saucelabs');
   grunt.loadNpmTasks('grunt-gitinfo');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 };

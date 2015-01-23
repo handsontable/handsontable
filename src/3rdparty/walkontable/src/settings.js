@@ -17,10 +17,10 @@ function WalkontableSettings(instance, settings) {
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
     rowHeaders: function () {
-      return []
+      return [];
     }, //this must be array of functions: [function (row, TH) {}]
     columnHeaders: function () {
-      return []
+      return [];
     }, //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
     totalColumns: void 0,
@@ -113,5 +113,5 @@ WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3
 };
 
 WalkontableSettings.prototype.has = function (key) {
-  return !!this.settings[key]
+  return !!this.settings[key];
 };

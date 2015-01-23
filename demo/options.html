@@ -7,13 +7,8 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
-  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen"
-        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -72,7 +67,7 @@
           <div id="example1"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
           </p>
@@ -123,16 +118,17 @@
 
           <script data-jsfiddle="example1">
             var data = [
-              ["", "Maserati", "Mazda", "Mercedes-Benz", "Mini", "Mitsubishi"],
-              ["2009", 0, 2941, 4303, 354, 5814],
-              ["2010", 5, 2905, 2867, 412, 5284],
-              ["2011", 4, 2517, 4822, 552, 6127],
-              ["2012", 2, 2422, 5399, 776, 4151]
-            ];
+                ['', 'Maserati', 'Mazda', 'Mercedes-Benz', 'Mini', 'Mitsubishi'],
+                ['2009', 0, 2941, 4303, 354, 5814],
+                ['2010', 3, 2905, 2867, 412, 5284],
+                ['2011', 4, 2517, 4822, 552, 6127],
+                ['2012', 2, 2422, 5399, 776, 4151]
+              ],
+              container = document.getElementById('example1'),
+              htOptions = document.querySelectorAll('.handsontableOption'),
+              hot;
 
-            var container = document.getElementById('example1');
-
-            var HOT = new Handsontable(container,{
+            hot = new Handsontable(container, {
               data: data,
               minRows: 5,
               minCols: 6,
@@ -143,11 +139,10 @@
               colWidths: 80
             });
 
-
-            var htOptions = document.querySelectorAll('.handsontableOption');
-            for(var i = 0, len = htOptions.length; i<len; i++) {
-              Handsontable.Dom.addEvent(htOptions[i], 'change', function (){
+            for (var i = 0, len = htOptions.length; i<len; i++) {
+              Handsontable.Dom.addEvent(htOptions[i], 'change', function () {
                 var update = {};
+
                 switch (this.value) {
                   case 'true':
                     update[this.name] = true;
@@ -161,7 +156,7 @@
                     update[this.name] = this.value;
                 }
 
-                HOT.updateSettings(update);
+                hot.updateSettings(update);
               });
             }
           </script>

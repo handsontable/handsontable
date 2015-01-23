@@ -179,7 +179,7 @@
 
       if (entryPosition == -1) {
         return false;
-      } else if (entryPosition == 0) {
+      } else if (entryPosition === 0) {
         this.dragged = this.dragged.slice(0, 1);
       } else if (entryPosition == 1) {
         this.dragged = this.dragged.slice(-1);
@@ -274,7 +274,7 @@
   };
 
   MultipleSelectionHandles.prototype.isDragged = function () {
-    if (this.dragged.length == 0) {
+    if (this.dragged.length === 0) {
       return false;
     } else {
       return true;

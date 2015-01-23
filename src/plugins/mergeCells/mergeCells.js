@@ -188,7 +188,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
       newDelta = {
         row: nextParentIsMerged.row - currentPosition.row,
         col: nextParentIsMerged.col - currentPosition.col
-      }
+      };
     }
   } else if (hook == 'modifyTransformEnd') {
     for (var i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
@@ -242,8 +242,12 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     }
   }
 
-  if (newDelta.row != 0) delta.row = newDelta.row;
-  if (newDelta.col != 0) delta.col = newDelta.col;
+  if (newDelta.row !== 0) {
+    delta.row = newDelta.row;
+  }
+  if (newDelta.col !== 0) {
+    delta.col = newDelta.col;
+  }
 };
 
 if (typeof Handsontable == 'undefined') {
@@ -357,7 +361,7 @@ var modifyTransformFactory = function (hook) {
         }
       }
     }
-  }
+  };
 };
 
 /**
@@ -495,9 +499,9 @@ var isMultipleSelection = function (isMultiple) {
       , selectionRange = this.getSelectedRange();
 
     for (var group in mergedCells) {
-      if (selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
-        && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1
-        && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+      if (selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col &&
+          selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+          selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
         return false;
       }
     }

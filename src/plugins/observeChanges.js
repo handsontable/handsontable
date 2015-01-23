@@ -116,7 +116,7 @@
     function removeLengthRelatedPatches(rawPatches){
       return rawPatches.filter(function(patch){
         return !/[/]length/ig.test(patch.path);
-      })
+      });
     }
 
     function parsePath(path){
@@ -124,7 +124,7 @@
       return {
         row: parseInt(match[1], 10),
         col: /^\d*$/.test(match[2]) ? parseInt(match[2], 10) : match[2]
-      }
+      };
     }
   }
 

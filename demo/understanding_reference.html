@@ -53,144 +53,152 @@
       <div class="columnLayout">
 
         <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <h2>Understanding binding as reference</h2>
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Understanding binding as reference</h2>
 
-          <p>Handsontable binds to your data source (array or object) by reference. Therefore, all the data entered in
-            the
-            grid will alter the original data source.</p>
+              <p>Handsontable binds to your data source (array or object) by reference. Therefore, all the data entered in
+                the
+                grid will alter the original data source.</p>
 
-          <p>In complex applications, you may have a purpose to change data source programatically (outside of
-            Handsontable). A value change that was done programatically will not be presented on the screen unless you
-            refresh the grid on screen using the <b>render</b> method.</p>
+              <p>In complex applications, you may have a purpose to change data source programatically (outside of
+                Handsontable). A value change that was done programatically will not be presented on the screen unless you
+                refresh the grid on screen using the <b>render</b> method.</p>
 
-          <div id="example1"></div>
+              <div id="example1"></div>
 
-          <p>
-            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              <p>
+                <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
+            </div>
           </div>
-          <script data-jsfiddle="example1">
-            var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
-            ],
-              container = document.getElementById('example1'),
-              settings1 = {
-                data:data
-              },
-              hot = new Handsontable(container,settings1);
-            data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
-            hot.render();
-          </script>
-        </div>
-      </div>
-    </div>
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h2>But I want to change my data without rendering changes!</h2>
-        </div>
-      </div>
-    </div>
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
+              <script data-jsfiddle="example1">
+                var
+                  data1 = [
+                    ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                    ['2008', 10, 11, 12, 13],
+                    ['2009', 20, 11, 14, 13],
+                    ['2010', 30, 15, 12, 13]
+                  ],
+                  container1 = document.getElementById('example1'),
+                  settings1 = {
+                    data: data1
+                  },
+                  hot1;
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example2">
-          <p>In case you want to keep separate working copy of data for Handsontable, it is suggested to clone the data
-            source before you load it to Handsontable.</p>
-
-          <p>This can easily be done with <b>JSON.parse(JSON.stringify(data))</b> or some other deep-cloning function.</p>
-
-          <div id="example2"></div>
-
-          <p>
-            <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+                hot1 = new Handsontable(container1, settings1);
+                data1[0][1] = 'Ford'; // change "Kia" to "Ford" programatically
+                hot1.render();
+              </script>
+            </div>
           </div>
-          <script data-jsfiddle="example2">
-            var data2 = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
-            ];
-
-            var container = document.getElementById("example2");
-            var hot2 = new Handsontable(container,{
-              data: JSON.parse(JSON.stringify(data2))
-            });
-          </script>
         </div>
-      </div>
-    </div>
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example3">
-          <p>In a similar way, you may find it useful to clone data before saving it.</p>
-
-          <p>That would be useful to make programmatic changes that would be saved to server but kept not invisible to
-            the
-            user.</p>
-
-          <div id="example3"></div>
-
-          <p>
-            <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad">
+              <h2>But I want to change my data without rendering changes!</h2>
+            </div>
           </div>
-          <script data-jsfiddle="example3">
-            var data3 = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
-            ],
-              container = document.getElementById("example3"),
-              hot3 = new Handsontable(container,{
-                data: data3,
-                afterChange: function () {
-                  var tmpData = JSON.parse(JSON.stringify(data3))
-                  //now tmpData has a copy of data3 that can be manipulated
-                  //without breaking the Handsontable data source object
-                }
-              });
-          </script>
         </div>
-      </div>
-    </div>
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example2">
+              <p>In case you want to keep separate working copy of data for Handsontable, it is suggested to clone the data
+                source before you load it to Handsontable.</p>
+
+              <p>This can easily be done with <b>JSON.parse(JSON.stringify(data))</b> or some other deep-cloning function.</p>
+
+              <div id="example2"></div>
+
+              <p>
+                <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+              </div>
+              <script data-jsfiddle="example2">
+                var
+                  data2 = [
+                    ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                    ['2008', 10, 11, 12, 13],
+                    ['2009', 20, 11, 14, 13],
+                    ['2010', 30, 15, 12, 13]
+                  ],
+                  container2 = document.getElementById('example2'),
+                  hot2;
+
+                hot2 = new Handsontable(container2, {
+                  data: JSON.parse(JSON.stringify(data2))
+                });
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example3">
+              <p>In a similar way, you may find it useful to clone data before saving it.</p>
+
+              <p>That would be useful to make programmatic changes that would be saved to server but kept not invisible to
+                the
+                user.</p>
+
+              <div id="example3"></div>
+
+              <p>
+                <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
+              </div>
+              <script data-jsfiddle="example3">
+                var
+                  data3 = [
+                    ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+                    ['2008', 10, 11, 12, 13],
+                    ['2009', 20, 11, 14, 13],
+                    ['2010', 30, 15, 12, 13]
+                  ],
+                  container3 = document.getElementById('example3'),
+                  hot3;
+
+                  hot3 = new Handsontable(container3, {
+                    data: data3,
+                    afterChange: function () {
+                      var tmpData = JSON.parse(JSON.stringify(data3));
+                      // now tmpData has a copy of data3 that can be manipulated
+                      // without breaking the Handsontable data source object
+                    }
+                  });
+              </script>
+            </div>
+          </div>
+        </div>
 
         <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.

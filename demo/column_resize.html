@@ -74,7 +74,7 @@
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" data-instance="HOT" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example1" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -89,8 +89,10 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var container = document.getElementById('example1');
-            var HOT = new Handsontable(container,{
+            var container = document.getElementById('example1'),
+              hot;
+
+            hot = new Handsontable(container, {
               data: Handsontable.helper.createSpreadsheetData(1000, 10),
               rowHeaders: true,
               colHeaders: true,
@@ -101,7 +103,6 @@
               minSpareRows: 1,
               persistentState: true
             });
-
           </script>
 
         </div>
@@ -109,36 +110,32 @@
     </div>
 
         <script type="text/javascript">
-          (function(HOT){
-            var reset = document.querySelector('.reset-state1');
-            var stateLoaded = document.querySelector('.state-loaded');
+          (function(hot){
+            var reset = document.querySelector('.reset-state1'),
+              stateLoaded = document.querySelector('.state-loaded'),
+              storedData = {},
+              savedKeys;
 
             Handsontable.Dom.addEvent(reset, 'click', function(){
-
-              HOT.runHooks('persistentStateReset');
-
-              HOT.updateSettings({
+              hot.runHooks('persistentStateReset');
+              hot.updateSettings({
                 manualColumnMove: true,
                 manualRowMove: true,
                 manualColumnResize: true,
                 manualRowResize: true
               });
-
               stateLoaded.style.display = 'none';
-              HOT.render();
+              hot.render();
             });
 
-            var storedData = {};
+            hot.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
+            savedKeys = storedData.value;
 
-            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
-
-            var savedKeys = storedData.value;
-
-            if(savedKeys && savedKeys.length > 0){
+            if (savedKeys && savedKeys.length > 0) {
               stateLoaded.style.display = 'block';
-              HOT.render();
+              hot.render();
             }
-          })(HOT);
+          })(hot);
 
         </script>
 

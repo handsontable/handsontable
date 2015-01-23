@@ -9,7 +9,7 @@
  * @constructor
  */
 (function (Handsontable) {
-  function HandsontableManualRowResize () {
+  function HandsontableManualRowResize() {
 
     var currentTH
       , currentRow
@@ -106,9 +106,9 @@
       var dblclick = 0;
       var autoresizeTimeout = null;
 
-      eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
-        if(checkRowHeader(e.target)) {
-          var th = getTHFromTargetElement(e.target)
+      eventManager.addEventListener(instance.rootElement, 'mouseover', function (e) {
+        if (checkRowHeader(e.target)) {
+          var th = getTHFromTargetElement(e.target);
           if (th) {
             if (!pressed) {
               setupHandlePosition.call(instance, th);
@@ -117,7 +117,7 @@
         }
       });
 
-      eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
+      eventManager.addEventListener(instance.rootElement, 'mousedown', function (e) {
         if (Handsontable.Dom.hasClass(e.target, 'manualRowResizer')) {
           setupGuidePosition.call(instance);
           pressed = instance;
@@ -142,7 +142,7 @@
         }
       });
 
-      eventManager.addEventListener(window,'mousemove',function (e) {
+      eventManager.addEventListener(window, 'mousemove', function (e) {
         if (pressed) {
           currentHeight = startHeight + (Handsontable.helper.pageY(e) - startY);
           newSize = setManualSize(currentRow, currentHeight);
@@ -151,12 +151,12 @@
         }
       });
 
-      eventManager.addEventListener(window,'mouseup',function (e) {
+      eventManager.addEventListener(window, 'mouseup', function (e) {
         if (pressed) {
           hideHandleAndGuide();
           pressed = false;
 
-          if(newSize != startHeight){
+          if (newSize != startHeight) {
             instance.forceFullRender = true;
             instance.view.render(); //updates all
 
@@ -172,7 +172,7 @@
       instance.addHook('afterDestroy', unbindEvents);
     };
 
-    var unbindEvents = function(){
+    var unbindEvents = function () {
       eventManager.clear();
     };
 
@@ -187,8 +187,14 @@
       if (manualColumnHeightEnabled) {
 
         var initialRowHeights = this.getSettings().manualRowResize;
-
         var loadedManualRowHeights = loadManualRowHeights.call(instance);
+
+        // update plugin usages count for manualColumnPositions
+        if (typeof instance.manualRowHeightsPluginUsages != 'undefined') {
+          instance.manualRowHeightsPluginUsages.push('manualRowResize');
+        } else {
+          instance.manualRowHeightsPluginUsages = ['manualRowResize'];
+        }
 
         if (typeof loadedManualRowHeights != 'undefined') {
           this.manualRowHeights = loadedManualRowHeights;
@@ -212,25 +218,31 @@
         }
       }
       else {
-        unbindEvents.call(this);
-        this.manualRowHeights = [];
+        var pluginUsagesIndex = instance.manualRowHeightsPluginUsages ? instance.manualRowHeightsPluginUsages.indexOf('manualRowResize') : -1;
+        if (pluginUsagesIndex > -1) {
+          unbindEvents.call(this);
+          this.manualRowHeights = [];
+          instance.manualRowHeightsPluginUsages[pluginUsagesIndex] = void 0;
+        }
       }
     };
 
     var setManualSize = function (row, height) {
-      row = Handsontable.hooks.execute(instance, 'modifyRow', row);
-
+      row = Handsontable.hooks.run(instance, 'modifyRow', row);
       instance.manualRowHeights[row] = height;
+
       return height;
     };
 
     this.modifyRowHeight = function (height, row) {
       if (this.getSettings().manualRowResize) {
-        row = this.runHooksAndReturn('modifyRow', row);
+        row = this.runHooks('modifyRow', row);
+
         if (this.manualRowHeights[row] !== void 0) {
           return this.manualRowHeights[row];
         }
       }
+
       return height;
     };
   }
@@ -243,7 +255,7 @@
   });
 
   Handsontable.hooks.add('afterUpdateSettings', function () {
-    htManualRowResize.init.call(this, 'afterUpdateSettings')
+    htManualRowResize.init.call(this, 'afterUpdateSettings');
   });
 
   Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);

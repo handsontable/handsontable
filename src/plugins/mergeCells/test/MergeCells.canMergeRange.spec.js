@@ -69,7 +69,7 @@ describe("handsontable.MergeCells", function () {
       var TD = hot.rootElement.querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
-    })
+    });
   });
 
   describe("mergeCells copy", function () {
@@ -80,8 +80,8 @@ describe("handsontable.MergeCells", function () {
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3");
-    })
+      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3\n");
+    });
   });
 
   describe("merged cells selection", function () {
@@ -396,8 +396,7 @@ describe("handsontable.MergeCells", function () {
       expect(mergedCellHidden).toBe(mergedCellParent);
     });
 
-    // TODO: Temporarily commented due to 0.12.3 reported merged cells issue
-    xit("should scroll viewport to beginning of a merged cell when it's clicked", function () {
+    it("should scroll viewport to beginning of a merged cell when it's clicked", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [

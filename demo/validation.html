@@ -99,21 +99,26 @@
 
           <script data-jsfiddle="example1">
             var people = [
-              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
-              {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
-              {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
-              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
-              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
-              {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
-              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
-              {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
-              {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
-              {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
-              {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
-            ];
+                {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
+                {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
+                {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
+                {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
+                {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
+                {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
+                {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
+                {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
+                {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
+                {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
+                {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
+              ],
+              example1 = document.getElementById('example1'),
+              example1console = document.getElementById('example1console'),
+              settings1,
+              ipValidatorRegexp,
+              emailValidator;
 
-            var ip_validator_regexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
-            var email_validator_fn = function (value, callback) {
+            ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+            emailValidator = function (value, callback) {
               setTimeout(function(){
                 if (/.+@.+/.test(value)) {
                   callback(true);
@@ -124,23 +129,23 @@
               }, 1000);
             };
 
-            var example1 = document.getElementById('example1');
-            var example1console = document.getElementById('example1console');
-            var settings1 = {
+            settings1 = {
               data: people,
               minSpareRows: 1,
               contextMenu: true,
               beforeChange: function (changes, source) {
                 for (var i = changes.length - 1; i >= 0; i--) {
-                  if (changes[i][3] === "foo") {
-                    changes.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
+                  // gently don't accept the word "foo" (remove the change at index i)
+                  if (changes[i][3] === 'foo') {
+                    changes.splice(i, 1);
                   }
-                  else if (changes[i][3] === "nuke") {
-                    //if any of pasted cells contains the word "nuke", reject the whole paste
+                  // if any of pasted cells contains the word "nuke", reject the whole paste
+                  else if (changes[i][3] === 'nuke') {
                     return false;
                   }
+                  // capitalise first letter in column 1 and 2
                   else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last') && changes[i][3].charAt(0)) {
-                    changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1); //capitalise first letter in column 1 and 2
+                    changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
                   }
                 }
               },
@@ -154,12 +159,11 @@
                 {data: 'id', type: 'numeric'},
                 {data: 'name.first'},
                 {data: 'name.last'},
-                {data: 'ip', validator: ip_validator_regexp, allowInvalid: true},
-                {data: 'email', validator: email_validator_fn, allowInvalid: false}
+                {data: 'ip', validator: ipValidatorRegexp, allowInvalid: true},
+                {data: 'email', validator: emailValidator, allowInvalid: false}
               ]
             };
-
-            var hot = new Handsontable(example1,settings1);
+            var hot = new Handsontable(example1, settings1);
           </script>
         </div>
       </div>

@@ -22,9 +22,9 @@ WalkontableOverlay.prototype.init = function () {
 WalkontableOverlay.prototype.makeClone = function (direction) {
   var clone = document.createElement('DIV');
   clone.className = 'ht_clone_' + direction + ' handsontable';
-	clone.style.position = 'absolute';
-	clone.style.top = 0;
-	clone.style.left = 0;
+  clone.style.position = 'absolute';
+  clone.style.top = 0;
+  clone.style.left = 0;
   clone.style.overflow = 'hidden';
 
   var table2 = document.createElement('TABLE');
@@ -55,10 +55,13 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
 };
 
 WalkontableOverlay.prototype.refresh = function (fastDraw) {
-  this.clone && this.clone.draw(fastDraw);
+  if (this.clone) {
+    this.clone.draw(fastDraw);
+  }
 };
 
 WalkontableOverlay.prototype.destroy = function () {
   var eventManager = Handsontable.eventManager(this.clone);
+
   eventManager.clear();
 };

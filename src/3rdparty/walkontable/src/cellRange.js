@@ -57,10 +57,10 @@ WalkontableCellRange.prototype.includesRange = function (testedRange) {
 };
 
 WalkontableCellRange.prototype.isEqual = function (testedRange) {
-  return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row))
-    && (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row))
-    && (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col))
-    && (Math.max(this.from.col, this.to.col) == Math.max(testedRange.from.col, testedRange.to.col));
+  return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row)) &&
+         (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row)) &&
+         (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col)) &&
+         (Math.max(this.from.col, this.to.col) == Math.max(testedRange.from.col, testedRange.to.col));
 };
 
 /**
@@ -189,10 +189,10 @@ WalkontableCellRange.prototype.getBottomLeftCorner = function () {
 WalkontableCellRange.prototype.isCorner = function (coords, expandedRange) {
   if (expandedRange) {
     if (expandedRange.includes(coords)) {
-      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col))
-        || this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col))
-        || this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col))
-        || this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) {
+      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col)) ||
+          this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col)) ||
+          this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col)) ||
+          this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) {
         return true;
       }
     }
@@ -201,14 +201,24 @@ WalkontableCellRange.prototype.isCorner = function (coords, expandedRange) {
 };
 
 WalkontableCellRange.prototype.getOppositeCorner = function (coords, expandedRange) {
-  if (!(coords instanceof WalkontableCellCoords)) return false;
+  if (!(coords instanceof WalkontableCellCoords)) {
+    return false;
+  }
 
   if (expandedRange) {
     if (expandedRange.includes(coords)) {
-      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col))) return this.getBottomRightCorner();
-      if (this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col))) return this.getBottomLeftCorner();
-      if (this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col))) return this.getTopRightCorner();
-      if (this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) return this.getTopLeftCorner();
+      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col))) {
+        return this.getBottomRightCorner();
+      }
+      if (this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col))) {
+        return this.getBottomLeftCorner();
+      }
+      if (this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col))) {
+        return this.getTopRightCorner();
+      }
+      if (this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) {
+        return this.getTopLeftCorner();
+      }
     }
   }
 

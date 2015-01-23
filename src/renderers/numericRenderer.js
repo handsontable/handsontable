@@ -6,7 +6,7 @@
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 (function (Handsontable) {
 
@@ -15,7 +15,7 @@
   var NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
     if (Handsontable.helper.isNumeric(value)) {
       if (typeof cellProperties.language !== 'undefined') {
-        numeral.language(cellProperties.language)
+        numeral.language(cellProperties.language);
       }
       value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
       Handsontable.Dom.addClass(TD, 'htNumeric');

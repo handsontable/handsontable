@@ -48,6 +48,8 @@ WalkontableTableRenderer.prototype.render = function () {
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.instance.wtViewport.containerWidth = null;
+    } else {
+      this.adjustColumnHeaderHeights();
     }
 
     this.adjustColumnWidths(displayTds);
@@ -125,7 +127,8 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
 
     if (TR.firstChild) {
-      var height = this.instance.wtTable.getRowHeight(sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      var height = this.instance.wtTable.getRowHeight(sourceRowIndex);
       if (height) {
         TR.firstChild.style.height = height + 'px';
       }
@@ -168,6 +171,48 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
 
 };
 
+WalkontableTableRenderer.prototype.adjustColumnHeaderHeights = function () {
+  var columnHeaders = this.instance.getSetting('columnHeaders');
+  for(var i = 0, columnHeadersCount = columnHeaders.length; i < columnHeadersCount; i++) {
+    if(this.instance.wtViewport.oversizedColumnHeaders[i]) {
+      if(this.instance.wtTable.THEAD.childNodes[i].childNodes.length === 0) {
+        return;
+      }
+      this.instance.wtTable.THEAD.childNodes[i].childNodes[0].style.height = this.instance.wtViewport.oversizedColumnHeaders[i] + "px";
+    }
+  }
+};
+
+WalkontableTableRenderer.prototype.markIfOversizedColumnHeader = function (col) {
+  var colCount = this.instance.wtTable.THEAD.childNodes.length !== 0 ? this.instance.wtTable.THEAD.childNodes[0].childNodes.length : 0,
+    sourceColIndex,
+    previousColHeaderHeight,
+    currentHeader,
+    currentHeaderHeight,
+    columnHeaders = this.instance.getSetting('columnHeaders'),
+    columnHeaderCount = columnHeaders.length,
+    level = columnHeaderCount;
+
+    sourceColIndex = this.instance.wtTable.columnFilter.renderedToSource(col);
+
+    while(level) {
+      level--;
+
+      previousColHeaderHeight = this.instance.wtTable.getColumnHeaderHeight(level);
+      currentHeader = this.instance.wtTable.getColumnHeader(sourceColIndex, level);
+
+      if(!currentHeader) {
+        continue;
+      }
+
+      currentHeaderHeight = Handsontable.Dom.innerHeight(currentHeader) - 1;
+
+      if ((!previousColHeaderHeight && this.instance.wtSettings.settings.defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight)) {
+        this.instance.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+    }
+};
+
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
 
@@ -200,11 +245,12 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   var width;
+
   this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
 
   for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
     width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+    this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
   }
 };
 
@@ -280,9 +326,13 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
     TR = this.getTrForColumnHeaders(i);
 
     for (renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
-        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+      var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+      this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+
+      if(!this.wtTable.isWorkingOnClone()) {
+        this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
+    }
   }
 };
 
@@ -337,12 +387,6 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
 
 WalkontableTableRenderer.prototype.getTrForColumnHeaders = function (index) {
   var TR = this.THEAD.childNodes[index];
-//  if (this.rowHeaderCount) {
-//    for(var i = 0; i < this.rowHeaderCount; i++) {
-//      this.renderRowHeaders(i - this.rowHeaderCount, TR);
-//    }
-//  }
-
   return TR;
 };
 

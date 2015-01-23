@@ -89,8 +89,10 @@ var jsonpatch;
     };
 
     function escapePathComponent(str) {
-        if (str.indexOf('/') === -1 && str.indexOf('~') === -1)
+        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) {
             return str;
+        }
+
         return str.replace(/~/g, '~0').replace(/\//g, '~1');
     }
 
@@ -102,9 +104,11 @@ var jsonpatch;
                     return escapePathComponent(key) + '/';
                 } else if (typeof root[key] === 'object') {
                     found = _getPathRecursive(root[key], obj);
+                    /* jshint ignore:start */
                     if (found != '') {
                         return escapePathComponent(key) + '/' + found;
                     }
+                    /* jshint ignore:end */
                 }
             }
         }
@@ -123,9 +127,9 @@ var jsonpatch;
     }
 
     var beforeDict = [];
-
+    /* jshint ignore:start */
     jsonpatch.intervals;
-
+    /* jshint ignore:end */
     var Mirror = (function () {
         function Mirror(obj) {
             this.observers = [];
@@ -204,6 +208,7 @@ var jsonpatch;
                 _observe(observer, obj);
 
                 var a = 0, alen = arr.length;
+                /* jshint ignore:start */
                 while (a < alen) {
                     if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
                         var type = arr[a].type;
@@ -226,6 +231,7 @@ var jsonpatch;
                     }
                     a++;
                 }
+                /* jshint ignore:end */
 
                 if (patches) {
                     if (callback) {
@@ -260,8 +266,9 @@ var jsonpatch;
                 };
                 var slowCheck = function () {
                     dirtyCheck();
-                    if (currentInterval == intervals.length)
+                    if (currentInterval == intervals.length) {
                         currentInterval = intervals.length - 1;
+                    }
                     observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
                 };
                 if (typeof window !== 'undefined') {
@@ -429,8 +436,9 @@ var jsonpatch;
                     obj = obj[index];
                 } else {
                     var key = keys[t];
-                    if (key.indexOf('~') != -1)
+                    if (key.indexOf('~') != -1) {
                         key = key.replace(/~1/g, '/').replace(/~0/g, '~');
+                    }
                     t++;
                     if (t >= len) {
                         result = objOps[patch.op].call(patch, obj, key, tree);

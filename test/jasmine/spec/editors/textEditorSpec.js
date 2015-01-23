@@ -62,6 +62,50 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("string");
   });
 
+  it('should render textarea editor in specified height (single line)', function () {
+    var hot = handsontable(),
+      editorHeight;
+
+    setDataAtCell(2, 2, "first line");
+    selectCell(2, 2);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('19px');
+    });
+  });
+
+  it('should render textarea editor in specified height (multi line)', function () {
+    var hot = handsontable(),
+      editorHeight;
+
+    setDataAtCell(2, 2, "first line\n second line\n third line...");
+    selectCell(2, 2);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('60px');
+    });
+  });
+
   it('should render number in textarea', function () {
     handsontable();
     setDataAtCell(2, 2, 13);

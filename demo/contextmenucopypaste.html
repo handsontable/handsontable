@@ -103,17 +103,19 @@
       <script data-jsfiddle="common">
         function getData() {
           return [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
+            ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+            ['2008', 10, 11, 12, 13],
+            ['2009', 20, 11, 14, 13],
+            ['2010', 30, 15, 12, 13]
           ];
         }
       </script>
 
       <script data-jsfiddle="example1">
-        var container = document.getElementById('example1');
-        var hot1 = new Handsontable(container,{
+        var container = document.getElementById('example1'),
+          hot1;
+
+        hot1 = new Handsontable(container, {
           data: getData(),
           startRows: 5,
           startCols: 5,
@@ -126,7 +128,7 @@
           minSpareRows: 1,
           contextMenu: true,
           contextMenuCopyPaste: {
-            swfPath: "swf/ZeroClipboard.swf"
+            swfPath: 'swf/ZeroClipboard.swf'
           }
         });
       </script>
