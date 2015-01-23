@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 23 2015 10:07:24 GMT+0100 (CET)
+ * Date: Fri Jan 23 2015 15:09:32 GMT-0200 (Horário brasileiro de verão)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -5260,7 +5260,8 @@ Handsontable.helper.pageY = function (event) {
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+      var cellValue = this.get(row, prop);
+      return Handsontable.hooks.run(this.instance, 'beforeCellCopy', cellValue, row, prop);
     }
     return '';
   };
@@ -8644,6 +8645,7 @@ Handsontable.PluginHookClass = (function () {
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
       beforeTouchScroll: [],
+      beforeCellCopy : [],
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
