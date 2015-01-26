@@ -70,4 +70,23 @@ describe('WalkontableScrollbarNative', function () {
 
     expect(wt.wtTable.getLastRenderedRow()).toEqual(lastRenderedRow + 2);
   });
+
+  it("should recognize the scrollHandler properly, even if the 'overflow' property is assigned in an external stylesheet", function () {
+    $container.css({
+      'overflow': ''
+    });
+    $container.addClass('testOverflowAuto');
+
+    createDataArray(20, 4);
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+
+    wt.wtScrollbars.vertical.scrollTo(3);
+    expect($container.scrollTop()).toEqual(69);
+  });
 });
