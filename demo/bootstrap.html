@@ -9,11 +9,13 @@
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <script data-jsfiddle="common" type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+  <!--<script data-jsfiddle="common" type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>-->
+  <script data-jsfiddle="common" type="text/javascript" src="bootstrap/v3/js/bootstrap.min.js"></script>
 
-  <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/v3/css/bootstrap.css">
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/bootstrap/handsontable.bootstrap.css">
+
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -77,92 +79,165 @@
       <div class="columnLayout">
 
         <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <h2>Twitter Bootstrap integration</h2>
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Twitter Bootstrap integration</h2>
 
-          <p>This page demonstrate example of using Handsontable with Twitter Bootstrap.</p>
+              <p>This page demonstrate example of using Handsontable with Twitter Bootstrap.</p>
 
-          <p>Please note that you should reset some of Bootstrap styles. You can use file <a
-            href="https://github.com/handsontable/handsontable/blob/master/plugins/bootstrap/handsontable.bootstrap.css">plugins/bootstrap/handsontable.bootstrap.css</a>
-            for that purpose.</p>
+              <p>Please note that you should reset some of Bootstrap styles. You can use file <a
+                href="https://github.com/handsontable/handsontable/blob/master/plugins/bootstrap/handsontable.bootstrap.css">plugins/bootstrap/handsontable.bootstrap.css</a>
+                for that purpose.</p>
 
-          <p class="options">
-            <label><input data-type="table-bordered" type="checkbox"/> table-bordered </label>
-            <label><input data-type="table-striped" type="checkbox"/> table-striped</label>
-            <label><input data-type="table-hover" type="checkbox"/> table-hover</label>
-          </p>
+              <p class="options">
+                <label><input data-type="table-bordered" type="checkbox"/> table-bordered </label>
+                <label><input data-type="table-striped" type="checkbox"/> table-striped</label>
+                <label><input data-type="table-hover" type="checkbox"/> table-hover</label>
+              </p>
 
-          <div id="example1"></div>
+              <div id="example1"></div>
 
-          <p>
-            <button class="btn btn-info" name="dump" data-dump="#example1" data-instance="hot"
-                    title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              <p>
+                <button class="btn btn-info" name="dump" data-dump="#example1" data-instance="hot"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
+            </div>
           </div>
 
-          <script data-jsfiddle="example1">
-            var data = [
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6],
-                [1, 2, 3, 4, 5, 6]
-              ],
-              container = document.getElementById('example1'),
-              options = document.querySelectorAll('.options input'),
-              table,
-              hot;
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
 
-            hot = new Handsontable(container, {
-              data: data,
-              colHeaders: true,
-              rowHeaders: true,
-              minSpareRows: 1
-            });
-            table = document.querySelector('table');
+              <script data-jsfiddle="example1">
+                var data = [
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6],
+                    [1, 2, 3, 4, 5, 6]
+                  ],
+                  container = document.getElementById('example1'),
+                  options = document.querySelectorAll('.options input'),
+                  table,
+                  hot;
 
-            Handsontable.Dom.addClass(table, 'table');
+                hot = new Handsontable(container, {
+                  data: data,
+                  colHeaders: true,
+                  rowHeaders: true,
+                  minSpareRows: 1
+                });
+                table = document.querySelector('table');
 
-            for (var i = 0, len = options.length; i < len; i++) {
-              Handsontable.Dom.addEvent(options[i], 'click', function () {
-                if (this.checked) {
-                  Handsontable.Dom.addClass(table, this.getAttribute('data-type'))
+                Handsontable.Dom.addClass(table, 'table');
+
+                for (var i = 0, len = options.length; i < len; i++) {
+                  Handsontable.Dom.addEvent(options[i], 'click', function () {
+                    if (this.checked) {
+                      Handsontable.Dom.addClass(table, this.getAttribute('data-type'))
+                    }
+                    else {
+                      Handsontable.Dom.removeClass(table, this.getAttribute('data-type'))
+                    }
+                  });
                 }
-                else{
-                  Handsontable.Dom.removeClass(table, this.getAttribute('data-type'))
-                }
-              });
-            }
-          </script>
+              </script>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
 
-        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
+              <div class="row">
+                <div id="example2" class="col-xs-12" style="overflow: auto"></div>
+              </div>
+
+              <p>
+                <button class="btn btn-info" name="dump" data-dump="#example2" data-instance="hot"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
+            </div>
+          </div>
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example2">
+                var cols = 100,
+                  rows = 10,
+                  i, j, len,
+                  data2 = [];
+
+                for ( i = 0; i < rows; i++ ){
+                  data2[i] = [];
+                  for ( j = 0; j < cols; j++ ){
+                    data2[i].push(j+1);
+                  }
+                }
+
+                var container2 = document.getElementById('example2'),
+                  table2,
+                  hot2;
+
+                hot2 = new Handsontable(container2, {
+                  data: data2,
+                  colHeaders: true,
+                  rowHeaders: true,
+                  fixedColumnsLeft:3,
+                  fixedRowsTop: 3,
+                  contextMenu: true
+                  });
+
+                var ex = document.getElementById('example2');
+                table2 = ex.querySelectorAll('table');
+
+                function findAncestor (el, cls) {
+                  while ((el = el.parentElement) && !el.classList.contains(cls));
+                  return el;
+                };
+
+
+                for(  i = 0, len = table2.length; i < len; i++) {
+                  var tableInstance = table2[i];
+                  var isMaster = !!findAncestor(tableInstance,'ht_master');
+                  Handsontable.Dom.addClass(tableInstance, 'table');
+                  Handsontable.Dom.addClass(tableInstance, 'table-hover');
+                  Handsontable.Dom.addClass(tableInstance, 'table-striped');
+                  if (isMaster){
+                    Handsontable.Dom.addClass(tableInstance, 'table-bordered');
+                  }
+                }
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and
+          documentation
           licensed under the The MIT License.
         </div>
       </div>
