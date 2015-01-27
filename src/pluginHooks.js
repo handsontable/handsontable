@@ -48,6 +48,7 @@ Handsontable.PluginHookClass = (function () {
       afterIsMultipleSelectionCheck: [],
       afterDocumentKeyDown: [],
       afterMomentumScroll: [],
+      beforeCellAlignment: [],
 
       // Modifiers
       modifyColWidth: [],
