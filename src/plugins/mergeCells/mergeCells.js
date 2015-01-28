@@ -1,3 +1,13 @@
+
+import {registerPlugin} from './../../plugins.js';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cellRange.js';
+import {WalkontableTable} from './../../3rdparty/walkontable/src/table.js';
+
+export {MergeCells};
+
+//registerPlugin('mergeCells', MergeCells);
+
 function CellInfoCollection() {
 
   var collection = [];

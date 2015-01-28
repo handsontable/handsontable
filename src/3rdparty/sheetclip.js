@@ -17,7 +17,7 @@
     return str.split('"').length - 1;
   }
 
-  global.SheetClip = {
+  var SheetClip = {
     parse: function (str) {
       var r, rlen, rows, arr = [], a = 0, c, clen, multiline, last;
       rows = str.split('\n');
@@ -86,4 +86,11 @@
       return str;
     }
   };
+
+  if (typeof exports !== 'undefined') {
+    exports.parse = SheetClip.parse;
+    exports.stringify = SheetClip.stringify;
+  } else {
+    global.SheetClip = SheetClip;
+  }
 }(window));

@@ -1,3 +1,8 @@
+
+export {WalkontableScroll};
+
+window.WalkontableScroll = WalkontableScroll;
+
 function WalkontableScroll(instance) {
   this.instance = instance;
 }

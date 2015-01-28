@@ -15,13 +15,13 @@
 //  helper: {} //helper namespace
 //};
 
-var Handsontable = function (rootElement, userSettings) {
-  userSettings = userSettings || {};
-  var instance = new Handsontable.Core(rootElement, userSettings);
-  instance.init();
-  return instance;
-};
-Handsontable.plugins = {};
-
-(function (window, Handsontable) {
-  "use strict";
+//var Handsontable = function (rootElement, userSettings) {
+//  userSettings = userSettings || {};
+//  var instance = new Handsontable.Core(rootElement, userSettings);
+//  instance.init();
+//  return instance;
+//};
+//Handsontable.plugins = {};
+//
+//(function (window, Handsontable) {
+//  "use strict";

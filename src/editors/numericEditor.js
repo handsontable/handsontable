@@ -1,32 +1,34 @@
-(function (Handsontable) {
 
-  'use strict';
+import {getEditor, registerEditor} from './../editors.js';
+//import numeral from './../../lib/numeral.js';
+import {TextEditor} from './textEditor.js';
 
-  var NumericEditor = Handsontable.editors.TextEditor.prototype.extend();
+var NumericEditor = TextEditor.prototype.extend();
 
-  NumericEditor.prototype.beginEditing = function (initialValue) {
+export {NumericEditor};
 
-    var BaseEditor = Handsontable.editors.TextEditor.prototype;
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.NumericEditor = NumericEditor;
 
-    if (typeof (initialValue) === 'undefined' && this.originalValue) {
+NumericEditor.prototype.beginEditing = function (initialValue) {
 
-      var value = '' + this.originalValue;
+  var BaseEditor = TextEditor.prototype;
 
-      if (typeof this.cellProperties.language !== 'undefined') {
-        numeral.language(this.cellProperties.language);
-      }
+  if (typeof (initialValue) === 'undefined' && this.originalValue) {
 
-      var decimalDelimiter = numeral.languageData().delimiters.decimal;
-      value = value.replace('.', decimalDelimiter);
+    var value = '' + this.originalValue;
 
-      BaseEditor.beginEditing.apply(this, [value]);
-    } else {
-      BaseEditor.beginEditing.apply(this, arguments);
+    if (typeof this.cellProperties.language !== 'undefined') {
+      numeral.language(this.cellProperties.language);
     }
 
-  };
+    var decimalDelimiter = numeral.languageData().delimiters.decimal;
+    value = value.replace('.', decimalDelimiter);
 
-  Handsontable.editors.NumericEditor = NumericEditor;
-  Handsontable.editors.registerEditor('numeric', NumericEditor);
+    BaseEditor.beginEditing.apply(this, [value]);
+  } else {
+    BaseEditor.beginEditing.apply(this, arguments);
+  }
 
-})(Handsontable);
+};
+registerEditor('numeric', NumericEditor);

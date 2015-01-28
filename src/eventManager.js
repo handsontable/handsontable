@@ -1,11 +1,13 @@
 
-if(!window.Handsontable){
-  var Handsontable = {};
-}
+export {eventManager};
 
-Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
+window.Handsontable = window.Handsontable || {};
+// used to debug memory leaks
+Handsontable.countEventManagerListeners = 0;
+// support for older versions of Handsontable
+Handsontable.eventManager = eventManager;
 
-Handsontable.eventManager = function (instance) {
+function eventManager(instance) {
   if (!instance) {
     throw new Error ('instance not defined');
   }
@@ -133,4 +135,4 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     fireEvent: fireEvent
   };
-};
+}

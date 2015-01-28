@@ -1,11 +1,24 @@
+
+import * as dom from './dom.js';
+import * as helper from './helpers.js';
+import {eventManager} from './eventManager.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
+import {Walkontable} from './3rdparty/walkontable/src/core.js';
+
+export {TableView};
+
+// Support for older Handsontable versions
+Handsontable.TableView = TableView;
+
 /**
  * Handsontable TableView constructor
  * @param {Object} instance
  */
-Handsontable.TableView = function (instance) {
+function TableView(instance) {
   var that = this;
 
-  this.eventManager = Handsontable.eventManager(instance);
+  this.eventManager = eventManager(instance);
   this.instance = instance;
   this.settings = instance.getSettings();
 
@@ -15,7 +28,7 @@ Handsontable.TableView = function (instance) {
     instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   }
 
-  Handsontable.Dom.addClass(instance.rootElement,'handsontable');
+  dom.addClass(instance.rootElement,'handsontable');
 //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -56,7 +69,7 @@ Handsontable.TableView = function (instance) {
 
     isMouseDown = false;
 
-    if (Handsontable.helper.isOutsideInput(document.activeElement)) {
+    if (helper.isOutsideInput(document.activeElement)) {
       instance.unlisten();
     }
   });
@@ -226,7 +239,7 @@ Handsontable.TableView = function (instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      Handsontable.Dom.enableImmediatePropagation(event);
+      dom.enableImmediatePropagation(event);
 
       if (!event.isImmediatePropagationStopped()) {
 
@@ -340,14 +353,14 @@ Handsontable.TableView = function (instance) {
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      Handsontable.helper.stopPropagation(event);
+      helper.stopPropagation(event);
       //event.stopPropagation();
     }
   });
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
-      Handsontable.helper.stopPropagation(event);
+      helper.stopPropagation(event);
       //event.stopPropagation();
     }
   });
@@ -361,36 +374,36 @@ Handsontable.TableView = function (instance) {
       }
     }
   });
-};
+}
 
-Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
-  if (Handsontable.helper.isInput(el)) {
+TableView.prototype.isTextSelectionAllowed = function (el) {
+  if (helper.isInput(el)) {
     return (true);
   }
-  if (this.settings.fragmentSelection && Handsontable.Dom.isChildOf(el, this.TBODY)) {
+  if (this.settings.fragmentSelection && dom.isChildOf(el, this.TBODY)) {
     return (true);
   }
   return false;
 };
 
-Handsontable.TableView.prototype.isCellEdited = function () {
+TableView.prototype.isCellEdited = function () {
   var activeEditor = this.instance.getActiveEditor();
   return activeEditor && activeEditor.isOpened();
 };
 
-Handsontable.TableView.prototype.beforeRender = function (force) {
+TableView.prototype.beforeRender = function (force) {
   if (force) { //force = did Walkontable decide to do full render
     Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender); //this.instance.forceFullRender = did Handsontable request full render?
   }
 };
 
-Handsontable.TableView.prototype.onDraw = function (force) {
+TableView.prototype.onDraw = function (force) {
   if (force) { //force = did Walkontable decide to do full render
     Handsontable.hooks.run(this.instance, 'afterRender', this.instance.forceFullRender); //this.instance.forceFullRender = did Handsontable request full render?
   }
 };
 
-Handsontable.TableView.prototype.render = function () {
+TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
 //  this.instance.rootElement.triggerHandler('render.handsontable');
@@ -401,7 +414,7 @@ Handsontable.TableView.prototype.render = function () {
  * @param {WalkontableCellCoords} coords
  * @param {Boolean} topmost
  */
-Handsontable.TableView.prototype.getCellAtCoords = function (coords, topmost) {
+TableView.prototype.getCellAtCoords = function (coords, topmost) {
   var td = this.wt.getCell(coords, topmost);
   //var td = this.wt.wtTable.getCell(coords);
   if (td < 0) { //there was an exit code (cell is out of bounds)
@@ -416,7 +429,7 @@ Handsontable.TableView.prototype.getCellAtCoords = function (coords, topmost) {
  * Scroll viewport to selection
  * @param {WalkontableCellCoords} coords
  */
-Handsontable.TableView.prototype.scrollViewport = function (coords) {
+TableView.prototype.scrollViewport = function (coords) {
   this.wt.scrollViewport(coords);
 };
 
@@ -425,7 +438,7 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param row
  * @param TH
  */
-Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
+TableView.prototype.appendRowHeader = function (row, TH) {
   var DIV = document.createElement('DIV'),
     SPAN = document.createElement('SPAN');
 
@@ -433,13 +446,13 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   SPAN.className = 'rowHeader';
 
   if (row > -1) {
-    Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
+    dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
 
   DIV.appendChild(SPAN);
-  Handsontable.Dom.empty(TH);
+  dom.empty(TH);
 
   TH.appendChild(DIV);
 
@@ -451,7 +464,7 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
  * @param col
  * @param TH
  */
-Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
+TableView.prototype.appendColHeader = function (col, TH) {
   var DIV = document.createElement('DIV')
     , SPAN = document.createElement('SPAN');
 
@@ -459,13 +472,13 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   SPAN.className = 'colHeader';
 
   if (col > -1) {
-    Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
+    dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
-    Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
   }
   DIV.appendChild(SPAN);
 
-  Handsontable.Dom.empty(TH);
+  dom.empty(TH);
   TH.appendChild(DIV);
   Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };
@@ -475,7 +488,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  * @param {Number} leftOffset
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {
+TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {
   var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
   var maxWidth = workspaceWidth - leftOffset;
   return maxWidth > 0 ? maxWidth : 0;
@@ -486,17 +499,17 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffs
  * @param {Number} topOffset
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementHeight = function (topOffset) {
+TableView.prototype.maximumVisibleElementHeight = function (topOffset) {
   var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
   var maxHeight = workspaceHeight - topOffset;
   return maxHeight > 0 ? maxHeight : 0;
 };
 
-Handsontable.TableView.prototype.mainViewIsActive = function () {
+TableView.prototype.mainViewIsActive = function () {
   return this.wt === this.activeWt;
 };
 
-Handsontable.TableView.prototype.destroy = function () {
+TableView.prototype.destroy = function () {
   this.wt.destroy();
   this.eventManager.clear();
 };

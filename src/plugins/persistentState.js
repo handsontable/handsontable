@@ -1,9 +1,9 @@
-/*
- *
- * Plugin enables saving table state
- *
- * */
 
+import {registerPlugin} from './../plugins.js';
+
+export {HandsontablePersistentState};
+
+registerPlugin('persistentState', HandsontablePersistentState);
 
 function Storage(prefix) {
 
@@ -56,93 +56,91 @@ function Storage(prefix) {
 
     clearSavedKeys();
   };
-
 }
 
-
-(function (StorageClass) {
-  function HandsontablePersistentState() {
-    var plugin = this;
+function HandsontablePersistentState() {
+  var plugin = this;
 
 
-    this.init = function () {
-      var instance = this,
-        pluginSettings = instance.getSettings()['persistentState'];
+  this.init = function () {
+    var instance = this,
+      pluginSettings = instance.getSettings()['persistentState'];
 
-      plugin.enabled = !!(pluginSettings);
+    plugin.enabled = !!(pluginSettings);
 
-      if (!plugin.enabled) {
-        removeHooks.call(instance);
-        return;
-      }
+    if (!plugin.enabled) {
+      removeHooks.call(instance);
+      return;
+    }
 
-      if (!instance.storage) {
-        instance.storage = new StorageClass(instance.rootElement.id);
-      }
+    if (!instance.storage) {
+      instance.storage = new Storage(instance.rootElement.id);
+    }
 
-      instance.resetState = plugin.resetValue;
+    instance.resetState = plugin.resetValue;
 
-      addHooks.call(instance);
+    addHooks.call(instance);
 
-    };
+  };
 
-    this.saveValue = function (key, value) {
-      var instance = this;
+  this.saveValue = function (key, value) {
+    var instance = this;
 
-      instance.storage.saveValue(key, value);
-    };
+    instance.storage.saveValue(key, value);
+  };
 
-    this.loadValue = function (key, saveTo) {
-      var instance = this;
+  this.loadValue = function (key, saveTo) {
+    var instance = this;
 
-      saveTo.value = instance.storage.loadValue(key);
-    };
+    saveTo.value = instance.storage.loadValue(key);
+  };
 
-    this.resetValue = function (key) {
-      var instance = this;
+  this.resetValue = function (key) {
+    var instance = this;
 
-      if (typeof  key != 'undefined') {
-        instance.storage.reset(key);
-      } else {
-        instance.storage.resetAll();
-      }
+    if (typeof  key != 'undefined') {
+      instance.storage.reset(key);
+    } else {
+      instance.storage.resetAll();
+    }
 
-    };
+  };
 
-    var hooks = {
-      'persistentStateSave': plugin.saveValue,
-      'persistentStateLoad': plugin.loadValue,
-      'persistentStateReset': plugin.resetValue
-    };
+  var hooks = {
+    'persistentStateSave': plugin.saveValue,
+    'persistentStateLoad': plugin.loadValue,
+    'persistentStateReset': plugin.resetValue
+  };
+
+  for (var hookName in hooks) {
+    if (hooks.hasOwnProperty(hookName)) {
+      Handsontable.hooks.register(hookName);
+    }
+  }
+
+  function addHooks() {
+    var instance = this;
 
     for (var hookName in hooks) {
       if (hooks.hasOwnProperty(hookName)) {
-        Handsontable.hooks.register(hookName);
-      }
-    }
-
-    function addHooks() {
-      var instance = this;
-
-      for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName)) {
-          instance.addHook(hookName, hooks[hookName]);
-        }
-      }
-    }
-
-    function removeHooks() {
-      var instance = this;
-
-      for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName)) {
-          instance.removeHook(hookName, hooks[hookName]);
-        }
+        instance.addHook(hookName, hooks[hookName]);
       }
     }
   }
 
-  var htPersistentState = new HandsontablePersistentState();
-  Handsontable.hooks.add('beforeInit', htPersistentState.init);
-  Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
-})(Storage);
+  function removeHooks() {
+    var instance = this;
+
+    for (var hookName in hooks) {
+      if (hooks.hasOwnProperty(hookName)) {
+        instance.removeHook(hookName, hooks[hookName]);
+      }
+    }
+  }
+}
+
+HandsontablePersistentState.prototype.beforeInit = function(hotInstance) {
+  this.init.call(hotInstance);
+  Handsontable.hooks.add('afterUpdateSettings', this.init);
+};
+

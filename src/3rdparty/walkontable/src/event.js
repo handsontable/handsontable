@@ -1,7 +1,14 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+
+export {WalkontableEvent};
+
+window.WalkontableEvent = WalkontableEvent;
+
 function WalkontableEvent(instance) {
   var that = this;
 
-  var eventManager = Handsontable.eventManager(instance);
+  var eventManager = eventManagerObject(instance);
 
   //reference to instance
   this.instance = instance;
@@ -243,5 +250,3 @@ WalkontableEvent.prototype.parentCell = function (elem) {
 
   return cell;
 };
-
-

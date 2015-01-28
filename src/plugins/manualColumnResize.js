@@ -8,8 +8,17 @@
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  * @constructor
  */
-(function (Handsontable) {
-function HandsontableManualColumnResize() {
+
+import * as helper from './../helpers.js';
+import * as dom from './../dom.js';
+import {eventManager as eventManagerObject} from './../eventManager.js';
+import {registerPlugin} from './../plugins.js';
+
+export {ManualColumnResize};
+
+//registerPlugin('manualColumnResize', ManualColumnResize);
+
+function ManualColumnResize() {
   var currentTH
     , currentCol
     , currentWidth
@@ -20,7 +29,7 @@ function HandsontableManualColumnResize() {
     , startOffset
     , handle = document.createElement('DIV')
     , guide = document.createElement('DIV')
-    , eventManager = Handsontable.eventManager(this);
+    , eventManager = eventManagerObject(this);
 
 
 
@@ -61,8 +70,8 @@ function HandsontableManualColumnResize() {
 
   function setupGuidePosition() {
     var instance = this;
-    Handsontable.Dom.addClass(handle, 'active');
-    Handsontable.Dom.addClass(guide, 'active');
+    dom.addClass(handle, 'active');
+    dom.addClass(guide, 'active');
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
@@ -74,8 +83,8 @@ function HandsontableManualColumnResize() {
   }
 
   function hideHandleAndGuide() {
-    Handsontable.Dom.removeClass(handle, 'active');
-    Handsontable.Dom.removeClass(guide, 'active');
+    dom.removeClass(handle, 'active');
+    dom.removeClass(guide, 'active');
   }
 
   var checkColumnHeader = function (element) {
@@ -119,7 +128,7 @@ function HandsontableManualColumnResize() {
     });
 
     eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
-      if (Handsontable.Dom.hasClass(e.target, 'manualColumnResizer')) {
+      if (dom.hasClass(e.target, 'manualColumnResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -139,14 +148,14 @@ function HandsontableManualColumnResize() {
         }
         dblclick++;
 
-        startX = Handsontable.helper.pageX(e);
+        startX = helper.pageX(e);
         newSize = startWidth;
       }
     });
 
     eventManager.addEventListener(window,'mousemove', function (e) {
       if (pressed) {
-        currentWidth = startWidth + (Handsontable.helper.pageX(e) - startX);
+        currentWidth = startWidth + (helper.pageX(e) - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
         refreshHandlePosition();
         refreshGuidePosition();
@@ -237,7 +246,7 @@ function HandsontableManualColumnResize() {
     return width;
   };
 }
-var htManualColumnResize = new HandsontableManualColumnResize();
+var htManualColumnResize = new ManualColumnResize();
 
 Handsontable.hooks.add('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.hooks.add('afterInit', function () {
@@ -249,5 +258,3 @@ Handsontable.hooks.add('afterUpdateSettings', function () {
 Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 
 Handsontable.hooks.register('afterColumnResize');
-
-})(Handsontable);

@@ -1,3 +1,17 @@
+
+import * as dom from './dom.js';
+import * as helper from './helpers.js';
+import {DataMap} from './dataMap.js';
+import {EditorManager} from './editorManager.js';
+import {eventManager as eventManagerObject} from './eventManager.js';
+import {getRenderer} from './renderers.js';
+//import numeral from './../lib/numeral.js';
+import {PluginHook} from './pluginHooks.js';
+import {TableView} from './tableView.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellRange} from './3rdparty/walkontable/src/cellRange.js';
+import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
+
 Handsontable.activeGuid = null;
 
 /**
@@ -14,11 +28,11 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , instance = this
     , GridSettings = function () {}
-    , eventManager = Handsontable.eventManager(instance);
+    , eventManager = eventManagerObject(instance);
 
-  Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
-  Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
-  Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
+  helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
+  helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
+  helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
 
@@ -27,7 +41,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-  this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
+  this.guid = 'ht_' + helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === "ht_") {
     this.rootElement.id = this.guid; //if root element does not have an id, assign a random id
@@ -269,7 +283,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         case 'shift_down' :
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
-          input = Handsontable.helper.translateRowsToColumns(input);
+          input = helper.translateRowsToColumns(input);
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
               for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
@@ -676,13 +690,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if(Handsontable.mobileBrowser) {
-      Handsontable.Dom.addClass(instance.rootElement, 'mobile');
+      dom.addClass(instance.rootElement, 'mobile');
     }
 
     this.updateSettings(priv.settings, true);
 
-    this.view = new Handsontable.TableView(this);
-    editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
+    this.view = new TableView(this);
+    editorManager = new EditorManager(instance, priv, selection, datamap);
 
     this.forceFullRender = true; //used when data was changed
     this.view.render();
@@ -1105,7 +1119,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.dataType = 'object';
     }
 
-    datamap = new Handsontable.DataMap(instance, priv, GridSettings);
+    datamap = new DataMap(instance, priv, GridSettings);
 
     clearCellSettingCache();
 
@@ -1204,7 +1218,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var proto, column;
 
       for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+        priv.columnSettings[i] = helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
         proto = priv.columnSettings[i].prototype;
@@ -1212,8 +1226,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          Handsontable.helper.extend(proto, column);
-          Handsontable.helper.extend(proto, expandType(column));
+          helper.extend(proto, column);
+          helper.extend(proto, expandType(column));
         }
       }
     }
@@ -1229,11 +1243,11 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (typeof settings.className !== "undefined") {
       if (GridSettings.prototype.className) {
-        Handsontable.Dom.removeClass(instance.rootElement,GridSettings.prototype.className);
+        dom.removeClass(instance.rootElement,GridSettings.prototype.className);
 //        instance.rootElement.removeClass(GridSettings.prototype.className);
       }
       if (settings.className) {
-        Handsontable.Dom.addClass(instance.rootElement,settings.className);
+        dom.addClass(instance.rootElement,settings.className);
 //        instance.rootElement.addClass(settings.className);
       }
     }
@@ -1533,7 +1547,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     col = translateColIndex(col);
 
     if (!priv.columnSettings[col]) {
-      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+      priv.columnSettings[col] = helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
     if (!priv.cellSettings[row]) {
@@ -1551,14 +1565,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     Handsontable.hooks.run(instance, 'beforeGetCellMeta', row, col, cellProperties);
-    Handsontable.helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
+    helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
       var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
       if (settings) {
-        Handsontable.helper.extend(cellProperties, settings);
-        Handsontable.helper.extend(cellProperties, expandType(settings)); //for `type` added in cells
+        helper.extend(cellProperties, settings);
+        helper.extend(cellProperties, expandType(settings)); //for `type` added in cells
       }
     }
 
@@ -1588,16 +1602,16 @@ Handsontable.Core = function (rootElement, userSettings) {
     return Handsontable.hooks.run(instance, 'modifyCol', col);
   }
 
-  var rendererLookup = Handsontable.helper.cellMethodLookupFactory('renderer');
+  var rendererLookup = helper.cellMethodLookupFactory('renderer');
   this.getCellRenderer = function (row, col) {
     var renderer = rendererLookup.call(this, row, col);
-    return Handsontable.renderers.getRenderer(renderer);
 
+    return getRenderer(renderer);
   };
 
-  this.getCellEditor = Handsontable.helper.cellMethodLookupFactory('editor');
+  this.getCellEditor = helper.cellMethodLookupFactory('editor');
 
-  this.getCellValidator = Handsontable.helper.cellMethodLookupFactory('validator');
+  this.getCellValidator = helper.cellMethodLookupFactory('validator');
 
 
   /**
@@ -1704,7 +1718,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return priv.settings.colHeaders(col);
       }
       else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        return Handsontable.helper.spreadsheetColumnLabel(baseCol); //see #1458
+        return helper.spreadsheetColumnLabel(baseCol); //see #1458
       }
       else {
         return priv.settings.colHeaders;
@@ -2016,7 +2030,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
 
-    Handsontable.Dom.empty(instance.rootElement);
+    dom.empty(instance.rootElement);
     eventManager.clear();
 
     Handsontable.hooks.run(instance, 'afterDestroy');

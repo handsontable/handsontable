@@ -1,4 +1,9 @@
-function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+
+export {WalkontableViewportColumnsCalculator};
+
+window.WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator;
+
+function WalkontableViewportColumnsCalculator(width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
   this.scrollOffset = scrollOffset;
   this.startColumn = null;
   this.endColumn = null;

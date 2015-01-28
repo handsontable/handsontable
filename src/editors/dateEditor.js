@@ -1,111 +1,120 @@
-(function (Handsontable) {
-  var DateEditor = Handsontable.editors.TextEditor.prototype.extend();
 
-  var $;
+import * as helper from './../helpers.js';
+import * as dom from './../dom.js';
+import {getEditor, registerEditor} from './../editors.js';
+import {TextEditor} from './textEditor.js';
+import {eventManager as eventManagerObject} from './../eventManager.js';
 
-  DateEditor.prototype.init = function () {
-    if (typeof jQuery != 'undefined') {
-      $ = jQuery;
-    } else {
-      throw new Error("You need to include jQuery to your project in order to use the jQuery UI Datepicker.");
+var
+  DateEditor = TextEditor.prototype.extend(),
+  $;
+
+export {DateEditor};
+
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
+
+DateEditor.prototype.init = function () {
+  if (typeof jQuery != 'undefined') {
+    $ = jQuery;
+  } else {
+    throw new Error("You need to include jQuery to your project in order to use the jQuery UI Datepicker.");
+  }
+
+  if (!$.datepicker) {
+    throw new Error("jQuery UI Datepicker dependency not found. Did you forget to include jquery-ui.custom.js or its substitute?");
+  }
+
+  TextEditor.prototype.init.apply(this, arguments);
+
+  this.isCellEdited = false;
+  var that = this;
+
+  this.instance.addHook('afterDestroy', function () {
+    that.destroyElements();
+  });
+
+};
+
+DateEditor.prototype.createElements = function () {
+  TextEditor.prototype.createElements.apply(this, arguments);
+
+  this.datePicker = document.createElement('DIV');
+  dom.addClass(this.datePicker, 'htDatepickerHolder');
+  this.datePickerStyle = this.datePicker.style;
+  this.datePickerStyle.position = 'absolute';
+  this.datePickerStyle.top = 0;
+  this.datePickerStyle.left = 0;
+  this.datePickerStyle.zIndex = 99;
+  document.body.appendChild(this.datePicker);
+  this.$datePicker = $(this.datePicker);
+
+  var that = this;
+  var defaultOptions = {
+    dateFormat: "yy-mm-dd",
+    showButtonPanel: true,
+    changeMonth: true,
+    changeYear: true,
+    onSelect: function (dateStr) {
+      that.setValue(dateStr);
+      that.finishEditing(false);
     }
-
-    if (!$.datepicker) {
-      throw new Error("jQuery UI Datepicker dependency not found. Did you forget to include jquery-ui.custom.js or its substitute?");
-    }
-
-    Handsontable.editors.TextEditor.prototype.init.apply(this, arguments);
-
-    this.isCellEdited = false;
-    var that = this;
-
-    this.instance.addHook('afterDestroy', function () {
-      that.destroyElements();
-    });
-
   };
+  this.$datePicker.datepicker(defaultOptions);
 
-  DateEditor.prototype.createElements = function () {
-    Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
+  //var eventManager = eventManagerObject(this);
+  //
+  ///**
+  // * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
+  // */
+  //eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
+  //  helper.stopPropagation(event);
+  //  //event.stopPropagation();
+  //});
 
-    this.datePicker = document.createElement('DIV');
-    Handsontable.Dom.addClass(this.datePicker, 'htDatepickerHolder');
-    this.datePickerStyle = this.datePicker.style;
-    this.datePickerStyle.position = 'absolute';
-    this.datePickerStyle.top = 0;
-    this.datePickerStyle.left = 0;
-    this.datePickerStyle.zIndex = 99;
-    document.body.appendChild(this.datePicker);
-    this.$datePicker = $(this.datePicker);
+  this.hideDatepicker();
+};
 
-    var that = this;
-    var defaultOptions = {
-      dateFormat: "yy-mm-dd",
-      showButtonPanel: true,
-      changeMonth: true,
-      changeYear: true,
-      onSelect: function (dateStr) {
-        that.setValue(dateStr);
-        that.finishEditing(false);
-      }
-    };
-    this.$datePicker.datepicker(defaultOptions);
+DateEditor.prototype.destroyElements = function () {
+  this.$datePicker.datepicker('destroy');
+  this.$datePicker.remove();
+  //var eventManager = Handsontable.eventManager(this);
+  //eventManager.removeEventListener(this.datePicker, 'mousedown');
+};
 
-    var eventManager = Handsontable.eventManager(this);
+DateEditor.prototype.open = function () {
+  TextEditor.prototype.open.call(this);
+  this.showDatepicker();
+};
 
-    /**
-     * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
-     */
-    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
-      Handsontable.helper.stopPropagation(event);
-      //event.stopPropagation();
-    });
+DateEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  this.hideDatepicker();
+  TextEditor.prototype.finishEditing.apply(this, arguments);
+};
 
-    this.hideDatepicker();
-  };
+DateEditor.prototype.showDatepicker = function () {
+  var offset = this.TD.getBoundingClientRect(),
+    DatepickerSettings,
+    datepickerSettings;
 
-  DateEditor.prototype.destroyElements = function () {
-    this.$datePicker.datepicker('destroy');
-    this.$datePicker.remove();
-    //var eventManager = Handsontable.eventManager(this);
-    //eventManager.removeEventListener(this.datePicker, 'mousedown');
-  };
+  this.datePickerStyle.top = (window.pageYOffset + offset.top + dom.outerHeight(this.TD)) + 'px';
+  this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
 
-  DateEditor.prototype.open = function () {
-    Handsontable.editors.TextEditor.prototype.open.call(this);
-    this.showDatepicker();
-  };
+  DatepickerSettings = function () {};
+  DatepickerSettings.prototype = this.cellProperties;
+  datepickerSettings = new DatepickerSettings();
+  datepickerSettings.defaultDate = this.originalValue || void 0;
+  this.$datePicker.datepicker('option', datepickerSettings);
 
-  DateEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
-    this.hideDatepicker();
-    Handsontable.editors.TextEditor.prototype.finishEditing.apply(this, arguments);
-  };
+  if (this.originalValue) {
+    this.$datePicker.datepicker('setDate', this.originalValue);
+  }
+  this.datePickerStyle.display = 'block';
+};
 
-  DateEditor.prototype.showDatepicker = function () {
-    var offset = this.TD.getBoundingClientRect(),
-      DatepickerSettings,
-      datepickerSettings;
-
-    this.datePickerStyle.top = (window.pageYOffset + offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
-    this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
-
-    DatepickerSettings = function () {};
-    DatepickerSettings.prototype = this.cellProperties;
-    datepickerSettings = new DatepickerSettings();
-    datepickerSettings.defaultDate = this.originalValue || void 0;
-    this.$datePicker.datepicker('option', datepickerSettings);
-
-    if (this.originalValue) {
-      this.$datePicker.datepicker('setDate', this.originalValue);
-    }
-    this.datePickerStyle.display = 'block';
-  };
-
-  DateEditor.prototype.hideDatepicker = function () {
-    this.datePickerStyle.display = 'none';
-  };
+DateEditor.prototype.hideDatepicker = function () {
+  this.datePickerStyle.display = 'none';
+};
 
 
-  Handsontable.editors.DateEditor = DateEditor;
-  Handsontable.editors.registerEditor('date', DateEditor);
-})(Handsontable);
+registerEditor('date', DateEditor);

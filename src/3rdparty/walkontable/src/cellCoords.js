@@ -1,8 +1,13 @@
+
+export {WalkontableCellCoords};
+
+// TODO: Temp fix for tests
+window.WalkontableCellCoords = WalkontableCellCoords;
+
 /**
  * WalkontableCellCoords holds cell coordinates (row, column) and few metiod to validate them and retrieve as an array or an object
  * TODO: change interface to WalkontableCellCoords(row, col) everywhere, remove those unnecessary setter and getter functions
  */
-
 function WalkontableCellCoords(row, col) {
   if (typeof row !== 'undefined' && typeof col !== 'undefined') {
     this.row = row;
@@ -61,4 +66,3 @@ WalkontableCellCoords.prototype.isNorthEastOf = function (testedCoords) {
   return this.row <= testedCoords.row && this.col >= testedCoords.col;
 };
 
-window.WalkontableCellCoords = WalkontableCellCoords; //export

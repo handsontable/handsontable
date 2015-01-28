@@ -1,3 +1,10 @@
+
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableDebugOverlay};
+
+window.WalkontableDebugOverlay = WalkontableDebugOverlay;
+
 /**
  * A overlay that renders ALL available rows & columns positioned on top of the original Walkontable instance and all other overlays.
  * Used for debugging purposes to see if the other overlays (that render only part of the rows & columns) are positioned correctly

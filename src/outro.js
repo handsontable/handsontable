@@ -1,1 +1,1 @@
-})(window, Handsontable);
+//})(window, Handsontable);

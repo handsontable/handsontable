@@ -4,22 +4,24 @@
  * In future we may implement a better driver when better APIs are available
  * @constructor
  */
-var CopyPaste = (function () {
-  var instance;
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = new CopyPasteClass();
-      } else if (instance.hasBeenDestroyed()){
-        instance.init();
-      }
 
-      instance.refCounter++;
+import {eventManager as eventManagerObject} from './../eventManager.js';
 
-      return instance;
-    }
-  };
-})();
+export {copyPasteManager};
+
+var instance;
+
+function copyPasteManager() {
+  if (!instance) {
+    instance = new CopyPasteClass();
+
+  } else if (instance.hasBeenDestroyed()){
+    instance.init();
+  }
+  instance.refCounter++;
+
+  return instance;
+}
 
 function CopyPasteClass() {
   this.refCounter = 0;
@@ -34,7 +36,7 @@ CopyPasteClass.prototype.init = function () {
   this.copyCallbacks = [];
   this.cutCallbacks = [];
   this.pasteCallbacks = [];
-  this._eventManager = Handsontable.eventManager(this);
+  this._eventManager = eventManagerObject(this);
 
 //  this.listenerElement = document.documentElement;
   parent = document.body;

@@ -8,248 +8,270 @@
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  * @constructor
  */
-(function (Handsontable) {
-  function HandsontableManualRowResize () {
 
-    var currentTH
-      , currentRow
-      , currentHeight
-      , instance
-      , newSize
-      , startY
-      , startHeight
-      , startOffset
-      , handle = document.createElement('DIV')
-      , guide = document.createElement('DIV')
-      , eventManager = Handsontable.eventManager(this);
+import * as helper from './../helpers.js';
+import * as dom from './../dom.js';
+import {eventManager as eventManagerObject} from './../eventManager.js';
+import {registerPlugin} from './../plugins.js';
 
-    handle.className = 'manualRowResizer';
-    guide.className = 'manualRowResizerGuide';
+export {ManualRowResize};
 
-    var saveManualRowHeights = function () {
-      var instance = this;
-      Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowHeights', instance.manualRowHeights);
-    };
+//registerPlugin('manualRowResize', ManualRowResize);
 
-    var loadManualRowHeights = function () {
-      var instance = this
-        , storedState = {};
-      Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowHeights', storedState);
-      return storedState.value;
-    };
+function ManualRowResize () {
 
-    function setupHandlePosition(TH) {
-      instance = this;
-      currentTH = TH;
+  var currentTH
+    , currentRow
+    , currentHeight
+    , instance
+    , newSize
+    , startY
+    , startHeight
+    , startOffset
+    , handle = document.createElement('DIV')
+    , guide = document.createElement('DIV')
+    , eventManager = eventManagerObject(this);
 
-      var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
-      if (row >= 0) { //if not col header
-        currentRow = row;
-        var box = currentTH.getBoundingClientRect();
-        startOffset = box.top - 6;
-        startHeight = parseInt(box.height, 10);
-        handle.style.left = box.left + 'px';
-        handle.style.top = startOffset + startHeight + 'px';
-        instance.rootElement.appendChild(handle);
+  handle.className = 'manualRowResizer';
+  guide.className = 'manualRowResizerGuide';
+
+  var saveManualRowHeights = function () {
+    var instance = this;
+    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowHeights', instance.manualRowHeights);
+  };
+
+  var loadManualRowHeights = function () {
+    var instance = this
+      , storedState = {};
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowHeights', storedState);
+    return storedState.value;
+  };
+
+  function setupHandlePosition(TH) {
+    instance = this;
+    currentTH = TH;
+
+    var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
+    if (row >= 0) { //if not col header
+      currentRow = row;
+      var box = currentTH.getBoundingClientRect();
+      startOffset = box.top - 6;
+      startHeight = parseInt(box.height, 10);
+      handle.style.left = box.left + 'px';
+      handle.style.top = startOffset + startHeight + 'px';
+      instance.rootElement.appendChild(handle);
+    }
+  }
+
+  function refreshHandlePosition() {
+    handle.style.top = startOffset + currentHeight + 'px';
+  }
+
+  function setupGuidePosition() {
+    var instance = this;
+    dom.addClass(handle, 'active');
+    dom.addClass(guide, 'active');
+    guide.style.top = handle.style.top;
+    guide.style.left = handle.style.left;
+    guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
+    instance.rootElement.appendChild(guide);
+  }
+
+  function refreshGuidePosition() {
+    guide.style.top = handle.style.top;
+  }
+
+  function hideHandleAndGuide() {
+    dom.removeClass(handle, 'active');
+    dom.removeClass(guide, 'active');
+  }
+
+  var checkRowHeader = function (element) {
+    if (element.tagName != 'BODY') {
+      if (element.parentNode.tagName == 'TBODY') {
+        return true;
+      } else {
+        element = element.parentNode;
+        return checkRowHeader(element);
       }
     }
+    return false;
+  };
 
-    function refreshHandlePosition() {
-      handle.style.top = startOffset + currentHeight + 'px';
+  var getTHFromTargetElement = function (element) {
+    if (element.tagName != 'TABLE') {
+      if (element.tagName == 'TH') {
+        return element;
+      } else {
+        return getTHFromTargetElement(element.parentNode);
+      }
     }
+    return null;
+  };
 
-    function setupGuidePosition() {
-      var instance = this;
-      Handsontable.Dom.addClass(handle, 'active');
-      Handsontable.Dom.addClass(guide, 'active');
-      guide.style.top = handle.style.top;
-      guide.style.left = handle.style.left;
-      guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
-      instance.rootElement.appendChild(guide);
-    }
+  var bindEvents = function () {
+    var instance = this;
+    var pressed;
+    var dblclick = 0;
+    var autoresizeTimeout = null;
 
-    function refreshGuidePosition() {
-      guide.style.top = handle.style.top;
-    }
-
-    function hideHandleAndGuide() {
-      Handsontable.Dom.removeClass(handle, 'active');
-      Handsontable.Dom.removeClass(guide, 'active');
-    }
-
-    var checkRowHeader = function (element) {
-      if (element.tagName != 'BODY') {
-        if (element.parentNode.tagName == 'TBODY') {
-          return true;
-        } else {
-          element = element.parentNode;
-          return checkRowHeader(element);
+    eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
+      if(checkRowHeader(e.target)) {
+        var th = getTHFromTargetElement(e.target);
+        if (th) {
+          if (!pressed) {
+            setupHandlePosition.call(instance, th);
+          }
         }
       }
-      return false;
-    };
+    });
 
-    var getTHFromTargetElement = function (element) {
-      if (element.tagName != 'TABLE') {
-        if (element.tagName == 'TH') {
-          return element;
-        } else {
-          return getTHFromTargetElement(element.parentNode);
-        }
-      }
-      return null;
-    };
+    eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
+      if (dom.hasClass(e.target, 'manualRowResizer')) {
+        setupGuidePosition.call(instance);
+        pressed = instance;
 
-    var bindEvents = function () {
-      var instance = this;
-      var pressed;
-      var dblclick = 0;
-      var autoresizeTimeout = null;
-
-      eventManager.addEventListener(instance.rootElement,'mouseover', function (e){
-        if(checkRowHeader(e.target)) {
-          var th = getTHFromTargetElement(e.target);
-          if (th) {
-            if (!pressed) {
-              setupHandlePosition.call(instance, th);
+        if (autoresizeTimeout == null) {
+          autoresizeTimeout = setTimeout(function () {
+            if (dblclick >= 2) {
+              setManualSize(currentRow, null); //double click sets auto row size
+              instance.forceFullRender = true;
+              instance.view.render(); //updates all
+              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
             }
-          }
+            dblclick = 0;
+            autoresizeTimeout = null;
+          }, 500);
+          instance._registerTimeout(autoresizeTimeout);
         }
-      });
+        dblclick++;
 
-      eventManager.addEventListener(instance.rootElement,'mousedown', function (e) {
-        if (Handsontable.Dom.hasClass(e.target, 'manualRowResizer')) {
-          setupGuidePosition.call(instance);
-          pressed = instance;
+        startY = helper.pageY(e);
+        newSize = startHeight;
+      }
+    });
 
-          if (autoresizeTimeout == null) {
-            autoresizeTimeout = setTimeout(function () {
-              if (dblclick >= 2) {
-                setManualSize(currentRow, null); //double click sets auto row size
-                instance.forceFullRender = true;
-                instance.view.render(); //updates all
-                Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
-              }
-              dblclick = 0;
-              autoresizeTimeout = null;
-            }, 500);
-            instance._registerTimeout(autoresizeTimeout);
-          }
-          dblclick++;
+    eventManager.addEventListener(window,'mousemove',function (e) {
+      if (pressed) {
+        currentHeight = startHeight + (helper.pageY(e) - startY);
+        newSize = setManualSize(currentRow, currentHeight);
+        refreshHandlePosition();
+        refreshGuidePosition();
+      }
+    });
 
-          startY = Handsontable.helper.pageY(e);
-          newSize = startHeight;
+    eventManager.addEventListener(window,'mouseup',function (e) {
+      if (pressed) {
+        hideHandleAndGuide();
+        pressed = false;
+
+        if(newSize != startHeight){
+          instance.forceFullRender = true;
+          instance.view.render(); //updates all
+
+          saveManualRowHeights.call(instance);
+
+          Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
         }
-      });
 
-      eventManager.addEventListener(window,'mousemove',function (e) {
-        if (pressed) {
-          currentHeight = startHeight + (Handsontable.helper.pageY(e) - startY);
-          newSize = setManualSize(currentRow, currentHeight);
-          refreshHandlePosition();
-          refreshGuidePosition();
-        }
-      });
+        setupHandlePosition.call(instance, currentTH);
+      }
+    });
 
-      eventManager.addEventListener(window,'mouseup',function (e) {
-        if (pressed) {
-          hideHandleAndGuide();
-          pressed = false;
+    instance.addHook('afterDestroy', unbindEvents);
+  };
 
-          if(newSize != startHeight){
-            instance.forceFullRender = true;
-            instance.view.render(); //updates all
-
-            saveManualRowHeights.call(instance);
-
-            Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
-          }
-
-          setupHandlePosition.call(instance, currentTH);
-        }
-      });
-
-      instance.addHook('afterDestroy', unbindEvents);
-    };
-
-    var unbindEvents = function(){
-      eventManager.clear();
-    };
+  var unbindEvents = function(){
+    eventManager.clear();
+  };
 
     this.beforeInit = function () {
       this.manualRowHeights = [];
     };
 
-    this.init = function (source) {
-      var instance = this;
-      var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
+  this.init = function (source) {
+    var instance = this;
+    var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
 
-      if (manualColumnHeightEnabled) {
+    if (manualColumnHeightEnabled) {
 
-        var initialRowHeights = this.getSettings().manualRowResize;
+      var initialRowHeights = this.getSettings().manualRowResize;
 
-        var loadedManualRowHeights = loadManualRowHeights.call(instance);
+      var loadedManualRowHeights = loadManualRowHeights.call(instance);
 
-        if (typeof loadedManualRowHeights != 'undefined') {
-          this.manualRowHeights = loadedManualRowHeights;
-        } else if (Array.isArray(initialRowHeights)) {
-          this.manualRowHeights = initialRowHeights;
-        } else {
-          this.manualRowHeights = [];
-        }
+      if (typeof loadedManualRowHeights != 'undefined') {
+        this.manualRowHeights = loadedManualRowHeights;
+      } else if (Array.isArray(initialRowHeights)) {
+        this.manualRowHeights = initialRowHeights;
+      } else {
+        this.manualRowHeights = [];
+      }
 
-        if (source === 'afterInit') {
-          bindEvents.call(this);
-          if (this.manualRowHeights.length > 0) {
-            this.forceFullRender = true;
-            this.render();
-          }
-        }
-        else {
+      if (source === 'afterInit') {
+        bindEvents.call(this);
+        if (this.manualRowHeights.length > 0) {
           this.forceFullRender = true;
           this.render();
-
         }
       }
       else {
-        unbindEvents.call(this);
-        this.manualRowHeights = [];
+        this.forceFullRender = true;
+        this.render();
+
       }
-    };
+    }
+    else {
+      unbindEvents.call(this);
+      this.manualRowHeights = [];
+    }
+  };
 
-    var setManualSize = function (row, height) {
-      row = Handsontable.hooks.run(instance, 'modifyRow', row);
-      instance.manualRowHeights[row] = height;
+  var setManualSize = function (row, height) {
+    row = Handsontable.hooks.run(instance, 'modifyRow', row);
+    instance.manualRowHeights[row] = height;
 
-      return height;
-    };
+    return height;
+  };
 
-    this.modifyRowHeight = function (height, row) {
-      if (this.getSettings().manualRowResize) {
-        row = this.runHooks('modifyRow', row);
+  this.modifyRowHeight = function (height, row) {
+    if (this.getSettings().manualRowResize) {
+      row = this.runHooks('modifyRow', row);
 
-        if (this.manualRowHeights[row] !== void 0) {
-          return this.manualRowHeights[row];
-        }
+      if (this.manualRowHeights[row] !== void 0) {
+        return this.manualRowHeights[row];
       }
+    }
 
-      return height;
-    };
-  }
+    return height;
+  };
+}
 
-  var htManualRowResize = new HandsontableManualRowResize();
+var htManualRowResize = new ManualRowResize();
 
-  Handsontable.hooks.add('beforeInit', htManualRowResize.beforeInit);
-  Handsontable.hooks.add('afterInit', function () {
-    htManualRowResize.init.call(this, 'afterInit');
-  });
+Handsontable.hooks.add('beforeInit', htManualRowResize.beforeInit);
+Handsontable.hooks.add('afterInit', function () {
+  htManualRowResize.init.call(this, 'afterInit');
+});
 
-  Handsontable.hooks.add('afterUpdateSettings', function () {
-    htManualRowResize.init.call(this, 'afterUpdateSettings');
-  });
+Handsontable.hooks.add('afterUpdateSettings', function () {
+  htManualRowResize.init.call(this, 'afterUpdateSettings');
+});
 
-  Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
+Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
 
-  Handsontable.hooks.register('afterRowResize');
+Handsontable.hooks.register('afterRowResize');
 
-})(Handsontable);
+  //ManualRowResize.prototype.beforeInit = function(hotInstance) {
+  //  var _this = this;
+  //
+  //  hotInstance.manualRowHeights = [];
+  //  Handsontable.hooks.add('afterInit', function () {
+  //    _this.init.call(this, 'afterInit');
+  //  });
+  //
+  //  Handsontable.hooks.add('afterUpdateSettings', function () {
+  //    _this.init.call(this, 'afterUpdateSettings');
+  //  });
+  //  Handsontable.hooks.add('modifyRowHeight', _this.modifyRowHeight);
+  //  Handsontable.hooks.register('afterRowResize');
+  //};

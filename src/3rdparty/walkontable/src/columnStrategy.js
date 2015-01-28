@@ -1,3 +1,10 @@
+
+import {WalkontableCellCoords} from './cellCoords.js';
+
+export {WalkontableColumnStrategy};
+
+window.WalkontableColumnStrategy = WalkontableColumnStrategy;
+
 /**
  * WalkontableColumnStrategy
  * @param containerSizeFn

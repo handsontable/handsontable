@@ -1,3 +1,8 @@
+
+export {WalkontableViewportRowsCalculator};
+
+window.WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
+
 /**
  * Viewport calculator constructor. Calculates indexes of rows to render OR rows that are visible.
  * To redo the calculation, you need to create a new calculator.

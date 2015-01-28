@@ -1,3 +1,12 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {WalkontableViewportColumnsCalculator} from './viewportColumnsCalculator.js';
+import {WalkontableViewportRowsCalculator} from './viewportRowsCalculator.js';
+
+export {WalkontableViewport};
+
+window.WalkontableViewport = WalkontableViewport;
+
 function WalkontableViewport(instance) {
   this.instance = instance;
   this.oversizedRows = [];
@@ -5,7 +14,7 @@ function WalkontableViewport(instance) {
 
   var that = this;
 
-  var eventManager = Handsontable.eventManager(instance);
+  var eventManager = eventManagerObject(instance);
   eventManager.addEventListener(window,'resize',function () {
     that.clientHeight = that.getWorkspaceHeight();
   });

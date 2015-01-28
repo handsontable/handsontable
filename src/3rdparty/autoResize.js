@@ -4,7 +4,10 @@
  * Copyright 2014, Marcin Warpechowski
  * Licensed under the MIT license
  */
-var autoResize = function () {
+
+export {autoResize};
+
+function autoResize() {
   var defaults = {
       minHeight: 200,
       maxHeight: 300,
@@ -164,5 +167,4 @@ var autoResize = function () {
     },
     resize: resize
   };
-
-};
+}

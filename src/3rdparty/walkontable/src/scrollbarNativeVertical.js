@@ -1,3 +1,10 @@
+
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableVerticalScrollbarNative};
+
+window.WalkontableVerticalScrollbarNative = WalkontableVerticalScrollbarNative;
+
 function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';

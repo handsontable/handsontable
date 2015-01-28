@@ -1,3 +1,16 @@
+
+import {WalkontableTable} from './table.js';
+import {WalkontableScroll} from './scroll.js';
+import {WalkontableEvent} from './event.js';
+import {WalkontableSettings} from './settings.js';
+import {WalkontableViewport} from './viewport.js';
+import {WalkontableScrollbars} from './scrollbars.js';
+import {walkontableRandomString} from './helpers.js';
+
+export {Walkontable};
+
+window.Walkontable = Walkontable;
+
 function Walkontable(settings) {
   var originalHeaders = [];
 

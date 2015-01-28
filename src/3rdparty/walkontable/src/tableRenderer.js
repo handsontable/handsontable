@@ -1,3 +1,8 @@
+
+export {WalkontableTableRenderer};
+
+window.WalkontableTableRenderer = WalkontableTableRenderer;
+
 function WalkontableTableRenderer(wtTable) {
   this.wtTable = wtTable;
   this.instance = wtTable.instance;
@@ -405,5 +410,3 @@ WalkontableTableRenderer.utils.replaceThWithTd = function (TH, TR) {
 
   return TD;
 };
-
-

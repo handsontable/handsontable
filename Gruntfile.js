@@ -52,6 +52,7 @@ var browsers = [
 module.exports = function (grunt) {
 
   require('time-grunt')(grunt);
+  require('load-grunt-tasks')(grunt);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -143,28 +144,28 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         files: {
-          'dist/handsontable.js': [
-            'tmp/intro.js',
-            '<%= meta.shims %>',
-            '<%= meta.src %>',
-            '<%= meta.walkontable %>',
-            'plugins/jqueryHandsontable.js',
-            'src/outro.js'
-          ],
+          //'dist/handsontable.js': [
+          //  'tmp/intro.js',
+          //  '<%= meta.shims %>',
+          //  '<%= meta.src %>',
+          //  '<%= meta.walkontable %>',
+          //  'plugins/jqueryHandsontable.js',
+          //  'src/outro.js'
+          //],
           'dist/handsontable.css': [
             'tmp/handsontable.css',
             'src/css/mobile.handsontable.css'
           ]
         }
       },
-      full_js: {
-        files: {
-          'dist/handsontable.full.js': [
-            'dist/handsontable.js',
-            '<%= meta.vendor %>'
-          ]
-        }
-      },
+      //full_js: {
+      //  files: {
+      //    'dist/handsontable.full.js': [
+      //      'dist/handsontable.js'
+      //      '<%= meta.vendor %>'
+      //    ]
+      //  }
+      //},
       full_css: {
         files: {
           'dist/handsontable.full.css': [
@@ -202,8 +203,8 @@ module.exports = function (grunt) {
           }
         },
         files: {
-          'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js',
+          //'tmp/intro.js': 'src/intro.js',
+          //'tmp/core.js': 'src/core.js',
           'tmp/handsontable.css': 'src/css/handsontable.css'
         }
       }
@@ -250,11 +251,11 @@ module.exports = function (grunt) {
       },
       walkontable: {
         src: [
-          'src/dom.js',
-          'src/helpers.js',
-          'src/eventManager.js',
-          'src/3rdparty/walkontable/src/*.js',
-          'src/3rdparty/walkontable/src/3rdparty/*.js'
+          'dist/walkontable.js',
+          //'src/dom.js',
+          //'src/helpers.js',
+          //'src/eventManager.js',
+          //'src/3rdparty/walkontable/src/*.js'
         ],
         options: {
           specs: [
@@ -379,11 +380,64 @@ module.exports = function (grunt) {
       options['walkontable'] = '<%= meta.walkontable %>';
 
       return options;
-    }())
+    }()),
+    browserify: {
+      dist: {
+        files: {
+          'dist/handsontable.full.js': ['src/browser.js'],
+          'dist/handsontable.js': ['src/browser.js'],
+          'dist/walkontable.js': ['src/3rdparty/walkontable/src/browser.js']
+        },
+        options: {
+          transform: [
+            //'6to5ify',
+            'es6ify'
+          ],
+          browserifyOptions: {
+            debug: false,
+            traceurOverrides: {
+              arrowFunctions: true,
+              classes: true,
+              defaultParameters: true,
+              destructuring: true,
+              propertyMethods: true,
+              propertyNameShorthand: true
+            }
+          },
+          debug: false
+        }
+      }
+    }
+    //watchify: {
+    //  options: {
+    //    // defaults options used in b.bundle(opts)
+    //    detectGlobals: true,
+    //    insertGlobals: false,
+    //    ignoreMissing: false,
+    //    debug: false,
+    //    standalone: false,
+    //    keepalive: true,
+    //    callback: function(b) {
+    //      // configure the browserify instance here
+    //      b.add(require('es6ify').runtime);
+    //      //b.require();
+    //      //b.external();
+    //      //b.ignore();
+    //      b.transform(require('es6ify'));
+    //
+    //      return b;
+    //    }
+    //  },
+    //  example: {
+    //    src: './src/browser.js',
+    //    dest: 'dist/handsontable.full.js'
+    //  }
+    //}
   });
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['jshint', 'gitinfo', 'replace:dist', 'browserify', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('build', ['replace:dist', 'browserify', 'concat', 'uglify', 'cssmin', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -392,43 +446,5 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
-
-  grunt.registerTask('singletest', 'Runs all tests from a single Spec file.\nSyntax: grunt singletest:[handsontable, walkontable]:<file>', function (taskName, specFile) {
-    var context = {
-      taskName: taskName,
-      specFile: specFile
-    };
-
-    var configProperty = grunt.template.process('jasmine.<%=taskName%>.options.specs', {data: context});
-    var task = grunt.template.process('jasmine:<%=taskName%>', {data: context});
-    var specPath;
-
-    switch (taskName) {
-      case 'handsontable':
-        specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
-        break;
-      case 'walkontable':
-        specPath =  grunt.template.process('src/3rdparty/walkontable/test/jasmine/spec/<%=specFile%>', {data: context});
-        break;
-      default:
-        grunt.fail.fatal('Unknown test task: "' + taskName + '". Available test tasks: [handsontable, walkontable]')
-    }
-
-    grunt.config.set(configProperty, [specPath]);
-
-    grunt.task.run(task);
-  });
-
-
-  grunt.loadNpmTasks('grunt-replace');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-jasmine');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-cssmin');
-  grunt.loadNpmTasks('grunt-saucelabs');
-  grunt.loadNpmTasks('grunt-gitinfo');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadTasks('tasks');
 };

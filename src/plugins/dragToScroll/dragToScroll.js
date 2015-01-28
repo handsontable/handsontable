@@ -1,3 +1,13 @@
+
+import {eventManager as eventManagerObject} from './../../eventManager.js';
+import {registerPlugin} from './../../plugins.js';
+
+export {DragToScroll};
+
+//registerPlugin('dragToScroll', DragToScroll);
+
+Handsontable.plugins.DragToScroll = DragToScroll;
+
 /**
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of visible viewport
  * @constructor
@@ -6,6 +16,64 @@ function DragToScroll() {
   this.boundaries = null;
   this.callback = null;
 }
+//
+//DragToScroll.prototype.beforeInit = function(hotInstance) {
+//  var _this = this;
+//
+//  this.hot = hotInstance;
+//
+//  var setupListening = function () {
+//    this.dragToScrollListening = false;
+//
+//    var scrollHandler = this.view.wt.wtScrollbars.vertical.scrollHandler; //native scroll
+//
+//    if (scrollHandler === window) {
+//      //not much we can do currently
+//      return;
+//    }
+//    else {
+//      _this.setBoundaries(scrollHandler.getBoundingClientRect());
+//    }
+//    _this.setCallback(function (scrollX, scrollY) {
+//
+//      if (scrollX < 0) {
+//        scrollHandler.scrollLeft -= 50;
+//      }
+//      else if (scrollX > 0) {
+//        scrollHandler.scrollLeft += 50;
+//      }
+//
+//      if (scrollY < 0) {
+//        scrollHandler.scrollTop -= 20;
+//      }
+//      else if (scrollY > 0) {
+//        scrollHandler.scrollTop += 20;
+//      }
+//    });
+//    this.dragToScrollListening = true;
+//  };
+//
+//  Handsontable.hooks.add('afterInit', function () {
+//    var eventManager = eventManagerObject(this);
+//
+//    eventManager.addEventListener(document, 'mouseup', function () {
+//      _this.hot.dragToScrollListening = false;
+//    });
+//
+//    eventManager.addEventListener(document, 'mousemove', function () {
+//      if (_this.hot.dragToScrollListening) {
+//        _this.check(event.clientX, event.clientY);
+//      }
+//    });
+//  });
+//
+//  Handsontable.hooks.add('afterDestroy', function () {
+//    eventManagerObject(this).clear();
+//  });
+//
+//  Handsontable.hooks.add('afterOnCellMouseDown', setupListening);
+//  Handsontable.hooks.add('afterOnCellCornerMouseDown', setupListening);
+//};
 
 /**
  * @param boundaries {Object} compatible with getBoundingClientRect

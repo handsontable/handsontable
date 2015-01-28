@@ -1,3 +1,12 @@
+
+import {Walkontable} from './core.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+
+export {WalkontableOverlay};
+
+window.WalkontableOverlay = WalkontableOverlay;
+
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling
@@ -61,7 +70,7 @@ WalkontableOverlay.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableOverlay.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this.clone);
+  var eventManager = eventManagerObject(this.clone);
 
   eventManager.clear();
 };

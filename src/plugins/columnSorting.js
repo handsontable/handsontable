@@ -2,7 +2,16 @@
  * This plugin sorts the view by a column (but does not sort the data source!)
  * @constructor
  */
-function HandsontableColumnSorting() {
+
+import * as dom from './../dom.js';
+import {eventManager as eventManagerObject} from './../eventManager.js';
+import {registerPlugin} from './../plugins.js';
+
+export {ColumnSorting};
+
+//registerPlugin('columnSorting', ColumnSorting);
+
+function ColumnSorting() {
   var plugin = this;
 
   this.init = function (source) {
@@ -119,9 +128,9 @@ function HandsontableColumnSorting() {
   var bindColumnSortingAfterClick = function () {
     var instance = this;
 
-    var eventManager = Handsontable.eventManager(instance);
+    var eventManager = eventManagerObject(instance);
     eventManager.addEventListener(instance.rootElement, 'click', function (e){
-      if(Handsontable.Dom.hasClass(e.target, 'columnSorting')) {
+      if(dom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
         plugin.sortByColumn.call(instance, col);
       }
@@ -133,8 +142,8 @@ function HandsontableColumnSorting() {
     }
 
     function getColumn(target) {
-      var TH = Handsontable.Dom.closest(target, 'TH');
-      return Handsontable.Dom.index(TH) - countRowHeaders();
+      var TH = dom.closest(target, 'TH');
+      return dom.index(TH) - countRowHeaders();
     }
   };
 
@@ -259,7 +268,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting && col >= 0) {
-      Handsontable.Dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
+      dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
     }
   };
 
@@ -339,7 +348,24 @@ function HandsontableColumnSorting() {
     }
   };
 }
-var htSortColumn = new HandsontableColumnSorting();
+
+//ColumnSorting.prototype.beforeInit = function() {
+//  var _this = this;
+//
+//  Handsontable.hooks.add('afterInit', function () {
+//    _this.init.call(this, 'afterInit');
+//  });
+//  Handsontable.hooks.add('afterUpdateSettings', function () {
+//    _this.init.call(this, 'afterUpdateSettings');
+//  });
+//  Handsontable.hooks.add('modifyRow', _this.translateRow);
+//  Handsontable.hooks.add('afterGetColHeader', _this.getColHeader);
+//
+//  Handsontable.hooks.register('beforeColumnSort');
+//  Handsontable.hooks.register('afterColumnSort');
+//};
+
+var htSortColumn = new ColumnSorting();
 
 Handsontable.hooks.add('afterInit', function () {
   htSortColumn.init.call(this, 'afterInit');
@@ -352,4 +378,3 @@ Handsontable.hooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');
-

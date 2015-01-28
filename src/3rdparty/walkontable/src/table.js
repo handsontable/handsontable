@@ -1,3 +1,18 @@
+
+import {WalkontableCornerScrollbarNative} from './scrollbarNativeCorner.js';
+import {WalkontableDebugOverlay} from './debugOverlay.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {WalkontableVerticalScrollbarNative} from './scrollbarNativeVertical.js';
+import {WalkontableRowFilter} from './rowFilter.js';
+import {WalkontableColumnFilter} from './columnFilter.js';
+import {WalkontableTableRenderer} from './tableRenderer.js';
+import {WalkontableCellCoords} from './cellCoords.js';
+import {WalkontableCellRange} from './cellRange.js';
+
+export {WalkontableTable};
+
+window.WalkontableTable = WalkontableTable;
+
 function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;

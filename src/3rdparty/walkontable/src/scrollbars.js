@@ -1,3 +1,14 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {WalkontableCornerScrollbarNative} from './scrollbarNativeCorner.js';
+import {WalkontableDebugOverlay} from './debugOverlay.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {WalkontableVerticalScrollbarNative} from './scrollbarNativeVertical.js';
+
+export {WalkontableScrollbars};
+
+window.WalkontableScrollbars = WalkontableScrollbars;
+
 function WalkontableScrollbars(instance) {
   this.instance = instance;
   instance.update('scrollbarWidth', Handsontable.Dom.getScrollbarWidth());
@@ -30,7 +41,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     that.horizontal.onScroll();
   };
 
-  var eventManager = Handsontable.eventManager(that.instance);
+  var eventManager = eventManagerObject(that.instance);
 
   eventManager.addEventListener(this.vertical.scrollHandler, 'scroll', this.refreshAll);
   if (this.vertical.scrollHandler !== this.horizontal.scrollHandler) {
@@ -43,7 +54,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this.instance);
+  var eventManager = eventManagerObject(this.instance);
 
   if (this.vertical) {
     this.vertical.destroy();
