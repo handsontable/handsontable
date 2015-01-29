@@ -106,7 +106,7 @@ describe('FormatterRenderer', function () {
     setDataAtCell(0, 0, new Date(2015, 0, 1, 2, 0, 0, 0).valueOf());
 
     runs(function () {
-      expect(getCell(0, 0).innerHTML).toEqual('1420056000000');
+      expect(getCell(0, 0).innerHTML).toEqual(new Date(2015, 0, 1, 2, 0, 0, 0).valueOf().toString());
     });
   });
 });
