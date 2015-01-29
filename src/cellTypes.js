@@ -49,6 +49,11 @@ Handsontable.DropdownCell = {
   validator: Handsontable.AutocompleteValidator
 };
 
+Handsontable.FormatterCell = {
+  editor: Handsontable.editors.FormatterEditor,
+  renderer: Handsontable.renderers.FormatterRenderer
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
@@ -58,6 +63,7 @@ Handsontable.cellTypes = {
   autocomplete: Handsontable.AutocompleteCell,
   handsontable: Handsontable.HandsontableCell,
   password: Handsontable.PasswordCell,
+  formatter: Handsontable.FormatterCell,
   dropdown: Handsontable.DropdownCell
 };
 
