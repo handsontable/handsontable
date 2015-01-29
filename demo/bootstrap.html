@@ -9,7 +9,6 @@
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <!--<script data-jsfiddle="common" type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>-->
   <script data-jsfiddle="common" type="text/javascript" src="bootstrap/v3/js/bootstrap.min.js"></script>
 
   <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/v3/css/bootstrap.css">
@@ -165,7 +164,7 @@
         </div>
         <div class="rowLayout">
           <div class="descLayout">
-            <div class="pad" data-jsfiddle="example1">
+            <div class="pad" data-jsfiddle="example2">
 
               <div class="row">
                 <div id="example2" class="col-xs-12" style="overflow: auto"></div>
@@ -192,10 +191,10 @@
                   i, j, len,
                   data2 = [];
 
-                for ( i = 0; i < rows; i++ ){
+                for (i = 0; i < rows; i++) {
                   data2[i] = [];
-                  for ( j = 0; j < cols; j++ ){
-                    data2[i].push(j+1);
+                  for (j = 0; j < cols; j++) {
+                    data2[i].push(j + 1);
                   }
                 }
 
@@ -207,27 +206,28 @@
                   data: data2,
                   colHeaders: true,
                   rowHeaders: true,
-                  fixedColumnsLeft:3,
+                  fixedColumnsLeft: 3,
                   fixedRowsTop: 3,
                   contextMenu: true
-                  });
+                });
 
                 var ex = document.getElementById('example2');
                 table2 = ex.querySelectorAll('table');
 
-                function findAncestor (el, cls) {
-                  while ((el = el.parentElement) && !el.classList.contains(cls));
-                  return el;
-                };
+                function findAncestor(el, cls) {
+                  while ((el = el.parentElement) && !el.classList.contains(cls)){
+                    return el;
+                  }
 
+                }
 
-                for(  i = 0, len = table2.length; i < len; i++) {
+                for (i = 0, len = table2.length; i < len; i++) {
                   var tableInstance = table2[i];
-                  var isMaster = !!findAncestor(tableInstance,'ht_master');
+                  var isMaster = !!findAncestor(tableInstance, 'ht_master');
                   Handsontable.Dom.addClass(tableInstance, 'table');
                   Handsontable.Dom.addClass(tableInstance, 'table-hover');
                   Handsontable.Dom.addClass(tableInstance, 'table-striped');
-                  if (isMaster){
+                  if (isMaster) {
                     Handsontable.Dom.addClass(tableInstance, 'table-bordered');
                   }
                 }
@@ -236,7 +236,7 @@
           </div>
         </div>
 
-        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and
+        <div class="footer-text">Handsontable &copy; 2012-2015 Marcin Warpechowski and contributors.<br> Code and
           documentation
           licensed under the The MIT License.
         </div>

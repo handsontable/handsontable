@@ -281,7 +281,7 @@
 }
 
 .handsontable td.area {
-  background-color: #EEF4FF;
+  background-color: #EEF4FF !important;
 }
 
 /* fill handle */
