@@ -77,7 +77,7 @@ var classListSupport = document.documentElement.classList ? true : false;
 
 export function hasClass(ele, cls) {
   if (classListSupport) {
-    return ele.classList.contains(cls);
+    return cls && ele.classList.contains(cls);
   }
 
   // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
