@@ -224,9 +224,9 @@ Handsontable.TableView = function (instance) {
 
       isMouseDown = true;
 
-      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-
       Handsontable.Dom.enableImmediatePropagation(event);
+
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
       if (!event.isImmediatePropagationStopped()) {
 
