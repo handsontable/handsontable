@@ -2353,6 +2353,102 @@ describe('UndoRedo', function () {
 
       });
     });
+
+    describe("Hooks", function () {
+      describe("beforeUndo", function () {
+        it ("should be fired before undo", function() {
+          var onBeforeUndo = jasmine.createSpy("onBeforeUndo");
+
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            beforeUndo: onBeforeUndo
+          });
+
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+
+          expect(onBeforeUndo).toHaveBeenCalled();
+        });
+
+        it ("should cancel undo when hook returns false", function () {
+          var onBeforeUndo = function () { return false; };
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            beforeUndo: onBeforeUndo
+          });
+
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+
+          expect(getDataAtCell(0, 0)).toEqual("X1");
+        });
+      });
+
+      describe("afterUndo", function() {
+        it ("should be fired after undo", function (){
+          var onAfterUndo = jasmine.createSpy("onAfterUndo");
+
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            afterUndo: onAfterUndo
+          });
+
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+
+          expect(onAfterUndo).toHaveBeenCalled();
+        });
+      });
+
+      describe("beforeRedo", function () {
+        it ("should be fired before redo", function() {
+          var onBeforeRedo = jasmine.createSpy("onBeforeRedo");
+
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            beforeRedo: onBeforeRedo
+          });
+
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+          getInstance().redo();
+
+          expect(onBeforeRedo).toHaveBeenCalled();
+        });
+
+        it ("should cancel redo when hook returns false", function () {
+          var onBeforeRedo = function () { return false; };
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            beforeRedo: onBeforeRedo
+          });
+
+          var originalData = getDataAtCell(0, 0);
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+          getInstance().redo();
+
+          expect(getDataAtCell(0, 0)).toEqual(originalData);
+        });
+      });
+
+      describe("afterRedo", function() {
+        it ("should be fired after redo", function (){
+          var onAfterRedo = jasmine.createSpy("onAfterRedo");
+
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2),
+            afterRedo: onAfterRedo
+          });
+
+          setDataAtCell(0, 0, "X1");
+          getInstance().undo();
+          getInstance().redo();
+
+          expect(onAfterRedo).toHaveBeenCalled();
+        });
+      });
+    });
   });
 
   describe("plugin features", function () {
@@ -2462,5 +2558,4 @@ describe('UndoRedo', function () {
 
     });
   });
-
 });
