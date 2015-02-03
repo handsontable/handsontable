@@ -314,7 +314,7 @@ function ajax(url, method, params, callback) {
       }
     }
 
-    footer.innerHTML = 'Handsontable &copy; 2012-2014 Nextgen. Contact us at <a href="mailto:' + link + '">'+ link +'</a>.<br> Code and documentation licensed under the The MIT License.';
+    footer.innerHTML = 'Handsontable &copy; 2012-' + new Date().getFullYear() + ' Nextgen. Contact us at <a href="mailto:' + link + '">'+ link +'</a>.<br> Code and documentation licensed under the The MIT License.';
 
   }
 
