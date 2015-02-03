@@ -62,7 +62,7 @@
     }
 
     this.render();
-    
+
     /* jshint ignore:end */
   }
 
@@ -465,7 +465,15 @@
         if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
           return;
         }
+      } else if(showRowHeaders && showColHeaders) {
+
+        // do nothing after right-click on corner header
+        var containsCornerHeader = event.target.parentNode.querySelectorAll('.cornerHeader').length > 0;
+        if (containsCornerHeader) {
+          return;
+        }
       }
+
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
 
