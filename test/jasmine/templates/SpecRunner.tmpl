@@ -3,6 +3,8 @@
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
   <meta charset="utf-8">
+  <meta http-equiv="cache-control" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
   <title>Jasmine Spec Runner</title>
   <link rel="stylesheet" type="text/css" href="lib/jasmine/jasmine.css">
 <% css.forEach(function(style){
@@ -18,7 +20,7 @@ if(style.search(/jasmine.css$/) == -1) { %>
 <% with (scripts) { %>
   <% [].concat(vendor, helpers, src, specs).forEach(function(script){ %>
   <script>
-    document.writeln('<scr' + 'ipt src="<%= script %>?v=' + parseInt(Math.random() * 99999, 10) + '"></scr' + 'ipt>');
+    document.writeln('<scr' + 'ipt src="<%= script %>"></scr' + 'ipt>');
   </script>
   <% }) %>
 <% }; %>
