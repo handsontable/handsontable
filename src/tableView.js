@@ -68,7 +68,7 @@ Handsontable.TableView = function (instance) {
       return; //it must have been started in a cell
     }
 
-    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+    if (next !== that.instance.container) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
