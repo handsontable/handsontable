@@ -32,6 +32,23 @@
     return className;
   }
 
+  function getAlignmentClasses(range) {
+    var classesArray = {};
+    /* jshint ignore:start */
+    for (var row = range.from.row; row <= range.to.row; row++) {
+      for (var col = range.from.col; col <= range.to.col; col++) {
+
+        if(!classesArray[row]) {
+          classesArray[row] = [];
+        }
+        classesArray[row][col] = this.getCellMeta(row,col).className;
+      }
+    }
+    /* jshint ignore:end */
+
+    return classesArray;
+  }
+
   function doAlign(row, col, type, alignment) {
     /* jshint ignore:start */
     var cellMeta = this.getCellMeta(row, col),
@@ -46,11 +63,15 @@
     }
 
     this.setCellMeta(row, col, 'className', className);
-
+    /* jshint ignore:end */
   }
 
   function align(range, type, alignment) {
     /* jshint ignore:start */
+
+    var stateBefore = getAlignmentClasses.call(this, range);
+    this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
       doAlign.call(this, range.from.row, range.from.col, type, alignment);
     } else {
@@ -1098,6 +1119,10 @@
     if (menu.parentNode) {
       this.menu.parentNode.removeChild(menu);
     }
+  };
+
+  ContextMenu.prototype.align = function(range, type, alignment) {
+    align.call(this, range, type, alignment);
   };
 
   ContextMenu.SEPARATOR = {name: "---------"};
