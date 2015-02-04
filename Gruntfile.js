@@ -77,6 +77,7 @@ module.exports = function (grunt) {
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
         'src/renderers/htmlRenderer.js',
+        'src/renderers/formatterRenderer.js',
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
@@ -89,6 +90,7 @@ module.exports = function (grunt) {
         'src/editors/selectEditor.js',
         'src/editors/dropdownEditor.js',
         'src/editors/numericEditor.js',
+        'src/editors/formatterEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',
@@ -237,6 +239,7 @@ module.exports = function (grunt) {
             'lib/jquery.min.js',
             'lib/numeral.js',
             'lib/numeral.de-de.js',
+            'lib/formatter.min.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
