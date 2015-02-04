@@ -462,6 +462,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
     Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    Handsontable.Dom.addClass(SPAN, 'cornerHeader');
   }
   DIV.appendChild(SPAN);
 
