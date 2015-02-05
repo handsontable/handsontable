@@ -186,7 +186,7 @@ describe('Core_loadData', function () {
     });
     //expect(cellsSpy.calls.length).toEqual(3 * (countRows() * countCols()) + 4 * countCols()); // changed for the dynamic column loading feature
 
-    expect(cellsSpy.calls.length).toEqual(55); // ugly fix for this test failing, TODO: needs updating
+    expect(cellsSpy.calls.length).toEqual(55); // ugly fix for this test failing, TODO: needs updating (probably has something to do with scrollHandler recognition)
 
   });
 

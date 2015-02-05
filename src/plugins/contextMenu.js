@@ -32,6 +32,23 @@
     return className;
   }
 
+  function getAlignmentClasses(range) {
+    var classesArray = {};
+    /* jshint ignore:start */
+    for (var row = range.from.row; row <= range.to.row; row++) {
+      for (var col = range.from.col; col <= range.to.col; col++) {
+
+        if(!classesArray[row]) {
+          classesArray[row] = [];
+        }
+        classesArray[row][col] = this.getCellMeta(row,col).className;
+      }
+    }
+    /* jshint ignore:end */
+
+    return classesArray;
+  }
+
   function doAlign(row, col, type, alignment) {
     /* jshint ignore:start */
     var cellMeta = this.getCellMeta(row, col),
@@ -46,11 +63,15 @@
     }
 
     this.setCellMeta(row, col, 'className', className);
-
+    /* jshint ignore:end */
   }
 
   function align(range, type, alignment) {
     /* jshint ignore:start */
+
+    var stateBefore = getAlignmentClasses.call(this, range);
+    this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
       doAlign.call(this, range.from.row, range.from.col, type, alignment);
     } else {
@@ -62,7 +83,7 @@
     }
 
     this.render();
-    
+
     /* jshint ignore:end */
   }
 
@@ -465,7 +486,15 @@
         if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
           return;
         }
+      } else if(showRowHeaders && showColHeaders) {
+
+        // do nothing after right-click on corner header
+        var containsCornerHeader = event.target.parentNode.querySelectorAll('.cornerHeader').length > 0;
+        if (containsCornerHeader) {
+          return;
+        }
       }
+
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
 
@@ -1090,6 +1119,10 @@
     if (menu.parentNode) {
       this.menu.parentNode.removeChild(menu);
     }
+  };
+
+  ContextMenu.prototype.align = function(range, type, alignment) {
+    align.call(this, range, type, alignment);
   };
 
   ContextMenu.SEPARATOR = {name: "---------"};

@@ -60,6 +60,11 @@
       var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData, headers);
       plugin.done(action);
     });
+
+    instance.addHook("beforeCellAlignment", function (stateBefore, range, type, alignment) {
+      var action = new Handsontable.UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
+      plugin.done(action);
+    });
   };
 
   Handsontable.UndoRedo.prototype.done = function (action) {
@@ -233,6 +238,41 @@
   Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance, redoneCallback) {
     instance.addHookOnce('afterCreateCol', redoneCallback);
     instance.alter('insert_col', this.index + 1, this.amount);
+  };
+
+  Handsontable.UndoRedo.CellAlignmentAction = function (stateBefore, range, type, alignment) {
+    this.stateBefore = stateBefore;
+    this.range = range;
+    this.type = type;
+    this.alignment = alignment;
+  };
+  Handsontable.UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
+    if (!instance.contextMenu) {
+      return;
+    }
+
+    for (var row = this.range.from.row; row <= this.range.to.row; row++) {
+      for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+        instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+      }
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
+  };
+  Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
+    if (!instance.contextMenu) {
+      return;
+    }
+
+    for (var row = this.range.from.row; row <= this.range.to.row; row++) {
+      for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+        instance.contextMenu.align.call(instance, this.range, this.type, this.alignment);
+      }
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
   };
 
   Handsontable.UndoRedo.RemoveColumnAction = function (index, data, headers) {
