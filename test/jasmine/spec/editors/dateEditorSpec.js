@@ -101,7 +101,10 @@ describe('DateEditor', function () {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
+    waits(30);
+    runs(function () {
+      expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
+    });
   });
 
   it("should close calendar after picking new date", function () {
@@ -153,7 +156,11 @@ describe('DateEditor', function () {
 
     editor.finishEditing();
 
-    expect(getDataAtCell(0, 0)).toEqual('foo');
+    waits(30);
+    runs(function() {
+      expect(getDataAtCell(0, 0)).toEqual('foo');
+    });
+
   });
 
   it("should display Pikaday Calendar bottom of the selected cell", function() {

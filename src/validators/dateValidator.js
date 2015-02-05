@@ -4,7 +4,8 @@
  * @param {*} callback - Callback called with validation result
  */
 Handsontable.DateValidator = function (value, callback) {
-  var correctedValue = null;
+  var correctedValue = null,
+    valid = true;
 
   if (value === null) {
     value = '';
@@ -14,22 +15,18 @@ Handsontable.DateValidator = function (value, callback) {
     isValidFormat = moment(value, this.dateFormat, true).isValid(); // is it in the specified format
 
   if (!isValidDate) {
-    callback(false);
-    return;
+    valid = false;
   } else if (!isValidFormat) {
-
     if (this.correctFormat === true) { // if format correction is enabled
       correctedValue = correctFormat(value, this.dateFormat);
       this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');
-      callback(true);
-      return;
+      valid = true;
+    } else {
+      valid = false;
     }
-
-    callback(false);
-    return;
   }
 
-  callback(true);
+  callback(valid);
 };
 
 /**
