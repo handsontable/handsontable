@@ -31,7 +31,7 @@ describe('UndoRedo', function () {
         it('should undo single change on cell with validator', function () {
 
           var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
-             result(true);
+            result(true);
           });
 
           handsontable({
@@ -417,7 +417,6 @@ describe('UndoRedo', function () {
         });
 
 
-
         it('should undo removal of multiple columns (colHeaders: undefined)', function () {
           var HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 4)
@@ -627,7 +626,7 @@ describe('UndoRedo', function () {
 
           waitsFor(function () {
             return validatorSpy.calls.length;
-          },'validatorSpy call after first undo', 1000);
+          }, 'validatorSpy call after first undo', 1000);
 
           runs(function () {
             expect(getDataAtCell(0, 0)).toBe('X1');
@@ -642,7 +641,7 @@ describe('UndoRedo', function () {
 
           waitsFor(function () {
             return validatorSpy.calls.length;
-          },'validatorSpy call after second undo', 1000);
+          }, 'validatorSpy call after second undo', 1000);
 
           runs(function () {
             expect(getDataAtCell(0, 0)).toBe('X1');
@@ -656,7 +655,7 @@ describe('UndoRedo', function () {
 
           waitsFor(function () {
             return validatorSpy.calls.length;
-          },'validatorSpy call after third undo', 1000);
+          }, 'validatorSpy call after third undo', 1000);
 
           runs(function () {
             expect(getDataAtCell(0, 0)).toBe('X1');
@@ -670,7 +669,7 @@ describe('UndoRedo', function () {
 
           waitsFor(function () {
             return validatorSpy.calls.length;
-          },'validatorSpy call after fourth undo', 1000);
+          }, 'validatorSpy call after fourth undo', 1000);
 
           runs(function () {
             expect(getDataAtCell(0, 0)).toBe('A1');
@@ -787,7 +786,7 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
-        it('should undo changes only for table where the change actually took place', function(){
+        it('should undo changes only for table where the change actually took place', function () {
           this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
           var hot1 = handsontable({
@@ -1446,7 +1445,7 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(0, 1)).toEqual('B1');
         });
 
-        it('should redo changes only for table where the change actually took place', function(){
+        it('should redo changes only for table where the change actually took place', function () {
           this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
           var hot1 = handsontable({
@@ -1491,7 +1490,7 @@ describe('UndoRedo', function () {
 
     describe("Object data", function () {
 
-      function createObjectData(){
+      function createObjectData() {
         return [
           {name: 'Timothy', surname: "Dalton"},
           {name: 'Sean', surname: "Connery"},
@@ -1935,7 +1934,6 @@ describe('UndoRedo', function () {
           });
 
 
-
         });
 
         it('should redo creation of a single row', function () {
@@ -2356,6 +2354,255 @@ describe('UndoRedo', function () {
   });
 
   describe("plugin features", function () {
+
+    describe("cell alignment", function () {
+
+      it("should undo a sequence of aligning cells", function () {
+        var hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(9, 9),
+          contextMenu: true,
+          colWidths: [50, 50, 50, 50, 50, 50, 50, 50, 50],
+          rowHeights: [50, 50, 50, 50, 50, 50, 50, 50, 50]
+        });
+
+        var topSection = new WalkontableCellRange(
+            new WalkontableCellCoords(2, 8),
+            new WalkontableCellCoords(0, 0),
+            new WalkontableCellCoords(2, 8)
+          ),
+          bottomSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 8),
+            new WalkontableCellCoords(6, 0),
+            new WalkontableCellCoords(8, 8)
+          ),
+          leftSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 2),
+            new WalkontableCellCoords(0, 0),
+            new WalkontableCellCoords(8, 2)
+          ),
+          rightSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 8),
+            new WalkontableCellCoords(0, 6),
+            new WalkontableCellCoords(8, 8)
+          );
+
+        // top 3 rows center
+        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+
+        // middle 3 rows unchanged - left
+
+        // bottom 3 rows right
+        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+
+        // left 3 columns - middle
+        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+
+        //middle 3 columns unchanged - top
+
+        // right 3 columns - bottom
+        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+
+        var cellMeta = hot.getCellMeta(0, 0);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(0, 7);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(5, 1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(5, 7);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 1);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 5);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 7);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        hot.undo();
+        cellMeta = hot.getCellMeta(0, 7);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(5, 7);
+        expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(7, 7);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+
+        hot.undo();
+
+        cellMeta = hot.getCellMeta(0, 0);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(5, 1);
+        expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(7, 1);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+
+        hot.undo();
+
+        cellMeta = hot.getCellMeta(7, 1);
+        expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(7, 5);
+        expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
+
+        cellMeta = hot.getCellMeta(7, 7);
+        expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+
+        hot.undo();
+
+        // check if all cells are either non-adjusted or adjusted to the left (as default)
+        var finish;
+        for (var i = 0; i < 9; i++) {
+          for (var j = 0; j < 9; j++) {
+            cellMeta = hot.getCellMeta(i, j);
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            expect(finish).toBe(true);
+          }
+        }
+
+      });
+
+      it("should redo a sequence of aligning cells", function () {
+        var hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(9, 9),
+          contextMenu: true,
+          colWidths: [50, 50, 50, 50, 50, 50, 50, 50, 50],
+          rowHeights: [50, 50, 50, 50, 50, 50, 50, 50, 50]
+        });
+
+        var topSection = new WalkontableCellRange(
+            new WalkontableCellCoords(2, 8),
+            new WalkontableCellCoords(0, 0),
+            new WalkontableCellCoords(2, 8)
+          ),
+          bottomSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 8),
+            new WalkontableCellCoords(6, 0),
+            new WalkontableCellCoords(8, 8)
+          ),
+          leftSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 2),
+            new WalkontableCellCoords(0, 0),
+            new WalkontableCellCoords(8, 2)
+          ),
+          rightSection = new WalkontableCellRange(
+            new WalkontableCellCoords(8, 8),
+            new WalkontableCellCoords(0, 6),
+            new WalkontableCellCoords(8, 8)
+          );
+
+        // top 3 rows center
+        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+
+        // middle 3 rows unchanged - left
+
+        // bottom 3 rows right
+        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+
+        // left 3 columns - middle
+        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+
+        //middle 3 columns unchanged - top
+
+        // right 3 columns - bottom
+        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+
+        var cellMeta = hot.getCellMeta(0, 0);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(0, 7);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(5, 1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(5, 7);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 1);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 5);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+
+        cellMeta = hot.getCellMeta(7, 7);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+
+        hot.undo();
+        hot.undo();
+        hot.undo();
+        hot.undo();
+
+        // check if all cells are either non-adjusted or adjusted to the left (as default)
+        var finish;
+        for (var i = 0; i < 9; i++) {
+          for (var j = 0; j < 9; j++) {
+            cellMeta = hot.getCellMeta(i, j);
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            expect(finish).toBe(true);
+          }
+        }
+
+        hot.redo();
+        cellMeta = hot.getCellMeta(0, 0);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(1, 5);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(2, 8);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+
+        hot.redo();
+        cellMeta = hot.getCellMeta(6, 0);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(7, 5);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(8, 8);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+
+        hot.redo();
+        cellMeta = hot.getCellMeta(0, 0);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(5, 1);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(8, 2);
+        expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+
+        hot.redo();
+        cellMeta = hot.getCellMeta(0, 6);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(5, 7);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+        cellMeta = hot.getCellMeta(8, 8);
+        expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+        expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+      });
+
+    });
+
     it("should exposed new methods when plugin is enabled", function () {
       var hot = handsontable({
         undo: false
@@ -2455,7 +2702,7 @@ describe('UndoRedo', function () {
 
 //        var keyboardEvent = $.Event('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
 //        this.$container.trigger(keyboardEvent);
-        this.$container.simulate('keydown', {ctrlKey: true,shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
+        this.$container.simulate('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });

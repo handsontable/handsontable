@@ -68,7 +68,7 @@ Handsontable.TableView = function (instance) {
       return; //it must have been started in a cell
     }
 
-    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+    if (next !== that.instance.container) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
@@ -224,9 +224,9 @@ Handsontable.TableView = function (instance) {
 
       isMouseDown = true;
 
-      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-
       Handsontable.Dom.enableImmediatePropagation(event);
+
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
       if (!event.isImmediatePropagationStopped()) {
 
@@ -462,6 +462,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
     Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    Handsontable.Dom.addClass(SPAN, 'cornerHeader');
   }
   DIV.appendChild(SPAN);
 

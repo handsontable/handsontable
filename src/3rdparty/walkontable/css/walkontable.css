@@ -143,3 +143,8 @@
   width: 1px;
   height: 1px;
 }
+
+/* used for testing */
+.testOverflowAuto {
+  overflow: auto;
+}

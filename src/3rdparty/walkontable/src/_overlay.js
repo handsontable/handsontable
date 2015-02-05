@@ -42,10 +42,16 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
 
 WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
   var el = TABLE.parentNode;
-  while (el && el.style) {
+  while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
+    } else if(window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
     }
+
     if (this instanceof WalkontableHorizontalScrollbarNative && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
       return el;
     }
