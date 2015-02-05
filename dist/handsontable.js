@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.12.4
+ * Handsontable 0.12.5
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
- * Copyright 2012-2014 Marcin Warpechowski
+ * Copyright 2012-2015 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 23 2015 10:07:24 GMT+0100 (CET)
+ * Date: Thu Feb 05 2015 11:24:27 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2385,7 +2385,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.12.4'; //inserted by grunt from package.json
+  this.version = '0.12.5'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -3375,7 +3375,7 @@ Handsontable.TableView = function (instance) {
       return; //it must have been started in a cell
     }
 
-    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+    if (next !== that.instance.container) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
@@ -3531,9 +3531,9 @@ Handsontable.TableView = function (instance) {
 
       isMouseDown = true;
 
-      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-
       Handsontable.Dom.enableImmediatePropagation(event);
+
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
       if (!event.isImmediatePropagationStopped()) {
 
@@ -3769,6 +3769,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
     Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   } else {
     Handsontable.Dom.fastInnerText(SPAN, String.fromCharCode(160)); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    Handsontable.Dom.addClass(SPAN, 'cornerHeader');
   }
   DIV.appendChild(SPAN);
 
@@ -8674,6 +8675,7 @@ Handsontable.PluginHookClass = (function () {
       afterIsMultipleSelectionCheck: [],
       afterDocumentKeyDown: [],
       afterMomentumScroll: [],
+      beforeCellAlignment: [],
 
       // Modifiers
       modifyColWidth: [],
@@ -9440,6 +9442,23 @@ Handsontable.hooks.register('afterColumnSort');
     return className;
   }
 
+  function getAlignmentClasses(range) {
+    var classesArray = {};
+    /* jshint ignore:start */
+    for (var row = range.from.row; row <= range.to.row; row++) {
+      for (var col = range.from.col; col <= range.to.col; col++) {
+
+        if(!classesArray[row]) {
+          classesArray[row] = [];
+        }
+        classesArray[row][col] = this.getCellMeta(row,col).className;
+      }
+    }
+    /* jshint ignore:end */
+
+    return classesArray;
+  }
+
   function doAlign(row, col, type, alignment) {
     /* jshint ignore:start */
     var cellMeta = this.getCellMeta(row, col),
@@ -9454,11 +9473,15 @@ Handsontable.hooks.register('afterColumnSort');
     }
 
     this.setCellMeta(row, col, 'className', className);
-
+    /* jshint ignore:end */
   }
 
   function align(range, type, alignment) {
     /* jshint ignore:start */
+
+    var stateBefore = getAlignmentClasses.call(this, range);
+    this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
       doAlign.call(this, range.from.row, range.from.col, type, alignment);
     } else {
@@ -9470,7 +9493,7 @@ Handsontable.hooks.register('afterColumnSort');
     }
 
     this.render();
-    
+
     /* jshint ignore:end */
   }
 
@@ -9873,7 +9896,15 @@ Handsontable.hooks.register('afterColumnSort');
         if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
           return;
         }
+      } else if(showRowHeaders && showColHeaders) {
+
+        // do nothing after right-click on corner header
+        var containsCornerHeader = event.target.parentNode.querySelectorAll('.cornerHeader').length > 0;
+        if (containsCornerHeader) {
+          return;
+        }
       }
+
       var menu = this.createMenu();
       var items = this.getItems(settings.contextMenu);
 
@@ -10498,6 +10529,10 @@ Handsontable.hooks.register('afterColumnSort');
     if (menu.parentNode) {
       this.menu.parentNode.removeChild(menu);
     }
+  };
+
+  ContextMenu.prototype.align = function(range, type, alignment) {
+    align.call(this, range, type, alignment);
   };
 
   ContextMenu.SEPARATOR = {name: "---------"};
@@ -11981,6 +12016,11 @@ function Storage(prefix) {
       var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData, headers);
       plugin.done(action);
     });
+
+    instance.addHook("beforeCellAlignment", function (stateBefore, range, type, alignment) {
+      var action = new Handsontable.UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
+      plugin.done(action);
+    });
   };
 
   Handsontable.UndoRedo.prototype.done = function (action) {
@@ -12154,6 +12194,41 @@ function Storage(prefix) {
   Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance, redoneCallback) {
     instance.addHookOnce('afterCreateCol', redoneCallback);
     instance.alter('insert_col', this.index + 1, this.amount);
+  };
+
+  Handsontable.UndoRedo.CellAlignmentAction = function (stateBefore, range, type, alignment) {
+    this.stateBefore = stateBefore;
+    this.range = range;
+    this.type = type;
+    this.alignment = alignment;
+  };
+  Handsontable.UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
+    if (!instance.contextMenu) {
+      return;
+    }
+
+    for (var row = this.range.from.row; row <= this.range.to.row; row++) {
+      for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+        instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+      }
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
+  };
+  Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
+    if (!instance.contextMenu) {
+      return;
+    }
+
+    for (var row = this.range.from.row; row <= this.range.to.row; row++) {
+      for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+        instance.contextMenu.align.call(instance, this.range, this.type, this.alignment);
+      }
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
   };
 
   Handsontable.UndoRedo.RemoveColumnAction = function (index, data, headers) {
@@ -16574,10 +16649,16 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
 
 WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
   var el = TABLE.parentNode;
-  while (el && el.style) {
+  while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
+    } else if(window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
     }
+
     if (this instanceof WalkontableHorizontalScrollbarNative && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
       return el;
     }
