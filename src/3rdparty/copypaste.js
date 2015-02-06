@@ -99,7 +99,8 @@ CopyPasteClass.prototype.onKeyDown = function (event) {
   if (isCtrlDown) {
     // this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
     if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' ||
-        ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) !== -1)) {
+        ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) !== -1) ||
+        document.activeElement.className.split(" ").indexOf("nocopypaste") !== -1) {
       return;
     }
 
@@ -288,5 +289,3 @@ CopyPasteClass.prototype.destroy = function () {
 CopyPasteClass.prototype.hasBeenDestroyed = function () {
   return !this.refCounter;
 };
-
-
