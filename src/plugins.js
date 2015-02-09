@@ -4,7 +4,7 @@
 
 export {registerPlugin, getPlugin};
 
-var registeredPlugins = {};
+var registeredPlugins = new WeakMap();
 
 // support for older versions of Handsontable
 //Handsontable.plugins = Handsontable.plugins || {};
@@ -16,18 +16,36 @@ var registeredPlugins = {};
  * @param {Function} PluginClass
  */
 function registerPlugin(pluginName, PluginClass) {
-  var plugin;
-
-  if (registeredPlugins[pluginName]) {
-    throw Error('Plugin "' + pluginName + '" is already registered');
-  }
-  plugin = new PluginClass();
+  //if (registeredPlugins.has(pluginName)) {
+  //  throw Error('Plugin "' + pluginName + '" is already registered');
+  //}
 
   Handsontable.hooks.add('beforeInit', function () {
-    plugin.beforeInit(this);
-  });
-  registeredPlugins[pluginName] = plugin;
+    var holder;
 
+    if (!registeredPlugins.has(this)) {
+      registeredPlugins.set(this, {});
+    }
+    holder = registeredPlugins.get(this);
+
+    if (!holder[pluginName]) {
+      holder[pluginName] = new PluginClass(this);
+    }
+  });
+  Handsontable.hooks.add('afterDestroy', function () {
+    var i, pluginsHolder;
+
+    if (registeredPlugins.has(this)) {
+      pluginsHolder = registeredPlugins.get(this);
+
+      for (i in pluginsHolder) {
+        if (pluginsHolder.hasOwnProperty(i) && pluginsHolder[i].destroy) {
+          pluginsHolder[i].destroy();
+        }
+      }
+      registeredPlugins.delete(this);
+    }
+  });
   // support for older versions of Handsontable
   //Handsontable.plugins[helper.toUpperCaseFirst(PluginClass.name)] = PluginClass;
 }
@@ -36,14 +54,14 @@ function registerPlugin(pluginName, PluginClass) {
  * @param {String|Function} pluginName
  * @returns {Function} pluginClass
  */
-function getPlugin(pluginName) {
+function getPlugin(instance, pluginName) {
   if (typeof pluginName != 'string'){
     throw Error('Only strings can be passed as "plugin" parameter');
   }
 
-  if (!(pluginName in registeredPlugins)) {
+  if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[pluginName]) {
     throw Error('No plugin registered under name "' + pluginName + '"');
   }
 
-  return registeredPlugins[pluginName];
+  return registeredPlugins.get(instance)[pluginName];
 }

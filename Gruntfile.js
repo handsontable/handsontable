@@ -136,6 +136,7 @@ module.exports = function (grunt) {
         'lib/shims/array.indexOf.js',
         'lib/shims/array.filter.js',
         'lib/shims/array.isArray.js',
+        'lib/shims/classes.js',
         'lib/shims/object.keys.js',
         'lib/shims/weakmap.js'
       ]
@@ -389,50 +390,19 @@ module.exports = function (grunt) {
           'dist/walkontable.js': ['src/3rdparty/walkontable/src/browser.js']
         },
         options: {
+          postBundleCB: function(err, src, next) {
+            src = src.toString();
+            src = src.replace(/sourceURL=.*/g, '');
+
+            next(err, src);
+          },
           transform: [
-            //'6to5ify',
             'es6ify'
           ],
-          browserifyOptions: {
-            debug: false,
-            traceurOverrides: {
-              arrowFunctions: true,
-              classes: true,
-              defaultParameters: true,
-              destructuring: true,
-              propertyMethods: true,
-              propertyNameShorthand: true
-            }
-          },
           debug: false
         }
       }
     }
-    //watchify: {
-    //  options: {
-    //    // defaults options used in b.bundle(opts)
-    //    detectGlobals: true,
-    //    insertGlobals: false,
-    //    ignoreMissing: false,
-    //    debug: false,
-    //    standalone: false,
-    //    keepalive: true,
-    //    callback: function(b) {
-    //      // configure the browserify instance here
-    //      b.add(require('es6ify').runtime);
-    //      //b.require();
-    //      //b.external();
-    //      //b.ignore();
-    //      b.transform(require('es6ify'));
-    //
-    //      return b;
-    //    }
-    //  },
-    //  example: {
-    //    src: './src/browser.js',
-    //    dest: 'dist/handsontable.full.js'
-    //  }
-    //}
   });
 
   // Default task.

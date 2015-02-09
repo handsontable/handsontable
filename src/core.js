@@ -1,11 +1,12 @@
 
+//import numeral from './../lib/numeral.js';
 import * as dom from './dom.js';
 import * as helper from './helpers.js';
 import {DataMap} from './dataMap.js';
 import {EditorManager} from './editorManager.js';
 import {eventManager as eventManagerObject} from './eventManager.js';
+import {getPlugin} from './plugins.js';
 import {getRenderer} from './renderers.js';
-//import numeral from './../lib/numeral.js';
 import {PluginHook} from './pluginHooks.js';
 import {TableView} from './tableView.js';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
@@ -2077,6 +2078,10 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getActiveEditor = function(){
     return editorManager.getActiveEditor();
+  };
+
+  this.getPlugin = function(pluginName) {
+    return getPlugin(this, pluginName);
   };
 
   /**

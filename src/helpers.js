@@ -572,6 +572,15 @@ export function pageY(event) {
   return cursorY;
 }
 
+export function defineGetter(object, property, value) {
+  Object.defineProperty(object, property, {
+    value: value,
+    writable: false,
+    enumerable: true,
+    configurable: true
+  });
+}
+
 window.Handsontable = window.Handsontable || {};
 // support for older versions of Handsontable
 Handsontable.helper = {
@@ -605,5 +614,6 @@ Handsontable.helper = {
   isTouchSupported,
   stopPropagation,
   pageX,
-  pageY
+  pageY,
+  defineGetter
 };

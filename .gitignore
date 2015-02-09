@@ -4,4 +4,5 @@ _SpecRunner.html
 .grunt
 cars.sqlite
 dev.html
+dist/walkontable.js
 

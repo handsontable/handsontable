@@ -6,13 +6,6 @@ window.Handsontable = function (rootElement, userSettings) {
 
   return instance;
 };
-Handsontable.plugins = {};
-
-import {PluginHook} from './pluginHooks.js';
-
-if (!Handsontable.hooks) {
-  Handsontable.hooks = new PluginHook();
-}
 
 //import numeral from './../lib/numeral.js';
 //
@@ -23,7 +16,16 @@ import './../lib/shims/array.filter.js';
 import './../lib/shims/array.indexOf.js';
 import './../lib/shims/array.isArray.js';
 import './../lib/shims/object.keys.js';
+import './../lib/shims/classes.js';
 import './../lib/shims/weakmap.js';
+
+Handsontable.plugins = {};
+
+import {PluginHook} from './pluginHooks.js';
+
+if (!Handsontable.hooks) {
+  Handsontable.hooks = new PluginHook();
+}
 
 import './core.js';
 //import './multiMap.js';

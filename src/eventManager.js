@@ -58,8 +58,11 @@ function eventManager(instance) {
       } else {
         element.attachEvent('on' + event, callbackProxy);
       }
-
       Handsontable.countEventManagerListeners++;
+
+      return function _removeEvent() {
+        removeEvent(element, event, callback);
+      };
     },
     removeEvent = function (element, event, callback){
       var len = instance.eventListeners.length;

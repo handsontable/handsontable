@@ -540,6 +540,7 @@ ContextMenu.prototype.show = function (menu, items) {
     colWidths: [200],
     readOnly: true,
     copyPaste: false,
+    //parentInstance: that.instance // Another solution to pass parentInstance to plugin constructor
     columns: [
       {
         data: 'name',
@@ -555,8 +556,13 @@ ContextMenu.prototype.show = function (menu, items) {
     }
   };
 
-  var htContextMenu = new Handsontable(menu, settings);
+  var htContextMenu = new Handsontable.Core(menu, settings);
 
+  // Pass HOT parent instance to plugin HOT ContextMenu instance
+  htContextMenu.addHook('beforeInit', function() {
+    this.getPlugin('contextMenuCopyPaste').hotParent = that.instance;
+  });
+  htContextMenu.init();
 
   this.eventManager.removeEventListener(menu, 'mousedown');
   this.eventManager.addEventListener(menu,'mousedown', function (event) {
