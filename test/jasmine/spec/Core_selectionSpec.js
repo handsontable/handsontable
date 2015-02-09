@@ -516,5 +516,51 @@ describe('Core_selection', function () {
 
   });
 
+  it("dragging a large cell selection should not scroll the selection if you mouse over a cell", function () {
+
+    var $table = $('<div style="overflow-y: scroll; height: 200px">').prependTo($('body'));
+
+    var errCount = 0;
+    $(window).on("error.selectionTest", function () {
+      errCount++;
+    });
+
+    var hot = new Handsontable($table[0], {
+      startRows: 1000,
+      startCols: 5,
+      height: 200,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    // Cell A1 will be the start of our selection
+    $table.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
+
+    // Scroll down the table, which is what happens when a large selection is made
+    $table[0].scrollTop = 500;
+
+    waits(100);
+
+    runs(function() {
+      expect($table[0].scrollTop).toEqual(500);
+
+      // A24 will be the end of the selection
+      // (must choose a cell in view for the simulation to work)
+      $table.find('tbody tr:eq(23) td:eq(0)').simulate('mouseover');
+    });
+
+    waits(100);
+
+    runs(function() {
+      // Table shouldn't have scrolled to make A1 visible
+      expect($table[0].scrollTop).not.toEqual(0);
+
+      expect(errCount).toEqual(0); // expect no errors to be thrown
+
+      $(window).off("error.selectionTest");
+      $table.remove();
+    });
+
+  });
 
 });

@@ -271,7 +271,7 @@ Handsontable.TableView = function (instance) {
           /*if (that.settings.fragmentSelection === 'single') {
            clearTextSelection(); //otherwise text selection blinks during multiple cells selection
            }*/
-          instance.selection.setRangeEnd(coords);
+          instance.selection.setRangeEnd(coords, false);
         }
       } else {
         if (isMouseDown) {
