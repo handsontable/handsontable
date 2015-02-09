@@ -558,6 +558,7 @@ describe('Core_selection', function () {
       expect(errCount).toEqual(0); // expect no errors to be thrown
 
       $(window).off("error.selectionTest");
+      hot.destroy();
       $table.remove();
     });
 
