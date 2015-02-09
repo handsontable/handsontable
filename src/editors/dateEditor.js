@@ -44,6 +44,8 @@
 
         that.instance.setDataAtCell(that.row, that.col, dateStr);
         that.setValue(dateStr);
+      },
+      onClose: function () {
         that.finishEditing(false);
       }
     };

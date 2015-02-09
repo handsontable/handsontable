@@ -138,8 +138,6 @@ describe('DateEditor', function () {
 
     selectCell(0, 0);
 
-    keyDown(Handsontable.helper.keyCode.BACKSPACE);
-
     var editor = hot.getActiveEditor();
 
     editor.beginEditing();
