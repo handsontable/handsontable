@@ -204,7 +204,7 @@
         onKeyDown(originalEvent);
       });
 
-      eventManager.addEventListener(document, 'keydown', function (ev){
+      eventManager.addEventListener(document.documentElement, 'keydown', function (ev){
         instance.runHooks('afterDocumentKeyDown', ev);
       });
 
