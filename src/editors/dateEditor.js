@@ -38,6 +38,7 @@
     var defaultOptions = {
       dateFormat: defaultDateFormat,
       field: that.datePicker,
+      //container: that.datePicker,
       reposition: false,
       onSelect: function (dateStr) {
         dateStr = moment(dateStr).format(that.cellProperties.dateFormat || defaultDateFormat);

@@ -488,6 +488,7 @@
             e = e || window.event;
             var target = e.target || e.srcElement,
                 pEl = target;
+
             if (!target) {
                 return;
             }
