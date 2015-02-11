@@ -2228,6 +2228,13 @@ DefaultSettings.prototype = {
   manualColumnFreeze: void 0,
   viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
   viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
-  groups: void 0
+  groups: void 0,
+  settings: void 0,
+  source: void 0,
+  title: void 0,
+  checkedTemplate: void 0,
+  uncheckedTemplate: void 0,
+  renderer: void 0,
+  format: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

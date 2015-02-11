@@ -65,23 +65,28 @@ Handsontable.TableView = function (instance) {
     var next = event.target;
 
     if (isMouseDown) {
-      return; //it must have been started in a cell
+      return; // it must have been started in a cell
     }
 
-    if (next !== that.instance.container) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+    // immediate click on "spreader" means click on the right side of vertical scrollbar
+    if (next !== that.instance.container) {
       while (next !== document.documentElement) {
         if (next === null) {
-          return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
+          if (event.isTargetWebComponent) {
+            break;
+          }
+          // click on something that was a row but now is detached (possibly because your click triggered a rerender)
+          return;
         }
-       if (next === instance.rootElement) {
-          return; //click inside container
+        if (next === instance.rootElement) {
+          // click inside container
+          return;
         }
         next = next.parentNode;
       }
     }
 
-    //function did not return until here, we have an outside click!
-
+    // function did not return until here, we have an outside click!
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     }

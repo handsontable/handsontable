@@ -30,7 +30,9 @@ Handsontable.eventManager = function (instance) {
   addEvent = function (element, event, callback) {
     var callbackProxy;
 
-    callbackProxy = function (event) {
+    callbackProxy = function callbackProxy(event) {
+      var newEvent;
+
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
           event.definePoperty('target', {
@@ -40,7 +42,6 @@ Handsontable.eventManager = function (instance) {
           event.target = event.srcElement;
         }
       }
-
       if (event.preventDefault == void 0) {
         if (event.definePoperty) {
           event.definePoperty('preventDefault', {
@@ -54,7 +55,34 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      callback.call(this, event);
+      event.realTarget = event.target;
+      event.isTargetWebComponent = false;
+
+      if (Handsontable.helper.isWebComponent(event.target)) {
+        event.isTargetWebComponent = true;
+
+        newEvent = Object.create(event, {
+          target: {
+            value: event.path[0]
+          },
+          constructor: {
+            value: event.constructor
+          }
+        });
+        newEvent.preventDefault = function() {
+          event.preventDefault.apply(event, arguments);
+        };
+        newEvent.stopPropagation = function() {
+          event.stopPropagation.apply(event, arguments);
+        };
+        newEvent.stopImmediatePropagation = function() {
+          event.stopImmediatePropagation.apply(event, arguments);
+        };
+        callback.call(this, newEvent);
+      }
+      else {
+        callback.call(this, event);
+      }
     };
 
     instance.eventListeners.push({

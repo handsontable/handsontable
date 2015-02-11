@@ -22,13 +22,12 @@
   };
 
   var onBeforeKeyDown =  function onBeforeKeyDown(event){
+    var instance = this,
+      that = instance.getActiveEditor(),
+      keyCodes, ctrlDown;
 
-    var instance = this;
-    var that = instance.getActiveEditor();
-
-    var keyCodes = Handsontable.helper.keyCode;
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
+    keyCodes = Handsontable.helper.keyCode;
+    ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     Handsontable.Dom.enableImmediatePropagation(event);
 
     //Process only events that have been fired in the editor

@@ -35,6 +35,36 @@ describe('Handsontable.eventManager', function () {
     expect(instance2.eventListeners.length).toEqual(0);
   });
 
+  it('should detect event when fired from web component', function () {
+    var instance = {};
+    var em = Handsontable.eventManager(instance);
+    var classicHost = document.createElement('div');
+    var shadowRootHost = document.createElement('div');
+
+    // skip if browser not support Shadow DOM
+    if (shadowRootHost.createShadowRoot) {
+      shadowRootHost.createShadowRoot().innerHTML = '<span>shadow</span>';
+    }
+
+    var test = jasmine.createSpy('test');
+    var test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(classicHost, 'click', test);
+    em.addEventListener(shadowRootHost, 'click', test1);
+    em.fireEvent(classicHost, 'click');
+    em.fireEvent(shadowRootHost, 'click');
+    em.clear();
+
+    expect(test.calls.length).toEqual(1);
+    expect(test.mostRecentCall.args[0].isTargetWebComponent).toEqual(false);
+    expect(test1.calls.length).toEqual(1);
+
+    // skip if browser not support Shadow DOM
+    if (shadowRootHost.createShadowRoot) {
+      expect(test1.mostRecentCall.args[0].isTargetWebComponent).toEqual(true);
+    }
+  });
+
   it('should clear all events', function () {
     var instance = {};
     var em = Handsontable.eventManager(instance);
