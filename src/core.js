@@ -486,7 +486,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
-        if(priv.selRange.from) {
+        if(priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
           instance.view.scrollViewport(coords);
@@ -607,7 +607,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           coords.col = totalCols - 1;
         }
 
-        selection.setRangeEnd(coords);
+        selection.setRangeEnd(coords, true);
     },
 
     /**
