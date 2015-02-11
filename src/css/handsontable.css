@@ -415,6 +415,14 @@ CheckboxRenderer
 }
 
 /*
+RadioRenderer
+*/
+
+.handsontable .htRadioRendererInput {
+  margin: 0 15px 0 5px;
+}
+
+/*
 NumericRenderer
 */
 

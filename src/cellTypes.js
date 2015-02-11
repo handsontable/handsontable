@@ -15,6 +15,11 @@ Handsontable.CheckboxCell = {
   renderer: Handsontable.renderers.CheckboxRenderer
 };
 
+Handsontable.RadioCell = {
+  editor: Handsontable.editors.RadioEditor,
+  renderer: Handsontable.renderers.RadioRenderer
+};
+
 Handsontable.TextCell = {
   editor: Handsontable.mobileBrowser ? Handsontable.editors.MobileTextEditor : Handsontable.editors.TextEditor,
   renderer: Handsontable.renderers.TextRenderer
@@ -55,6 +60,7 @@ Handsontable.cellTypes = {
   date: Handsontable.DateCell,
   numeric: Handsontable.NumericCell,
   checkbox: Handsontable.CheckboxCell,
+  radio: Handsontable.RadioCell,
   autocomplete: Handsontable.AutocompleteCell,
   handsontable: Handsontable.HandsontableCell,
   password: Handsontable.PasswordCell,
