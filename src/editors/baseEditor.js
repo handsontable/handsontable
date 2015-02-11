@@ -118,13 +118,14 @@
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
-    var _this = this;
+    var _this = this,
+      val;
 
     if (callback) {
       var previousCloseCallback = this._closeCallback;
 
       this._closeCallback = function (result) {
-        if(previousCloseCallback){
+        if (previousCloseCallback) {
           previousCloseCallback(result);
         }
         callback(result);
@@ -150,9 +151,17 @@
 
         return;
       }
-      var val = [
-        [String.prototype.trim.call(this.getValue())] // String.prototype.trim is defined in Walkontable polyfill.js
-      ];
+
+      if (this.instance.getSettings().trimWhitespace) {
+        val = [
+          [String.prototype.trim.call(this.getValue())] // String.prototype.trim is defined in Walkontable polyfill.js
+        ];
+      } else {
+        val = [
+          [this.getValue()]
+        ];
+      }
+
 
       this.state = Handsontable.EditorState.WAITING;
       this.saveValue(val, ctrlDown);
