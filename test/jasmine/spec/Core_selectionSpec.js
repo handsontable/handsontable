@@ -470,7 +470,7 @@ describe('Core_selection', function () {
 
     waitsFor(function () {
       return onAfterScrollVertically.calls.length > 0;
-    }, 'Vertical scroll callback call', 1500);
+    }, 'Vertical scroll callback call', 3000);
 
     runs(function () {
       this.$container[0].scrollTop = 120;
