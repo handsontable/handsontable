@@ -733,4 +733,25 @@ describe('TextEditor', function () {
 
   });
 
+  it('should insert new line on caret position when pressing ALT + ENTER', function () {
+    var data = [
+      ["Maserati", "Mazda"],
+      ["Honda", "Mini"]
+    ];
+
+    var hot = handsontable({
+      data: data
+    });
+
+    selectCell(0, 0);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    var $editorInput = $('.handsontableInput');
+
+    Handsontable.Dom.setCaretPosition($editorInput[0], 2);
+
+    $editorInput.simulate('keydown', {altKey: true, keyCode: Handsontable.helper.keyCode.ENTER});
+
+    expect(hot.getActiveEditor().TEXTAREA.value).toEqual("Ma\nserati");
+  });
 });

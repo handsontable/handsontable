@@ -60,8 +60,15 @@
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           if(that.isOpened()){
-            that.setValue(that.getValue() + '\n');
-            that.focus();
+            var caretPosition = Handsontable.Dom.getCaretPosition(that.TEXTAREA),
+                value = that.getValue();
+
+            var newValue = value.slice(0, caretPosition) + '\n' + value.slice(caretPosition);
+
+            that.setValue(newValue);
+
+            Handsontable.Dom.setCaretPosition(that.TEXTAREA, caretPosition + 1);
+
           } else {
             that.beginEditing(that.originalValue + '\n');
           }
