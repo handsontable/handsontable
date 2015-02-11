@@ -733,4 +733,19 @@ describe('TextEditor', function () {
 
   });
 
+  it("should render the text without trimming out the whitespace, if trimWhitespace is set to false", function () {
+    this.$container.css('overflow','');
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 9),
+      trimWhitespace: false
+    });
+
+    selectCell(0,2);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+    hot.getActiveEditor().TEXTAREA.value = "       test    of    whitespace      ";
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(getDataAtCell(0,2).length).toEqual(37);
+  });
+
 });
