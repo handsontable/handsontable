@@ -107,18 +107,26 @@
                 }
 
                 for(var i = 0, len = radio.length; i < len; i++){
-                  radio[i].checked = !radio[i].checked;
-                  eventManager.fireEvent(radio[i], 'change');
+                  // jshint maxdepth:8
+                  if (radio[i].checked) {
+                    radio[i].checked = false;
+                    if (i == len - 1) { //at the last radio in the list, kick to front
+                        radio[0].checked = true;
+                        eventManager.fireEvent(radio[0], 'click');
+                        break;
+                    } else {
+                        radio[i+1].checked = true;
+                        eventManager.fireEvent(radio[i+1], 'click');
+                        break;
+                    }
+                  }
                 }
-
               }
-
             }
           }
         }
       });
     }
-
   };
 
   Handsontable.RadioRenderer = RadioRenderer;
