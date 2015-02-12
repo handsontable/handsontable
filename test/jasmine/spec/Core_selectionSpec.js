@@ -463,18 +463,12 @@ describe('Core_selection', function () {
       afterScrollVertically: onAfterScrollVertically
     });
 
+    this.$container[0].scrollTop = 0;
+
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
 
-    this.$container[0].scrollTop = 0;
-
-    waitsFor(function () {
-      return onAfterScrollVertically.calls.length > 0;
-    }, 'Vertical scroll callback call', 3000);
-
-    runs(function () {
-      this.$container[0].scrollTop = 120;
-    });
+    this.$container[0].scrollTop = 120;
 
     waits(100);
 
