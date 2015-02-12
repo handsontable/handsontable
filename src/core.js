@@ -101,6 +101,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
+
+          var fixedRowsTop = instance.getSettings().fixedRowsTop;
+          if (fixedRowsTop >= index + 1) {
+            instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
+          }
+
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
@@ -112,6 +118,11 @@ Handsontable.Core = function (rootElement, userSettings) {
             if(row in priv.cellSettings){  //if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(index, amount);
             }
+          }
+
+          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+          if (fixedColumnsLeft >= index + 1) {
+            instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
           }
 
           if(Array.isArray(instance.getSettings().colHeaders)){

@@ -266,6 +266,20 @@ describe('Core_alter', function () {
 
       expect(output).toEqual([1, 2]);
     });
+
+    it("should decrement the number of fixed rows, if a fix row is removed", function () {
+      var hot = handsontable({
+        startCols: 1,
+        startRows: 3,
+        fixedRowsTop: 4
+      });
+
+      alter('remove_row', 1, 1);
+      expect(hot.getSettings().fixedRowsTop).toEqual(3);
+      alter('remove_row', 1, 2);
+      expect(hot.getSettings().fixedRowsTop).toEqual(1);
+    });
+
   });
 
   describe("remove column", function () {
@@ -451,6 +465,19 @@ describe('Core_alter', function () {
 
       expect(getColHeader()).toEqual(['Header0', 'Header2']);
 
+    });
+
+    it("should decrement the number of fixed columns, if a fix column is removed", function () {
+      var hot = handsontable({
+        startCols: 1,
+        startRows: 3,
+        fixedColumnsLeft: 4
+      });
+
+      alter('remove_col', 1, 1);
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
+      alter('remove_col', 1, 2);
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
     });
 
   });
