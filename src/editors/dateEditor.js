@@ -38,12 +38,16 @@
     var defaultOptions = {
       dateFormat: defaultDateFormat,
       field: that.datePicker,
+      trigger: document.querySelector('.handsontableInput'),
+      container: that.datePicker,
       reposition: false,
       onSelect: function (dateStr) {
         dateStr = moment(dateStr).format(that.cellProperties.dateFormat || defaultDateFormat);
 
         that.instance.setDataAtCell(that.row, that.col, dateStr);
         that.setValue(dateStr);
+      },
+      onClose: function () {
         that.finishEditing(false);
       }
     };
