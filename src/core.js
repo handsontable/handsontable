@@ -1236,7 +1236,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       /* jshint -W089 */
       for (i in settings.cell) {
         var cell = settings.cell[i];
-        instance.setCellMetaObject(cell.row, cell.col, cell);
+        if (cell) { instance.setCellMetaObject(cell.row, cell.col, cell); }
       }
     }
 
