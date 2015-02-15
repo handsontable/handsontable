@@ -899,6 +899,10 @@
 
     ContextMenuItem.prototype = items;
 
+    if (items.build && typeof items.build === 'function') {
+        items = items.build(this.instance);
+    }
+
     if (items && items.items) {
       items = items.items;
     }
