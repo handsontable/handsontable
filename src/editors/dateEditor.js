@@ -16,6 +16,7 @@
     var that = this;
 
     this.instance.addHook('afterDestroy', function () {
+      that.parentDestroyed = true;
       that.destroyElements();
     });
   };
@@ -49,11 +50,12 @@
         if (!isNaN(dateStr.getTime())) {
           dateStr = moment(dateStr).format(that.cellProperties.dateFormat || that.defaultDateFormat);
         }
-
         that.setValue(dateStr);
       },
       onClose: function () {
-        that.finishEditing(false);
+        if(!that.parentDestroyed) {
+          that.finishEditing(false);
+        }
       }
     };
 

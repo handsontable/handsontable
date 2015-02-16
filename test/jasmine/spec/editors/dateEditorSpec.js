@@ -101,7 +101,7 @@ describe('DateEditor', function () {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    waits(30);
+    waits(150);
     runs(function () {
       expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
     });
