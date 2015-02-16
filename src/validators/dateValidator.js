@@ -5,18 +5,25 @@
  */
 Handsontable.DateValidator = function (value, callback) {
   var correctedValue = null,
-    valid = true;
+    valid = true,
+    dateEditor = Handsontable.editors.getEditor('date', this.instance);
 
   if (value === null) {
     value = '';
   }
 
-  var isValidDate = !isNaN(moment(new Date(value))._d.getDate()), // is value a valid date string
-    isValidFormat = moment(value, this.dateFormat, true).isValid(); // is it in the specified format
+  var isValidDate = moment(new Date(value)).isValid(), // is value a valid date string
+    isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid(); // is it in the specified format
 
   if (!isValidDate) {
     valid = false;
-  } else if (!isValidFormat) {
+  }
+
+  if (!isValidDate && isValidFormat) {
+    valid = true;
+  }
+
+  if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       correctedValue = correctFormat(value, this.dateFormat);
       this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');

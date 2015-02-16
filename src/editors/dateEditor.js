@@ -23,6 +23,10 @@
   DateEditor.prototype.createElements = function () {
     Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
 
+    this.defaultDatepickerTrigger = document.querySelector('.handsontableInput');
+
+    this.defaultDateFormat = 'MM/DD/YYYY';
+
     this.datePicker = document.createElement('DIV');
     Handsontable.Dom.addClass(this.datePicker, 'htDatepickerHolder');
     this.datePickerStyle = this.datePicker.style;
@@ -33,18 +37,19 @@
     document.body.appendChild(this.datePicker);
 
     var that = this;
-    var defaultDateFormat = 'MM/DD/YYYY';
+
 
     var defaultOptions = {
-      dateFormat: defaultDateFormat,
-      field: that.datePicker,
+      format: that.defaultDateFormat,
+      field: document.querySelector('.handsontableInput'),
       trigger: document.querySelector('.handsontableInput'),
       container: that.datePicker,
       reposition: false,
       onSelect: function (dateStr) {
-        dateStr = moment(dateStr).format(that.cellProperties.dateFormat || defaultDateFormat);
+        if (!isNaN(dateStr.getTime())) {
+          dateStr = moment(dateStr).format(that.cellProperties.dateFormat || that.defaultDateFormat);
+        }
 
-        that.instance.setDataAtCell(that.row, that.col, dateStr);
         that.setValue(dateStr);
       },
       onClose: function () {
@@ -91,17 +96,26 @@
   };
 
   DateEditor.prototype.showDatepicker = function () {
-    var offset = this.TD.getBoundingClientRect();
+    var offset = this.TD.getBoundingClientRect(),
+      that = this;
 
     this.datePickerStyle.top = (window.pageYOffset + offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
 
     if (this.originalValue) {
-      this.$datePicker.setDate(this.originalValue);
+      this.$datePicker.setDate(this.originalValue, true);
+      this.setValue(this.originalValue);
     }
+
+    // temporary assign a different 'trigger' value, to prevent Pikaday from closing right after opening
+    this.$datePicker.config().trigger = document.querySelector('.htAutocomplete.current');
 
     this.datePickerStyle.display = 'block';
     this.$datePicker.show();
+
+    this.instance._registerTimeout(setTimeout(function () {
+      that.$datePicker.config().trigger = that.defaultDatepickerTrigger;
+    }, 50));
   };
 
   DateEditor.prototype.hideDatepicker = function () {
