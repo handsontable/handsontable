@@ -16,6 +16,10 @@ import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cellCoords.js
 
 export {Autofill};
 
+/**
+ * @class Autofill
+ * @plugin
+ */
 function Autofill(instance) {
   this.instance = instance;
   this.addingStarted = false;

@@ -10,6 +10,10 @@ export {CopyPaste};
 
 //registerPlugin('CopyPaste', CopyPastePlugin);
 
+/**
+ * @class CopyPaste
+ * @plugin
+ */
 function CopyPaste(instance) {
   this.copyPasteInstance = copyPasteManager();
 

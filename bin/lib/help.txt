@@ -1,0 +1,16 @@
+Handsontable Custom Builder
+
+Usage: ./bin/hot-builder <command>
+
+Available commands:
+  help - Display this help text.
+  version - Print the Handsontable version.
+  build - Build custom version of Handsontable.
+
+Build Options:
+  --input, -i     Input file (default entry point is src/browser.js).
+  --output, -o    Output file.
+  --all, -a       If exists it includes by default all founded modules.
+  --add-plugin    Adds specified plugin to build package (eq. --add-plugin=ContextMenu,Autofill or --add-plugin=ContextMenu --add-plugin=Autofill).
+  --remove-plugin Removes specified plugin from build package (eq. --remove-plugin=ContextMenu,Autofill or --remove-plugin=ContextMenu --add-plugin=Autofill).
+  --disable-ui    Disable UI

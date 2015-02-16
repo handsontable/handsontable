@@ -11,6 +11,10 @@ export {ColumnSorting};
 
 //registerPlugin('columnSorting', ColumnSorting);
 
+/**
+ * @class ColumnSorting
+ * @plugin
+ */
 function ColumnSorting() {
   var plugin = this;
 

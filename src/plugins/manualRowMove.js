@@ -18,6 +18,10 @@ export {ManualRowMove};
 
 //registerPlugin('manualRowMove', ManualRowMove);
 
+/**
+ * @class ManualRowMove
+ * @plugin
+ */
 function ManualRowMove() {
 
   var startRow,

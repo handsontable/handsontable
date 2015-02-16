@@ -18,6 +18,10 @@ export {ManualRowResize};
 
 //registerPlugin('manualRowResize', ManualRowResize);
 
+/**
+ * @class ManualRowResize
+ * @plugin
+ */
 function ManualRowResize () {
 
   var currentTH

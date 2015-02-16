@@ -6,6 +6,10 @@ export {ObserveChanges};
 
 registerPlugin('observeChanges', ObserveChanges);
 
+/**
+ * @class ObserveChanges
+ * @plugin
+ */
 function ObserveChanges() {
 
 }

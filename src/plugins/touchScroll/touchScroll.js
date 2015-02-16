@@ -6,6 +6,10 @@ export {TouchScroll};
 
 //registerPlugin('touchScroll', TouchScroll);
 
+/**
+ * @class TouchScroll
+ * @plugin
+ */
 function TouchScroll() {
 
 }

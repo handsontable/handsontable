@@ -21,13 +21,13 @@
  */
 var browsers = [
   {
-   browserName: 'firefox',
-   platform: 'Windows 7'
-   },
-   {
-   browserName: 'chrome',
-   platform: 'Windows 7'
-   },
+    browserName: 'firefox',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'chrome',
+    platform: 'Windows 7'
+  },
   {
     browserName: 'opera',
     platform: 'Windows 7'
@@ -56,117 +56,46 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    gitinfo: {
-    },
+    gitinfo: {},
+
     meta: {
       src: [
-        'tmp/core.js',
-        'src/multiMap.js',
-        'src/dom.js',
-        'src/eventManager.js',
-        'src/tableView.js',
-        'src/editors.js',
-        'src/editorManager.js',
-        'src/renderers.js',
-        'src/helpers.js',
-        'src/dataMap.js',
-
-        'src/renderers/cellDecorator.js',
-        'src/renderers/textRenderer.js',
-        'src/renderers/autocompleteRenderer.js',
-        'src/renderers/checkboxRenderer.js',
-        'src/renderers/numericRenderer.js',
-        'src/renderers/passwordRenderer.js',
-        'src/renderers/htmlRenderer.js',
-
-        'src/editors/baseEditor.js',
-        'src/editors/textEditor.js',
-        'src/editors/mobileTextEditor.js',
-        'src/editors/checkboxEditor.js',
-        'src/editors/dateEditor.js',
-        'src/editors/handsontableEditor.js',
-        'src/editors/autocompleteEditor.js',
-        'src/editors/passwordEditor.js',
-        'src/editors/selectEditor.js',
-        'src/editors/dropdownEditor.js',
-        'src/editors/numericEditor.js',
-
-        'src/validators/numericValidator.js',
-        'src/validators/autocompleteValidator.js',
-
-        'src/cellTypes.js',
-
-        'src/3rdparty/autoResize.js',
-        'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js',
-        'src/3rdparty/json-patch-duplex.js',
-
-        'src/pluginHooks.js',
-        'src/plugins/autoColumnSize.js',
-        'src/plugins/columnSorting.js',
-        'src/plugins/contextMenu.js',
-        'src/plugins/comments.js',
-        'src/plugins/legacy.js',
-        'src/plugins/manualColumnMove.js',
-        'src/plugins/manualColumnResize.js',
-        'src/plugins/manualRowResize.js',
-        'src/plugins/observeChanges.js',
-        'src/plugins/persistentState.js',
-        'src/plugins/undoRedo.js',
-        'src/plugins/dragToScroll/dragToScroll.js',
-        'src/plugins/copyPaste.js',
-        'src/plugins/search.js',
-        'src/plugins/mergeCells/mergeCells.js',
-        'src/plugins/customBorders/customBorders.js',
-        'src/plugins/manualRowMove.js',
-        'src/plugins/autofill.js',
-        'src/plugins/grouping/grouping.js',
-        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js',
-        'src/plugins/multipleSelectionHandles/multipleSelectionHandles.js',
-        'src/plugins/touchScroll/touchScroll.js'
+        'src/*.js',
+        'src/editors/*.js',
+        'src/plugins/**/!(*.spec).js',
+        'src/renderers/*.js',
+        'src/validators/*.js',
+        'src/3rdparty/*.js'
       ],
       walkontable: [
-        'src/3rdparty/walkontable/src/*.js',
-        'src/3rdparty/walkontable/src/3rdparty/*.js'
+        'src/3rdparty/walkontable/src/*.js'
       ],
       vendor: [
         'lib/numeral.js'
-      ],
-      shims: [
-        'lib/shims/array.indexOf.js',
-        'lib/shims/array.filter.js',
-        'lib/shims/array.isArray.js',
-        'lib/shims/classes.js',
-        'lib/shims/object.keys.js',
-        'lib/shims/weakmap.js'
       ]
     },
 
     concat: {
       dist: {
         files: {
-          //'dist/handsontable.js': [
-          //  'tmp/intro.js',
-          //  '<%= meta.shims %>',
-          //  '<%= meta.src %>',
-          //  '<%= meta.walkontable %>',
-          //  'plugins/jqueryHandsontable.js',
-          //  'src/outro.js'
-          //],
+          'dist/handsontable.js': [
+            'tmp/intro.js',
+            'dist/handsontable.js'
+          ],
           'dist/handsontable.css': [
             'tmp/handsontable.css',
             'src/css/mobile.handsontable.css'
           ]
         }
       },
-      //full_js: {
-      //  files: {
-      //    'dist/handsontable.full.js': [
-      //      'dist/handsontable.js'
-      //      '<%= meta.vendor %>'
-      //    ]
-      //  }
-      //},
+      full_js: {
+        files: {
+          'dist/handsontable.full.js': [
+            'dist/handsontable.js',
+            '<%= meta.vendor %>'
+          ]
+        }
+      },
       full_css: {
         files: {
           'dist/handsontable.full.css': [
@@ -174,21 +103,6 @@ module.exports = function (grunt) {
           ]
         }
       }
-    },
-
-    watch: {
-      options: {
-        livereload: true //works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
-      },
-      files: [
-        'src/**/*.js',
-        'src/**/*.css',
-        'src/**/*.html',
-        '!src/3rdparty/walkontable/test/**/*',
-        'lib/**/*.js',
-        'lib/**/*.css'
-      ],
-      tasks: ['default']
     },
 
     clean: {
@@ -200,12 +114,12 @@ module.exports = function (grunt) {
         options: {
           variables: {
             version: '<%= pkg.version %>',
-            timestamp: '<%= (new Date()).toString() %>'
+            timestamp: '<%= (new Date()).toString() %>',
+            year: '<%= (new Date()).getFullYear() %>'
           }
         },
         files: {
-          //'tmp/intro.js': 'src/intro.js',
-          //'tmp/core.js': 'src/core.js',
+          'tmp/intro.js': 'src/intro.js',
           'tmp/handsontable.css': 'src/css/handsontable.css'
         }
       }
@@ -252,11 +166,7 @@ module.exports = function (grunt) {
       },
       walkontable: {
         src: [
-          'dist/walkontable.js',
-          //'src/dom.js',
-          //'src/helpers.js',
-          //'src/eventManager.js',
-          //'src/3rdparty/walkontable/src/*.js'
+          'dist/walkontable.js'
         ],
         options: {
           specs: [
@@ -321,7 +231,7 @@ module.exports = function (grunt) {
       options: {
         preserveComments: 'some'
       },
-      "dist/handsontable.full.min.js": ["dist/handsontable.full.js" ]
+      'dist/handsontable.full.min.js': ['dist/handsontable.full.js']
     },
     cssmin: {
       minify: {
@@ -377,37 +287,34 @@ module.exports = function (grunt) {
           jshintrc: true
         }
       };
-      options['src'] = '<%= meta.src %>';
-      options['walkontable'] = '<%= meta.walkontable %>';
+      options.src = '<%= meta.src %>';
+      options.walkontable = '<%= meta.walkontable %>';
 
       return options;
     }()),
-    browserify: {
-      dist: {
+    hotBuilder: {
+      handsontable: {
         files: {
-          'dist/handsontable.full.js': ['src/browser.js'],
-          'dist/handsontable.js': ['src/browser.js'],
-          'dist/walkontable.js': ['src/3rdparty/walkontable/src/browser.js']
+          'dist/handsontable.js': 'src/browser.js'
         },
         options: {
-          postBundleCB: function(err, src, next) {
-            src = src.toString();
-            src = src.replace(/sourceURL=.*/g, '');
-
-            next(err, src);
-          },
-          transform: [
-            'es6ify'
-          ],
-          debug: false
+          external: ['plugins']
         }
+      },
+      walkontable: {
+        files: {
+          'dist/walkontable.js': 'src/3rdparty/walkontable/src/browser.js'
+        }
+      },
+      options: {
+        baseSrc: 'src/'
       }
     }
   });
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'gitinfo', 'replace:dist', 'browserify', 'concat', 'uglify', 'cssmin', 'clean']);
-  grunt.registerTask('build', ['replace:dist', 'browserify', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['jshint', 'gitinfo', 'build']);
+  grunt.registerTask('build', ['replace', 'hotBuilder', 'concat', 'uglify', 'cssmin', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);

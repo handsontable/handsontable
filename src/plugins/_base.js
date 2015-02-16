@@ -8,9 +8,6 @@ class BasePlugin {
    */
   constructor(hotInstance, hotParentInstance) {
     defineGetter(this, 'hot', hotInstance);
-
-    this.metadata = {};
-    this.metadata.name = this.name;
   }
 
   /**

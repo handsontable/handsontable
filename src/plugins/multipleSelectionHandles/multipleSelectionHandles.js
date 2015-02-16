@@ -7,6 +7,10 @@ export {MultipleSelectionHandles};
 
 //registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
 
+/**
+ * @class MultipleSelectionHandles
+ * @plugin
+ */
 function MultipleSelectionHandles(instance) {
   this.instance = instance;
   this.dragged = [];

@@ -9,6 +9,10 @@ import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cellCoords.js
 //
 //registerPlugin('comments', Comments);
 
+/**
+ * @class Comments
+ * @plugin
+ */
 function Comments(instance) {
 
   var eventManager = eventManagerObject(instance),

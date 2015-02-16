@@ -18,6 +18,10 @@ export {ManualColumnMove};
 
 //registerPlugin('manualColumnMove', ManualColumnMove);
 
+/**
+ * @class ManualColumnMove
+ * @plugin
+ */
 function ManualColumnMove() {
 
   var startCol

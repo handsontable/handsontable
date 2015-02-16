@@ -2,39 +2,25 @@
 import * as dom from './../../dom.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
-import BasePlugin from './../base.js';
+import BasePlugin from './../_base.js';
 
 /**
  * @class ContextMenuCopyPaste
+ * @plugin
+ * @dependencies ContextMenu
  */
 class ContextMenuCopyPaste extends BasePlugin {
-
-  /**
-   * Concept of Dependency Injection
-   */
-  static inject() {
-    return ['eventManager', 'dom'];
-  }
-
   /**
    * @param {Object} hotInstance
    */
   constructor(hotInstance) {
     super(hotInstance);
 
-    this.metadata = {
-      name: 'ContextMenuCopyPaste',
-      dependencies: [
-        'ContextMenu'
-      ]
-    };
     this.swfPath = null;
-    this.hotParent = null;
-    this.zeroClipboardInstance = null;
+    this.hotContextMenu = null;
     this.outsideClickDeselectsCache = null;
-    this.eventHandlers = [];
 
-    this.hot.addHook('afterRender', () => this.setupZeroClipboard());
+    this.hot.addHook('afterContextMenuShow', htContextMenu => this.setupZeroClipboard(htContextMenu));
     this.hot.addHook('afterInit', () => this.afterInit());
     this.hot.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
   }
@@ -81,9 +67,9 @@ class ContextMenuCopyPaste extends BasePlugin {
    * @returns {String}
    */
   getCopyValue() {
-    this.hotParent.copyPaste.setCopyableText();
+    this.hot.copyPaste.setCopyableText();
 
-    return this.hotParent.copyPaste.copyPasteInstance.elTextarea.value;
+    return this.hot.copyPaste.copyPasteInstance.elTextarea.value;
   }
 
   /**
@@ -110,26 +96,29 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   *
+   * @param {Object} hotContextMenu
    */
-  setupZeroClipboard() {
-    if (!dom.hasClass(this.hot.rootElement, 'htContextMenu')) {
+  setupZeroClipboard(hotContextMenu) {
+    var data, zeroClipboardInstance;
+
+    if (!this.hot.getSettings().contextMenuCopyPaste) {
       return;
     }
-    var data = this.hot.getData();
+    this.hotContextMenu = hotContextMenu;
+    data = this.hotContextMenu.getData();
 
     // find position of 'copy' option
     for (var i = 0, ilen = data.length; i < ilen; i++) {
       /*jshint -W083 */
       if (data[i].key === 'copy') {
-        this.zeroClipboardInstance = new ZeroClipboard(this.hot.getCell(i, 0));
+        zeroClipboardInstance = new ZeroClipboard(this.hotContextMenu.getCell(i, 0));
 
-        this.zeroClipboardInstance.off();
-        this.zeroClipboardInstance.on('copy', (event) => {
+        zeroClipboardInstance.off();
+        zeroClipboardInstance.on('copy', (event) => {
           var clipboard = event.clipboardData;
 
           clipboard.setData('text/plain', this.getCopyValue());
-          this.hotParent.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
+          this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
         });
 
         this.bindEvents();
@@ -139,60 +128,37 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   removeCurrentClass() {
-    var hadClass = this.hot.rootElement.querySelector('td.current');
+    var element = this.hotContextMenu.rootElement.querySelector('td.current');
 
-    if (hadClass) {
-      dom.removeClass(hadClass, 'current');
+    if (element) {
+      dom.removeClass(element, 'current');
     }
-    this.outsideClickDeselectsCache = this.hotParent.getSettings().outsideClickDeselects;
-    this.hotParent.getSettings().outsideClickDeselects = false;
+    this.outsideClickDeselectsCache = this.hot.getSettings().outsideClickDeselects;
+    this.hot.getSettings().outsideClickDeselects = false;
   }
 
   removeZeroClipboardClass() {
-    var hadClass = this.hot.rootElement.querySelector('td.zeroclipboard-is-hover');
+    var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
 
-    if (hadClass) {
-      dom.removeClass(hadClass, 'zeroclipboard-is-hover');
+    if (element) {
+      dom.removeClass(element, 'zeroclipboard-is-hover');
     }
-    this.hotParent.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
+    this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
   }
 
   /**
    * Add all necessary event listeners
    */
   bindEvents() {
-    var eventManager;
+    var eventManager = eventManagerObject(this.hotContextMenu);
 
-    if (!this.hotParent) {
-      return;
-    }
-    eventManager = eventManagerObject(this.hotParent);
-
-    this.unbindEvents();
-    this.eventHandlers.push(eventManager.addEventListener(document, 'mouseenter', () => this.removeCurrentClass()));
-    this.eventHandlers.push(eventManager.addEventListener(document, 'mouseleave', () => this.removeZeroClipboardClass()));
-  }
-
-  /**
-   * Remove all event listeners
-   */
-  unbindEvents() {
-    if (!this.hotParent) {
-      return;
-    }
-    this.eventHandlers.forEach((handler) => handler());
-    this.eventHandlers = [];
-  }
-
-  /**
-   * Destroy plugin
-   */
-  destroy() {
-    this.unbindEvents();
-    super();
+    eventManager.addEventListener(document, 'mouseenter', () => this.removeCurrentClass());
+    eventManager.addEventListener(document, 'mouseleave', () => this.removeZeroClipboardClass());
   }
 }
 
 export default ContextMenuCopyPaste;
+
+window.ContextMenuCopyPaste = ContextMenuCopyPaste;
 
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);

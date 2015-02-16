@@ -18,6 +18,10 @@ export {ManualColumnResize};
 
 //registerPlugin('manualColumnResize', ManualColumnResize);
 
+/**
+ * @class ManualColumnResize
+ * @plugin
+ */
 function ManualColumnResize() {
   var currentTH
     , currentCol

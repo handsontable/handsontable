@@ -2,6 +2,10 @@
 import * as dom from './../dom.js';
 import {registerRenderer, getRenderer} from './../renderers.js';
 
+/**
+ * @class Search
+ * @plugin
+ */
 Handsontable.Search = function Search(instance) {
   this.query = function (queryStr, callback, queryMethod) {
     var rowCount = instance.countRows();

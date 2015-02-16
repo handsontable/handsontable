@@ -11,8 +11,11 @@
   "author": "Marcin Warpechowski <hello@handsontable.com>",
   "version": "0.12.3",
   "devDependencies": {
+    "async": "^0.9.0",
     "browserify": "^8.1.1",
+    "colors": "^1.0.3",
     "es6ify": "^1.6.0",
+    "glob": "^4.3.5",
     "grunt": "~0.4.5",
     "grunt-browserify": "^3.3.0",
     "grunt-contrib-clean": "~0.4.1",
@@ -27,7 +30,12 @@
     "grunt-replace": "~0.7.8",
     "grunt-saucelabs": "~8.3.3",
     "grunt-watchify": "^0.1.0",
+    "inherits": "^2.0.1",
+    "inquirer": "^0.8.0",
     "load-grunt-tasks": "^3.0.0",
+    "lodash": "^3.2.0",
+    "minimist": "^1.1.0",
+    "resolve": "^1.1.0",
     "time-grunt": "~1.0.0"
   },
   "scripts": {

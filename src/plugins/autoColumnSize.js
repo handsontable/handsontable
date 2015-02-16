@@ -7,6 +7,10 @@ export {AutoColumnSize};
 
 registerPlugin('autoColumnSize', AutoColumnSize);
 
+/**
+ * @class AutoColumnSize
+ * @plugin
+ */
 function AutoColumnSize() {
   var plugin = this
     , sampleCount = 5; //number of samples to take of each value length

@@ -6,6 +6,10 @@ import {registerPlugin} from './../../plugins.js';
 
 //registerPlugin('grouping', Grouping);
 
+/**
+ * @class Grouping
+ * @plugin
+ */
 function Grouping(instance) {
   /**
    * array of items
