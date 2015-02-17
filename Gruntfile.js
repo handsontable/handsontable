@@ -231,10 +231,12 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
+            'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
             'lib/jquery.min.js',
+            'demo/js/moment/moment.js',
+            'demo/js/pikaday/pikaday.js',
             'lib/numeral.js',
             'lib/numeral.de-de.js',
             'test/jasmine/lib/jasmine-extensions.js'

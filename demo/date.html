@@ -5,15 +5,17 @@
   <title>Date cell type - Handsontable</title>
 
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-
   <!--
-  jQuery UI Datepicker is needed for DateCell. It can be loaded before or after Handsontable
+  Pikady is needed for DateCell. It can be loaded before or after Handsontable
   -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="js/pikaday/css/pikaday.css">
+
+  <script data-jsfiddle="common" src="js/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="js/pikaday/pikaday.js"></script>
 
   <!--
-  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  Loading Handsontable
   -->
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
@@ -79,22 +81,17 @@
           <p>To trigger the Date cell type, use the option <code>type: 'date'</code> in <code>columns</code> array
             or <code>cells</code> function.</p>
 
-          <p>The Date cell uses <a href="http://jqueryui.com/datepicker/#date-formats">jQuery UI Datepicker</a> as
-            the UI control. You can configure the datepicker by applying <a href="http://api.jqueryui.com/datepicker/">jQuery
-              UI
-              Datepicker API</a> properties in the same <code>columns</code> array
-            or <code>cells</code> function</p>
+          <p>The Date cell uses <a href="https://github.com/dbushell/Pikaday">Pikaday datepicker</a> as
+            the UI control.
 
           <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
 
           <ul>
             <li><code>dist/handsontable.full.js</code></li>
             <li><code>dist/handsontable.full.css</code></li>
-            <li><code>lib/jquery-ui/js/jquery-ui.custom.min.js</code></li>
-            <li><code>lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css</code> (or another <a
-                href="http://jqueryui.com/themeroller/"> theme of your choice</a>)
-            </li>
-            <li><code>lib/jquery-ui/css/ui-bootstrap/images/*.png</code></li>
+            <li><code>demo/js/pikaday/css/pikaday.css</code></li>
+            <li><code>demo/js/moment/moment.js</code></li>
+            <li><code>demo/js/pikaday/pikaday.js</code></li>
           </ul>
 
           <div id="example1"></div>
@@ -135,7 +132,7 @@
                 },
                 {
                   type: 'date',
-                  dateFormat: 'mm/dd/yy'
+                  dateFormat: 'MM/DD/YYYY'
                 },
                 {
                   type: 'numeric',
