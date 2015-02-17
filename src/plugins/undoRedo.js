@@ -199,6 +199,12 @@
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.CreateRowAction.prototype.undo = function (instance, undoneCallback) {
+    var rowCount = instance.countRows(),
+      minSpareRows = instance.getSettings().minSpareRows;
+    if(this.index >= rowCount && this.index - minSpareRows < rowCount) {
+      this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
+    }
+
     instance.addHookOnce('afterRemoveRow', undoneCallback);
     instance.alter('remove_row', this.index, this.amount);
   };
