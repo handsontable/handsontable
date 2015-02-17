@@ -481,7 +481,7 @@ TableView.prototype.appendColHeader = function(col, TH) {
   var DIV = document.createElement('DIV'),
     SPAN = document.createElement('SPAN');
 
-  DIV.className = 'relative';
+  DIV.className = 'relative colHeaderWrapper';
   SPAN.className = 'colHeader';
 
   if (col > -1) {

@@ -8,6 +8,10 @@ describe('ColumnSorting', function () {
 //      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
       this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
     }
+
+    this.sortByHeaderWrapper = function(columnIndex) {
+      this.$container.find('th div.colHeaderWrapper:eq(' + columnIndex + ')').simulate('click');
+    }
   });
 
   afterEach(function () {
@@ -1100,4 +1104,17 @@ describe('ColumnSorting', function () {
     expect(getDataAtCol(1)).toEqual(["Ted", "Sid", "Jane", "", "", null]);
 
   });
+
+  it("should be sorted if the header outside the text is clicked", function() {
+    handsontable({
+      data: arrayOfObjects(),
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByHeaderWrapper(1);
+
+    expect(this.$container.find('tr td').eq(1).html()).toEqual('Chuck');
+  });
+
 });
