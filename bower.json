@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/handsontable/handsontable.git"
   },
+  "authors": [
+    "Handsoncode", "Handsoncode <hello@handsontable.com>"
+  ],
   "keywords": [
     "data",
     "grid",
