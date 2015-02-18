@@ -368,13 +368,13 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.cornerStyle.width = this.cornerDefaultStyle.width;
     this.cornerStyle.display = 'block';
 
-    if (!instance.cloneOverlay && toColumn === instance.wtTable.getRenderedColumnsCount() - 1) {
+    if (toColumn === this.instance.getSetting('totalColumns') - 1) {
       var scrollableElement = Handsontable.Dom.getScrollableElement(instance.wtTable.TABLE),
-        needShrinkCorner = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(scrollableElement);
-
-      if (needShrinkCorner) {
-        this.cornerStyle.borderRightWidth = '0px';
-        this.cornerStyle.width = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2) + 'px';
+        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(scrollableElement);
+      
+      if (cornerOverlappingContainer) {
+        this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
+        this.cornerStyle.borderRightWidth = 0;
       }
     }
   }
