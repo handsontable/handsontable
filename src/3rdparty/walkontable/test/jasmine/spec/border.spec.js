@@ -125,7 +125,7 @@ describe('WalkontableBorder', function () {
     expect($corner.position().left).toBe(95);
   });
 
-  it("should shrink corner width when handsontable is injected into element which is scrollable", function () {
+  it("should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)", function () {
     $container.css({
       overflow: 'auto',
       width: '200px'
@@ -135,7 +135,6 @@ describe('WalkontableBorder', function () {
       data: getData,
       totalRows: 5,
       totalColumns: 4,
-      //stretchH: 'last',
       selections: [
         new WalkontableSelection({
           border: {
@@ -172,10 +171,10 @@ describe('WalkontableBorder', function () {
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('3px');
+    expect($corner.css('width')).toBe('5px');
     expect($corner.css('height')).toBe('5px');
     expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(195);
+    expect($corner.position().left).toBe(191);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
