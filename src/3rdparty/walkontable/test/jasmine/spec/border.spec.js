@@ -174,7 +174,7 @@ describe('WalkontableBorder', function () {
     expect($corner.css('width')).toBe('5px');
     expect($corner.css('height')).toBe('5px');
     expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(191);
+    expect($corner.position().left).toBe(193);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
