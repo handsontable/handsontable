@@ -102,6 +102,43 @@ describe('selectEditor', function () {
     expect($options.eq(2).html()).toMatch(options['lam']);
   });
 
+  it("should populate select with given options (object) with reversed options", function () {
+    var options = {
+      'Ford' : '0001',
+      'Fusion' : '0001',
+      'Chevrolet' : '0002',
+      'Volt' : '0002'
+    };
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options,
+          reverseOptions: true
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    var $options = editor.find('option');
+
+    expect($options.eq(0).val()).toMatch('0001');
+    expect($options.eq(0).html()).toMatch('Ford');
+    expect($options.eq(1).val()).toMatch('0001');
+    expect($options.eq(1).html()).toMatch('Fusion');
+    expect($options.eq(2).val()).toMatch('0002');
+    expect($options.eq(2).html()).toMatch('Chevrolet');
+    expect($options.eq(3).val()).toMatch('0002');
+    expect($options.eq(3).html()).toMatch('Volt');
+  });
+
+
   it("should populate select with given options (function:array)", function () {
     var options = function () {
       return [
