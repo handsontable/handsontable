@@ -250,6 +250,9 @@ Handsontable.TableView = function (instance) {
             }
           }
           else {
+            coords.row = coords.row < 0 ? 0 : coords.row;
+            coords.col = coords.col < 0 ? 0 : coords.col;
+
             instance.selection.setRangeStart(coords);
           }
         }
