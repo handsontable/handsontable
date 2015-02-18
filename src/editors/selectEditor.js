@@ -14,6 +14,7 @@
 
 
     var selectOptions = this.cellProperties.selectOptions;
+    var reverseOptions = this.cellProperties.reverseOptions || false;
     var options;
 
     if (typeof selectOptions == 'function'){
@@ -27,8 +28,8 @@
     for (var option in options){
       if (options.hasOwnProperty(option)){
         var optionElement = document.createElement('OPTION');
-        optionElement.value = option;
-        Handsontable.Dom.fastInnerHTML(optionElement, options[option]);
+        optionElement.value = reverseOptions ? options[option] : option;
+        Handsontable.Dom.fastInnerHTML(optionElement, reverseOptions ? option : options[option]);
         this.select.appendChild(optionElement);
       }
     }
