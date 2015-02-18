@@ -3,6 +3,29 @@
   "description": "Spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "version": "0.12.5",
   "main": ["./dist/handsontable.full.js", "./dist/handsontable.full.css"],
+  "homepage": "http://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "authors": [
+    "Handsoncode", "Handsoncode <hello@handsontable.com>"
+  ],
+  "keywords": [
+    "data",
+    "grid",
+    "table",
+    "editor",
+    "grid-editor",
+    "data-grid",
+    "data-table",
+    "spreadsheet",
+    "excel",
+    "tabular-data",
+    "edit-cell",
+    "editable-table",
+    "data-spreadsheet"
+  ],
   "ignore": [
     "**/.*",
     "components",
