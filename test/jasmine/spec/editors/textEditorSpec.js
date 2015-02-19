@@ -80,7 +80,7 @@ describe('TextEditor', function () {
     }, 'Retrieve editor height', 1000);
 
     runs(function () {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('19px');
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('22px');
     });
   });
 
@@ -102,7 +102,7 @@ describe('TextEditor', function () {
     }, 'Retrieve editor height', 1000);
 
     runs(function () {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('60px');
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
     });
   });
 
