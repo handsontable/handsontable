@@ -74,17 +74,18 @@
       <div class="columnLayout">
 
         <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <h2>Date cell type</h2>
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Date cell type</h2>
 
-          <p>To trigger the Date cell type, use the option <code>type: 'date'</code> in <code>columns</code> array
-            or <code>cells</code> function.</p>
+              <p>To trigger the Date cell type, use the option <code>type: 'date'</code> in <code>columns</code> array
+                or <code>cells</code> function.</p>
 
-          <p>The Date cell uses <a href="https://github.com/dbushell/Pikaday">Pikaday datepicker</a> as
-            the UI control.
+              <p>The Date cell uses <a href="https://github.com/dbushell/Pikaday">Pikaday datepicker</a> as
+                the UI control.
 
-          <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
+              <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
+
 
           <ul>
             <li><code>dist/handsontable.full.js</code></li>
@@ -94,58 +95,64 @@
             <li><code>demo/js/pikaday/pikaday.js</code></li>
           </ul>
 
-          <div id="example1"></div>
+              <p>All data entered to the data-typed cells are validated agains the default date format (<code>MM/DD/YYYY</code>), unless another format is provided.</p>
+              <p>If you enable the <code>correctFormat</code> config item, the dates will be automatically formatted to
+                match the desired format.</p>
 
-          <p>
-            <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
-          </p>
-        </div>
-      </div>
+              <div id="example1"></div>
 
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              <p>
+                <button name="dump" data-instance="hot" data-dump="#example1"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
+            </div>
           </div>
 
-          <script data-jsfiddle="example1">
-            var element = $('#example1'),
-              hot;
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
 
-            element.handsontable({
-              data: getCarData(),
-              startRows: 7,
-              startCols: 4,
-              colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
-              columnSorting: true,
-              columns: [
-                {
-                  type: 'autocomplete',
-                  source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
-                  strict: false
-                },
-                {
-                  // 2nd cell is simple text, no special options here
-                },
-                {
-                  type: 'date',
-                  dateFormat: 'MM/DD/YYYY'
-                },
-                {
-                  type: 'numeric',
-                  format: '$ 0,0.00'
-                }
-              ]
-            });
+              <script data-jsfiddle="example1">
+                var element = $('#example1'),
+                  hot;
 
-            hot = element.handsontable('getInstance');
-          </script>
+                element.handsontable({
+                  data: getCarData(),
+                  startRows: 7,
+                  startCols: 4,
+                  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+                  columnSorting: true,
+                  columns: [
+                    {
+                      type: 'autocomplete',
+                      source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
+                      strict: false
+                    },
+                    {
+                      // 2nd cell is simple text, no special options here
+                    },
+                    {
+                      type: 'date',
+                      dateFormat: 'MM/DD/YYYY',
+                      correctFormat: true
+                    },
+                    {
+                      type: 'numeric',
+                      format: '$ 0,0.00'
+                    }
+                  ]
+                });
+
+                hot = element.handsontable('getInstance');
+              </script>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
         <div class="footer-text">
         </div>
