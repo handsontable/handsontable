@@ -87,13 +87,13 @@
 
     Handsontable.Dom.enableImmediatePropagation(event);
 
-    if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
+    if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
       return;
     }
 
     var keyCodes = Handsontable.helper.keyCode;
 
-    switch(event.keyCode) {
+    switch (event.keyCode) {
       case keyCodes.ENTER:
         that.close();
         event.preventDefault(); //don't add newline to field
@@ -115,7 +115,7 @@
     this.updateEditorPosition();
   };
 
-  MobileTextEditor.prototype.focus = function(){
+  MobileTextEditor.prototype.focus = function () {
     this.TEXTAREA.focus();
     Handsontable.Dom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   };
@@ -133,13 +133,13 @@
   };
 
   MobileTextEditor.prototype.hideCellPointer = function () {
-    if(!Handsontable.Dom.hasClass(this.cellPointer, 'hidden')) {
+    if (!Handsontable.Dom.hasClass(this.cellPointer, 'hidden')) {
       Handsontable.Dom.addClass(this.cellPointer, 'hidden');
     }
   };
 
   MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
-    if(x && y) {
+    if (x && y) {
       x = parseInt(x, 10);
       y = parseInt(y, 10);
 
@@ -148,26 +148,26 @@
 
     } else {
       var selection = this.instance.getSelected()
-        , selectedCell = this.instance.getCell(selection[0],selection[1]);
+        , selectedCell = this.instance.getCell(selection[0], selection[1]);
 
       //cache sizes
-      if(!domDimensionsCache.cellPointer) {
+      if (!domDimensionsCache.cellPointer) {
         domDimensionsCache.cellPointer = {
           height: Handsontable.Dom.outerHeight(this.cellPointer),
           width: Handsontable.Dom.outerWidth(this.cellPointer)
         };
       }
-      if(!domDimensionsCache.editorContainer) {
+      if (!domDimensionsCache.editorContainer) {
         domDimensionsCache.editorContainer = {
           width: Handsontable.Dom.outerWidth(this.editorContainer)
         };
       }
 
-      if(selectedCell !== undefined) {
+      if (selectedCell !== undefined) {
         var scrollLeft = this.instance.view.wt.wtScrollbars.horizontal.scrollHandler == window ?
-              0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler);
+          0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler);
         var scrollTop = this.instance.view.wt.wtScrollbars.vertical.scrollHandler == window ?
-              0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtScrollbars.vertical.scrollHandler);
+          0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtScrollbars.vertical.scrollHandler);
 
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
@@ -177,18 +177,18 @@
           };
 
         this.editorContainer.style.top = parseInt(selectedCellOffset.top + Handsontable.Dom.outerHeight(selectedCell) -
-            currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
+        currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
         this.editorContainer.style.left = parseInt((window.innerWidth / 2) -
-            (domDimensionsCache.editorContainer.width / 2) ,10) + "px";
+        (domDimensionsCache.editorContainer.width / 2), 10) + "px";
 
-        if(selectedCellOffset.left + selectedCellWidth / 2 > parseInt(this.editorContainer.style.left,10) + domDimensionsCache.editorContainer.width) {
+        if (selectedCellOffset.left + selectedCellWidth / 2 > parseInt(this.editorContainer.style.left, 10) + domDimensionsCache.editorContainer.width) {
           this.editorContainer.style.left = window.innerWidth - domDimensionsCache.editorContainer.width + "px";
-        } else if(selectedCellOffset.left + selectedCellWidth / 2 < parseInt(this.editorContainer.style.left,10) + 20) {
+        } else if (selectedCellOffset.left + selectedCellWidth / 2 < parseInt(this.editorContainer.style.left, 10) + 20) {
           this.editorContainer.style.left = 0 + "px";
         }
 
         this.cellPointer.style.left = parseInt(selectedCellOffset.left - (domDimensionsCache.cellPointer.width / 2) -
-            Handsontable.Dom.offset(this.editorContainer).left + (selectedCellWidth / 2) - currentScrollPosition.x ,10) + "px";
+        Handsontable.Dom.offset(this.editorContainer).left + (selectedCellWidth / 2) - currentScrollPosition.x, 10) + "px";
       }
     }
   };
@@ -225,14 +225,22 @@
   };
 
   MobileTextEditor.prototype.prepareAndSave = function () {
+    var val;
 
-    if(!this.valueChanged()) {
+    if (!this.valueChanged()) {
       return true;
     }
 
-    var val = [
-      [String.prototype.trim.call(this.getValue())]
-    ];
+    if (this.instance.getSettings().trimWhitespace) {
+      val = [
+        [String.prototype.trim.call(this.getValue())]
+      ];
+    } else {
+      val = [
+        [this.getValue()]
+      ];
+    }
+
 
     this.saveValue(val);
   };
@@ -269,13 +277,13 @@
       if (event.touches.length == 1) {
         var touch = event.touches[0]
           , onTouchPosition = {
-          x: that.editorContainer.offsetLeft,
-          y: that.editorContainer.offsetTop
-        }
+            x: that.editorContainer.offsetLeft,
+            y: that.editorContainer.offsetTop
+          }
           , onTouchOffset = {
-          x: touch.pageX - onTouchPosition.x,
-          y: touch.pageY - onTouchPosition.y
-        };
+            x: touch.pageX - onTouchPosition.x,
+            y: touch.pageY - onTouchPosition.y
+          };
 
         that.eventManager.addEventListener(this, "touchmove", function (event) {
           var touch = event.touches[0];
@@ -288,19 +296,19 @@
     });
 
     this.eventManager.addEventListener(document.body, "touchend", function (event) {
-      if(!Handsontable.Dom.isChildOf(event.target, that.editorContainer) && !Handsontable.Dom.isChildOf(event.target, that.instance.rootElement)) {
+      if (!Handsontable.Dom.isChildOf(event.target, that.editorContainer) && !Handsontable.Dom.isChildOf(event.target, that.instance.rootElement)) {
         that.close();
       }
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.horizontal.scrollHandler, "scroll", function (event) {
-      if(that.instance.view.wt.wtScrollbars.horizontal.scrollHandler != window) {
+      if (that.instance.view.wt.wtScrollbars.horizontal.scrollHandler != window) {
         that.hideCellPointer();
       }
     });
 
     this.eventManager.addEventListener(this.instance.view.wt.wtScrollbars.vertical.scrollHandler, "scroll", function (event) {
-      if(that.instance.view.wt.wtScrollbars.vertical.scrollHandler != window) {
+      if (that.instance.view.wt.wtScrollbars.vertical.scrollHandler != window) {
         that.hideCellPointer();
       }
     });
@@ -315,7 +323,6 @@
 
   Handsontable.editors.MobileTextEditor = MobileTextEditor;
   Handsontable.editors.registerEditor('mobile', Handsontable.editors.MobileTextEditor);
-
 
 
 })(Handsontable);

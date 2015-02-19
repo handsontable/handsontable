@@ -101,6 +101,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
+
+          var fixedRowsTop = instance.getSettings().fixedRowsTop;
+          if (fixedRowsTop >= index + 1) {
+            instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
+          }
+
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
@@ -112,6 +118,11 @@ Handsontable.Core = function (rootElement, userSettings) {
             if(row in priv.cellSettings){  //if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(index, amount);
             }
+          }
+
+          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+          if (fixedColumnsLeft >= index + 1) {
+            instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
           }
 
           if(Array.isArray(instance.getSettings().colHeaders)){
@@ -486,7 +497,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
-        if(priv.selRange.from) {
+        if(priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
           instance.view.scrollViewport(coords);
@@ -607,7 +618,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           coords.col = totalCols - 1;
         }
 
-        selection.setRangeEnd(coords);
+        selection.setRangeEnd(coords, true);
     },
 
     /**
@@ -2228,6 +2239,14 @@ DefaultSettings.prototype = {
   manualColumnFreeze: void 0,
   viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
   viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
-  groups: void 0
+  groups: void 0,
+  trimWhitespace: true,
+  settings: void 0,
+  source: void 0,
+  title: void 0,
+  checkedTemplate: void 0,
+  uncheckedTemplate: void 0,
+  renderer: void 0,
+  format: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

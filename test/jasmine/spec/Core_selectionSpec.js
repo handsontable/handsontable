@@ -463,18 +463,12 @@ describe('Core_selection', function () {
       afterScrollVertically: onAfterScrollVertically
     });
 
+    this.$container[0].scrollTop = 0;
+
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
 
-    this.$container[0].scrollTop = 0;
-
-    waitsFor(function () {
-      return onAfterScrollVertically.calls.length > 0;
-    }, 'Vertical scroll callback call', 1500);
-
-    runs(function () {
-      this.$container[0].scrollTop = 120;
-    });
+    this.$container[0].scrollTop = 120;
 
     waits(100);
 
@@ -483,6 +477,56 @@ describe('Core_selection', function () {
 
       $(window).off("error.selectionTest");
     });
+
+  });
+
+  it("should scroll to the end of the selection, when selecting cells using the keyboard", function () {
+    var hot = handsontable({
+      height: 300,
+      width: 300,
+      startRows: 50,
+      startCols: 50,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container[0].scrollTop = 100;
+    selectCell(1, 3);
+    keyDownUp('arrow_down');
+    expect(this.$container[0].scrollTop).toEqual(0);
+    this.$container[0].scrollTop = 100;
+    selectCell(1, 3);
+    keyDownUp('shift+arrow_down');
+    expect(this.$container[0].scrollTop).toEqual(0);
+
+    this.$container[0].scrollLeft = 100;
+    selectCell(3, 1);
+    keyDownUp('arrow_right');
+    expect(this.$container[0].scrollLeft).toEqual(0);
+    this.$container[0].scrollLeft = 100;
+    selectCell(3, 1);
+    keyDownUp('shift+arrow_right');
+    expect(this.$container[0].scrollLeft).toEqual(0);
+
+    var lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+    selectCell(3, lastVisibleColumn);
+    keyDownUp('arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
+    keyDownUp('arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
+    keyDownUp('shift+arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
+
+    var lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+    selectCell(lastVisibleRow, 3);
+    keyDownUp('arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
+    keyDownUp('arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
+    keyDownUp('shift+arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
 
   });
 

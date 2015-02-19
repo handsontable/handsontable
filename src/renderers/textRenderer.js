@@ -21,6 +21,10 @@
 
     var escaped = Handsontable.helper.stringify(value);
 
+    if(!instance.getSettings().trimWhitespace) {
+      escaped = escaped.replace(/ /g, String.fromCharCode(160));
+    }
+
     if (cellProperties.rendererTemplate) {
       Handsontable.Dom.empty(TD);
       var TEMPLATE = document.createElement('TEMPLATE');
