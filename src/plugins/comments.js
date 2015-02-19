@@ -38,11 +38,13 @@ function Comments(instance) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
         offset = Handsontable.Dom.offset(TD),
         lastColWidth = instance.getColWidth(range.from.col);
+      
+      var z = Handsontable.helper.getElementZIndex(TD);
 
       commentBox.style.position = 'absolute';
       commentBox.style.left = offset.left + lastColWidth + 'px';
       commentBox.style.top = offset.top + 'px';
-      commentBox.style.zIndex = 2;
+      commentBox.style.zIndex = z + 2;
       bindMouseEvent(range, commentBox);
     },
     createCommentBox = function (value) {

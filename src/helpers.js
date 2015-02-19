@@ -566,3 +566,26 @@ Handsontable.helper.pageY = function (event) {
 
   return cursorY;
 };
+
+/**
+ * Get the calculated z-index of the passed element.
+ * Note: if the element has not the z-index property,
+ * the method will iterate to the first parent with
+ * z-index defined. 
+ * If no element will has z-index, it returns 0.
+ * @param {element} element we want to know its z-index
+ * @returns {integer}
+ */
+Handsontable.helper.getElementZIndex = function (element) {
+    var z = 0;
+    try {
+        z = window.document.defaultView.getComputedStyle(element).getPropertyValue('z-index');
+        if (isNaN(z)) {
+            z = Handsontable.helper.getElementZIndex(element.parentNode);
+        }
+    }
+    catch (e) {
+        z = 0;
+    }
+    return z;
+};
