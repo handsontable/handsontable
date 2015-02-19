@@ -203,7 +203,17 @@ else { //IE8
  */
 Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
-  while (next !== document.documentElement) { //until <html> reached
+
+  function extractElement(element) {
+    /* global ShadowDOMPolyfill */
+    if (typeof ShadowDOMPolyfill !== 'undefined' && ShadowDOMPolyfill.unwrapIfNeeded) {
+      return ShadowDOMPolyfill.unwrapIfNeeded(element);
+    }
+
+    return element;
+  }
+
+  while (extractElement(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
