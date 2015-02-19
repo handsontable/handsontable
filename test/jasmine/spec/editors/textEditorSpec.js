@@ -80,7 +80,7 @@ describe('TextEditor', function () {
     }, 'Retrieve editor height', 1000);
 
     runs(function () {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('19px');
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('22px');
     });
   });
 
@@ -102,7 +102,7 @@ describe('TextEditor', function () {
     }, 'Retrieve editor height', 1000);
 
     runs(function () {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('60px');
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
     });
   });
 
@@ -733,4 +733,40 @@ describe('TextEditor', function () {
 
   });
 
+  it("should render the text without trimming out the whitespace, if trimWhitespace is set to false", function () {
+    this.$container.css('overflow','');
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 9),
+      trimWhitespace: false
+    });
+
+    selectCell(0,2);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+    hot.getActiveEditor().TEXTAREA.value = "       test    of    whitespace      ";
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(getDataAtCell(0,2).length).toEqual(37);
+  });
+
+  it('should insert new line on caret position when pressing ALT + ENTER', function () {
+    var data = [
+      ["Maserati", "Mazda"],
+      ["Honda", "Mini"]
+    ];
+
+    var hot = handsontable({
+      data: data
+    });
+
+    selectCell(0, 0);
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    var $editorInput = $('.handsontableInput');
+
+    Handsontable.Dom.setCaretPosition($editorInput[0], 2);
+
+    $editorInput.simulate('keydown', {altKey: true, keyCode: Handsontable.helper.keyCode.ENTER});
+
+    expect(hot.getActiveEditor().TEXTAREA.value).toEqual("Ma\nserati");
+  });
 });

@@ -300,10 +300,10 @@
 .handsontableInput {
   border: 2px solid #5292F7;
   outline-width: 0;
-  margin: 0;
-  padding: 1px 4px 0 2px;
+  margin: -1px 0 0 0;
+  padding: 0 3px 2px 3px;
   font-family: inherit;
-  line-height: inherit;
+  line-height: 21px;
   font-size: inherit;
   -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);

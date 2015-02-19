@@ -91,6 +91,7 @@ module.exports = function (grunt) {
         'src/editors/numericEditor.js',
 
         'src/validators/numericValidator.js',
+        'src/validators/dateValidator.js',
         'src/validators/autocompleteValidator.js',
 
         'src/cellTypes.js',
@@ -187,7 +188,7 @@ module.exports = function (grunt) {
         'lib/**/*.js',
         'lib/**/*.css'
       ],
-      tasks: ['default']
+      tasks: ['build']
     },
 
     clean: {
@@ -231,10 +232,12 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
+            'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
             'lib/jquery.min.js',
+            'demo/js/moment/moment.js',
+            'demo/js/pikaday/pikaday.js',
             'lib/numeral.js',
             'lib/numeral.de-de.js',
             'test/jasmine/lib/jasmine-extensions.js'
@@ -385,7 +388,8 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['jshint', 'build']);
+  grunt.registerTask('build', ['gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);

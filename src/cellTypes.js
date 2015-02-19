@@ -29,6 +29,7 @@ Handsontable.NumericCell = {
 
 Handsontable.DateCell = {
   editor: Handsontable.editors.DateEditor,
+  validator: Handsontable.DateValidator,
   renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
