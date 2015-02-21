@@ -65,7 +65,9 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0, val;
   while (from < length) {
-    sum +=  (val = this.instance.wtTable.getRowHeight(from)) === (void 0) ? this.instance.wtSettings.settings.defaultRowHeight : val; //TODO optimize getSetting, because this is MUCH faster then getSetting
+    //TODO optimize getSetting, because this is MUCH faster then getSetting
+    val = this.instance.wtTable.getRowHeight(from);
+    sum +=  val === (void 0) ? this.instance.wtSettings.settings.defaultRowHeight : val;
     from++;
   }
   return sum;
