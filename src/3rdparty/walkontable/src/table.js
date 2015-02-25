@@ -108,8 +108,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative ||
-        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+        this.instance.cloneOverlay instanceof WalkontableHorizontalOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startRow = 0;
     }
     else {
@@ -119,8 +119,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative ||
-        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+        this.instance.cloneOverlay instanceof  WalkontableVerticalOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
@@ -143,17 +143,17 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       this.instance.wtViewport.createVisibleCalculators();
     }
-    if (this.instance.wtScrollbars) {
-      this.instance.wtScrollbars.refresh(true);
+    if (this.instance.wtOverlays) {
+      this.instance.wtOverlays.refresh(true);
     }
   }
 
   this.refreshSelections(fastDraw);
 
   if (!this.isWorkingOnClone()) {
-    this.instance.wtScrollbars.vertical.resetFixedPosition();
-    this.instance.wtScrollbars.horizontal.resetFixedPosition();
-    this.instance.wtScrollbars.corner.resetFixedPosition();
+    this.instance.wtOverlays.topOverlay.resetFixedPosition();
+    this.instance.wtOverlays.leftOverlay.resetFixedPosition();
+    this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
   }
 
   this.instance.drawn = true;
@@ -351,7 +351,7 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalColumns');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  else if (this.instance.cloneOverlay instanceof WalkontableVerticalOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -363,7 +363,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalRows');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  else if (this.instance.cloneOverlay instanceof WalkontableHorizontalOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedRowsTop');
   }
   return this.instance.wtViewport.rowsRenderCalculator.count;

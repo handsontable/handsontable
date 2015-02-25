@@ -42,9 +42,9 @@ describe('WalkontableScrollbar', function () {
       });
       wt.draw();
 
-      wt.wtScrollbars.vertical.onScroll(1);
+      wt.wtOverlays.topOverlay.onScroll(1);
       expect(wt.getViewport()[0]).toEqual(0);
-      wt.wtScrollbars.vertical.onScroll(-1);
+      wt.wtOverlays.topOverlay.onScroll(-1);
       expect(wt.getViewport()[0]).toEqual(0);
     }
     catch (e) {

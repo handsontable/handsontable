@@ -1,4 +1,4 @@
-function WalkontableHorizontalScrollbarNative(instance) {
+function WalkontableVerticalOverlay(instance) {
   this.instance = instance;
   this.type = 'horizontal';
   this.offset = 0;
@@ -6,10 +6,10 @@ function WalkontableHorizontalScrollbarNative(instance) {
   this.clone = this.makeClone('left');
 }
 
-WalkontableHorizontalScrollbarNative.prototype = new WalkontableOverlay();
+WalkontableVerticalOverlay.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
-WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {
+WalkontableVerticalOverlay.prototype.resetFixedPosition = function () {
   var finalLeft, finalTop;
 
   if (!this.instance.wtTable.holder.parentNode) {
@@ -42,16 +42,16 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
+WalkontableVerticalOverlay.prototype.refresh = function (fastDraw) {
   this.applyToDOM();
   WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
+WalkontableVerticalOverlay.prototype.getScrollPosition = function () {
   return Handsontable.Dom.getScrollLeft(this.scrollHandler);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
+WalkontableVerticalOverlay.prototype.setScrollPosition = function (pos) {
   if (this.scrollHandler === window) {
     window.scrollTo(pos, Handsontable.Dom.getWindowScrollTop());
   } else {
@@ -59,11 +59,11 @@ WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos
   }
 };
 
-WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
+WalkontableVerticalOverlay.prototype.onScroll = function () {
   this.instance.getSetting('onScrollHorizontally');
 };
 
-WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
+WalkontableVerticalOverlay.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while(from < length) {
     sum += this.instance.wtTable.getStretchedColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
@@ -73,7 +73,7 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 };
 
 //applyToDOM (in future merge it with this.refresh?)
-WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
+WalkontableVerticalOverlay.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
 
@@ -95,7 +95,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param sourceCol {Number}
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+WalkontableVerticalOverlay.prototype.scrollTo = function (sourceCol, beyondRendered) {
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {
@@ -110,7 +110,7 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
   this.setScrollPosition(newX);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
+WalkontableVerticalOverlay.prototype.getTableParentOffset = function () {
   if (this.scrollHandler === window) {
     return this.instance.wtTable.holderOffset.left;
   }

@@ -7,15 +7,15 @@ var TouchScroll = (function(instance) {
     this.bindEvents();
 
     this.scrollbars = [
-      this.instance.view.wt.wtScrollbars.vertical,
-      this.instance.view.wt.wtScrollbars.horizontal,
-      this.instance.view.wt.wtScrollbars.corner
+      this.instance.view.wt.wtOverlays.topOverlay,
+      this.instance.view.wt.wtOverlays.leftOverlay,
+      this.instance.view.wt.wtOverlays.topLeftCornerOverlay
     ];
 
     this.clones = [
-      this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode,
-      this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode,
-      this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode
+      this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode,
+      this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode,
+      this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode
     ];
   };
 

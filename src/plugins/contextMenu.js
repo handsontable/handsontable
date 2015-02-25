@@ -1145,7 +1145,7 @@
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+    this.view.wt.wtOverlays.topOverlay.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
     /* jshint ignore:end */
   }
 

@@ -2311,7 +2311,7 @@ describe('AutocompleteEditor', function () {
 
     var dropdown = hot.getActiveEditor().htContainer;
 
-    hot.view.wt.wtScrollbars.vertical.scrollTo(1);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
 
     waits(30);
 
@@ -2325,7 +2325,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtScrollbars.vertical.scrollTo(3);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
     });
 
     waits(30);

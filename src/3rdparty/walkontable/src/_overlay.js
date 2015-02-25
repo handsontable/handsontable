@@ -52,7 +52,7 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
       }
     }
 
-    if (this instanceof WalkontableHorizontalScrollbarNative && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
+    if (this instanceof WalkontableVerticalOverlay && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
       return el;
     }
     el = el.parentNode;

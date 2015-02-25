@@ -264,7 +264,7 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   };
 
-  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  if (instance.cloneOverlay instanceof WalkontableHorizontalOverlay || instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     ilen = instance.getSetting('fixedRowsTop');
   }
   else {
@@ -371,7 +371,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     if (toColumn === this.instance.getSetting('totalColumns') - 1) {
       var scrollableElement = Handsontable.Dom.getScrollableElement(instance.wtTable.TABLE),
         cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(scrollableElement);
-      
+
       if (cornerOverlappingContainer) {
         this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
         this.cornerStyle.borderRightWidth = 0;

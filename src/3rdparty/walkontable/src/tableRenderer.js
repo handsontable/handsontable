@@ -66,7 +66,7 @@ WalkontableTableRenderer.prototype.render = function () {
 
     this.instance.wtViewport.createVisibleCalculators();
 
-    this.instance.wtScrollbars.applyToDOM();
+    this.instance.wtOverlays.applyToDOM();
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
@@ -82,7 +82,7 @@ WalkontableTableRenderer.prototype.render = function () {
       }
     }
 
-    this.instance.wtScrollbars.refresh(false);
+    this.instance.wtOverlays.refresh(false);
 
     this.instance.getSetting('onDraw', true);
   }

@@ -1,13 +1,13 @@
-function WalkontableCornerScrollbarNative(instance) {
+function WalkontableCornerOverlay(instance) {
   this.instance = instance;
   this.type = 'corner';
   this.init();
   this.clone = this.makeClone('corner');
 }
 
-WalkontableCornerScrollbarNative.prototype = new WalkontableOverlay();
+WalkontableCornerOverlay.prototype = new WalkontableOverlay();
 
-WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
+WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
@@ -35,8 +35,8 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     }
   }
   else if(!Handsontable.freezeOverlays) {
-    finalLeft = this.instance.wtScrollbars.horizontal.getScrollPosition() + "px";
-    finalTop = this.instance.wtScrollbars.vertical.getScrollPosition() + "px";
+    finalLeft = this.instance.wtOverlays.leftOverlay.getScrollPosition() + "px";
+    finalTop = this.instance.wtOverlays.topOverlay.getScrollPosition() + "px";
   }
 
   Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);

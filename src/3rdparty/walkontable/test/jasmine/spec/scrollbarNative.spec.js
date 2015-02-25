@@ -86,7 +86,7 @@ describe('WalkontableScrollbarNative', function () {
     });
     wt.draw();
 
-    wt.wtScrollbars.vertical.scrollTo(3);
+    wt.wtOverlays.topOverlay.scrollTo(3);
     expect($container.scrollTop()).toEqual(69);
   });
 });

@@ -13,7 +13,7 @@ function WalkontableViewport(instance) {
 }
 
 WalkontableViewport.prototype.getWorkspaceHeight = function () {
-  var scrollHandler = this.instance.wtScrollbars.vertical.scrollHandler;
+  var scrollHandler = this.instance.wtOverlays.topOverlay.scrollHandler;
   if (scrollHandler === window) {
     return document.documentElement.clientHeight;
   }
@@ -28,7 +28,7 @@ WalkontableViewport.prototype.getWorkspaceHeight = function () {
 WalkontableViewport.prototype.getWorkspaceWidth = function () {
   var width,
     totalColumns = this.instance.getSetting("totalColumns"),
-    scrollHandler = this.instance.wtScrollbars.horizontal.scrollHandler,
+    scrollHandler = this.instance.wtOverlays.leftOverlay.scrollHandler,
     overflow,
     stretchSetting = this.instance.getSetting('stretchH');
 
@@ -47,7 +47,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function () {
   }
 
   if (scrollHandler !== window){
-      overflow = this.instance.wtScrollbars.horizontal.scrollHandler.style.overflow;
+      overflow = this.instance.wtOverlays.leftOverlay.scrollHandler.style.overflow;
 
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
       //this is used in `scroll.html`
@@ -198,14 +198,14 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
     height = this.getViewportHeight();
   }
 
-  var pos = this.instance.wtScrollbars.vertical.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  var pos = this.instance.wtOverlays.topOverlay.getScrollPosition() - this.instance.wtOverlays.topOverlay.getTableParentOffset();
   if (pos < 0) {
     pos = 0;
   }
 
   var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
   if(fixedRowsTop) {
-    var fixedRowsHeight = this.instance.wtScrollbars.vertical.sumCellSizes(0, fixedRowsTop);
+    var fixedRowsHeight = this.instance.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
     pos += fixedRowsHeight;
     height -= fixedRowsHeight;
   }
@@ -234,14 +234,14 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
 
   var width = this.getViewportWidth();
 
-  var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
+  var pos = this.instance.wtOverlays.leftOverlay.getScrollPosition() - this.instance.wtOverlays.topOverlay.getTableParentOffset();
   if (pos < 0) {
     pos = 0;
   }
 
   var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
   if(fixedColumnsLeft) {
-    var fixedColumnsWidth = this.instance.wtScrollbars.horizontal.sumCellSizes(0, fixedColumnsLeft);
+    var fixedColumnsWidth = this.instance.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
     pos += fixedColumnsWidth;
     width -= fixedColumnsWidth;
   }
