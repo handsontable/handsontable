@@ -266,7 +266,8 @@
         cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
 
     var width = Handsontable.Dom.innerWidth(this.TD) - 8  //$td.width()
-      , maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10 //10 is TEXTAREAs border and padding
+      , maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 8 //10 is TEXTAREAs border and padding but position
+                                                                                     // is moved one pixel left so it should be 8 (to cover left and right edge)
       , height = Handsontable.Dom.outerHeight(this.TD) - 4  //$td.outerHeight() - 4
       , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2; //10 is TEXTAREAs border and padding
 
