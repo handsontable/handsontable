@@ -860,13 +860,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      //var col = cellProperties.col,
-      //  row = cellProperties.row,
-      //  td = instance.getCell(row, col, true);
-      //
-      //if (td) {
-      //  instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
-      //}
+      var col = cellProperties.col,
+        row = cellProperties.row,
+        td = instance.getCell(row, col, true);
+
+      if (td) {
+        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
+      }
       callback(valid);
     }
 
