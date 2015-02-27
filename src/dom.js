@@ -85,12 +85,30 @@ if (document.documentElement.classList) {
 
   Handsontable.Dom.addClass = function (ele, cls) {
     if (cls) {
-      ele.classList.add(cls);
+      if (cls.indexOf(' ') > -1) {
+      	var cs = cls.split(' ');
+       	for(var c in cs) {
+          if (cs[c]) {
+            ele.classList.add(cs[c]);
+          }
+        }
+      } else {
+       	ele.classList.add(cls);
+      }
     }
   };
 
   Handsontable.Dom.removeClass = function (ele, cls) {
-    ele.classList.remove(cls);
+    if (cls.indexOf(' ') > -1) {
+      var cs = cls.split(' ');
+      for(var c in cs) {
+        if (cs[c]) {
+    	  ele.classList.remove(cs[c]);
+        }
+      }
+    } else {
+      ele.classList.remove(cls);
+    }
   };
 }
 else {
