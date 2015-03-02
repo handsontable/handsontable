@@ -11,7 +11,7 @@
 
 import * as dom from './../dom.js';
 import * as helper from './../helpers.js';
-//import numeral from './../../lib/numeral.js';
+import numeral from 'numeral';
 import {getRenderer, registerRenderer} from './../renderers.js';
 
 export {numericRenderer};

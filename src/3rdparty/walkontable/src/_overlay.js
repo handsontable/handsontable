@@ -2,6 +2,7 @@
 import {Walkontable} from './core.js';
 import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
 import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {ColumnStrategy} from './columnStrategy.js';
 
 export {WalkontableOverlay};
 

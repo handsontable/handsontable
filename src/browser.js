@@ -11,12 +11,12 @@ window.Handsontable = function (rootElement, userSettings) {
 
 Handsontable.version = version;
 
-import './../lib/shims/array.filter.js';
-import './../lib/shims/array.indexOf.js';
-import './../lib/shims/array.isArray.js';
-import './../lib/shims/object.keys.js';
-import './../lib/shims/classes.js';
-import './../lib/shims/weakmap.js';
+import './shims/array.filter.js';
+import './shims/array.indexOf.js';
+import './shims/array.isArray.js';
+import './shims/object.keys.js';
+import './shims/classes.js';
+import './shims/weakmap.js';
 
 Handsontable.plugins = {};
 

@@ -1,4 +1,5 @@
 node_modules
 Gruntfile.js
 dist/*
+dist_new/*
 lib/*

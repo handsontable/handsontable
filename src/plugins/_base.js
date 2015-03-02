@@ -4,9 +4,8 @@ import {defineGetter} from './../helpers.js';
 class BasePlugin {
   /**
    * @param {Object} hotInstance Handsontable instance
-   * @param {Object} hotParentInstance Handsontable parent instance if exists
    */
-  constructor(hotInstance, hotParentInstance) {
+  constructor(hotInstance) {
     defineGetter(this, 'hot', hotInstance);
   }
 

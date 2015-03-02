@@ -262,10 +262,6 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
   }
 };
 
-if (typeof Handsontable == 'undefined') {
-  throw new Error('Handsontable is not defined');
-}
-
 var beforeInit = function () {
   var instance = this;
   var mergeCellsSetting = instance.getSettings().mergeCells;

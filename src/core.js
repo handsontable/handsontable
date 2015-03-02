@@ -1,7 +1,7 @@
 
-//import numeral from './../lib/numeral.js';
 import * as dom from './dom.js';
 import * as helper from './helpers.js';
+import numeral from 'numeral';
 import {DataMap} from './dataMap.js';
 import {EditorManager} from './editorManager.js';
 import {eventManager as eventManagerObject} from './eventManager.js';

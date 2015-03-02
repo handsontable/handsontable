@@ -3,11 +3,12 @@ import * as dom from './../../dom.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
 import BasePlugin from './../_base.js';
+import ZeroClipboard from 'zeroclipboard';
 
 /**
  * @class ContextMenuCopyPaste
  * @plugin
- * @dependencies ContextMenu
+ * @dependencies ContextMenu zeroclipboard
  */
 class ContextMenuCopyPaste extends BasePlugin {
   /**
@@ -128,20 +129,24 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   removeCurrentClass() {
-    var element = this.hotContextMenu.rootElement.querySelector('td.current');
+    if (this.hotContextMenu.rootElement) {
+      var element = this.hotContextMenu.rootElement.querySelector('td.current');
 
-    if (element) {
-      dom.removeClass(element, 'current');
+      if ( element ) {
+        dom.removeClass(element, 'current');
+      }
     }
     this.outsideClickDeselectsCache = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
   }
 
   removeZeroClipboardClass() {
-    var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
+    if (this.hotContextMenu.rootElement) {
+      var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
 
-    if (element) {
-      dom.removeClass(element, 'zeroclipboard-is-hover');
+      if ( element ) {
+        dom.removeClass(element, 'zeroclipboard-is-hover');
+      }
     }
     this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
   }

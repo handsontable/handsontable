@@ -1,6 +1,6 @@
 
+import numeral from 'numeral';
 import {getEditor, registerEditor} from './../editors.js';
-//import numeral from './../../lib/numeral.js';
 import {TextEditor} from './textEditor.js';
 
 var NumericEditor = TextEditor.prototype.extend();

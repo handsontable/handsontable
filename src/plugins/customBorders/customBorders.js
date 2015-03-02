@@ -3,10 +3,7 @@ import {registerPlugin} from './../../plugins.js';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cellRange.js';
 import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection.js';
 
-/**
- * TODO: Refactor this plugin to use class style
- */
-registerPlugin('customBorders', CustomBorders);
+//registerPlugin('customBorders', CustomBorders);
 
 /**
  * @class CustomBorders
