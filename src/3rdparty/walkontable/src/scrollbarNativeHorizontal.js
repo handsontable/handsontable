@@ -1,3 +1,10 @@
+
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableHorizontalScrollbarNative};
+
+window.WalkontableHorizontalScrollbarNative = WalkontableHorizontalScrollbarNative;
+
 function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';

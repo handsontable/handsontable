@@ -1,3 +1,8 @@
+
+export {WalkontableSettings};
+
+window.WalkontableSettings = WalkontableSettings;
+
 function WalkontableSettings(instance, settings) {
   var that = this;
   this.instance = instance;

@@ -5,32 +5,30 @@
  *
  * @constructor
  */
-var CopyPaste = (function () {
-  var instance;
 
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = new CopyPasteClass();
+import {eventManager as eventManagerObject} from './../eventManager.js';
 
-      } else if (instance.hasBeenDestroyed()) {
-        instance.init();
-      }
-      instance.refCounter ++;
+export {copyPasteManager};
 
-      return instance;
-    }
-  };
-})();
+var instance;
+
+function copyPasteManager() {
+  if (!instance) {
+    instance = new CopyPasteClass();
+
+  } else if (instance.hasBeenDestroyed()){
+    instance.init();
+  }
+  instance.refCounter++;
+
+  return instance;
+}
 
 function CopyPasteClass() {
   this.refCounter = 0;
   this.init();
 }
 
-/**
- * Initialize CopyPaste class
- */
 CopyPasteClass.prototype.init = function () {
   var
     style,
@@ -39,7 +37,7 @@ CopyPasteClass.prototype.init = function () {
   this.copyCallbacks = [];
   this.cutCallbacks = [];
   this.pasteCallbacks = [];
-  this._eventManager = Handsontable.eventManager(this);
+  this._eventManager = eventManagerObject(this);
 
   // this.listenerElement = document.documentElement;
   parent = document.body;

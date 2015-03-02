@@ -1,20 +1,17 @@
 
-if(!window.Handsontable){
-  var Handsontable = {};
-}
+export {eventManager};
 
-Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
+window.Handsontable = window.Handsontable || {};
+// used to debug memory leaks
+Handsontable.countEventManagerListeners = 0;
+// support for older versions of Handsontable
+Handsontable.eventManager = eventManager;
 
-Handsontable.eventManager = function (instance) {
-  var
-    addEvent,
-    removeEvent,
-    clearEvents,
-    fireEvent;
-
+function eventManager(instance) {
   if (!instance) {
     throw new Error ('instance not defined');
   }
+
   if (!instance.eventListeners) {
     instance.eventListeners = [];
   }
@@ -27,7 +24,7 @@ Handsontable.eventManager = function (instance) {
    * @param {Function} callback
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEvent = function (element, event, callback) {
+  function addEvent(element, event, callback) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
@@ -102,7 +99,7 @@ Handsontable.eventManager = function (instance) {
     return function _removeEvent() {
       removeEvent(element, event, callback);
     };
-  };
+  }
 
   /**
    * Remove event
@@ -111,7 +108,7 @@ Handsontable.eventManager = function (instance) {
    * @param {String} event
    * @param {Function} callback
    */
-  removeEvent = function (element, event, callback) {
+  function removeEvent(element, event, callback){
     var len = instance.eventListeners.length,
       tmpEvent;
 
@@ -132,12 +129,12 @@ Handsontable.eventManager = function (instance) {
         Handsontable.countEventManagerListeners --;
       }
     }
-  };
+  }
 
   /**
    * Clear all events
    */
-  clearEvents = function () {
+  function clearEvents() {
     var len = instance.eventListeners.length,
       event;
 
@@ -148,7 +145,7 @@ Handsontable.eventManager = function (instance) {
         removeEvent(event.element, event.event, event.callback);
       }
     }
-  };
+  }
 
   /**
    * Trigger event
@@ -156,10 +153,8 @@ Handsontable.eventManager = function (instance) {
    * @param {Element} element
    * @param {String} type
    */
-  fireEvent = function (element, type) {
-    var options, event;
-
-    options = {
+  function fireEvent(element, type) {
+    var options = {
       bubbles: true,
       cancelable: (type !== "mousemove"),
       view: window,
@@ -176,7 +171,8 @@ Handsontable.eventManager = function (instance) {
       relatedTarget: undefined
     };
 
-    if (document.createEvent) {
+    var event;
+    if ( document.createEvent ) {
       event = document.createEvent("MouseEvents");
       event.initMouseEvent(type, options.bubbles, options.cancelable,
         options.view, options.detail,
@@ -188,12 +184,14 @@ Handsontable.eventManager = function (instance) {
       event = document.createEventObject();
     }
 
+
+
     if (element.dispatchEvent) {
       element.dispatchEvent(event);
     } else {
       element.fireEvent('on' + type, event);
     }
-  };
+  }
 
   return {
     addEventListener: addEvent,
@@ -201,4 +199,4 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     fireEvent: fireEvent
   };
-};
+}

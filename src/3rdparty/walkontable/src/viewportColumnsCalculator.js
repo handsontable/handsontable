@@ -1,3 +1,8 @@
+
+export {WalkontableViewportColumnsCalculator};
+
+window.WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator;
+
 function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
   var
     _this = this,

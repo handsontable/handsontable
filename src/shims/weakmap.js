@@ -4,6 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
+/* jshint ignore:start */
 if (typeof WeakMap === 'undefined') {
   (function() {
     var defineProperty = Object.defineProperty;
@@ -16,8 +17,8 @@ if (typeof WeakMap === 'undefined') {
     }
 
     /*
-      IE8 does not support Date.now() but IE8 compatibility mode in IE9 and IE10 does.
-      M$ deserves a high five for this one :)
+     IE8 does not support Date.now() but IE8 compatibility mode in IE9 and IE10 does.
+     M$ deserves a high five for this one :)
      */
     var counter = +(new Date) % 1e9;
 
@@ -42,6 +43,9 @@ if (typeof WeakMap === 'undefined') {
           var entry;
           return (entry = key[this.name]) && entry[0] === key ?
             entry[1] : undefined;
+        },
+        has: function(key) {
+          this.get(key) ? true : false;
         },
         'delete': function(key) {
           this.set(key, undefined);
@@ -74,7 +78,9 @@ if (typeof WeakMap === 'undefined') {
           }
 
           return;
-
+        },
+        has: function(key) {
+          this.get(key) ? true : false;
         },
         'delete': function(key) {
 
@@ -92,3 +98,4 @@ if (typeof WeakMap === 'undefined') {
     window.WeakMap = WeakMap;
   })();
 }
+/* jshint ignore:end */

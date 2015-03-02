@@ -1,3 +1,12 @@
+
+import {WalkontableBorder} from './border.js';
+import {WalkontableCellCoords} from './cellCoords.js';
+import {WalkontableCellRange} from './cellRange.js';
+
+export {WalkontableSelection};
+
+window.WalkontableSelection = WalkontableSelection;
+
 function WalkontableSelection(settings, cellRange) {
   this.settings = settings;
   this.cellRange = cellRange || null;

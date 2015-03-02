@@ -1,3 +1,8 @@
+
+export {WalkontableRowFilter};
+
+window.WalkontableRowFilter = WalkontableRowFilter;
+
 /**
  * WalkontableRowFilter
  * @constructor

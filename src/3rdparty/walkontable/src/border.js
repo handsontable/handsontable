@@ -1,3 +1,14 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {WalkontableCellCoords} from './cellCoords.js';
+import {WalkontableCornerScrollbarNative} from './scrollbarNativeCorner.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {WalkontableVerticalScrollbarNative} from './scrollbarNativeVertical.js';
+
+export {WalkontableBorder};
+
+window.WalkontableBorder = WalkontableBorder;
+
 function WalkontableBorder(instance, settings) {
   var style;
   var createMultipleSelectorHandles = function () {
@@ -62,7 +73,7 @@ function WalkontableBorder(instance, settings) {
     return;
   }
 
-  var eventManager = Handsontable.eventManager(instance);
+  var eventManager = eventManagerObject(instance);
 
   //reference to instance
   this.instance = instance;

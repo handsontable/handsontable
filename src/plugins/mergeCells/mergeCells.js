@@ -1,3 +1,13 @@
+
+import {registerPlugin} from './../../plugins.js';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cellRange.js';
+import {WalkontableTable} from './../../3rdparty/walkontable/src/table.js';
+
+export {MergeCells};
+
+//registerPlugin('mergeCells', MergeCells);
+
 function CellInfoCollection() {
 
   var collection = [];
@@ -36,7 +46,9 @@ function CellInfoCollection() {
 
 /**
  * Plugin used to merge cells in Handsontable
- * @constructor
+ *
+ * @class MergeCells
+ * @plugin
  */
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
@@ -249,10 +261,6 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     delta.col = newDelta.col;
   }
 };
-
-if (typeof Handsontable == 'undefined') {
-  throw new Error('Handsontable is not defined');
-}
 
 var beforeInit = function () {
   var instance = this;

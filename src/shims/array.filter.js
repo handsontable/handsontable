@@ -3,6 +3,7 @@
  */
 
 if (!Array.prototype.filter) {
+  /* jshint -W121 */
   Array.prototype.filter = function (fun, thisp) {
     "use strict";
 
@@ -43,7 +44,7 @@ if (!Array.prototype.filter) {
       var array = [];
 
       for (var i = 0, len = nodeList.length; i < len; i++){
-        array[i] = nodeList[i]
+        array[i] = nodeList[i];
       }
 
       return array;

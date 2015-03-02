@@ -1,7 +1,14 @@
+
+import {WalkontableCellCoords} from './cellCoords.js';
+
+export {WalkontableCellRange};
+
+// TODO: Temp fix for tests
+window.WalkontableCellRange = WalkontableCellRange;
+
 /**
  * A cell range is a set of exactly two WalkontableCellCoords (that can be the same or different)
  */
-
 function WalkontableCellRange(highlight, from, to) {
   this.highlight = highlight; //this property is used to draw bold border around a cell where selection was started and to edit the cell when you press Enter
   this.from = from; //this property is usually the same as highlight, but in Excel there is distinction - one can change highlight within a selection
@@ -318,5 +325,3 @@ WalkontableCellRange.prototype.forAll = function (callback) {
     }
   }
 };
-
-window.WalkontableCellRange = WalkontableCellRange; //export

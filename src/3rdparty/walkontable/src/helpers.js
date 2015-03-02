@@ -1,4 +1,8 @@
-function walkontableRangesIntersect() {
+
+window.walkontableRangesIntersect = walkontableRangesIntersect;
+window.walkontableRandomString = walkontableRandomString;
+
+export function walkontableRangesIntersect() {
   var from = arguments[0];
   var to = arguments[1];
   for (var i = 1, ilen = arguments.length / 2; i < ilen; i++) {
@@ -13,7 +17,7 @@ function walkontableRangesIntersect() {
  * Generates a random hex string. Used as namespace for Walkontable instance events.
  * @return {String} - 16 character random string: "92b1bfc74ec4"
  */
-function walkontableRandomString() {
+export function walkontableRandomString() {
   function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)

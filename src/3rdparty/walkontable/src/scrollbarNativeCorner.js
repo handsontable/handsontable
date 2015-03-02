@@ -1,3 +1,10 @@
+
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableCornerScrollbarNative};
+
+window.WalkontableCornerScrollbarNative = WalkontableCornerScrollbarNative;
+
 function WalkontableCornerScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'corner';
@@ -44,3 +51,5 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
+
+

@@ -17,7 +17,7 @@
     return str.split('"').length - 1;
   }
 
-  global.SheetClip = {
+  var SheetClip = {
     /**
      * Decode spreadsheet string into array
      *
@@ -106,4 +106,11 @@
       return str;
     }
   };
+
+  if (typeof exports !== 'undefined') {
+    exports.parse = SheetClip.parse;
+    exports.stringify = SheetClip.stringify;
+  } else {
+    global.SheetClip = SheetClip;
+  }
 }(window));

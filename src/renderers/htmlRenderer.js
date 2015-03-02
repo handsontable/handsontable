@@ -1,13 +1,12 @@
-(function (Handsontable) {
 
-  function HtmlRenderer(instance, TD, row, col, prop, value, cellProperties){
+import * as dom from './../dom.js';
+import {getRenderer, registerRenderer} from './../renderers.js';
 
-    Handsontable.renderers.cellDecorator.apply(this, arguments);
+export {htmlRenderer};
 
-    Handsontable.Dom.fastInnerHTML(TD, value);
-  }
+registerRenderer('html', htmlRenderer);
 
-  Handsontable.renderers.registerRenderer('html', HtmlRenderer);
-  Handsontable.renderers.HtmlRenderer = HtmlRenderer;
-
-})(Handsontable);
+function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('base').apply(this, arguments);
+  dom.fastInnerHTML(TD, value);
+}
