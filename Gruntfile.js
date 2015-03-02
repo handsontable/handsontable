@@ -99,7 +99,7 @@ module.exports = function (grunt) {
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
             'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
-            'demo/js/pikaday/pikaday.css'
+            'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
             'demo/js/jquery.min.js',
@@ -135,6 +135,9 @@ module.exports = function (grunt) {
           vendor: [
             'demo/js/jquery.min.js',
             'lib/numeral/numeral.js',
+            'demo/js/moment/moment.js',
+            'demo/js/pikaday/pikaday.js',
+            'demo/js/ZeroClipboard.js',
             'demo/js/numeral.de-de.js'
           ],
           helpers: [
@@ -167,7 +170,7 @@ module.exports = function (grunt) {
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
             'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
-            'demo/js/pikaday/pikaday.css'
+            'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
             'demo/js/jquery.min.js',

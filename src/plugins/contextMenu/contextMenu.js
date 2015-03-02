@@ -1114,10 +1114,10 @@ function getAlignmentClasses(range) {
   for (var row = range.from.row; row <= range.to.row; row++) {
     for (var col = range.from.col; col <= range.to.col; col++) {
 
-      if (!classesArray[row]) {
+      if(!classesArray[row]) {
         classesArray[row] = [];
       }
-      classesArray[row][col] = this.getCellMeta(row, col).className;
+      classesArray[row][col] = this.getCellMeta(row,col).className;
     }
   }
   /* jshint ignore:end */
@@ -1139,7 +1139,6 @@ function doAlign(row, col, type, alignment) {
   }
 
   this.setCellMeta(row, col, 'className', className);
-  this.render();
   /* jshint ignore:end */
 }
 

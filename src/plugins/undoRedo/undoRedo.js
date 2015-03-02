@@ -110,13 +110,11 @@ Handsontable.UndoRedo.prototype.redo = function () {
 
     this.ignoreNewActions = true;
     var that = this;
+
     action.redo(this.instance, function () {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
     });
-
-
-
   }
 };
 
@@ -170,7 +168,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCa
       data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
       emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
 
-     instance.alter('remove_row', parseInt(data[i][0]+1,10), instance.getSettings().minSpareRows);
+     instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
      instance.undoRedo.doneActions.pop();
 
    }
@@ -179,7 +177,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCa
       data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
       emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
 
-      instance.alter('remove_col', parseInt(data[i][1]+1,10), instance.getSettings().minSpareCols);
+      instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
     }
   }
@@ -347,7 +345,7 @@ function init(){
   }
 }
 
-function onBeforeKeyDown(event){
+function onBeforeKeyDown(event) {
   var instance = this;
 
   var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
