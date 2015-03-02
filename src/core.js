@@ -23,7 +23,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.rootElement = rootElement;
 
   this.container = document.createElement('DIV');
-  this.container.className = 'htContainer';
+
+  //TODO: Remove this after refactoring
+  //this.container.className = 'htContainer';
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 

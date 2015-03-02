@@ -343,7 +343,13 @@ Handsontable.Dom.getScrollableElement = function (element) {
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+    } else if(window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
     }
+
     if (el.clientHeight < el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1)) {
       return el;
     }

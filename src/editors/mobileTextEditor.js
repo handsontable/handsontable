@@ -164,10 +164,10 @@
       }
 
       if (selectedCell !== undefined) {
-        var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay.scrollHandler == window ?
-          0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.scrollHandler);
-        var scrollTop = this.instance.view.wt.wtOverlays.topOverlay.scrollHandler == window ?
-          0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.scrollHandler);
+        var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer == window ?
+          0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer);
+        var scrollTop = this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer == window ?
+          0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer);
 
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
@@ -301,14 +301,14 @@
       }
     });
 
-    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.scrollHandler, "scroll", function (event) {
-      if (that.instance.view.wt.wtOverlays.leftOverlay.scrollHandler != window) {
+    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer, "scroll", function (event) {
+      if (that.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer != window) {
         that.hideCellPointer();
       }
     });
 
-    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.scrollHandler, "scroll", function (event) {
-      if (that.instance.view.wt.wtOverlays.topOverlay.scrollHandler != window) {
+    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer, "scroll", function (event) {
+      if (that.instance.view.wt.wtOverlays.topOverlay.trimmingContainer != window) {
         that.hideCellPointer();
       }
     });

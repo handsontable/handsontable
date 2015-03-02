@@ -15,6 +15,7 @@ function WalkontableTable(instance, table) {
     spreader.appendChild(this.TABLE);
   }
   this.spreader = this.TABLE.parentNode;
+  this.spreader.style.position = 'relative';
 
   //wtHider
   parent = this.spreader.parentNode;
@@ -27,8 +28,8 @@ function WalkontableTable(instance, table) {
     hider.appendChild(this.spreader);
   }
   this.hider = this.spreader.parentNode;
-  this.hiderStyle = this.hider.style;
-  this.hiderStyle.position = 'relative';
+  //this.hiderStyle = this.hider.style;
+  //this.hiderStyle.position = 'relative';
 
   //wtHolder
   parent = this.hider.parentNode;
@@ -37,19 +38,24 @@ function WalkontableTable(instance, table) {
     holder.style.position = 'relative';
     holder.className = 'wtHolder';
 
-    if(!instance.cloneSource) {
-      holder.className += ' ht_master';
-    }
-
     if (parent) {
       parent.insertBefore(holder, this.hider); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
     }
+
+    if(!instance.cloneSource) {
+      holder.parentNode.className += 'ht_master handsontable';
+    }
+
     holder.appendChild(this.hider);
   }
   this.holder = this.hider.parentNode;
 
+  this.wtRootElement = this.holder.parentNode;
+
   if (!this.isWorkingOnClone()) {
     this.holder.parentNode.style.position = "relative";
+    this.holder.style.width = this.holder.parentNode.parentNode.style.width;
+    this.holder.style.height = this.holder.parentNode.parentNode.style.height;
   }
 
   //bootstrap from settings
@@ -108,7 +114,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableHorizontalOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
         this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startRow = 0;
     }
@@ -119,7 +125,7 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof  WalkontableVerticalOverlay ||
+        this.instance.cloneOverlay instanceof  WalkontableLeftOverlay ||
         this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startColumn = 0;
     } else {
@@ -351,7 +357,7 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalColumns');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableVerticalOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+  else if (this.instance.cloneOverlay instanceof WalkontableLeftOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -363,7 +369,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalRows');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableHorizontalOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+  else if (this.instance.cloneOverlay instanceof WalkontableTopOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedRowsTop');
   }
   return this.instance.wtViewport.rowsRenderCalculator.count;

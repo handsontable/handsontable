@@ -15,7 +15,7 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
     finalLeft,
     finalTop;
 
-  if (this.scrollHandler === window) {
+  if (this.trimmingContainer === window) {
     var box = this.instance.wtTable.holder.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
@@ -39,7 +39,7 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
     finalTop = this.instance.wtOverlays.topOverlay.getScrollPosition() + "px";
   }
 
-  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';

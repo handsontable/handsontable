@@ -482,11 +482,11 @@ Comment For Cell
  * Handsontable in Handsontable
  */
 
-.handsontable .handsontable .wtHider {
+.handsontable .handsontable:not(.ht_master) .wtHider {
   padding: 0 0 5px 0;
 }
 
-.handsontable .handsontable table {
+.handsontable .handsontable:not(.ht_master) table {
   -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
 }
@@ -835,6 +835,19 @@ thead .htCollapseButton:after {
 .handsontable tr.hidden th {
   display: none;
 }
+
+.ht_master,
+.ht_clone_left,
+.ht_clone_top {
+  overflow: hidden;
+}
+
+.ht_master .wtHolder,
+.ht_clone_left .wtHolder,
+.ht_clone_top .wtHolder {
+  overflow: auto;
+}
+
 
 /*WalkontableDebugOverlay*/
 
