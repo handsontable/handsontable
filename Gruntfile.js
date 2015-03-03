@@ -16,6 +16,8 @@
  *  - dist/handsontable.css
  *  - dist/handsontable.full.js
  *  - dist/handsontable.full.css
+ *  - dist/handsontable.full.min.js
+ *  - dist/handsontable.full.min.css
  *
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
@@ -80,6 +82,7 @@ module.exports = function (grunt) {
       handsontable: {
         src: [
           'dist/handsontable.js',
+          'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -104,7 +107,6 @@ module.exports = function (grunt) {
           vendor: [
             'demo/js/jquery.min.js',
             'lib/numeral/numeral.js',
-            'demo/js/numeral.de-de.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',
@@ -154,6 +156,7 @@ module.exports = function (grunt) {
       mobile: {
         src: [
           'dist/handsontable.js',
+          'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -175,7 +178,6 @@ module.exports = function (grunt) {
           vendor: [
             'demo/js/jquery.min.js',
             'lib/numeral/numeral.js',
-            'demo/js/numeral.de-de.js',
             'demo/js/ZeroClipboard.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',

@@ -4,7 +4,7 @@
 
 import * as helper from './helpers.js';
 
-export {registerEditor, getEditor, getEditorConstructor};
+export {registerEditor, getEditor, hasEditor, getEditorConstructor};
 
 var
   registeredEditorNames = {},
@@ -50,7 +50,9 @@ function registerEditor(editorName, editorClass) {
 
 /**
  * Returns instance (singleton) of editor class
- * @param {String|Function} editorName/editorClass
+ *
+ * @param {String} editorName
+ * @param {Object} hotInstance
  * @returns {Function} editorClass
  */
 function getEditor(editorName, hotInstance) {
@@ -97,4 +99,12 @@ function getEditorConstructor(editorName) {
   }
 
   return editor.getConstructor();
+}
+
+/**
+ * @param editorName
+ * @returns {Boolean}
+ */
+function hasEditor(editorName) {
+  return registeredEditorNames[editorName] ? true : false;
 }

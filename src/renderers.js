@@ -4,7 +4,7 @@
 
 import * as helper from './helpers.js';
 
-export {registerRenderer, getRenderer};
+export {registerRenderer, getRenderer, hasRenderer};
 
 var registeredRenderers = {};
 
@@ -30,16 +30,16 @@ function registerRenderer(rendererName, rendererFunction) {
 }
 
 /**
- * @param {String|Function} rendererName/rendererFunction
+ * @param {String|Function} rendererName
  * @returns {Function} rendererFunction
  */
 function getRenderer(rendererName) {
-  if (typeof rendererName == 'function'){
+  if (typeof rendererName == 'function') {
     return rendererName;
   }
 
-  if (typeof rendererName != 'string'){
-    throw Error('Only strings and functions can be passed as "renderer" parameter ');
+  if (typeof rendererName != 'string') {
+    throw Error('Only strings and functions can be passed as "renderer" parameter');
   }
 
   if (!(rendererName in registeredRenderers)) {
@@ -47,4 +47,12 @@ function getRenderer(rendererName) {
   }
 
   return registeredRenderers[rendererName];
+}
+
+/**
+ * @param rendererName
+ * @returns {Boolean}
+ */
+function hasRenderer(rendererName) {
+  return rendererName in registeredRenderers;
 }

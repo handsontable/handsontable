@@ -1,5 +1,11 @@
+
+import moment from 'moment';
+
 /**
  * Date cell validator
+ * @validator
+ * @component DateValidator
+ * @dependencies moment
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */

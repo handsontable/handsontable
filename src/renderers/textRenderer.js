@@ -1,5 +1,8 @@
 /**
  * Default text renderer
+ *
+ * @renderer
+ * @component TextRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row

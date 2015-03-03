@@ -6,6 +6,29 @@ import * as helper from './helpers.js';
 import {getEditorConstructor} from './editors.js';
 import {getRenderer} from './renderers.js';
 
+import {AutocompleteEditor} from './editors/autocompleteEditor.js';
+import {CheckboxEditor} from './editors/checkboxEditor.js';
+import {DateEditor} from './editors/dateEditor.js';
+import {DropdownEditor} from './editors/dropdownEditor.js';
+import {HandsontableEditor} from './editors/handsontableEditor.js';
+import {MobileTextEditor} from './editors/mobileTextEditor.js';
+import {NumericEditor} from './editors/numericEditor.js';
+import {PasswordEditor} from './editors/passwordEditor.js';
+import {SelectEditor} from './editors/selectEditor.js';
+import {TextEditor} from './editors/textEditor.js';
+
+import {AutocompleteRenderer} from './renderers/autocompleteRenderer.js';
+import {CheckboxRenderer} from './renderers/checkboxRenderer.js';
+import {HtmlRenderer} from './renderers/htmlRenderer.js';
+import {NumericRenderer} from './renderers/numericRenderer.js';
+import {PasswordRenderer} from './renderers/passwordRenderer.js';
+import {TextRenderer} from './renderers/textRenderer.js';
+
+import {AutocompleteValidator} from './validators/autocompleteValidator.js';
+import {DateValidator} from './validators/dateValidator.js';
+import {NumericValidator} from './validators/numericValidator.js';
+
+
 Handsontable.mobileBrowser = helper.isMobileBrowser();  // check if viewed on a mobile device
 
 Handsontable.AutocompleteCell = {

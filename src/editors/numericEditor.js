@@ -8,6 +8,11 @@ var NumericEditor = TextEditor.prototype.extend();
 export {NumericEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+/**
+ * @editor
+ * @class NumericEditor
+ * @dependencies TextEditor numeral
+ */
 Handsontable.editors.NumericEditor = NumericEditor;
 
 NumericEditor.prototype.beginEditing = function (initialValue) {

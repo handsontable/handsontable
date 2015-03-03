@@ -8,6 +8,11 @@ var PasswordEditor = TextEditor.prototype.extend();
 export {PasswordEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+/**
+ * @editor
+ * @class PasswordEditor
+ * @dependencies TextEditor
+ */
 Handsontable.editors.PasswordEditor = PasswordEditor;
 
 PasswordEditor.prototype.createElements = function () {

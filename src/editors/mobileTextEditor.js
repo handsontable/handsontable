@@ -2,7 +2,7 @@
 import * as helper from './../helpers.js';
 import * as dom from './../dom.js';
 import {getEditor, registerEditor} from './../editors.js';
-import {BaseEditor} from './baseEditor.js';
+import {BaseEditor} from './_baseEditor.js';
 import {eventManager as eventManagerObject} from './../eventManager.js';
 
 var
@@ -12,6 +12,10 @@ var
 export {MobileTextEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+/**
+ * @editor
+ * @class MobileTextEditor
+ */
 Handsontable.editors.MobileTextEditor = MobileTextEditor;
 
 var createControls = function () {

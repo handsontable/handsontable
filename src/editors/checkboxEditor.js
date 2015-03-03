@@ -1,12 +1,16 @@
 
 import {registerEditor} from './../editors.js';
-import {BaseEditor} from './baseEditor.js';
+import {BaseEditor} from './_baseEditor.js';
 
 //Blank editor, because all the work is done by renderer
 var CheckboxEditor = BaseEditor.prototype.extend();
 
 export {CheckboxEditor};
 
+/**
+ * @editor
+ * @class CheckboxEditor
+ */
 Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.CheckboxEditor = CheckboxEditor;
 

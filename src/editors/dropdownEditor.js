@@ -9,6 +9,11 @@ export {DropdownEditor};
 Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.DropdownEditor = DropdownEditor;
 
+/**
+ * @editor
+ * @class DropdownEditor
+ * @dependencies AutocompleteEditor
+ */
 DropdownEditor.prototype.prepare = function () {
   AutocompleteEditor.prototype.prepare.apply(this, arguments);
 

@@ -1,5 +1,8 @@
 /**
  * Checkbox renderer
+ *
+ * @renderer
+ * @component CheckboxRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row

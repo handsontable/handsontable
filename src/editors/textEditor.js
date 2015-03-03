@@ -2,7 +2,7 @@
 import * as dom from './../dom.js';
 import * as helper from './../helpers.js';
 import {autoResize} from './../3rdparty/autoResize.js';
-import {BaseEditor} from './baseEditor.js';
+import {BaseEditor} from './_baseEditor.js';
 import {eventManager as eventManagerObject} from './../eventManager.js';
 import {getEditor, registerEditor} from './../editors.js';
 
@@ -11,6 +11,10 @@ var TextEditor = BaseEditor.prototype.extend();
 export {TextEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+/**
+ * @editor
+ * @class TextEditor
+ */
 Handsontable.editors.TextEditor = TextEditor;
 
 TextEditor.prototype.init = function(){

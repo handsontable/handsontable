@@ -2,13 +2,17 @@
 import * as dom from './../dom.js';
 import * as helper from './../helpers.js';
 import {getEditor, registerEditor} from './../editors.js';
-import {BaseEditor} from './baseEditor.js';
+import {BaseEditor} from './_baseEditor.js';
 
 var SelectEditor = BaseEditor.prototype.extend();
 
 export {SelectEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+/**
+ * @editor
+ * @class SelectEditor
+ */
 Handsontable.editors.SelectEditor = SelectEditor;
 
 SelectEditor.prototype.init = function(){

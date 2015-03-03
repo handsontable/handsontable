@@ -14,6 +14,11 @@ export {HandsontableEditor};
 Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.HandsontableEditor = HandsontableEditor;
 
+/**
+ * @editor
+ * @class HandsontableEditor
+ * @dependencies TextEditor
+ */
 HandsontableEditor.prototype.createElements = function () {
   TextEditor.prototype.createElements.apply(this, arguments);
 

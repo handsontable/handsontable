@@ -25,6 +25,9 @@ registerRenderer('autocomplete', autocompleteRenderer);
 
 /**
  * Autocomplete renderer
+ *
+ * @renderer
+ * @component AutocompleteRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row

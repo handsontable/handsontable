@@ -6,6 +6,17 @@ export {passwordRenderer};
 
 registerRenderer('password', passwordRenderer);
 
+/**
+ * @renderer
+ * @component PasswordRenderer
+ * @param instance
+ * @param TD
+ * @param row
+ * @param col
+ * @param prop
+ * @param value
+ * @param cellProperties
+ */
 function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('text').apply(this, arguments);
 

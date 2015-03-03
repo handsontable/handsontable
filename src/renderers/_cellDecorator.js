@@ -3,7 +3,7 @@
  */
 
 import * as dom from './../dom.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
+import {registerRenderer} from './../renderers.js';
 
 export {cellDecorator};
 

@@ -19,6 +19,8 @@ Handsontable.activeGuid = null;
  * Handsontable constructor
  * @param rootElement The DOM element in which Handsontable DOM will be inserted
  * @param userSettings
+ * @core
+ * @dependencies numeral
  * @constructor
  */
 Handsontable.Core = function (rootElement, userSettings) {

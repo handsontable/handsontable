@@ -14,6 +14,11 @@ export {DateEditor};
 Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.DateEditor = DateEditor;
 
+/**
+ * @editor
+ * @class DateEditor
+ * @dependencies TextEditor moment pikaday
+ */
 DateEditor.prototype.init = function () {
   if (typeof moment !== 'function') {
     throw new Error("You need to include moment.js to your project.");

@@ -11,6 +11,11 @@ export {AutocompleteEditor};
 Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
 
+/**
+ * @editor
+ * @class AutocompleteEditor
+ * @dependencies HandsontableEditor
+ */
 AutocompleteEditor.prototype.init = function () {
   HandsontableEditor.prototype.init.apply(this, arguments);
 
