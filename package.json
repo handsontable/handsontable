@@ -37,7 +37,7 @@
     "grunt-contrib-uglify": "~0.5.1",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-gitinfo": "~0.1.6",
-    "grunt-hot-builder": "git://github.com/handsontable/grunt-hot-builder#develop",
+    "grunt-hot-builder": "~0.1.0",
     "grunt-replace": "~0.7.8",
     "grunt-saucelabs": "~8.3.3",
     "load-grunt-tasks": "^3.0.0",
