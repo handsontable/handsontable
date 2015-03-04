@@ -3075,9 +3075,9 @@ DefaultSettings.prototype = {
    * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myRenderer = myRenderer;`
    *
    * @type {String|Function}
-   * @default 'text'
+   * @default undefined
    */
-  renderer: 'text',
+  renderer: void 0,
 
   /**
    * @type {String}
