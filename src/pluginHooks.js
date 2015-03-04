@@ -18,6 +18,7 @@ Handsontable.PluginHookClass = (function () {
       beforeKeyDown: [],
       beforeOnCellMouseDown: [],
       beforeTouchScroll: [],
+      beforeCellCopy : [],
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
