@@ -95,7 +95,7 @@
             <li><code>demo/js/pikaday/pikaday.js</code></li>
           </ul>
 
-              <p>All data entered to the data-typed cells are validated agains the default date format (<code>MM/DD/YYYY</code>), unless another format is provided.</p>
+              <p>All data entered to the data-typed cells are validated agains the default date format (<code><a href="http://momentjs.com/docs/#/parsing/" target="_blank" title="Click here to find how to use different date format">DD/MM/YYYY</a></code>), unless another format is provided.</p>
               <p>If you enable the <code>correctFormat</code> config item, the dates will be automatically formatted to
                 match the desired format.</p>
 
@@ -127,6 +127,8 @@
                   startCols: 4,
                   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
                   columnSorting: true,
+                  contextMenu: true,
+                  minSpareRows:1,
                   columns: [
                     {
                       type: 'autocomplete',
@@ -139,7 +141,8 @@
                     {
                       type: 'date',
                       dateFormat: 'MM/DD/YYYY',
-                      correctFormat: true
+                      correctFormat: true,
+                      defaultDate: '01/01/1900'
                     },
                     {
                       type: 'numeric',
