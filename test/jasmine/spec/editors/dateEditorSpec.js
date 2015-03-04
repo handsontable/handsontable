@@ -180,7 +180,7 @@ describe('DateEditor', function () {
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
-    $('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button').click();
+    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
     expect($('.pika-single').is(':visible')).toBe(false);
 

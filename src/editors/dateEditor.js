@@ -26,7 +26,7 @@
 
     Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
 
-    this.defaultDatepickerTrigger = document.querySelector('.handsontableInput');
+    //this.defaultDatepickerTrigger = document.querySelector('.handsontableInput');
 
     this.defaultDateFormat = 'DD/MM/YYYY';
 
@@ -45,11 +45,13 @@
       trigger: document.querySelector('.handsontableInput'),
       container: that.datePicker,
       reposition: false,
+      bound: false,
       onSelect: function (dateStr) {
         if (!isNaN(dateStr.getTime())) {
           dateStr = moment(dateStr).format(that.cellProperties.dateFormat || that.defaultDateFormat);
         }
         that.setValue(dateStr);
+        that.hideDatepicker();
       },
       onClose: function () {
         if(!that.parentDestroyed) {
@@ -138,14 +140,14 @@
     }
 
     // temporary assign a different 'trigger' value, to prevent Pikaday from closing right after opening
-    datePickerConfig.trigger = document.querySelector('.htAutocomplete.current');
+    //datePickerConfig.trigger = document.querySelector('.htAutocomplete.current');
 
     this.datePickerStyle.display = 'block';
     this.$datePicker.show();
 
-    this.instance._registerTimeout(setTimeout(function () {
-      datePickerConfig.trigger = that.defaultDatepickerTrigger;
-    }, 50));
+    //this.instance._registerTimeout(setTimeout(function () {
+      //datePickerConfig.trigger = that.defaultDatepickerTrigger;
+    //}, 50));
   };
 
   DateEditor.prototype.hideDatepicker = function () {
