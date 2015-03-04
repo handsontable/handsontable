@@ -78,6 +78,18 @@ module.exports = function (grunt) {
       ]
     },
 
+    watch: {
+      options: {
+        livereload: true // works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
+      },
+      files: [
+        'src/**/*(*.js|*.css|*.html)',
+        '!src/3rdparty/walkontable/test/**/*',
+        'lib/**/*(*.js|*.css)'
+      ],
+      tasks: ['build-dev']
+    },
+
     jasmine: {
       handsontable: {
         src: [
@@ -247,18 +259,27 @@ module.exports = function (grunt) {
       handsontable: {
         files: {
           'dist': 'package.json'
+        }
+      },
+      handsontableDev: {
+        files: {
+          'dist': 'package.json'
         },
         options: {
-          external: ['plugins'],
-          minify: true
+          devMode: true
         }
+      },
+      options: {
+        external: ['plugins'],
+        minify: true
       }
     }
   });
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'gitinfo', 'build']);
-  grunt.registerTask('build', ['hotBuilder']);
+  grunt.registerTask('build', ['hotBuilder:handsontable']);
+  grunt.registerTask('build-dev', ['hotBuilder:handsontableDev']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
