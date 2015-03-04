@@ -4,6 +4,7 @@ function WalkontableScroll(instance) {
 
 /**
  * Scrolls viewport to a cell by minimum number of cells
+ *
  * @param {WalkontableCellCoords} coords
  */
 WalkontableScroll.prototype.scrollViewport = function (coords) {

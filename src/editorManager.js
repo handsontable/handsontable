@@ -1,6 +1,13 @@
 (function(Handsontable){
   'use strict';
 
+  /**
+   * @param {Object} instance Instance of Handsontable
+   * @param {*} priv
+   * @param {*} selection
+   * @util
+   * @class Handsontable.EditorManager
+   */
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
     var keyCodes = Handsontable.helper.keyCode;
@@ -269,19 +276,32 @@
     };
 
     /**
-     * Destroy current editor, if exists
+     * Destroy current editor, if exists.
+     *
+     * @function destroyEditor
+     * @memberof! Handsontable.EditorManager#
      * @param {Boolean} revertOriginal
      */
     this.destroyEditor = function (revertOriginal) {
       this.closeEditor(revertOriginal);
     };
 
+    /**
+     * Get active editor.
+     *
+     * @function getActiveEditor
+     * @memberof! Handsontable.EditorManager#
+     * @returns {*}
+     */
     this.getActiveEditor = function () {
       return activeEditor;
     };
 
     /**
-     * Prepare text input to be displayed at given grid cell
+     * Prepare text input to be displayed at given grid cell.
+     *
+     * @function prepareEditor
+     * @memberof! Handsontable.EditorManager#
      */
     this.prepareEditor = function () {
 
@@ -310,16 +330,39 @@
 
     };
 
+    /**
+     * Check is editor is opened/showed.
+     *
+     * @function isEditorOpened
+     * @memberof! Handsontable.EditorManager#
+     * @returns {Boolean}
+     */
     this.isEditorOpened = function () {
       return activeEditor.isOpened();
     };
 
+    /**
+     * Open editor with initial value.
+     *
+     * @function openEditor
+     * @memberof! Handsontable.EditorManager#
+     * @param {String} initialValue
+     */
     this.openEditor = function (initialValue) {
       if (!activeEditor.cellProperties.readOnly){
         activeEditor.beginEditing(initialValue);
       }
     };
 
+    /**
+     * Close editor, finish editing cell.
+     *
+     * @function closeEditor
+     * @memberof! Handsontable.EditorManager#
+     * @param {Boolean} restoreOriginalValue
+     * @param {Boolean} ctrlDown
+     * @param {Function} callback
+     */
     this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
 
       if (!activeEditor){
@@ -332,10 +375,24 @@
       }
     };
 
+    /**
+     * Close editor and save changes.
+     *
+     * @function closeEditorAndSaveChanges
+     * @memberof! Handsontable.EditorManager#
+     * @param {Boolean} ctrlDown
+     */
     this.closeEditorAndSaveChanges = function(ctrlDown){
       return this.closeEditor(false, ctrlDown);
     };
 
+    /**
+     * Close editor and restore original value.
+     *
+     * @function closeEditorAndRestoreOriginalValue
+     * @memberof! Handsontable.EditorManager#
+     * @param {Boolean} ctrlDown
+     */
     this.closeEditorAndRestoreOriginalValue = function(ctrlDown){
       return this.closeEditor(true, ctrlDown);
     };
