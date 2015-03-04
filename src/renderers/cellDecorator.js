@@ -11,7 +11,6 @@
       } else {
         TD.className = cellProperties.className;
       }
-
     }
 
     if (cellProperties.readOnly) {
@@ -20,6 +19,9 @@
 
     if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
       Handsontable.Dom.addClass(TD, cellProperties.invalidCellClassName);
+    }
+    else {
+      Handsontable.Dom.removeClass(TD, cellProperties.invalidCellClassName);
     }
 
     if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {

@@ -859,6 +859,17 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.validateCell = function (value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
+    function done(valid) {
+      var col = cellProperties.col,
+        row = cellProperties.row,
+        td = instance.getCell(row, col, true);
+
+      if (td) {
+        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
+      }
+      callback(valid);
+    }
+
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {
         return function (value, callback) {
@@ -877,7 +888,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           valid = Handsontable.hooks.run(instance, "afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
           cellProperties.valid = valid;
 
-          callback(valid);
+          done(valid);
           Handsontable.hooks.run(instance, "postAfterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         });
       }, 0));
@@ -885,7 +896,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     } else {
       //resolve callback even if validator function was not found
       cellProperties.valid = true;
-      callback(true);
+      done(cellProperties.valid);
     }
   };
 
