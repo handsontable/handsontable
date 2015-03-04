@@ -175,8 +175,6 @@ describe('Core_validate', function () {
     runs(function () {
       expect(result.instance).toEqual(getInstance());
     });
-
-
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateCells', function () {
@@ -186,10 +184,10 @@ describe('Core_validate', function () {
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator: function (value, callb) {
         if (value == "B1") {
-          callb(false)
+          callb(false);
         }
         else {
-          callb(true)
+          callb(true);
         }
       },
       afterValidate: onAfterValidate
@@ -207,8 +205,71 @@ describe('Core_validate', function () {
       expect(this.$container.find('td.htInvalid').length).toEqual(1);
       expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
     });
+  });
 
+  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function (value, cb) {
+        cb(false);
+      },
+      afterValidate: onAfterValidate
+    });
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(4);
+
+    hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), function() {});
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length === 1;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+    });
+  });
+
+  it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var isValid = false;
+    var validator = function() {
+        return isValid;
+    };
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function (value, cb) {
+        cb(validator());
+      },
+      afterValidate: onAfterValidate
+    });
+    waitsFor(function () {
+      return onAfterValidate.calls.length === 4;
+    }, 'Cell validation', 1000);
+
+    hot.validateCells(function() {});
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(4);
+      expect(this.$container.find('td:not(.htInvalid)').length).toEqual(0);
+    });
+
+    runs(function () {
+      isValid = true;
+      onAfterValidate.reset();
+      hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), function() {});
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length === 1;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(3);
+      expect(this.$container.find('td:not(.htInvalid)').length).toEqual(1);
+    });
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on edit', function () {
@@ -219,10 +280,10 @@ describe('Core_validate', function () {
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator: function (value, callb) {
         if (value == 'test') {
-          callb(false)
+          callb(false);
         }
         else {
-          callb(true)
+          callb(true);
         }
       },
       afterValidate: onAfterValidate
@@ -248,10 +309,10 @@ describe('Core_validate', function () {
     var validator = jasmine.createSpy('validator').andCallThrough();
     validator.plan = function (value, callb) {
       if (value == 123) {
-        callb(false)
+        callb(false);
       }
       else {
-        callb(true)
+        callb(true);
       }
     };
 
@@ -291,7 +352,7 @@ describe('Core_validate', function () {
 
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - after validateCells & render', function () {
+  it('should add class name `htInvalid` to an cell that does not validate - after validateCells', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     var hot = handsontable({
@@ -310,18 +371,16 @@ describe('Core_validate', function () {
     runs(function () {
       updateSettings({validator: function (value, callb) {
         if (value == 'test') {
-          callb(false)
+          callb(false);
         }
         else {
-          callb(true)
+          callb(true);
         }
       }});
 
       onAfterValidate.reset();
 
-      hot.validateCells(function () {
-        hot.render();
-      });
+      hot.validateCells(function () {});
     });
 
     waitsFor(function () {
