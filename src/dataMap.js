@@ -378,7 +378,7 @@
       }
       for (var i = 0, ilen = sliced.length; i < ilen; i++) {
         out = out[sliced[i]];
-        if (typeof out === 'undefined') {
+        if (typeof out === 'undefined' || !out) {
           return null;
         }
       }
