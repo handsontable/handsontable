@@ -4,12 +4,6 @@
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
-    // set choices list initial height, so Walkontable can assign it's scroll handler
-    var choicesListHot = this.htEditor.getInstance();
-    choicesListHot.updateSettings({
-      height: 1
-    });
-
     this.query = null;
     this.choices = [];
   };
@@ -27,7 +21,6 @@
 
     Handsontable.Dom.addClass(this.htContainer, 'autocompleteEditor');
     Handsontable.Dom.addClass(this.htContainer, getSystemSpecificPaddingClass());
-
   };
 
   var skipOne = false;
@@ -66,7 +59,7 @@
     this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
-    this.htContainer.style.overflow = 'hidden'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
+    //this.htContainer.style.overflow = 'hidden'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
 
     var choicesListHot = this.htEditor.getInstance();
     var that = this;
@@ -87,12 +80,15 @@
       }
     });
 
+    // Add additional space for autocomplete holder
+    this.htEditor.view.wt.wtTable.holder.style['padding-right'] = Handsontable.Dom.getScrollbarWidth() + 2 + 'px';
+
     if(skipOne) {
       skipOne = false;
     }
     that.instance._registerTimeout(setTimeout(function () {
       that.queryChoices(that.TEXTAREA.value);
-      that.htContainer.style.overflow = 'auto'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
+     // that.htContainer.style.overflow = 'auto'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
     }, 0));
 
   };
@@ -165,9 +161,8 @@
     this.choices = choices;
 
     this.htEditor.loadData(Handsontable.helper.pivot([choices]));
-    this.htEditor.updateSettings({height: this.getDropdownHeight()});
-    //Handsontable.tmpHandsontable(this.htContainer,'loadData', Handsontable.helper.pivot([choices]));
-    //Handsontable.tmpHandsontable(this.htContainer,'updateSettings', {height: this.getDropdownHeight()});
+
+    this.updateDropdownHeight();
 
     if (this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice(highlightIndex);
@@ -176,6 +171,11 @@
     this.instance.listen();
     this.TEXTAREA.focus();
     Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  };
+
+  AutocompleteEditor.prototype.updateDropdownHeight = function () {
+    this.htEditor.updateSettings({height: this.getDropdownHeight()});
+    this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
   };
 
   AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {

@@ -17,9 +17,32 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  if (this.mainTableScrollableElement === window) {
+  //if (this.mainTableScrollableElement === window) {
+  //
+  //  var box = this.instance.wtTable.holder.getBoundingClientRect();
+  //  var left = Math.ceil(box.left);
+  //  var right = Math.ceil(box.right);
+  //
+  //  if (left < 0 && (right - elem.offsetWidth) > 0) {
+  //    finalLeft = -left + 'px';
+  //  } else {
+  //    finalLeft = '0';
+  //  }
+  //
+  //  finalTop = this.instance.wtTable.hider.style.top;
+  //}
+  //else if(!Handsontable.freezeOverlays) {
+  //  finalLeft = this.getScrollPosition() + "px";
+  //  finalTop = this.instance.wtTable.hider.style.top;
+  //}
 
-    var box = this.instance.wtTable.holder.getBoundingClientRect();
+  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+
+  if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
+    elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - Handsontable.Dom.getScrollbarWidth() + 'px';
+  } else {
+
+    var box = this.instance.wtTable.hider.getBoundingClientRect();
     var left = Math.ceil(box.left);
     var right = Math.ceil(box.right);
 
@@ -30,19 +53,16 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     }
 
     finalTop = this.instance.wtTable.hider.style.top;
-  }
-  else if(!Handsontable.freezeOverlays) {
-    finalLeft = this.getScrollPosition() + "px";
-    finalTop = this.instance.wtTable.hider.style.top;
+    finalTop = finalTop === "" ? 0 : finalTop;
+
+    Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
-  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
-
-  elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - Handsontable.Dom.getScrollbarWidth() + 'px';
   //TODO: Remove after refactoring
   //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
 
-  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
+  var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
+  elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
 };
 
 WalkontableLeftOverlay.prototype.refresh = function (fastDraw) {

@@ -16,7 +16,7 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
     finalTop;
 
   if (this.trimmingContainer === window) {
-    var box = this.instance.wtTable.holder.getBoundingClientRect();
+    var box = this.instance.wtTable.hider.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var left = Math.ceil(box.left);
     var bottom = Math.ceil(box.bottom);
@@ -33,6 +33,8 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
     } else {
       finalTop = "0";
     }
+
+    Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
   else if(!Handsontable.freezeOverlays) {
     finalLeft = this.instance.wtOverlays.leftOverlay.getScrollPosition() + "px";
@@ -41,6 +43,10 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
 
   //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
-  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
-  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
+  var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
+  var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
+  elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+  elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
+  //elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };

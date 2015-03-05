@@ -208,8 +208,10 @@
 
     var currentOffset = Handsontable.Dom.offset(this.TD);
     var containerOffset = Handsontable.Dom.offset(this.instance.rootElement);
-    var editTop = currentOffset.top - containerOffset.top - 1;
-    var editLeft = currentOffset.left - containerOffset.left - 1;
+    var scrollableContainer = Handsontable.Dom.getScrollableElement(this.TD);
+
+    var editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+    var editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
 
     var settings = this.instance.getSettings();
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;

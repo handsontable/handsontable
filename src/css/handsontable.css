@@ -575,7 +575,7 @@ Comment For Cell
 }
 
 .htContextMenu table.htCore {
-  outline: 1px solid #bbb;
+  border: 1px solid #bbb;
 }
 
 .htContextMenu .wtBorder {

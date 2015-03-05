@@ -362,6 +362,51 @@ Handsontable.Dom.getScrollableElement = function (element) {
   return window;
 };
 
+Handsontable.Dom.getTrimmingContainer = function (base) {
+  var el = base.parentNode;
+  while (el && el.style && document.body !== el) {
+    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
+    } else if(window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
+    }
+
+    //if (this instanceof WalkontableTopOverlay && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
+    //  return el;
+    //}
+    el = el.parentNode;
+  }
+  return window;
+};
+
+Handsontable.Dom.getStyle = function (elem, prop) {
+  if(!elem) {
+    return;
+  } else if(elem === window) {
+    if(prop === 'width') {
+      return window.innerWidth + 'px';
+    } else if(prop === 'height') {
+      return window.innerHeight + 'px';
+    }
+    return;
+  }
+
+  var styleProp = elem.style[prop],
+    computedStyle;
+  if(styleProp !== "" && styleProp !== void 0) {
+    return styleProp;
+  } else {
+    computedStyle = Handsontable.Dom.getComputedStyle(elem);
+    if (computedStyle.prop !== "" && computedStyle.prop !== void 0) {
+      return computedStyle.prop;
+    }
+    return void 0;
+  }
+};
+
 Handsontable.Dom.getComputedStyle = function (elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 };

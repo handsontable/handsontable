@@ -18,7 +18,7 @@ WalkontableOverlay.prototype.init = function () {
   this.spreader = this.instance.wtTable.spreader;
   this.holder = this.instance.wtTable.holder;
   this.wtRootElement = this.instance.wtTable.wtRootElement;
-  this.trimmingContainer = this.getTrimmingContainer(this.hider.parentNode.parentNode);
+  this.trimmingContainer = Handsontable.Dom.getTrimmingContainer(this.hider.parentNode.parentNode);
   this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
 };
 
@@ -43,25 +43,7 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
   });
 };
 
-WalkontableOverlay.prototype.getTrimmingContainer = function (base) {
-  var el = base.parentNode;
-  while (el && el.style && document.body !== el) {
-    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
-      return el;
-    } else if(window.getComputedStyle) {
-      var computedStyle = window.getComputedStyle(el);
-      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
-        return el;
-      }
-    }
 
-    if (this instanceof WalkontableTopOverlay && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
-      return el;
-    }
-    el = el.parentNode;
-  }
-  return window;
-};
 
 //WalkontableOverlay.prototype.getTrimmingContainer = function (masterTable) {
 //  var el = masterTable;

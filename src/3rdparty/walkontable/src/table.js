@@ -28,8 +28,6 @@ function WalkontableTable(instance, table) {
     hider.appendChild(this.spreader);
   }
   this.hider = this.spreader.parentNode;
-  //this.hiderStyle = this.hider.style;
-  //this.hiderStyle.position = 'relative';
 
   //wtHolder
   parent = this.hider.parentNode;
@@ -52,11 +50,7 @@ function WalkontableTable(instance, table) {
 
   this.wtRootElement = this.holder.parentNode;
 
-  if (!this.isWorkingOnClone()) {
-    this.holder.parentNode.style.position = "relative";
-    this.holder.style.width = this.holder.parentNode.parentNode.style.width;
-    this.holder.style.height = this.holder.parentNode.parentNode.style.height;
-  }
+  this.alignOverlaysWithTrimmingContainer();
 
   //bootstrap from settings
   this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
@@ -89,6 +83,22 @@ function WalkontableTable(instance, table) {
   this.rowFilter = null;
   this.columnFilter = null;
 }
+
+WalkontableTable.prototype.alignOverlaysWithTrimmingContainer = function () {
+  var trimmingElement = Handsontable.Dom.getTrimmingContainer(this.wtRootElement);
+
+  if (!this.isWorkingOnClone()) {
+    this.holder.parentNode.style.position = "relative";
+
+    if(trimmingElement !== window) {
+      this.holder.style.width = Handsontable.Dom.getStyle(trimmingElement, 'width');
+      this.holder.style.height = Handsontable.Dom.getStyle(trimmingElement, 'height');
+    } else {
+      this.holder.style.overflow = "visible";
+      this.wtRootElement.style.overflow = "visible";
+    }
+  }
+};
 
 WalkontableTable.prototype.isWorkingOnClone = function () {
   return !!this.instance.cloneSource;

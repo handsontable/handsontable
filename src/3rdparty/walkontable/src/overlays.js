@@ -27,7 +27,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
 
 
   this.refreshAll = function refreshAll() {
-    console.log('refresh all');
+    //console.log('refresh all');
 
     if(!that.instance.drawn) {
       return;

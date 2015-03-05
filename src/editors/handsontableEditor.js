@@ -13,6 +13,8 @@
     DIV.className = 'handsontableEditor';
     this.TEXTAREA_PARENT.appendChild(DIV);
 
+    DIV.style.overflow = 'hidden';
+
     this.htContainer = DIV;
     this.htEditor = new Handsontable(DIV);
 

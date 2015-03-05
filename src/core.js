@@ -1288,7 +1288,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /* jshint ignore:start */
     if (height){
-      instance.rootElement.style.overflow = 'auto';
+      instance.rootElement.style.overflow = 'hidden';
     }
     /* jshint ignore:end */
 

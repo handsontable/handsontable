@@ -16,37 +16,29 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  if (this.trimmingContainer === window) {
-    var box = this.instance.wtTable.holder.getBoundingClientRect();
+  if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
+    elem.style.width = this.instance.wtViewport.getWorkspaceWidth() - Handsontable.Dom.getScrollbarWidth() + 'px';
+  } else {
+    var box = this.instance.wtTable.hider.getBoundingClientRect();
     var top = Math.ceil(box.top);
     var bottom = Math.ceil(box.bottom);
 
     finalLeft = this.instance.wtTable.hider.style.left;
+    finalLeft = finalLeft === "" ? 0 : finalLeft;
 
     if (top < 0 && (bottom - elem.offsetHeight) > 0) {
       finalTop = -top + "px";
     } else {
       finalTop = "0";
     }
-  }
-  else if(!Handsontable.freezeOverlays) {
-    finalTop = this.getScrollPosition() + "px";
-    finalLeft = this.instance.wtTable.hider.style.left;
+
+    Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
-  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+  var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
+  elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
 
-  if (this.instance.wtOverlays.leftOverlay.trimmingContainer === window) {
-    elem.style.width = this.instance.wtViewport.getWorkspaceActualWidth() + 'px';
-  }
-  else {
-
-    //TODO: Remove after refactoring
-    //elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 'px';
-    elem.style.width = this.instance.wtViewport.getWorkspaceWidth() - Handsontable.Dom.getScrollbarWidth() + 'px';
-  }
-
-  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
+  //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
 WalkontableTopOverlay.prototype.getScrollPosition = function () {
@@ -83,11 +75,14 @@ WalkontableTopOverlay.prototype.refresh = function (fastDraw) {
 WalkontableTopOverlay.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  var totalEstimatedHeight = headerSize + this.sumCellSizes(0, total) +  'px';
 
-  this.hider.style.height = totalEstimatedHeight + 1;
+  var totalEstimatedHeight = headerSize + this.sumCellSizes(0, total) + 1 +  'px';
+
+  this.hider.style.height = totalEstimatedHeight;
 
   this.clone.wtTable.hider.style.width = this.hider.style.width;
+
+  //debugger;
   this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
 
 

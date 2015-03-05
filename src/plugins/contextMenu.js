@@ -581,6 +581,14 @@
 
     var htContextMenu = new Handsontable(menu, settings);
 
+    // correct the height calculator to take care of separatos
+    //htContextMenu.view.wt.wtSettings.settings.rowHeight = function (row) {
+    //  if(Handsontable.Dom.hasClass(this.table.tBodies[0].childNodes[row].firstChild, 'htSeparator')) {
+    //    return 3;
+    //  } else {
+    //    return;
+    //  }
+    //};
 
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
@@ -1135,17 +1143,21 @@
 
     var realSeparatorHeight = 0,
       realEntrySize = 0,
-      dataSize = this.getSettings().data.length;
+      dataSize = this.getSettings().data.length,
+      currentHiderWidth = parseInt(this.view.wt.wtTable.hider.style.width,10);
 
     for (var i = 0; i < dataSize; i++) {
       if (this.getSettings().data[i].name == ContextMenu.SEPARATOR.name) {
-        realSeparatorHeight += 2;
+        realSeparatorHeight += 5;
       } else {
         realEntrySize += 26;
       }
     }
 
-    this.view.wt.wtOverlays.topOverlay.holder.style.height = realEntrySize + realSeparatorHeight + "px";
+    //debugger;
+    this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px"; //border
+    this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 5 + "px";
+
     /* jshint ignore:end */
   }
 
@@ -1167,9 +1179,32 @@
     }
   }
 
+  function updateRowHeightFn(walkontableConfig) {
+    // only for the context menu entries
+    /* jshint ignore:start */
+    if(this.contextMenu) {
+      return;
+    }
+    /* jshint ignore:end */
+
+    //walkontableConfig.rowHeight = function (row) {
+    //  if (this.table.tBodies[0].childNodes.length === 0 || this.table.tBodies[0].childNodes[row] === void 0) {
+    //    return;
+    //  }
+    //
+    //  if (Handsontable.Dom.hasClass(this.table.tBodies[0].childNodes[row].firstChild, 'htSeparator')) {
+    //    console.log('separator');
+    //    return 3;
+    //  } else {
+    //    return;
+    //  }
+    //};
+  }
+
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
   Handsontable.hooks.add('afterInit', updateHeight);
+  //Handsontable.hooks.add('beforeInitWalkontable', updateRowHeightFn);
 
   Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
 
