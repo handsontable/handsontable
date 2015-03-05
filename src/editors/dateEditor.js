@@ -22,10 +22,14 @@
   };
 
   DateEditor.prototype.createElements = function () {
+    var _this = this,
+      defaultOptions,
+      htInput;
+
     Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
+    htInput = this.instance.rootElement.querySelector('.handsontableInput');
 
-    this.defaultDatepickerTrigger = document.querySelector('.handsontableInput');
-
+    this.defaultDatepickerTrigger = htInput;
     this.defaultDateFormat = 'MM/DD/YYYY';
 
     this.datePicker = document.createElement('DIV');
@@ -37,39 +41,32 @@
     this.datePickerStyle.zIndex = 99;
     document.body.appendChild(this.datePicker);
 
-    var that = this;
-
-
-    var defaultOptions = {
-      format: that.defaultDateFormat,
-      field: document.querySelector('.handsontableInput'),
-      trigger: document.querySelector('.handsontableInput'),
-      container: that.datePicker,
+    defaultOptions = {
+      format: this.defaultDateFormat,
+      field: htInput,
+      trigger: htInput,
+      container: this.datePicker,
       reposition: false,
       onSelect: function (dateStr) {
         if (!isNaN(dateStr.getTime())) {
-          dateStr = moment(dateStr).format(that.cellProperties.dateFormat || that.defaultDateFormat);
+          dateStr = moment(dateStr).format(_this.cellProperties.dateFormat || _this.defaultDateFormat);
         }
-        that.setValue(dateStr);
+        _this.setValue(dateStr);
       },
       onClose: function () {
-        if(!that.parentDestroyed) {
-          that.finishEditing(false);
+        if(!_this.parentDestroyed) {
+          _this.finishEditing(false);
         }
       }
     };
-
     this.$datePicker = new Pikaday(defaultOptions);
-
-    var eventManager = Handsontable.eventManager(this);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
+    Handsontable.eventManager(this).addEventListener(this.datePicker, 'mousedown', function(event) {
       Handsontable.helper.stopPropagation(event);
     });
-
     this.hideDatepicker();
   };
 
@@ -110,7 +107,7 @@
     }
 
     // temporary assign a different 'trigger' value, to prevent Pikaday from closing right after opening
-    this.$datePicker.config().trigger = document.querySelector('.htAutocomplete.current');
+    this.$datePicker.config().trigger = this.instance.rootElement.querySelector('.htAutocomplete.current');
 
     this.datePickerStyle.display = 'block';
     this.$datePicker.show();
