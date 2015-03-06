@@ -67,20 +67,6 @@ Thanks for understanding!
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Similar projects
-
-I want to stay motivated to keep Handsontable the best possible editable datagrid on the Web. Therefore, I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
-
- - [DataTables](http://datatables.net/)
- - [SlickGrid](https://github.com/mleibman/SlickGrid)
- - [jqGrid](http://www.trirand.com/blog/)
- - [jTable](http://www.jtable.org/)
- - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
- - [ParamQuery](http://paramquery.com/)
- - [Ember Table](http://addepar.github.io/ember-table/)
- - [Backgrid.js](http://backgridjs.com/)
- - [dgrid](http://dojofoundation.org/packages/dgrid/)
-
 ## Contact
 
 You can contact us at hello@handsontable.com.
