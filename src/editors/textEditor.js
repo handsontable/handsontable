@@ -237,14 +237,9 @@
       editLeft = 0;
     }
 
-    if (colHeadersCount > 0 && parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
-      editLeft += 1;
-    }
-    if(rowHeadersCount && this.instance.getSelected()[0] === 0) {
+    if(colHeadersCount && this.instance.getSelected()[0] === 0) {
       editTop += 1;
     }
-
-
 
     if(cssTransformOffset && cssTransformOffset != -1) {
       this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
