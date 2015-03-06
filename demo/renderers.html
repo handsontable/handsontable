@@ -9,15 +9,12 @@
   -->
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
-  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-	<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-	<script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+
+  <!-- the below is only needed for DateCell (uses pikaday and moment.js) -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="js/pikaday/css/pikaday.css">
 
   <script data-jsfiddle="common" src="js/moment/moment.js"></script>
   <script data-jsfiddle="common" src="js/pikaday/pikaday.js"></script>
-
-  <link data-jsfiddle="common" rel="stylesheet" media="screen"
-        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -27,8 +24,6 @@
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
-
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="js/pikaday/css/pikaday.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -153,7 +148,7 @@
                 {data: "name", renderer: yellowRenderer},
                 // use default 'text' cell type but overwrite its renderer with yellowRenderer
                 {data: "isActive", type: 'checkbox'},
-                {data: "date", type: 'date'},
+                {data: "date", type: 'date', dateFormat: 'YYYY-MM-DD'},
                 {data: "color",
                   type: 'autocomplete',
                   source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
