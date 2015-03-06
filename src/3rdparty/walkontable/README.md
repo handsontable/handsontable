@@ -19,7 +19,8 @@ Why it is important to cache DOM: http://jsperf.com/dom-caching-excercise
 
 (The MIT License)
 
-Copyright (c) 2012-2014 Marcin Warpechowski &lt;hello@handsontable.com&gt;
+Copyright (c) 2012-2014 Marcin Warpechowski 
+Copyright (c) 2015 Handsoncode sp. z o.o. &lt;hello@handsontable.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
