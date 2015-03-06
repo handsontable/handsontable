@@ -34,7 +34,7 @@
 
             if (!activeEditor.isWaiting()) {
               if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-                that.openEditor("");
+                that.openEditor("", event);
                 return;
               }
             }
@@ -137,9 +137,8 @@
                     moveSelectionAfterEnter(event.shiftKey);
 
                   } else {
-
                     if (instance.getSettings().enterBeginsEditing){
-                      that.openEditor();
+                      that.openEditor(null, event);
                     } else {
                       moveSelectionAfterEnter(event.shiftKey);
                     }
@@ -314,9 +313,9 @@
       return activeEditor.isOpened();
     };
 
-    this.openEditor = function (initialValue) {
+    this.openEditor = function (initialValue, event) {
       if (!activeEditor.cellProperties.readOnly){
-        activeEditor.beginEditing(initialValue);
+        activeEditor.beginEditing(initialValue, event);
       }
     };
 
