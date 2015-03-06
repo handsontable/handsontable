@@ -270,7 +270,7 @@ describe('DateEditor', function () {
     datePickerOffset = $('.pika-single').offset();
 
     // 23 is a height of the editor cell
-    expect(cellOffset.top + 23 + 3 === datePickerOffset.top).toBe(true);
+    expect(cellOffset.top + 23 === datePickerOffset.top).toBe(true);
     expect(cellOffset.left === datePickerOffset.left).toBe(true);
   });
 
@@ -306,7 +306,7 @@ describe('DateEditor', function () {
     if(!!navigator.userAgent.match(/MSIE 10/)) { // IE10 hack
       expect(datePickerOffset.top).toBeAroundValue(cellOffset.top + 23);
     } else {
-      expect(cellOffset.top + 23 + 3 === datePickerOffset.top).toBe(true);
+      expect(cellOffset.top + 23 === datePickerOffset.top).toBe(true);
     }
     expect(cellOffset.left === datePickerOffset.left).toBe(true);
   });

@@ -118,7 +118,7 @@
       isMouseDown = this.instance.view.isMouseDown(),
       isMeta = event ? Handsontable.helper.isMetaKey(event.keyCode) : false;
 
-    this.datePickerStyle.top = (window.pageYOffset + offset.top + Handsontable.Dom.outerHeight(this.TD)) + 3 + 'px';
+    this.datePickerStyle.top = (window.pageYOffset + offset.top + Handsontable.Dom.outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
 
     this.$datePicker._onInputFocus = function () {};

@@ -130,7 +130,7 @@
                   break;
 
                 case keyCodes.F2: /* F2 */
-                  that.openEditor();
+                  that.openEditor(null, event);
                   event.preventDefault(); //prevent Opera from opening Go to Page dialog
                   break;
 
