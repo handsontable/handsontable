@@ -304,7 +304,6 @@
 }
 
 .handsontableInput {
-  /*border: 2px solid #5292F7;*/
   border:none;
   outline-width: 0;
   margin: 0 ;
@@ -313,8 +312,6 @@
   line-height: 21px;
   font-size: inherit;
   box-shadow: 0 0 0 2px #5292F7 inset;
-  /*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
-  /*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
   resize: none;
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
   display: inline-block;
@@ -323,10 +320,6 @@
   background-color: #FFF;
   /*overwrite styles potentionally made by a framework*/
 }
-
-/*.handsontableInput:focus {*/
-  /*border: 2px solid #5292F7;*/
-/*}*/
 
 .handsontableInputHolder {
   position: absolute;
