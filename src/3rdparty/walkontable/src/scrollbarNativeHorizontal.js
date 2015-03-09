@@ -92,6 +92,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 
 /**
  * Scrolls horizontally to a column at the left edge of the viewport
+ *
  * @param sourceCol {Number}
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */

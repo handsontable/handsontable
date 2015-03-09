@@ -5,6 +5,18 @@ if(!window.Handsontable){
 
 Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
 
+// Polymer/Webcomponents polyfills
+if (typeof unwrap === 'undefined') {
+  var unwrap = function unwrap(el) {
+    return el;
+  };
+}
+if (typeof wrap === 'undefined') {
+  var wrap = function wrap(el) {
+    return el;
+  };
+}
+
 Handsontable.eventManager = function (instance) {
   var
     addEvent,
@@ -31,7 +43,7 @@ Handsontable.eventManager = function (instance) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
-      var newEvent;
+      var target;
 
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
@@ -57,32 +69,21 @@ Handsontable.eventManager = function (instance) {
       }
       event.realTarget = event.target;
       event.isTargetWebComponent = false;
+      target = event.path && event.path.length ? event.path[0] : event.target;
 
-      if (Handsontable.helper.isWebComponent(event.target)) {
+      if (Handsontable.Dom.isChildOfWebComponentTable(target)) {
+        event.realTarget = wrap(event.realTarget);
         event.isTargetWebComponent = true;
 
-        newEvent = Object.create(event, {
-          target: {
-            value: event.path[0]
+        Object.defineProperty(event, 'target', {
+          get: function() {
+            return wrap(target);
           },
-          constructor: {
-            value: event.constructor
-          }
+          enumerable: true,
+          configurable: true
         });
-        newEvent.preventDefault = function() {
-          event.preventDefault.apply(event, arguments);
-        };
-        newEvent.stopPropagation = function() {
-          event.stopPropagation.apply(event, arguments);
-        };
-        newEvent.stopImmediatePropagation = function() {
-          event.stopImmediatePropagation.apply(event, arguments);
-        };
-        callback.call(this, newEvent);
       }
-      else {
-        callback.call(this, event);
-      }
+      callback.call(this, event);
     };
 
     instance.eventListeners.push({

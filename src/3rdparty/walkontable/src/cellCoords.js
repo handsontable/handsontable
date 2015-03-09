@@ -16,6 +16,7 @@ function WalkontableCellCoords(row, col) {
 
 /**
  * Returns boolean information if given set of coordinates is valid in context of a given Walkontable instance
+ *
  * @param instance
  * @returns {boolean}
  */
@@ -35,6 +36,7 @@ WalkontableCellCoords.prototype.isValid = function (instance) {
 
 /**
  * Returns boolean information if this cell coords are the same as cell coords given as a parameter
+ *
  * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */

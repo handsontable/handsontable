@@ -7,10 +7,17 @@
  *
  * "Copy-down" copies the value of the selection to all empty cells
  * below when you double click the small square.
+ *
+ * @plugin
+ * @class Handsontable.Autofill
  */
 (function (Handsontable) {
   'use strict';
 
+  /**
+   * @param instance
+   * @constructor
+   */
   function Autofill(instance) {
     this.instance = instance;
     this.addingStarted = false;
@@ -95,6 +102,9 @@
 
   /**
    * Create fill handle and fill border objects
+   *
+   * @function init
+   * @memberof Handsontable.Autofill#
    */
   Autofill.prototype.init = function () {
     this.handle = {};
@@ -102,202 +112,218 @@
 
   /**
    * Hide fill handle and fill border permanently
+   *
+   * @function disable
+   * @memberof Handsontable.Autofill#
    */
-    Autofill.prototype.disable = function () {
-      this.handle.disabled = true;
-    };
+  Autofill.prototype.disable = function () {
+    this.handle.disabled = true;
+  };
 
   /**
    * Selects cells down to the last row in the left column, then fills down to that cell
+   *
+   * @function selectAdjacent
+   * @memberof Handsontable.Autofill#
    */
-    Autofill.prototype.selectAdjacent = function () {
-      var select, data, r, maxR, c;
+  Autofill.prototype.selectAdjacent = function () {
+    var select, data, r, maxR, c;
 
-      if (this.instance.selection.isMultiple()) {
-        select = this.instance.view.wt.selections.area.getCorners();
-      }
-      else {
-        select = this.instance.view.wt.selections.current.getCorners();
-      }
+    if (this.instance.selection.isMultiple()) {
+      select = this.instance.view.wt.selections.area.getCorners();
+    }
+    else {
+      select = this.instance.view.wt.selections.current.getCorners();
+    }
 
-      data = this.instance.getData();
-      rows : for (r = select[2] + 1; r < this.instance.countRows(); r++) {
-        for (c = select[1]; c <= select[3]; c++) {
-          if (data[r][c]) {
-            break rows;
-          }
-        }
-        if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-          maxR = r;
+    data = this.instance.getData();
+    rows : for (r = select[2] + 1; r < this.instance.countRows(); r++) {
+      for (c = select[1]; c <= select[3]; c++) {
+        if (data[r][c]) {
+          break rows;
         }
       }
-      if (maxR) {
-        this.instance.view.wt.selections.fill.clear();
-        this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(select[0], select[1]));
-        this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
-        this.apply();
+      if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
+        maxR = r;
       }
-    };
+    }
+    if (maxR) {
+      this.instance.view.wt.selections.fill.clear();
+      this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(select[0], select[1]));
+      this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
+      this.apply();
+    }
+  };
 
   /**
    * Apply fill values to the area in fill border, omitting the selection border
+   *
+   * @function apply
+   * @memberof Handsontable.Autofill#
    */
-    Autofill.prototype.apply = function () {
-      var drag, select, start, end, _data;
+  Autofill.prototype.apply = function () {
+    var drag, select, start, end, _data;
 
-      this.handle.isDragged = 0;
+    this.handle.isDragged = 0;
 
-      drag = this.instance.view.wt.selections.fill.getCorners();
-      if (!drag) {
-        return;
+    drag = this.instance.view.wt.selections.fill.getCorners();
+    if (!drag) {
+      return;
+    }
+
+    var getDeltas = function (start, end, data, direction) {
+      var rlength = data.length, // rows
+        clength = data ? data[0].length : 0; // cols
+
+      var deltas = [];
+
+      var diffRow = end.row - start.row,
+        diffCol = end.col - start.col;
+
+      var startValue, endValue, delta;
+
+      var arr = [];
+
+      if (['down', 'up'].indexOf(direction) !== -1) {
+        for (var col = 0; col <= diffCol; col++) {
+
+          startValue = parseInt(data[0][col], 10);
+          endValue = parseInt(data[rlength-1][col], 10);
+          delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue))  / (rlength - 1) || 0;
+
+          arr.push(delta);
+        }
+
+        deltas.push(arr);
       }
 
-      var getDeltas = function (start, end, data, direction) {
-        var rlength = data.length, // rows
-            clength = data ? data[0].length : 0; // cols
+      if (['right', 'left'].indexOf(direction) !== -1) {
+        for (var row = 0; row <= diffRow; row++) {
 
-        var deltas = [];
+          startValue = parseInt(data[row][0], 10);
+          endValue = parseInt(data[row][clength-1], 10);
+          delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
 
-        var diffRow = end.row - start.row,
-            diffCol = end.col - start.col;
-
-        var startValue, endValue, delta;
-
-        var arr = [];
-
-        if (['down', 'up'].indexOf(direction) !== -1) {
-          for (var col = 0; col <= diffCol; col++) {
-
-            startValue = parseInt(data[0][col], 10);
-            endValue = parseInt(data[rlength-1][col], 10);
-            delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue))  / (rlength - 1) || 0;
-
-            arr.push(delta);
-          }
+          arr = [];
+          arr.push(delta);
 
           deltas.push(arr);
         }
-
-        if (['right', 'left'].indexOf(direction) !== -1) {
-          for (var row = 0; row <= diffRow; row++) {
-
-            startValue = parseInt(data[row][0], 10);
-            endValue = parseInt(data[row][clength-1], 10);
-            delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-
-            arr = [];
-            arr.push(delta);
-
-            deltas.push(arr);
-          }
-        }
-
-        return deltas;
-      };
-
-      this.instance.view.wt.selections.fill.clear();
-
-      if (this.instance.selection.isMultiple()) {
-        select = this.instance.view.wt.selections.area.getCorners();
-      }
-      else {
-        select = this.instance.view.wt.selections.current.getCorners();
       }
 
-      var direction;
-
-      if (drag[0] === select[0] && drag[1] < select[1]) {
-        direction = 'left';
-
-        start = new WalkontableCellCoords(
-          drag[0],
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-            select[1] - 1
-        );
-      }
-      else if (drag[0] === select[0] && drag[3] > select[3]) {
-        direction = 'right';
-
-        start = new WalkontableCellCoords(
-          drag[0],
-          select[3] + 1
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-          drag[3]
-        );
-      }
-      else if (drag[0] < select[0] && drag[1] === select[1]) {
-        direction = 'up';
-
-        start = new WalkontableCellCoords(
-          drag[0],
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          select[0] - 1,
-          drag[3]
-        );
-      }
-      else if (drag[2] > select[2] && drag[1] === select[1]) {
-        direction = 'down';
-
-        start = new WalkontableCellCoords(
-          select[2] + 1,
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-          drag[3]
-        );
-      }
-
-      if (start && start.row > -1 && start.col > -1) {
-        var selRange = {from: this.instance.getSelectedRange().from, to: this.instance.getSelectedRange().to};
-
-        _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-
-        var deltas = getDeltas(start, end, _data, direction);
-
-        Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-
-        this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
-
-        this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-        this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
-      } else {
-       //reset to avoid some range bug
-       this.instance.selection.refreshBorders();
-     }
+      return deltas;
     };
+
+    this.instance.view.wt.selections.fill.clear();
+
+    if (this.instance.selection.isMultiple()) {
+      select = this.instance.view.wt.selections.area.getCorners();
+    }
+    else {
+      select = this.instance.view.wt.selections.current.getCorners();
+    }
+
+    var direction;
+
+    if (drag[0] === select[0] && drag[1] < select[1]) {
+      direction = 'left';
+
+      start = new WalkontableCellCoords(
+        drag[0],
+        drag[1]
+      );
+      end = new WalkontableCellCoords(
+        drag[2],
+        select[1] - 1
+      );
+    }
+    else if (drag[0] === select[0] && drag[3] > select[3]) {
+      direction = 'right';
+
+      start = new WalkontableCellCoords(
+        drag[0],
+        select[3] + 1
+      );
+      end = new WalkontableCellCoords(
+        drag[2],
+        drag[3]
+      );
+    }
+    else if (drag[0] < select[0] && drag[1] === select[1]) {
+      direction = 'up';
+
+      start = new WalkontableCellCoords(
+        drag[0],
+        drag[1]
+      );
+      end = new WalkontableCellCoords(
+        select[0] - 1,
+        drag[3]
+      );
+    }
+    else if (drag[2] > select[2] && drag[1] === select[1]) {
+      direction = 'down';
+
+      start = new WalkontableCellCoords(
+        select[2] + 1,
+        drag[1]
+      );
+      end = new WalkontableCellCoords(
+        drag[2],
+        drag[3]
+      );
+    }
+
+    if (start && start.row > -1 && start.col > -1) {
+      var selRange = {from: this.instance.getSelectedRange().from, to: this.instance.getSelectedRange().to};
+
+      _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+
+      var deltas = getDeltas(start, end, _data, direction);
+
+      Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
+
+      this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
+
+      this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
+      this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+    } else {
+      //reset to avoid some range bug
+      this.instance.selection.refreshBorders();
+    }
+  };
 
   /**
    * Show fill border
+   *
+   * @function showBorder
+   * @memberof Handsontable.Autofill#
    * @param {WalkontableCellCoords} coords
    */
-    Autofill.prototype.showBorder = function (coords) {
-      var topLeft = this.instance.getSelectedRange().getTopLeftCorner();
-      var bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
-      if (this.instance.getSettings().fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-        coords = new WalkontableCellCoords(coords.row, bottomRight.col);
-      }
-      else if (this.instance.getSettings().fillHandle !== 'vertical') {
-        coords = new WalkontableCellCoords(bottomRight.row, coords.col);
-      }
-      else {
-        return; //wrong direction
-      }
+  Autofill.prototype.showBorder = function (coords) {
+    var topLeft = this.instance.getSelectedRange().getTopLeftCorner();
+    var bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
+    if (this.instance.getSettings().fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+      coords = new WalkontableCellCoords(coords.row, bottomRight.col);
+    }
+    else if (this.instance.getSettings().fillHandle !== 'vertical') {
+      coords = new WalkontableCellCoords(bottomRight.row, coords.col);
+    }
+    else {
+      return; //wrong direction
+    }
 
-      this.instance.view.wt.selections.fill.clear();
-      this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().from);
-      this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().to);
-      this.instance.view.wt.selections.fill.add(coords);
-      this.instance.view.render();
-    };
+    this.instance.view.wt.selections.fill.clear();
+    this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().from);
+    this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().to);
+    this.instance.view.wt.selections.fill.add(coords);
+    this.instance.view.render();
+  };
 
+  /**
+   * @function checkIfNewRowNeeded
+   * @memberof Handsontable.Autofill#
+   */
   Autofill.prototype.checkIfNewRowNeeded = function () {
     var fillCorners,
       selection,
@@ -329,6 +355,12 @@
         autofill.disable();
       }
       else if (!autofill.handle && this.getSettings().fillHandle !== false) {
+        /**
+         * Instance of Autofill Plugin {@link Handsontable.Autofill}
+         * @alias autofill
+         * @memberof! Handsontable.Core#
+         * @type {Autofill}
+         */
         this.autofill = autofill;
         this.autofill.init();
       }

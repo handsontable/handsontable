@@ -1,6 +1,8 @@
 /**
  * WalkontableRowFilter
+ *
  * @constructor
+ * @private
  */
 function WalkontableRowFilter(offset, total, countTH) {
   this.offset = offset;

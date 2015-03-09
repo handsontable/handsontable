@@ -45,6 +45,7 @@ function Walkontable(settings) {
 
 /**
  * Force rerender of Walkontable
+ *
  * @param fastDraw {Boolean} When TRUE, try to refresh only the positions of borders without rerendering the data.
  *                           It will only work if WalkontableTable.draw() does not force rendering anyway
  * @returns {Walkontable}
@@ -64,6 +65,7 @@ Walkontable.prototype.draw = function (fastDraw) {
 /**
  * Returns the TD at coords. If topmost is set to true, returns TD from the topmost overlay layer,
  * if not set or set to false, returns TD from the master table.
+ *
  * @param {WalkontableCellCoords} coords
  * @param {Boolean} topmost
  * @returns {Object}
@@ -93,6 +95,7 @@ Walkontable.prototype.update = function (settings, value) {
 
 /**
  * Scroll the viewport to a row at the given index in the data source
+ *
  * @param row
  * @returns {Walkontable}
  */
@@ -104,7 +107,8 @@ Walkontable.prototype.scrollVertical = function (row) {
 
 /**
  * Scroll the viewport to a column at the given index in the data source
- * @param row
+ *
+ * @param column
  * @returns {Walkontable}
  */
 Walkontable.prototype.scrollHorizontal = function (column) {
@@ -115,6 +119,7 @@ Walkontable.prototype.scrollHorizontal = function (column) {
 
 /**
  * Scrolls the viewport to a cell (rerenders if needed)
+ *
  * @param {WalkontableCellCoords} coords
  * @returns {Walkontable}
  */
