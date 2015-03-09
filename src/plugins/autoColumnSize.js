@@ -1,9 +1,18 @@
+/**
+ * @plugin
+ * @class Handsontable.AutoColumnSize
+ */
 (function (Handsontable) {
 
   function HandsontableAutoColumnSize() {
     var plugin = this
       , sampleCount = 5; //number of samples to take of each value length
 
+    /**
+     * @private
+     * @function beforeInit
+     * @memberof Handsontable.AutoColumnSize#
+     */
     this.beforeInit = function () {
       var instance = this;
       instance.autoColumnWidths = [];
@@ -24,6 +33,13 @@
           instance.addHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
           instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
+          /**
+           * {@link Handsontable.AutoColumnSize#determineColumnWidth}
+           *
+           * @function determineColumnWidth
+           * @alias determineColumnWidth
+           * @memberof! Handsontable.Core#
+           */
           instance.determineColumnWidth = plugin.determineColumnWidth;
         }
       } else {
@@ -39,12 +55,26 @@
       }
     };
 
+    /**
+     * @private
+     * @function determineIfChanged
+     * @memberof Handsontable.AutoColumnSize#
+     * @param {Boolean} [force]
+     */
     this.determineIfChanged = function (force) {
       if (force) {
         htAutoColumnSize.determineColumnsWidth.apply(this, arguments);
       }
     };
 
+    /**
+     * Get width column.
+     *
+     * @function determineColumnWidth
+     * @memberof Handsontable.AutoColumnSize#
+     * @param {Number} col
+     * @returns {Number}
+     */
     this.determineColumnWidth = function (col) {
       var instance = this
         , tmp = instance.autoColumnSizeTmp;
@@ -114,6 +144,11 @@
       return width;
     };
 
+    /**
+     * @private
+     * @function determineColumnsWidth
+     * @memberof Handsontable.AutoColumnSize#
+     */
     this.determineColumnsWidth = function () {
       var instance = this;
       var settings = this.getSettings();
@@ -127,6 +162,14 @@
       }
     };
 
+    /**
+     * @private
+     * @function modifyColWidth
+     * @memberof Handsontable.AutoColumnSize#
+     * @param {Number} width
+     * @param {Number} col
+     * @returns {Number}
+     */
     this.modifyColWidth = function (width, col) {
       if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > width) {
         return this.autoColumnWidths[col];
@@ -134,6 +177,11 @@
       return width;
     };
 
+    /**
+     * @private
+     * @function afterDestroy
+     * @memberof Handsontable.AutoColumnSize#
+     */
     this.afterDestroy = function () {
       var instance = this;
       if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {

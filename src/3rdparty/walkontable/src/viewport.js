@@ -185,6 +185,7 @@ WalkontableViewport.prototype.getViewportWidth = function () {
  * Creates:
  *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
  *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
+ *
  * @returns {WalkontableViewportRowsCalculator}
  */
 WalkontableViewport.prototype.createRowsCalculator = function (visible) {
@@ -227,6 +228,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
  * Creates:
  *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
  *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
+ *
  * @returns {WalkontableViewportRowsCalculator}
  */
 WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
@@ -263,6 +265,7 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
 
 /**
  * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and cols should be rendered)
+ *
  * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
  */
 WalkontableViewport.prototype.createRenderCalculators = function (fastDraw) {
@@ -300,7 +303,7 @@ WalkontableViewport.prototype.createVisibleCalculators = function () {
  * Returns TRUE if all proposed visible rows are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible row is not already rendered (meaning: redraw is needed)
  *
- * @returns {boolean}
+ * @returns {Boolean}
  */
 WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = function (proposedRowsVisibleCalculator) {
   if (this.rowsVisibleCalculator) {
@@ -328,7 +331,7 @@ WalkontableViewport.prototype.areAllProposedVisibleRowsAlreadyRendered = functio
  * Returns TRUE if all proposed visible columns are already rendered (meaning: redraw is not needed)
  * Returns FALSE if at least one proposed visible column is not already rendered (meaning: redraw is needed)
  *
- * @returns {boolean}
+ * @returns {Boolean}
  */
 WalkontableViewport.prototype.areAllProposedVisibleColumnsAlreadyRendered = function (proposedColumnsVisibleCalculator) {
   if (this.columnsVisibleCalculator) {

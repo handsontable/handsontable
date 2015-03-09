@@ -4,6 +4,7 @@
  * In future we may implement a better driver when better APIs are available.
  *
  * @constructor
+ * @private
  */
 var CopyPaste = (function () {
   var instance;

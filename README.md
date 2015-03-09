@@ -1,6 +1,6 @@
 # Handsontable [![Build Status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](https://travis-ci.org/handsontable/handsontable)
 
-Handsontable is a minimalist approach to Excel-like table editor (datagrid/data grid) in HTML & JavaScript. 
+Handsontable is a minimalist approach to Excel-like table editor (data grid) for HTML & JavaScript. 
 
 Runs in IE 10+, Firefox, Chrome, Safari and Opera.
 
@@ -56,30 +56,16 @@ Make sure the question was not answered before in [FAQ](https://github.com/hands
 
 Please follow this guidelines when reporting bugs and feature requests:
 
-1. Use [GitHub Issues](https://github.com/handsontable/handsontable/issues) board to report bugs and feature requests (not my email address)
+1. Use [GitHub Issues](https://github.com/handsontable/handsontable/issues) board to report bugs and feature requests (not our email address)
 2. Please **always** write steps to reproduce the error. That way we can focus on fixing the bug, not scratching our heads trying to reproduce it.
-3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves me much time.
-4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets me start fixing straight away.
+3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves us much time.
+4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets us start fixing straight away.
 
 Thanks for understanding!
 
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md)
-
-## Similar projects
-
-I want to stay motivated to keep Handsontable the best possible editable datagrid on the Web. Therefore, I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
-
- - [DataTables](http://datatables.net/)
- - [SlickGrid](https://github.com/mleibman/SlickGrid)
- - [jqGrid](http://www.trirand.com/blog/)
- - [jTable](http://www.jtable.org/)
- - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
- - [ParamQuery](http://paramquery.com/)
- - [Ember Table](http://addepar.github.io/ember-table/)
- - [Backgrid.js](http://backgridjs.com/)
- - [dgrid](http://dojofoundation.org/packages/dgrid/)
 
 ## Contact
 

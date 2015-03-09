@@ -9,11 +9,12 @@
   -->
   <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
-  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-	<script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-	<script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen"
-        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+
+  <!-- the below is only needed for DateCell (uses pikaday and moment.js) -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="js/pikaday/css/pikaday.css">
+
+  <script data-jsfiddle="common" src="js/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="js/pikaday/pikaday.js"></script>
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -147,7 +148,7 @@
                 {data: "name", renderer: yellowRenderer},
                 // use default 'text' cell type but overwrite its renderer with yellowRenderer
                 {data: "isActive", type: 'checkbox'},
-                {data: "date", type: 'date'},
+                {data: "date", type: 'date', dateFormat: 'YYYY-MM-DD'},
                 {data: "color",
                   type: 'autocomplete',
                   source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]

@@ -16,6 +16,7 @@
  * @param overrideFn - function that changes calculated this.startRow, this.endRow (used by mergeCells.js plugin)
  * @param onlyFullyVisible {bool} - if TRUE, only startRow and endRow will be indexes of rows that are FULLY in viewport
  * @constructor
+ * @private
  */
 function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible) {
   this.scrollOffset = scrollOffset;

@@ -1,5 +1,8 @@
 /**
- * Handsontable UndoRedo class
+ * Handsontable UndoRedo plugin class
+ *
+ * @plugin
+ * @class Handsontable.UndoRedo
  */
 (function(Handsontable){
   Handsontable.UndoRedo = function (instance) {
@@ -75,7 +78,7 @@
   };
 
   /**
-   * Undo operation from current revision
+   * Undo last edit.
    */
   Handsontable.UndoRedo.prototype.undo = function () {
     if (this.isUndoAvailable()) {
@@ -94,7 +97,7 @@
   };
 
   /**
-   * Redo operation from current revision
+   * Redo edit (used to reverse an undo).
    */
   Handsontable.UndoRedo.prototype.redo = function () {
     if (this.isRedoAvailable()) {
@@ -113,23 +116,25 @@
   };
 
   /**
-   * Returns true if undo point is available
-   * @return {Boolean}
+   * Check if undo action is available.
+   *
+   * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
    */
   Handsontable.UndoRedo.prototype.isUndoAvailable = function () {
     return this.doneActions.length > 0;
   };
 
   /**
-   * Returns true if redo point is available
-   * @return {Boolean}
+   * Check if redo action is available.
+   *
+   * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
    */
   Handsontable.UndoRedo.prototype.isRedoAvailable = function () {
     return this.undoneActions.length > 0;
   };
 
   /**
-   * Clears undo history
+   * Clears undo history.
    */
   Handsontable.UndoRedo.prototype.clear = function () {
     this.doneActions.length = 0;
@@ -323,6 +328,13 @@
 
     if(pluginEnabled){
       if(!instance.undoRedo){
+        /**
+         * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}
+         *
+         * @alias undoRedo
+         * @memberof! Handsontable.Core#
+         * @type {UndoRedo}
+         */
         instance.undoRedo = new Handsontable.UndoRedo(instance);
 
         exposeUndoRedoMethods(instance);
@@ -366,23 +378,48 @@
     }
   }
 
-  function exposeUndoRedoMethods(instance){
+  function exposeUndoRedoMethods(instance) {
+    /**
+     * {@link Handsontable.UndoRedo#undo}
+     * @alias undo
+     * @memberof! Handsontable.Core#
+     */
     instance.undo = function(){
       return instance.undoRedo.undo();
     };
 
+    /**
+     * {@link Handsontable.UndoRedo#redo}
+     * @alias redo
+     * @memberof! Handsontable.Core#
+     */
     instance.redo = function(){
       return instance.undoRedo.redo();
     };
 
+    /**
+     * {@link Handsontable.UndoRedo#isUndoAvailable}
+     * @alias isUndoAvailable
+     * @memberof! Handsontable.Core#
+     */
     instance.isUndoAvailable = function(){
       return instance.undoRedo.isUndoAvailable();
     };
 
+    /**
+     * {@link Handsontable.UndoRedo#isRedoAvailable}
+     * @alias isRedoAvailable
+     * @memberof! Handsontable.Core#
+     */
     instance.isRedoAvailable = function(){
       return instance.undoRedo.isRedoAvailable();
     };
 
+    /**
+     * {@link Handsontable.UndoRedo#clear}
+     * @alias clearUndo
+     * @memberof! Handsontable.Core#
+     */
     instance.clearUndo = function(){
       return instance.undoRedo.clear();
     };
