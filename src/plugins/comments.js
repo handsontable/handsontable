@@ -32,7 +32,7 @@ function Comments(instance) {
     },
     unBindMouseEvent = function () {
       eventManager.removeEventListener(document, 'mousedown');
-      eventManager.addEventListener(document, 'mousedown', Handsontable.helper.proxy(commentsMouseOverListener));
+      eventManager.addEventListener(document, 'mouseover', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
