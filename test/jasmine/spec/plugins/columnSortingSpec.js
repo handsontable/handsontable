@@ -4,9 +4,17 @@ describe('ColumnSorting', function () {
   beforeEach(function () {
     this.$container = $('<div id="' + id + '" style="overflow: auto; width: 300px; height: 200px;"></div>').appendTo('body');
 
-    this.sortByColumn = function (columnIndex) {
+    this.sortByColumn = function (columnIndex, optionalCtrlKey) {
 //      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
-      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
+      var sortingElement = this.$container.find('th span.columnSorting:eq(' + columnIndex + ')');
+      //when passing the ctrlKey, don't use the native click function because jquery.simulate.js is calling
+      // elem[type]()  and we loose the options
+      if (optionalCtrlKey) {
+        sortingElement.each(function () {
+          this['click'] = null;
+        });
+      }
+      sortingElement.simulate('click', {ctrlKey: optionalCtrlKey});
     }
   });
 
@@ -1100,4 +1108,123 @@ describe('ColumnSorting', function () {
     expect(getDataAtCol(1)).toEqual(["Ted", "Sid", "Jane", "", "", null]);
 
   });
+
+  it('should sort using a custom sorting function and leave top row unsorted', function () {
+    handsontable({
+      data:  [
+        [1, "x top row", "will stay here at top"],
+        [2, "x row", "will be latest"],
+        [4, "a row", "will be second row"],
+        [5, "bottom row", "will be third row"]
+      ],
+      colHeaders: true,
+      columnSorting: {
+        sortFunction: function (sortOrder) {
+          return function (a, b) {
+            //keep first row at top
+            if (a[0] == 0) {
+              return -1;
+            }
+            if (b[0] == 0) {
+              return 1;
+            }
+
+            //dummy sorter
+            if (a[1] === b[1]) {
+              return 0;
+            }
+            if (a[1] < b[1]) {
+              return sortOrder ? -1 : 1;
+            }
+            if (a[1] > b[1]) {
+              return sortOrder ? 1 : -1;
+            }
+            return 0;
+          };
+        }
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('will stay here at top');
+    expect(htCore.find('tbody tr:eq(1) td:eq(2)').text()).toEqual('will be latest');
+    expect(htCore.find('tbody tr:eq(2) td:eq(2)').text()).toEqual('will be second row');
+    expect(htCore.find('tbody tr:eq(3) td:eq(2)').text()).toEqual('will be third row');
+
+    this.sortByColumn(1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('will stay here at top');
+    expect(htCore.find('tbody tr:eq(1) td:eq(2)').text()).toEqual('will be second row');
+    expect(htCore.find('tbody tr:eq(2) td:eq(2)').text()).toEqual('will be third row');
+    expect(htCore.find('tbody tr:eq(3) td:eq(2)').text()).toEqual('will be latest');
+  });
+
+  it('should sort using a custom sorting function and leave top row unsorted', function () {
+    handsontable({
+      data:  [
+        [1, "x top row", "will stay here at top"],
+        [2, "x row", "will be latest"],
+        [4, "a row", "will be second row"],
+        [5, "bottom row", "will be third row"]
+      ],
+      colHeaders: true,
+      columnSorting: {
+        sortFunction: function (sortOrder) {
+          return function (a, b) {
+            //keep first row at top
+            if (a[0] == 0) {
+              return -1;
+            }
+            if (b[0] == 0) {
+              return 1;
+            }
+
+            //dummy sorter
+            if (a[1] === b[1]) {
+              return 0;
+            }
+            if (a[1] < b[1]) {
+              return sortOrder ? -1 : 1;
+            }
+            if (a[1] > b[1]) {
+              return sortOrder ? 1 : -1;
+            }
+            return 0;
+          };
+        }
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('will stay here at top');
+    expect(htCore.find('tbody tr:eq(1) td:eq(2)').text()).toEqual('will be latest');
+    expect(htCore.find('tbody tr:eq(2) td:eq(2)').text()).toEqual('will be second row');
+    expect(htCore.find('tbody tr:eq(3) td:eq(2)').text()).toEqual('will be third row');
+
+    this.sortByColumn(1);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('will stay here at top');
+    expect(htCore.find('tbody tr:eq(1) td:eq(2)').text()).toEqual('will be second row');
+    expect(htCore.find('tbody tr:eq(2) td:eq(2)').text()).toEqual('will be third row');
+    expect(htCore.find('tbody tr:eq(3) td:eq(2)').text()).toEqual('will be latest');
+  });
+
+  it('should tell us if we used Ctrl key ', function () {
+    var beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
+
+    handsontable({
+      data: arrayOfObjects(),
+      colHeaders: true,
+      columnSorting: true,
+      beforeColumnSort: beforeColumnSortCallback
+    });
+
+    this.sortByColumn(1, true);
+
+    expect(beforeColumnSortCallback.callCount).toEqual(1);
+    expect(beforeColumnSortCallback).toHaveBeenCalledWith(1, true, true, void 0, void 0, void 0);
+  });
+
 });
