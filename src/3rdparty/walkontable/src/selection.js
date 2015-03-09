@@ -6,6 +6,7 @@ function WalkontableSelection(settings, cellRange) {
 
 /**
  * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection borders per instance
+ *
  * @param {Walkontable} instance
  * @returns {WalkontableBorder}
  */
@@ -19,7 +20,8 @@ WalkontableSelection.prototype.getBorder = function (instance) {
 
 /**
  * Returns boolean information if selection is empty
- * @returns {boolean}
+ *
+ * @returns {Boolean}
  */
 WalkontableSelection.prototype.isEmpty = function () {
   return this.cellRange === null;
@@ -27,6 +29,7 @@ WalkontableSelection.prototype.isEmpty = function () {
 
 /**
  * Adds a cell coords to the selection
+ *
  * @param {WalkontableCellCoords} coords
  */
 WalkontableSelection.prototype.add = function (coords) {
@@ -40,9 +43,10 @@ WalkontableSelection.prototype.add = function (coords) {
 
 /**
  * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean information about success
+ *
  * @param {WalkontableCellCoords} oldCoords
  * @param {WalkontableCellCoords} newCoords
- * @return {boolean}
+ * @returns {Boolean}
  */
 WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
   if (!this.isEmpty()) {
@@ -67,6 +71,7 @@ WalkontableSelection.prototype.clear = function () {
 
 /**
  * Returns the top left (TL) and bottom right (BR) selection coordinates
+ *
  * @returns {Object}
  */
 WalkontableSelection.prototype.getCorners = function () {

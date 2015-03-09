@@ -11,6 +11,7 @@ function walkontableRangesIntersect() {
 
 /**
  * Generates a random hex string. Used as namespace for Walkontable instance events.
+ *
  * @return {String} - 16 character random string: "92b1bfc74ec4"
  */
 function walkontableRandomString() {

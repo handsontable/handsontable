@@ -567,6 +567,3 @@ Handsontable.helper.pageY = function (event) {
   return cursorY;
 };
 
-Handsontable.helper.isWebComponent = function (element) {
-  return element.shadowRoot ? true : false;
-};

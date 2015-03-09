@@ -57,6 +57,53 @@ Handsontable.Dom.isChildOf = function (child, parent) {
   return false;
 };
 
+
+// Polymer/Webcomponents polyfills
+if (typeof unwrap === 'undefined') {
+  var unwrap = function unwrap(el) {
+    return el;
+  };
+}
+if (typeof wrap === 'undefined') {
+  var wrap = function wrap(el) {
+    return el;
+  };
+}
+
+/**
+ * Check if an element is part of `hot-table` web component.
+ * If an element which is child of another web component was found then returns `false`.
+ *
+ * @param {Element} element
+ * @returns {Boolean}
+ */
+Handsontable.Dom.isChildOfWebComponentTable = function(element) {
+  var hotTableName = 'hot-table',
+    result = false,
+    parentNode;
+
+  // Wrap element into polymer/webcomponent container
+  parentNode = wrap(element);
+
+  function isHotTable(element) {
+    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  }
+
+  while (parentNode != null) {
+    if (isHotTable(parentNode)) {
+      result = true;
+      break;
+    }
+    else if (parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      result = isHotTable(parentNode.host);
+      break;
+    }
+    parentNode = parentNode.parentNode;
+  }
+
+  return result;
+};
+
 /**
  * Counts index of element within its parent
  * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true for Walkotnable
