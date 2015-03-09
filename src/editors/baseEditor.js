@@ -96,7 +96,7 @@
     }
   };
 
-  BaseEditor.prototype.beginEditing = function(initialValue){
+  BaseEditor.prototype.beginEditing = function(initialValue, event){
     if (this.state != Handsontable.EditorState.VIRGIN) {
       return;
     }
@@ -110,7 +110,7 @@
 
     this.setValue(Handsontable.helper.stringify(initialValue));
 
-    this.open();
+    this.open(event);
     this._opened = true;
     this.focus();
 

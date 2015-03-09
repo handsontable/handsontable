@@ -85,7 +85,6 @@ function WalkontableSettings(instance, settings) {
 /**
  * generic methods
  */
-
 WalkontableSettings.prototype.update = function (settings, value) {
   if (value === void 0) { //settings is object
     for (var i in settings) {

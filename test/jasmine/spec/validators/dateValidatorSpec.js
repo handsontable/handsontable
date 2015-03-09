@@ -1,4 +1,4 @@
-describe('NumericValidator', function () {
+describe('dateValidator', function () {
   var id = 'testContainer';
 
   beforeEach(function () {

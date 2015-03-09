@@ -18,6 +18,7 @@ WalkontableCellRange.prototype.isSingle = function () {
 
 /**
  * Returns selected range height (in number of rows)
+ *
  * @returns {number}
  */
 WalkontableCellRange.prototype.getHeight = function () {
@@ -26,6 +27,7 @@ WalkontableCellRange.prototype.getHeight = function () {
 
 /**
  * Returns selected range width (in number of columns)
+ *
  * @returns {number}
  */
 WalkontableCellRange.prototype.getWidth = function () {
@@ -34,6 +36,7 @@ WalkontableCellRange.prototype.getWidth = function () {
 
 /**
  * Returns boolean information if given cell coords is within `from` and `to` cell coords of this range
+ *
  * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */
@@ -66,6 +69,7 @@ WalkontableCellRange.prototype.isEqual = function (testedRange) {
 /**
  * Returns true if tested range overlaps with the range.
  * Range A is considered to to be overlapping with range B if intersection of A and B or B and A is not empty.
+ *
  * @param testedRange
  * @returns {boolean}
  */
@@ -83,6 +87,7 @@ WalkontableCellRange.prototype.isNorthWestOf = function (testedCoords) {
 
 /**
  * Adds a cell to a range (only if exceeds corners of the range). Returns information if range was expanded
+ *
  * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */
@@ -304,6 +309,7 @@ WalkontableCellRange.prototype.getAll = function () {
 
 /**
  * Runs a callback function against all cells in the range. You can break the iteration by returning false in the callback function
+ *
  * @param callback {Function}
  */
 WalkontableCellRange.prototype.forAll = function (callback) {
