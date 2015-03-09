@@ -48,7 +48,14 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollLeft(this.scrollHandler);
+  //this feature can handle the zoom in the scroll view for the overlay position headers
+  var zoom = $(this.parentContainer).css("zoom");
+  if(zoom >= 1){
+    return (Handsontable.Dom.getScrollLeft(this.scrollHandler)/zoom);  
+  }else{
+    return (Handsontable.Dom.getScrollLeft(this.scrollHandler)*zoom);
+  }  
+  //return Handsontable.Dom.getScrollLeft(this.scrollHandler);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
@@ -76,12 +83,23 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
-
-  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
+  var zoom = $(this.parentContainer).css("zoom");
+  //With this change can handle the more efficiency the scroll handler
+  if(zoom >= 1){
+   this.fixedContainer.style.width = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // + // 'px';                                     
+  }else{
+   this.fixedContainer.style.width = ((headerSize + this.sumCellSizes(0, total)*zoom)) + 'px';// + 4 // + // 'px';
+  }
 
   if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
-    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
+    if(zoom >= 1){
+    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition+ 'px';
+    }else{
+    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition*zoom + 'px';
+    }
+    //this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
   }
+
   else if (total === 0) {
     this.fixed.style.left = '0';
   } else {
@@ -97,6 +115,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+  var zoom = $(this.parentContainer).css("zoom");
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {
@@ -108,7 +127,11 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
     newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
 
-  this.setScrollPosition(newX);
+  if(zoom>=1){
+    this.setScrollPosition((newX/zoom));
+  }else{
+    this.setScrollPosition((newX*zoom));  
+  }
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
