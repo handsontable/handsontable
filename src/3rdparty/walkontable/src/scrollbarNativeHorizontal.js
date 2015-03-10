@@ -50,7 +50,7 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
   var zoom = this.parentContainer.style.zoom;
   
-  if(zoom ==""){
+  if(zoom===""){
     zoom = 1;
   }
   
@@ -104,7 +104,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
   var zoom = this.parentContainer.style.zoom;
-  if(zoom ==""){
+  if(zoom===""){
     zoom = 1;
   }
   var newX = this.getTableParentOffset();
