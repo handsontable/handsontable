@@ -192,7 +192,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
   this.rowHeaderWidth = NaN;
   
   var zoom = this.instance.wtTable.instance.wtTable.holder.parentNode.parentNode.style.zoom;
-  if(zoom == ""){
+  if(zoom===""){
     zoom = 1;
   }
   var height;
@@ -242,7 +242,7 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   
   var zoom = this.instance.wtTable.instance.wtTable.holder.parentNode.parentNode.style.zoom;
   
-  if(zoom == ""){
+  if(zoom===""){
     zoom = 1;
   }
   
