@@ -82,23 +82,12 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
-  var zoom = $(this.parentContainer).css("zoom");
-  //With this change can handle the more efficiency the scroll handler
-  if(zoom >= 1){
-   this.fixedContainer.style.width = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // + // 'px';                                     
-  }else{
-   this.fixedContainer.style.width = ((headerSize + this.sumCellSizes(0, total)*zoom)) + 'px';// + 4 // + // 'px';
-  }
+  
+  this.fixedContainer.style.width = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // + // 'px';
 
-  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
-    if(zoom >= 1){
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){    
     this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition+ 'px';
-    }else{
-    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition*zoom + 'px';
-    }
-    //this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
   }
-
   else if (total === 0) {
     this.fixed.style.left = '0';
   } else {
