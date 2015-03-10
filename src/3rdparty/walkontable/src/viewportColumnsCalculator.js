@@ -55,7 +55,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
 
     ratio = ratio || 1;
 
-    if (width === undefined) {
+    if (width === undefined || isNaN(width)) {
       width = defaultColumnWidth;
     }
 
