@@ -80,30 +80,18 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (fastDraw) {
   WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
-//applyToDOM (in future merge it with this.refresh?)
+// applyToDOM (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
   
-  var zoom = $(this.parentContainer).css("zoom");
-  
-  if(zoom >= 1){
-    this.fixedContainer.style.height = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // +'px';
-  }else{
-    this.fixedContainer.style.height = ((headerSize + this.sumCellSizes(0, total)*zoom)) + 'px';// + 4 // +// 'px';
-  }
+  this.fixedContainer.style.height = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // +'px';
   
   if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-    if(zoom >= 1){
-      this.fixed.style.top = (this.instance.wtViewport.rowsRenderCalculator.startPosition) + 'px';
-    }else{
-      this.fixed.style.top = (this.instance.wtViewport.rowsRenderCalculator.startPosition*zoom) + 'px';
-    }
-  //this.fixed.style.top = (this.instance.wtViewport.rowsRenderCalculator.startPosition) + 'px';
+    this.fixed.style.top = (this.instance.wtViewport.rowsRenderCalculator.startPosition) + 'px';
   }
-
   else if (total === 0) {
-    this.fixed.style.top = '0'; //can happen if there are 0 rows
+    this.fixed.style.top = '0'; // can happen if there are 0 rows
   }
   else {
     throw new Error("Incorrect value of the rowsRenderCalculator");
