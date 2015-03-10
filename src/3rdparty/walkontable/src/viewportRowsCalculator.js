@@ -28,10 +28,11 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   var rowHeight;
   var needReverse = true;
   var defaultRowHeight = 23;
+  
   var startPositions = [];
   for (var i = 0; i < totalRows; i++) {
     rowHeight = rowHeightFn(i);
-    if (rowHeight === undefined) {
+    if (rowHeight === undefined || isNaN(rowHeight)) {
       rowHeight = defaultRowHeight;
     }
     if (sum <= scrollOffset && !onlyFullyVisible) {
@@ -54,11 +55,20 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
     }
   }
 
-  //If the rendering has reached the last row and there is still some space available in the viewport, we need to render in reverse in order to fill the whole viewport with rows
+  // If the rendering has reached the last row and there is still some space
+  // available in the viewport, we need to render in reverse in order to fill
+  // the whole viewport with rows
   if (this.endRow == totalRows - 1 && needReverse) {
     this.startRow = this.endRow;
     while(this.startRow > 0) {
-      var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1]; //rowHeight is the height of the last row
+      var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1]; // rowHeight
+                                                    // is
+                                                    // the
+                                                    // height
+                                                    // of
+                                                    // the
+                                                    // last
+                                                    // row
       if (viewportSum <= height || !onlyFullyVisible)
       {
         this.startRow--;
