@@ -48,14 +48,13 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  //this feature can handle the zoom in the scroll view for the overlay position headers
-  var zoom = $(this.parentContainer).css("zoom");
-  if(zoom >= 1){
-    return (Handsontable.Dom.getScrollLeft(this.scrollHandler)/zoom);  
-  }else{
-    return (Handsontable.Dom.getScrollLeft(this.scrollHandler)*zoom);
-  }  
-  //return Handsontable.Dom.getScrollLeft(this.scrollHandler);
+  var zoom = this.parentContainer.style.zoom;
+  
+  if(zoom ==""){
+    zoom = 1;
+  }
+  
+  return (Handsontable.Dom.getScrollLeft(this.scrollHandler)/zoom);  
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
@@ -115,7 +114,10 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
-  var zoom = $(this.parentContainer).css("zoom");
+  var zoom = this.parentContainer.style.zoom;
+  if(zoom ==""){
+    zoom = 1;
+  }
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {
@@ -126,12 +128,8 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
     var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
     newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
-
-  if(zoom>=1){
-    this.setScrollPosition((newX/zoom));
-  }else{
-    this.setScrollPosition((newX*zoom));  
-  }
+  
+  this.setScrollPosition((newX*zoom));
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
