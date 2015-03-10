@@ -48,7 +48,7 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
   var zoom = this.parentContainer.style.zoom;
-  if(zoom ==""){
+  if(zoom===""){
     zoom = 1;
   }
   return (Handsontable.Dom.getScrollTop(this.scrollHandler)/zoom);
@@ -107,7 +107,7 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
  */
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bottomEdge) {
   var zoom = this.parentContainer.style.zoom;
-  if(zoom ==""){
+  if(zoom===""){
     zoom = 1;
   }
   
