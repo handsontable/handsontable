@@ -69,7 +69,8 @@ function Comments(instance) {
     },
     commentsMouseOverListener = function (event) {
         if(event.target.className.indexOf('htCommentCell') != -1) {
-						unBindMouseEvent();
+            eventManager.removeEventListener(document, 'mouseover');
+            unBindMouseEvent();
             var coords = instance.view.wt.wtTable.getCoords(event.target);
             var range = {
                 from: new WalkontableCellCoords(coords.row, coords.col)
