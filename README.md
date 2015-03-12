@@ -4,7 +4,7 @@ Handsontable is a minimalist approach to Excel-like table editor (data grid) for
 
 Runs in IE 10+, Firefox, Chrome, Safari and Opera.
 
-See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/warpech/hU6Kz/).
+See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/js_ziggle/hU6Kz/3228/).
 
 ## Usage
 
@@ -58,7 +58,7 @@ Please follow this guidelines when reporting bugs and feature requests:
 
 1. Use [GitHub Issues](https://github.com/handsontable/handsontable/issues) board to report bugs and feature requests (not our email address)
 2. Please **always** write steps to reporoduce the error. That way we can focus on fixing the bug, not scratching our heads trying to reproduce it.
-3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves us much time.
+3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/js_ziggle/hU6Kz/3228/)). It saves us much time.
 4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets us start fixing straight away.
 
 Thanks for understanding!
