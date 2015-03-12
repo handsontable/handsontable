@@ -40,28 +40,30 @@ describe('Handsontable.eventManager', function () {
     if (!document.createElement('div').createShadowRoot) {
       return;
     }
+    Handsontable.eventManager.isHotTableEnv = true;
     var instance = {};
     var em = Handsontable.eventManager(instance);
     var classicHost = document.createElement('div');
     var hotTable = document.createElement('hot-table');
 
     var shadowHotTable = hotTable.createShadowRoot();
-    shadowHotTable.innerHTML = '<span>shadow</span>';
+    shadowHotTable.innerHTML = '<span>shadow <inner-custom><p></p></inner-custom></span>';
 
     var test1 = jasmine.createSpy('test1');
     var test2 = jasmine.createSpy('test2');
 
     em.addEventListener(classicHost, 'click', test1);
-    em.addEventListener(shadowHotTable.querySelector('span'), 'click', test2);
+    em.addEventListener(shadowHotTable.querySelector('p'), 'click', test2);
     em.fireEvent(classicHost, 'click');
-    em.fireEvent(shadowHotTable.querySelector('span'), 'click');
+    em.fireEvent(shadowHotTable.querySelector('p'), 'click');
     em.clear();
 
+    expect(test1.mostRecentCall.args[0].isTargetWebComponent).toEqual(true);
     expect(test1.calls.length).toEqual(1);
-    expect(test1.mostRecentCall.args[0].isTargetWebComponent).toEqual(false);
     expect(test2.calls.length).toEqual(1);
-    expect(test2.mostRecentCall.args[0].isTargetWebComponent).toEqual(true);
-    expect(test2.mostRecentCall.args[0].target).toEqual(shadowHotTable.querySelector('span'));
+    expect(test2.mostRecentCall.args[0].target).toEqual(shadowHotTable.querySelector('p'));
+
+    Handsontable.eventManager.isHotTableEnv = false;
   });
 
   it('should clear all events', function () {
