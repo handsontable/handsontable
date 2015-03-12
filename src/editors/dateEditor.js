@@ -36,7 +36,7 @@
     Handsontable.Dom.addClass(this.datePicker, 'htDatepickerHolder');
     document.body.appendChild(this.datePicker);
 
-    var htInput = this.instance.rootElement.querySelector('.handsontableInput');
+    var htInput = this.TEXTAREA;
 
     var defaultOptions = {
       format: that.defaultDateFormat,
