@@ -581,15 +581,6 @@
 
     var htContextMenu = new Handsontable(menu, settings);
 
-    // correct the height calculator to take care of separatos
-    //htContextMenu.view.wt.wtSettings.settings.rowHeight = function (row) {
-    //  if(Handsontable.Dom.hasClass(this.table.tBodies[0].childNodes[row].firstChild, 'htSeparator')) {
-    //    return 3;
-    //  } else {
-    //    return;
-    //  }
-    //};
-
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
       that.performAction(event, htContextMenu);

@@ -24,9 +24,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.container = document.createElement('DIV');
 
-  //TODO: Remove this after refactoring
-  //this.container.className = 'htContainer';
-
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events

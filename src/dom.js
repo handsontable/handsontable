@@ -384,9 +384,6 @@ Handsontable.Dom.getTrimmingContainer = function (base) {
       }
     }
 
-    //if (this instanceof WalkontableTopOverlay && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
-    //  return el;
-    //}
     el = el.parentNode;
   }
   return window;

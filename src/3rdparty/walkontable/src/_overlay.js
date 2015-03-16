@@ -43,28 +43,6 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
   });
 };
 
-
-
-//WalkontableOverlay.prototype.getTrimmingContainer = function (masterTable) {
-//  var el = masterTable;
-//  while (el && el.style && document.body !== el) {
-//    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
-//      return el;
-//    } else if(window.getComputedStyle) {
-//      var computedStyle = window.getComputedStyle(el);
-//      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
-//        return el;
-//      }
-//    }
-//
-//    if (this instanceof WalkontableVerticalOverlay && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
-//      return el;
-//    }
-//    el = el.parentNode;
-//  }
-//  return window;
-//};
-
 WalkontableOverlay.prototype.refresh = function (fastDraw) {
   if (this.clone) {
     this.clone.draw(fastDraw);

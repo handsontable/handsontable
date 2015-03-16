@@ -9,11 +9,6 @@ function WalkontableOverlays(instance) {
 
   this.preventMultipleScrolling = false;
 
-  //TODO: remove after finishing refactoring
-  //this.vertical = new WalkontableVerticalScrollbarNative(instance);
-  //this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
-  //this.corner = new WalkontableCornerScrollbarNative(instance);
-
   if (instance.getSetting('debug')) {
     this.debug = new WalkontableDebugOverlay(instance);
   }

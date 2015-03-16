@@ -41,12 +41,9 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
     finalTop = this.instance.wtOverlays.topOverlay.getScrollPosition() + "px";
   }
 
-  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
 
   var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
   var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
   elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
   elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
-  //elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
-  //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
