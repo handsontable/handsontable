@@ -134,7 +134,7 @@ function HandsontableColumnSorting() {
 
     function getColumn(target) {
       var TH = Handsontable.Dom.closest(target, 'TH');
-      return Handsontable.Dom.index(TH) - countRowHeaders();
+      return TH.col;
     }
   };
 
@@ -260,6 +260,7 @@ function HandsontableColumnSorting() {
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting && col >= 0) {
       Handsontable.Dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
+      TH.col = col;
     }
   };
 
