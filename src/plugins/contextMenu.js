@@ -1154,7 +1154,6 @@
       }
     }
 
-    //debugger;
     this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px"; //border
     this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 5 + "px";
 
@@ -1186,25 +1185,11 @@
       return;
     }
     /* jshint ignore:end */
-
-    //walkontableConfig.rowHeight = function (row) {
-    //  if (this.table.tBodies[0].childNodes.length === 0 || this.table.tBodies[0].childNodes[row] === void 0) {
-    //    return;
-    //  }
-    //
-    //  if (Handsontable.Dom.hasClass(this.table.tBodies[0].childNodes[row].firstChild, 'htSeparator')) {
-    //    console.log('separator');
-    //    return 3;
-    //  } else {
-    //    return;
-    //  }
-    //};
   }
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
   Handsontable.hooks.add('afterInit', updateHeight);
-  //Handsontable.hooks.add('beforeInitWalkontable', updateRowHeightFn);
 
   Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
 

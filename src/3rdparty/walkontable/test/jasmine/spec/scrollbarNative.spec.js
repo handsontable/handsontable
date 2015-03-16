@@ -1,13 +1,17 @@
 describe('WalkontableScrollbarNative', function () {
   var $table
     , $container
+    , $wrapper
     , debug = false;
 
   beforeEach(function () {
-    $container = $('<div></div>').css({'overflow': 'auto'});
-    $container.width(100).height(200);
+    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+    $wrapper.width(100).height(200);
+    $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
-    $container.append($table).appendTo('body');
+    $wrapper.append($container);
+    $container.append($table);
+    $wrapper.appendTo('body');
     createDataArray();
   });
 
@@ -15,7 +19,7 @@ describe('WalkontableScrollbarNative', function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $container.remove();
+    $wrapper.remove();
   });
 
   it("initial render should be no different than the redraw (vertical)", function () {
@@ -65,17 +69,17 @@ describe('WalkontableScrollbarNative', function () {
 
     var lastRenderedRow = wt.wtTable.getLastRenderedRow();
 
-    $container.scrollTop(50);
+    $(wt.wtTable.holder).scrollTop(50);
     wt.draw();
 
     expect(wt.wtTable.getLastRenderedRow()).toEqual(lastRenderedRow + 2);
   });
 
   it("should recognize the scrollHandler properly, even if the 'overflow' property is assigned in an external stylesheet", function () {
-    $container.css({
+    $wrapper.css({
       'overflow': ''
     });
-    $container.addClass('testOverflowAuto');
+    $wrapper.addClass('testOverflowHidden');
 
     createDataArray(20, 4);
     var wt = new Walkontable({
@@ -87,6 +91,6 @@ describe('WalkontableScrollbarNative', function () {
     wt.draw();
 
     wt.wtOverlays.topOverlay.scrollTo(3);
-    expect($container.scrollTop()).toEqual(69);
+    expect($(wt.wtTable.holder).scrollTop()).toEqual(69);
   });
 });

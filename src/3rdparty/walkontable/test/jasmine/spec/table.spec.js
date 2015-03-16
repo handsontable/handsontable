@@ -1,13 +1,17 @@
 describe('WalkontableTable', function () {
   var $table
     , $container
+    , $wrapper
     , debug = false;
 
   beforeEach(function () {
-    $container = $('<div></div>').css({'overflow': 'auto'});
-    $container.width(100).height(201);
+    $wrapper = $('<div></div>').css({'overflow': 'hidden', 'position': 'relative'});
+    $wrapper.width(100).height(201);
+    $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
-    $container.append($table).appendTo('body');
+    $wrapper.append($container);
+    $container.append($table);
+    $wrapper.appendTo('body');
     createDataArray();
   });
 
@@ -16,7 +20,7 @@ describe('WalkontableTable', function () {
       $('.wtHolder').remove();
     }
 
-    $container.remove()
+    $wrapper.remove();
   });
 
   it("should create as many rows as fits in height", function () {
@@ -149,7 +153,7 @@ describe('WalkontableTable', function () {
 
   it("getCoords should return coords of TD (with row header)", function () {
 
-    $container.width(300);
+    $wrapper.width(300);
 
     function plusOne(i) {
       return i + 1;
@@ -263,7 +267,7 @@ describe('WalkontableTable', function () {
     expect($table.find('thead tr:first').children().length).toBe(2);
     expect($table.find('tbody tr:first').children().length).toBe(2);
 
-    $container.width(200);
+    $wrapper.width(200);
     wt.draw();
     expect($table.find('thead tr:first').children().length).toBe(4);
     expect($table.find('tbody tr:first').children().length).toBe(4);
@@ -286,7 +290,7 @@ describe('WalkontableTable', function () {
     expect($table.find('thead tr:first').children().length).toBe(2);
     expect($table.find('tbody tr:first').children().length).toBe(2);
 
-    $container.width(200);
+    $wrapper.width(200);
     wt.draw();
     expect($table.find('thead tr:first').children().length).toBe(4);
     expect($table.find('tbody tr:first').children().length).toBe(4);
@@ -311,7 +315,7 @@ describe('WalkontableTable', function () {
 
   it("should use column width function to get column width", function () {
 
-    $container.width(600);
+    $wrapper.width(600);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -337,7 +341,7 @@ describe('WalkontableTable', function () {
 
   it("should use column width array to get column width", function () {
 
-    $container.width(600);
+    $wrapper.width(600);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -361,7 +365,7 @@ describe('WalkontableTable', function () {
 
   it("should use column width integer to get column width", function () {
 
-    $container.width(600);
+    $wrapper.width(600);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -386,7 +390,7 @@ describe('WalkontableTable', function () {
   it("should use column width also when there are no rows", function () {
     this.data.length = 0;
 
-    $container.width(600);
+    $wrapper.width(600);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -547,7 +551,7 @@ describe('WalkontableTable', function () {
     it("should stretch all visible columns when stretchH equals 'all'", function () {
         createDataArray(20, 2);
 
-      $container.width(500).height(400);
+      $wrapper.width(500).height(400);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -561,14 +565,14 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      expect($table.outerWidth()).toBeAroundValue($container[0].clientWidth);
+      expect($table.outerWidth()).toBeAroundValue(wt.wtTable.holder.clientWidth);
       expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
     });
 
     it("should stretch all visible columns when stretchH equals 'all' and window is resized", function () {
       createDataArray(20, 2);
 
-      $container.width(500).height(400);
+      $wrapper.width(500).height(400);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -585,7 +589,7 @@ describe('WalkontableTable', function () {
       var initialTableWidth = $table.outerWidth();
       expect(initialTableWidth).toBeAroundValue($table[0].clientWidth);
 
-      $container.width(600).height(500);
+      $wrapper.width(600).height(500);
 
       var evt = document.createEvent('CustomEvent');  // MUST be 'CustomEvent'
       evt.initCustomEvent('resize', false, false, null);
@@ -607,8 +611,8 @@ describe('WalkontableTable', function () {
         }
       }
 
-      $container.width(300);
-      $container.css({
+      $wrapper.width(300);
+      $wrapper.css({
         "overflow": "hidden"
       });
 
@@ -621,7 +625,7 @@ describe('WalkontableTable', function () {
       });
       wt.draw();
 
-      var expectedColWidth = (300 / 2);
+      var expectedColWidth = ((300 - Handsontable.Dom.getScrollbarWidth()) / 2);
       expectedColWidth = Math.floor(expectedColWidth);
 
       var wtHider = $table.parents('.wtHider');
@@ -632,7 +636,7 @@ describe('WalkontableTable', function () {
     it("should stretch last visible column when stretchH equals 'last'", function () {
       createDataArray(20, 2);
 
-      $container.width(300).height(201);
+      $wrapper.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -654,7 +658,7 @@ describe('WalkontableTable', function () {
     it("should stretch last visible column when stretchH equals 'last' (and no vertical scroll)", function () {
       createDataArray(2, 2);
 
-      $container.width(300).height(201);
+      $wrapper.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -675,7 +679,7 @@ describe('WalkontableTable', function () {
 
     it("should not stretch when stretchH equals 'none'", function () {
       createDataArray(20, 2);
-      $container.width(300).height(201);
+      $wrapper.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -690,7 +694,7 @@ describe('WalkontableTable', function () {
       wt.draw();
 
       var wtHider = $table.parents('.wtHider');
-      expect($table.width()).toBeLessThan($container.width());
+      expect($table.width()).toBeLessThan($wrapper.width());
       expect($table.find('col:eq(1)').width()).toBe($table.find('col:eq(2)').width());
     });
 
@@ -700,7 +704,7 @@ describe('WalkontableTable', function () {
     it('should be false because it is only partially visible', function () {
       createDataArray(8, 4);
 
-      $container.width(185).height(175);
+      $wrapper.width(185).height(175);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -716,7 +720,7 @@ describe('WalkontableTable', function () {
     it('should be true because it is fully visible', function () {
       createDataArray(8, 4);
 
-      $container.width(185).height(185);
+      $wrapper.width(185).height(185);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -736,7 +740,7 @@ describe('WalkontableTable', function () {
     it('should be false because it is only partially visible', function () {
       createDataArray(18, 4);
 
-      $container.width(209).height(185);
+      $wrapper.width(209).height(185);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -752,7 +756,7 @@ describe('WalkontableTable', function () {
     it('should be true because it is fully visible', function () {
       createDataArray(18, 4);
 
-      $container.width(180).height(185);
+      $wrapper.width(180).height(185);
 
       var wt = new Walkontable({
         table: $table[0],

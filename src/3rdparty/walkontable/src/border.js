@@ -385,8 +385,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.cornerStyle.display = 'block';
 
     if (toColumn === this.instance.getSetting('totalColumns') - 1) {
-      var mainTableScrollableElement = Handsontable.Dom.getScrollableElement(instance.wtTable.TABLE),
-        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(mainTableScrollableElement);
+      var trimmingContainer = Handsontable.Dom.getTrimmingContainer(instance.wtTable.TABLE),
+        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(trimmingContainer);
 
       if (cornerOverlappingContainer) {
         this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";

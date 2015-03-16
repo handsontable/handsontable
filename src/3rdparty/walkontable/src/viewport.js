@@ -85,9 +85,9 @@ WalkontableViewport.prototype.getContainerFillWidth = function() {
       fillWidth,
       dummyElement;
 
-  while(mainContainer.parentNode != document.body && mainContainer.parentNode != null && mainContainer.className.indexOf('handsontable') === -1) {
-    mainContainer = mainContainer.parentNode;
-  }
+  //while(mainContainer.parentNode != document.body && mainContainer.parentNode != null && mainContainer.className.indexOf('handsontable') === -1) {
+  //  mainContainer = mainContainer.parentNode;
+  //}
 
   dummyElement = document.createElement("DIV");
   dummyElement.style.width = "100%";
@@ -246,6 +246,10 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
     var fixedColumnsWidth = this.instance.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
     pos += fixedColumnsWidth;
     width -= fixedColumnsWidth;
+  }
+
+  if(this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth) {
+    width -= Handsontable.Dom.getScrollbarWidth();
   }
 
   var that = this;

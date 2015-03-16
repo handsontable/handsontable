@@ -37,8 +37,6 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
 
   var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
   elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
-
-  //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
 };
 
 WalkontableTopOverlay.prototype.getScrollPosition = function () {
@@ -82,19 +80,7 @@ WalkontableTopOverlay.prototype.applyToDOM = function () {
 
   this.clone.wtTable.hider.style.width = this.hider.style.width;
 
-  //debugger;
   this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
-
-
-
-  //this.clone.wtTable.hider.style.height = totalEstimatedHeight;
-  //this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
-
-  //debugger;
-
-  //TODO: Remove after refactoring
-  //this.holder.style.height = headerSize + this.sumCellSizes(0, total) +  'px';
-
 
   if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
     this.spreader.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';
@@ -125,7 +111,14 @@ WalkontableTopOverlay.prototype.syncOverlayOffset = function () {
  * @param bottomEdge {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableTopOverlay.prototype.scrollTo = function (sourceRow, bottomEdge) {
-  var newY = this.getTableParentOffset();
+  var newY = this.getTableParentOffset(),
+    sourceInstance = this.instance.cloneSource ? this.instance.cloneSource : this.instance,
+    mainHolder = sourceInstance.wtTable.holder,
+    scrollbarCompensation = 0;
+
+  if(bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
+    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+  }
 
   if (bottomEdge) {
     newY += this.sumCellSizes(0, sourceRow + 1);
@@ -137,6 +130,8 @@ WalkontableTopOverlay.prototype.scrollTo = function (sourceRow, bottomEdge) {
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     newY += this.sumCellSizes(fixedRowsTop, sourceRow);
   }
+
+  newY += scrollbarCompensation;
 
   this.setScrollPosition(newY);
 };

@@ -24,11 +24,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
   var that = this;
   this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
 
-
-
   this.refreshAll = function refreshAll() {
-    //console.log('refresh all');
-
     if(!that.instance.drawn) {
       return;
     }
@@ -51,21 +47,14 @@ WalkontableOverlays.prototype.registerListeners = function () {
     that.refreshAll.call(that);
   });
 
-  //if (this.topOverlay.trimmingContainer !== this.leftOverlay.trimmingContainer) {
-  //  eventManager.addEventListener(this.leftOverlay.trimmingContainer, 'scroll', this.refreshAll);
-  //}
-
-
 
   eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', function (e) {
     that.syncScrollPositions.call(that, e);
   });
+
   eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', function (e) {
     that.syncScrollPositions.call(that, e);
   });
-  //eventManager.addEventListener(this.topOverlay.mainTableScrollableElement, 'scroll', function (e) {
-  //  that.syncScrollPositions.call(that, e);
-  //});
 
   if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
     eventManager.addEventListener(window,'scroll', this.refreshAll);
@@ -83,6 +72,14 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e) {
     master = this.topOverlay.mainTableScrollableElement,
     topOverlay = this.topOverlay.clone.wtTable.holder,
     leftOverlay = this.leftOverlay.clone.wtTable.holder;
+
+  // If the overlay holder doesn't have assigned width/height yet, reapply it's DOM properties
+  if(leftOverlay.style.height === "" && target.scrollTop !== 0) {
+    this.leftOverlay.applyToDOM();
+  }
+  if(topOverlay.style.width === "" && target.scrollLeft !== 0) {
+    this.topOverlay.applyToDOM();
+  }
 
   if (target === master) {
     topOverlay.scrollLeft = target.scrollLeft;

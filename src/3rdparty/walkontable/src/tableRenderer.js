@@ -67,7 +67,7 @@ WalkontableTableRenderer.prototype.render = function () {
 
     this.instance.wtViewport.createVisibleCalculators();
 
-    //this.instance.wtOverlays.applyToDOM();
+    this.instance.wtOverlays.applyToDOM();
 
     this.instance.wtOverlays.refresh(false);
 
@@ -255,9 +255,19 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, c
 };
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (columnsToRender) {
-  var width;
+  var width,
+    rowsCalculator = this.instance.wtViewport.rowsRenderCalculator,
+    scrollbarCompensation = 0,
+    sourceInstance = this.instance.cloneSource ? this.instance.cloneSource : this.instance,
+    mainHolder = sourceInstance.wtTable.holder,
+    trimmingContainer = Handsontable.Dom.getTrimmingContainer(sourceInstance.wtTable.TABLE);
 
-  this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
+  if(mainHolder.offsetHeight < mainHolder.scrollHeight) {
+    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+  }
+
+  this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth() - scrollbarCompensation);
+  //this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
 
   for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
     width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));

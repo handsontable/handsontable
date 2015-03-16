@@ -17,27 +17,6 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  //if (this.mainTableScrollableElement === window) {
-  //
-  //  var box = this.instance.wtTable.holder.getBoundingClientRect();
-  //  var left = Math.ceil(box.left);
-  //  var right = Math.ceil(box.right);
-  //
-  //  if (left < 0 && (right - elem.offsetWidth) > 0) {
-  //    finalLeft = -left + 'px';
-  //  } else {
-  //    finalLeft = '0';
-  //  }
-  //
-  //  finalTop = this.instance.wtTable.hider.style.top;
-  //}
-  //else if(!Handsontable.freezeOverlays) {
-  //  finalLeft = this.getScrollPosition() + "px";
-  //  finalTop = this.instance.wtTable.hider.style.top;
-  //}
-
-  //Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
-
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
     elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - Handsontable.Dom.getScrollbarWidth() + 'px';
   } else {
@@ -57,9 +36,6 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
 
     Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
-
-  //TODO: Remove after refactoring
-  //elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
 
   var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
   elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
@@ -100,20 +76,20 @@ WalkontableLeftOverlay.prototype.sumCellSizes = function (from, length) {
  * Adjust the overlay dimensions and position
  */
 WalkontableLeftOverlay.prototype.applyToDOM = function () {
-  var total = this.instance.getSetting('totalColumns');
-  var headerSize = this.instance.wtViewport.getRowHeaderWidth();
+  var total = this.instance.getSetting('totalColumns'),
+    headerSize = this.instance.wtViewport.getRowHeaderWidth(),
+    cloneHolder = this.clone.wtTable.holder,
+    cloneHider = this.clone.wtTable.hider,
+    masterHider = this.hider,
+    cloneHolderParent = cloneHolder.parentNode;
 
+  masterHider.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
 
-  //debugger;
-  this.hider.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
-  this.clone.wtTable.holder.style.width = parseInt(this.holder.style.width,10) + Handsontable.Dom.getScrollbarWidth() + 'px';
+  cloneHolder.style.width = parseInt(cloneHolderParent.style.width,10) + Handsontable.Dom.getScrollbarWidth() + 'px';
 
-  this.clone.wtTable.hider.style.height = this.hider.style.height;
-  this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
+  cloneHider.style.height = masterHider.style.height;
 
-
-  //TODO: Remove after refactoring
-  //this.holder.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
+  cloneHolder.style.height = cloneHolderParent.style.height;
 
   if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
     this.spreader.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
@@ -142,7 +118,14 @@ WalkontableLeftOverlay.prototype.syncOverlayOffset = function () {
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableLeftOverlay.prototype.scrollTo = function (sourceCol, beyondRendered) {
-  var newX = this.getTableParentOffset();
+  var newX = this.getTableParentOffset(),
+    sourceInstance = this.instance.cloneSource ? this.instance.cloneSource : this.instance,
+    mainHolder = sourceInstance.wtTable.holder,
+    scrollbarCompensation = 0;
+
+  if(beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
+    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+  }
 
   if (beyondRendered) {
     newX += this.sumCellSizes(0, sourceCol + 1);
@@ -152,6 +135,8 @@ WalkontableLeftOverlay.prototype.scrollTo = function (sourceCol, beyondRendered)
     var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
     newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
+
+  newX += scrollbarCompensation;
 
   this.setScrollPosition(newX);
 };

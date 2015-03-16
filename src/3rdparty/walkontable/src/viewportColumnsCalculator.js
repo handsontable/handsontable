@@ -28,6 +28,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     if (!_this.stretchAllColumnsWidth[column]) {
       _this.stretchAllColumnsWidth[column] = Math.round(baseWidth * _this.stretchAllRatio);
     }
+
     if (_this.stretchAllColumnsWidth.length === totalColumns && _this.needVerifyLastColumnWidth) {
       _this.needVerifyLastColumnWidth = false;
 
