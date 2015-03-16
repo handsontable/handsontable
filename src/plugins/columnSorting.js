@@ -24,6 +24,7 @@ function HandsontableColumnSorting() {
       } else {
         sortingColumn = sortingSettings.column;
         sortingOrder = sortingSettings.sortOrder;
+        instance.sortFunction = sortingSettings.sortFunction;
       }
       plugin.sortByColumn.call(instance, sortingColumn, sortingOrder);
 
@@ -71,7 +72,7 @@ function HandsontableColumnSorting() {
 
   };
 
-  this.sortByColumn = function (col, order) {
+  this.sortByColumn = function (col, order, optionalCtrlKey) {
     var instance = this;
 
     plugin.setSortingColumn.call(instance, col, order);
@@ -80,7 +81,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    Handsontable.hooks.run(instance, 'beforeColumnSort', instance.sortColumn, instance.sortOrder);
+    Handsontable.hooks.run(instance, 'beforeColumnSort', instance.sortColumn, instance.sortOrder, optionalCtrlKey);
 
     plugin.sort.call(instance);
     instance.render();
@@ -124,7 +125,7 @@ function HandsontableColumnSorting() {
     eventManager.addEventListener(instance.rootElement, 'click', function (e){
       if(Handsontable.Dom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
-        plugin.sortByColumn.call(instance, col);
+        plugin.sortByColumn.call(instance, col, undefined, e.ctrlKey);
       }
     });
 
@@ -219,12 +220,17 @@ function HandsontableColumnSorting() {
 
     var colMeta = instance.getCellMeta(0, instance.sortColumn);
     var sortFunction;
-    switch (colMeta.type) {
-      case 'date':
-        sortFunction = dateSort;
-        break;
-      default:
-        sortFunction = defaultSort;
+    if (instance.sortFunction) {
+      sortFunction = instance.sortFunction;
+    }
+    else {
+      switch (colMeta.type) {
+        case 'date':
+          sortFunction = dateSort;
+          break;
+        default:
+          sortFunction = defaultSort;
+      }
     }
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
