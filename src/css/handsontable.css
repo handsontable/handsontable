@@ -409,6 +409,10 @@ AutocompleteRenderer down arrow
   color: #777;
 }
 
+.handsontable td.area .htAutocompleteArrow {
+  color: #d3d3d3;
+}
+
 /*
 CheckboxRenderer
 */
