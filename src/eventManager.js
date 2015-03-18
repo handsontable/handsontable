@@ -5,18 +5,6 @@ if(!window.Handsontable){
 
 Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
 
-// Polymer/Webcomponents polyfills
-if (typeof unwrap === 'undefined') {
-  var unwrap = function unwrap(el) {
-    return el;
-  };
-}
-if (typeof wrap === 'undefined') {
-  var wrap = function wrap(el) {
-    return el;
-  };
-}
-
 Handsontable.eventManager = function (instance) {
   var
     addEvent,
@@ -43,7 +31,8 @@ Handsontable.eventManager = function (instance) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
-      var target;
+      var isHotTableSpotted = false,
+        target, len;
 
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
@@ -67,17 +56,32 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      event.realTarget = event.target;
       event.isTargetWebComponent = false;
-      target = event.path && event.path.length ? event.path[0] : event.target;
 
-      if (Handsontable.Dom.isChildOfWebComponentTable(target)) {
-        event.realTarget = wrap(event.realTarget);
+      if (Handsontable.eventManager.isHotTableEnv) {
+        event = typeof wrap === 'undefined' ? event : wrap(event);
+        len = event.path ? event.path.length : 0;
+
+        while (len --) {
+          if (event.path[len].nodeName === 'HOT-TABLE') {
+            isHotTableSpotted = true;
+
+          } else if (isHotTableSpotted && event.path[len].shadowRoot) {
+            target = event.path[len];
+          }
+          if (len === 0 && !target) {
+            target = event.path[len];
+          }
+        }
+        if (!target) {
+          target = event.target;
+        }
         event.isTargetWebComponent = true;
 
         Object.defineProperty(event, 'target', {
           get: function() {
-            return wrap(target);
+            // Wrap element into polymer/webcomponent container if exists
+            return typeof wrap === 'undefined' ? target : wrap(target);
           },
           enumerable: true,
           configurable: true
