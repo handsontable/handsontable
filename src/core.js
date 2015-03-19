@@ -44,6 +44,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
+  this.isHotTableEnv = Handsontable.Dom.isChildOfWebComponentTable(this.rootElement);
+  Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
   this.container.className = 'htContainer';
@@ -3322,6 +3324,7 @@ DefaultSettings.prototype = {
   title: void 0,
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
-  format: void 0
+  format: void 0,
+  className: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
