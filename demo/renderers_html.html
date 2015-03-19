@@ -16,8 +16,11 @@
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
+  <script src="js/moment/moment.js"></script>
+  <script src="js/pikaday/pikaday.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="js/pikaday/css/pikaday.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -398,6 +401,7 @@
               }
             });
             TH.firstChild.appendChild(button);
+            TH.style['white-space'] = 'normal';
           },
           cells: function (row, col, prop) {
             var cellProperties;
@@ -454,7 +458,12 @@
 
           for (var i = 0, len = types.length; i< len; i++) {
             item = document.createElement('LI');
-            item.innerText = types[i];
+            if('innerText' in item) {
+              item.innerText = types[i];
+            } else {
+              item.textContent = types[i];
+            }
+
             item.data = {'colType': types[i]};
 
             if (activeCellType == types[i]) {

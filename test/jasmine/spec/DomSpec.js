@@ -269,4 +269,41 @@ describe('Handsontable.Dom', function () {
     });
   });
 
+  //
+  // Handsontable.Dom.isChildOfWebComponentTable
+  //
+  describe('isChildOfWebComponentTable', function() {
+    it("should return correct Boolean value depending on whether an element exists in `hot-table` or not", function () {
+      // skip if browser not support Shadow DOM natively
+      if (!document.createElement('div').createShadowRoot) {
+        return;
+      }
+      var hotTable = document.createElement('hot-table');
+      var outsideDiv = document.createElement('div');
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(hotTable)).toBe(true);
+      expect(Handsontable.Dom.isChildOfWebComponentTable(outsideDiv)).toBe(false);
+
+      var hotTableDiv = document.createElement('div');
+      hotTable.appendChild(hotTableDiv);
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(hotTableDiv)).toBe(true);
+
+      var fragment = document.createDocumentFragment();
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(fragment)).toBe(false);
+
+      var myElement = document.createElement('my-element');
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(myElement)).toBe(false);
+
+      var shadowRoot = myElement.createShadowRoot();
+      var insideDiv = shadowRoot.appendChild(document.createElement('div'));
+      hotTable.createShadowRoot().appendChild(myElement);
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(myElement)).toBe(true);
+      expect(Handsontable.Dom.isChildOfWebComponentTable(insideDiv)).toBe(true);
+    });
+  });
+
 });

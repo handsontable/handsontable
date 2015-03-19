@@ -1,12 +1,13 @@
 /*!
- * Handsontable 0.13.0
+ * Handsontable 0.13.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
- * Copyright 2012-2015 Marcin Warpechowski
+ * Copyright (c) 2012-2014 Marcin Warpechowski
+ * Copyright (c) 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 09 2015 12:16:05 GMT+0100 (CET)
+ * Date: Thu Mar 19 2015 15:05:12 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -289,6 +290,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
+  this.isHotTableEnv = Handsontable.Dom.isChildOfWebComponentTable(this.rootElement);
+  Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
   this.container.className = 'htContainer';
@@ -2641,7 +2644,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    *
    * @type {String}
    */
-  this.version = '0.13.0'; //inserted by grunt from package.json
+  this.version = '0.13.1'; //inserted by grunt from package.json
 };
 
 /**
@@ -3567,7 +3570,8 @@ DefaultSettings.prototype = {
   title: void 0,
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
-  format: void 0
+  format: void 0,
+  className: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -3690,22 +3694,8 @@ Handsontable.Dom.isChildOf = function (child, parent) {
   return false;
 };
 
-
-// Polymer/Webcomponents polyfills
-if (typeof unwrap === 'undefined') {
-  var unwrap = function unwrap(el) {
-    return el;
-  };
-}
-if (typeof wrap === 'undefined') {
-  var wrap = function wrap(el) {
-    return el;
-  };
-}
-
 /**
  * Check if an element is part of `hot-table` web component.
- * If an element which is child of another web component was found then returns `false`.
  *
  * @param {Element} element
  * @returns {Boolean}
@@ -3715,8 +3705,8 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
     result = false,
     parentNode;
 
-  // Wrap element into polymer/webcomponent container
-  parentNode = wrap(element);
+  // Wrap element into polymer/webcomponent container if exists
+  parentNode = typeof wrap === 'undefined' ? element : wrap(element);
 
   function isHotTable(element) {
     return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
@@ -3727,9 +3717,13 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
       result = true;
       break;
     }
-    else if (parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       result = isHotTable(parentNode.host);
-      break;
+
+      if (result) {
+        break;
+      }
+      parentNode = parentNode.host;
     }
     parentNode = parentNode.parentNode;
   }
@@ -3885,19 +3879,15 @@ Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
 
   function extractElement(element) {
-    /* global ShadowDOMPolyfill */
-    if (typeof ShadowDOMPolyfill !== 'undefined' && ShadowDOMPolyfill.unwrapIfNeeded) {
-      return ShadowDOMPolyfill.unwrapIfNeeded(element);
-    }
-
-    return element;
+    // Wrap element into polymer/webcomponent container if exists
+    return typeof unwrap === 'undefined' ? element : unwrap(element);
   }
 
   while (extractElement(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
+    else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { //this is Web Components Shadow DOM
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
@@ -3920,6 +3910,7 @@ Handsontable.Dom.isVisible = function (elem) {
     }
     next = next.parentNode;
   }
+
   return true;
 };
 
@@ -4286,18 +4277,6 @@ if(!window.Handsontable){
 
 Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
 
-// Polymer/Webcomponents polyfills
-if (typeof unwrap === 'undefined') {
-  var unwrap = function unwrap(el) {
-    return el;
-  };
-}
-if (typeof wrap === 'undefined') {
-  var wrap = function wrap(el) {
-    return el;
-  };
-}
-
 Handsontable.eventManager = function (instance) {
   var
     addEvent,
@@ -4324,7 +4303,8 @@ Handsontable.eventManager = function (instance) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
-      var target;
+      var isHotTableSpotted = false,
+        target, len;
 
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
@@ -4348,17 +4328,32 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      event.realTarget = event.target;
       event.isTargetWebComponent = false;
-      target = event.path && event.path.length ? event.path[0] : event.target;
 
-      if (Handsontable.Dom.isChildOfWebComponentTable(target)) {
-        event.realTarget = wrap(event.realTarget);
+      if (Handsontable.eventManager.isHotTableEnv) {
+        event = typeof wrap === 'undefined' ? event : wrap(event);
+        len = event.path ? event.path.length : 0;
+
+        while (len --) {
+          if (event.path[len].nodeName === 'HOT-TABLE') {
+            isHotTableSpotted = true;
+
+          } else if (isHotTableSpotted && event.path[len].shadowRoot) {
+            target = event.path[len];
+          }
+          if (len === 0 && !target) {
+            target = event.path[len];
+          }
+        }
+        if (!target) {
+          target = event.target;
+        }
         event.isTargetWebComponent = true;
 
         Object.defineProperty(event, 'target', {
           get: function() {
-            return wrap(target);
+            // Wrap element into polymer/webcomponent container if exists
+            return typeof wrap === 'undefined' ? target : wrap(target);
           },
           enumerable: true,
           configurable: true
@@ -5080,271 +5075,262 @@ Handsontable.TableView.prototype.destroy = function () {
    * @class Handsontable.EditorManager
    */
   Handsontable.EditorManager = function(instance, priv, selection){
-    var that = this;
-    var keyCodes = Handsontable.helper.keyCode;
-    var destroyed = false;
+    var _this = this,
+      keyCodes = Handsontable.helper.keyCode,
+      destroyed = false,
+      eventManager,
+      activeEditor;
 
-    var eventManager = Handsontable.eventManager(instance);
+    eventManager = Handsontable.eventManager(instance);
 
-    var activeEditor;
+    function moveSelectionAfterEnter(shiftKey) {
+      var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
-    var init = function () {
+      if (shiftKey) {
+        // move selection up
+        selection.transformStart(- enterMoves.row, - enterMoves.col);
 
-      function onKeyDown(event) {
+      }  else {
+        // move selection down (add a new row if needed)
+        selection.transformStart(enterMoves.row, enterMoves.col, true);
+      }
+    }
 
-        if (!instance.isListening()) {
+    function moveSelectionUp(shiftKey) {
+      if (shiftKey) {
+        selection.transformEnd(-1, 0);
+      } else {
+        selection.transformStart(-1, 0);
+      }
+    }
+
+    function moveSelectionDown(shiftKey) {
+      if (shiftKey) {
+        // expanding selection down with shift
+        selection.transformEnd(1, 0);
+      } else {
+        // move selection down
+        selection.transformStart(1, 0);
+      }
+    }
+
+    function moveSelectionRight(shiftKey) {
+      if (shiftKey) {
+        selection.transformEnd(0, 1);
+      } else {
+        selection.transformStart(0, 1);
+      }
+    }
+
+    function moveSelectionLeft(shiftKey) {
+      if (shiftKey) {
+        selection.transformEnd(0, -1);
+      }
+      else {
+        selection.transformStart(0, -1);
+      }
+    }
+
+    function onKeyDown(event) {
+      var ctrlDown, rangeModifier;
+
+      if (!instance.isListening()) {
+        return;
+      }
+      Handsontable.hooks.run(instance, 'beforeKeyDown', event);
+
+      if (destroyed) {
+        return;
+      }
+      Handsontable.Dom.enableImmediatePropagation(event);
+
+      if (event.isImmediatePropagationStopped()) {
+        return;
+      }
+      priv.lastKeyCode = event.keyCode;
+
+      if (!selection.isSelected()) {
+        return;
+      }
+      // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+      ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+
+      if (activeEditor && !activeEditor.isWaiting()) {
+        if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+          _this.openEditor("", event);
+
           return;
-        }
-
-        Handsontable.hooks.run(instance, 'beforeKeyDown', event);
-
-        if(destroyed) {
-          return;
-        }
-
-        Handsontable.Dom.enableImmediatePropagation(event);
-
-        if (!event.isImmediatePropagationStopped()) {
-
-          priv.lastKeyCode = event.keyCode;
-          if (selection.isSelected()) {
-            var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
-            if (!activeEditor.isWaiting()) {
-              if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-                that.openEditor("", event);
-                return;
-              }
-            }
-
-            var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
-
-              switch (event.keyCode) {
-
-                case keyCodes.A:
-                  if (ctrlDown) {
-                    selection.selectAll(); //select all cells
-
-                    event.preventDefault();
-                    Handsontable.helper.stopPropagation(event);
-                    //event.stopPropagation();
-                  }
-                  break;
-
-                case keyCodes.ARROW_UP:
-
-                  if (that.isEditorOpened() && !activeEditor.isWaiting()){
-                    that.closeEditorAndSaveChanges(ctrlDown);
-                  }
-
-                  moveSelectionUp(event.shiftKey);
-
-                  event.preventDefault();
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.ARROW_DOWN:
-                  if (that.isEditorOpened() && !activeEditor.isWaiting()){
-                    that.closeEditorAndSaveChanges(ctrlDown);
-                  }
-
-                  moveSelectionDown(event.shiftKey);
-
-                  event.preventDefault();
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.ARROW_RIGHT:
-                  if(that.isEditorOpened()  && !activeEditor.isWaiting()){
-                    that.closeEditorAndSaveChanges(ctrlDown);
-                  }
-
-                  moveSelectionRight(event.shiftKey);
-
-                  event.preventDefault();
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.ARROW_LEFT:
-                  if(that.isEditorOpened() && !activeEditor.isWaiting()){
-                    that.closeEditorAndSaveChanges(ctrlDown);
-                  }
-
-                  moveSelectionLeft(event.shiftKey);
-
-                  event.preventDefault();
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.TAB:
-                  var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
-                  if (event.shiftKey) {
-                    selection.transformStart(-tabMoves.row, -tabMoves.col); //move selection left
-                  }
-                  else {
-                    selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
-                  }
-                  event.preventDefault();
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.BACKSPACE:
-                case keyCodes.DELETE:
-                  selection.empty(event);
-                  that.prepareEditor();
-                  event.preventDefault();
-                  break;
-
-                case keyCodes.F2: /* F2 */
-                  that.openEditor(null, event);
-                  event.preventDefault(); //prevent Opera from opening Go to Page dialog
-                  break;
-
-                case keyCodes.ENTER: /* return/enter */
-                  if(that.isEditorOpened()){
-
-                    if (activeEditor.state !== Handsontable.EditorState.WAITING){
-                      that.closeEditorAndSaveChanges(ctrlDown);
-                    }
-
-                    moveSelectionAfterEnter(event.shiftKey);
-
-                  } else {
-
-                    if (instance.getSettings().enterBeginsEditing) {
-                      that.openEditor(null, event);
-                    } else {
-                      moveSelectionAfterEnter(event.shiftKey);
-                    }
-
-                  }
-
-                  event.preventDefault(); //don't add newline to field
-                  event.stopImmediatePropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.ESCAPE:
-                  if(that.isEditorOpened()){
-                    that.closeEditorAndRestoreOriginalValue(ctrlDown);
-                  }
-                  event.preventDefault();
-                  break;
-
-                case keyCodes.HOME:
-                  if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
-                  }
-                  else {
-                    rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
-                  }
-                  event.preventDefault(); //don't scroll the window
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.END:
-                  if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
-                  }
-                  else {
-                    rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
-                  }
-                  event.preventDefault(); //don't scroll the window
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.PAGE_UP:
-                  selection.transformStart(-instance.countVisibleRows(), 0);
-                  event.preventDefault(); //don't page up the window
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-
-                case keyCodes.PAGE_DOWN:
-                  selection.transformStart(instance.countVisibleRows(), 0);
-                  event.preventDefault(); //don't page down the window
-                  Handsontable.helper.stopPropagation(event);
-                  //event.stopPropagation(); //required by HandsontableEditor
-                  break;
-              }
-
-          }
         }
       }
+      rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
 
-      instance.addHook('afterDocumentKeyDown', function(originalEvent){
-        onKeyDown(originalEvent);
-      });
+      switch (event.keyCode) {
 
-      eventManager.addEventListener(document.documentElement, 'keydown', function (ev){
-        instance.runHooks('afterDocumentKeyDown', ev);
+        case keyCodes.A:
+          if (ctrlDown) {
+            selection.selectAll(); //select all cells
+
+            event.preventDefault();
+            Handsontable.helper.stopPropagation(event);
+            //event.stopPropagation();
+          }
+          break;
+
+        case keyCodes.ARROW_UP:
+          if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()){
+            _this.closeEditorAndSaveChanges(ctrlDown);
+          }
+          moveSelectionUp(event.shiftKey);
+
+          event.preventDefault();
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.ARROW_DOWN:
+          if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()){
+            _this.closeEditorAndSaveChanges(ctrlDown);
+          }
+          moveSelectionDown(event.shiftKey);
+
+          event.preventDefault();
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.ARROW_RIGHT:
+          if(_this.isEditorOpened()  && activeEditor && !activeEditor.isWaiting()){
+            _this.closeEditorAndSaveChanges(ctrlDown);
+          }
+          moveSelectionRight(event.shiftKey);
+
+          event.preventDefault();
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.ARROW_LEFT:
+          if(_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()){
+            _this.closeEditorAndSaveChanges(ctrlDown);
+          }
+          moveSelectionLeft(event.shiftKey);
+
+          event.preventDefault();
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.TAB:
+          var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
+
+          if (event.shiftKey) {
+            selection.transformStart(-tabMoves.row, -tabMoves.col); //move selection left
+          }
+          else {
+            selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
+          }
+          event.preventDefault();
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.BACKSPACE:
+        case keyCodes.DELETE:
+          selection.empty(event);
+          _this.prepareEditor();
+          event.preventDefault();
+          break;
+
+        case keyCodes.F2: /* F2 */
+          _this.openEditor(null, event);
+          event.preventDefault(); //prevent Opera from opening Go to Page dialog
+          break;
+
+        case keyCodes.ENTER: /* return/enter */
+          if(_this.isEditorOpened()){
+
+            if (activeEditor && activeEditor.state !== Handsontable.EditorState.WAITING){
+              _this.closeEditorAndSaveChanges(ctrlDown);
+            }
+            moveSelectionAfterEnter(event.shiftKey);
+
+          } else {
+            if (instance.getSettings().enterBeginsEditing) {
+              _this.openEditor(null, event);
+            } else {
+              moveSelectionAfterEnter(event.shiftKey);
+            }
+          }
+          event.preventDefault(); //don't add newline to field
+          event.stopImmediatePropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.ESCAPE:
+          if(_this.isEditorOpened()){
+            _this.closeEditorAndRestoreOriginalValue(ctrlDown);
+          }
+          event.preventDefault();
+          break;
+
+        case keyCodes.HOME:
+          if (event.ctrlKey || event.metaKey) {
+            rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
+          }
+          else {
+            rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
+          }
+          event.preventDefault(); //don't scroll the window
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.END:
+          if (event.ctrlKey || event.metaKey) {
+            rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          }
+          else {
+            rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          }
+          event.preventDefault(); //don't scroll the window
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.PAGE_UP:
+          selection.transformStart(-instance.countVisibleRows(), 0);
+          event.preventDefault(); //don't page up the window
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+
+        case keyCodes.PAGE_DOWN:
+          selection.transformStart(instance.countVisibleRows(), 0);
+          event.preventDefault(); //don't page down the window
+          Handsontable.helper.stopPropagation(event);
+          //event.stopPropagation(); //required by HandsontableEditor
+          break;
+      }
+    }
+
+    function init() {
+      instance.addHook('afterDocumentKeyDown', onKeyDown);
+
+      eventManager.addEventListener(document.documentElement, 'keydown', function (event) {
+        instance.runHooks('afterDocumentKeyDown', event);
       });
 
       function onDblClick(event, coords, elem) {
-        if(elem.nodeName == "TD") { //may be TD or TH
-          that.openEditor();
+        // may be TD or TH
+        if (elem.nodeName == "TD") {
+          _this.openEditor();
         }
       }
-
       instance.view.wt.update('onCellDblClick', onDblClick);
 
       instance.addHook('afterDestroy', function(){
         destroyed = true;
       });
-
-      function moveSelectionAfterEnter(shiftKey){
-        var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
-
-        if (shiftKey) {
-          selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
-        }
-        else {
-          selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
-        }
-      }
-
-      function moveSelectionUp(shiftKey){
-        if (shiftKey) {
-          selection.transformEnd(-1, 0);
-        }
-        else {
-          selection.transformStart(-1, 0);
-        }
-      }
-
-      function moveSelectionDown(shiftKey){
-        if (shiftKey) {
-          selection.transformEnd(1, 0); //expanding selection down with shift
-        }
-        else {
-          selection.transformStart(1, 0); //move selection down
-        }
-      }
-
-      function moveSelectionRight(shiftKey){
-        if (shiftKey) {
-          selection.transformEnd(0, 1);
-        }
-        else {
-          selection.transformStart(0, 1);
-        }
-      }
-
-      function moveSelectionLeft(shiftKey){
-        if (shiftKey) {
-          selection.transformEnd(0, -1);
-        }
-        else {
-          selection.transformStart(0, -1);
-        }
-      }
-    };
+    }
 
     /**
      * Destroy current editor, if exists.
@@ -5375,30 +5361,32 @@ Handsontable.TableView.prototype.destroy = function () {
      * @memberof! Handsontable.EditorManager#
      */
     this.prepareEditor = function () {
+      var row, col, prop, td, originalValue, cellProperties, editorClass;
 
-      if (activeEditor && activeEditor.isWaiting()){
-
-        this.closeEditor(false, false, function(dataSaved){
-          if(dataSaved){
-            that.prepareEditor();
+      if (activeEditor && activeEditor.isWaiting()) {
+        this.closeEditor(false, false, function(dataSaved) {
+          if (dataSaved) {
+            _this.prepareEditor();
           }
         });
 
         return;
       }
+      row = priv.selRange.highlight.row;
+      col = priv.selRange.highlight.col;
+      prop = instance.colToProp(col);
+      td = instance.getCell(row, col);
+      originalValue = instance.getDataAtCell(row, col);
+      cellProperties = instance.getCellMeta(row, col);
+      editorClass = instance.getCellEditor(cellProperties);
 
-      var row = priv.selRange.highlight.row;
-      var col = priv.selRange.highlight.col;
-      var prop = instance.colToProp(col);
-      var td = instance.getCell(row, col);
-      var originalValue = instance.getDataAtCell(row, col);
-      var cellProperties = instance.getCellMeta(row, col);
+      if (editorClass) {
+        activeEditor = Handsontable.editors.getEditor(editorClass, instance);
+        activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
 
-      var editorClass = instance.getCellEditor(cellProperties);
-      activeEditor = Handsontable.editors.getEditor(editorClass, instance);
-
-      activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
-
+      } else {
+        activeEditor = void 0;
+      }
     };
 
     /**
@@ -5409,7 +5397,7 @@ Handsontable.TableView.prototype.destroy = function () {
      * @returns {Boolean}
      */
     this.isEditorOpened = function () {
-      return activeEditor.isOpened();
+      return activeEditor && activeEditor.isOpened();
     };
 
     /**
@@ -5418,9 +5406,10 @@ Handsontable.TableView.prototype.destroy = function () {
      * @function openEditor
      * @memberof! Handsontable.EditorManager#
      * @param {String} initialValue
+     * @param {DOMEvent} event
      */
     this.openEditor = function (initialValue, event) {
-      if (!activeEditor.cellProperties.readOnly){
+      if (activeEditor && !activeEditor.cellProperties.readOnly) {
         activeEditor.beginEditing(initialValue, event);
       }
     };
@@ -5431,17 +5420,15 @@ Handsontable.TableView.prototype.destroy = function () {
      * @function closeEditor
      * @memberof! Handsontable.EditorManager#
      * @param {Boolean} restoreOriginalValue
-     * @param {Boolean} ctrlDown
-     * @param {Function} callback
+     * @param {Boolean} [ctrlDown]
+     * @param {Function} [callback]
      */
     this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
-
-      if (!activeEditor){
-        if(callback) {
+      if (!activeEditor) {
+        if (callback) {
           callback(false);
         }
-      }
-      else {
+      } else {
         activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
       }
     };
@@ -7085,17 +7072,16 @@ Handsontable.helper.pageY = function (event) {
 
   BaseEditor.prototype.extend = function(){
     var baseClass = this.constructor;
-    function Editor(){
+
+    function Editor() {
       baseClass.apply(this, arguments);
     }
-
-    function inherit(Child, Parent){
-      function Bridge() {
-      }
-
+    function inherit(Child, Parent) {
+      function Bridge() {}
       Bridge.prototype = Parent.prototype;
       Child.prototype = new Bridge();
       Child.prototype.constructor = Child;
+
       return Child;
     }
 
@@ -7103,16 +7089,18 @@ Handsontable.helper.pageY = function (event) {
   };
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
-    if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-      var sel = this.instance.getSelected()
-        , tmp;
+    var sel, tmp;
 
-      if(sel[0] > sel[2]) {
+    // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+    if (ctrlDown) {
+      sel = this.instance.getSelected();
+
+      if (sel[0] > sel[2]) {
         tmp = sel[0];
         sel[0] = sel[2];
         sel[2] = tmp;
       }
-      if(sel[1] > sel[3]) {
+      if (sel[1] > sel[3]) {
         tmp = sel[1];
         sel[1] = sel[3];
         sel[3] = tmp;
@@ -7129,21 +7117,19 @@ Handsontable.helper.pageY = function (event) {
     if (this.state != Handsontable.EditorState.VIRGIN) {
       return;
     }
-
     this.instance.view.scrollViewport(new WalkontableCellCoords(this.row, this.col));
     this.instance.view.render();
-
     this.state = Handsontable.EditorState.EDITING;
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
-
     this.setValue(Handsontable.helper.stringify(initialValue));
 
     this.open(event);
     this._opened = true;
     this.focus();
 
-    this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
+    // only rerender the selections (FillHandle should disappear when beginediting is triggered)
+    this.instance.view.render();
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
@@ -7182,15 +7168,16 @@ Handsontable.helper.pageY = function (event) {
       }
 
       if (this.instance.getSettings().trimWhitespace) {
+        // String.prototype.trim is defined in Walkontable polyfill.js
         val = [
-          [String.prototype.trim.call(this.getValue())] // String.prototype.trim is defined in Walkontable polyfill.js
+          // We trim only string values
+          [typeof this.getValue() === 'string' ? String.prototype.trim.call(this.getValue() || '') : this.getValue()]
         ];
       } else {
         val = [
           [this.getValue()]
         ];
       }
-
 
       this.state = Handsontable.EditorState.WAITING;
       this.saveValue(val, ctrlDown);
@@ -7222,8 +7209,8 @@ Handsontable.helper.pageY = function (event) {
       this.focus();
       this.state = Handsontable.EditorState.EDITING;
       this._fireCallbacks(false);
-    }
-    else {
+
+    } else {
       this.close();
       this._opened = false;
       this.state = Handsontable.EditorState.VIRGIN;
@@ -7969,7 +7956,7 @@ Handsontable.helper.pageY = function (event) {
     Handsontable.Dom.addClass(this.datePicker, 'htDatepickerHolder');
     document.body.appendChild(this.datePicker);
 
-    var htInput = this.instance.rootElement.querySelector('.handsontableInput');
+    var htInput = this.TEXTAREA;
 
     var defaultOptions = {
       format: that.defaultDateFormat,

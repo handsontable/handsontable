@@ -57,22 +57,8 @@ Handsontable.Dom.isChildOf = function (child, parent) {
   return false;
 };
 
-
-// Polymer/Webcomponents polyfills
-if (typeof unwrap === 'undefined') {
-  var unwrap = function unwrap(el) {
-    return el;
-  };
-}
-if (typeof wrap === 'undefined') {
-  var wrap = function wrap(el) {
-    return el;
-  };
-}
-
 /**
  * Check if an element is part of `hot-table` web component.
- * If an element which is child of another web component was found then returns `false`.
  *
  * @param {Element} element
  * @returns {Boolean}
@@ -82,8 +68,8 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
     result = false,
     parentNode;
 
-  // Wrap element into polymer/webcomponent container
-  parentNode = wrap(element);
+  // Wrap element into polymer/webcomponent container if exists
+  parentNode = typeof wrap === 'undefined' ? element : wrap(element);
 
   function isHotTable(element) {
     return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
@@ -94,9 +80,13 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
       result = true;
       break;
     }
-    else if (parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       result = isHotTable(parentNode.host);
-      break;
+
+      if (result) {
+        break;
+      }
+      parentNode = parentNode.host;
     }
     parentNode = parentNode.parentNode;
   }
@@ -252,19 +242,15 @@ Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
 
   function extractElement(element) {
-    /* global ShadowDOMPolyfill */
-    if (typeof ShadowDOMPolyfill !== 'undefined' && ShadowDOMPolyfill.unwrapIfNeeded) {
-      return ShadowDOMPolyfill.unwrapIfNeeded(element);
-    }
-
-    return element;
+    // Wrap element into polymer/webcomponent container if exists
+    return typeof unwrap === 'undefined' ? element : unwrap(element);
   }
 
   while (extractElement(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
+    else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { //this is Web Components Shadow DOM
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
@@ -287,6 +273,7 @@ Handsontable.Dom.isVisible = function (elem) {
     }
     next = next.parentNode;
   }
+
   return true;
 };
 
