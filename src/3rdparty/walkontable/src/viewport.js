@@ -190,7 +190,11 @@ WalkontableViewport.prototype.getViewportWidth = function () {
  */
 WalkontableViewport.prototype.createRowsCalculator = function (visible) {
   this.rowHeaderWidth = NaN;
-
+  
+  var zoom = this.instance.wtTable.instance.wtTable.holder.parentNode.parentNode.style.zoom;
+  if(zoom===""){
+    zoom = 1;
+  }
   var height;
   if (this.instance.wtSettings.settings.renderAllRows) {
     height = Infinity;
@@ -217,7 +221,7 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
     pos,
     this.instance.getSetting('totalRows'),
     function(sourceRow) {
-      return that.instance.wtTable.getRowHeight(sourceRow);
+      return that.instance.wtTable.getRowHeight(sourceRow)*zoom;
     },
     visible ? null : this.instance.wtSettings.settings.viewportRowCalculatorOverride,
     visible ? true : false
@@ -235,7 +239,13 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   this.columnHeaderHeight = NaN;
 
   var width = this.getViewportWidth();
-
+  
+  var zoom = this.instance.wtTable.instance.wtTable.holder.parentNode.parentNode.style.zoom;
+  
+  if(zoom===""){
+    zoom = 1;
+  }
+  
   var pos = this.instance.wtScrollbars.horizontal.getScrollPosition() - this.instance.wtScrollbars.vertical.getTableParentOffset();
   if (pos < 0) {
     pos = 0;
@@ -254,7 +264,7 @@ WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
     pos,
     this.instance.getSetting('totalColumns'),
     function (sourceCol) {
-      return that.instance.wtTable.getColumnWidth(sourceCol);
+      return that.instance.wtTable.getColumnWidth(sourceCol)*zoom;
     },
     visible ? null : this.instance.wtSettings.settings.viewportColumnCalculatorOverride,
     visible ? true : false,

@@ -48,7 +48,13 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollLeft(this.scrollHandler);
+  var zoom = this.parentContainer.style.zoom;
+  
+  if(zoom===""){
+    zoom = 1;
+  }
+  
+  return (Handsontable.Dom.getScrollLeft(this.scrollHandler)/zoom);  
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
@@ -76,11 +82,11 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
+  
+  this.fixedContainer.style.width = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // + // 'px';
 
-  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
-
-  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
-    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){    
+    this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition+ 'px';
   }
   else if (total === 0) {
     this.fixed.style.left = '0';
@@ -97,6 +103,10 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+  var zoom = this.parentContainer.style.zoom;
+  if(zoom===""){
+    zoom = 1;
+  }
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {
@@ -107,8 +117,8 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
     var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
     newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
-
-  this.setScrollPosition(newX);
+  
+  this.setScrollPosition((newX*zoom));
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {

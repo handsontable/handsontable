@@ -597,13 +597,26 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
    * Sets overlay position depending on it's type and used browser
    */
   Handsontable.Dom.setOverlayPosition = function (overlayElem, left, top) {
+    /**
+   * This modification can get the element parent and 
+   * check if the container div has zoom the row and col headers can be static on the master container.
+   * 
+   * this can make a excel view like a widget, that can be zoom in and zoom out 
+   */
+  var childContainer = overlayElem.parentNode;
+  var container = childContainer.parentNode;
+  var zoom =  $(container).css("zoom");
+  
+  left = Math.ceil(left.replace("px","")/zoom);
+  top = Math.ceil(top.replace("px","")/zoom);
     if (isIE8 || isIE9) {
       overlayElem.style.top = top;
       overlayElem.style.left = left;
     } else if (isSafari) {
-      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+      //add again the px in the translate
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + 'px,' + top + 'px,0)';
     } else {
-      overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
+      overlayElem.style['transform'] = 'translate3d(' + left + 'px,' + top + 'px,0)';
     }
   };
 

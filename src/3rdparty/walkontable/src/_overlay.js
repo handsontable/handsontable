@@ -17,6 +17,7 @@ WalkontableOverlay.prototype.init = function () {
   this.fixed = this.instance.wtTable.hider;
   this.fixedContainer = this.instance.wtTable.holder;
   this.scrollHandler = this.getScrollableElement(this.TABLE);
+  this.parentContainer = this.fixedContainer.parentNode.parentNode;//the parent container than have zoom
 };
 
 WalkontableOverlay.prototype.makeClone = function (direction) {

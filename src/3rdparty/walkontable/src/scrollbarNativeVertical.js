@@ -47,7 +47,11 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
 };
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollTop(this.scrollHandler);
+  var zoom = this.parentContainer.style.zoom;
+  if(zoom===""){
+    zoom = 1;
+  }
+  return (Handsontable.Dom.getScrollTop(this.scrollHandler)/zoom);
 };
 
 WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) {
@@ -76,17 +80,18 @@ WalkontableVerticalScrollbarNative.prototype.refresh = function (fastDraw) {
   WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
-//applyToDOM (in future merge it with this.refresh?)
+// applyToDOM (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-
-  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, total) +  'px';
+  
+  this.fixedContainer.style.height = (headerSize + this.sumCellSizes(0, total)) + 'px';// + 4 // +'px';
+  
   if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-    this.fixed.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';
+    this.fixed.style.top = (this.instance.wtViewport.rowsRenderCalculator.startPosition) + 'px';
   }
   else if (total === 0) {
-    this.fixed.style.top = '0'; //can happen if there are 0 rows
+    this.fixed.style.top = '0'; // can happen if there are 0 rows
   }
   else {
     throw new Error("Incorrect value of the rowsRenderCalculator");
@@ -101,8 +106,13 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
  * @param bottomEdge {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bottomEdge) {
+  var zoom = this.parentContainer.style.zoom;
+  if(zoom===""){
+    zoom = 1;
+  }
+  
   var newY = this.getTableParentOffset();
-
+  
   if (bottomEdge) {
     newY += this.sumCellSizes(0, sourceRow + 1);
     newY -= this.instance.wtViewport.getViewportHeight();
@@ -113,8 +123,7 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (sourceRow, bot
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     newY += this.sumCellSizes(fixedRowsTop, sourceRow);
   }
-
-  this.setScrollPosition(newY);
+  this.setScrollPosition((newY*zoom));
 };
 
 WalkontableVerticalScrollbarNative.prototype.getTableParentOffset = function () {
