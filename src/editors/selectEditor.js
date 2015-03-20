@@ -66,10 +66,8 @@
     switch (event.keyCode){
       case Handsontable.helper.keyCode.ARROW_UP:
 
-        var previousOption = editor.select.find('option:selected').prev();
-
-        if (previousOption.length == 1){
-          previousOption.prop('selected', true);
+        if (editor.select.selectedIndex > 0) {
+          editor.select.selectedIndex = editor.select.selectedIndex - 1;
         }
 
         event.stopImmediatePropagation();
@@ -78,10 +76,8 @@
 
       case Handsontable.helper.keyCode.ARROW_DOWN:
 
-        var nextOption = editor.select.find('option:selected').next();
-
-        if (nextOption.length == 1){
-          nextOption.prop('selected', true);
+        if (editor.select.selectedIndex < editor.select.options.length) {
+          editor.select.selectedIndex = editor.select.selectedIndex + 1;
         }
 
         event.stopImmediatePropagation();
