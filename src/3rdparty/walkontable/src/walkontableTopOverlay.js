@@ -14,10 +14,11 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
-  var elem = this.clone.wtTable.holder.parentNode;
+  var elem = this.clone.wtTable.holder.parentNode,
+    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? Handsontable.Dom.getScrollbarWidth() : 0;
 
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
-    elem.style.width = this.instance.wtViewport.getWorkspaceWidth() - Handsontable.Dom.getScrollbarWidth() + 'px';
+    elem.style.width = this.instance.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
   } else {
     var box = this.instance.wtTable.hider.getBoundingClientRect();
     var top = Math.ceil(box.top);
@@ -73,6 +74,7 @@ WalkontableTopOverlay.prototype.refresh = function (fastDraw) {
 WalkontableTopOverlay.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
+  var scrollbarWidth = Handsontable.Dom.getScrollbarWidth(true);
 
   var totalEstimatedHeight = headerSize + this.sumCellSizes(0, total) + 1 +  'px';
 
@@ -81,6 +83,8 @@ WalkontableTopOverlay.prototype.applyToDOM = function () {
   this.clone.wtTable.hider.style.width = this.hider.style.width;
 
   this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
+
+  this.clone.wtTable.holder.style.height = parseInt(this.clone.wtTable.holder.parentNode.style.height,10) + scrollbarWidth + 'px';
 
   if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
     this.spreader.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';

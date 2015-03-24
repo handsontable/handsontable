@@ -145,6 +145,8 @@
       modifyColumnOrder(modifiedColumn, col, null, 'freeze');
 
       addFixedColumn();
+
+      instance.view.wt.wtOverlays.leftOverlay.refresh();
     }
 
     /**
@@ -162,6 +164,8 @@
       checkPositionData(modifiedColumn);
       modifyColumnOrder(modifiedColumn, col, returnCol, 'unfreeze');
       removeFixedColumn();
+
+      instance.view.wt.wtOverlays.leftOverlay.refresh();
     }
 
     function getModifiedColumnIndex(col) {

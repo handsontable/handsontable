@@ -579,6 +579,8 @@
       }
     };
 
+    setRowHeightSettings(settings);
+
     var htContextMenu = new Handsontable(menu, settings);
 
     this.eventManager.removeEventListener(menu, 'mousedown');
@@ -1139,16 +1141,28 @@
 
     for (var i = 0; i < dataSize; i++) {
       if (this.getSettings().data[i].name == ContextMenu.SEPARATOR.name) {
-        realSeparatorHeight += 5;
+        realSeparatorHeight += 1;
       } else {
         realEntrySize += 26;
       }
     }
 
-    this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px"; //border
+    this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px";
     this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 5 + "px";
 
     /* jshint ignore:end */
+  }
+
+  function setRowHeightSettings(settingsObj) {
+    settingsObj.rowHeights = [];
+    for(var i = 0, dataLenght = settingsObj.data.length; i < dataLenght; i++) {
+      if (settingsObj.data[i].name == ContextMenu.SEPARATOR.name) {
+        settingsObj.rowHeights.push(1);
+      } else {
+        settingsObj.rowHeights.push(21);
+      }
+    }
+    return settingsObj;
   }
 
   function init() {
@@ -1169,14 +1183,6 @@
     }
   }
 
-  function updateRowHeightFn(walkontableConfig) {
-    // only for the context menu entries
-    /* jshint ignore:start */
-    if(this.contextMenu) {
-      return;
-    }
-    /* jshint ignore:end */
-  }
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);

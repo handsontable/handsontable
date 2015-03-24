@@ -15,10 +15,11 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
-  var elem = this.clone.wtTable.holder.parentNode;
+  var elem = this.clone.wtTable.holder.parentNode,
+    scrollbarHeight = this.instance.wtTable.holder.clientHeight !== this.instance.wtTable.holder.offsetHeight ? Handsontable.Dom.getScrollbarWidth() : 0;
 
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
-    elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - Handsontable.Dom.getScrollbarWidth() + 'px';
+    elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
   } else {
 
     var box = this.instance.wtTable.hider.getBoundingClientRect();
@@ -81,11 +82,12 @@ WalkontableLeftOverlay.prototype.applyToDOM = function () {
     cloneHolder = this.clone.wtTable.holder,
     cloneHider = this.clone.wtTable.hider,
     masterHider = this.hider,
-    cloneHolderParent = cloneHolder.parentNode;
+    cloneHolderParent = cloneHolder.parentNode,
+    scrollbarWidth = Handsontable.Dom.getScrollbarWidth(true);
 
-  masterHider.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
+  masterHider.style.width = headerSize + this.sumCellSizes(0, total) + 'px';
 
-  cloneHolder.style.width = parseInt(cloneHolderParent.style.width,10) + Handsontable.Dom.getScrollbarWidth() + 'px';
+  cloneHolder.style.width = parseInt(cloneHolderParent.style.width,10) + scrollbarWidth + 'px';
 
   cloneHider.style.height = masterHider.style.height;
 

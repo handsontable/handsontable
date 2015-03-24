@@ -595,10 +595,15 @@ Handsontable.Dom.removeEvent = function (element, event, callback) {
    * Returns the computed width of the native browser scroll bar
    * @return {Number} width
    */
-  Handsontable.Dom.getScrollbarWidth = function () {
+  Handsontable.Dom.getScrollbarWidth = function (mockWidth) {
     if (cachedScrollbarWidth === void 0) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
+
+    if(mockWidth && cachedScrollbarWidth === 0) {
+      return 30;
+    }
+
     return cachedScrollbarWidth;
   };
 

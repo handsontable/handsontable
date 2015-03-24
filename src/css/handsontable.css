@@ -549,6 +549,7 @@ Comment For Cell
   display: none;
   position: absolute;
   z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
+  overflow: hidden;
 }
 
 .htContextMenu .ht_clone_top,
@@ -842,10 +843,18 @@ thead .htCollapseButton:after {
   overflow: hidden;
 }
 
-.ht_master .wtHolder,
-.ht_clone_left .wtHolder,
-.ht_clone_top .wtHolder {
+.ht_master .wtHolder {
   overflow: auto;
+}
+
+.ht_clone_left .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 
