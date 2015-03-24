@@ -496,41 +496,53 @@ Handsontable.Core = function (rootElement, userSettings) {
      *
      * @param {WalkontableCellCoords} coords
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
+     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
     setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
-      //trigger handlers
+      var disableVisualSelection;
+
+      // trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
-
       instance.selection.begin();
-
       priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
-
-      //set up current selection
+      // set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selRange.highlight);
 
-      //set up area selection
+      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
+
+      if (typeof disableVisualSelection === 'string') {
+        disableVisualSelection = [disableVisualSelection];
+      }
+
+      if (disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+        instance.view.wt.selections.current.add(priv.selRange.highlight);
+      }
+      // set up area selection
       instance.view.wt.selections.area.clear();
-      if (selection.isMultiple()) {
+
+      if ((disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
+          selection.isMultiple()) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
-
-      //set up highlight
+      // set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
-      //trigger handlers
+      // trigger handlers
       Handsontable.hooks.run(instance, "afterSelection",
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+          priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
       Handsontable.hooks.run(instance, "afterSelectionByProp",
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
+          priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
         if (priv.selRange.from && !selection.isMultiple()) {
@@ -538,7 +550,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         } else {
           instance.view.scrollViewport(coords);
         }
-
       }
       selection.refreshBorders(null, keepEditorOpened);
     },
@@ -3317,6 +3328,37 @@ DefaultSettings.prototype = {
    * @since 0.9.5
    */
   validator: void 0,
+
+  /**
+   * @description
+   * Disable visual cells selection.
+   *
+   * Possible values:
+   *  `true` - Disables any type of visual selection (current and area selection),
+   *  `false` - Enables any type of visual selection. This is default value.
+   *  `current` - Disables to appear only current selected cell.
+   *  `area` - Disables to appear only multiple selected cells.
+   *
+   * @type {Boolean|String|Array}
+   * @default false
+   * @since 0.13.2
+   * @example
+   *  ...
+   *  // as boolean
+   *  disableVisualSelection: true,
+   *  ...
+   *
+   *  ...
+   *  // as string ('current' or 'area')
+   *  disableVisualSelection: 'current',
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  disableVisualSelection: ['current', 'area'],
+   *  ...
+   */
+  disableVisualSelection: false,
   manualColumnFreeze: void 0,
   trimWhitespace: true,
   settings: void 0,
