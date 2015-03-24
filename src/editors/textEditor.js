@@ -206,16 +206,17 @@
     }
     //var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
 
-    var currentOffset = Handsontable.Dom.offset(this.TD);
-    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement);
-    var editTop = currentOffset.top - containerOffset.top - 1;
-    var editLeft = currentOffset.left - containerOffset.left - 1;
+    var currentOffset = Handsontable.Dom.offset(this.TD),
+      containerOffset = Handsontable.Dom.offset(this.instance.rootElement),
+      editTop = currentOffset.top - containerOffset.top - 1,
+      editLeft = currentOffset.left - containerOffset.left - 1,
 
-    var settings = this.instance.getSettings();
-    var rowHeadersCount = settings.rowHeaders  ? 1 : 0;
-    var colHeadersCount = settings.colHeaders  ? 1 : 0;
-    var editorSection = this.checkEditorSection();
-    var cssTransformOffset;
+      settings = this.instance.getSettings(),
+      rowHeadersCount = settings.rowHeaders  ? 1 : 0,
+      colHeadersCount = settings.colHeaders  ? 1 : 0,
+      editorSection = this.checkEditorSection(),
+      backgroundColor = this.TD.style.backgroundColor,
+      cssTransformOffset;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch(editorSection) {
@@ -275,6 +276,7 @@
 
     this.TEXTAREA.style.fontSize = Handsontable.Dom.getComputedStyle(this.TD).fontSize;
     this.TEXTAREA.style.fontFamily = Handsontable.Dom.getComputedStyle(this.TD).fontFamily;
+    this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : '#fff';
 
     this.autoResize.init(this.TEXTAREA, {
       minHeight: Math.min(height, maxHeight),
