@@ -482,7 +482,7 @@ Comment For Cell
  * Handsontable in Handsontable
  */
 
-.handsontable .handsontable:not(.ht_master) .wtHider {
+.handsontable .handsontable.ht_clone_top .wtHider {
   padding: 0 0 5px 0;
 }
 

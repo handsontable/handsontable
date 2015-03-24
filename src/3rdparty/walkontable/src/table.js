@@ -153,6 +153,9 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.instance.getSetting('rowHeaders').length
     );
     this._doDraw(); //creates calculator after draw
+
+    this.alignOverlaysWithTrimmingContainer();
+
   }
   else {
     if (!this.isWorkingOnClone()) {

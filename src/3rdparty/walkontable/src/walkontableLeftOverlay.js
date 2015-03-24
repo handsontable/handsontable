@@ -38,6 +38,8 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
+  this.clone.wtTable.holder.style.height = elem.style.height;
+
   var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
   elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
 };

@@ -36,10 +36,6 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
 
     Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
-  else if(!Handsontable.freezeOverlays) {
-    finalLeft = this.instance.wtOverlays.leftOverlay.getScrollPosition() + "px";
-    finalTop = this.instance.wtOverlays.topOverlay.getScrollPosition() + "px";
-  }
 
 
   var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
