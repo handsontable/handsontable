@@ -484,6 +484,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Starts selection range on given td object.
      *
      * @param {WalkontableCellCoords} coords
+     * @param keepEditorOpened
      */
     setRangeStart: function (coords, keepEditorOpened) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
@@ -496,8 +497,13 @@ Handsontable.Core = function (rootElement, userSettings) {
      *
      * @param {WalkontableCellCoords} coords
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
+     * @param keepEditorOpened
      */
     setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
+      if (priv.selRange === null) {
+        return;
+      }
+
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
 
