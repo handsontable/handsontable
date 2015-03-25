@@ -22,14 +22,29 @@ Handsontable.Dom.enableImmediatePropagation = function (event) {
   }
 };
 
-//goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-Handsontable.Dom.closest = function (elem, nodeNames, until) {
-  while (elem != null && elem !== until) {
-    if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
-      return elem;
+/**
+ * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * This method goes up through web components.
+ *
+ * @param {HTMLElement} element Element from which traversing is started
+ * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} [until]
+ * @returns {HTMLElement|null}
+ */
+Handsontable.Dom.closest = function (element, nodes, until) {
+  while (element != null && element !== until) {
+    if (element.nodeType === Node.ELEMENT_NODE &&
+      (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
+      return element;
     }
-    elem = elem.parentNode;
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      element = element.parentNode;
+    }
   }
+
   return null;
 };
 
@@ -68,8 +83,7 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
     result = false,
     parentNode;
 
-  // Wrap element into polymer/webcomponent container if exists
-  parentNode = typeof wrap === 'undefined' ? element : wrap(element);
+  parentNode = Handsontable.Dom.polymerWrap(element);
 
   function isHotTable(element) {
     return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
@@ -92,6 +106,39 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
   }
 
   return result;
+};
+
+/**
+ * Wrap element into polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerWrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
+};
+
+/**
+ * Unwrap element from polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerUnwrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
+};
+
+/**
+ * Checks if browser is support web components natively
+ *
+ * @returns {Boolean}
+ */
+Handsontable.Dom.isWebComponentSupportedNatively = function() {
+  var test = document.createElement('div');
+
+  return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
 };
 
 /**

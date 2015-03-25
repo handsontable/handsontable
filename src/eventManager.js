@@ -19,6 +19,71 @@ Handsontable.eventManager = function (instance) {
     instance.eventListeners = [];
   }
 
+  function extendEvent(event) {
+    var
+      componentName = 'HOT-TABLE',
+      isHotTableSpotted,
+      fromElement,
+      realTarget,
+      target,
+      len;
+
+    event.isTargetWebComponent = false;
+    event.realTarget = event.target;
+
+    if (!Handsontable.eventManager.isHotTableEnv) {
+      return;
+    }
+    event = Handsontable.Dom.polymerWrap(event);
+    len = event.path ? event.path.length : 0;
+
+    while (len --) {
+      if (event.path[len].nodeName === componentName) {
+        isHotTableSpotted = true;
+
+      } else if (isHotTableSpotted && event.path[len].shadowRoot) {
+        target = event.path[len];
+
+        break;
+      }
+      if (len === 0 && !target) {
+        target = event.path[len];
+      }
+    }
+    if (!target) {
+      target = event.target;
+    }
+    event.isTargetWebComponent = true;
+
+    if (Handsontable.Dom.isWebComponentSupportedNatively()) {
+      event.realTarget = event.srcElement || event.toElement;
+
+    } else if (instance instanceof Handsontable.Core || instance instanceof Walkontable) {
+      // Polymer doesn't support `event.target` property properly we must emulate it ourselves
+      if (instance instanceof Handsontable.Core) {
+        fromElement = instance.view.wt.wtTable.TABLE;
+
+      } else if (instance instanceof Walkontable) {
+        fromElement = instance.wtTable.TABLE;
+      }
+      realTarget = Handsontable.Dom.closest(event.target, [componentName], fromElement);
+
+      if (realTarget) {
+        event.realTarget = fromElement.querySelector(componentName);
+      } else {
+        event.realTarget = event.target;
+      }
+    }
+
+    Object.defineProperty(event, 'target', {
+      get: function() {
+        return Handsontable.Dom.polymerWrap(target);
+      },
+      enumerable: true,
+      configurable: true
+    });
+  }
+
   /**
    * Add Event
    *
@@ -31,9 +96,6 @@ Handsontable.eventManager = function (instance) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
-      var isHotTableSpotted = false,
-        target, len;
-
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
           event.definePoperty('target', {
@@ -56,37 +118,8 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      event.isTargetWebComponent = false;
+      extendEvent(event);
 
-      if (Handsontable.eventManager.isHotTableEnv) {
-        event = typeof wrap === 'undefined' ? event : wrap(event);
-        len = event.path ? event.path.length : 0;
-
-        while (len --) {
-          if (event.path[len].nodeName === 'HOT-TABLE') {
-            isHotTableSpotted = true;
-
-          } else if (isHotTableSpotted && event.path[len].shadowRoot) {
-            target = event.path[len];
-          }
-          if (len === 0 && !target) {
-            target = event.path[len];
-          }
-        }
-        if (!target) {
-          target = event.target;
-        }
-        event.isTargetWebComponent = true;
-
-        Object.defineProperty(event, 'target', {
-          get: function() {
-            // Wrap element into polymer/webcomponent container if exists
-            return typeof wrap === 'undefined' ? target : wrap(target);
-          },
-          enumerable: true,
-          configurable: true
-        });
-      }
       callback.call(this, event);
     };
 

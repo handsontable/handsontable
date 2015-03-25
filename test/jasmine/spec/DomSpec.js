@@ -306,4 +306,47 @@ describe('Handsontable.Dom', function () {
     });
   });
 
+  //
+  // Handsontable.Dom.polymerWrap
+  //
+  describe('polymerWrap', function() {
+    it("should wrap element into polymer wrapper if exists", function () {
+      expect(Handsontable.Dom.polymerWrap(1)).toBe(1);
+
+      window.wrap = function() { return 'wrapped'; };
+      window.Polymer = {};
+
+      expect(Handsontable.Dom.polymerWrap(1)).toBe('wrapped');
+
+      // Test https://github.com/handsontable/handsontable/issues/2283
+      window.wrap = document.createElement('div');
+
+      expect(Handsontable.Dom.polymerWrap(1)).toBe(1);
+
+      delete window.wrap;
+      delete window.Polymer;
+    });
+  });
+
+  //
+  // Handsontable.Dom.polymerUnwrap
+  //
+  describe('polymerUnwrap', function() {
+    it("should unwrap element from polymer wrapper if exists", function () {
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      window.unwrap = function() { return 1; };
+      window.Polymer = {};
+
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe(1);
+
+      window.unwrap = document.createElement('div');
+
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      delete window.unwrap;
+      delete window.Polymer;
+    });
+  });
+
 });
