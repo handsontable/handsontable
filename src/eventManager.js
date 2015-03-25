@@ -19,7 +19,7 @@ Handsontable.eventManager = function (instance) {
     instance.eventListeners = [];
   }
 
-  function extentEvent(event) {
+  function extendEvent(event) {
     var
       componentName = 'HOT-TABLE',
       isHotTableSpotted,
@@ -118,7 +118,7 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      extentEvent(event);
+      extendEvent(event);
 
       callback.call(this, event);
     };
