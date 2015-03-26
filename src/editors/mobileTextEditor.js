@@ -165,9 +165,9 @@
 
       if (selectedCell !== undefined) {
         var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer == window ?
-          0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer);
+          0 : Handsontable.Dom.getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
         var scrollTop = this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer == window ?
-          0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer);
+          0 : Handsontable.Dom.getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
 
         var selectedCellOffset = Handsontable.Dom.offset(selectedCell)
           , selectedCellWidth = Handsontable.Dom.outerWidth(selectedCell)
@@ -301,13 +301,13 @@
       }
     });
 
-    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer, "scroll", function (event) {
+    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.holder, "scroll", function (event) {
       if (that.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer != window) {
         that.hideCellPointer();
       }
     });
 
-    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.trimmingContainer, "scroll", function (event) {
+    this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.holder, "scroll", function (event) {
       if (that.instance.view.wt.wtOverlays.topOverlay.trimmingContainer != window) {
         that.hideCellPointer();
       }

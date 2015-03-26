@@ -174,16 +174,17 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
 
-  if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser) { // check if full HOT instance, or detached WOT AND run on mobile device
+  // check if full HOT instance, or detached WOT AND run on mobile device
+  if(this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
     var classSelector = "." + this.instance.wtTable.holder.parentNode.className.split(" ").join(".");
 
-    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchstart', function (event) {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function (event) {
       that.instance.touchApplied = true;
       if (Handsontable.Dom.isChildOf(event.target, classSelector)) {
         onTouchStart.call(event.target, event);
       }
     });
-    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'touchend', function (event) {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', function (event) {
       that.instance.touchApplied = false;
       if (Handsontable.Dom.isChildOf(event.target, classSelector)) {
         onTouchEnd.call(event.target, event);
@@ -193,7 +194,7 @@ function WalkontableEvent(instance) {
     if(!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder.parentNode.parentNode, 'scroll', function (event) {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function (event) {
       clearTimeout(that.instance.momentumScrolling._timeout);
 
       if(!that.instance.momentumScrolling.ongoing) {

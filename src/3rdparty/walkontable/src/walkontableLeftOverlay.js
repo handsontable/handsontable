@@ -16,7 +16,8 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode,
-    scrollbarHeight = this.instance.wtTable.holder.clientHeight !== this.instance.wtTable.holder.offsetHeight ? Handsontable.Dom.getScrollbarWidth() : 0;
+    scrollbarHeight = this.instance.wtTable.holder.clientHeight !== this.instance.wtTable.holder.offsetHeight ? Handsontable.Dom.getScrollbarWidth() : 0,
+    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? Handsontable.Dom.getScrollbarWidth() : 0;
 
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
     elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
@@ -38,10 +39,11 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
-  this.clone.wtTable.holder.style.height = elem.style.height;
-
   var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
-  elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
+  var elemWidth = (tableWidth === 0 ? tableWidth : tableWidth + 4);
+  elem.style.width = elemWidth + 'px';
+
+  this.clone.wtTable.holder.style.width = elemWidth + scrollbarWidth + 'px';
 };
 
 WalkontableLeftOverlay.prototype.refresh = function (fastDraw) {
