@@ -381,12 +381,7 @@ else { //IE8
 Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
 
-  function extractElement(element) {
-    // Wrap element into polymer/webcomponent container if exists
-    return typeof unwrap === 'undefined' ? element : unwrap(element);
-  }
-
-  while (extractElement(next) !== document.documentElement) { //until <html> reached
+  while (Handsontable.Dom.polymerUnwrap(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
