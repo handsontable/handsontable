@@ -397,7 +397,9 @@ Handsontable.Core = function (rootElement, userSettings) {
                     value = typeof(result.value) !== 'undefined' ? result.value : value;
                   }
                 }
-
+                if (Array.isArray(value) || Handsontable.helper.isObject(value)) {
+                  value = Handsontable.helper.deepClone(value);
+                }
                 setData.push([current.row, current.col, value]);
               }
 

@@ -162,40 +162,133 @@ Handsontable.Dom.index = function (elem) {
 };
 
 if (document.documentElement.classList) {
-  // HTML5 classList API
-  Handsontable.Dom.hasClass = function (ele, cls) {
-    return ele.classList.contains(cls);
+  var isSupportMultipleClassesArg = (function() {
+    var element = document.createElement('div');
+
+    element.classList.add('test', 'test2');
+
+    return element.classList.contains('test2');
+  }());
+
+  /**
+   * Checks if element has class name
+   *
+   * @param {HTMLElement} element
+   * @param {String} className Class name to check
+   * @returns {Boolean}
+   */
+  Handsontable.Dom.hasClass = function(element, className) {
+    return element.classList.contains(className);
   };
 
-  Handsontable.Dom.addClass = function (ele, cls) {
-    if (cls) {
-      ele.classList.add(cls);
+  /**
+   * Add class name to an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.addClass = function(element, className) {
+    var len = 0;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (isSupportMultipleClassesArg) {
+      element.classList.add.apply(element.classList, className);
+
+    } else {
+      while (className && className[len]) {
+        element.classList.add(className[len]);
+        len ++;
+      }
     }
   };
 
-  Handsontable.Dom.removeClass = function (ele, cls) {
-    ele.classList.remove(cls);
-  };
-}
-else {
-  //http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-  Handsontable.Dom.hasClass = function (ele, cls) {
-    return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
+  /**
+   * Remove class name from an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.removeClass = function(element, className) {
+    var len = 0;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (isSupportMultipleClassesArg) {
+      element.classList.remove.apply(element.classList, className);
+
+    } else {
+      while (className && className[len]) {
+        element.classList.remove(className[len]);
+        len ++;
+      }
+    }
   };
 
-  Handsontable.Dom.addClass = function (ele, cls) {
-    if (ele.className === "") {
-      ele.className = cls;
-    }
-    else if (!this.hasClass(ele, cls)) {
-      ele.className += " " + cls;
-    }
+} else {
+  var createClassNameRegExp = function createClassNameRegExp(className) {
+    return new RegExp('(\\s|^)' + className + '(\\s|$)');
   };
 
-  Handsontable.Dom.removeClass = function (ele, cls) {
-    if (this.hasClass(ele, cls)) { //is this really needed?
-      var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-      ele.className = ele.className.replace(reg, ' ').trim(); //String.prototype.trim is defined in polyfill.js
+  /**
+   * Checks if element has class name
+   *
+   * @param {HTMLElement} element
+   * @param {String} className
+   * @returns {Boolean}
+   */
+  Handsontable.Dom.hasClass = function(element, className) {
+    // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
+    return element.className.match(createClassNameRegExp(className)) ? true : false;
+  };
+
+  /**
+   * Add class name to an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.addClass = function(element, className) {
+    var len = 0, _className = element.className;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (_className === '') {
+      _className = className.join(' ');
+
+    } else {
+      while (className[len]) {
+        if (!createClassNameRegExp(className[len]).test(_className)) {
+          _className += ' ' + className[len];
+        }
+        len ++;
+      }
+    }
+    element.className = _className;
+  };
+
+  /**
+   * Remove class name from an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.removeClass = function(element, className) {
+    var len = 0, _className = element.className;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    while (className[len]) {
+      // String.prototype.trim is defined in polyfill.js
+      _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
+      len ++;
+    }
+    if (element.className !== _className) {
+      element.className = _className;
     }
   };
 }
