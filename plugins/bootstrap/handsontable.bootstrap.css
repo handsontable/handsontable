@@ -56,3 +56,8 @@
 .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
+
+.handsontable .table td.htInvalid {
+  color: #fff;
+  background-color: #d9534f;
+}
