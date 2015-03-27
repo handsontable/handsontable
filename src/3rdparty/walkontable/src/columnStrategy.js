@@ -1,9 +1,11 @@
 /**
  * WalkontableColumnStrategy
+ * 
  * @param containerSizeFn
  * @param sizeAtIndex
  * @param strategy - all, last, none
  * @constructor
+ * @private
  */
 function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strategy) {
   var size

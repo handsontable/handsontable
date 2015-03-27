@@ -22,14 +22,29 @@ Handsontable.Dom.enableImmediatePropagation = function (event) {
   }
 };
 
-//goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-Handsontable.Dom.closest = function (elem, nodeNames, until) {
-  while (elem != null && elem !== until) {
-    if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
-      return elem;
+/**
+ * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * This method goes up through web components.
+ *
+ * @param {HTMLElement} element Element from which traversing is started
+ * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} [until]
+ * @returns {HTMLElement|null}
+ */
+Handsontable.Dom.closest = function (element, nodes, until) {
+  while (element != null && element !== until) {
+    if (element.nodeType === Node.ELEMENT_NODE &&
+      (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
+      return element;
     }
-    elem = elem.parentNode;
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      element = element.parentNode;
+    }
   }
+
   return null;
 };
 
@@ -55,6 +70,75 @@ Handsontable.Dom.isChildOf = function (child, parent) {
     node = node.parentNode;
   }
   return false;
+};
+
+/**
+ * Check if an element is part of `hot-table` web component.
+ *
+ * @param {Element} element
+ * @returns {Boolean}
+ */
+Handsontable.Dom.isChildOfWebComponentTable = function(element) {
+  var hotTableName = 'hot-table',
+    result = false,
+    parentNode;
+
+  parentNode = Handsontable.Dom.polymerWrap(element);
+
+  function isHotTable(element) {
+    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  }
+
+  while (parentNode != null) {
+    if (isHotTable(parentNode)) {
+      result = true;
+      break;
+    }
+    else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      result = isHotTable(parentNode.host);
+
+      if (result) {
+        break;
+      }
+      parentNode = parentNode.host;
+    }
+    parentNode = parentNode.parentNode;
+  }
+
+  return result;
+};
+
+/**
+ * Wrap element into polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerWrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
+};
+
+/**
+ * Unwrap element from polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerUnwrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
+};
+
+/**
+ * Checks if browser is support web components natively
+ *
+ * @returns {Boolean}
+ */
+Handsontable.Dom.isWebComponentSupportedNatively = function() {
+  var test = document.createElement('div');
+
+  return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
 };
 
 /**
@@ -205,19 +289,15 @@ Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
 
   function extractElement(element) {
-    /* global ShadowDOMPolyfill */
-    if (typeof ShadowDOMPolyfill !== 'undefined' && ShadowDOMPolyfill.unwrapIfNeeded) {
-      return ShadowDOMPolyfill.unwrapIfNeeded(element);
-    }
-
-    return element;
+    // Wrap element into polymer/webcomponent container if exists
+    return typeof unwrap === 'undefined' ? element : unwrap(element);
   }
 
   while (extractElement(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
+    else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { //this is Web Components Shadow DOM
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
@@ -240,6 +320,7 @@ Handsontable.Dom.isVisible = function (elem) {
     }
     next = next.parentNode;
   }
+
   return true;
 };
 

@@ -269,4 +269,84 @@ describe('Handsontable.Dom', function () {
     });
   });
 
+  //
+  // Handsontable.Dom.isChildOfWebComponentTable
+  //
+  describe('isChildOfWebComponentTable', function() {
+    it("should return correct Boolean value depending on whether an element exists in `hot-table` or not", function () {
+      // skip if browser not support Shadow DOM natively
+      if (!document.createElement('div').createShadowRoot) {
+        return;
+      }
+      var hotTable = document.createElement('hot-table');
+      var outsideDiv = document.createElement('div');
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(hotTable)).toBe(true);
+      expect(Handsontable.Dom.isChildOfWebComponentTable(outsideDiv)).toBe(false);
+
+      var hotTableDiv = document.createElement('div');
+      hotTable.appendChild(hotTableDiv);
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(hotTableDiv)).toBe(true);
+
+      var fragment = document.createDocumentFragment();
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(fragment)).toBe(false);
+
+      var myElement = document.createElement('my-element');
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(myElement)).toBe(false);
+
+      var shadowRoot = myElement.createShadowRoot();
+      var insideDiv = shadowRoot.appendChild(document.createElement('div'));
+      hotTable.createShadowRoot().appendChild(myElement);
+
+      expect(Handsontable.Dom.isChildOfWebComponentTable(myElement)).toBe(true);
+      expect(Handsontable.Dom.isChildOfWebComponentTable(insideDiv)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.Dom.polymerWrap
+  //
+  describe('polymerWrap', function() {
+    it("should wrap element into polymer wrapper if exists", function () {
+      expect(Handsontable.Dom.polymerWrap(1)).toBe(1);
+
+      window.wrap = function() { return 'wrapped'; };
+      window.Polymer = {};
+
+      expect(Handsontable.Dom.polymerWrap(1)).toBe('wrapped');
+
+      // Test https://github.com/handsontable/handsontable/issues/2283
+      window.wrap = document.createElement('div');
+
+      expect(Handsontable.Dom.polymerWrap(1)).toBe(1);
+
+      delete window.wrap;
+      delete window.Polymer;
+    });
+  });
+
+  //
+  // Handsontable.Dom.polymerUnwrap
+  //
+  describe('polymerUnwrap', function() {
+    it("should unwrap element from polymer wrapper if exists", function () {
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      window.unwrap = function() { return 1; };
+      window.Polymer = {};
+
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe(1);
+
+      window.unwrap = document.createElement('div');
+
+      expect(Handsontable.Dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      delete window.unwrap;
+      delete window.Polymer;
+    });
+  });
+
 });

@@ -10,9 +10,10 @@ function WalkontableEvent(instance) {
   this.dblClickTimeout = [null, null];
 
   var onMouseDown = function (event) {
-    var cell = that.parentCell(event.target);
-    if (Handsontable.Dom.hasClass(event.target, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.target);
+    var cell = that.parentCell(event.realTarget);
+
+    if (Handsontable.Dom.hasClass(event.realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
     }
     else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
@@ -106,12 +107,15 @@ function WalkontableEvent(instance) {
 
   var lastMouseOver;
   var onMouseOver = function (event) {
+    var table, td;
+
     if (that.instance.hasSetting('onCellMouseOver')) {
-      var TABLE = that.instance.wtTable.TABLE;
-      var TD = Handsontable.Dom.closest(event.target, ['TD', 'TH'], TABLE);
-      if (TD && TD !== lastMouseOver && Handsontable.Dom.isChildOf(TD, TABLE)) {
-        lastMouseOver = TD;
-        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
+      table = that.instance.wtTable.TABLE;
+      td = Handsontable.Dom.closest(event.realTarget, ['TD', 'TH'], table);
+
+      if (td && td !== lastMouseOver && Handsontable.Dom.isChildOf(td, table)) {
+        lastMouseOver = td;
+        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(td), td, that.instance);
       }
     }
   };

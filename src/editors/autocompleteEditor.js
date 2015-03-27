@@ -263,7 +263,7 @@
       }
     });
 
-    for(i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
+    for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
       result.push(choicesRelevance[i].baseIndex);
     }
 

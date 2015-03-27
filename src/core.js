@@ -1,10 +1,33 @@
 Handsontable.activeGuid = null;
 
 /**
- * Handsontable constructor
- * @param rootElement The DOM element in which Handsontable DOM will be inserted
- * @param userSettings
+ * @alias Handsontable.Core
  * @constructor
+ * @description
+ *
+ * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
+ *
+ * ---
+ * ## How to call methods
+ *
+ * These are 2 equal ways to call a Handsontable method:
+ *
+ * @example
+ * ```js
+ * // all following examples assume that you constructed Handsontable like this
+ * var exampleContainer1 = document.getElementById('example1');
+ * var ht = new Handsontable(exampleContainer1, options);
+ *
+ * // now, to use setDataAtCell method, you can either:
+ * ht.setDataAtCell(0, 0, 'new value');
+ * ```
+ *
+ * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
+ * @example
+ * ```js
+ *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
+ * ```
+ * ---
  */
 Handsontable.Core = function (rootElement, userSettings) {
   var priv
@@ -21,6 +44,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
+  this.isHotTableEnv = Handsontable.Dom.isChildOfWebComponentTable(this.rootElement);
+  Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
 
@@ -45,6 +70,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   grid = {
     /**
      * Inserts or removes rows and columns
+     *
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
      * @param {Number} index
      * @param {Number} amount
@@ -255,6 +281,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Populate cells at position with 2d array
+     *
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
      * @param {Object} [end] End selection position (only for drag-down mode)
@@ -262,7 +289,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {String} [method="overwrite"]
      * @param {String} direction (left|right|up|down)
      * @param {Array} deltas array
-     * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
+     * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
     populateFromArray: function (start, input, end, source, method, direction, deltas) {
       var r, rlen, c, clen, setData = [], current = {};
@@ -419,20 +446,24 @@ Handsontable.Core = function (rootElement, userSettings) {
       rows: false
     },
 
+    /**
+     * @param {Number} rows
+     * @param {Number} cols
+     */
     setSelectedHeaders: function (rows, cols) {
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
     },
 
     /**
-     * Sets inProgress to true. This enables onSelectionEnd and onSelectionEndByProp to function as desired
+     * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
      */
     begin: function () {
       instance.selection.inProgress = true;
     },
 
     /**
-     * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
+     * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
      */
     finish: function () {
       var sel = instance.getSelected();
@@ -441,12 +472,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.selection.inProgress = false;
     },
 
+    /**
+     * @returns {Boolean}
+     */
     isInProgress: function () {
       return instance.selection.inProgress;
     },
 
     /**
-     * Starts selection range on given td object
+     * Starts selection range on given td object.
+     *
      * @param {WalkontableCellCoords} coords
      */
     setRangeStart: function (coords, keepEditorOpened) {
@@ -456,58 +491,71 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Ends selection range on given td object
+     * Ends selection range on given td object.
+     *
      * @param {WalkontableCellCoords} coords
-     * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
+     * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
+     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
     setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
-      //trigger handlers
+      var disableVisualSelection;
+
+      // trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
-
       instance.selection.begin();
-
       priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
-
-      //set up current selection
+      // set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selRange.highlight);
 
-      //set up area selection
+      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
+
+      if (typeof disableVisualSelection === 'string') {
+        disableVisualSelection = [disableVisualSelection];
+      }
+
+      if (disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+        instance.view.wt.selections.current.add(priv.selRange.highlight);
+      }
+      // set up area selection
       instance.view.wt.selections.area.clear();
-      if (selection.isMultiple()) {
+
+      if ((disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
+          selection.isMultiple()) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
-
-      //set up highlight
+      // set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
-      //trigger handlers
+      // trigger handlers
       Handsontable.hooks.run(instance, "afterSelection",
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+          priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
       Handsontable.hooks.run(instance, "afterSelectionByProp",
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
+          priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
-        if(priv.selRange.from && !selection.isMultiple()) {
+        if (priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
           instance.view.scrollViewport(coords);
         }
-
       }
       selection.refreshBorders(null, keepEditorOpened);
     },
 
     /**
-     * Destroys editor, redraws borders around cells, prepares editor
+     * Destroys editor, redraws borders around cells, prepares editor.
+     *
      * @param {Boolean} revertOriginal
      * @param {Boolean} keepEditor
      */
@@ -522,8 +570,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Returns information if we have a multiselection
-     * @return {Boolean}
+     * Returns information if we have a multiselection.
+     *
+     * @returns {Boolean}
      */
     isMultiple: function () {
       var isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row)
@@ -535,7 +584,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Selects cell relative to current cell (if possible)
+     * Selects cell relative to current cell (if possible).
      */
     transformStart: function (rowDelta, colDelta, force, keepEditorOpened) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta);
@@ -593,7 +642,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Sets selection end cell relative to current selection end cell (if possible)
+     * Sets selection end cell relative to current selection end cell (if possible).
      */
     transformEnd: function (rowDelta, colDelta) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta);
@@ -621,17 +670,19 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Returns true if currently there is a selection on screen, false otherwise
-     * @return {Boolean}
+     * Returns `true` if currently there is a selection on screen, `false` otherwise.
+     *
+     * @returns {Boolean}
      */
     isSelected: function () {
       return (priv.selRange !== null);
     },
 
     /**
-     * Returns true if coords is within current selection coords
+     * Returns `true` if coords is within current selection coords.
+     *
      * @param {WalkontableCellCoords} coords
-     * @return {Boolean}
+     * @returns {Boolean}
      */
     inInSelection: function (coords) {
       if (!selection.isSelected()) {
@@ -813,6 +864,8 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Internal function to apply changes. Called after validateChanges
+   *
+   * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
@@ -858,6 +911,17 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.validateCell = function (value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
+    function done(valid) {
+      var col = cellProperties.col,
+        row = cellProperties.row,
+        td = instance.getCell(row, col, true);
+
+      if (td) {
+        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
+      }
+      callback(valid);
+    }
+
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {
         return function (value, callback) {
@@ -876,7 +940,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           valid = Handsontable.hooks.run(instance, "afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
           cellProperties.valid = valid;
 
-          callback(valid);
+          done(valid);
           Handsontable.hooks.run(instance, "postAfterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         });
       }, 0));
@@ -884,7 +948,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     } else {
       //resolve callback even if validator function was not found
       cellProperties.valid = true;
-      callback(true);
+      done(cellProperties.valid);
     }
   };
 
@@ -900,12 +964,16 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   /**
-   * Set data at given cell
-   * @public
-   * @param {Number|Array} row or array of changes in format [[row, col, value], ...]
+   * @description
+   * Set new value to a cell. To change many cells at once, pass an array of `changes` in format `[[row, col, value], ...]` as
+   * the only parameter. `col` is the index of __visible__ column (note that if columns were reordered,
+   * the current order will be used). `source` is a flag for before/afterChange events. If you pass only array of
+   * changes then `source` could be set as second parameter.
+   *
+   * @param {Number|Array} row or array of changes in format `[[row, col, value], ...]`
    * @param {Number|String} col or source String
    * @param {String} value
-   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   this.setDataAtCell = function (row, col, value, source) {
     var input = setDataInputToArray(row, col, value)
@@ -941,12 +1009,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
   /**
-   * Set data at given row property
-   * @public
-   * @param {Number|Array} row or array of changes in format [[row, prop, value], ...]
+   * Same as above, except instead of `col`, you provide name of the object property (e.g. `[0, 'first.name', 'Jennifer']`).
+   *
+   * @param {Number|Array} row or array of changes in format `[[row, prop, value], ...]`
    * @param {String} prop or source String
    * @param {String} value
-   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   this.setDataAtRowProp = function (row, prop, value, source) {
     var input = setDataInputToArray(row, prop, value)
@@ -973,7 +1041,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Listen to document body keyboard input
+   * Listen to keyboard input on document body.
+   *
+   * @since 0.11
    */
   this.listen = function () {
     Handsontable.activeGuid = instance.guid;
@@ -987,39 +1057,51 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Stop listening to document body keyboard input
+   * Stop listening to keyboard input on document body.
+   *
+   * @since 0.11
    */
   this.unlisten = function () {
     Handsontable.activeGuid = null;
   };
 
   /**
-   * Returns true if current Handsontable instance is listening on document body keyboard input
+   * Returns `true` if current Handsontable instance is listening to keyboard input on document body.
+   *
+   * @since 0.11
+   * @returns {Boolean}
    */
   this.isListening = function () {
     return Handsontable.activeGuid === instance.guid;
   };
 
   /**
-   * Destroys current editor, renders and selects current cell. If revertOriginal != true, edited data is saved
-   * @param {Boolean} revertOriginal
+   * Destroys current editor, renders and selects current cell.
+   *
+   * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise previous value is restored
    */
   this.destroyEditor = function (revertOriginal) {
     selection.refreshBorders(revertOriginal);
   };
 
   /**
-   * Populate cells at position with 2d array
+   * Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`).
+   * Use `endRow`, `endCol` when you want to cut input when certain row is reached.
+   * Optional `source` parameter (default value "populateFromArray") is used to identify this call in the resulting events (beforeChange, afterChange).
+   * Optional `populateMethod` parameter (default value "overwrite", possible values "shift_down" and "shift_right")
+   * has the same effect as pasteMethod option (see Options page)
+   *
+   * @since 0.9.0
    * @param {Number} row Start row
    * @param {Number} col Start column
    * @param {Array} input 2d array
-   * @param {Number=} endRow End row (use when you want to cut input when certain row is reached)
-   * @param {Number=} endCol End column (use when you want to cut input when certain column is reached)
-   * @param {String=} [source="populateFromArray"]
-   * @param {String=} [method="overwrite"]
+   * @param {Number} [endRow] End row (use when you want to cut input when certain row is reached)
+   * @param {Number} [endCol] End column (use when you want to cut input when certain column is reached)
+   * @param {String} [source="populateFromArray"]
+   * @param {String} [method="overwrite"]
    * @param {String} direction edit (left|right|up|down)
    * @param {Array} deltas array
-   * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
+   * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
   this.populateFromArray = function (row, col, input, endRow, endCol, source, method, direction, deltas) {
     var c;
@@ -1033,31 +1115,49 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Adds/removes data from the column
+   * Adds/removes data from the column. This function works is modelled after Array.splice.
+   * Parameter `col` is the index of column in which do you want to do splice.
+   * Parameter `index` is the row index at which to start changing the array.
+   * If negative, will begin that many elements from the end. Parameter `amount`, is the number of old array elements to remove.
+   * If the amount is 0, no elements are removed. Fourth and further parameters are the `elements` to add to the array.
+   * If you don't specify any elements, spliceCol simply removes elements from the array.
+   * {@link Handsontable.DataMap#spliceCol}
+   *
+   * @since 0.9-beta2
    * @param {Number} col Index of column in which do you want to do splice.
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceCol = function (col, index, amount/*, elements... */) {
     return datamap.spliceCol.apply(datamap, arguments);
   };
 
   /**
-   * Adds/removes data from the row
+   * Adds/removes data from the row. This function works is modelled after Array.splice.
+   * Parameter `row` is the index of row in which do you want to do splice.
+   * Parameter `index` is the column index at which to start changing the array.
+   * If negative, will begin that many elements from the end. Parameter `amount`, is the number of old array elements to remove.
+   * If the amount is 0, no elements are removed. Fourth and further parameters are the `elements` to add to the array.
+   * If you don't specify any elements, spliceCol simply removes elements from the array.
+   * {@link Handsontable.DataMap#spliceRow}
+   *
+   * @since 0.11
    * @param {Number} row Index of column in which do you want to do splice.
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceRow = function (row, index, amount/*, elements... */) {
     return datamap.spliceRow.apply(datamap, arguments);
   };
 
   /**
-   * Returns current selection. Returns undefined if there is no selection.
-   * @public
-   * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
+   * Return index of the currently selected cells as an array `[startRow, startCol, endRow, endCol]`.
+   *
+   * Start row and start col are the coordinates of the active cell (where the selection was started).
+   *
+   * @returns {Array}
    */
   this.getSelected = function () { //https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1066,9 +1166,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns current selection as a WalkontableCellRange object. Returns undefined if there is no selection.
-   * @public
-   * @return {WalkontableCellRange}
+   * Returns current selection as a WalkontableCellRange object.
+   *
+   * @since 0.11
+   * @returns {WalkontableCellRange} Returns `undefined` if there is no selection.
    */
   this.getSelectedRange = function () { //https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1078,8 +1179,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
   /**
-   * Render visible data
-   * @public
+   * Rerender the table.
    */
   this.render = function () {
     if (instance.view) {
@@ -1089,8 +1189,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Load data from array
-   * @public
+   * Reset all cells in the grid to contain data from the data array.
+   *
    * @param {Array} data
    */
   this.loadData = function (data) {
@@ -1153,14 +1253,14 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return the current data object (the same that was passed by `data` configuration option
-   * or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
-   * @public
-   * @param {Number} r (Optional) From row
-   * @param {Number} c (Optional) From col
-   * @param {Number} r2 (Optional) To row
-   * @param {Number} c2 (Optional) To col
-   * @return {Array|Object}
+   * Return the current data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Optionally you can provide cell range `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
+   *
+   * @param {Number} [r] From row
+   * @param {Number} [c] From col
+   * @param {Number} [r2] To row
+   * @param {Number} [c2] To col
+   * @returns {Array|Object}
    */
   this.getData = function (r, c, r2, c2) {
     if (typeof r === 'undefined') {
@@ -1170,13 +1270,26 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  /**
+   * Get value of selected range. Each column is separated by tab, each row is separated by new line character.
+   * {@link Handsontable.DataMap#getCopyableText}
+   *
+   * @since 0.11
+   * @param {Number} startRow From row
+   * @param {Number} startCol From col
+   * @param {Number} endRow To row
+   * @param {Number} endCol To col
+   * @returns {Array|Object}
+   */
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
   };
 
   /**
-   * Update settings
-   * @public
+   * Use it if you need to change configuration after initialization.
+   *
+   * @param {Object} settings Settings to update
+   * @param {Boolean} init
    */
   this.updateSettings = function (settings, init) {
     var i, clen;
@@ -1300,6 +1413,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  /**
+   * Get value from selected cell.
+   *
+   * @since 0.11
+   * @returns {*} Returns value of selected cell
+   */
   this.getValue = function () {
     var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
@@ -1346,16 +1465,18 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   /**
-   * Returns current settings object
-   * @return {Object}
+   * Get object settings.
+   *
+   * @returns {Object} Returns an object containing the current grid settings
    */
   this.getSettings = function () {
     return priv.settings;
   };
 
   /**
-   * Clears grid
-   * @public
+   * Clears grid.
+   *
+   * @since 0.11
    */
   this.clear = function () {
     selection.selectAll();
@@ -1363,86 +1484,123 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Inserts or removes rows and columns
-   * @param {String} action See grid.alter for possible values
+   * Inserts or removes rows and columns.
+   *
+   * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
    * @param {Number} index
    * @param {Number} amount
-   * @param {String} [source] Optional. Source of hook runner.
-   * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
-   * @public
+   * @param {String} [source] Source of hook runner
+   * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows
+   *
+   * @example
+   * Insert new row(s) above the row at given `index`. If index is `null` or `undefined`, the new row will be
+   * added after the current last row. Default `amount` equals 1.
+   * ```js
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer);
+   * hot.alter('insert_row', 10);
+   * ```
+   *
+   * Insert new column(s) before the column at given `index`. If index is `null` or `undefined`, the new column
+   * will be added after the current last column. Default `amount` equals 1
+   * ```js
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer);
+   * hot.alter('insert_col', 10);
+   * ```
+   *
+   * Remove the row(s) at given `index`. Default `amount` equals 1
+   * ```js
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer);
+   * hot.alter('remove_row', 10);
+   * ```
+   *
+   * Remove the column(s) at given `index`. Default `amount` equals 1
+   * ```js
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer);
+   * hot.alter('remove_col', 10);
+   * ```
    */
   this.alter = function (action, index, amount, source, keepEmptyRows) {
     grid.alter(action, index, amount, source, keepEmptyRows);
   };
 
   /**
-   * Returns <td> element corresponding to params row, col
+   * Returns TD element for given `row`, `col` if it is rendered on screen.
+   * Returns `null` if the TD is not rendered on screen (probably because that part of table is not visible).
+   *
    * @param {Number} row
    * @param {Number} col
    * @param {Boolean} topmost
-   * @public
-   * @return {Element}
+   * @returns {Element}
    */
   this.getCell = function (row, col, topmost) {
     return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col), topmost);
   };
 
   /**
-   * Returns coordinates for the provided element
-   * @param elem
-   * @returns {WalkontableCellCoords|*}
+   * Returns coordinates for the provided element.
+   *
+   * @param {Element} elem
+   * @returns {WalkontableCellCoords}
    */
   this.getCoords = function(elem) {
     return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, elem);
   };
 
   /**
-   * Returns property name associated with column number
-   * @param {Number} col
-   * @public
-   * @return {String}
+   * Returns property name that corresponds with the given column index. {@link Handsontable.DataMap#colToProp}
+   *
+   * @param {Number} col Column index
+   * @returns {String}
    */
   this.colToProp = function (col) {
     return datamap.colToProp(col);
   };
 
   /**
-   * Returns column number associated with property name
+   * Returns column index that corresponds with the given property. {@link Handsontable.DataMap#propToCol}
+   *
    * @param {String} prop
-   * @public
-   * @return {Number}
+   * @returns {Number}
    */
   this.propToCol = function (prop) {
     return datamap.propToCol(prop);
   };
 
   /**
-   * Return value at `row`, `col`
+   * @description
+   * Return cell value at `row`, `col`. `row` and `col` are the __visible__ indexes (note that if columns were reordered or sorted,
+   * the current order will be used).
+   *
    * @param {Number} row
    * @param {Number} col
-   * @public
-   * @return value (mixed data type)
+   * @returns {*}
    */
   this.getDataAtCell = function (row, col) {
     return datamap.get(row, datamap.colToProp(col));
   };
 
   /**
-   * Return value at `row`, `prop`
+   * Return value at `row`, `prop`. {@link Handsontable.DataMap#get}
+   *
    * @param {Number} row
    * @param {String} prop
-   * @public
-   * @return value (mixed data type)
+   * @returns {*}
    */
   this.getDataAtRowProp = function (row, prop) {
     return datamap.get(row, prop);
   };
 
   /**
-   * Return value at `col`, where `col` is the visible index of the column
+   * @description
+   * Returns array of column values from the data source. `col` is the __visible__ index of the column.
+   *
+   * @since 0.9-beta2
    * @param {Number} col
-   * @public
-   * @return {Array} value (mixed data type)
+   * @returns {Array}
    */
   this.getDataAtCol = function (col) {
     var out = [];
@@ -1450,10 +1608,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return value at `prop`
+   * Given the object property name (e.g. `'first.name'`), returns array of column values from the data source.
+   *
+   * @since 0.9-beta2
    * @param {String} prop
-   * @public
-   * @return {Array} value (mixed data type)
+   * @returns {Array} {*}
    */
   this.getDataAtProp = function (prop) {
     var out = [],
@@ -1468,10 +1627,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return original source values at 'col'
+   * Returns array of column values from the data source. `col` is the index of the row in the data source.
+   *
+   * @since 0.11.0-beta3
    * @param {Number} col
-   * @public
-   * @returns value (mixed data type)
+   * @returns {Array}
    */
   this.getSourceDataAtCol = function (col) {
     var out = [],
@@ -1485,28 +1645,32 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return original source values at 'row'
+   * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
+   *
+   * @since 0.11.0-beta3
    * @param {Number} row
-   * @public
-   * @returns value {mixed data type}
+   * @returns {Array|Object}
    */
   this.getSourceDataAtRow = function (row) {
     return priv.settings.data[row];
   };
 
   /**
-   * Return value at `row`
+   * @description
+   * Returns a single row of the data (array or object, depending on what you have). `row` is the __visible__ index of the row.
+   *
    * @param {Number} row
-   * @public
-   * @return value (mixed data type)
+   * @returns {*}
+   * @since 0.9-beta2
    */
   this.getDataAtRow = function (row) {
     var data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
     return data[0];
   };
 
-  /***
-   *  Remove "key" property object from cell meta data corresponding to params row,col
+  /**
+   * Remove `key` property object from cell meta data corresponding to params `row`, `col`.
+   *
    * @param {Number} row
    * @param {Number} col
    * @param {String} key
@@ -1521,7 +1685,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Set cell meta data object to corresponding params row, col
+   * Set cell meta data object `prop` to corresponding params `row`, `col`
+   *
+   * @since 0.11
    * @param {Number} row
    * @param {Number} col
    * @param {Object} prop
@@ -1537,12 +1703,13 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Sets cell meta data object "key" corresponding to params row, col
+   * Sets cell meta data object `key` corresponding to params `row`, `col`.
+   *
+   * @since 0.11
    * @param {Number} row
    * @param {Number} col
    * @param {String} key
    * @param {String} val
-   *
    */
   this.setCellMeta = function (row, col, key, val) {
     if (!priv.cellSettings[row]) {
@@ -1556,11 +1723,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns cell meta data object corresponding to params row, col
+   * Return cell properties for given `row`, `col` coordinates.
+   *
    * @param {Number} row
    * @param {Number} col
-   * @public
-   * @return {Object}
+   * @returns {Object}
    */
   this.getCellMeta = function (row, col) {
     var prop = datamap.colToProp(col)
@@ -1607,8 +1774,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
    * we need to translate logical (stored) row index to physical (displayed) index.
-   * @param row - original row index
-   * @returns {int} translated row index
+   *
+   * @param {Number} row Original row index
+   * @returns {Number} Translated row index
    */
   function translateRowIndex(row){
     return Handsontable.hooks.run(instance, 'modifyRow', row);
@@ -1617,8 +1785,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
    * we need to translate logical (stored) column index to physical (displayed) index.
-   * @param col - original column index
-   * @returns {int} - translated column index
+   *
+   * @private
+   * @param {Number} col Original column index
+   * @returns {Number} Translated column index
    */
   function translateColIndex(col){
     // warning: this must be done after datamap.colToProp
@@ -1626,10 +1796,19 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   var rendererLookup = Handsontable.helper.cellMethodLookupFactory('renderer');
+
+  /**
+   * Get rederer type by `row` and `col`.
+   *
+   * @since 0.11
+   * @param {Number} row
+   * @param {Number} col
+   * @returns {Function} Returns rederer type
+   */
   this.getCellRenderer = function (row, col) {
     var renderer = rendererLookup.call(this, row, col);
-    return Handsontable.renderers.getRenderer(renderer);
 
+    return Handsontable.renderers.getRenderer(renderer);
   };
 
   this.getCellEditor = Handsontable.helper.cellMethodLookupFactory('editor');
@@ -1638,8 +1817,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
   /**
-   * Validates all cells using their validator functions and calls callback when finished. Does not render the view
-   * @param callback
+   * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
+   *
+   * @param {Function} callback
    */
   this.validateCells = function (callback) {
     var waitingForValidator = new ValidatorsQueue();
@@ -1663,9 +1843,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
-   * @param {Number} row (Optional)
-   * @return {Array|String}
+   * Returns array of row headers (if they are enabled). If param `row` given, return header at given row as string.
+   *
+   * @param {Number} [row]
+   * @returns {Array|String}
    */
   this.getRowHeader = function (row) {
     if (row === void 0) {
@@ -1690,16 +1871,20 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns information of this table is configured to display row headers
-   * @returns {boolean}
+   * Returns information of this table is configured to display row headers.
+   *
+   * @returns {Boolean}
+   * @since 0.11
    */
   this.hasRowHeaders = function () {
     return !!priv.settings.rowHeaders;
   };
 
   /**
-   * Returns information of this table is configured to display column headers
-   * @returns {boolean}
+   * Returns information of this table is configured to display column headers.
+   *
+   * @since 0.11
+   * @returns {Boolean}
    */
   this.hasColHeaders = function () {
     if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { //Polymer has empty value = null
@@ -1715,8 +1900,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Return array of column headers (if they are enabled). If param `col` given, return header at given column as string
-   * @param {Number} col (Optional)
-   * @return {Array|String}
+   *
+   * @param {Number} [col] Column index
+   * @returns {Array|String}
    */
   this.getColHeader = function (col) {
     if (col === void 0) {
@@ -1750,13 +1936,16 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return column width from settings (no guessing). Private use intended
+   * Return column width from settings (no guessing). Private use intended.
+   *
+   * @private
    * @param {Number} col
-   * @return {Number}
+   * @returns {Number}
    */
   this._getColWidthFromSettings = function (col) {
     var cellProperties = instance.getCellMeta(0, col);
     var width = cellProperties.width;
+
     if (width === void 0 || width === priv.settings.width) {
       width = cellProperties.colWidths;
     }
@@ -1774,13 +1963,16 @@ Handsontable.Core = function (rootElement, userSettings) {
         width = parseInt(width, 10);
       }
     }
+
     return width;
   };
 
   /**
    * Return column width
+   *
+   * @since 0.11
    * @param {Number} col
-   * @return {Number}
+   * @returns {Number}
    */
   this.getColWidth = function (col) {
     var width = instance._getColWidthFromSettings(col);
@@ -1794,9 +1986,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return row height from settings (no guessing). Private use intended
+   * Return row height from settings (no guessing). Private use intended.
+   *
+   * @private
    * @param {Number} row
-   * @return {Number}
+   * @returns {Number}
    */
   this._getRowHeightFromSettings= function (row) {
     /* inefficient
@@ -1807,6 +2001,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     */
     var height = priv.settings.rowHeights; //only uses grid settings
+
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
         case 'object': //array
@@ -1821,13 +2016,16 @@ Handsontable.Core = function (rootElement, userSettings) {
         height = parseInt(height, 10);
       }
     }
+
     return height;
   };
 
   /**
-   * Return row height
+   * Return row height.
+   *
    * @param {Number} row
-   * @return {Number}
+   * @returns {Number}
+   * @since 0.11
    */
   this.getRowHeight = function (row) {
     var height = instance._getRowHeightFromSettings(row);
@@ -1838,16 +2036,18 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return total number of rows in grid
-   * @return {Number}
+   * Returns total number of rows in the grid.
+   *
+   * @returns {Number} Total number in rows the grid
    */
   this.countRows = function () {
     return priv.settings.data.length;
   };
 
   /**
-   * Return total number of columns in grid
-   * @return {Number}
+   * Returns total number of columns in the grid.
+   *
+   * @returns {Number} Total number of columns
    */
   this.countCols = function () {
     if (instance.dataType === 'object' || instance.dataType === 'function') {
@@ -1872,40 +2072,45 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return index of first rendered row
-   * @return {Number}
+   * Get index of first visible row.
+   *
+   * @returns {Number} Returns index of first visible row
    */
   this.rowOffset = function () {
     return instance.view.wt.wtTable.getFirstRenderedRow();
   };
 
   /**
-   * Return index of first visible column
-   * @return {Number}
+   * Get index of first visible column.
+   *
+   * @returns {Number} Return index of first visible column.
    */
   this.colOffset = function () {
     return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
-   * Return number of rendered rows (including rows partially or fully rendered outside viewport). Returns -1 if table is not visible
-   * @return {Number}
+   * Return number of rendered rows (including rows partially or fully rendered outside viewport).
+   *
+   * @returns {Number} Returns -1 if table is not visible
    */
   this.countRenderedRows = function () {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
-   * Return number of visible rows (rendered rows that fully fit inside viewport)). Returns -1 if table is not visible
-   * @return {Number}
+   * Return number of visible rows (rendered rows that fully fit inside viewport).
+   *
+   * @returns {Number} Returns -1 if table is not visible
    */
   this.countVisibleRows = function () {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
   };
 
   /**
-   * Return number of rendered columns (including columns partially or fully rendered outside viewport). Returns -1 if table is not visible
-   * @return {Number}
+   * Return number of visible columns.
+   *
+   * @returns {Number} Returns -1 if table is not visible
    */
   this.countRenderedCols = function () {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
@@ -1920,8 +2125,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return number of empty rows
-   * @return {Boolean} ending If true, will only count empty rows at the end of the data source
+   * Returns number of empty rows. If the optional ending parameter is 1, returns
+   * number of empty rows at the bottom of the table.
+   *
+   * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source
+   * @returns {Number} Count empty rows
    */
   this.countEmptyRows = function (ending) {
     var i = instance.countRows() - 1
@@ -1941,8 +2149,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return number of empty columns
-   * @return {Boolean} ending If true, will only count empty columns at the end of the data source row
+   * Returns number of empty columns. If the optional `ending` parameter is `true`, returns number of empty
+   * columns at right hand edge of the table.
+   *
+   * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row
+   * @returns {Number} Count empty cols
    */
   this.countEmptyCols = function (ending) {
     if (instance.countRows() < 1) {
@@ -1964,32 +2175,34 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return true if the row at the given index is empty, false otherwise
-   * @param {Number} r Row index
-   * @return {Boolean}
+   * Check is `row` is empty.
+   *
+   * @param {Number} row Row index
+   * @returns {Boolean} Return `true` if the row at the given `row` is empty, `false` otherwise.
    */
-  this.isEmptyRow = function (r) {
-    return priv.settings.isEmptyRow.call(instance, r);
+  this.isEmptyRow = function (row) {
+    return priv.settings.isEmptyRow.call(instance, row);
   };
 
   /**
-   * Return true if the column at the given index is empty, false otherwise
-   * @param {Number} c Column index
-   * @return {Boolean}
+   * Check is `col` is empty.
+   *
+   * @param {Number} col Column index
+   * @returns {Boolean} Return `true` if the column at the given `col` is empty, `false` otherwise.
    */
-  this.isEmptyCol = function (c) {
-    return priv.settings.isEmptyCol.call(instance, c);
+  this.isEmptyCol = function (col) {
+    return priv.settings.isEmptyCol.call(instance, col);
   };
 
   /**
-   * Selects cell on grid. Optionally selects range to another cell
+   * Select cell `row`, `col` or range finishing at `endRow`, `endCol`. By default, viewport will be scrolled to selection.
+   *
    * @param {Number} row
    * @param {Number} col
    * @param {Number} [endRow]
    * @param {Number} [endCol]
-   * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to the selection
-   * @public
-   * @return {Boolean}
+   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection
+   * @returns {Boolean}
    */
   this.selectCell = function (row, col, endRow, endCol, scrollToCell) {
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
@@ -2023,6 +2236,16 @@ Handsontable.Core = function (rootElement, userSettings) {
     return true;
   };
 
+  /**
+   * Select cell `row`, `prop` or range finishing at `endRow`, `endProp`. By default, viewport will be scrolled to selection.
+   *
+   * @param {Number} row
+   * @param {Object} prop
+   * @param {Number} [endRow]
+   * @param {Object} [endProp]
+   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection
+   * @returns {Boolean}
+   */
   this.selectCellByProp = function (row, prop, endRow, endProp, scrollToCell) {
     /* jshint ignore:start */
     arguments[1] = datamap.propToCol(arguments[1]);
@@ -2034,16 +2257,14 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Deselects current sell selection on grid
-   * @public
+   * Deselects current cell selection on grid.
    */
   this.deselectCell = function () {
     selection.deselect();
   };
 
   /**
-   * Remove grid from DOM
-   * @public
+   * Remove grid from DOM.
    */
   this.destroy = function () {
 
@@ -2088,14 +2309,17 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Replacement for all methods after Handsotnable was destroyed
+   * Replacement for all methods after Handsotnable was destroyed.
+   *
+   * @private
    */
   function postMortem() {
     throw new Error("This method cannot be called because this Handsontable instance has been destroyed");
   }
 
   /**
-   * Returns active editor object
+   * Returns active editor object. {@link Handsontable.EditorManager#getActiveEditor}
+   *
    * @returns {Object}
    */
   this.getActiveEditor = function(){
@@ -2103,26 +2327,55 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return Handsontable instance
-   * @public
-   * @return {Object}
+   * Return Handsontable instance.
+   *
+   * @returns {Handsontable}
    */
   this.getInstance = function () {
     return instance;
   };
 
+  /**
+   * {@link Handsontable.Hooks#add}
+   *
+   * @param {String} key
+   * @param {Function} fn
+   */
   this.addHook = function (key, fn) {
     Handsontable.hooks.add(key, fn, instance);
   };
 
+  /**
+   * {@link Handsontable.Hooks#once}
+   *
+   * @param {String} key
+   * @param {Function} fn
+   */
   this.addHookOnce = function (key, fn) {
     Handsontable.hooks.once(key, fn, instance);
   };
 
+  /**
+   * {@link Handsontable.Hooks#remove}
+   *
+   * @param {String} key
+   * @param {Function} fn
+   */
   this.removeHook = function (key, fn) {
     Handsontable.hooks.remove(key, fn, instance);
   };
 
+  /**
+   * {@link Handsontable.Hooks#run}
+   *
+   * @param {String} key
+   * @param {*} p1
+   * @param {*} p2
+   * @param {*} p3
+   * @param {*} p4
+   * @param {*} p5
+   * @param {*} p6
+   */
   this.runHooks = function (key, p1, p2, p3, p4, p5, p6) {
     return Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5, p6);
   };
@@ -2130,16 +2383,19 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.timeouts = [];
 
   /**
-   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
-   * @public
+   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {*} handle
+   * @private
    */
   this._registerTimeout = function (handle) {
     this.timeouts.push(handle);
   };
 
   /**
-   * Clears all known timeouts
-   * @public
+   * Clears all known timeouts.
+   *
+   * @private
    */
   this._clearTimeouts = function () {
     for(var i = 0, ilen = this.timeouts.length; i<ilen; i++) {
@@ -2149,103 +2405,967 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Handsontable version
+   *
+   * @type {String}
    */
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
+/**
+ * @alias Handsontable.Options
+ * @constructor
+ * @description
+
+ * ## Constructor options
+ *
+ * Constructor options are applied using an object literal passed as a first argument to the Handsontable constructor.
+ *
+ * @example
+ * ```js
+ * var exampleContainer = document.getElementById('example1');
+ * var hot = new Handsontable(exampleContainer, {
+ *   data: myArray,
+ *   width: 400,
+ *   height: 300
+ * })
+ * ```
+ *
+ * ---
+ * ## Cascading configuration
+ *
+ * Handsontable 0.9 and newer is using *Cascading Configuration*, which is fast way to provide configuration options
+ * for whole table, its columns and particular cells.
+ *
+ * Consider the following example:
+ * ```js
+ * var exampleContainer = document.getElementById('example');
+ * var hot = new Handsontable(exampleContainer, {
+ *   readOnly: true,
+ *   columns: [
+ *     {readOnly: false},
+ *     {},
+ *     {}
+ *   ],
+ *   cells: function (row, col, prop) {
+ *     var cellProperties = {};
+ *
+ *     if (row === 0 && col === 0) {
+ *       cellProperties.readOnly = true;
+ *     }
+ *
+ *     return cellProperties;
+ *   }
+ * });
+ * ```
+ *
+ * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
+ *
+ * ### The Cascading Configuration model
+ *
+ * ##### 1. Constructor
+ *
+ * Configuration options that are provided using first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
+ *
+ * ##### 2. Columns
+ *
+ * Configuration options that are provided using second-level object `handsontable(container, {columns: {option: "value"}]})`
+ *
+ * ##### 3. Cells
+ *
+ * Configuration options that are provided using second-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
+ *
+ * ---
+ * ## Architecture performance
+ *
+ * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient compared
+ * to the previous model that used jQuery extend. See: http://jsperf.com/extending-settings.
+ *
+ * ---
+ * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ */
 var DefaultSettings = function () {};
 
 DefaultSettings.prototype = {
+  /**
+   * @description
+   * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
+   * Can be Array of Array, Array of Objects or Function.
+   *
+   * See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html).
+   *
+   * @type {Array|Function}
+   * @default undefined
+   */
   data: void 0,
+
+  /**
+   * @description
+   * Defines the structure of a new row when data source is an object.
+   * Default like the first data row Array or Object.
+   *
+   *  See [demo/datasources.html](http://handsontable.com/demo/datasources.html) for examples.
+   *
+   * @type {Object}
+   * @default undefined
+   */
   dataSchema: void 0,
+
+  /**
+   * Width of the grid. Can be a number or a function that returns a number.
+   *
+   * @type {Number|Function}
+   * @default undefined
+   */
   width: void 0,
+
+  /**
+   * Height of the grid. Can be a number or a function that returns a number.
+   *
+   * @type {Number|Function}
+   * @default undefined
+   */
   height: void 0,
+
+  /**
+   * @description
+   * Initial number of rows.
+   *
+   * __Notice:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
+   *
+   * @type {Number}
+   * @default 5
+   */
   startRows: 5,
+
+  /**
+   * @description
+   * Initial number of columns.
+   *
+   * __Notice:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
+   *
+   * @type {Number}
+   * @default 5
+   */
   startCols: 5,
+
+  /**
+   * Setting `true` or `false` will enable or disable the default row headers (1, 2, 3).
+   * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
+   * If a function is set the index of the row is passed as a parameter.
+   *
+   * @type {Boolean|Array|Function}
+   * @default null
+   * @example
+   *  ...
+   *  // as boolean
+   *  rowHeaders: true,
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  rowHeaders: [1, 2, 3],
+   *  ...
+   *
+   *  ...
+   *  // as function
+   *  rowHeaders: function(index) {
+   *    return index + ': AB';
+   *  },
+   *  ...
+   */
   rowHeaders: null,
+
+  /**
+   * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
+   * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
+   * If a function is set the index of the column is passed as a parameter.
+   *
+   * @type {Boolean|Array|Function}
+   * @default null
+   * @example
+   *  ...
+   *  // as boolean
+   *  colHeaders: true,
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  colHeaders: ['A', 'B', 'C'],
+   *  ...
+   *
+   *  ...
+   *  // as function
+   *  colHeaders: function(index) {
+   *    return index + ': AB';
+   *  },
+   *  ...
+   */
   colHeaders: null,
+
+  /**
+   * Defines column widths in pixels. Accepts number, string (that will be converted to number),
+   * array of numbers (if you want to define column width separately for each column) or a
+   * function (if you want to set column width dynamically on each render).
+   *
+   * @type {Array|Function|Number|String}
+   * @default undefined
+   */
   colWidths: void 0,
+
+  /**
+   * @description
+   * Defines the cell properties and data binding for certain columns.
+   *
+   * __Notice:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
+   *
+   * See [demo/datasources.html](http://handsontable.com/demo/datasources.html) for examples.
+   *
+   * @type {Array}
+   * @default undefined
+   * @example
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   columns: [
+   *     {
+   *       // column options for the first column
+   *       type: 'numeric',
+   *       format: '0,0.00 $'
+   *     },
+   *     {
+   *       // column options for the second column
+   *       type: 'text',
+   *       readOnly: true
+   *     }
+   *   ]
+   * });
+   * ...
+   */
   columns: void 0,
+
+  /**
+   * @description
+   * Defines the cell properties for given `row`, `col`, `prop` coordinates.
+   * Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
+   * array passed to the Handsontable constructor. Or using `cells` function property to the Handsontable constructor.
+   *
+   * @type {Function}
+   * @default undefined
+   * @example
+   * ```js
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   cells: function (row, col, prop) {
+   *     var cellProperties = {};
+   *
+   *     if (row === 0 && col === 0) {
+   *       cellProperties.readOnly = true;
+   *     }
+   *
+   *     return cellProperties;
+   *   }
+   * });
+   * ...
+   * ```
+   */
   cells: void 0,
+
+  /**
+   * Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
+   * array passed to the Handsontable constructor.
+   *
+   * @type {Array}
+   * @default []
+   * @example
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   cell: [
+   *     {row: 0, col: 0, readOnly: true}
+   *   ]
+   * });
+   * ...
+   */
   cell: [],
+
+  /**
+   * @description
+   * If `true`, enables Comments plugin, which enables applying cell comments through the context menu
+   * (configurable with context menu keys commentsAddEdit, commentsRemove).
+   *
+   * To initialize Handsontable with predefined comments, provide cell coordinates and comment texts in form of an array.
+   *
+   * See [Comments](http://handsontable.com/demo/comments.html) demo for examples.
+   *
+   * @since 0.11.0
+   * @type {Boolean|Array}
+   * @default false
+   * @example
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   comments: [{row: 1, col: 1, comment: "Test comment"}]
+   * });
+   * ...
+   */
+  comments: false,
+
+  /**
+   * @description
+   * If `true`, enables Custom Borders plugin, which enables applying custom borders through the context menu (configurable with context menu key borders).
+   *
+   * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in form of an array.
+   *
+   * See [Custom Borders](http://handsontable.com/demo/custom_borders.html) demo for examples.
+   *
+   * @since 0.11.0
+   * @type {Boolean|Array}
+   * @default false
+   * @example
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   customBorders: [{range: {from: {row: 1, col: 1}, to: {row: 3, col: 4}}, left: {}, right: {}, top: {}, bottom: {}}],
+   * });
+   * ...
+   *
+   * // or
+   * ...
+   * var exampleContainer = document.getElementById('example');
+   * var hot = new Handsontable(exampleContainer, {
+   *   customBorders: [{row: 2, col: 2, left: {width: 2, color: 'red'}, right: {width: 1, color: 'green'}, top: '', bottom: ''}],
+   * });
+   * ...
+   */
+  customBorders: false,
+
+  /**
+   * Minimum number of rows. At least that many of rows will be created during initialization.
+   *
+   * @type {Number}
+   * @default 0
+   */
   minRows: 0,
+
+  /**
+   * Minimum number of columns. At least that many of columns will be created during initialization.
+   *
+   * @type {Number}
+   * @default 0
+   */
   minCols: 0,
+
+  /**
+   * Maximum number of rows.
+   *
+   * @type {Number}
+   * @default Infinity
+   */
   maxRows: Infinity,
+
+  /**
+   * Maximum number of cols.
+   *
+   * @type {Number}
+   * @default Infinity
+   */
   maxCols: Infinity,
+
+  /**
+   * When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
+   *
+   * @type {Number}
+   * @default 0
+   */
   minSpareRows: 0,
+
+  /**
+   * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
+   *
+   * @type {Number}
+   * @default 0
+   */
   minSpareCols: 0,
-  allowInsertRow:true,
+
+  /**
+   * @type {Boolean}
+   * @default true
+   */
+  allowInsertRow: true,
+
+  /**
+   * @type {Boolean}
+   * @default true
+   */
   allowInsertColumn: true,
+
+  /**
+   * @type {Boolean}
+   * @default true
+   */
   allowRemoveRow: true,
+
+  /**
+   * @type {Boolean}
+   * @default true
+   */
   allowRemoveColumn: true,
+
+  /**
+   * If true, selection of multiple cells using keyboard or mouse is allowed.
+   *
+   * @type {Boolean}
+   * @default true
+   */
   multiSelect: true,
+
+  /**
+   * Enables the fill handle (drag-down and copy-down) functionality, which shows the small rectangle in bottom
+   * right corner of the selected area, that let's you expand values to the adjacent cells.
+   *
+   * Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction),
+   * `false` (to disable completely). Setting to `true` enables the fillHandle plugin.
+   *
+   * @type {Boolean|String}
+   * @default true
+   */
   fillHandle: true,
+
+  /**
+   * Allows to specify the number of rows fixed (aka freezed) on the top of the table.
+   *
+   * @type {Number}
+   * @default 0
+   */
   fixedRowsTop: 0,
+
+  /**
+   * Allows to specify the number of columns fixed (aka freezed) on the left side of the table.
+   *
+   * @type {Number}
+   * @default 0
+   */
   fixedColumnsLeft: 0,
+
+  /**
+   * If `true`, mouse click outside the grid will deselect the current selection.
+   *
+   * @type {Boolean}
+   * @default true
+   */
   outsideClickDeselects: true,
+
+  /**
+   * If `true`, <kbd>ENTER</kbd> begins editing mode (like Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
+   * row (like Excel) and adds new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
+   *
+   * @type {Boolean}
+   * @default true
+   */
   enterBeginsEditing: true,
+
+  /**
+   * Defines cursor move after <kbd>ENTER</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>ENTER</kbd> uses negative vector).
+   * Can be an object or a function that returns an object. The event argument passed to the function
+   * is a DOM Event object received after a <kbd>ENTER</kbd> key has been pressed. This event object can be used to check
+   * whether user pressed <kbd>ENTER</kbd> or <kbd>SHIFT</kbd> + <kbd>ENTER</kbd>.
+   *
+   * @type {Object|Function}
+   * @default {row: 1, col: 0}
+   */
   enterMoves: {row: 1, col: 0},
+
+  /**
+   * Defines cursor move after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses negative vector).
+   * Can be an object or a function that returns an object. The event argument passed to the function
+   * is a DOM Event object received after a <kbd>TAB</kbd> key has been pressed. This event object can be used to check
+   * whether user pressed <kbd>TAB</kbd> or <kbd>SHIFT</kbd> + <kbd>TAB</kbd>.
+   *
+   * @type {Object}
+   * @default {row: 0, col: 1}
+   */
   tabMoves: {row: 0, col: 1},
+
+  /**
+   * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row
+   *
+   * @type {Boolean}
+   * @default false
+   */
   autoWrapRow: false,
+
+  /**
+   * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to first row in next column
+   *
+   * @type {Boolean}
+   * @default false
+   */
   autoWrapCol: false,
+
+  /**
+   * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+   *
+   * @type {Number}
+   * @default 1000
+   */
   copyRowsLimit: 1000,
+
+  /**
+   * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+   *
+   * @type {Number}
+   * @default 1000
+   */
   copyColsLimit: 1000,
+
+  /**
+   * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior. Default value `"overwrite"` will paste clipboard value over current selection.
+   * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
+   * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
+   *
+   * @type {String}
+   * @default 'overwrite'
+   */
   pasteMode: 'overwrite',
+
+  /**
+   * @description
+   * Turn on saving the state of column sorting, columns positions and columns sizes in local storage.
+   *
+   * You can save any sort of data in local storage in to preserve table state between page reloads.
+   * In order to enable data storage mechanism, `persistentState` option must be set to `true` (you can set it
+   * either during Handsontable initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
+   *
+   * __persistentStateSave__ (key: String, value: Mixed)
+   *
+   *   * Saves value under given key in browser local storage.
+   *
+   * __persistentStateLoad__ (key: String, valuePlaceholder: Object)
+   *
+   *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in `valuePlaceholder.value`
+   *     (this is due to specific behaviour of `PluginHooks.execute()` method). If no value have been saved under key `valuePlaceholder.value`
+   *     will be `undefined`.
+   *
+   * __persistentStateReset__ (key: String)
+   *
+   *   * Clears the value saved under `key`. If no `key` is given, all values associated with table will be cleared.
+   *
+   * __Note:__ The main reason behind using `persistentState` hooks rather than regular LocalStorage API is that it
+   * ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more)
+   * instances of Handsontable on one page, data saved by one instance won't be accessible by the second instance.
+   * Those two instances can store data under the same key and no data would be overwritten.
+   *
+   * __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  persistentState: false,
+
+  /**
+   * Class name for all visible rows in current selection.
+   *
+   * @type {String}
+   * @default undefined
+   */
   currentRowClassName: void 0,
+
+  /**
+   * Class name for all visible columns in current selection.
+   *
+   * @type {String}
+   * @default undefined
+   */
   currentColClassName: void 0,
+
+  /**
+   * @description
+   * [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `"none"`, `"last"`, `"all"`.
+   *
+   * @type {String}
+   * @default 'none'
+   */
   stretchH: 'none',
-  isEmptyRow: function (r) {
+
+  /**
+   * Lets you overwrite the default `isEmptyRow` method.
+   *
+   * @type {Function}
+   * @param {Number} row
+   * @returns {Boolean}
+   */
+  isEmptyRow: function (row) {
     var val;
+
     for (var c = 0, clen = this.countCols(); c < clen; c++) {
-      val = this.getDataAtCell(r, c);
+      val = this.getDataAtCell(row, c);
+
       if (val !== '' && val !== null && typeof val !== 'undefined') {
         return false;
       }
     }
+
     return true;
   },
-  isEmptyCol: function (c) {
+
+  /**
+   * Lets you overwrite the default `isEmptyCol` method.
+   *
+   * @type {Function}
+   * @param {Number} col
+   * @returns {Boolean}
+   */
+  isEmptyCol: function (col) {
     var val;
+
     for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
-      val = this.getDataAtCell(r, c);
+      val = this.getDataAtCell(r, col);
+
       if (val !== '' && val !== null && typeof val !== 'undefined') {
         return false;
       }
     }
+
     return true;
   },
+
+  /**
+   * When set to `true`, the table is rerendered when it is detected that it was made visible in DOM.
+   *
+   * @type {Boolean}
+   * @default true
+   */
   observeDOMVisibility: true,
+
+  /**
+   * If set to `true`, cells will accept value that is marked as invalid by cell `validator`, with a background color
+   * automatically applied using CSS class `htInvalid`. If set to `false`, cells will not accept invalid value.
+   *
+   * @type {Boolean}
+   * @default true
+   * @since 0.9.5
+   */
   allowInvalid: true,
+
+  /**
+   * CSS class name for cells that did not pass validation.
+   *
+   * @type {String}
+   * @default 'htInvalid'
+   */
   invalidCellClassName: 'htInvalid',
+
+  /**
+   * When set to an non-empty string, displayed as the cell content for empty cells.
+   *
+   * @type {Boolean|String}
+   * @default false
+   */
   placeholder: false,
+
+  /**
+   * CSS class name for cells that have a placeholder in use.
+   *
+   * @type {String}
+   * @default 'htPlaceholder'
+   */
   placeholderCellClassName: 'htPlaceholder',
+
+  /**
+   * CSS class name for read-only cells.
+   *
+   * @type {String}
+   * @default 'htDimmed'
+   */
   readOnlyCellClassName: 'htDimmed',
+
+  /**
+   * String or rendering function.
+   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `numeric`.
+   * Function will receive the following arguments: `function(instance, TD, row, col, prop, value, cellProperties) {}`
+   * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myRenderer = myRenderer;`
+   *
+   * @type {String|Function}
+   * @default undefined
+   */
+  renderer: void 0,
+
+  /**
+   * @type {String}
+   * @default 'htCommentCell'
+   */
   commentedCellClassName: 'htCommentCell',
+
+  /**
+   * Setting to `true` enables selecting just a fragment of the text within a single cell or between adjacent cells.
+   *
+   * @type {Boolean}
+   * @default false
+   */
   fragmentSelection: false,
+
+  /**
+   * @description
+   * Make cell [read only](http://handsontable.com/demo/readonly.html).
+   *
+   * @type {Boolean}
+   * @default false
+   */
   readOnly: false,
+
+  /**
+   * @description
+   * Setting to true enables the search plugin (see [demo](http://handsontable.com/demo/search.html)).
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  search: false,
+
+  /**
+   * @description
+   * Shortcut to define combination of cell renderer and editor for the column.
+   *
+   * Possible values: text, [numeric](http://handsontable.com/demo/numeric.html), [date](http://handsontable.com/demo/date.html),
+   * [checkbox](http://handsontable.com/demo/checkbox.html), [autocomplete](http://handsontable.com/demo/autocomplete.html),
+   * [handsontable](http://handsontable.com/demo/handsontable.html).
+   *
+   * @type {String}
+   * @default 'text'
+   */
   type: 'text',
+
+  /**
+   * @description
+   * Make cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard moves its value to system clipboard).
+   *
+   * __Note:__ this setting is `false` by default for cells with type `password`.
+   *
+   * @type {Boolean}
+   * @default true
+   * @since 0.10.2
+   */
   copyable: true,
-  debug: false, //shows debug overlays in Walkontable
+
+  /**
+   * String or rendering function.
+   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `date`, `handsontable`.
+   * Function will receive the following arguments: `function(instance, td, row, col, prop, value, cellProperties) {}`
+   * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myEditor = myEditor;`
+   *
+   * @type {String|Function}
+   * @default 'text'
+   */
+  editor: 'text',
+
+  /**
+   * @description
+   * Autocomplete definitions. See [demo/autocomplete.html](http://handsontable.com/demo/autocomplete.html) for examples and definitions.
+   *
+   * @type {Array}
+   * @default undefined
+   */
+  autoComplete: void 0,
+
+  /**
+   * Setting to true enables the debug mode, currently used to test the correctness of the row and column
+   * header fixed positioning on a layer above the master table.
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  debug: false,
+
+  /**
+   * When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
+   *
+   * @type {Boolean}
+   * @default true
+   * @since 0.11.0
+   */
   wordWrap: true,
+
+  /**
+   * CSS class name added to cells with cell meta `wordWrap: false`.
+   *
+   * @type {String}
+   * @default 'htNoWrap'
+   * @since 0.11.0
+   */
   noWordWrapClassName: 'htNoWrap',
+
+  /**
+   * @description
+   * Defines if the right-click context menu should be enabled. Context menu allows to create new row or
+   * column at any place in the grid. Possible values: `true` (to enable basic options), `false` (to disable completely)
+   * or array of any available strings: `["row_above", "row_below", "col_left", "col_right",
+   * "remove_row", "remove_col", "undo", "redo", "sep1", "sep2", "sep3"]`.
+   *
+   * See [demo/contextmenu.html](http://handsontable.com/demo/contextmenu.html) for examples.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   */
   contextMenu: void 0,
+
+  /**
+   * If `true`, undo/redo functionality is enabled.
+   *
+   * @type {Boolean}
+   * @default undefined
+   */
   undo: void 0,
+
+  /**
+   * @description
+   * Turn on [Column sorting](http://handsontable.com/demo/sorting.html).
+   *
+   * @type {Boolean}
+   * @default undefined
+   */
   columnSorting: void 0,
+
+  /**
+   * @description
+   * Turn on [Manual column move](http://handsontable.com/demo/column_move.html), if set to a boolean or define initial
+   * column order, if set to an array of column indexes.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   */
   manualColumnMove: void 0,
+
+  /**
+   * @description
+   * Turn on [Manual column resize](http://handsontable.com/demo/column_resize.html), if set to a boolean or define initial
+   * column resized widths, if set to an array of numbers.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   */
   manualColumnResize: void 0,
+
+  /**
+   * @description
+   * Turn on [Manual row move](http://handsontable.com/demo/column_move.html), if set to a boolean or define initial
+   * row order, if set to an array of row indexes.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   * @since 0.11.0
+   */
   manualRowMove: void 0,
+
+  /**
+   * @description
+   * Turn on [Manual row resize](http://handsontable.com/demo/column_resize.html), if set to a boolean or define initial
+   * row resized heights, if set to an array of numbers.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   * @since 0.11.0
+   */
   manualRowResize: void 0,
-  manualColumnFreeze: void 0,
-  viewportRowRenderingOffset: 10, //number of rows to be prerendered before and after the viewport
-  viewportColumnRenderingOffset: 10, // number of columns to be prerendered before and after the viewport
+
+  /**
+   * @description
+   * Setting to true or array enables the mergeCells plugin, which enables the merging of the cells. (see [demo](http://handsontable.com/demo/merge_cells.html)).
+   * You can provide the merged cells on the pageload if you feed the mergeCells option with an array.
+   *
+   * @type {Boolean|Array}
+   * @default false
+   */
+  mergeCells: false,
+
+  /**
+   * Number of rows to be prerendered before and after the viewport is changed.
+   *
+   * @type {Number}
+   * @default 10
+   */
+  viewportRowRenderingOffset: 10,
+
+  /**
+   * Number of columns to be prerendered before and after the viewport is changed.
+   *
+   * @type {Number}
+   * @default 10
+   */
+  viewportColumnRenderingOffset: 10,
+
+  /**
+   * @description
+   * If `true`, enables Grouping plugin, which enables applying expandable row and column groups.
+   * To initialize Handsontable with predefined groups, provide row or column group start and end coordinates in form of an array.
+   *
+   * See [Grouping](http://handsontable.com/demo/grouping.html) demo for examples.
+   *
+   * @type {Boolean|Array}
+   * @default undefined
+   * @since 0.11.4
+   * @example
+   *  ...
+   *  // as boolean
+   *  groups: true,
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  groups: [{cols: [0, 2]}, {cols: [5, 15], rows: [0, 5]}],
+   *  ...
+   */
   groups: void 0,
+
+  /**
+   * A usually small function or regular expression that validates the input.
+   * After you determine if the input is valid, execute `callback(true)` or `callback(false)` to proceed with the execution.
+   * In function, `this` binds to cellProperties.
+   *
+   * @type {Function|RegExp}
+   * @default undefined
+   * @since 0.9.5
+   */
+  validator: void 0,
+
+  /**
+   * @description
+   * Disable visual cells selection.
+   *
+   * Possible values:
+   *  `true` - Disables any type of visual selection (current and area selection),
+   *  `false` - Enables any type of visual selection. This is default value.
+   *  `current` - Disables to appear only current selected cell.
+   *  `area` - Disables to appear only multiple selected cells.
+   *
+   * @type {Boolean|String|Array}
+   * @default false
+   * @since 0.13.2
+   * @example
+   *  ...
+   *  // as boolean
+   *  disableVisualSelection: true,
+   *  ...
+   *
+   *  ...
+   *  // as string ('current' or 'area')
+   *  disableVisualSelection: 'current',
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  disableVisualSelection: ['current', 'area'],
+   *  ...
+   */
+  disableVisualSelection: false,
+  manualColumnFreeze: void 0,
   trimWhitespace: true,
   settings: void 0,
   source: void 0,
   title: void 0,
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
-  renderer: void 0,
-  format: void 0
+  format: void 0,
+  className: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

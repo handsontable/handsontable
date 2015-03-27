@@ -106,6 +106,7 @@ WalkontableTable.prototype.isWorkingOnClone = function () {
 
 /**
  * Redraws the table
+ *
  * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
  * @returns {WalkontableTable}
  */
@@ -220,11 +221,11 @@ WalkontableTable.prototype.refreshSelections = function (fastDraw) {
 
 /**
  * getCell
+ *
  * @param {WalkontableCellCoords} coords
- * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
+ * @returns {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 row before viewport
  *  -2 row after viewport
- *
  */
 WalkontableTable.prototype.getCell = function (coords) {
   if (this.isRowBeforeRenderedRows(coords.row)) {
@@ -243,10 +244,10 @@ WalkontableTable.prototype.getCell = function (coords) {
 
 /**
  * getColumnHeader
+ *
  * @param col
  * @param level Header level (0 = most distant to the table)
- * @return {Object} HTMLElement on success or undefined on error
- *
+ * @returns {Object} HTMLElement on success or undefined on error
  */
 WalkontableTable.prototype.getColumnHeader = function(col, level) {
   if(!level) {
@@ -261,10 +262,10 @@ WalkontableTable.prototype.getColumnHeader = function(col, level) {
 
 /**
  * getRowHeader
- * @param row
- * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
- *  null table doesn't have row headers
  *
+ * @param row
+ * @returns {Object} HTMLElement on success or {Number} one of the exit codes on error:
+ *  null table doesn't have row headers
  */
 WalkontableTable.prototype.getRowHeader = function(row) {
   if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
@@ -280,6 +281,7 @@ WalkontableTable.prototype.getRowHeader = function(row) {
 
 /**
  * Returns cell coords object for a given TD
+ *
  * @param TD
  * @returns {WalkontableCellCoords}
  */
@@ -398,8 +400,9 @@ WalkontableTable.prototype.allRowsInViewport = function () {
 
 /**
  * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+ *
  * @param {Number} sourceRow
- * @return {Number}
+ * @returns {Number}
  */
 WalkontableTable.prototype.getRowHeight = function (sourceRow) {
   var height = this.instance.wtSettings.settings.rowHeight(sourceRow);

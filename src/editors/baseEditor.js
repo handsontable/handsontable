@@ -56,17 +56,16 @@
 
   BaseEditor.prototype.extend = function(){
     var baseClass = this.constructor;
-    function Editor(){
+
+    function Editor() {
       baseClass.apply(this, arguments);
     }
-
-    function inherit(Child, Parent){
-      function Bridge() {
-      }
-
+    function inherit(Child, Parent) {
+      function Bridge() {}
       Bridge.prototype = Parent.prototype;
       Child.prototype = new Bridge();
       Child.prototype.constructor = Child;
+
       return Child;
     }
 
@@ -74,16 +73,18 @@
   };
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
-    if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-      var sel = this.instance.getSelected()
-        , tmp;
+    var sel, tmp;
 
-      if(sel[0] > sel[2]) {
+    // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+    if (ctrlDown) {
+      sel = this.instance.getSelected();
+
+      if (sel[0] > sel[2]) {
         tmp = sel[0];
         sel[0] = sel[2];
         sel[2] = tmp;
       }
-      if(sel[1] > sel[3]) {
+      if (sel[1] > sel[3]) {
         tmp = sel[1];
         sel[1] = sel[3];
         sel[3] = tmp;
@@ -96,25 +97,23 @@
     }
   };
 
-  BaseEditor.prototype.beginEditing = function(initialValue){
+  BaseEditor.prototype.beginEditing = function(initialValue, event){
     if (this.state != Handsontable.EditorState.VIRGIN) {
       return;
     }
-
     this.instance.view.scrollViewport(new WalkontableCellCoords(this.row, this.col));
     this.instance.view.render();
-
     this.state = Handsontable.EditorState.EDITING;
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
-
     this.setValue(Handsontable.helper.stringify(initialValue));
 
-    this.open();
+    this.open(event);
     this._opened = true;
     this.focus();
 
-    this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
+    // only rerender the selections (FillHandle should disappear when beginediting is triggered)
+    this.instance.view.render();
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
@@ -153,15 +152,16 @@
       }
 
       if (this.instance.getSettings().trimWhitespace) {
+        // String.prototype.trim is defined in Walkontable polyfill.js
         val = [
-          [String.prototype.trim.call(this.getValue())] // String.prototype.trim is defined in Walkontable polyfill.js
+          // We trim only string values
+          [typeof this.getValue() === 'string' ? String.prototype.trim.call(this.getValue() || '') : this.getValue()]
         ];
       } else {
         val = [
           [this.getValue()]
         ];
       }
-
 
       this.state = Handsontable.EditorState.WAITING;
       this.saveValue(val, ctrlDown);
@@ -193,8 +193,8 @@
       this.focus();
       this.state = Handsontable.EditorState.EDITING;
       this._fireCallbacks(false);
-    }
-    else {
+
+    } else {
       this.close();
       this._opened = false;
       this.state = Handsontable.EditorState.VIRGIN;

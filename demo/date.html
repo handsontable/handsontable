@@ -4,7 +4,6 @@
   <meta charset='utf-8'>
   <title>Date cell type - Handsontable</title>
 
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <!--
   Pikady is needed for DateCell. It can be loaded before or after Handsontable
   -->
@@ -34,7 +33,7 @@
   -->
   <meta property="og:title" content="Date cell type">
   <meta property="og:description"
-        content="Date cell type uses jQuery UI Datepicker">
+        content="Date cell type uses the Pikaday Datepicker with Moment.js">
   <meta property="og:url" content="http://handsontable.com/demo/numeric.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -82,20 +81,21 @@
                 or <code>cells</code> function.</p>
 
               <p>The Date cell uses <a href="https://github.com/dbushell/Pikaday">Pikaday datepicker</a> as
-                the UI control.
+                the UI control. Pikaday uses <a href="https://github.com/moment/moment">Moment.js</a> as a date formatter.
 
               <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
 
+              <ul>
+                <li><code>demo/js/moment/moment.js</code></li>
+                <li><code>demo/js/pikaday/pikaday.js</code></li>
+              <li><code>demo/js/pikaday/css/pikaday.css</code></li>
+              </ul>
 
-          <ul>
-            <li><code>dist/handsontable.full.js</code></li>
-            <li><code>dist/handsontable.full.css</code></li>
-            <li><code>demo/js/pikaday/css/pikaday.css</code></li>
-            <li><code>demo/js/moment/moment.js</code></li>
-            <li><code>demo/js/pikaday/pikaday.js</code></li>
-          </ul>
+              <p>All data entered to the data-typed cells are validated agains the default date format (<code><a
+                href="http://momentjs.com/docs/#/parsing/" target="_blank"
+                title="Click here to find how to use different date format">DD/MM/YYYY</a></code>), unless another
+                format is provided.</p>
 
-              <p>All data entered to the data-typed cells are validated agains the default date format (<code>MM/DD/YYYY</code>), unless another format is provided.</p>
               <p>If you enable the <code>correctFormat</code> config item, the dates will be automatically formatted to
                 match the desired format.</p>
 
@@ -118,15 +118,17 @@
               </div>
 
               <script data-jsfiddle="example1">
-                var element = $('#example1'),
+                var container = document.getElementById('example1'),
                   hot;
 
-                element.handsontable({
+                hot = new Handsontable(container, {
                   data: getCarData(),
                   startRows: 7,
                   startCols: 4,
                   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
                   columnSorting: true,
+                  contextMenu: true,
+                  minSpareRows: 1,
                   columns: [
                     {
                       type: 'autocomplete',
@@ -139,7 +141,8 @@
                     {
                       type: 'date',
                       dateFormat: 'MM/DD/YYYY',
-                      correctFormat: true
+                      correctFormat: true,
+                      defaultDate: '01/01/1900'
                     },
                     {
                       type: 'numeric',
@@ -148,7 +151,6 @@
                   ]
                 });
 
-                hot = element.handsontable('getInstance');
               </script>
             </div>
           </div>

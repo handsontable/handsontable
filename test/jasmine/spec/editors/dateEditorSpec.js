@@ -83,7 +83,7 @@ describe('DateEditor', function () {
     expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate());
   });
 
-  it("should select save new date after clicking on calendar", function () {
+  it("should save new date after clicked on calendar", function () {
     handsontable({
       data: getDates(),
       columns: [
@@ -107,6 +107,63 @@ describe('DateEditor', function () {
     });
   });
 
+  it("should display fill handle after selected date on calendar", function () {
+    handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
+
+    keyDown('enter');
+
+    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
+
+    waits(150);
+    runs(function () {
+      expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
+      expect($('.htBorders .current.corner').is(':visible')).toBe(true);
+    });
+  });
+
+  it("should setup in settings and display defaultDate on calendar", function () {
+    handsontable({
+      data: getDates(),
+      minSpareRows: 1,
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY',
+          defaultDate: '01/01/1900'
+        }
+      ]
+    });
+
+    selectCell(5, 0);
+    expect(getDataAtCell(5, 0)).toMatch(null);
+
+    keyDown('enter');
+
+    var date = new Date('01/01/1900');
+
+    expect($('.pika-single').find('.pika-select-year').find(':selected').val()).toMatch(date.getFullYear());
+    expect($('.pika-single').find('.pika-select-month').find(':selected').val()).toMatch(date.getMonth());
+    expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate());
+
+    keyDown('enter');
+
+    waits(150);
+    runs(function () {
+      expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
+    });
+  });
+
   it("should close calendar after picking new date", function () {
     handsontable({
       data: getDates(),
@@ -123,7 +180,7 @@ describe('DateEditor', function () {
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
-    $('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button').click();
+    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
     expect($('.pika-single').is(':visible')).toBe(false);
 
@@ -157,6 +214,40 @@ describe('DateEditor', function () {
     waits(30);
     runs(function() {
       expect(getDataAtCell(0, 0)).toEqual('foo');
+    });
+
+  });
+
+  it("should restore original when edited and pressed ESC ", function () {
+    var hot = handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date'
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = hot.getActiveEditor();
+
+    editor.beginEditing();
+
+    expect(editor.isOpened()).toBe(true);
+
+    editor.TEXTAREA.value = 'foo';
+
+    expect(editor.getValue()).toEqual('foo');
+
+    keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+
+    editor.finishEditing();
+
+    waits(30);
+
+    runs(function() {
+      expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
     });
 
   });

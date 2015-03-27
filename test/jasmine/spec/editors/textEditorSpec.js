@@ -80,7 +80,7 @@ describe('TextEditor', function () {
     }, 'Retrieve editor height', 1000);
 
     runs(function () {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('22px');
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
     });
   });
 
@@ -748,11 +748,11 @@ describe('TextEditor', function () {
     keyDown(Handsontable.helper.keyCode.ENTER);
     keyDown(Handsontable.helper.keyCode.ENTER);
 
-    // lame check, needs investigating why sometimes it leaves 1px error
+    // lame check, needs investigating why sometimes it leaves 2px error
     if(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA) == regularHeight) {
       expect(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight);
     } else {
-      expect(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight - 1);
+      expect(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight - 2);
     }
 
   });
