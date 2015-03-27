@@ -210,6 +210,49 @@
     return this.state === Handsontable.EditorState.WAITING;
   };
 
+  BaseEditor.prototype.checkEditorSection = function () {
+    if(this.row < this.instance.getSettings().fixedRowsTop) {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'corner';
+      } else {
+        return 'top';
+      }
+    } else {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'left';
+      }
+    }
+  };
+
+  BaseEditor.prototype.setZIndex = function (index) {
+  };
+
+  BaseEditor.prototype.getEditedCell = function () {
+    var editorSection = this.checkEditorSection()
+      , editedCell;
+
+    switch (editorSection) {
+      case 'top':
+        editedCell = this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.getCell({row: this.row, col: this.col});
+        this.setZIndex(101);
+        break;
+      case 'corner':
+        editedCell = this.instance.view.wt.wtScrollbars.corner.clone.wtTable.getCell({row: this.row, col: this.col});
+        this.setZIndex(103);
+        break;
+      case 'left':
+        editedCell = this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.getCell({row: this.row, col: this.col});
+        this.setZIndex(102);
+        break;
+      default :
+        editedCell = this.instance.getCell(this.row, this.col);
+        this.setZIndex("");
+        break;
+    }
+
+    return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  };
+
   Handsontable.editors.BaseEditor = BaseEditor;
 
 })(Handsontable);
