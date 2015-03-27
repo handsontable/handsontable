@@ -299,13 +299,16 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    var physicalRemovedIndex = plugin.translateRow.call(instance, index);
-
-    instance.sortIndex.splice(index, amount);
+    var delSortIndices = instance.sortIndex.splice(index, amount);
+    var delIndicies = delSortIndices.map(function(el){ return el[0]; });
+    var minDelIndex = Math.min(delIndicies);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
+      if (instance.sortIndex[i][0] > minDelIndex){
+        var amount = delIndicies.filter(function(el){
+          return el < instance.sortIndex[i][0];
+        }).length;
 
-      if (instance.sortIndex[i][0] > physicalRemovedIndex){
         instance.sortIndex[i][0] -= amount;
       }
     }
