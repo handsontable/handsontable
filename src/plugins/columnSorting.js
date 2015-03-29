@@ -292,6 +292,12 @@ function HandsontableColumnSorting() {
 
   };
 
+  function offsetIndex(delIndices, physicalIndex) {
+    return delIndices.filter(function(el){
+      return el < physicalIndex;
+    }).length;
+  }
+
   this.afterRemoveRow = function(index, amount){
     var instance = this;
 
@@ -299,19 +305,18 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    var physicalRemovedIndex = plugin.translateRow.call(instance, index);
-
-    instance.sortIndex.splice(index, amount);
+    var delSortIndices = instance.sortIndex.splice(index, amount);
+    var delIndices = delSortIndices.map(function(el){ return el[0]; });
+    var minDelIndex = Math.min.apply(null, delIndices);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
-
-      if (instance.sortIndex[i][0] > physicalRemovedIndex){
+      if (instance.sortIndex[i][0] > minDelIndex){
+        var amount = offsetIndex(delIndices, instance.sortIndex[i][0]);
         instance.sortIndex[i][0] -= amount;
       }
     }
 
     saveSortingState.call(instance);
-
   };
 
   this.afterChangeSort = function (changes/*, source*/) {
