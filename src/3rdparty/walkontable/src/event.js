@@ -136,10 +136,10 @@ function WalkontableEvent(instance) {
 
   var onMouseUp = function (event) {
     if (event.button !== 2) { //if not right mouse button
-      var cell = that.parentCell(event.target);
+      var cell = that.parentCell(event.realTarget);
 
       if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
-        if (Handsontable.Dom.hasClass(event.target, 'corner')) {
+        if (Handsontable.Dom.hasClass(event.realTarget, 'corner')) {
           that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
         }
         else {
