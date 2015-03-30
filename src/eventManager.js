@@ -32,10 +32,10 @@ Handsontable.eventManager = function (instance) {
     event.realTarget = event.target;
 
     if (!Handsontable.eventManager.isHotTableEnv) {
-      return;
+      return event;
     }
     event = Handsontable.Dom.polymerWrap(event);
-    len = event.path ? event.path.length : 0;
+    len = event.path.length;
 
     while (len --) {
       if (event.path[len].nodeName === componentName) {
@@ -64,12 +64,13 @@ Handsontable.eventManager = function (instance) {
         fromElement = instance.view.wt.wtTable.TABLE;
 
       } else if (instance instanceof Walkontable) {
-        fromElement = instance.wtTable.TABLE;
+        // .wtHider
+        fromElement = instance.wtTable.TABLE.parentNode.parentNode;
       }
       realTarget = Handsontable.Dom.closest(event.target, [componentName], fromElement);
 
       if (realTarget) {
-        event.realTarget = fromElement.querySelector(componentName);
+        event.realTarget = fromElement.querySelector(componentName) || event.target;
       } else {
         event.realTarget = event.target;
       }
@@ -82,6 +83,8 @@ Handsontable.eventManager = function (instance) {
       enumerable: true,
       configurable: true
     });
+
+    return event;
   }
 
   /**
@@ -118,7 +121,7 @@ Handsontable.eventManager = function (instance) {
           };
         }
       }
-      extendEvent(event);
+      event = extendEvent(event);
 
       callback.call(this, event);
     };

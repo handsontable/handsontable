@@ -349,4 +349,109 @@ describe('Handsontable.Dom', function () {
     });
   });
 
+  //
+  // Handsontable.Dom.addClass
+  //
+  describe('addClass', function() {
+    it("should add class names as string to an element", function () {
+      var element = document.createElement('div');
+
+      expect(element.className).toBe('');
+
+      Handsontable.Dom.addClass(element, 'test');
+
+      expect(element.className).toBe('test');
+
+      Handsontable.Dom.addClass(element, 'test test1 test2');
+
+      expect(element.className).toBe('test test1 test2');
+
+      Handsontable.Dom.addClass(element, 'test3');
+
+      expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.Dom.addClass(element, undefined);
+
+      expect(element.className).toBe('test test1 test2 test3');
+    });
+
+    it("should add class names as array to an element", function () {
+      var element = document.createElement('div');
+
+      expect(element.className).toBe('');
+
+      Handsontable.Dom.addClass(element, ['test']);
+
+      expect(element.className).toBe('test');
+
+      Handsontable.Dom.addClass(element, ['test1', 'test2', 'test3']);
+
+      expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.Dom.addClass(element, 'test4');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+    });
+  });
+
+  //
+  // Handsontable.Dom.removeClass
+  //
+  describe('removeClass', function() {
+    it("should remove class names as string from an element", function () {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      Handsontable.Dom.removeClass(element, 'not-exists');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+
+      Handsontable.Dom.removeClass(element, 'test');
+
+      expect(element.className).toBe('test1 test2 test3 test4');
+
+      Handsontable.Dom.removeClass(element, 'test test1 test4');
+
+      expect(element.className).toBe('test2 test3');
+
+      Handsontable.Dom.removeClass(element, undefined);
+
+      expect(element.className).toBe('test2 test3');
+    });
+
+    it("should remove class names as array from an element", function () {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      Handsontable.Dom.removeClass(element, ['not-exists']);
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+
+      Handsontable.Dom.removeClass(element, ['test']);
+
+      expect(element.className).toBe('test1 test2 test3 test4');
+
+      Handsontable.Dom.removeClass(element, ['test', 'test1', 'test4']);
+
+      expect(element.className).toBe('test2 test3');
+    });
+  });
+
+  //
+  // Handsontable.Dom.hasClass
+  //
+  describe('hasClass', function() {
+    it("should checks if an element has passed class name", function () {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      expect(Handsontable.Dom.hasClass(element, 'not-exists')).toBe(false);
+      expect(Handsontable.Dom.hasClass(element, 'test3')).toBe(true);
+      expect(Handsontable.Dom.hasClass(element, 'test')).toBe(true);
+    });
+  });
+
 });
