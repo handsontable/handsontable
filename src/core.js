@@ -559,8 +559,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Destroys editor, redraws borders around cells, prepares editor.
      *
-     * @param {Boolean} revertOriginal
-     * @param {Boolean} keepEditor
+     * @param {Boolean} [revertOriginal]
+     * @param {Boolean} [keepEditor]
      */
     refreshBorders: function (revertOriginal, keepEditor) {
       if (!keepEditor) {
@@ -1286,6 +1286,17 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
+  };
+
+  /**
+   * Get schema provided by constructor settings or if it doesn't exist return schema based on data
+   * structure on the first row.
+   *
+   * @since 0.13.2
+   * @returns {Object}
+   */
+  this.getSchema = function () {
+    return datamap.getSchema();
   };
 
   /**
@@ -2135,19 +2146,22 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @returns {Number} Count empty rows
    */
   this.countEmptyRows = function (ending) {
-    var i = instance.countRows() - 1
-      , empty = 0
-      , row;
+    var i = instance.countRows() - 1,
+      empty = 0,
+      row;
+
     while (i >= 0) {
       row = Handsontable.hooks.run(this, 'modifyRow', i);
+
       if (instance.isEmptyRow(row)) {
-        empty++;
-      }
-      else if (ending) {
+        empty ++;
+
+      } else if (ending) {
         break;
       }
-      i--;
+      i --;
     }
+
     return empty;
   };
 
@@ -2999,12 +3013,17 @@ DefaultSettings.prototype = {
    * @returns {Boolean}
    */
   isEmptyRow: function (row) {
-    var val;
+    var col, colLen, value, meta;
 
-    for (var c = 0, clen = this.countCols(); c < clen; c++) {
-      val = this.getDataAtCell(row, c);
+    for (col = 0, colLen = this.countCols(); col < colLen; col ++) {
+      value = this.getDataAtCell(row, col);
 
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
+      if (value !== '' && value !== null && typeof value !== 'undefined') {
+        if (typeof value === 'object') {
+          meta = this.getCellMeta(row, col);
+
+          return Handsontable.helper.isObjectEquals(this.getSchema()[meta.prop], value);
+        }
         return false;
       }
     }
@@ -3020,12 +3039,12 @@ DefaultSettings.prototype = {
    * @returns {Boolean}
    */
   isEmptyCol: function (col) {
-    var val;
+    var row, rowLen, value;
 
-    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
-      val = this.getDataAtCell(r, col);
+    for (row = 0, rowLen = this.countRows(); row < rowLen; row ++) {
+      value = this.getDataAtCell(row, col);
 
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
+      if (value !== '' && value !== null && typeof value !== 'undefined') {
         return false;
       }
     }
