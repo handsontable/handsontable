@@ -380,7 +380,7 @@ module.exports = function (grunt) {
         }
       };
       options.core = 'src/core.js';
-      options.src = '<%= meta.src %>';
+      options.src = ['<%= meta.src %>', '!src/3rdparty/json-patch-duplex.js'];
       options.walkontable = '<%= meta.walkontable %>';
 
       return options;
