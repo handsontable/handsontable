@@ -486,6 +486,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Starts selection range on given td object.
      *
      * @param {WalkontableCellCoords} coords
+     * @param keepEditorOpened
      */
     setRangeStart: function (coords, keepEditorOpened) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
@@ -501,9 +502,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
     setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
+      if (priv.selRange === null) {
+        return;
+      }
       var disableVisualSelection;
 
-      // trigger handlers
+      //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
       instance.selection.begin();
       priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
@@ -2159,7 +2163,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       } else if (ending) {
         break;
       }
-      i --;
+      i--;
     }
 
     return empty;
