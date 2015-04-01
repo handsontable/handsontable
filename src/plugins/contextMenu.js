@@ -585,8 +585,6 @@
       }
     };
 
-    setRowHeightSettings(settings);
-
     var htContextMenu = new Handsontable(menu, settings);
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
@@ -1158,21 +1156,9 @@
     }
 
     this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px";
-    this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 5 + "px";
+    this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 4 + "px";
 
     /* jshint ignore:end */
-  }
-
-  function setRowHeightSettings(settingsObj) {
-    settingsObj.rowHeights = [];
-    for(var i = 0, dataLenght = settingsObj.data.length; i < dataLenght; i++) {
-      if (settingsObj.data[i].name == ContextMenu.SEPARATOR.name) {
-        settingsObj.rowHeights.push(1);
-      } else {
-        settingsObj.rowHeights.push(21);
-      }
-    }
-    return settingsObj;
   }
 
   function init() {

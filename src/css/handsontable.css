@@ -638,6 +638,10 @@ Comment For Cell
   left: 4px;
 }
 
+.htContextMenu .ht_master .wtHolder {
+  overflow: hidden;
+}
+
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
