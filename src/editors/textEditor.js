@@ -276,7 +276,10 @@
 
     this.TEXTAREA.style.fontSize = Handsontable.Dom.getComputedStyle(this.TD).fontSize;
     this.TEXTAREA.style.fontFamily = Handsontable.Dom.getComputedStyle(this.TD).fontFamily;
-    this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : '#fff';
+
+    this.TEXTAREA.style.backgroundColor = ''; //RESET STYLE
+
+    this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : Handsontable.Dom.getComputedStyle(this.TEXTAREA).backgroundColor;
 
     this.autoResize.init(this.TEXTAREA, {
       minHeight: Math.min(height, maxHeight),
