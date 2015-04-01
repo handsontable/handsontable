@@ -72,7 +72,6 @@
     var that = this;
 
     choicesListHot.updateSettings({
-      'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
         var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
 
