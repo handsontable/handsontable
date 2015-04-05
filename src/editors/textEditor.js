@@ -299,6 +299,10 @@
       //event.stopPropagation();
     });
 
+    this.instance.addHook('afterScrollHorizontally', function () {
+      editor.refreshDimensions();
+    });
+
     this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
