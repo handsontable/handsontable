@@ -279,7 +279,7 @@ describe('DateEditor', function () {
 
     container[0].style.height = '300px';
     container[0].style.width = '200px';
-    container[0].style.overflow = 'auto';
+    container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 10),

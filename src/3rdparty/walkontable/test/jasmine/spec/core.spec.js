@@ -1,12 +1,16 @@
 describe('WalkontableCore', function () {
-  var $table,
-    $container
+  var $table
+    , $container
+    , $wrapper
     , debug = false;
 
   beforeEach(function () {
-    $container = $('<div></div>').css({'overflow': 'auto'});
+    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+    $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
-    $container.append($table).appendTo('body');
+    $wrapper.append($container);
+    $container.append($table);
+    $wrapper.appendTo('body');
     createDataArray(100, 4);
   });
 
@@ -15,7 +19,7 @@ describe('WalkontableCore', function () {
       $('.wtHolder').remove();
     }
 
-    $container.remove();
+    $wrapper.remove();
   });
 
   it("first row should have the same text as in data source", function () {
@@ -32,7 +36,7 @@ describe('WalkontableCore', function () {
   });
 
   it("should bootstrap table if empty TABLE is given", function () {
-    $container.width(200).height(200);
+    $wrapper.width(200).height(200);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -67,7 +71,7 @@ describe('WalkontableCore', function () {
   });
 
   it("should figure out how many columns to display if width param given", function () {
-    $container.width(100);
+    $wrapper.width(100);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -80,7 +84,7 @@ describe('WalkontableCore', function () {
   });
 
   it("should not render table that is removed from DOM", function () {
-    $container.remove();
+    $wrapper.remove();
     var wt = new Walkontable({
       table: $table[0],
       data: getData,

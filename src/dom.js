@@ -3,7 +3,7 @@
  * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
  * @type {Object}
  */
-if(!window.Handsontable) {
+if (!window.Handsontable) {
   var Handsontable = {}; //required because Walkontable test suite uses this class directly
 }
 Handsontable.Dom = {};
@@ -57,14 +57,14 @@ Handsontable.Dom.closest = function (element, nodes, until) {
 Handsontable.Dom.isChildOf = function (child, parent) {
   var node = child.parentNode;
   var queriedParents = [];
-  if(typeof parent === "string") {
+  if (typeof parent === "string") {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
   }
 
   while (node != null) {
-    if (queriedParents.indexOf(node) > - 1) {
+    if (queriedParents.indexOf(node) > -1) {
       return true;
     }
     node = node.parentNode;
@@ -503,26 +503,84 @@ Handsontable.Dom.getScrollLeft = function (elem) {
 Handsontable.Dom.getScrollableElement = function (element) {
   var el = element.parentNode,
     props = ['auto', 'scroll'],
-    overflow, overflowX, overflowY;
+    overflow, overflowX, overflowY,
+    computedStyle = '',
+    computedOverflow = '',
+    computedOverflowY = '',
+    computedOverflowX = '';
 
-  while (el && el.style) {
+  while (el && el.style && document.body !== el) {
     overflow = el.style.overflow;
     overflowX = el.style.overflowX;
     overflowY = el.style.overflowY;
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+    } else if (window.getComputedStyle) {
+        computedStyle = window.getComputedStyle(el);
+        computedOverflow = computedStyle.getPropertyValue('overflow');
+        computedOverflowY = computedStyle.getPropertyValue('overflow-y');
+        computedOverflowX = computedStyle.getPropertyValue('overflow-x');
+
+      if (computedOverflow === 'scroll' || computedOverflowX === 'scroll' || computedOverflowY === 'scroll') {
+        return el;
+      }
     }
-    if (el.clientHeight < el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1)) {
+
+    if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
+      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
-    if (el.clientWidth < el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1)) {
+    if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
+      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
     el = el.parentNode;
   }
 
   return window;
+};
+
+Handsontable.Dom.getTrimmingContainer = function (base) {
+  var el = base.parentNode;
+  while (el && el.style && document.body !== el) {
+    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
+    } else if (window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
+    }
+
+    el = el.parentNode;
+  }
+  return window;
+};
+
+Handsontable.Dom.getStyle = function (elem, prop) {
+  if (!elem) {
+    return;
+  } else if (elem === window) {
+    if (prop === 'width') {
+      return window.innerWidth + 'px';
+    } else if (prop === 'height') {
+      return window.innerHeight + 'px';
+    }
+    return;
+  }
+
+  var styleProp = elem.style[prop],
+    computedStyle;
+  if (styleProp !== "" && styleProp !== void 0) {
+    return styleProp;
+  } else {
+    computedStyle = Handsontable.Dom.getComputedStyle(elem);
+    if (computedStyle.prop !== "" && computedStyle.prop !== void 0) {
+      return computedStyle.prop;
+    }
+    return void 0;
+  }
 };
 
 Handsontable.Dom.getComputedStyle = function (elem) {
@@ -557,7 +615,7 @@ Handsontable.Dom.innerWidth = function (elem) {
   return elem.clientWidth || elem.innerWidth;
 };
 
-Handsontable.Dom.addEvent = function(element, event, callback) {
+Handsontable.Dom.addEvent = function (element, event, callback) {
   if (window.addEventListener) {
     element.addEventListener(event, callback, false);
   } else {
@@ -565,7 +623,7 @@ Handsontable.Dom.addEvent = function(element, event, callback) {
   }
 };
 
-Handsontable.Dom.removeEvent = function(element, event, callback) {
+Handsontable.Dom.removeEvent = function (element, event, callback) {
   if (window.removeEventListener) {
     element.removeEventListener(event, callback, false);
   } else {
@@ -635,11 +693,11 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
    * @return {Number}
    */
   Handsontable.Dom.getSelectionEndPosition = function (el) {
-    if(el.selectionEnd) {
+    if (el.selectionEnd) {
       return el.selectionEnd;
-    } else if(document.selection) { //IE8
+    } else if (document.selection) { //IE8
       var r = document.selection.createRange();
-      if(r == null) {
+      if (r == null) {
         return 0;
       }
       var re = el.createTextRange();
@@ -706,10 +764,15 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
    * Returns the computed width of the native browser scroll bar
    * @return {Number} width
    */
-  Handsontable.Dom.getScrollbarWidth = function () {
+  Handsontable.Dom.getScrollbarWidth = function (mockWidth) {
     if (cachedScrollbarWidth === void 0) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
+
+    if(mockWidth && cachedScrollbarWidth === 0) {
+      return 30;
+    }
+
     return cachedScrollbarWidth;
   };
 
@@ -746,7 +809,7 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     var transform;
 
     /* jshint ignore:start */
-    if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
+    if (elem.style['transform'] && (transform = elem.style['transform']) != "") {
       return ['transform', transform];
     } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
       return ['-webkit-transform', transform];
@@ -758,9 +821,9 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
 
   Handsontable.Dom.resetCssTransform = function (elem) {
     /* jshint ignore:start */
-    if(elem['transform'] && elem['transform'] != "") {
+    if (elem['transform'] && elem['transform'] != "") {
       elem['transform'] = "";
-    } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
+    } else if (elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
       elem['-webkit-transform'] = "";
     }
     /* jshint ignore:end */

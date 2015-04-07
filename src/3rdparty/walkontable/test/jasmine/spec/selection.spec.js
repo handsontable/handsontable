@@ -1,13 +1,17 @@
 describe('WalkontableSelection', function () {
   var $table
     , $container
+    , $wrapper
     , debug = false;
 
   beforeEach(function () {
-    $container = $('<div></div>').css({'overflow': 'auto'});
-    $container.width(100).height(200);
+    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+    $wrapper.width(100).height(200);
+    $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
-    $container.append($table).appendTo('body');
+    $wrapper.append($container);
+    $container.append($table);
+    $wrapper.appendTo('body');
     createDataArray();
   });
 
@@ -15,7 +19,7 @@ describe('WalkontableSelection', function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $container.remove();
+    $wrapper.remove();
   });
 
   it("should add/remove class to selection when cell is clicked", function () {
@@ -49,7 +53,7 @@ describe('WalkontableSelection', function () {
   });
 
   it("should add class to selection on all overlays", function () {
-    $container.width(300).height(300);
+    $wrapper.width(300).height(300);
 
     this.data = Handsontable.helper.createSpreadsheetData(10, 10);
 
@@ -78,7 +82,7 @@ describe('WalkontableSelection', function () {
 
     wt.draw();
 
-    var tds = $container.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
+    var tds = $wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
     expect(tds.length).toBeGreaterThan(4);
     for (var i = 0, ilen = tds.length; i < ilen; i++) {
       expect(tds[i].className).toContain("area");
@@ -226,7 +230,7 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column", function () {
-    $container.width(300);
+    $wrapper.width(300);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -252,7 +256,7 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
-    $container.width(300);
+    $wrapper.width(300);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -308,7 +312,7 @@ describe('WalkontableSelection', function () {
   });
 
   it("should add/remove appropriate class to the row/column headers of selected cells", function() {
-    $container.width(300);
+    $wrapper.width(300);
 
     var wt = new Walkontable({
       table: $table[0],

@@ -1144,17 +1144,20 @@
 
     var realSeparatorHeight = 0,
       realEntrySize = 0,
-      dataSize = this.getSettings().data.length;
+      dataSize = this.getSettings().data.length,
+      currentHiderWidth = parseInt(this.view.wt.wtTable.hider.style.width,10);
 
     for (var i = 0; i < dataSize; i++) {
       if (this.getSettings().data[i].name == ContextMenu.SEPARATOR.name) {
-        realSeparatorHeight += 2;
+        realSeparatorHeight += 1;
       } else {
         realEntrySize += 26;
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+    this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px";
+    this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 4 + "px";
+
     /* jshint ignore:end */
   }
 
@@ -1175,6 +1178,7 @@
       delete instance.contextMenu;
     }
   }
+
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);

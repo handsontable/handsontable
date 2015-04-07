@@ -2275,8 +2275,10 @@ describe('ContextMenu', function () {
         height: 100
       });
 
-      this.$wrapper.scrollTop(300);
-      this.$wrapper.scroll();
+      var mainHolder = hot.view.wt.wtTable.holder;
+
+      $(mainHolder).scrollTop(300);
+      $(mainHolder).scroll();
 
       selectCell(15, 3);
       contextMenu();
@@ -2298,13 +2300,15 @@ describe('ContextMenu', function () {
         height: 100
       });
 
+      var $mainHolder = $(hot.view.wt.wtTable.holder);
+
       selectCell(15, 3);
-      var scrollTop = this.$wrapper.scrollTop();
+      var scrollTop = $mainHolder.scrollTop();
       contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      this.$wrapper.scrollTop(scrollTop + 60).scroll();
+      $mainHolder.scrollTop(scrollTop + 60).scroll();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
@@ -2312,7 +2316,7 @@ describe('ContextMenu', function () {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      this.$wrapper.scrollTop(scrollTop + 100).scroll();
+      $mainHolder.scrollTop(scrollTop + 100).scroll();
 
       expect($('.htContextMenu').is(':visible')).toBe(true)
 
@@ -2330,20 +2334,22 @@ describe('ContextMenu', function () {
         height: 100
       });
 
+      var mainHolder = $(hot.view.wt.wtTable.holder);
+
       selectCell(15, 3);
-      var scrollTop = this.$wrapper.scrollTop();
+      var scrollTop = mainHolder.scrollTop();
       contextMenu();
       var $menu = $(hot.contextMenu.menu);
 
       expect($menu.is(':visible')).toBe(true);
 
-      this.$wrapper.scrollTop(scrollTop + 60).scroll();
+      mainHolder.scrollTop(scrollTop + 60).scroll();
 
       expect($menu.is(':visible')).toBe(false);
 
       spyOn(hot.contextMenu, 'close');
 
-      this.$wrapper.scrollTop(scrollTop + 100).scroll();
+      mainHolder.scrollTop(scrollTop + 100).scroll();
 
       expect(hot.contextMenu.close).not.toHaveBeenCalled();
 

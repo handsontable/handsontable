@@ -75,11 +75,11 @@
               <h2>StretchH <code>last</code> column</h2>
 
               <p>The following example creates a table with vertical scrollbar by specifying
-                only the container height and <code>overflow: auto</code> in CSS.</p>
+                only the container height and <code>overflow: hidden</code> in CSS.</p>
 
               <p>The last column is stretched using <code>stretchH: 'last'</code> option.</p>
 
-              <div id="example2" style="height: 300px; overflow: auto"></div>
+              <div id="example2" style="height: 300px; overflow: hidden"></div>
 
               <p>
                 <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -99,7 +99,7 @@
                 /**
                  * Container looks like this:
                  *
-                 * <div id="example2" style="width: height: 300px; overflow: auto"></div>
+                 * <div id="example2" style="width: height: 300px; overflow: hidden"></div>
                  */
                 var container2 = document.getElementById('example2'),
                     hot2;
@@ -132,7 +132,7 @@
               <p>Other possible stretch modes are <code>all</code> (stretches all columns equally, used in the below example)
                 and <code>none</code> (not stretching).</p>
 
-              <div id="example3" style="height: 300px; overflow: auto"></div>
+              <div id="example3" style="height: 300px; overflow: hidden;"></div>
 
               <p>
                 <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -152,7 +152,7 @@
                 /**
                  * Container looks like this:
                  *
-                 * <div id="example3" style="width: height: 300px; overflow: auto"></div>
+                 * <div id="example3" style="width: height: 300px; overflow: hidden"></div>
                  */
                 var container3 = document.getElementById('example3'),
                   hot3;
@@ -178,7 +178,7 @@
 
               <h2>StretchH <code>none</code> (default)</h2>
 
-              <div id="example4" style="height: 300px; overflow: auto"></div>
+              <div id="example4" style="height: 300px; overflow: hidden"></div>
 
               <p>
                 <button name="dump" data-dump="#example4" data-instance="hot4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -198,7 +198,7 @@
                 /**
                  * Container looks like this:
                  *
-                 * <div id="example4" style="width: height: 300px; overflow: auto"></div>
+                 * <div id="example4" style="width: height: 300px; overflow: hidden"></div>
                  */
                 var container4 = document.getElementById('example4'),
                   hot4;

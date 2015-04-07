@@ -48,7 +48,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
-  this.container.className = 'htContainer';
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -1416,7 +1415,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /* jshint ignore:start */
     if (height){
-      instance.rootElement.style.overflow = 'auto';
+      instance.rootElement.style.overflow = 'hidden';
     }
     /* jshint ignore:end */
 

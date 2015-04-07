@@ -144,7 +144,21 @@
   height: 1px;
 }
 
-/* used for testing */
-.testOverflowAuto {
+.ht_master .wtHolder {
   overflow: auto;
+}
+
+.ht_clone_left .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* used for testing */
+.testOverflowHidden {
+  overflow: hidden;
 }
