@@ -31,27 +31,36 @@
   Handsontable.DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
 
   /**
-   * @param {Object} obj
-   * @returns {*}
+   * @param {Object|Array} obj
+   * @returns {Object|Array}
    */
-  Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
+  Handsontable.DataMap.prototype.recursiveDuckSchema = function(obj) {
     var schema;
-    if (!Array.isArray(obj)){
+
+    if (Array.isArray(obj)) {
+      schema = [];
+    } else {
       schema = {};
+
       for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
-          if (typeof obj[i] === "object" && !Array.isArray(obj[i])) {
+          if (obj[i] && typeof obj[i] === 'object' && !Array.isArray(obj[i])) {
             schema[i] = this.recursiveDuckSchema(obj[i]);
-          }
-          else {
+
+          } else if (Array.isArray(obj[i])) {
+            if (obj[i].length && typeof obj[i][0] === 'object' && !Array.isArray(obj[i][0])) {
+              schema[i] = [this.recursiveDuckSchema(obj[i][0])];
+            } else {
+              schema[i] = [];
+            }
+
+          } else {
             schema[i] = null;
           }
         }
       }
     }
-    else {
-      schema = [];
-    }
+
     return schema;
   };
 

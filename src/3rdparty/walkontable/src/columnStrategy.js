@@ -96,7 +96,7 @@ WalkontableColumnStrategy.prototype.isLastIncomplete = function () {
   var cellWidth = Handsontable.Dom.outerWidth(cell);
   var cellEnd = cellOffset.left + cellWidth;
 
-  var viewportOffsetLeft = this.instance.wtScrollbars.vertical.getScrollPosition();
+  var viewportOffsetLeft = this.instance.wtOverlays.topOverlay.getScrollPosition();
   var viewportWitdh = this.instance.wtViewport.getViewportWidth();
   var viewportEnd = viewportOffsetLeft + viewportWitdh;
 

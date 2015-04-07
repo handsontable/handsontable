@@ -2,7 +2,9 @@ describe("WalkontableCellCoords", function () {
   describe("isValid", function () {
 
     var table = document.createElement('table');
+    var wrapper = document.createElement('div');
     var container = document.createElement('div');
+    wrapper.appendChild(container);
     container.appendChild(table);
 
     var wot = new Walkontable({

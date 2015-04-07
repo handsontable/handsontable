@@ -439,17 +439,16 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       keyDownUp('enter');
       var $autocomplete = autocomplete();
+      var $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
 
       waits(100);
       runs(function () {
         expect($autocomplete.find("td").first().text()).toEqual("Acura");
-
-        $autocomplete.scrollTop($autocomplete[0].scrollHeight);
-
-        waits(100);
-        runs(function () {
-          expect($autocomplete.find("td").last().text()).toEqual("Volvo");
-        });
+        $autocompleteHolder.scrollTop($autocompleteHolder[0].scrollHeight);
+      });
+      waits(100);
+      runs(function () {
+        expect($autocomplete.find("td").last().text()).toEqual("Volvo");
       });
     });
 
@@ -2258,10 +2257,11 @@ describe('AutocompleteEditor', function () {
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
     var dropdown = hot.getActiveEditor().htContainer;
+    var dropdownHolder = hot.getActiveEditor().htEditor.view.wt.wtTable.holder;
 
     waits(30);
     runs(function() {
-      expect(dropdown.scrollHeight).toBeGreaterThan(dropdown.clientHeight);
+      expect(dropdownHolder.scrollHeight).toBeGreaterThan(dropdownHolder.clientHeight);
 
       keyDownUp('esc');
 
@@ -2276,7 +2276,7 @@ describe('AutocompleteEditor', function () {
     waits(30);
 
     runs(function() {
-      expect(dropdown.scrollHeight > dropdown.clientHeight).toBe(false);
+      expect(dropdownHolder.scrollHeight > dropdownHolder.clientHeight).toBe(false);
     });
 
   });
@@ -2311,7 +2311,7 @@ describe('AutocompleteEditor', function () {
 
     var dropdown = hot.getActiveEditor().htContainer;
 
-    hot.view.wt.wtScrollbars.vertical.scrollTo(1);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
 
     waits(30);
 
@@ -2325,7 +2325,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtScrollbars.vertical.scrollTo(3);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
     });
 
     waits(30);

@@ -15,6 +15,7 @@ function WalkontableTable(instance, table) {
     spreader.appendChild(this.TABLE);
   }
   this.spreader = this.TABLE.parentNode;
+  this.spreader.style.position = 'relative';
 
   //wtHider
   parent = this.spreader.parentNode;
@@ -27,8 +28,6 @@ function WalkontableTable(instance, table) {
     hider.appendChild(this.spreader);
   }
   this.hider = this.spreader.parentNode;
-  this.hiderStyle = this.hider.style;
-  this.hiderStyle.position = 'relative';
 
   //wtHolder
   parent = this.hider.parentNode;
@@ -37,20 +36,21 @@ function WalkontableTable(instance, table) {
     holder.style.position = 'relative';
     holder.className = 'wtHolder';
 
-    if(!instance.cloneSource) {
-      holder.className += ' ht_master';
-    }
-
     if (parent) {
       parent.insertBefore(holder, this.hider); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
     }
+
+    if(!instance.cloneSource) {
+      holder.parentNode.className += 'ht_master handsontable';
+    }
+
     holder.appendChild(this.hider);
   }
   this.holder = this.hider.parentNode;
 
-  if (!this.isWorkingOnClone()) {
-    this.holder.parentNode.style.position = "relative";
-  }
+  this.wtRootElement = this.holder.parentNode;
+
+  this.alignOverlaysWithTrimmingContainer();
 
   //bootstrap from settings
   this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
@@ -84,6 +84,22 @@ function WalkontableTable(instance, table) {
   this.columnFilter = null;
 }
 
+WalkontableTable.prototype.alignOverlaysWithTrimmingContainer = function () {
+  var trimmingElement = Handsontable.Dom.getTrimmingContainer(this.wtRootElement);
+
+  if (!this.isWorkingOnClone()) {
+    this.holder.parentNode.style.position = "relative";
+
+    if(trimmingElement !== window) {
+      this.holder.style.width = Handsontable.Dom.getStyle(trimmingElement, 'width');
+      this.holder.style.height = Handsontable.Dom.getStyle(trimmingElement, 'height');
+    } else {
+      this.holder.style.overflow = "visible";
+      this.wtRootElement.style.overflow = "visible";
+    }
+  }
+};
+
 WalkontableTable.prototype.isWorkingOnClone = function () {
   return !!this.instance.cloneSource;
 };
@@ -109,8 +125,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative ||
-        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+        this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startRow = 0;
     }
     else {
@@ -120,8 +136,8 @@ WalkontableTable.prototype.draw = function (fastDraw) {
 
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof  WalkontableHorizontalScrollbarNative ||
-        this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+        this.instance.cloneOverlay instanceof  WalkontableLeftOverlay ||
+        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
@@ -138,23 +154,26 @@ WalkontableTable.prototype.draw = function (fastDraw) {
       this.instance.getSetting('rowHeaders').length
     );
     this._doDraw(); //creates calculator after draw
+
+    this.alignOverlaysWithTrimmingContainer();
+
   }
   else {
     if (!this.isWorkingOnClone()) {
       //in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       this.instance.wtViewport.createVisibleCalculators();
     }
-    if (this.instance.wtScrollbars) {
-      this.instance.wtScrollbars.refresh(true);
+    if (this.instance.wtOverlays) {
+      this.instance.wtOverlays.refresh(true);
     }
   }
 
   this.refreshSelections(fastDraw);
 
   if (!this.isWorkingOnClone()) {
-    this.instance.wtScrollbars.vertical.resetFixedPosition();
-    this.instance.wtScrollbars.horizontal.resetFixedPosition();
-    this.instance.wtScrollbars.corner.resetFixedPosition();
+    this.instance.wtOverlays.topOverlay.resetFixedPosition();
+    this.instance.wtOverlays.leftOverlay.resetFixedPosition();
+    this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
   }
 
   this.instance.drawn = true;
@@ -353,7 +372,7 @@ WalkontableTable.prototype.getRenderedColumnsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalColumns');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  else if (this.instance.cloneOverlay instanceof WalkontableLeftOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -365,7 +384,7 @@ WalkontableTable.prototype.getRenderedRowsCount = function () {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalRows');
   }
-  else if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  else if (this.instance.cloneOverlay instanceof WalkontableTopOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedRowsTop');
   }
   return this.instance.wtViewport.rowsRenderCalculator.count;

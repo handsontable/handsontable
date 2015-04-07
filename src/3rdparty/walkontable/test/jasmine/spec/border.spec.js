@@ -1,13 +1,17 @@
 describe('WalkontableBorder', function () {
   var $table,
     $container,
+    $wrapper,
     debug = false;
 
   beforeEach(function () {
     $container = $('<div></div>');
+    $wrapper = $('<div></div>');
     $container.width(100).height(200);
     $table = $('<table></table>');
-    $container.append($table).appendTo('body');
+    $container.append($wrapper);
+    $wrapper.append($table);
+    $container.appendTo('body');
     createDataArray();
   });
 
@@ -127,7 +131,7 @@ describe('WalkontableBorder', function () {
 
   it("should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)", function () {
     $container.css({
-      overflow: 'auto',
+      overflow: 'hidden',
       width: '200px'
     });
     var wt = new Walkontable({

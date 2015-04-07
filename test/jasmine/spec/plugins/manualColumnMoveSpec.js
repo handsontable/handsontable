@@ -13,7 +13,7 @@ describe('manualColumnMove', function () {
   });
 
   function moveSecondDisplayedColumnBeforeFirstColumn(container, secondDisplayedColIndex){
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first();
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
     var $colHeaders = container.find('thead tr:eq(0) th');
     var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
     var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
@@ -39,7 +39,7 @@ describe('manualColumnMove', function () {
   }
 
   function moveFirstDisplayedColumnAfterSecondColumn(container, firstDisplayedColIndex){
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first();
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
     var $colHeaders = container.find('thead tr:eq(0) th');
     var $firstColHeader = $colHeaders.eq(firstDisplayedColIndex);
     var $secondColHeader = $colHeaders.eq(firstDisplayedColIndex + 1);
@@ -350,6 +350,8 @@ describe('manualColumnMove', function () {
       width: 200
     });
 
+    var mainHolder = hot.view.wt.wtTable.holder;
+
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
 //    $colHeader.trigger("mouseenter");
     $colHeader.simulate("mouseover");
@@ -359,7 +361,7 @@ describe('manualColumnMove', function () {
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
 
-    this.$container.scrollLeft(200);
+    $(mainHolder).scrollLeft(200);
     hot.render();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
@@ -542,6 +544,8 @@ describe('manualColumnMove', function () {
       width: 200
     });
 
+    var mainHolder = hot.view.wt.wtTable.holder;
+
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnMover');
@@ -550,7 +554,7 @@ describe('manualColumnMove', function () {
     expect($colHeader.offset().left).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
 
-    this.$container.scrollLeft(200);
+    $(mainHolder).scrollLeft(200);
     hot.render();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
@@ -656,7 +660,7 @@ describe('manualColumnMove', function () {
 
     var htCore = getHtCore();
 
-    var $mainContainer = htCore.parents(".handsontable").not("[class*=clone]").first();
+    var $mainContainer = htCore.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
     var $colHeaders = htCore.find('thead tr:eq(0) th');
     var $rowHeader = $colHeaders.eq(0);
     var $firstColHeader = $colHeaders.eq(1);

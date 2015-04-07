@@ -48,9 +48,9 @@ CopyPasteClass.prototype.init = function () {
   if (document.getElementById('CopyPasteDiv')) {
     this.elDiv = document.getElementById('CopyPasteDiv');
     this.elTextarea = this.elDiv.firstChild;
-  }
-  else {
-    this.elDiv = document.createElement('DIV');
+
+  } else {
+    this.elDiv = document.createElement('div');
     this.elDiv.id = 'CopyPasteDiv';
     style = this.elDiv.style;
     style.position = 'fixed';
@@ -58,10 +58,10 @@ CopyPasteClass.prototype.init = function () {
     style.left = '-10000px';
     parent.appendChild(this.elDiv);
 
-    this.elTextarea = document.createElement('TEXTAREA');
+    this.elTextarea = document.createElement('textarea');
     this.elTextarea.className = 'copyPaste';
-    this.elTextarea.onpaste = function (event) {
-      if('WebkitAppearance' in document.documentElement.style) { // chrome and safari
+    this.elTextarea.onpaste = function(event) {
+      if ('WebkitAppearance' in document.documentElement.style) { // chrome and safari
         this.value = event.clipboardData.getData("Text");
 
         return false;
@@ -85,9 +85,19 @@ CopyPasteClass.prototype.init = function () {
  *
  * @param {DOMEvent} event
  */
-CopyPasteClass.prototype.onKeyDown = function (event) {
+CopyPasteClass.prototype.onKeyDown = function(event) {
   var _this = this,
     isCtrlDown = false;
+
+  function isActiveElementEditable() {
+    var element = document.activeElement;
+
+    if (element.shadowRoot && element.shadowRoot.activeElement) {
+      element = element.shadowRoot.activeElement;
+    }
+
+    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1;
+  }
 
   // mac
   if (event.metaKey) {
@@ -99,31 +109,26 @@ CopyPasteClass.prototype.onKeyDown = function (event) {
   }
   if (isCtrlDown) {
     // this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
-    if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' ||
-        ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) !== -1)) {
+    if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' || isActiveElementEditable())) {
       return;
     }
-
     this.selectNodeText(this.elTextarea);
     setTimeout(function () {
       _this.selectNodeText(_this.elTextarea);
     }, 0);
   }
 
-  /* 67 = c
-   * 86 = v
-   * 88 = x
-   */
-  if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-    // that.selectNodeText(that.elTextarea);
-
+  if (isCtrlDown &&
+      (event.keyCode === Handsontable.helper.keyCode.C ||
+      event.keyCode === Handsontable.helper.keyCode.V ||
+      event.keyCode === Handsontable.helper.keyCode.X)) {
     // works in all browsers, incl. Opera < 12.12
     if (event.keyCode === 88) {
       setTimeout(function () {
         _this.triggerCut(event);
       }, 0);
-    }
-    else if (event.keyCode === 86) {
+
+    } else if (event.keyCode === 86) {
       setTimeout(function () {
         _this.triggerPaste(event);
       }, 0);
@@ -136,11 +141,11 @@ CopyPasteClass.prototype.onKeyDown = function (event) {
 /**
  * Select all text contains in passed node element
  *
- * @param {Element} el
+ * @param {Element} element
  */
-CopyPasteClass.prototype.selectNodeText = function (el) {
-  if (el) {
-    el.select();
+CopyPasteClass.prototype.selectNodeText = function(element) {
+  if (element) {
+    element.select();
   }
 };
 
@@ -150,12 +155,13 @@ CopyPasteClass.prototype.selectNodeText = function (el) {
  *
  * @returns {String}
  */
-CopyPasteClass.prototype.getSelectionText = function () {
-  var text = "";
+CopyPasteClass.prototype.getSelectionText = function() {
+  var text = '';
 
   if (window.getSelection) {
     text = window.getSelection().toString();
-  } else if (document.selection && document.selection.type != "Control") {
+
+  } else if (document.selection && document.selection.type !== 'Control') {
     text = document.selection.createRange().text;
   }
 
@@ -165,13 +171,13 @@ CopyPasteClass.prototype.getSelectionText = function () {
 /**
  * Make string copyable
  *
- * @param {String} str
+ * @param {String} string
  */
-CopyPasteClass.prototype.copyable = function (str) {
-  if (typeof str !== 'string' && str.toString === void 0) {
+CopyPasteClass.prototype.copyable = function(string) {
+  if (typeof string !== 'string' && string.toString === void 0) {
     throw new Error('copyable requires string parameter');
   }
-  this.elTextarea.value = str;
+  this.elTextarea.value = string;
 };
 
 /*CopyPasteClass.prototype.onCopy = function (fn) {
@@ -181,46 +187,46 @@ CopyPasteClass.prototype.copyable = function (str) {
 /**
  * Add function callback to onCut event
  *
- * @param {Function} fn
+ * @param {Function} callback
  */
-CopyPasteClass.prototype.onCut = function (fn) {
-  this.cutCallbacks.push(fn);
+CopyPasteClass.prototype.onCut = function(callback) {
+  this.cutCallbacks.push(callback);
 };
 
 /**
  * Add function callback to onPaste event
  *
- * @param {Function} fn
+ * @param {Function} callback
  */
-CopyPasteClass.prototype.onPaste = function (fn) {
-  this.pasteCallbacks.push(fn);
+CopyPasteClass.prototype.onPaste = function(callback) {
+  this.pasteCallbacks.push(callback);
 };
 
 /**
  * Remove callback from all events
  *
- * @param {Function} fn
+ * @param {Function} callback
  * @returns {Boolean}
  */
-CopyPasteClass.prototype.removeCallback = function (fn) {
+CopyPasteClass.prototype.removeCallback = function(callback) {
   var i, len;
 
   for (i = 0, len = this.copyCallbacks.length; i < len; i++) {
-    if (this.copyCallbacks[i] === fn) {
+    if (this.copyCallbacks[i] === callback) {
       this.copyCallbacks.splice(i, 1);
 
       return true;
     }
   }
   for (i = 0, len = this.cutCallbacks.length; i < len; i++) {
-    if (this.cutCallbacks[i] === fn) {
+    if (this.cutCallbacks[i] === callback) {
       this.cutCallbacks.splice(i, 1);
 
       return true;
     }
   }
   for (i = 0, len = this.pasteCallbacks.length; i < len; i++) {
-    if (this.pasteCallbacks[i] === fn) {
+    if (this.pasteCallbacks[i] === callback) {
       this.pasteCallbacks.splice(i, 1);
 
       return true;
@@ -235,7 +241,7 @@ CopyPasteClass.prototype.removeCallback = function (fn) {
  *
  * @param {DOMEvent} event
  */
-CopyPasteClass.prototype.triggerCut = function (event) {
+CopyPasteClass.prototype.triggerCut = function(event) {
   var _this = this;
 
   if (_this.cutCallbacks) {
@@ -251,14 +257,14 @@ CopyPasteClass.prototype.triggerCut = function (event) {
  * Trigger paste event
  *
  * @param {DOMEvent} event
- * @param {String} str
+ * @param {String} string
  */
-CopyPasteClass.prototype.triggerPaste = function (event, str) {
+CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
 
   if (_this.pasteCallbacks) {
     setTimeout(function () {
-      var val = str || _this.elTextarea.value;
+      var val = string || _this.elTextarea.value;
 
       for (var i = 0, len = _this.pasteCallbacks.length; i < len; i++) {
         _this.pasteCallbacks[i](val, event);
@@ -270,8 +276,8 @@ CopyPasteClass.prototype.triggerPaste = function (event, str) {
 /**
  * Destroy instance
  */
-CopyPasteClass.prototype.destroy = function () {
-  if(!this.hasBeenDestroyed() && --this.refCounter === 0){
+CopyPasteClass.prototype.destroy = function() {
+  if (!this.hasBeenDestroyed() && --this.refCounter === 0) {
     if (this.elDiv && this.elDiv.parentNode) {
       this.elDiv.parentNode.removeChild(this.elDiv);
       this.elDiv = null;
@@ -286,7 +292,7 @@ CopyPasteClass.prototype.destroy = function () {
  *
  * @returns {Boolean}
  */
-CopyPasteClass.prototype.hasBeenDestroyed = function () {
+CopyPasteClass.prototype.hasBeenDestroyed = function() {
   return !this.refCounter;
 };
 

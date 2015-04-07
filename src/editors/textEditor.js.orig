@@ -206,11 +206,11 @@
     }
     //var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
 
+<<<<<<< HEAD
     var currentOffset = Handsontable.Dom.offset(this.TD),
       containerOffset = Handsontable.Dom.offset(this.instance.rootElement),
-	  scrollableContainer = Handsontable.Dom.getScrollableElement(this.TD),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
-      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+      editTop = currentOffset.top - containerOffset.top - 1,
+      editLeft = currentOffset.left - containerOffset.left - 1,
 
       settings = this.instance.getSettings(),
       rowHeadersCount = settings.rowHeaders  ? 1 : 0,
@@ -218,6 +218,20 @@
       editorSection = this.checkEditorSection(),
       backgroundColor = this.TD.style.backgroundColor,
       cssTransformOffset;
+=======
+    var currentOffset = Handsontable.Dom.offset(this.TD);
+    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement);
+    var scrollableContainer = Handsontable.Dom.getScrollableElement(this.TD);
+
+    var editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+    var editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+
+    var settings = this.instance.getSettings();
+    var rowHeadersCount = settings.rowHeaders  ? 1 : 0;
+    var colHeadersCount = settings.colHeaders  ? 1 : 0;
+    var editorSection = this.checkEditorSection();
+    var cssTransformOffset;
+>>>>>>> feature/separate-scroll-containers-merged
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch(editorSection) {

@@ -277,12 +277,15 @@
 
           <div class="warning">
             This is Handsontable <a href="https://github.com/handsontable/handsontable/releases" class="ver"></a>, a
-            release published on March 19th, 2015.
+            release published on April 7th, 2015.
 
             <p>The most prominent changes are:</p>
 
             <ul>
-              <li>Adding JSDoc to the project</li>
+              <li>modified fixed header/overlay structure - each overlay has its own hidden scrollbar - change was made to reduce the laggy overlay effect for IE and Safari,<br><br>
+              <strong>Please note:</strong> In order to maintain the pre-0.14.0 scrollbar functionality, change the CSS <code>overflow</code> property of your Handsontable container from <code>scroll</code>
+              or <code>auto</code> to <code>hidden</code>. Without performing this change, you might encounter problems with doubling scrollbars.</li><br>
+              <li>Adding JSDoc to the project,</li>
               <li>Removal of jQuery UI datepicker - we switched to Pikaday + Moment.js, that makes us jQuery-free</li>
             </ul>
 

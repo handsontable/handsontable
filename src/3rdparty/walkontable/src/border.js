@@ -130,7 +130,8 @@ function WalkontableBorder(instance, settings) {
   if (!instance.wtTable.bordersHolder) {
     instance.wtTable.bordersHolder = document.createElement('div');
     instance.wtTable.bordersHolder.className = 'htBorders';
-    instance.wtTable.hider.appendChild(instance.wtTable.bordersHolder);
+
+    instance.wtTable.spreader.appendChild(instance.wtTable.bordersHolder);
 
   }
   instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
@@ -194,20 +195,31 @@ function WalkontableBorder(instance, settings) {
  * @param {Array} corners
  */
 WalkontableBorder.prototype.appear = function (corners) {
-  var isMultiple, fromTD, toTD, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
   if (this.disabled) {
     return;
   }
 
   var instance = this.instance;
 
-  var fromRow
-    , fromColumn
-    , toRow
-    , toColumn
-    , i
-    , ilen
-    , s;
+  var isMultiple,
+    fromTD,
+    toTD,
+    fromOffset,
+    toOffset,
+    containerOffset,
+    top,
+    minTop,
+    left,
+    minLeft,
+    height,
+    width,
+    fromRow,
+    fromColumn,
+    toRow,
+    toColumn,
+    i,
+    ilen,
+    s;
 
   var isPartRange = function () {
     if(this.instance.selections.area.cellRange) {
@@ -264,7 +276,7 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   };
 
-  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+  if (instance.cloneOverlay instanceof WalkontableTopOverlay || instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     ilen = instance.getSetting('fixedRowsTop');
   }
   else {
@@ -318,8 +330,12 @@ WalkontableBorder.prototype.appear = function (corners) {
     minLeft = fromOffset.left;
     width = toOffset.left + Handsontable.Dom.outerWidth(toTD) - minLeft;
 
+
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
+
+
+
 
     var style = Handsontable.Dom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
@@ -369,9 +385,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.cornerStyle.display = 'block';
 
     if (toColumn === this.instance.getSetting('totalColumns') - 1) {
-      var scrollableElement = Handsontable.Dom.getScrollableElement(instance.wtTable.TABLE),
-        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(scrollableElement);
-      
+      var trimmingContainer = Handsontable.Dom.getTrimmingContainer(instance.wtTable.TABLE),
+        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(trimmingContainer);
+
       if (cornerOverlappingContainer) {
         this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
         this.cornerStyle.borderRightWidth = 0;

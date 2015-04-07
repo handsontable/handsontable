@@ -472,36 +472,42 @@
   ContextMenu.prototype.bindMouseEvents = function () {
     /* jshint ignore:start */
     function contextMenuOpenListener(event) {
-      var settings = this.instance.getSettings();
+      var settings = this.instance.getSettings(),
+        showRowHeaders = this.instance.getSettings().rowHeaders,
+        showColHeaders = this.instance.getSettings().colHeaders,
+        containsCornerHeader,
+        element,
+        items,
+        menu;
 
+      function isValidElement(element) {
+        return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
+      }
+      // if event is from hot-table we must get web component element not element inside him
+      element = event.realTarget;
       this.closeAll();
 
       event.preventDefault();
       Handsontable.helper.stopPropagation(event);
 
-      var showRowHeaders = this.instance.getSettings().rowHeaders,
-        showColHeaders = this.instance.getSettings().colHeaders;
-
       if (!(showRowHeaders || showColHeaders)) {
-        if (event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))) {
+        if (!isValidElement(element) &&
+            !(Handsontable.Dom.hasClass(element, 'current') && Handsontable.Dom.hasClass(element, 'wtBorder'))) {
           return;
         }
       } else if(showRowHeaders && showColHeaders) {
-
         // do nothing after right-click on corner header
-        var containsCornerHeader = event.target.parentNode.querySelectorAll('.cornerHeader').length > 0;
+        containsCornerHeader = element.parentNode.querySelectorAll('.cornerHeader').length > 0;
+
         if (containsCornerHeader) {
           return;
         }
       }
-
-      var menu = this.createMenu();
-      var items = this.getItems(settings.contextMenu);
+      menu = this.createMenu();
+      items = this.getItems(settings.contextMenu);
 
       this.show(menu, items);
-
       this.setMenuPosition(event, menu);
-
       this.eventManager.addEventListener(document.documentElement, 'mousedown', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
     /* jshint ignore:end */
@@ -581,6 +587,9 @@
 
     var htContextMenu = new Handsontable(menu, settings);
 
+    // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
+    htContextMenu.isHotTableEnv = this.instance.isHotTableEnv;
+    Handsontable.eventManager.isHotTableEnv = this.instance.isHotTableEnv;
 
     this.eventManager.removeEventListener(menu, 'mousedown');
     this.eventManager.addEventListener(menu,'mousedown', function (event) {
@@ -1135,17 +1144,20 @@
 
     var realSeparatorHeight = 0,
       realEntrySize = 0,
-      dataSize = this.getSettings().data.length;
+      dataSize = this.getSettings().data.length,
+      currentHiderWidth = parseInt(this.view.wt.wtTable.hider.style.width,10);
 
     for (var i = 0; i < dataSize; i++) {
       if (this.getSettings().data[i].name == ContextMenu.SEPARATOR.name) {
-        realSeparatorHeight += 2;
+        realSeparatorHeight += 1;
       } else {
         realEntrySize += 26;
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+    this.view.wt.wtTable.holder.style.width = currentHiderWidth + 22 + "px";
+    this.view.wt.wtTable.holder.style.height = realEntrySize + realSeparatorHeight + 4 + "px";
+
     /* jshint ignore:end */
   }
 
@@ -1166,6 +1178,7 @@
       delete instance.contextMenu;
     }
   }
+
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);

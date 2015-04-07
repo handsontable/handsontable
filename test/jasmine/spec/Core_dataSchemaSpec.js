@@ -12,6 +12,65 @@ describe('Core_dataSchema', function () {
     }
   });
 
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object)', function () {
+    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+      hot = handsontable({
+        data: [],
+        dataSchema: schema,
+        minRows: 5,
+        minCols: 4,
+        colHeaders: ['ID', 'First Name', 'Last Name'],
+        columns: [
+          {data: "id"},
+          {data: "name.first"},
+          {data: "name.last"}
+        ],
+        minSpareRows: 1
+      });
+
+    expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
+  });
+
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function)', function () {
+    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+      hot = handsontable({
+        data: [],
+        dataSchema: function() {
+          return schema;
+        },
+        minRows: 5,
+        minCols: 4,
+        colHeaders: ['ID', 'First Name', 'Last Name'],
+        columns: [
+          {data: "id"},
+          {data: "name.first"},
+          {data: "name.last"}
+        ],
+        minSpareRows: 1
+      });
+    expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
+  });
+
+  it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', function () {
+    var hot = handsontable({
+        data: [
+          {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
+        ],
+        minRows: 5,
+        minCols: 4,
+        colHeaders: ['ID', 'First Name', 'Last Name'],
+        columns: [
+          {data: "id"},
+          {data: "name.first"},
+          {data: "name.last"}
+        ],
+        minSpareRows: 1
+      });
+
+    expect(JSON.stringify(hot.getSchema())).
+      toEqual(JSON.stringify({id: null, name: {first: null, last: null}, cars: [{brand: null}]}));
+  });
+
   it('should create new row from dataSchema', function () {
     handsontable({
       data: [],
@@ -43,11 +102,10 @@ describe('Core_dataSchema', function () {
       },
       isEmptyRow: function (r) {
         var row = this.getData()[r];
-        return (
-          (row.name.first === null || row.name.first === '')
-            && (row.name.last === null || row.name.last === '')
-            && (row.address === null || row.address === '')
-          )
+
+        return (row.name.first === null || row.name.first === '') &&
+          (row.name.last === null || row.name.last === '') &&
+          (row.address === null || row.address === '');
       },
       minRows: 5,
       minCols: 4,
@@ -66,11 +124,11 @@ describe('Core_dataSchema', function () {
     keyDownUp('enter');
     keyProxy().val('Ted');
 
-    //need it in next frame as long as HT is rendered in async
+    // need it in next frame as long as HT is rendered in async
+    keyDownUp('enter');
+    // need it in next frame as long as HT is rendered in async
     keyDownUp('enter');
 
-    //need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
     expect(getData()[4].name.first).toEqual('Ted');
     expect(getData()[4].id).toEqual(1004);
     expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
