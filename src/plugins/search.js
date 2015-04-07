@@ -103,7 +103,8 @@
 
   Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
 
-    var searchResultClass = (typeof cellProperties.search == 'object' && cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
+    var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
+        cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
 
     if(cellProperties.isSearchResult){
       Handsontable.Dom.addClass(TD, searchResultClass);

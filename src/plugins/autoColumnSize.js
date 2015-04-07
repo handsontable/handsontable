@@ -88,13 +88,14 @@
 
       var rows = instance.countRows();
       var samples = {};
-      var maxLen = 0;
       for (var r = 0; r < rows; r++) {
-        var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
-        var len = value.length;
-        if (len > maxLen) {
-          maxLen = len;
+        var value = instance.getDataAtCell(r, col);
+
+        if (!Array.isArray(value)) {
+          value = Handsontable.helper.stringify(value);
         }
+        var len = value.length;
+
         if (!samples[len]) {
           samples[len] = {
             needed: sampleCount,
