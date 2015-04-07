@@ -236,6 +236,17 @@ Handsontable.helper.deepClone = function (obj) {
   }
 };
 
+/**
+ * Checks if two objects or arrays are (deep) equal
+ *
+ * @param {Object|Array} object1
+ * @param {Object|Array} object2
+ * @returns {Boolean}
+ */
+Handsontable.helper.isObjectEquals = function(object1, object2) {
+  return JSON.stringify(object1) === JSON.stringify(object2);
+};
+
 Handsontable.helper.getPrototypeOf = function (obj) {
   var prototype;
 

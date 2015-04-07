@@ -48,7 +48,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
-  this.container.className = 'htContainer';
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -397,7 +396,9 @@ Handsontable.Core = function (rootElement, userSettings) {
                     value = typeof(result.value) !== 'undefined' ? result.value : value;
                   }
                 }
-
+                if (Array.isArray(value) || Handsontable.helper.isObject(value)) {
+                  value = Handsontable.helper.deepClone(value);
+                }
                 setData.push([current.row, current.col, value]);
               }
 
@@ -484,6 +485,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Starts selection range on given td object.
      *
      * @param {WalkontableCellCoords} coords
+     * @param keepEditorOpened
      */
     setRangeStart: function (coords, keepEditorOpened) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
@@ -496,41 +498,56 @@ Handsontable.Core = function (rootElement, userSettings) {
      *
      * @param {WalkontableCellCoords} coords
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
+     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
     setRangeEnd: function (coords, scrollToCell, keepEditorOpened) {
+      if (priv.selRange === null) {
+        return;
+      }
+      var disableVisualSelection;
+
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
-
       instance.selection.begin();
-
       priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
-
-      //set up current selection
+      // set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selRange.highlight);
 
-      //set up area selection
+      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
+
+      if (typeof disableVisualSelection === 'string') {
+        disableVisualSelection = [disableVisualSelection];
+      }
+
+      if (disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+        instance.view.wt.selections.current.add(priv.selRange.highlight);
+      }
+      // set up area selection
       instance.view.wt.selections.area.clear();
-      if (selection.isMultiple()) {
+
+      if ((disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
+          selection.isMultiple()) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
-
-      //set up highlight
+      // set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
-      //trigger handlers
+      // trigger handlers
       Handsontable.hooks.run(instance, "afterSelection",
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+          priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
       Handsontable.hooks.run(instance, "afterSelectionByProp",
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
+          priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false && instance.view.mainViewIsActive()) {
         if (priv.selRange.from && !selection.isMultiple()) {
@@ -538,7 +555,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         } else {
           instance.view.scrollViewport(coords);
         }
-
       }
       selection.refreshBorders(null, keepEditorOpened);
     },
@@ -546,8 +562,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Destroys editor, redraws borders around cells, prepares editor.
      *
-     * @param {Boolean} revertOriginal
-     * @param {Boolean} keepEditor
+     * @param {Boolean} [revertOriginal]
+     * @param {Boolean} [keepEditor]
      */
     refreshBorders: function (revertOriginal, keepEditor) {
       if (!keepEditor) {
@@ -1276,6 +1292,17 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Get schema provided by constructor settings or if it doesn't exist return schema based on data
+   * structure on the first row.
+   *
+   * @since 0.13.2
+   * @returns {Object}
+   */
+  this.getSchema = function () {
+    return datamap.getSchema();
+  };
+
+  /**
    * Use it if you need to change configuration after initialization.
    *
    * @param {Object} settings Settings to update
@@ -1388,7 +1415,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /* jshint ignore:start */
     if (height){
-      instance.rootElement.style.overflow = 'auto';
+      instance.rootElement.style.overflow = 'hidden';
     }
     /* jshint ignore:end */
 
@@ -2122,19 +2149,22 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @returns {Number} Count empty rows
    */
   this.countEmptyRows = function (ending) {
-    var i = instance.countRows() - 1
-      , empty = 0
-      , row;
+    var i = instance.countRows() - 1,
+      empty = 0,
+      row;
+
     while (i >= 0) {
       row = Handsontable.hooks.run(this, 'modifyRow', i);
+
       if (instance.isEmptyRow(row)) {
-        empty++;
-      }
-      else if (ending) {
+        empty ++;
+
+      } else if (ending) {
         break;
       }
       i--;
     }
+
     return empty;
   };
 
@@ -2986,12 +3016,17 @@ DefaultSettings.prototype = {
    * @returns {Boolean}
    */
   isEmptyRow: function (row) {
-    var val;
+    var col, colLen, value, meta;
 
-    for (var c = 0, clen = this.countCols(); c < clen; c++) {
-      val = this.getDataAtCell(row, c);
+    for (col = 0, colLen = this.countCols(); col < colLen; col ++) {
+      value = this.getDataAtCell(row, col);
 
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
+      if (value !== '' && value !== null && typeof value !== 'undefined') {
+        if (typeof value === 'object') {
+          meta = this.getCellMeta(row, col);
+
+          return Handsontable.helper.isObjectEquals(this.getSchema()[meta.prop], value);
+        }
         return false;
       }
     }
@@ -3007,12 +3042,12 @@ DefaultSettings.prototype = {
    * @returns {Boolean}
    */
   isEmptyCol: function (col) {
-    var val;
+    var row, rowLen, value;
 
-    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
-      val = this.getDataAtCell(r, col);
+    for (row = 0, rowLen = this.countRows(); row < rowLen; row ++) {
+      value = this.getDataAtCell(row, col);
 
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
+      if (value !== '' && value !== null && typeof value !== 'undefined') {
         return false;
       }
     }
@@ -3317,6 +3352,37 @@ DefaultSettings.prototype = {
    * @since 0.9.5
    */
   validator: void 0,
+
+  /**
+   * @description
+   * Disable visual cells selection.
+   *
+   * Possible values:
+   *  `true` - Disables any type of visual selection (current and area selection),
+   *  `false` - Enables any type of visual selection. This is default value.
+   *  `current` - Disables to appear only current selected cell.
+   *  `area` - Disables to appear only multiple selected cells.
+   *
+   * @type {Boolean|String|Array}
+   * @default false
+   * @since 0.13.2
+   * @example
+   *  ...
+   *  // as boolean
+   *  disableVisualSelection: true,
+   *  ...
+   *
+   *  ...
+   *  // as string ('current' or 'area')
+   *  disableVisualSelection: 'current',
+   *  ...
+   *
+   *  ...
+   *  // as array
+   *  disableVisualSelection: ['current', 'area'],
+   *  ...
+   */
+  disableVisualSelection: false,
   manualColumnFreeze: void 0,
   trimWhitespace: true,
   settings: void 0,

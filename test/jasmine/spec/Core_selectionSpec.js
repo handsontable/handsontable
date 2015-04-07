@@ -463,12 +463,14 @@ describe('Core_selection', function () {
       afterScrollVertically: onAfterScrollVertically
     });
 
-    this.$container[0].scrollTop = 0;
+    var mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 0;
 
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
     this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
 
-    this.$container[0].scrollTop = 120;
+    mainHolder.scrollTop = 120;
 
     waits(100);
 
@@ -492,23 +494,25 @@ describe('Core_selection', function () {
       fixedColumnsLeft: 2
     });
 
-    this.$container[0].scrollTop = 100;
+    var mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 100;
     selectCell(1, 3);
     keyDownUp('arrow_down');
-    expect(this.$container[0].scrollTop).toEqual(0);
-    this.$container[0].scrollTop = 100;
+    expect(mainHolder.scrollTop).toEqual(0);
+    mainHolder.scrollTop = 100;
     selectCell(1, 3);
     keyDownUp('shift+arrow_down');
-    expect(this.$container[0].scrollTop).toEqual(0);
+    expect(mainHolder.scrollTop).toEqual(0);
 
-    this.$container[0].scrollLeft = 100;
+    mainHolder.scrollLeft = 100;
     selectCell(3, 1);
     keyDownUp('arrow_right');
-    expect(this.$container[0].scrollLeft).toEqual(0);
-    this.$container[0].scrollLeft = 100;
+    expect(mainHolder.scrollLeft).toEqual(0);
+    mainHolder.scrollLeft = 100;
     selectCell(3, 1);
     keyDownUp('shift+arrow_right');
-    expect(this.$container[0].scrollLeft).toEqual(0);
+    expect(mainHolder.scrollLeft).toEqual(0);
 
     var lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
     selectCell(3, lastVisibleColumn);

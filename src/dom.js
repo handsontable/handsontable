@@ -3,7 +3,7 @@
  * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
  * @type {Object}
  */
-if(!window.Handsontable) {
+if (!window.Handsontable) {
   var Handsontable = {}; //required because Walkontable test suite uses this class directly
 }
 Handsontable.Dom = {};
@@ -22,14 +22,29 @@ Handsontable.Dom.enableImmediatePropagation = function (event) {
   }
 };
 
-//goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-Handsontable.Dom.closest = function (elem, nodeNames, until) {
-  while (elem != null && elem !== until) {
-    if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
-      return elem;
+/**
+ * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * This method goes up through web components.
+ *
+ * @param {HTMLElement} element Element from which traversing is started
+ * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} [until]
+ * @returns {HTMLElement|null}
+ */
+Handsontable.Dom.closest = function (element, nodes, until) {
+  while (element != null && element !== until) {
+    if (element.nodeType === Node.ELEMENT_NODE &&
+      (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
+      return element;
     }
-    elem = elem.parentNode;
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      element = element.parentNode;
+    }
   }
+
   return null;
 };
 
@@ -42,14 +57,14 @@ Handsontable.Dom.closest = function (elem, nodeNames, until) {
 Handsontable.Dom.isChildOf = function (child, parent) {
   var node = child.parentNode;
   var queriedParents = [];
-  if(typeof parent === "string") {
+  if (typeof parent === "string") {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
   }
 
   while (node != null) {
-    if (queriedParents.indexOf(node) > - 1) {
+    if (queriedParents.indexOf(node) > -1) {
       return true;
     }
     node = node.parentNode;
@@ -68,8 +83,7 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
     result = false,
     parentNode;
 
-  // Wrap element into polymer/webcomponent container if exists
-  parentNode = typeof wrap === 'undefined' ? element : wrap(element);
+  parentNode = Handsontable.Dom.polymerWrap(element);
 
   function isHotTable(element) {
     return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
@@ -95,6 +109,39 @@ Handsontable.Dom.isChildOfWebComponentTable = function(element) {
 };
 
 /**
+ * Wrap element into polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerWrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
+};
+
+/**
+ * Unwrap element from polymer/webcomponent container if exists
+ *
+ * @param element
+ * @returns {*}
+ */
+Handsontable.Dom.polymerUnwrap = function(element) {
+  /* global Polymer */
+  return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
+};
+
+/**
+ * Checks if browser is support web components natively
+ *
+ * @returns {Boolean}
+ */
+Handsontable.Dom.isWebComponentSupportedNatively = function() {
+  var test = document.createElement('div');
+
+  return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
+};
+
+/**
  * Counts index of element within its parent
  * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true for Walkotnable
  * Otherwise would need to check for nodeType or use previousElementSibling
@@ -115,40 +162,133 @@ Handsontable.Dom.index = function (elem) {
 };
 
 if (document.documentElement.classList) {
-  // HTML5 classList API
-  Handsontable.Dom.hasClass = function (ele, cls) {
-    return ele.classList.contains(cls);
+  var isSupportMultipleClassesArg = (function() {
+    var element = document.createElement('div');
+
+    element.classList.add('test', 'test2');
+
+    return element.classList.contains('test2');
+  }());
+
+  /**
+   * Checks if element has class name
+   *
+   * @param {HTMLElement} element
+   * @param {String} className Class name to check
+   * @returns {Boolean}
+   */
+  Handsontable.Dom.hasClass = function(element, className) {
+    return element.classList.contains(className);
   };
 
-  Handsontable.Dom.addClass = function (ele, cls) {
-    if (cls) {
-      ele.classList.add(cls);
+  /**
+   * Add class name to an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.addClass = function(element, className) {
+    var len = 0;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (isSupportMultipleClassesArg) {
+      element.classList.add.apply(element.classList, className);
+
+    } else {
+      while (className && className[len]) {
+        element.classList.add(className[len]);
+        len ++;
+      }
     }
   };
 
-  Handsontable.Dom.removeClass = function (ele, cls) {
-    ele.classList.remove(cls);
-  };
-}
-else {
-  //http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-  Handsontable.Dom.hasClass = function (ele, cls) {
-    return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
+  /**
+   * Remove class name from an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.removeClass = function(element, className) {
+    var len = 0;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (isSupportMultipleClassesArg) {
+      element.classList.remove.apply(element.classList, className);
+
+    } else {
+      while (className && className[len]) {
+        element.classList.remove(className[len]);
+        len ++;
+      }
+    }
   };
 
-  Handsontable.Dom.addClass = function (ele, cls) {
-    if (ele.className === "") {
-      ele.className = cls;
-    }
-    else if (!this.hasClass(ele, cls)) {
-      ele.className += " " + cls;
-    }
+} else {
+  var createClassNameRegExp = function createClassNameRegExp(className) {
+    return new RegExp('(\\s|^)' + className + '(\\s|$)');
   };
 
-  Handsontable.Dom.removeClass = function (ele, cls) {
-    if (this.hasClass(ele, cls)) { //is this really needed?
-      var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-      ele.className = ele.className.replace(reg, ' ').trim(); //String.prototype.trim is defined in polyfill.js
+  /**
+   * Checks if element has class name
+   *
+   * @param {HTMLElement} element
+   * @param {String} className
+   * @returns {Boolean}
+   */
+  Handsontable.Dom.hasClass = function(element, className) {
+    // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
+    return element.className.match(createClassNameRegExp(className)) ? true : false;
+  };
+
+  /**
+   * Add class name to an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.addClass = function(element, className) {
+    var len = 0, _className = element.className;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    if (_className === '') {
+      _className = className.join(' ');
+
+    } else {
+      while (className[len]) {
+        if (!createClassNameRegExp(className[len]).test(_className)) {
+          _className += ' ' + className[len];
+        }
+        len ++;
+      }
+    }
+    element.className = _className;
+  };
+
+  /**
+   * Remove class name from an element
+   *
+   * @param {HTMLElement} element
+   * @param {String|Array} className Class name as string or array of strings
+   */
+  Handsontable.Dom.removeClass = function(element, className) {
+    var len = 0, _className = element.className;
+
+    if (typeof className === 'string') {
+      className = className.split(' ');
+    }
+    while (className[len]) {
+      // String.prototype.trim is defined in polyfill.js
+      _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
+      len ++;
+    }
+    if (element.className !== _className) {
+      element.className = _className;
     }
   };
 }
@@ -241,12 +381,7 @@ else { //IE8
 Handsontable.Dom.isVisible = function (elem) {
   var next = elem;
 
-  function extractElement(element) {
-    // Wrap element into polymer/webcomponent container if exists
-    return typeof unwrap === 'undefined' ? element : unwrap(element);
-  }
-
-  while (extractElement(next) !== document.documentElement) { //until <html> reached
+  while (Handsontable.Dom.polymerUnwrap(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
     }
@@ -368,26 +503,84 @@ Handsontable.Dom.getScrollLeft = function (elem) {
 Handsontable.Dom.getScrollableElement = function (element) {
   var el = element.parentNode,
     props = ['auto', 'scroll'],
-    overflow, overflowX, overflowY;
+    overflow, overflowX, overflowY,
+    computedStyle = '',
+    computedOverflow = '',
+    computedOverflowY = '',
+    computedOverflowX = '';
 
-  while (el && el.style) {
+  while (el && el.style && document.body !== el) {
     overflow = el.style.overflow;
     overflowX = el.style.overflowX;
     overflowY = el.style.overflowY;
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+    } else if (window.getComputedStyle) {
+        computedStyle = window.getComputedStyle(el);
+        computedOverflow = computedStyle.getPropertyValue('overflow');
+        computedOverflowY = computedStyle.getPropertyValue('overflow-y');
+        computedOverflowX = computedStyle.getPropertyValue('overflow-x');
+
+      if (computedOverflow === 'scroll' || computedOverflowX === 'scroll' || computedOverflowY === 'scroll') {
+        return el;
+      }
     }
-    if (el.clientHeight < el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1)) {
+
+    if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
+      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
-    if (el.clientWidth < el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1)) {
+    if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
+      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
     el = el.parentNode;
   }
 
   return window;
+};
+
+Handsontable.Dom.getTrimmingContainer = function (base) {
+  var el = base.parentNode;
+  while (el && el.style && document.body !== el) {
+    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
+    } else if (window.getComputedStyle) {
+      var computedStyle = window.getComputedStyle(el);
+      if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
+        return el;
+      }
+    }
+
+    el = el.parentNode;
+  }
+  return window;
+};
+
+Handsontable.Dom.getStyle = function (elem, prop) {
+  if (!elem) {
+    return;
+  } else if (elem === window) {
+    if (prop === 'width') {
+      return window.innerWidth + 'px';
+    } else if (prop === 'height') {
+      return window.innerHeight + 'px';
+    }
+    return;
+  }
+
+  var styleProp = elem.style[prop],
+    computedStyle;
+  if (styleProp !== "" && styleProp !== void 0) {
+    return styleProp;
+  } else {
+    computedStyle = Handsontable.Dom.getComputedStyle(elem);
+    if (computedStyle.prop !== "" && computedStyle.prop !== void 0) {
+      return computedStyle.prop;
+    }
+    return void 0;
+  }
 };
 
 Handsontable.Dom.getComputedStyle = function (elem) {
@@ -422,7 +615,7 @@ Handsontable.Dom.innerWidth = function (elem) {
   return elem.clientWidth || elem.innerWidth;
 };
 
-Handsontable.Dom.addEvent = function(element, event, callback) {
+Handsontable.Dom.addEvent = function (element, event, callback) {
   if (window.addEventListener) {
     element.addEventListener(event, callback, false);
   } else {
@@ -430,7 +623,7 @@ Handsontable.Dom.addEvent = function(element, event, callback) {
   }
 };
 
-Handsontable.Dom.removeEvent = function(element, event, callback) {
+Handsontable.Dom.removeEvent = function (element, event, callback) {
   if (window.removeEventListener) {
     element.removeEventListener(event, callback, false);
   } else {
@@ -500,11 +693,11 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
    * @return {Number}
    */
   Handsontable.Dom.getSelectionEndPosition = function (el) {
-    if(el.selectionEnd) {
+    if (el.selectionEnd) {
       return el.selectionEnd;
-    } else if(document.selection) { //IE8
+    } else if (document.selection) { //IE8
       var r = document.selection.createRange();
-      if(r == null) {
+      if (r == null) {
         return 0;
       }
       var re = el.createTextRange();
@@ -571,10 +764,15 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
    * Returns the computed width of the native browser scroll bar
    * @return {Number} width
    */
-  Handsontable.Dom.getScrollbarWidth = function () {
+  Handsontable.Dom.getScrollbarWidth = function (mockWidth) {
     if (cachedScrollbarWidth === void 0) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }
+
+    if(mockWidth && cachedScrollbarWidth === 0) {
+      return 30;
+    }
+
     return cachedScrollbarWidth;
   };
 
@@ -611,7 +809,7 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
     var transform;
 
     /* jshint ignore:start */
-    if(elem.style['transform'] && (transform = elem.style['transform']) != "") {
+    if (elem.style['transform'] && (transform = elem.style['transform']) != "") {
       return ['transform', transform];
     } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
       return ['-webkit-transform', transform];
@@ -623,9 +821,9 @@ Handsontable.Dom.removeEvent = function(element, event, callback) {
 
   Handsontable.Dom.resetCssTransform = function (elem) {
     /* jshint ignore:start */
-    if(elem['transform'] && elem['transform'] != "") {
+    if (elem['transform'] && elem['transform'] != "") {
       elem['transform'] = "";
-    } else if(elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
+    } else if (elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
       elem['-webkit-transform'] = "";
     }
     /* jshint ignore:end */

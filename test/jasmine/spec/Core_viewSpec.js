@@ -38,7 +38,7 @@ describe('Core_view', function () {
   it("should not render 'undefined' class name", function() {
     this.$container[0].style.width = '501px';
     this.$container[0].style.height = '100px';
-    this.$container[0].style.overflow = 'auto';
+    this.$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       startRows: 10,
@@ -283,7 +283,7 @@ describe('Core_view', function () {
     var initHeight;
 
     runs(function () {
-      this.$container[0].style.overflow = 'scroll';
+      this.$container[0].style.overflow = 'hidden';
       this.$container.wrap('<div style="width: 50px;"></div>');
       handsontable({
         startRows: 10,
@@ -352,7 +352,7 @@ describe('Core_view', function () {
   it("should fire beforeRender event after table has been scrolled", function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
-    this.$container[0].style.overflow = 'auto';
+    this.$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(100, 3)
@@ -362,7 +362,7 @@ describe('Core_view', function () {
 
     hot.addHook('beforeRender', beforeRenderCallback);
 
-    this.$container.scrollTop(1000);
+    this.$container.find(".ht_master .wtHolder").scrollTop(1000);
 
     waitsFor(function(){
       return beforeRenderCallback.calls.length > 0;
@@ -373,7 +373,7 @@ describe('Core_view', function () {
   it("should fire afterRender event after table has been scrolled", function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
-    this.$container[0].style.overflow = 'auto';
+    this.$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 3)
@@ -383,7 +383,7 @@ describe('Core_view', function () {
 
     hot.addHook('afterRender', afterRenderCallback);
 
-    this.$container.scrollTop(1000);
+    this.$container.find(".ht_master .wtHolder").first().scrollTop(1000);
 
     waitsFor(function(){
       return afterRenderCallback.calls.length > 0;
@@ -473,7 +473,9 @@ describe('Core_view', function () {
         height: 200
       });
 
-      this.$container.scrollTop(200);
+      var mainHolder = hot.view.wt.wtTable.holder;
+
+      $(mainHolder).scrollTop(200);
       hot.render();
 
       var masterTD = this.$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
@@ -500,10 +502,11 @@ describe('Core_view', function () {
       });
 
       var rowHeight = hot.getCell(1,3).clientHeight;
+      var mainHolder = hot.view.wt.wtTable.holder;
 
       expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
 
-      this.$container.scrollTop(200);
+      $(mainHolder).scrollTop(200);
       hot.render();
 
       expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
@@ -592,10 +595,10 @@ describe('Core_view', function () {
       this.$container.unwrap();
     });
 
-    it("should stretch all visible columns with overflow auto", function() {
+    it("should stretch all visible columns with overflow hidden", function() {
       this.$container[0].style.width = '501px';
       this.$container[0].style.height = '100px';
-      this.$container[0].style.overflow = 'auto';
+      this.$container[0].style.overflow = 'hidden';
 
       var hot = handsontable({
         startRows: 10,

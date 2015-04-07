@@ -14,9 +14,12 @@ function WalkontableOverlay() {}
 
 WalkontableOverlay.prototype.init = function () {
   this.TABLE = this.instance.wtTable.TABLE;
-  this.fixed = this.instance.wtTable.hider;
-  this.fixedContainer = this.instance.wtTable.holder;
-  this.scrollHandler = this.getScrollableElement(this.TABLE);
+  this.hider = this.instance.wtTable.hider;
+  this.spreader = this.instance.wtTable.spreader;
+  this.holder = this.instance.wtTable.holder;
+  this.wtRootElement = this.instance.wtTable.wtRootElement;
+  this.trimmingContainer = Handsontable.Dom.getTrimmingContainer(this.hider.parentNode.parentNode);
+  this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
 };
 
 WalkontableOverlay.prototype.makeClone = function (direction) {
@@ -27,37 +30,17 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
   clone.style.left = 0;
   clone.style.overflow = 'hidden';
 
-  var table2 = document.createElement('TABLE');
-  table2.className = this.instance.wtTable.TABLE.className;
-  clone.appendChild(table2);
+  var clonedTable = document.createElement('TABLE');
+  clonedTable.className = this.instance.wtTable.TABLE.className;
+  clone.appendChild(clonedTable);
 
-  this.instance.wtTable.holder.parentNode.appendChild(clone);
+  this.instance.wtTable.wtRootElement.parentNode.appendChild(clone);
 
   return new Walkontable({
     cloneSource: this.instance,
     cloneOverlay: this,
-    table: table2
+    table: clonedTable
   });
-};
-
-WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
-  var el = TABLE.parentNode;
-  while (el && el.style && document.body !== el) {
-    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
-      return el;
-    } else if(window.getComputedStyle) {
-      var computedStyle = window.getComputedStyle(el);
-      if(computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
-        return el;
-      }
-    }
-
-    if (this instanceof WalkontableHorizontalScrollbarNative && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
-      return el;
-    }
-    el = el.parentNode;
-  }
-  return window;
 };
 
 WalkontableOverlay.prototype.refresh = function (fastDraw) {

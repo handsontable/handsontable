@@ -63,13 +63,21 @@
     var instance = this;
     var editor = instance.getActiveEditor();
 
+    if (event != null && event.isImmediatePropagationEnabled == null) {
+      event.stopImmediatePropagation = function () {
+        this.isImmediatePropagationEnabled = false;
+      };
+      event.isImmediatePropagationEnabled = true;
+      event.isImmediatePropagationStopped = function () {
+        return !this.isImmediatePropagationEnabled;
+      };
+    }
+
     switch (event.keyCode){
       case Handsontable.helper.keyCode.ARROW_UP:
-
-        var previousOption = editor.select.find('option:selected').prev();
-
-        if (previousOption.length == 1){
-          previousOption.prop('selected', true);
+        var previousOptionIndex = editor.select.selectedIndex - 1;
+        if (previousOptionIndex >= 0 ) {
+          editor.select[previousOptionIndex].selected = true;
         }
 
         event.stopImmediatePropagation();
@@ -77,11 +85,9 @@
         break;
 
       case Handsontable.helper.keyCode.ARROW_DOWN:
-
-        var nextOption = editor.select.find('option:selected').next();
-
-        if (nextOption.length == 1){
-          nextOption.prop('selected', true);
+        var nextOptionIndex = editor.select.selectedIndex + 1;
+        if (nextOptionIndex <= editor.select.length - 1 ) {
+          editor.select[nextOptionIndex].selected = true;
         }
 
         event.stopImmediatePropagation();
@@ -115,13 +121,13 @@
 
     switch(editorSection) {
       case 'top':
-        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.parentNode);
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.holder.parentNode);
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'corner':
-        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtScrollbars.corner.clone.wtTable.holder.parentNode);
+        cssTransformOffset = Handsontable.Dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
     }
 

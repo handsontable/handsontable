@@ -52,66 +52,66 @@
       <div class="columnLayout">
 
         <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <h2>Fixed rows and columns</h2>
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Fixed rows and columns</h2>
 
-          <p>Specify two fixed rows with <code>fixedRowsTop: 2</code> and two fixed columns with <code>fixedColumnsLeft:
-            2</code> option.</p>
+              <p>Specify two fixed rows with <code>fixedRowsTop: 2</code> and two fixed columns with <code>fixedColumnsLeft:
+                2</code> option.</p>
 
-          <p>Note: You'll need horizontal scrollbars, so just set a container <code>width</code> and <code>overflow:
-            scroll</code> in CSS.</p>
+              <p>Note: You'll need horizontal scrollbars, so just set a container <code>width</code> and <code>overflow:
+                hidden</code> in CSS.</p>
 
-          <pre id="positions"></pre>
+              <pre id="positions"></pre>
 
-          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+              <div id="example1" style="width: 400px; height: 300px; overflow: hidden;"></div>
 
-          <p>
-            <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              <p>
+                <button name="dump" data-instance="hot" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump data to console
+                </button>
+              </p>
+            </div>
           </div>
 
-          <script data-jsfiddle="example1">
-            /**
-             * Container looks like this:
-             *
-             * <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-             */
-            var myData = Handsontable.helper.createSpreadsheetData(1000, 100),
-              container = document.getElementById('example1'),
-              positions = document.getElementById('positions'),
-              hot;
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
 
-            hot = new Handsontable(container, {
-              data: myData,
-              colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
-              rowHeaders: true,
-              colHeaders: true,
-              fixedRowsTop: 2,
-              fixedColumnsLeft: 2,
-              contextMenu: true
-            });
+              <script data-jsfiddle="example1">
+                /**
+                 * Container looks like this:
+                 *
+                 * <div id="example1" style="width: 400px; height: 300px; overflow: hidden"></div>
+                 */
+                var myData = Handsontable.helper.createSpreadsheetData(1000, 100),
+                  container = document.getElementById('example1'),
+                  positions = document.getElementById('positions'),
+                  hot;
 
-            setInterval(function () {
-              var str = '';
+                hot = new Handsontable(container, {
+                  data: myData,
+                  colWidths: [65, 47, 47, 47, 47, 47, 47, 47, 47, 47],
+                  rowHeaders: true,
+                  colHeaders: true,
+                  fixedRowsTop: 2,
+                  fixedColumnsLeft: 2,
+                  contextMenu: true
+                });
 
-              str += 'rowOffset: ' + hot.rowOffset();
+                setInterval(function () {
+                  var str = '';
 
-              positions.innerHTML = str;
-            }, 100);
-          </script>
+                  str += 'rowOffset: ' + hot.rowOffset();
+
+                  positions.innerHTML = str;
+                }, 100);
+              </script>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
         <div class="footer-text">
         </div>

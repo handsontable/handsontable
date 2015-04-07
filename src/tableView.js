@@ -69,7 +69,7 @@ Handsontable.TableView = function (instance) {
     }
 
     // immediate click on "spreader" means click on the right side of vertical scrollbar
-    if (next !== that.instance.container) {
+    if (next !== instance.view.wt.wtTable.holder) {
       while (next !== document.documentElement) {
         if (next === null) {
           if (event.isTargetWebComponent) {

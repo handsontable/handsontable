@@ -489,11 +489,11 @@ Comment For Cell
  * Handsontable in Handsontable
  */
 
-.handsontable .handsontable .wtHider {
+.handsontable .handsontable.ht_clone_top .wtHider {
   padding: 0 0 5px 0;
 }
 
-.handsontable .handsontable table {
+.handsontable .handsontable:not(.ht_master) table {
   -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
 }
@@ -556,6 +556,7 @@ Comment For Cell
   display: none;
   position: absolute;
   z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
+  overflow: hidden;
 }
 
 .htContextMenu .ht_clone_top,
@@ -582,7 +583,7 @@ Comment For Cell
 }
 
 .htContextMenu table.htCore {
-  outline: 1px solid #bbb;
+  border: 1px solid #bbb;
 }
 
 .htContextMenu .wtBorder {
@@ -635,6 +636,10 @@ Comment For Cell
   margin-top: -2px;
   position: absolute;
   left: 4px;
+}
+
+.htContextMenu .ht_master .wtHolder {
+  overflow: hidden;
 }
 
 .handsontable td.htSearchResult {
@@ -842,6 +847,27 @@ thead .htCollapseButton:after {
 .handsontable tr.hidden th {
   display: none;
 }
+
+.ht_master,
+.ht_clone_left,
+.ht_clone_top {
+  overflow: hidden;
+}
+
+.ht_master .wtHolder {
+  overflow: auto;
+}
+
+.ht_clone_left .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 
 /*WalkontableDebugOverlay*/
 

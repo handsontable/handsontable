@@ -8,7 +8,7 @@ function Walkontable(settings) {
     this.cloneSource = settings.cloneSource;
     this.cloneOverlay = settings.cloneOverlay;
     this.wtSettings = settings.cloneSource.wtSettings;
-    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtTable = new WalkontableTable(this, settings.table, settings.wtRootElement);
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new WalkontableEvent(this);
@@ -22,7 +22,7 @@ function Walkontable(settings) {
     this.wtEvent = new WalkontableEvent(this);
     this.selections = this.getSetting('selections');
 
-    this.wtScrollbars = new WalkontableScrollbars(this);
+    this.wtOverlays = new WalkontableOverlays(this);
   }
 
   //find original headers
@@ -78,11 +78,11 @@ Walkontable.prototype.getCell = function (coords, topmost) {
       , fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
 
     if(coords.row < fixedRows && coords.col < fixedColumns) {
-      return this.wtScrollbars.corner.clone.wtTable.getCell(coords);
+      return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
     } else if(coords.row < fixedRows) {
-      return this.wtScrollbars.vertical.clone.wtTable.getCell(coords);
+      return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
     } else if (coords.col < fixedColumns) {
-      return this.wtScrollbars.horizontal.clone.wtTable.getCell(coords);
+      return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
     } else {
       return this.wtTable.getCell(coords);
     }
@@ -100,7 +100,7 @@ Walkontable.prototype.update = function (settings, value) {
  * @returns {Walkontable}
  */
 Walkontable.prototype.scrollVertical = function (row) {
-  this.wtScrollbars.vertical.scrollTo(row);
+  this.wtOverlays.topOverlay.scrollTo(row);
   this.getSetting('onScrollVertically');
   return this;
 };
@@ -112,7 +112,7 @@ Walkontable.prototype.scrollVertical = function (row) {
  * @returns {Walkontable}
  */
 Walkontable.prototype.scrollHorizontal = function (column) {
-  this.wtScrollbars.horizontal.scrollTo(column);
+  this.wtOverlays.leftOverlay.scrollTo(column);
   this.getSetting('onScrollHorizontally');
   return this;
 };
@@ -147,7 +147,7 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  this.wtScrollbars.destroy();
+  this.wtOverlays.destroy();
 
   if ( this.wtEvent ) {
     this.wtEvent.destroy();

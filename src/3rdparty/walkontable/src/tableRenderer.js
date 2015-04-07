@@ -27,23 +27,24 @@ WalkontableTableRenderer.prototype.render = function () {
   var visibleColIndex
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
-    , displayTds
+    , columnsToRender = this.wtTable.getRenderedColumnsCount()
     , adjusted = false
     , workspaceWidth
-    , cloneLimit = this.wtTable.getRenderedRowsCount();
+    , rowsToRender = this.wtTable.getRenderedRowsCount();
 
   if (totalColumns > 0) {
+
+    // prepare COL and TH elements for rendering
     this.adjustAvailableNodes();
     adjusted = true;
 
+    // assign row header classnames
     this.renderColGroups();
 
     this.renderColumnHeaders();
 
-    displayTds = this.wtTable.getRenderedColumnsCount();
-
     //Render table rows
-    this.renderRows(totalRows, cloneLimit, displayTds);
+    this.renderRows(totalRows, rowsToRender, columnsToRender);
 
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
@@ -52,21 +53,23 @@ WalkontableTableRenderer.prototype.render = function () {
       this.adjustColumnHeaderHeights();
     }
 
-    this.adjustColumnWidths(displayTds);
+    this.adjustColumnWidths(columnsToRender);
   }
 
   if (!adjusted) {
     this.adjustAvailableNodes();
   }
 
-  this.removeRedundantRows(cloneLimit);
+  this.removeRedundantRows(rowsToRender);
 
   if (!this.wtTable.isWorkingOnClone()) {
     this.markOversizedRows();
 
     this.instance.wtViewport.createVisibleCalculators();
 
-    this.instance.wtScrollbars.applyToDOM();
+    this.instance.wtOverlays.applyToDOM();
+
+    this.instance.wtOverlays.refresh(false);
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
@@ -82,11 +85,8 @@ WalkontableTableRenderer.prototype.render = function () {
       }
     }
 
-    this.instance.wtScrollbars.refresh(false);
-
     this.instance.getSetting('onDraw', true);
   }
-
 };
 
 WalkontableTableRenderer.prototype.removeRedundantRows = function (renderedRowsCount) {
@@ -96,7 +96,7 @@ WalkontableTableRenderer.prototype.removeRedundantRows = function (renderedRowsC
   }
 };
 
-WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit, displayTds) {
+WalkontableTableRenderer.prototype.renderRows = function (totalRows, rowsToRender, columnsToRender) {
   var lastTD, TR;
   var visibleRowIndex = 0;
   var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -107,7 +107,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
     }
 
-    if (cloneLimit !== void 0 && visibleRowIndex === cloneLimit) {
+    if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
       break; //we have as much rows as needed for this clone
     }
 
@@ -116,15 +116,15 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
     //Render row headers
     this.renderRowHeaders(sourceRowIndex, TR);
 
-    this.adjustColumns(TR, displayTds + this.rowHeaderCount);
+    // Add and/or remove TDs to TR to match the desired number
+    this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
 
-    lastTD = this.renderCells(sourceRowIndex, TR, displayTds);
+    lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
 
-    //after last column is rendered, check if last cell is fully displayed
     if (!isWorkingOnClone) {
+      // reset the oversized row cache for this row
       this.resetOversizedRow(sourceRowIndex);
     }
-
 
     if (TR.firstChild) {
       //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
@@ -143,12 +143,19 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
   }
 };
 
+/**
+ * Reset the oversized row cache for the provided index
+ * @param sourceRow {Number} Row index
+ */
 WalkontableTableRenderer.prototype.resetOversizedRow = function (sourceRow) {
   if (this.instance.wtViewport.oversizedRows && this.instance.wtViewport.oversizedRows[sourceRow]) {
     this.instance.wtViewport.oversizedRows[sourceRow] = void 0;  //void 0 is faster than delete, see http://jsperf.com/delete-vs-undefined-vs-null/16
   }
 };
 
+/**
+ * Check if any of the rendered rows is higher than expected, and if so, cache them
+ */
 WalkontableTableRenderer.prototype.markOversizedRows = function () {
   var previousRowHeight
     , trInnerHeight
@@ -183,6 +190,10 @@ WalkontableTableRenderer.prototype.adjustColumnHeaderHeights = function () {
   }
 };
 
+/**
+ * Check if column header for the specified column is higher than expected, and if so, cache it
+ * @param col {Number} Index of column
+ */
 WalkontableTableRenderer.prototype.markIfOversizedColumnHeader = function (col) {
   var colCount = this.instance.wtTable.THEAD.childNodes.length !== 0 ? this.instance.wtTable.THEAD.childNodes[0].childNodes.length : 0,
     sourceColIndex,
@@ -213,10 +224,10 @@ WalkontableTableRenderer.prototype.markIfOversizedColumnHeader = function (col) 
     }
 };
 
-WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
+WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, columnsToRender) {
   var TD, sourceColIndex;
 
-  for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
+  for (var visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
     sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
     if (visibleColIndex === 0) {
       TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
@@ -243,12 +254,22 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
   return TD;
 };
 
-WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
-  var width;
+WalkontableTableRenderer.prototype.adjustColumnWidths = function (columnsToRender) {
+  var width,
+    rowsCalculator = this.instance.wtViewport.rowsRenderCalculator,
+    scrollbarCompensation = 0,
+    sourceInstance = this.instance.cloneSource ? this.instance.cloneSource : this.instance,
+    mainHolder = sourceInstance.wtTable.holder,
+    trimmingContainer = Handsontable.Dom.getTrimmingContainer(sourceInstance.wtTable.TABLE);
 
-  this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
+  if(mainHolder.offsetHeight < mainHolder.scrollHeight) {
+    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+  }
 
-  for (var renderedColIndex = 0; renderedColIndex < displayTds; renderedColIndex++) {
+  this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth() - scrollbarCompensation);
+  //this.instance.wtViewport.columnsRenderCalculator.refreshStretching(this.instance.wtViewport.getViewportWidth());
+
+  for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
     width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
     this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
   }
@@ -305,6 +326,9 @@ WalkontableTableRenderer.prototype.renderRowHeaders = function (row, TR) {
   }
 };
 
+/**
+ * Adjust the number of COL and TH elements to match the number of columns and headers that need to be rendered
+ */
 WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
   //adjust COLGROUP
   this.adjustColGroups();
@@ -313,6 +337,9 @@ WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
   this.adjustThead();
 };
 
+/**
+ * Renders the column headers
+ */
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
   if (!this.columnHeaderCount) {
     return;
@@ -336,6 +363,9 @@ WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
   }
 };
 
+/**
+ * Adjusts the number of COL elements to match the number of columns that need to be rendered
+ */
 WalkontableTableRenderer.prototype.adjustColGroups = function () {
   var columnCount = this.wtTable.getRenderedColumnsCount();
 
@@ -350,6 +380,9 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
   }
 };
 
+/**
+ * Adjusts the number of TH elements in THEAD to match the number of headers and columns that need to be rendered
+ */
 WalkontableTableRenderer.prototype.adjustThead = function () {
   var columnCount = this.wtTable.getRenderedColumnsCount();
   var TR = this.THEAD.firstChild;
@@ -378,9 +411,7 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
         this.THEAD.removeChild(this.THEAD.lastChild);
       }
     }
-  }
-
-  else if (TR) {
+  } else if (TR) {
     Handsontable.Dom.empty(TR);
   }
 };
@@ -396,6 +427,9 @@ WalkontableTableRenderer.prototype.renderColumnHeader = function (row, col, TH) 
   return this.columnHeaders[row](col, TH, row);
 };
 
+/**
+ * Assign the row header classnames to the columns being row headers
+ */
 WalkontableTableRenderer.prototype.renderColGroups = function () {
   for (var colIndex = 0; colIndex < this.wtTable.colgroupChildrenLength; colIndex++) {
     if (colIndex < this.rowHeaderCount) {
@@ -407,6 +441,11 @@ WalkontableTableRenderer.prototype.renderColGroups = function () {
   }
 };
 
+/**
+ * Add and/or remove the TDs to match the desired number
+ * @param TR {HTMLElement} Table row in question
+ * @param desiredCount {Number} The desired number of TDs in the TR
+ */
 WalkontableTableRenderer.prototype.adjustColumns = function (TR, desiredCount) {
   var count = TR.childNodes.length;
   while (count < desiredCount) {
@@ -420,8 +459,8 @@ WalkontableTableRenderer.prototype.adjustColumns = function (TR, desiredCount) {
   }
 };
 
-WalkontableTableRenderer.prototype.removeRedundantColumns = function (renderedColumnsCount) {
-  while (this.wtTable.tbodyChildrenLength > renderedColumnsCount) {
+WalkontableTableRenderer.prototype.removeRedundantColumns = function (columnsToRender) {
+  while (this.wtTable.tbodyChildrenLength > columnsToRender) {
     this.TBODY.removeChild(this.TBODY.lastChild);
     this.wtTable.tbodyChildrenLength--;
   }

@@ -281,6 +281,8 @@ describe('manualColumnResize', function () {
       width: 200
     });
 
+    var mainHolder = hot.view.wt.wtTable.holder;
+
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.simulate("mouseover");
     var $handle = this.$container.find('.manualColumnResizer');
@@ -289,7 +291,7 @@ describe('manualColumnResize', function () {
     expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
 
-    this.$container.scrollLeft(200);
+    $(mainHolder).scrollLeft(200);
     hot.render();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
