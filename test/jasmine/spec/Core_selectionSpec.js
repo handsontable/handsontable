@@ -84,10 +84,44 @@ describe('Core_selection', function () {
     handsontable();
     selectCell(0, 0);
 
-//    $("html").triggerHandler('mousedown');
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+  });
+
+  it('should not deselect the currently selected cell after clicking on a scrollbar', function () {
+    var hot = handsontable({
+      outsideClickDeselects: false,
+      minRows: 20,
+      minCols: 2,
+      width: 400,
+      height: 100
+    });
+    selectCell(0, 0);
+
+    var holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect(),
+      verticalScrollbarCoords = {
+        x: holderBoundingBox.left + holderBoundingBox.width - 3,
+        y: holderBoundingBox.top + ( holderBoundingBox.height / 2 )
+      },
+      horizontalScrollbarCoords = {
+        x: holderBoundingBox.left + ( holderBoundingBox.width / 2 ),
+        y: holderBoundingBox.top + holderBoundingBox.height - 3
+      };
+
+    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      clientX: verticalScrollbarCoords.x,
+      clientY: verticalScrollbarCoords.y
+    });
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+
+    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      clientX: horizontalScrollbarCoords.x,
+      clientY: horizontalScrollbarCoords.y
+    });
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
   it('should not deselect currently selected cell', function () {
@@ -96,7 +130,6 @@ describe('Core_selection', function () {
     });
     selectCell(0, 0);
 
-//    $("html").triggerHandler('mousedown');
     $("html").simulate('mousedown');
 
     expect(getSelected()).toEqual([0, 0, 0, 0]);

@@ -11,11 +11,11 @@ Handsontable.TableView = function (instance) {
 
 
   var originalStyle = instance.rootElement.getAttribute('style');
-  if(originalStyle) {
+  if (originalStyle) {
     instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   }
 
-  Handsontable.Dom.addClass(instance.rootElement,'handsontable');
+  Handsontable.Dom.addClass(instance.rootElement, 'handsontable');
 //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -30,7 +30,7 @@ Handsontable.TableView = function (instance) {
 
   instance.container.insertBefore(table, instance.container.firstChild);
 
-  this.eventManager.addEventListener(instance.rootElement,'mousedown', function (event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
@@ -38,7 +38,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'keyup',function (event) {
+  this.eventManager.addEventListener(document.documentElement, 'keyup', function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -61,14 +61,14 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'mousedown',function (event) {
+  this.eventManager.addEventListener(document.documentElement, 'mousedown', function (event) {
     var next = event.target;
 
     if (isMouseDown) {
       return; // it must have been started in a cell
     }
 
-    // immediate click on "spreader" means click on the right side of vertical scrollbar
+    // immediate click on "holder" means click on the right side of vertical scrollbar
     if (next !== instance.view.wt.wtTable.holder) {
       while (next !== document.documentElement) {
         if (next === null) {
@@ -84,6 +84,13 @@ Handsontable.TableView = function (instance) {
         }
         next = next.parentNode;
       }
+    } else {
+      var scrollbarWidth = Handsontable.Dom.getScrollbarWidth();
+
+      if (document.elementFromPoint(event.x + scrollbarWidth, event.y) !== instance.view.wt.wtTable.holder ||
+        document.elementFromPoint(event.x, event.y + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
+        return;
+      }
     }
 
     // function did not return until here, we have an outside click!
@@ -94,7 +101,6 @@ Handsontable.TableView = function (instance) {
       instance.destroyEditor();
     }
   });
-
 
 
   this.eventManager.addEventListener(table, 'selectstart', function (event) {
@@ -144,7 +150,7 @@ Handsontable.TableView = function (instance) {
         cornerVisible: function () {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
         },
-          multipleSelectionHandlesVisible: function () {
+        multipleSelectionHandlesVisible: function () {
           return !that.isCellEdited() && instance.selection.isMultiple();
         }
       }
@@ -186,7 +192,7 @@ Handsontable.TableView = function (instance) {
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function () {
       var arr = [];
-      if(instance.hasRowHeaders()) {
+      if (instance.hasRowHeaders()) {
         arr.push(function (index, TH) {
           that.appendRowHeader(index, TH);
         });
@@ -197,7 +203,7 @@ Handsontable.TableView = function (instance) {
     columnHeaders: function () {
 
       var arr = [];
-      if(instance.hasColHeaders()) {
+      if (instance.hasColHeaders()) {
         arr.push(function (index, TH) {
           that.appendColHeader(index, TH);
         });
