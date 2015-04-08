@@ -178,6 +178,9 @@ if (document.documentElement.classList) {
    * @returns {Boolean}
    */
   Handsontable.Dom.hasClass = function(element, className) {
+    if(className === "") {
+      return true;
+    }
     return element.classList.contains(className);
   };
 
@@ -191,6 +194,10 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
+      if(className === "") {
+        return;
+      }
+
       className = className.split(' ');
     }
     if (isSupportMultipleClassesArg) {
@@ -198,6 +205,10 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
+        if(className[len] === "") {
+          continue;
+        }
+
         element.classList.add(className[len]);
         len ++;
       }
@@ -214,6 +225,10 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
+      if(className === "") {
+        return;
+      }
+
       className = className.split(' ');
     }
     if (isSupportMultipleClassesArg) {
@@ -221,6 +236,10 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
+        if(className[len] === "") {
+          continue;
+        }
+
         element.classList.remove(className[len]);
         len ++;
       }
