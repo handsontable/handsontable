@@ -23,4 +23,25 @@ describe('Handsontable.helper', function () {
       expect(Handsontable.helper.isObjectEquals([{test: 3}], [{test: 1}])).toBe(false);
     });
   });
+
+  //
+  // Handsontable.helper.duckSchema
+  //
+  describe('duckSchema', function() {
+    it("should returns valid schema object", function () {
+      expect(Handsontable.helper.duckSchema({})).toEqual({});
+      expect(Handsontable.helper.duckSchema({test: 1})).toEqual({test: null});
+      expect(Handsontable.helper.duckSchema({test: 'foo'})).toEqual({test: null});
+      expect(Handsontable.helper.duckSchema({test: undefined})).toEqual({test: null});
+      expect(Handsontable.helper.duckSchema({test: null})).toEqual({test: null});
+      expect(Handsontable.helper.duckSchema({test: []})).toEqual({test: []});
+      expect(Handsontable.helper.duckSchema({test: [1, 2, 3]})).toEqual({test: []});
+    });
+
+    it("should returns valid schema object (deeply)", function () {
+      expect(Handsontable.helper.duckSchema({test: {a: {b: 11}}})).toEqual({test: {a: {b: null}}});
+      expect(Handsontable.helper.duckSchema({test: {a: {b: []}}})).toEqual({test: {a: {b: []}}});
+      expect(Handsontable.helper.duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
+    });
+  });
 });
