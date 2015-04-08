@@ -62,6 +62,7 @@ function WalkontableSettings(instance, settings) {
     scrollbarHeight: 10,
 
     renderAllRows: false,
+    renderAllColumns: false,
     groups: false
   };
 

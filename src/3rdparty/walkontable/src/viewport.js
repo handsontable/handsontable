@@ -236,7 +236,13 @@ WalkontableViewport.prototype.createRowsCalculator = function (visible) {
 WalkontableViewport.prototype.createColumnsCalculator = function (visible) {
   this.columnHeaderHeight = NaN;
 
-  var width = this.getViewportWidth();
+  var width;
+  if (this.instance.wtSettings.settings.renderAllColumns) {
+    width = Infinity;
+  }
+  else {
+    width = this.getViewportWidth();
+  }
 
   var pos = this.instance.wtOverlays.leftOverlay.getScrollPosition() - this.instance.wtOverlays.topOverlay.getTableParentOffset();
   if (pos < 0) {

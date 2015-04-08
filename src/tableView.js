@@ -184,6 +184,7 @@ Handsontable.TableView = function (instance) {
       return that.settings.fixedRowsTop;
     },
     renderAllRows: that.settings.renderAllRows,
+    renderAllColumns: that.settings.renderAllColumns,
     rowHeaders: function () {
       var arr = [];
       if(instance.hasRowHeaders()) {
