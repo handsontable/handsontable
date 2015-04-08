@@ -178,7 +178,7 @@ if (document.documentElement.classList) {
    * @returns {Boolean}
    */
   Handsontable.Dom.hasClass = function(element, className) {
-    if(className === "") {
+    if (className === '') {
       return true;
     }
     return element.classList.contains(className);
@@ -194,7 +194,7 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
-      if(className === "") {
+      if (className === '') {
         return;
       }
 
@@ -205,7 +205,7 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
-        if(className[len] === "") {
+        if (className[len] === '') {
           continue;
         }
 
@@ -225,7 +225,7 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
-      if(className === "") {
+      if (className === '') {
         return;
       }
 
@@ -236,7 +236,7 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
-        if(className[len] === "") {
+        if (className[len] === '') {
           continue;
         }
 
