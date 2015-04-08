@@ -1,0 +1,421 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Handsontable - JavaScript data grid editor. Excel-like grid editing with HTML &amp; JavaScript</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="dist/handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="demo/css/samples.css">
+  <script src="demo/js/samples.js"></script>
+  <script src="demo/js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="demo/js/highlight/styles/github.css">
+  <link rel="stylesheet" href="demo/css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Handsontable - JavaScript grid editor">
+  <meta property="og:description" content="Excel-like data grid with HTML &amp; JavaScript">
+  <meta property="og:url" content="http://handsontable.com/">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="demo/js/ga.js"></script>
+
+  <!--
+  GitHub buttons. Don't copy this to your project :)
+  -->
+  <link rel="stylesheet" media="screen" href="demo/github-buttons/github-buttons.css">
+  <script src="demo/github-buttons/github-buttons.js" async></script>
+</head>
+
+<body class="home">
+
+<div class="wrapper">
+<div class="wrapper-row">
+<div id="global-menu-clone">
+  <h1><a href="index.html">Handsontable</a> <span class="ver"></span></h1>
+
+  <!-- menu start -->
+  <div id="global-menu">
+    <ul>
+      <li>
+        <h3>Getting Started</h3>
+
+        <ul>
+          <li>
+            <a href="demo/understanding_reference.html">Understand binding as reference</a>
+          </li>
+          <li>
+            <a href="demo/datasources.html">Array, object, function data source</a>
+          </li>
+          <li>
+            <a href="demo/ajax.html">Load &amp; Save (Ajax)</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h3>Appearance</h3>
+        <ul>
+          <li>
+            <a href="demo/renderers.html">Cell renderers</a>
+          </li>
+          <li>
+            <a href="demo/renderers_html.html">Custom HTML</a>
+          </li>
+          <li>
+            <a href="demo/scroll.html">Scroll bars</a>
+          </li>
+          <li>
+            <a href="demo/scroll_window.html"> &#x2514; Scroll bars (window)</a>
+          </li>
+          <li>
+            <a href="demo/stretch.html">Column stretching</a>
+          </li>
+          <li>
+            <a href="demo/stretch_window.html"> &#x2514; Column stretching (window)</a>
+          </li>
+          <li>
+            <a href="demo/conditional.html">Conditional formatting</a>
+          </li>
+          <li>
+            <a href="demo/prepopulate.html">Pre-populate new rows</a>
+          </li>
+          <li>
+            <a href="demo/current.html">Highlight current row/col</a>
+          </li>
+          <li>
+            <a href="demo/sorting.html">Column sorting</a>
+          </li>
+          <li>
+            <a href="demo/column_resize.html">Column &amp; row resize</a>
+          </li>
+          <li>
+            <a href="demo/column_move.html">Column &amp; row move</a>
+          </li>
+          <li>
+            <a href="demo/fixed.html">Fixed rows/columns</a>
+          </li>
+          <li>
+            <a href="demo/column_freeze.html">Column freeze <sup>NEW</sup></a>
+          </li>
+          <li>
+            <a href="demo/pagination.html">Pagination</a>
+          </li>
+          <li>
+            <a href="demo/merge_cells.html">Merge cells</a>
+          </li>
+          <li>
+            <a href="demo/align_cell.html">Horizontal &amp; vertical align</a>
+          </li>
+          <li>
+            <a href="demo/custom_borders.html">Custom borders</a>
+          </li>
+          <li>
+            <a href="demo/grouping.html">Column &amp; row grouping <sup>BETA</sup></a>
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h3>Cell types</h3>
+        <ul>
+          <li>
+            <a href="demo/numeric.html">Numeric</a>
+          </li>
+          <li>
+            <a href="demo/date.html">Date  <sup>UPDATED</sup></a>
+          </li>
+          <li>
+            <a href="demo/checkbox.html">Checkbox</a>
+          </li>
+          <li>
+            <a href="demo/selectEditor.html">Select</a>
+          </li>
+          <li>
+            <a href="demo/dropdown.html">Dropdown</a>
+          </li>
+          <li>
+            <a href="demo/autocomplete.html">Autocomplete</a>
+          </li>
+          <li>
+            <a href="demo/password.html">Password</a>
+          </li>
+          <li>
+            <a href="demo/handsontable.html">Handsontable</a>
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h3>Editing</h3>
+        <ul>
+          <li>
+            <a href="demo/validation.html">Validation</a>
+          </li>
+          <li>
+            <a href="demo/dragdown.html">Drag-down</a>
+          </li>
+          <li>
+            <a href="demo/buttons.html">Custom buttons</a>
+          </li>
+          <li>
+            <a href="demo/contextmenu.html">Context menu</a>
+          </li>
+          <li>
+            <a href="demo/contextmenucopypaste.html"> &#x2514; Copy/Paste in Context menu</a>
+          </li>
+          <li>
+            <a href="demo/comments.html">Comments <sup>BETA</sup></a>
+          </li>
+          <li>
+            <a href="demo/readonly.html">Read-only cells</a>
+          </li>
+          <li>
+            <a href="demo/search.html">Search of values</a>
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h3>Integration</h3>
+        <ul>
+          <li>
+            <a href="demo/options.html">Options</a>
+          </li>
+          <li>
+            <a href="demo/callbacks.html">Callbacks</a>
+          </li>
+          <li>
+            <a href="demo/beforeKeyDown.html"> &#x2514; beforeKeyDown</a>
+          </li>
+          <li>
+            <a href="demo/backbone.html">Backbone.js</a>
+          </li>
+          <li>
+            <a href="demo/jquery.html">jQuery</a>
+          </li>
+          <li>
+            <a href="demo/bootstrap.html">Twitter Bootstrap</a>
+          </li>
+          <li>
+            <a href="demo/graphael.html">gRaphaël charts</a>
+          </li>
+          <li>
+            <a href="demo/heatmaps.html">Chroma.js (Heatmaps)</a>
+          </li>
+          <li>
+            <a href="https://github.com/handsontable/hot-table">hot-table (Polymer) <sup><i
+              class="icon-external-link"></i></sup></a>
+          </li>
+          <li>
+            <a href="https://github.com/handsontable/ngHandsontable">ngHandsontable (AngularJS) <sup><i
+              class="icon-external-link"></i></sup></a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <ul>
+      <li><a href="https://twitter.com/handsontable"><i class="icon-twitter"></i> Follow
+        @handsontable</a></li>
+      <li><a href="https://groups.google.com/forum/?fromgroups=#!forum/handsontable"><i
+        class="icon-comment"></i> Discuss on Google Groups</a></li>
+    </ul>
+  </div>
+  <!-- menu end -->
+</div>
+
+<div id="github-buttons">
+  <span class="github-btn" id="githubWatch">
+    <a class="gh-btn github-watchers" href="https://github.com/handsontable/handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Star</span>
+    </a>
+    <a class="gh-count" href="https://github.com/handsontable/handsontable/stargazers"></a>
+  </span>
+
+  <span class="github-btn" id="githubFork">
+    <a class="gh-btn github-forks" href="https://github.com/handsontable/handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Fork</span>
+    </a>
+    <a class="gh-count" href="https://github.com/handsontable/handsontable/network"></a>
+  </span>
+</div>
+
+<div id="container">
+  <div class="columnLayout">
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <div class="warning" id="domainNotice">
+            This page has been moved to
+            <a href="http://handsontable.com/">http://handsontable.com/</a>. Please update your bookmarks.
+          </div>
+        </div>
+
+        <div class="pad" data-jsfiddle="example">
+
+          <p style="font-size: 20px"><strong>Handsontable</strong> is a minimalist Excel-like <span class="nobreak">data grid</span>
+            editor
+            for HTML &amp; JavaScript</p>
+
+          <div class="warning">
+            This is Handsontable <a href="https://github.com/handsontable/handsontable/releases" class="ver"></a>, a
+<<<<<<< HEAD
+            release published on March 19th, 2015.
+=======
+            release published on April 7th, 2015.
+>>>>>>> master
+
+            <p>The most prominent changes are:</p>
+
+            <ul>
+<<<<<<< HEAD
+              <li>Adding JSDoc to the project</li>
+=======
+              <li>modified fixed header/overlay structure - each overlay has its own hidden scrollbar - change was made to reduce the laggy overlay effect for IE and Safari,<br><br>
+              <strong>Please note:</strong> In order to maintain the pre-0.14.0 scrollbar functionality, change the CSS <code>overflow</code> property of your Handsontable container from <code>scroll</code>
+              or <code>auto</code> to <code>hidden</code>. Without performing this change, you might encounter problems with doubling scrollbars.</li><br>
+              <li>Adding JSDoc to the project,</li>
+>>>>>>> master
+              <li>Removal of jQuery UI datepicker - we switched to Pikaday + Moment.js, that makes us jQuery-free</li>
+            </ul>
+
+            Check out the <a href="https://github.com/handsontable/handsontable/releases/latest/">full release
+            notes</a>. If you experience some rough edges, please report an
+            <a href="https://github.com/handsontable/handsontable/issues">issue</a> or temporarily stick to
+            version <a href="http://old.handsontable.com">0.10.5 <sup><i
+            class="icon-external-link"></i></sup></a>.
+          </div>
+
+          <div id="example"></div>
+        </div>
+      </div>
+      <div class="codeLayout">
+        <div class="jsFiddle inline-buttons">
+          <button class="show-source"></button>
+          <button class="jsFiddleLink" data-runfiddle="example">Edit in jsFiddle</button>
+          <button name="dump" data-dump="#example" data-instance="hot" title="Prints current data source to Firebug/Chrome Dev Tools">
+            Dump data to console
+          </button>
+        </div>
+
+
+        <script data-jsfiddle="example">
+          var
+            data = [
+              ['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
+              ['2009', 0, 2941, 4303, 354, 5814],
+              ['2010', 3, 2905, 2867, 412, 5284],
+              ['2011', 4, 2517, 4822, 552, 6127],
+              ['2012', 2, 2422, 5399, 776, 4151]
+            ],
+            container = document.getElementById('example'),
+            hot;
+
+          hot = new Handsontable(container, {
+            data: data,
+            minSpareRows: 1,
+            colHeaders: true,
+            contextMenu: true
+          });
+
+        </script>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var showSourceElements = document.querySelectorAll('.show-source');
+
+      for(var i = 0; i < showSourceElements.length ; i++) {
+        var showElem = showSourceElements[i];
+        showElem.addEventListener('mousedown', function (event) {
+          event.preventDefault();
+
+          if(showElem.className.indexOf('shown') > -1) {
+            showElem.className = showElem.className.replace('shown', '');
+          } else {
+            showElem.className += ' shown';
+          }
+
+          var preJS = document.querySelectorAll('pre.javascript');
+          for(var j = 0; j < preJS.length; j++) {
+            if(preJS[j].style.display == '') {
+              preJS[j].style.display = 'block';
+            } else {
+              preJS[j].style.display = '';
+            }
+          }
+
+          var codeLay = document.querySelectorAll('.codeLayout');
+          for(var j = 0; j < codeLay.length; j++) {
+            if(codeLay[j].className.indexOf('codeLayoutExpanded') > -1) {
+              codeLay[j].className = codeLay[j].className.replace('codeLayoutExpanded', '');
+            } else {
+              codeLay[j].className += ' codeLayoutExpanded';
+            }
+          }
+
+        });
+      }
+
+      var verHolders = document.querySelectorAll('.ver');
+      for(var i = 0; i < verHolders.length; i++) {
+        var verText = document.createTextNode(hot.version);
+        verHolders[i].appendChild(verText);
+      }
+    </script>
+
+    <div class="footer-text">.
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div id="outside-links-wrapper">
+  <!-- outside-links start -->
+  <div id="outside-links">
+    <div class="inline-buttons">
+      <a class="button"
+         href="https://github.com/handsontable/handsontable/releases">Releases</a>
+      <a class="button button-light" href="https://github.com/handsontable/handsontable/wiki"><i
+        class="icon-book"></i> Wiki</a>
+      <a class="button button-secondary button-light"
+         href="https://github.com/handsontable/handsontable/wiki/Options">Options</a>
+      <a class="button button-secondary button-light"
+         href="https://github.com/handsontable/handsontable/wiki/Methods">Methods</a>
+      <a class="button button-secondary" href="https://github.com/handsontable/handsontable/wiki/Events">Events</a>
+
+      <a class="button" href="https://github.com/handsontable/handsontable/wiki/FAQ">F.A.Q.</a>
+
+      <a class="button button-github" href="https://github.com/handsontable/handsontable"><i
+        class="icon-github"></i> Source</a>
+      <a class="button button-github" href="https://github.com/handsontable/handsontable/issues"><i
+        class="icon-bug"></i> Issues</a>
+    </div>
+
+    <div class="clear"></div>
+  </div>
+  <!-- outside-links end -->
+</div>
+
+</body>
+</html>
