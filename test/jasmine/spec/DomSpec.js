@@ -373,6 +373,10 @@ describe('Handsontable.Dom', function () {
       Handsontable.Dom.addClass(element, undefined);
 
       expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.Dom.addClass(element, '');
+
+      expect(element.className).toBe('test test1 test2 test3');
     });
 
     it("should add class names as array to an element", function () {
@@ -387,6 +391,10 @@ describe('Handsontable.Dom', function () {
       Handsontable.Dom.addClass(element, ['test1', 'test2', 'test3']);
 
       expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.Dom.addClass(element, 'test4');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
 
       Handsontable.Dom.addClass(element, 'test4');
 
@@ -418,6 +426,10 @@ describe('Handsontable.Dom', function () {
       Handsontable.Dom.removeClass(element, undefined);
 
       expect(element.className).toBe('test2 test3');
+
+      Handsontable.Dom.removeClass(element, '');
+
+      expect(element.className).toBe('test2 test3');
     });
 
     it("should remove class names as array from an element", function () {
@@ -436,6 +448,10 @@ describe('Handsontable.Dom', function () {
       Handsontable.Dom.removeClass(element, ['test', 'test1', 'test4']);
 
       expect(element.className).toBe('test2 test3');
+
+      Handsontable.Dom.removeClass(element, ['test', '', '']);
+
+      expect(element.className).toBe('test2 test3');
     });
   });
 
@@ -451,6 +467,7 @@ describe('Handsontable.Dom', function () {
       expect(Handsontable.Dom.hasClass(element, 'not-exists')).toBe(false);
       expect(Handsontable.Dom.hasClass(element, 'test3')).toBe(true);
       expect(Handsontable.Dom.hasClass(element, 'test')).toBe(true);
+      expect(Handsontable.Dom.hasClass(element, '')).toBe(true);
     });
   });
 
