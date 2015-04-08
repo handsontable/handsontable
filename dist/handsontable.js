@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.14.0
+ * Handsontable 0.14.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,7 +7,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Apr 07 2015 10:55:19 GMT+0200 (CEST)
+ * Date: Wed Apr 08 2015 10:00:22 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2674,7 +2674,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    *
    * @type {String}
    */
-  this.version = '0.14.0'; //inserted by grunt from package.json
+  this.version = '0.14.1'; //inserted by grunt from package.json
 };
 
 /**
@@ -3881,6 +3881,9 @@ if (document.documentElement.classList) {
    * @returns {Boolean}
    */
   Handsontable.Dom.hasClass = function(element, className) {
+    if (className === '') {
+      return true;
+    }
     return element.classList.contains(className);
   };
 
@@ -3894,6 +3897,10 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
+      if (className === '') {
+        return;
+      }
+
       className = className.split(' ');
     }
     if (isSupportMultipleClassesArg) {
@@ -3901,6 +3908,10 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
+        if (className[len] === '') {
+          continue;
+        }
+
         element.classList.add(className[len]);
         len ++;
       }
@@ -3917,6 +3928,10 @@ if (document.documentElement.classList) {
     var len = 0;
 
     if (typeof className === 'string') {
+      if (className === '') {
+        return;
+      }
+
       className = className.split(' ');
     }
     if (isSupportMultipleClassesArg) {
@@ -3924,6 +3939,10 @@ if (document.documentElement.classList) {
 
     } else {
       while (className && className[len]) {
+        if (className[len] === '') {
+          continue;
+        }
+
         element.classList.remove(className[len]);
         len ++;
       }
