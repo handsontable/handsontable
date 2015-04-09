@@ -31,6 +31,9 @@
 
     Handsontable.renderers.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 
+    if (cellProperties.readOnly)
+      return;
+
     TD.appendChild(ARROW);
     Handsontable.Dom.addClass(TD, 'htAutocomplete');
 
