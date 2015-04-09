@@ -1485,6 +1485,36 @@ describe('UndoRedo', function () {
           hot2.destroy();
           this.$container2.remove();
         });
+
+        it('should redo insert at the same index as before', function () {
+          var HOT = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 2)
+          });
+
+          expect(countRows()).toEqual(2);
+          expect(HOT.getDataAtCell(0, 0)).toEqual('A1');
+          expect(HOT.getDataAtCell(1, 0)).toEqual('A2');
+
+          var res = alter('insert_row', 0);
+
+          expect(countRows()).toEqual(3);
+          expect(HOT.getDataAtCell(0, 0)).toBeNull();
+          expect(HOT.getDataAtCell(1, 0)).toEqual('A1');
+          expect(HOT.getDataAtCell(2, 0)).toEqual('A2');
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(2);
+          expect(HOT.getDataAtCell(0, 0)).toEqual('A1');
+          expect(HOT.getDataAtCell(1, 0)).toEqual('A2');
+
+          HOT.redo();
+
+          expect(countRows()).toEqual(3);
+          expect(HOT.getDataAtCell(0, 0)).toBeNull();
+          expect(HOT.getDataAtCell(1, 0)).toEqual('A1');
+          expect(HOT.getDataAtCell(2, 0)).toEqual('A2');
+        });
       });
     });
 
