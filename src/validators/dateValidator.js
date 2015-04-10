@@ -1,5 +1,11 @@
+
+import moment from 'moment';
+
 /**
  * Date cell validator
+ * @validator
+ * @component DateValidator
+ * @dependencies moment
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */
@@ -44,6 +50,7 @@ Handsontable.DateValidator = function (value, callback) {
  */
 var correctFormat = function (value, dateFormat) {
   value = moment(new Date(value)).format(dateFormat);
+
   return value;
 };
 

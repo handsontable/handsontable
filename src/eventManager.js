@@ -1,20 +1,19 @@
 
-if(!window.Handsontable){
-  var Handsontable = {};
-}
+import * as dom from './dom.js';
 
-Handsontable.countEventManagerListeners = 0; //used to debug memory leaks
+export {eventManager};
 
-Handsontable.eventManager = function (instance) {
-  var
-    addEvent,
-    removeEvent,
-    clearEvents,
-    fireEvent;
+window.Handsontable = window.Handsontable || {};
+// used to debug memory leaks
+Handsontable.countEventManagerListeners = 0;
+// support for older versions of Handsontable
+Handsontable.eventManager = eventManager;
 
+function eventManager(instance) {
   if (!instance) {
     throw new Error ('instance not defined');
   }
+
   if (!instance.eventListeners) {
     instance.eventListeners = [];
   }
@@ -34,7 +33,7 @@ Handsontable.eventManager = function (instance) {
     if (!Handsontable.eventManager.isHotTableEnv) {
       return event;
     }
-    event = Handsontable.Dom.polymerWrap(event);
+    event = dom.polymerWrap(event);
     len = event.path.length;
 
     while (len --) {
@@ -55,7 +54,7 @@ Handsontable.eventManager = function (instance) {
     }
     event.isTargetWebComponent = true;
 
-    if (Handsontable.Dom.isWebComponentSupportedNatively()) {
+    if (dom.isWebComponentSupportedNatively()) {
       event.realTarget = event.srcElement || event.toElement;
 
     } else if (instance instanceof Handsontable.Core || instance instanceof Walkontable) {
@@ -67,7 +66,7 @@ Handsontable.eventManager = function (instance) {
         // .wtHider
         fromElement = instance.wtTable.TABLE.parentNode.parentNode;
       }
-      realTarget = Handsontable.Dom.closest(event.target, [componentName], fromElement);
+      realTarget = dom.closest(event.target, [componentName], fromElement);
 
       if (realTarget) {
         event.realTarget = fromElement.querySelector(componentName) || event.target;
@@ -78,7 +77,7 @@ Handsontable.eventManager = function (instance) {
 
     Object.defineProperty(event, 'target', {
       get: function() {
-        return Handsontable.Dom.polymerWrap(target);
+        return dom.polymerWrap(target);
       },
       enumerable: true,
       configurable: true
@@ -95,7 +94,7 @@ Handsontable.eventManager = function (instance) {
    * @param {Function} callback
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEvent = function (element, event, callback) {
+  function addEvent(element, event, callback) {
     var callbackProxy;
 
     callbackProxy = function callbackProxy(event) {
@@ -143,7 +142,7 @@ Handsontable.eventManager = function (instance) {
     return function _removeEvent() {
       removeEvent(element, event, callback);
     };
-  };
+  }
 
   /**
    * Remove event
@@ -152,7 +151,7 @@ Handsontable.eventManager = function (instance) {
    * @param {String} event
    * @param {Function} callback
    */
-  removeEvent = function (element, event, callback) {
+  function removeEvent(element, event, callback){
     var len = instance.eventListeners.length,
       tmpEvent;
 
@@ -173,12 +172,12 @@ Handsontable.eventManager = function (instance) {
         Handsontable.countEventManagerListeners --;
       }
     }
-  };
+  }
 
   /**
    * Clear all events
    */
-  clearEvents = function () {
+  function clearEvents() {
     var len = instance.eventListeners.length,
       event;
 
@@ -189,7 +188,7 @@ Handsontable.eventManager = function (instance) {
         removeEvent(event.element, event.event, event.callback);
       }
     }
-  };
+  }
 
   /**
    * Trigger event
@@ -197,10 +196,8 @@ Handsontable.eventManager = function (instance) {
    * @param {Element} element
    * @param {String} type
    */
-  fireEvent = function (element, type) {
-    var options, event;
-
-    options = {
+  function fireEvent(element, type) {
+    var options = {
       bubbles: true,
       cancelable: (type !== "mousemove"),
       view: window,
@@ -217,7 +214,8 @@ Handsontable.eventManager = function (instance) {
       relatedTarget: undefined
     };
 
-    if (document.createEvent) {
+    var event;
+    if ( document.createEvent ) {
       event = document.createEvent("MouseEvents");
       event.initMouseEvent(type, options.bubbles, options.cancelable,
         options.view, options.detail,
@@ -234,7 +232,7 @@ Handsontable.eventManager = function (instance) {
     } else {
       element.fireEvent('on' + type, event);
     }
-  };
+  }
 
   return {
     addEventListener: addEvent,
@@ -242,4 +240,4 @@ Handsontable.eventManager = function (instance) {
     clear: clearEvents,
     fireEvent: fireEvent
   };
-};
+}

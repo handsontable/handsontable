@@ -1,7 +1,15 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import * as dom from './../../../dom.js';
+
+export {WalkontableOverlays};
+
+window.WalkontableOverlays = WalkontableOverlays;
+
 function WalkontableOverlays(instance) {
   this.instance = instance;
-  instance.update('scrollbarWidth', Handsontable.Dom.getScrollbarWidth());
-  instance.update('scrollbarHeight', Handsontable.Dom.getScrollbarWidth());
+  instance.update('scrollbarWidth', dom.getScrollbarWidth());
+  instance.update('scrollbarHeight', dom.getScrollbarWidth());
 
   this.topOverlay = new WalkontableTopOverlay(instance);
   this.leftOverlay = new WalkontableLeftOverlay(instance);
@@ -17,7 +25,7 @@ function WalkontableOverlays(instance) {
 
 WalkontableOverlays.prototype.registerListeners = function () {
   var that = this;
-  this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
+  this.mainTableScrollableElement = dom.getScrollableElement(this.instance.wtTable.TABLE);
 
   this.refreshAll = function refreshAll() {
     if (!that.instance.drawn) {
@@ -35,7 +43,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     that.leftOverlay.onScroll();
   };
 
-  var eventManager = Handsontable.eventManager(that.instance);
+  var eventManager = eventManagerObject(that.instance);
 
   this.requestAnimFrame = window.requestAnimationFrame ||
   window.webkitRequestAnimationFrame ||
@@ -165,7 +173,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
   }
 
   if (target === master || target === document) {
-    tempScrollValue = Handsontable.Dom.getScrollLeft(target);
+    tempScrollValue = dom.getScrollLeft(target);
 
     // if scrolling the master table - populate the scroll values to both top and left overlays
     if (this.overlayScrollPositions.master.left !== tempScrollValue) {
@@ -174,7 +182,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
       scrollValueChanged = true;
     }
 
-    tempScrollValue = Handsontable.Dom.getScrollTop(target);
+    tempScrollValue = dom.getScrollTop(target);
 
     if (this.overlayScrollPositions.master.top !== tempScrollValue) {
       leftOverlay.scrollTop = tempScrollValue;
@@ -183,7 +191,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     }
 
   } else if (target === topOverlay) {
-    tempScrollValue = Handsontable.Dom.getScrollLeft(target);
+    tempScrollValue = dom.getScrollLeft(target);
 
     // if scrolling the top overlay - populate the horizontal scroll to the master table
     if (this.overlayScrollPositions.top.left !== tempScrollValue) {
@@ -198,7 +206,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     }
 
   } else if (target === leftOverlay) {
-    tempScrollValue = Handsontable.Dom.getScrollTop(target);
+    tempScrollValue = dom.getScrollTop(target);
 
     // if scrolling the left overlay - populate the vertical scroll to the master table
     if (this.overlayScrollPositions.left.top !== tempScrollValue) {
@@ -222,7 +230,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 };
 
 WalkontableOverlays.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this.instance);
+  var eventManager = eventManagerObject(this.instance);
 
 
   if (this.topOverlay) {

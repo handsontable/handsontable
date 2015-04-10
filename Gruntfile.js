@@ -16,18 +16,20 @@
  *  - dist/handsontable.css
  *  - dist/handsontable.full.js
  *  - dist/handsontable.full.css
+ *  - dist/handsontable.full.min.js
+ *  - dist/handsontable.full.min.css
  *
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
 var browsers = [
   {
-   browserName: 'firefox',
-   platform: 'Windows 7'
-   },
-   {
-   browserName: 'chrome',
-   platform: 'Windows 7'
-   },
+    browserName: 'firefox',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'chrome',
+    platform: 'Windows 7'
+  },
   {
     browserName: 'opera',
     platform: 'Windows 7'
@@ -52,172 +54,51 @@ var browsers = [
 module.exports = function (grunt) {
 
   require('time-grunt')(grunt);
+  require('load-grunt-tasks')(grunt);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    gitinfo: {
-    },
+    gitinfo: {},
+
     meta: {
       src: [
-        'tmp/core.js',
-        'src/multiMap.js',
-        'src/dom.js',
-        'src/eventManager.js',
-        'src/tableView.js',
-        'src/editors.js',
-        'src/editorManager.js',
-        'src/renderers.js',
-        'src/helpers.js',
-        'src/dataMap.js',
-
-        'src/renderers/cellDecorator.js',
-        'src/renderers/textRenderer.js',
-        'src/renderers/autocompleteRenderer.js',
-        'src/renderers/checkboxRenderer.js',
-        'src/renderers/numericRenderer.js',
-        'src/renderers/passwordRenderer.js',
-        'src/renderers/htmlRenderer.js',
-
-        'src/editors/baseEditor.js',
-        'src/editors/textEditor.js',
-        'src/editors/mobileTextEditor.js',
-        'src/editors/checkboxEditor.js',
-        'src/editors/dateEditor.js',
-        'src/editors/handsontableEditor.js',
-        'src/editors/autocompleteEditor.js',
-        'src/editors/passwordEditor.js',
-        'src/editors/selectEditor.js',
-        'src/editors/dropdownEditor.js',
-        'src/editors/numericEditor.js',
-
-        'src/validators/numericValidator.js',
-        'src/validators/dateValidator.js',
-        'src/validators/autocompleteValidator.js',
-
-        'src/cellTypes.js',
-
-        'src/3rdparty/autoResize.js',
-        'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js',
-        'src/3rdparty/json-patch-duplex.js',
-
-        'src/pluginHooks.js',
-        'src/plugins/autoColumnSize.js',
-        'src/plugins/columnSorting.js',
-        'src/plugins/contextMenu.js',
-        'src/plugins/comments.js',
-        'src/plugins/legacy.js',
-        'src/plugins/manualColumnMove.js',
-        'src/plugins/manualColumnResize.js',
-        'src/plugins/manualRowResize.js',
-        'src/plugins/observeChanges.js',
-        'src/plugins/persistentState.js',
-        'src/plugins/undoRedo.js',
-        'src/plugins/dragToScroll/dragToScroll.js',
-        'src/plugins/copyPaste.js',
-        'src/plugins/search.js',
-        'src/plugins/mergeCells/mergeCells.js',
-        'src/plugins/customBorders/customBorders.js',
-        'src/plugins/manualRowMove.js',
-        'src/plugins/autofill.js',
-        'src/plugins/grouping/grouping.js',
-        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js',
-        'src/plugins/multipleSelectionHandles/multipleSelectionHandles.js',
-        'src/plugins/touchScroll/touchScroll.js',
-        'src/plugins/manualColumnFreeze/manualColumnFreeze.js'
+        'src/*.js',
+        'src/editors/*.js',
+        'src/plugins/**/!(*.spec).js',
+        'src/renderers/*.js',
+        'src/validators/*.js',
+        'src/shims/*.js',
+        'src/3rdparty/*.js'
       ],
       walkontable: [
-        'src/3rdparty/walkontable/src/*.js',
-        'src/3rdparty/walkontable/src/3rdparty/*.js'
+        'src/3rdparty/walkontable/src/*.js'
       ],
       vendor: [
-        'lib/numeral.js'
-      ],
-      shims: [
-        'lib/shims/array.indexOf.js',
-        'lib/shims/array.filter.js',
-        'lib/shims/array.isArray.js',
-        'lib/shims/object.keys.js',
-        'lib/shims/weakmap.js'
+        'lib/numeral/numeral.js'
       ]
-    },
-
-    concat: {
-      dist: {
-        files: {
-          'dist/handsontable.js': [
-            'tmp/intro.js',
-            '<%= meta.shims %>',
-            '<%= meta.src %>',
-            '<%= meta.walkontable %>',
-            'plugins/jqueryHandsontable.js',
-            'src/outro.js'
-          ],
-          'dist/handsontable.css': [
-            'tmp/handsontable.css',
-            'src/css/mobile.handsontable.css'
-          ]
-        }
-      },
-      full_js: {
-        files: {
-          'dist/handsontable.full.js': [
-            'dist/handsontable.js',
-            '<%= meta.vendor %>'
-          ]
-        }
-      },
-      full_css: {
-        files: {
-          'dist/handsontable.full.css': [
-            'dist/handsontable.css'
-          ]
-        }
-      }
     },
 
     watch: {
       options: {
-        livereload: true //works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
+        livereload: true // works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
       },
       files: [
-        'src/**/*.js',
-        'src/**/*.css',
-        'src/**/*.html',
+        'src/**/*(*.js|*.css|*.html)',
         '!src/3rdparty/walkontable/test/**/*',
-        'lib/**/*.js',
-        'lib/**/*.css'
+        'lib/**/*(*.js|*.css)'
       ],
-      tasks: ['build']
+      tasks: ['build-dev']
     },
 
-    clean: {
-      dist: ['tmp']
-    },
-
-    replace: {
-      dist: {
-        options: {
-          variables: {
-            version: '<%= pkg.version %>',
-            timestamp: '<%= (new Date()).toString() %>'
-          }
-        },
-        files: {
-          'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js',
-          'tmp/handsontable.css': 'src/css/handsontable.css'
-        }
-      }
-    },
     jasmine: {
       handsontable: {
         src: [
           'dist/handsontable.js',
+          'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
-          'lib/jquery-ui/js/jquery-ui.custom.js',
+          'demo/js/jquery-ui/js/jquery-ui.custom.js',
           'plugins/removeRow/handsontable.removeRow.js'
         ],
         options: {
@@ -232,14 +113,15 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
+            'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
-            'lib/jquery.min.js',
+            'demo/js/jquery.min.js',
+            'lib/numeral/numeral.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
-            'lib/numeral.js',
-            'lib/numeral.de-de.js',
+            'demo/js/ZeroClipboard.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
@@ -254,11 +136,8 @@ module.exports = function (grunt) {
       },
       walkontable: {
         src: [
-          'src/dom.js',
-          'src/helpers.js',
-          'src/eventManager.js',
-          'src/3rdparty/walkontable/src/*.js',
-          'src/3rdparty/walkontable/src/3rdparty/*.js'
+          //'dist/walkontable.js',
+          'dist/handsontable.js'
         ],
         options: {
           specs: [
@@ -268,7 +147,12 @@ module.exports = function (grunt) {
             'src/3rdparty/walkontable/css/walkontable.css'
           ],
           vendor: [
-            'lib/jquery.min.js'
+            'demo/js/jquery.min.js',
+            'lib/numeral/numeral.js',
+            'demo/js/moment/moment.js',
+            'demo/js/pikaday/pikaday.js',
+            'demo/js/ZeroClipboard.js',
+            'demo/js/numeral.de-de.js'
           ],
           helpers: [
             'src/3rdparty/walkontable/test/jasmine/SpecHelper.js',
@@ -284,10 +168,11 @@ module.exports = function (grunt) {
       mobile: {
         src: [
           'dist/handsontable.js',
+          'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
-          'lib/jquery-ui/js/jquery-ui.custom.js',
+          'demo/js/jquery-ui/js/jquery-ui.custom.js',
           'plugins/removeRow/handsontable.removeRow.js'
         ],
         options: {
@@ -299,12 +184,15 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/handsontable.css',
             'plugins/removeRow/handsontable.removeRow.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
+            'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
+            'demo/js/pikaday/css/pikaday.css'
           ],
           vendor: [
-            'lib/jquery.min.js',
-            'lib/numeral.js',
-            'lib/numeral.de-de.js',
+            'demo/js/jquery.min.js',
+            'lib/numeral/numeral.js',
+            'demo/js/ZeroClipboard.js',
+            'demo/js/moment/moment.js',
+            'demo/js/pikaday/pikaday.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
@@ -319,22 +207,7 @@ module.exports = function (grunt) {
         }
       }
     },
-    uglify: {
-      options: {
-        preserveComments: 'some'
-      },
-      "dist/handsontable.full.min.js": ["dist/handsontable.full.js" ]
-    },
-    cssmin: {
-      minify: {
-        expand: true,
-        cwd: 'dist/',
-        src: ['handsontable.full.css'],
-        dest: 'dist/',
-        extDot: 'last',
-        ext: '.min.css'
-      }
-    },
+
     connect: {
       server: {
         options: {
@@ -373,23 +246,40 @@ module.exports = function (grunt) {
         }
       }
     },
-    jshint: (function() {
-      var options = {
-        options: {
-          jshintrc: true
-        }
-      };
-      options.core = 'src/core.js';
-      options.src = '<%= meta.src %>';
-      options.walkontable = '<%= meta.walkontable %>';
 
-      return options;
-    }())
+    jshint: {
+      options: {
+        jshintrc: true
+      },
+      handsontable: '<%= meta.src %>',
+      walkontable: '<%= meta.walkontable %>'
+    },
+
+    hotBuilder: {
+      handsontable: {
+        files: {
+          'dist': 'package.json'
+        }
+      },
+      handsontableDev: {
+        files: {
+          'dist': 'package.json'
+        },
+        options: {
+          devMode: true
+        }
+      },
+      options: {
+        external: ['plugins'],
+        minify: true
+      }
+    }
   });
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'build']);
-  grunt.registerTask('build', ['gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['jshint', 'gitinfo', 'build']);
+  grunt.registerTask('build', ['hotBuilder:handsontable']);
+  grunt.registerTask('build-dev', ['hotBuilder:handsontableDev']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -398,43 +288,5 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
-
-  grunt.registerTask('singletest', 'Runs all tests from a single Spec file.\nSyntax: grunt singletest:[handsontable, walkontable]:<file>', function (taskName, specFile) {
-    var context = {
-      taskName: taskName,
-      specFile: specFile
-    };
-
-    var configProperty = grunt.template.process('jasmine.<%=taskName%>.options.specs', {data: context});
-    var task = grunt.template.process('jasmine:<%=taskName%>', {data: context});
-    var specPath;
-
-    switch (taskName) {
-      case 'handsontable':
-        specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
-        break;
-      case 'walkontable':
-        specPath =  grunt.template.process('src/3rdparty/walkontable/test/jasmine/spec/<%=specFile%>', {data: context});
-        break;
-      default:
-        grunt.fail.fatal('Unknown test task: "' + taskName + '". Available test tasks: [handsontable, walkontable]')
-    }
-
-    grunt.config.set(configProperty, [specPath]);
-
-    grunt.task.run(task);
-  });
-
-
-  grunt.loadNpmTasks('grunt-replace');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-jasmine');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-cssmin');
-  grunt.loadNpmTasks('grunt-saucelabs');
-  grunt.loadNpmTasks('grunt-gitinfo');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadTasks('tasks');
 };

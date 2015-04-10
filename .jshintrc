@@ -1,4 +1,5 @@
 {
+  "esnext": true,
   "boss": false,
   "browser": true,
   "camelcase": true,

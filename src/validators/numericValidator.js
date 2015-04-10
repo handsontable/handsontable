@@ -1,5 +1,7 @@
 /**
  * Numeric cell validator
+ * @validator
+ * @component NumericValidator
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */

@@ -1,3 +1,11 @@
+
+import * as dom from './../../../dom.js';
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableHorizontalScrollbarNative};
+
+window.WalkontableHorizontalScrollbarNative = WalkontableHorizontalScrollbarNative;
+
 function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
@@ -9,7 +17,7 @@ function WalkontableHorizontalScrollbarNative(instance) {
 WalkontableHorizontalScrollbarNative.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
-WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {
+WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function() {
   var finalLeft, finalTop;
 
   if (!this.instance.wtTable.holder.parentNode) {
@@ -30,42 +38,41 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     }
 
     finalTop = this.instance.wtTable.hider.style.top;
-  }
-  else if(!Handsontable.freezeOverlays) {
+  } else if (!Handsontable.freezeOverlays) {
     finalLeft = this.getScrollPosition() + "px";
     finalTop = this.instance.wtTable.hider.style.top;
   }
 
-  Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+  dom.setOverlayPosition(elem, finalLeft, finalTop);
 
-  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
-  elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';// + 4 + 'px';
+  elem.style.height = dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
+  elem.style.width = dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; // + 4 + 'px';
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function (fastDraw) {
+WalkontableHorizontalScrollbarNative.prototype.refresh = function(fastDraw) {
   this.applyToDOM();
   WalkontableOverlay.prototype.refresh.call(this, fastDraw);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollLeft(this.scrollHandler);
+WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function() {
+  return dom.getScrollLeft(this.scrollHandler);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
+WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function(pos) {
   if (this.scrollHandler === window) {
-    window.scrollTo(pos, Handsontable.Dom.getWindowScrollTop());
+    window.scrollTo(pos, dom.getWindowScrollTop());
   } else {
     this.scrollHandler.scrollLeft = pos;
   }
 };
 
-WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
+WalkontableHorizontalScrollbarNative.prototype.onScroll = function() {
   this.instance.getSetting('onScrollHorizontally');
 };
 
-WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, length) {
+WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function(from, length) {
   var sum = 0;
-  while(from < length) {
+  while (from < length) {
     sum += this.instance.wtTable.getStretchedColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
     from++;
   }
@@ -73,19 +80,18 @@ WalkontableHorizontalScrollbarNative.prototype.sumCellSizes = function (from, le
 };
 
 //applyToDOM (in future merge it with this.refresh?)
-WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
+WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function() {
   var total = this.instance.getSetting('totalColumns');
   var headerSize = this.instance.wtViewport.getRowHeaderWidth();
 
-  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px';// + 4 + 'px';
+  this.fixedContainer.style.width = headerSize + this.sumCellSizes(0, total) + 'px'; // + 4 + 'px';
 
-  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number') {
     this.fixed.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
-  }
-  else if (total === 0) {
+  } else if (total === 0) {
     this.fixed.style.left = '0';
   } else {
-    throw  new Error('Incorrect value of the columnsRenderCalculator');
+    throw new Error('Incorrect value of the columnsRenderCalculator');
   }
   this.fixed.style.right = '';
 };
@@ -96,14 +102,13 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
  * @param sourceCol {Number}
  * @param beyondRendered {Boolean} if TRUE, scrolls according to the bottom edge (top edge is by default)
  */
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, beyondRendered) {
+WalkontableHorizontalScrollbarNative.prototype.scrollTo = function(sourceCol, beyondRendered) {
   var newX = this.getTableParentOffset();
 
   if (beyondRendered) {
     newX += this.sumCellSizes(0, sourceCol + 1);
     newX -= this.instance.wtViewport.getViewportWidth();
-  }
-  else {
+  } else {
     var fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
     newX += this.sumCellSizes(fixedColumnsLeft, sourceCol);
   }
@@ -111,11 +116,10 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (sourceCol, b
   this.setScrollPosition(newX);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function () {
+WalkontableHorizontalScrollbarNative.prototype.getTableParentOffset = function() {
   if (this.scrollHandler === window) {
     return this.instance.wtTable.holderOffset.left;
-  }
-  else {
+  } else {
     return 0;
   }
 };

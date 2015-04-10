@@ -1,3 +1,14 @@
+
+import * as dom from './../../../dom.js';
+import {ColumnStrategy} from './columnStrategy.js';
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {Walkontable} from './core.js';
+
+export {WalkontableOverlay};
+
+window.WalkontableOverlay = WalkontableOverlay;
+
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling
@@ -18,8 +29,8 @@ WalkontableOverlay.prototype.init = function () {
   this.spreader = this.instance.wtTable.spreader;
   this.holder = this.instance.wtTable.holder;
   this.wtRootElement = this.instance.wtTable.wtRootElement;
-  this.trimmingContainer = Handsontable.Dom.getTrimmingContainer(this.hider.parentNode.parentNode);
-  this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
+  this.trimmingContainer = dom.getTrimmingContainer(this.hider.parentNode.parentNode);
+  this.mainTableScrollableElement = dom.getScrollableElement(this.instance.wtTable.TABLE);
 };
 
 WalkontableOverlay.prototype.makeClone = function (direction) {
@@ -50,7 +61,7 @@ WalkontableOverlay.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableOverlay.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this.clone);
+  var eventManager = eventManagerObject(this.clone);
 
   eventManager.clear();
 };

@@ -1,3 +1,11 @@
+
+import * as dom from './../../../dom.js';
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableTopOverlay};
+
+window.WalkontableTopOverlay = WalkontableTopOverlay;
+
 function WalkontableTopOverlay(instance) {
   this.instance = instance;
   this.type = 'vertical';
@@ -15,7 +23,7 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode,
-    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? Handsontable.Dom.getScrollbarWidth() : 0;
+    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? dom.getScrollbarWidth() : 0;
 
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
     elem.style.width = this.instance.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
@@ -33,22 +41,22 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
       finalTop = "0";
     }
 
-    Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+    dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
   this.clone.wtTable.holder.style.width = elem.style.width;
 
-  var tableHeight = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE);
+  var tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
   elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
 };
 
 WalkontableTopOverlay.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollTop(this.mainTableScrollableElement);
+  return dom.getScrollTop(this.mainTableScrollableElement);
 };
 
 WalkontableTopOverlay.prototype.setScrollPosition = function (pos) {
   if (this.mainTableScrollableElement === window){
-    window.scrollTo(Handsontable.Dom.getWindowScrollLeft(), pos);
+    window.scrollTo(dom.getWindowScrollLeft(), pos);
   } else {
     this.mainTableScrollableElement.scrollTop = pos;
   }
@@ -59,11 +67,14 @@ WalkontableTopOverlay.prototype.onScroll = function () {
 };
 
 WalkontableTopOverlay.prototype.sumCellSizes = function (from, length) {
-  var sum = 0;
+  var sum = 0,
+    defaultRowHeight = this.instance.wtSettings.settings.defaultRowHeight;
+
   while (from < length) {
-    sum += this.instance.wtTable.getRowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
-    from++;
+    sum += this.instance.wtTable.getRowHeight(from) || defaultRowHeight;
+    from ++;
   }
+
   return sum;
 };
 
@@ -76,7 +87,7 @@ WalkontableTopOverlay.prototype.refresh = function (fastDraw) {
 WalkontableTopOverlay.prototype.applyToDOM = function () {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  var scrollbarWidth = Handsontable.Dom.getScrollbarWidth(true);
+  var scrollbarWidth = dom.getScrollbarWidth(true);
 
   var totalEstimatedHeight = headerSize + this.sumCellSizes(0, total) + 1 +  'px';
 
@@ -123,7 +134,7 @@ WalkontableTopOverlay.prototype.scrollTo = function (sourceRow, bottomEdge) {
     scrollbarCompensation = 0;
 
   if(bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+    scrollbarCompensation = dom.getScrollbarWidth();
   }
 
   if (bottomEdge) {

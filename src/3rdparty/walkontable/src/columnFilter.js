@@ -1,3 +1,8 @@
+
+export {WalkontableColumnFilter};
+
+window.WalkontableColumnFilter = WalkontableColumnFilter;
+
 /**
  * WalkontableColumnFilter
  *
