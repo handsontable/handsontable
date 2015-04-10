@@ -217,7 +217,7 @@ function HandsontableColumnSorting() {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
 
-    var colMeta = instance.getCellMeta(0, instance.sortColumn);
+    var colMeta = instance.getCellMeta(0, instance.sortColumn + colOffset);
     var sortFunction;
     switch (colMeta.type) {
       case 'date':
