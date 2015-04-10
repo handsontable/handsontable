@@ -222,7 +222,7 @@ if (classListSupport) {
       element.classList.remove.apply(element.classList, className);
 
     } else {
-      while (className[len]) {
+      while (className && className[len]) {
         element.classList.remove(className[len]);
         len ++;
       }
@@ -250,7 +250,7 @@ if (classListSupport) {
       _className = className.join(' ');
 
     } else {
-      while (className[len]) {
+      while (className && className[len]) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ' ' + className[len];
         }
@@ -267,7 +267,7 @@ if (classListSupport) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
-    while (className[len]) {
+    while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
       len ++;

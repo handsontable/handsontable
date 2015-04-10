@@ -370,10 +370,6 @@ describe('Handsontable.Dom', function () {
 
       expect(element.className).toBe('test test1 test2 test3');
 
-      Handsontable.Dom.addClass(element, undefined);
-
-      expect(element.className).toBe('test test1 test2 test3');
-
       Handsontable.Dom.addClass(element, '');
 
       expect(element.className).toBe('test test1 test2 test3');
@@ -420,10 +416,6 @@ describe('Handsontable.Dom', function () {
       expect(element.className).toBe('test1 test2 test3 test4');
 
       Handsontable.Dom.removeClass(element, 'test test1 test4');
-
-      expect(element.className).toBe('test2 test3');
-
-      Handsontable.Dom.removeClass(element, undefined);
 
       expect(element.className).toBe('test2 test3');
 
