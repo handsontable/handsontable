@@ -585,8 +585,8 @@ export function getStyle(elem, prop) {
     return styleProp;
   } else {
     computedStyle = getComputedStyle(elem);
-    if (computedStyle.prop !== "" && computedStyle.prop !== void 0) {
-      return computedStyle.prop;
+    if (computedStyle[prop] !== "" && computedStyle[prop] !== void 0) {
+      return computedStyle[prop];
     }
     return void 0;
   }
@@ -852,6 +852,7 @@ Handsontable.Dom = {
   getScrollbarWidth,
   getScrollLeft,
   getScrollTop,
+  getStyle,
   getSelectionEndPosition,
   getWindowScrollLeft,
   getWindowScrollTop,

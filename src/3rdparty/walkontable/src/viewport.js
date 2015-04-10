@@ -62,7 +62,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function() {
   }
 
   if (trimmingContainer !== window) {
-    overflow = this.instance.wtOverlays.leftOverlay.trimmingContainer.style.overflow;
+    overflow = dom.getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
     if (overflow == "scroll" || overflow == "hidden" || overflow == "auto") {
       //this is used in `scroll.html`
