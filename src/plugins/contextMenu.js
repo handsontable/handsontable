@@ -116,7 +116,7 @@
               entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
-            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || (columnSelected && this.countRows() > 1);
           }
         },
         {
@@ -130,7 +130,7 @@
               entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
               columnSelected = entireColumnSelection.join(',') == selected.join(',');
 
-            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || (columnSelected && this.countRows() > 1);
           }
         },
         ContextMenu.SEPARATOR,
