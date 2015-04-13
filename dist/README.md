@@ -26,4 +26,4 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 
 ## Custom distribution
 
-If you want to build your own custom Handsontable package distribution check out our tool [hot-builder](https://github.com/handsontable/hot-builder)
+If you want to build your own custom Handsontable package distribution check out our [tool](https://github.com/handsontable/hot-builder) designed for this.
