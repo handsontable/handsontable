@@ -1832,7 +1832,8 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCellValidator = Handsontable.helper.cellMethodLookupFactory('validator');
 
-
+  this.getCellCopyRenderer = Handsontable.helper.cellMethodLookupFactory('copyRenderer');
+  
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
    *

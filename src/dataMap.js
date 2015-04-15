@@ -460,8 +460,16 @@
    * @returns {String}
    */
   Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
-    if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-      return this.get(row, prop);
+    var cellProperties, col, copyRenderer;
+    col = this.propToCol(prop);
+    if (copyableLookup.call(this.instance, row, col)) {
+      cellProperties = this.instance.getCellMeta(row, col);
+      copyRenderer = this.instance.getCellCopyRenderer(cellProperties);
+      if (typeof copyRenderer === "function") {
+        return copyRenderer.call(this.instance, cellProperties, this.get(row, prop));
+      } else {
+        return this.get(row, prop);
+      }
     }
     return '';
   };
