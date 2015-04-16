@@ -15,7 +15,7 @@ function WalkontableOverlays(instance) {
   this.leftOverlay = new WalkontableLeftOverlay(instance);
   this.topLeftCornerOverlay = new WalkontableCornerOverlay(instance);
 
-  this.preventMultipleScrolling = false;
+  this.scrollCallbacksPending = 0;
 
   if (instance.getSetting('debug')) {
     this.debug = new WalkontableDebugOverlay(instance);
@@ -153,13 +153,12 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     return;
   }
 
-  if (this.preventMultipleScrolling) {
-    this.preventMultipleScrolling = false;
-
+  if (this.scrollCallbacksPending > 0) {
+    this.scrollCallbacksPending--;
     return;
   }
 
-  this.preventMultipleScrolling = true;
+  //this.scrollCallbacksPending = true;
 
   var target = e.target,
     master = this.topOverlay.mainTableScrollableElement,
@@ -177,6 +176,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
     // if scrolling the master table - populate the scroll values to both top and left overlays
     if (this.overlayScrollPositions.master.left !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       topOverlay.scrollLeft = tempScrollValue;
       this.overlayScrollPositions.master.left = tempScrollValue;
       scrollValueChanged = true;
@@ -185,6 +185,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     tempScrollValue = dom.getScrollTop(target);
 
     if (this.overlayScrollPositions.master.top !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       leftOverlay.scrollTop = tempScrollValue;
       this.overlayScrollPositions.master.top = tempScrollValue;
       scrollValueChanged = true;
@@ -195,6 +196,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
     // if scrolling the top overlay - populate the horizontal scroll to the master table
     if (this.overlayScrollPositions.top.left !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       master.scrollLeft = tempScrollValue;
       this.overlayScrollPositions.top.left = tempScrollValue;
       scrollValueChanged = true;
@@ -202,6 +204,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
     // "fake" scroll value calculated from the mousewheel event
     if (fakeScrollValue) {
+      //this.scrollCallbacksPending++;
       master.scrollTop += fakeScrollValue;
     }
 
@@ -210,6 +213,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
     // if scrolling the left overlay - populate the vertical scroll to the master table
     if (this.overlayScrollPositions.left.top !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       master.scrollTop = tempScrollValue;
       this.overlayScrollPositions.left.top = tempScrollValue;
       scrollValueChanged = true;
@@ -224,8 +228,6 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
   if (scrollValueChanged) {
     this.refreshAll();
-  } else {
-    this.preventMultipleScrolling = false;
   }
 };
 
