@@ -676,7 +676,10 @@ Cell borders
   font-family: 'Arial';
   -webkit-box-shadow: 1px 1px 2px #bbb;
   -moz-box-shadow: 1px 1px 2px #bbb;
+}
 
+.htBorders div {
+  z-index: 999;
 }
 
 /* Grouping indicators */
