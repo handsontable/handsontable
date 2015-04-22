@@ -3204,14 +3204,12 @@ DefaultSettings.prototype = {
 
   /**
    * String or rendering function.
-   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `date`, `handsontable`.
-   * Function will receive the following arguments: `function(instance, td, row, col, prop, value, cellProperties) {}`
-   * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myEditor = myEditor;`
+   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `date`, `handsontable`, `mobile`.
    *
-   * @type {String|Function}
-   * @default 'text'
+   * @type {String|Function|Boolean}
+   * @default undefined
    */
-  editor: 'text',
+  editor: void 0,
 
   /**
    * @description
