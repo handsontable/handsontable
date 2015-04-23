@@ -81,7 +81,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     });
   });
 
-  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'mousewheel', function (e) {
+  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', function (e) {
     that.requestAnimFrame.call(window, function () {
       that.translateMouseWheelToScroll(e);
     });
@@ -93,7 +93,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     });
   });
 
-  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'mousewheel', function (e) {
+  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', function (e) {
     that.requestAnimFrame.call(window, function () {
       that.translateMouseWheelToScroll(e);
     });
@@ -104,8 +104,10 @@ WalkontableOverlays.prototype.registerListeners = function () {
       that.refreshAll();
     });
 
-    eventManager.addEventListener(window, 'mousewheel', function (e) {
-      var overlay;
+    eventManager.addEventListener(window, 'wheel', function (e) {
+      var overlay,
+        deltaY = e.wheelDeltaY || e.deltaY,
+        deltaX = e.wheelDeltaX || e.deltaX;;
 
       if (that.topOverlay.clone.wtTable.holder.contains(e.target)) {
         overlay = 'top';
@@ -113,9 +115,9 @@ WalkontableOverlays.prototype.registerListeners = function () {
         overlay = 'left';
       }
 
-      if (overlay == 'top' && e.wheelDeltaY !== 0) {
+      if (overlay == 'top' && deltaY !== 0) {
         e.preventDefault();
-      } else if (overlay == 'left' && e.wheelDeltaX !== 0) {
+      } else if (overlay == 'left' && deltaX !== 0) {
         e.preventDefault();
       }
     });
@@ -127,7 +129,9 @@ WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
     leftOverlay = this.leftOverlay.clone.wtTable.holder,
     parentHolder,
     tempElem = e.target,
-    eventMockup = {};
+    eventMockup = {},
+    deltaY = e.wheelDeltaY || (-1) * e.deltaY,
+    deltaX = e.wheelDeltaX || (-1) * e.deltaX;
 
   while (tempElem != document && tempElem != null) {
     if (tempElem.className.indexOf('wtHolder') > -1) {
@@ -140,9 +144,9 @@ WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
   eventMockup.target = parentHolder;
 
   if (parentHolder == topOverlay) {
-    this.syncScrollPositions(eventMockup, (-0.2) * e.wheelDeltaY);
+    this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
   } else if (parentHolder == leftOverlay) {
-    this.syncScrollPositions(eventMockup, (-0.2) * e.wheelDeltaX);
+    this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
   }
 
   return false;
