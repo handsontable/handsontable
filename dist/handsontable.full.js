@@ -7,7 +7,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Apr 08 2015 10:00:22 GMT+0200 (CEST)
+ * Date: Thu Apr 23 2015 11:33:25 GMT-0400 (EDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -6167,7 +6167,7 @@ Handsontable.helper.extendArray = function (arr, extension) {
 Handsontable.helper.isInput = function (element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
-  return inputs.indexOf(element.nodeName) > -1;
+  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
 };
 
 /**
@@ -9726,7 +9726,7 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
       element = element.shadowRoot.activeElement;
     }
 
-    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1;
+    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
   }
 
   // mac

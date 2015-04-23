@@ -95,7 +95,7 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
       element = element.shadowRoot.activeElement;
     }
 
-    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1;
+    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
   }
 
   // mac
