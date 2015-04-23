@@ -107,7 +107,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     eventManager.addEventListener(window, 'wheel', function (e) {
       var overlay,
         deltaY = e.wheelDeltaY || e.deltaY,
-        deltaX = e.wheelDeltaX || e.deltaX;;
+        deltaX = e.wheelDeltaX || e.deltaX;
 
       if (that.topOverlay.clone.wtTable.holder.contains(e.target)) {
         overlay = 'top';
