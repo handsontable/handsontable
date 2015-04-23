@@ -119,9 +119,7 @@ function Autofill(instance) {
   eventManager.addEventListener(document, 'mouseup', mouseUpCallback);
   eventManager.addEventListener(document, 'mousemove', mouseMoveCallback);
 
-  /**
-   * Appeding autofill-specific methods to walkontable event settings
-   */
+  // Appeding autofill-specific methods to walkontable event settings
   wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
 
   this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
@@ -151,7 +149,7 @@ function Autofill(instance) {
  * Create fill handle and fill border objects
  *
  * @function init
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  */
 Autofill.prototype.init = function() {
   this.handle = {};
@@ -161,7 +159,7 @@ Autofill.prototype.init = function() {
  * Hide fill handle and fill border permanently
  *
  * @function disable
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  */
 Autofill.prototype.disable = function() {
   this.handle.disabled = true;
@@ -171,7 +169,7 @@ Autofill.prototype.disable = function() {
  * Selects cells down to the last row in the left column, then fills down to that cell
  *
  * @function selectAdjacent
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  */
 Autofill.prototype.selectAdjacent = function() {
   var select, data, r, maxR, c;
@@ -206,7 +204,7 @@ Autofill.prototype.selectAdjacent = function() {
  * Apply fill values to the area in fill border, omitting the selection border
  *
  * @function apply
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  */
 Autofill.prototype.apply = function() {
   var drag, select, start, end, _data, direction, deltas, selRange;
@@ -274,7 +272,7 @@ Autofill.prototype.apply = function() {
  * Show fill border
  *
  * @function showBorder
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  * @param {WalkontableCellCoords} coords
  */
 Autofill.prototype.showBorder = function(coords) {
@@ -300,7 +298,7 @@ Autofill.prototype.showBorder = function(coords) {
 
 /**
  * @function checkIfNewRowNeeded
- * @memberof Handsontable.Autofill#
+ * @memberof Autofill#
  */
 Autofill.prototype.checkIfNewRowNeeded = function() {
   var fillCorners,
@@ -334,6 +332,7 @@ Handsontable.hooks.add('afterInit', function() {
     } else if (!autofill.handle && this.getSettings().fillHandle !== false) {
       /**
        * Instance of Autofill Plugin {@link Handsontable.Autofill}
+       *
        * @alias autofill
        * @memberof! Handsontable.Core#
        * @type {Autofill}

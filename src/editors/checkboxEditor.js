@@ -8,6 +8,7 @@ var CheckboxEditor = BaseEditor.prototype.extend();
 export {CheckboxEditor};
 
 /**
+ * @private
  * @editor
  * @class CheckboxEditor
  */

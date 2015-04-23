@@ -7,6 +7,7 @@ export {htmlRenderer};
 registerRenderer('html', htmlRenderer);
 
 /**
+ * @private
  * @renderer
  * @component HtmlRenderer
  * @param instance

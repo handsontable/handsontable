@@ -12,7 +12,9 @@ var
 export {MobileTextEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+
 /**
+ * @private
  * @editor
  * @class MobileTextEditor
  */

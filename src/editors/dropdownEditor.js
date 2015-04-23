@@ -10,6 +10,7 @@ Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.DropdownEditor = DropdownEditor;
 
 /**
+ * @private
  * @editor
  * @class DropdownEditor
  * @dependencies AutocompleteEditor

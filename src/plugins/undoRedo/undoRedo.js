@@ -84,6 +84,9 @@ Handsontable.UndoRedo.prototype.done = function(action) {
 
 /**
  * Undo last edit.
+ *
+ * @function undo
+ * @memberof UndoRedo#
  */
 Handsontable.UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
@@ -103,6 +106,9 @@ Handsontable.UndoRedo.prototype.undo = function() {
 
 /**
  * Redo edit (used to reverse an undo).
+ *
+ * @function redo
+ * @memberof UndoRedo#
  */
 Handsontable.UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
@@ -123,6 +129,8 @@ Handsontable.UndoRedo.prototype.redo = function() {
 /**
  * Check if undo action is available.
  *
+ * @function usUndoAvailable
+ * @memberof UndoRedo#
  * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
  */
 Handsontable.UndoRedo.prototype.isUndoAvailable = function() {
@@ -132,6 +140,8 @@ Handsontable.UndoRedo.prototype.isUndoAvailable = function() {
 /**
  * Check if redo action is available.
  *
+ * @function isRedoAvailable
+ * @memberof UndoRedo#
  * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
  */
 Handsontable.UndoRedo.prototype.isRedoAvailable = function() {
@@ -140,6 +150,9 @@ Handsontable.UndoRedo.prototype.isRedoAvailable = function() {
 
 /**
  * Clears undo history.
+ *
+ * @function clear
+ * @memberof UndoRedo#
  */
 Handsontable.UndoRedo.prototype.clear = function() {
   this.doneActions.length = 0;
@@ -375,7 +388,7 @@ function onAfterChange(changes, source) {
 
 function exposeUndoRedoMethods(instance) {
   /**
-   * {@link Handsontable.UndoRedo#undo}
+   * {@link UndoRedo#undo}
    * @alias undo
    * @memberof! Handsontable.Core#
    */
@@ -384,7 +397,7 @@ function exposeUndoRedoMethods(instance) {
   };
 
   /**
-   * {@link Handsontable.UndoRedo#redo}
+   * {@link UndoRedo#redo}
    * @alias redo
    * @memberof! Handsontable.Core#
    */
@@ -393,7 +406,7 @@ function exposeUndoRedoMethods(instance) {
   };
 
   /**
-   * {@link Handsontable.UndoRedo#isUndoAvailable}
+   * {@link UndoRedo#isUndoAvailable}
    * @alias isUndoAvailable
    * @memberof! Handsontable.Core#
    */
@@ -402,7 +415,7 @@ function exposeUndoRedoMethods(instance) {
   };
 
   /**
-   * {@link Handsontable.UndoRedo#isRedoAvailable}
+   * {@link UndoRedo#isRedoAvailable}
    * @alias isRedoAvailable
    * @memberof! Handsontable.Core#
    */
@@ -411,7 +424,7 @@ function exposeUndoRedoMethods(instance) {
   };
 
   /**
-   * {@link Handsontable.UndoRedo#clear}
+   * {@link UndoRedo#clear}
    * @alias clearUndo
    * @memberof! Handsontable.Core#
    */

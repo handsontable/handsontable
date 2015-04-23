@@ -11,7 +11,9 @@ var TextEditor = BaseEditor.prototype.extend();
 export {TextEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+
 /**
+ * @private
  * @editor
  * @class TextEditor
  */

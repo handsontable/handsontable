@@ -18,8 +18,6 @@ Handsontable.activeGuid = null;
 /**
  * Handsontable constructor
  *
- * @param rootElement The DOM element in which Handsontable DOM will be inserted
- * @param userSettings
  * @core
  * @dependencies numeral
  * @alias Handsontable.Core
@@ -33,18 +31,15 @@ Handsontable.activeGuid = null;
  *
  * These are 2 equal ways to call a Handsontable method:
  *
- * @example
  * ```js
  * // all following examples assume that you constructed Handsontable like this
- * var exampleContainer1 = document.getElementById('example1');
- * var ht = new Handsontable(exampleContainer1, options);
+ * var ht = new Handsontable(document.getElementById('example1'), options);
  *
  * // now, to use setDataAtCell method, you can either:
  * ht.setDataAtCell(0, 0, 'new value');
  * ```
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
- * @example
  * ```js
  *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
@@ -1531,35 +1526,31 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @param {Number} amount
    * @param {String} [source] Source of hook runner
    * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows
+   * @description
    *
-   * @example
    * Insert new row(s) above the row at given `index`. If index is `null` or `undefined`, the new row will be
    * added after the current last row. Default `amount` equals 1.
    * ```js
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer);
+   * var hot = new Handsontable(document.getElementById('example'));
    * hot.alter('insert_row', 10);
    * ```
    *
    * Insert new column(s) before the column at given `index`. If index is `null` or `undefined`, the new column
    * will be added after the current last column. Default `amount` equals 1
    * ```js
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer);
+   * var hot = new Handsontable(document.getElementById('example'));
    * hot.alter('insert_col', 10);
    * ```
    *
    * Remove the row(s) at given `index`. Default `amount` equals 1
    * ```js
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer);
+   * var hot = new Handsontable(document.getElementById('example'));
    * hot.alter('remove_row', 10);
    * ```
    *
    * Remove the column(s) at given `index`. Default `amount` equals 1
    * ```js
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer);
+   * var hot = new Handsontable(document.getElementById('example'));
    * hot.alter('remove_col', 10);
    * ```
    */
@@ -1653,7 +1644,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    *
    * @since 0.9-beta2
    * @param {String} prop
-   * @returns {Array} {*}
+   * @returns {*}
    */
   this.getDataAtProp = function (prop) {
     var out = [],
@@ -2469,10 +2460,8 @@ Handsontable.Core = function (rootElement, userSettings) {
  *
  * Constructor options are applied using an object literal passed as a first argument to the Handsontable constructor.
  *
- * @example
  * ```js
- * var exampleContainer = document.getElementById('example1');
- * var hot = new Handsontable(exampleContainer, {
+ * var hot = new Handsontable(document.getElementById('example1'), {
  *   data: myArray,
  *   width: 400,
  *   height: 300
@@ -2487,8 +2476,7 @@ Handsontable.Core = function (rootElement, userSettings) {
  *
  * Consider the following example:
  * ```js
- * var exampleContainer = document.getElementById('example');
- * var hot = new Handsontable(exampleContainer, {
+ * var hot = new Handsontable(document.getElementById('example'), {
  *   readOnly: true,
  *   columns: [
  *     {readOnly: false},
@@ -2527,7 +2515,7 @@ Handsontable.Core = function (rootElement, userSettings) {
  * ## Architecture performance
  *
  * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient compared
- * to the previous model that used jQuery extend. See: http://jsperf.com/extending-settings.
+ * to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
  *
  * ---
  * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
@@ -2605,22 +2593,24 @@ DefaultSettings.prototype = {
    * @type {Boolean|Array|Function}
    * @default null
    * @example
-   *  ...
-   *  // as boolean
-   *  rowHeaders: true,
-   *  ...
+   * ```js
+   * ...
+   * // as boolean
+   * rowHeaders: true,
+   * ...
    *
-   *  ...
-   *  // as array
-   *  rowHeaders: [1, 2, 3],
-   *  ...
+   * ...
+   * // as array
+   * rowHeaders: [1, 2, 3],
+   * ...
    *
-   *  ...
-   *  // as function
-   *  rowHeaders: function(index) {
-   *    return index + ': AB';
-   *  },
-   *  ...
+   * ...
+   * // as function
+   * rowHeaders: function(index) {
+   *   return index + ': AB';
+   * },
+   * ...
+   * ```
    */
   rowHeaders: null,
 
@@ -2632,22 +2622,24 @@ DefaultSettings.prototype = {
    * @type {Boolean|Array|Function}
    * @default null
    * @example
-   *  ...
-   *  // as boolean
-   *  colHeaders: true,
-   *  ...
+   * ```js
+   * ...
+   * // as boolean
+   * colHeaders: true,
+   * ...
    *
-   *  ...
-   *  // as array
-   *  colHeaders: ['A', 'B', 'C'],
-   *  ...
+   * ...
+   * // as array
+   * colHeaders: ['A', 'B', 'C'],
+   * ...
    *
-   *  ...
-   *  // as function
-   *  colHeaders: function(index) {
-   *    return index + ': AB';
-   *  },
-   *  ...
+   * ...
+   * // as function
+   * colHeaders: function(index) {
+   *   return index + ': AB';
+   * },
+   * ...
+   * ```
    */
   colHeaders: null,
 
@@ -2672,6 +2664,7 @@ DefaultSettings.prototype = {
    * @type {Array}
    * @default undefined
    * @example
+   * ```js
    * ...
    * var exampleContainer = document.getElementById('example');
    * var hot = new Handsontable(exampleContainer, {
@@ -2689,6 +2682,7 @@ DefaultSettings.prototype = {
    *   ]
    * });
    * ...
+   * ```
    */
   columns: void 0,
 
@@ -2703,8 +2697,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
+   * var hot = new Handsontable(document.getElementById('example'), {
    *   cells: function (row, col, prop) {
    *     var cellProperties = {};
    *
@@ -2727,14 +2720,15 @@ DefaultSettings.prototype = {
    * @type {Array}
    * @default []
    * @example
+   * ```js
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
+   * var hot = new Handsontable(document.getElementById('example'), {
    *   cell: [
    *     {row: 0, col: 0, readOnly: true}
    *   ]
    * });
    * ...
+   * ```
    */
   cell: [],
 
@@ -2751,12 +2745,13 @@ DefaultSettings.prototype = {
    * @type {Boolean|Array}
    * @default false
    * @example
+   * ```js
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
+   * var hot = new Handsontable(document.getElementById('example'), {
    *   comments: [{row: 1, col: 1, comment: "Test comment"}]
    * });
    * ...
+   * ```
    */
   comments: false,
 
@@ -2772,20 +2767,32 @@ DefaultSettings.prototype = {
    * @type {Boolean|Array}
    * @default false
    * @example
+   * ```js
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
-   *   customBorders: [{range: {from: {row: 1, col: 1}, to: {row: 3, col: 4}}, left: {}, right: {}, top: {}, bottom: {}}],
+   * var hot = new Handsontable(document.getElementById('example'), {
+   *   customBorders: [
+   *     {range: {
+   *       from: {row: 1, col: 1},
+   *       to: {row: 3, col: 4}},
+   *       left: {},
+   *       right: {},
+   *       top: {},
+   *       bottom: {}
+   *     }
+   *   ],
    * });
    * ...
    *
    * // or
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
-   *   customBorders: [{row: 2, col: 2, left: {width: 2, color: 'red'}, right: {width: 1, color: 'green'}, top: '', bottom: ''}],
+   * var hot = new Handsontable(document.getElementById('example'), {
+   *   customBorders: [
+   *     {row: 2, col: 2, left: {width: 2, color: 'red'},
+   *       right: {width: 1, color: 'green'}, top: '', bottom: ''}
+   *   ],
    * });
    * ...
+   * ```
    */
   customBorders: false,
 
@@ -3136,8 +3143,9 @@ DefaultSettings.prototype = {
 
   /**
    * String or rendering function.
-   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `numeric`.
-   * Function will receive the following arguments: `function(instance, TD, row, col, prop, value, cellProperties) {}`
+   *
+   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `numeric`. Function will
+   * receive the following arguments: `function(instance, TD, row, col, prop, value, cellProperties) {}`.
    * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myRenderer = myRenderer;`
    *
    * @type {String|Function}
@@ -3181,9 +3189,13 @@ DefaultSettings.prototype = {
    * @description
    * Shortcut to define combination of cell renderer and editor for the column.
    *
-   * Possible values: text, [numeric](http://handsontable.com/demo/numeric.html), [date](http://handsontable.com/demo/date.html),
-   * [checkbox](http://handsontable.com/demo/checkbox.html), [autocomplete](http://handsontable.com/demo/autocomplete.html),
-   * [handsontable](http://handsontable.com/demo/handsontable.html).
+   * Possible values:
+   *  * text
+   *  * [numeric](http://handsontable.com/demo/numeric.html)
+   *  * [date](http://handsontable.com/demo/date.html)
+   *  * [checkbox](http://handsontable.com/demo/checkbox.html)
+   *  * [autocomplete](http://handsontable.com/demo/autocomplete.html)
+   *  * [handsontable](http://handsontable.com/demo/handsontable.html)
    *
    * @type {String}
    * @default 'text'
@@ -3357,15 +3369,17 @@ DefaultSettings.prototype = {
    * @default undefined
    * @since 0.11.4
    * @example
-   *  ...
-   *  // as boolean
-   *  groups: true,
-   *  ...
+   * ```js
+   * ...
+   * // as boolean
+   * groups: true,
+   * ...
    *
-   *  ...
-   *  // as array
-   *  groups: [{cols: [0, 2]}, {cols: [5, 15], rows: [0, 5]}],
-   *  ...
+   * ...
+   * // as array
+   * groups: [{cols: [0, 2]}, {cols: [5, 15], rows: [0, 5]}],
+   * ...
+   * ```
    */
   groups: void 0,
 
@@ -3385,29 +3399,31 @@ DefaultSettings.prototype = {
    * Disable visual cells selection.
    *
    * Possible values:
-   *  `true` - Disables any type of visual selection (current and area selection),
-   *  `false` - Enables any type of visual selection. This is default value.
-   *  `current` - Disables to appear only current selected cell.
-   *  `area` - Disables to appear only multiple selected cells.
+   *  * `true` - Disables any type of visual selection (current and area selection),
+   *  * `false` - Enables any type of visual selection. This is default value.
+   *  * `current` - Disables to appear only current selected cell.
+   *  * `area` - Disables to appear only multiple selected cells.
    *
    * @type {Boolean|String|Array}
    * @default false
    * @since 0.13.2
    * @example
-   *  ...
-   *  // as boolean
-   *  disableVisualSelection: true,
-   *  ...
+   * ```js
+   * ...
+   * // as boolean
+   * disableVisualSelection: true,
+   * ...
    *
-   *  ...
-   *  // as string ('current' or 'area')
-   *  disableVisualSelection: 'current',
-   *  ...
+   * ...
+   * // as string ('current' or 'area')
+   * disableVisualSelection: 'current',
+   * ...
    *
-   *  ...
-   *  // as array
-   *  disableVisualSelection: ['current', 'area'],
-   *  ...
+   * ...
+   * // as array
+   * disableVisualSelection: ['current', 'area'],
+   * ...
+   * ```
    */
   disableVisualSelection: false,
   manualColumnFreeze: void 0,

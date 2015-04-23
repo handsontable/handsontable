@@ -1,5 +1,7 @@
 /**
  * Numeric cell validator
+ *
+ * @private
  * @validator
  * @component NumericValidator
  * @param {*} value - Value of edited cell

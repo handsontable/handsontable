@@ -7,6 +7,7 @@ import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection.j
 
 /**
  * @class CustomBorders
+ * @private
  * @plugin
  */
 function CustomBorders () {

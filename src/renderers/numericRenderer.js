@@ -1,6 +1,7 @@
 /**
  * Numeric cell renderer
  *
+ * @private
  * @renderer
  * @component NumericRenderer
  * @dependencies numeral

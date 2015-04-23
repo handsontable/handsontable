@@ -18,7 +18,7 @@ function AutoColumnSize() {
   /**
    * @private
    * @function beforeInit
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    */
   this.beforeInit = function () {
     var instance = this;
@@ -65,7 +65,7 @@ function AutoColumnSize() {
   /**
    * @private
    * @function determineIfChanged
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    * @param {Boolean} [force]
    */
   this.determineIfChanged = function (force) {
@@ -78,7 +78,7 @@ function AutoColumnSize() {
    * Get width column.
    *
    * @function determineColumnWidth
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    * @param {Number} col
    * @returns {Number}
    */
@@ -153,7 +153,7 @@ function AutoColumnSize() {
   /**
    * @private
    * @function determineColumnsWidth
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    */
   this.determineColumnsWidth = function () {
     var instance = this;
@@ -173,7 +173,7 @@ function AutoColumnSize() {
   /**
    * @private
    * @function modifyColWidth
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    * @param {Number} width
    * @param {Number} col
    * @returns {Number}
@@ -189,7 +189,7 @@ function AutoColumnSize() {
   /**
    * @private
    * @function afterDestroy
-   * @memberof Handsontable.AutoColumnSize#
+   * @memberof AutoColumnSize#
    */
   this.afterDestroy = function () {
     var instance = this;

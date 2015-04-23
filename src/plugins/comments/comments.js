@@ -11,6 +11,7 @@ import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords
 
 /**
  * @class Comments
+ * @private
  * @plugin
  */
 function Comments(instance) {

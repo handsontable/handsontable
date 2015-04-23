@@ -26,6 +26,7 @@ registerRenderer('autocomplete', autocompleteRenderer);
 /**
  * Autocomplete renderer
  *
+ * @private
  * @renderer
  * @component AutocompleteRenderer
  * @param {Object} instance Handsontable instance

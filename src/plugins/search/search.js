@@ -4,6 +4,7 @@ import {registerRenderer, getRenderer} from './../../renderers.js';
 
 /**
  * @class Search
+ * @private
  * @plugin
  */
 Handsontable.Search = function Search(instance) {

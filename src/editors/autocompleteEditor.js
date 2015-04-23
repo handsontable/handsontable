@@ -12,6 +12,7 @@ Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
 
 /**
+ * @private
  * @editor
  * @class AutocompleteEditor
  * @dependencies HandsontableEditor

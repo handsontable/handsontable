@@ -1,6 +1,9 @@
 
 import {defineGetter} from './../helpers.js';
 
+/**
+ * @private
+ */
 class BasePlugin {
   /**
    * @param {Object} hotInstance Handsontable instance

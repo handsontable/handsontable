@@ -15,6 +15,7 @@ Handsontable.editors = Handsontable.editors || {};
 Handsontable.editors.HandsontableEditor = HandsontableEditor;
 
 /**
+ * @private
  * @editor
  * @class HandsontableEditor
  * @dependencies TextEditor

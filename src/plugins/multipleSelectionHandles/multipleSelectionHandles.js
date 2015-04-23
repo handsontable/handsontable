@@ -9,6 +9,7 @@ export {MultipleSelectionHandles};
 
 /**
  * @class MultipleSelectionHandles
+ * @private
  * @plugin
  */
 function MultipleSelectionHandles(instance) {

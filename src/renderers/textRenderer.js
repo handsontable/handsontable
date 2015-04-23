@@ -1,6 +1,7 @@
 /**
  * Default text renderer
  *
+ * @private
  * @renderer
  * @component TextRenderer
  * @param {Object} instance Handsontable instance

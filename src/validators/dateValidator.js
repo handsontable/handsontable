@@ -3,6 +3,8 @@ import moment from 'moment';
 
 /**
  * Date cell validator
+ *
+ * @private
  * @validator
  * @component DateValidator
  * @dependencies moment

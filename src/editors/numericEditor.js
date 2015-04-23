@@ -8,7 +8,9 @@ var NumericEditor = TextEditor.prototype.extend();
 export {NumericEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+
 /**
+ * @private
  * @editor
  * @class NumericEditor
  * @dependencies TextEditor numeral

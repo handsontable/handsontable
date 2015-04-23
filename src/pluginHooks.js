@@ -8,9 +8,10 @@ export {PluginHook};
  * @constructor Handsontable.Hooks
  * @example
  *
- * // __Using events as callbacks:__
+ * ```js
+ * // Using events as callbacks:
  * ...
- * $('div#example1').handsontable({
+ * var hot1 = new Handsontable(document.getElementById('example1'), {
  *   afterChange: function(changes, source) {
  *     $.ajax({
  *       url: "save.php",
@@ -19,28 +20,31 @@ export {PluginHook};
  *   }
  * });
  * ...
+ * ```
  *
- * // __Using events as plugin hooks:__
+ * ```js
+ * // Using events as plugin hooks:
  * ...
- * $('#example1').handsontable({
+ * var hot1 = new Handsontable(document.getElementById('example1'), {
  *   'myPlugin': true
  * });
  *
- * $('#example2').handsontable({
+ * var hot2 = new Handsontable(document.getElementById('example2'), {
  *   'myPlugin': false
  * });
  *
  * // global hook
  * Handsontable.PluginHooks.add('afterChange', function() {
- *   if(this.getSettings().myPlugin) {
+ *   if (this.getSettings().myPlugin) {
  *     // function body - will only run in #example1
  *   }
  * });
  *
  * // local hook (has same effect as a callback)
- * $('#example2').handsontable('getInstance').addHook('afterChange', function() {
+ * hot.addHook('afterChange', function() {
  *   // function body - will only run in #example2
  * });
+ * ```
  * ...
  */
 var Hooks = function() {
@@ -88,40 +92,41 @@ var Hooks = function() {
     /**
      * Callback fired before one or more cells is changed. Its main purpose is to alter changes silently before input.
      *
+     * @event Handsontable.Hooks#beforeChange
+     * @param {Array} changes 2D array containing information about each of the edited cells.
+     * @param {String} source The name of a source of changes.
      * @example
+     * ```js
      * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
      * ...
-     * $('div#example1').handsontable({
-           *   beforeChange: function(changes, source) {
-           *     // [[row, prop, oldVal, newVal], ...]
-           *     changes[0] = null;
-           *   }
-           * });
+     * new Handsontable(document.getElementById('example'), {
+     *   beforeChange: function(changes, source) {
+     *     // [[row, prop, oldVal, newVal], ...]
+     *     changes[0] = null;
+     *   }
+     * });
      * ...
      *
      * // To alter a single change, overwrite the desired value to changes[i][3].
      * ...
-     * $('div#example1').handsontable({
-           *   beforeChange: function(changes, source) {
-           *     // [[row, prop, oldVal, newVal], ...]
-           *     changes[0][1] = 10;
-           *   }
-           * });
+     * new Handsontable(document.getElementById('example'), {
+     *   beforeChange: function(changes, source) {
+     *     // [[row, prop, oldVal, newVal], ...]
+     *     changes[0][1] = 10;
+     *   }
+     * });
      * ...
      *
      * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
      * ...
-     * $('div#example1').handsontable({
-           *   beforeChange: function(changes, source) {
-           *     // [[row, prop, oldVal, newVal], ...]
-           *     return false;
-           *   }
-           * });
+     * new Handsontable(document.getElementById('example'), {
+     *   beforeChange: function(changes, source) {
+     *     // [[row, prop, oldVal, newVal], ...]
+     *     return false;
+     *   }
+     * });
      * ...
-     *
-     * @event Handsontable.Hooks#beforeChange
-     * @param {Array} changes 2D array containing information about each of the edited cells.
-     * @param {String} source The name of a source of changes.
+     * ```
      */
     beforeChange: [],
 

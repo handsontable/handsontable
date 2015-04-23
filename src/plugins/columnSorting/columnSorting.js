@@ -10,10 +10,10 @@ export {ColumnSorting};
 /**
  * This plugin sorts the view by a column (but does not sort the data source!)
  *
+ * @private
  * @class ColumnSorting
  * @plugin
  * @constructor
- * @private
  */
 function ColumnSorting() {
   var plugin = this;

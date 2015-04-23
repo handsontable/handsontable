@@ -93,7 +93,7 @@ function CopyPastePlugin(instance) {
    * Destroy plugin instance.
    *
    * @function destroy
-   * @memberof Handsontable.CopyPaste#
+   * @memberof CopyPaste#
    */
   this.destroy = function() {
     this.copyPasteInstance.removeCallback(onCut);
@@ -106,13 +106,13 @@ function CopyPastePlugin(instance) {
 
   /**
    * @function triggerPaste
-   * @memberof Handsontable.CopyPaste#
+   * @memberof CopyPaste#
    */
   this.triggerPaste = helper.proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
 
   /**
    * @function triggerCut
-   * @memberof Handsontable.CopyPaste#
+   * @memberof CopyPaste#
    */
   this.triggerCut = helper.proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
 
@@ -120,7 +120,7 @@ function CopyPastePlugin(instance) {
    * Prepares copyable text in the invisible textarea.
    *
    * @function setCopyable
-   * @memberof Handsontable.CopyPaste#
+   * @memberof CopyPaste#
    */
   this.setCopyableText = function() {
     var settings = instance.getSettings();
@@ -149,7 +149,7 @@ function CopyPastePlugin(instance) {
  * Init plugin
  *
  * @function init
- * @memberof Handsontable.CopyPaste#
+ * @memberof CopyPaste#
  */
 function init() {
   var instance = this,
@@ -158,6 +158,7 @@ function init() {
   if (pluginEnabled && !instance.copyPaste) {
     /**
      * Instance of CopyPaste Plugin {@link Handsontable.CopyPaste}
+     *
      * @alias copyPaste
      * @memberof! Handsontable.Core#
      * @type {CopyPaste}

@@ -10,6 +10,7 @@ export {ContextMenu};
 
 /**
  * @class ContextMenu
+ * @private
  * @plugin
  */
 function ContextMenu(instance, customOptions) {

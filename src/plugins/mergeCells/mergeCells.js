@@ -49,6 +49,7 @@ function CellInfoCollection() {
  * Plugin used to merge cells in Handsontable
  *
  * @class MergeCells
+ * @private
  * @plugin
  * @constructor
  * @private

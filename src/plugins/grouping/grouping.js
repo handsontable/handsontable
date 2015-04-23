@@ -8,6 +8,7 @@ import {registerPlugin} from './../../plugins.js';
 
 /**
  * @class Grouping
+ * @private
  * @plugin
  */
 function Grouping(instance) {

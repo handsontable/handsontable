@@ -8,6 +8,7 @@ export {TouchScroll};
 
 /**
  * @class TouchScroll
+ * @private
  * @plugin
  */
 function TouchScroll() {

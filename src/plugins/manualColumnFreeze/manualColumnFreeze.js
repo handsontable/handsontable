@@ -5,6 +5,7 @@ export {ManualColumnFreeze};
 
 /**
  * @class ManualColumnFreeze
+ * @private
  * @plugin
  */
 function ManualColumnFreeze(instance) {

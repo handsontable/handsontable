@@ -17,7 +17,7 @@ Handsontable.DataMap = DataMap;
  * @param {*} priv
  * @param {*} GridSettings Grid settings
  * @util
- * @class Handsontable.DataMap
+ * @class DataMap
  */
 function DataMap(instance, priv, GridSettings) {
   this.instance = instance;

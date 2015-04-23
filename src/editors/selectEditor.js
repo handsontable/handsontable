@@ -9,7 +9,9 @@ var SelectEditor = BaseEditor.prototype.extend();
 export {SelectEditor};
 
 Handsontable.editors = Handsontable.editors || {};
+
 /**
+ * @private
  * @editor
  * @class SelectEditor
  */

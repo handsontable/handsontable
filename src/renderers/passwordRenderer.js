@@ -7,6 +7,7 @@ export {passwordRenderer};
 registerRenderer('password', passwordRenderer);
 
 /**
+ * @private
  * @renderer
  * @component PasswordRenderer
  * @param instance

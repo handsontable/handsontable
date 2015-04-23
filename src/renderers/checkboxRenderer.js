@@ -1,6 +1,7 @@
 /**
  * Checkbox renderer
  *
+ * @private
  * @renderer
  * @component CheckboxRenderer
  * @param {Object} instance Handsontable instance

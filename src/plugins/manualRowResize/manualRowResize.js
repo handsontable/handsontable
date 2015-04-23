@@ -18,6 +18,7 @@ export {ManualRowResize};
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
  * @class ManualRowResize
+ * @private
  * @plugin
  */
 function ManualRowResize() {

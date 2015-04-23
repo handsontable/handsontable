@@ -8,6 +8,7 @@ export {ObserveChanges};
 
 /**
  * @class ObserveChanges
+ * @private
  * @plugin
  */
 function ObserveChanges() {
