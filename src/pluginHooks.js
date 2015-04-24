@@ -5,7 +5,7 @@ export {PluginHook};
  * @description
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __plugin hooks__.
  *
- * @constructor Handsontable.Hooks
+ * @constructor Hooks
  * @example
  *
  * ```js
@@ -53,7 +53,7 @@ var Hooks = function() {
      * Callback fired before Walkontable instance is initiated.
      *
      * @since 0.11
-     * @event Handsontable.Hooks#beforeInitWalkontable
+     * @event Hooks#beforeInitWalkontable
      */
     beforeInitWalkontable: [],
 
@@ -63,14 +63,14 @@ var Hooks = function() {
      *
      * __Note:__ This can be set only by global PluginHooks instance.
      *
-     * @event Handsontable.Hooks#beforeInit
+     * @event Hooks#beforeInit
      */
     beforeInit: [],
 
     /**
      * Callback fired before Handsontable table is rendered.
      *
-     * @event Handsontable.Hooks#beforeRender
+     * @event Hooks#beforeRender
      * @param {Boolean} isForced If true rendering was triggered by a change of settings or data; or false if
      *                           rendering was triggered by scrolling or moving selection.
      */
@@ -79,20 +79,20 @@ var Hooks = function() {
     /**
      * Callback fired before setting range is ended.
      *
-     * @event Handsontable.Hooks#beforeSetRangeEnd
+     * @event Hooks#beforeSetRangeEnd
      * @param {Array} coords WalkontableCellCoords array.
      */
     beforeSetRangeEnd: [],
 
     /**
-     * @event Handsontable.Hooks#beforeDrawBorders
+     * @event Hooks#beforeDrawBorders
      */
     beforeDrawBorders: [],
 
     /**
      * Callback fired before one or more cells is changed. Its main purpose is to alter changes silently before input.
      *
-     * @event Handsontable.Hooks#beforeChange
+     * @event Hooks#beforeChange
      * @param {Array} changes 2D array containing information about each of the edited cells.
      * @param {String} source The name of a source of changes.
      * @example
@@ -131,7 +131,7 @@ var Hooks = function() {
     beforeChange: [],
 
     /**
-     * @event Handsontable.Hooks#beforeChangeRender
+     * @event Hooks#beforeChangeRender
      * @since 0.11
      */
     beforeChangeRender: [],
@@ -139,7 +139,7 @@ var Hooks = function() {
     /**
      * Callback is fired when one or more columns are about to be removed.
      *
-     * @event Handsontable.Hooks#beforeRemoveCol
+     * @event Hooks#beforeRemoveCol
      * @param {Number} index Index of starter column.
      * @param {Number} amount Amount of columns to be removed.
      */
@@ -148,7 +148,7 @@ var Hooks = function() {
     /**
      * Callback is fired when one or more rows are about to be removed.
      *
-     * @event Handsontable.Hooks#beforeRemoveRow
+     * @event Hooks#beforeRemoveRow
      * @param {Number} index Index of starter column.
      * @param {Number} amount Amount of columns to be removed.
      */
@@ -161,7 +161,7 @@ var Hooks = function() {
      *
      * __Notice:__ this will not affect values of changes. This will change value ONLY for validation!
      *
-     * @event Handsontable.Hooks#beforeValidate
+     * @event Hooks#beforeValidate
      * @since 0.9.5
      * @param {*} value
      * @param {Number} row
@@ -173,7 +173,7 @@ var Hooks = function() {
     /**
      * Callback fired before getting cell settings.
      *
-     * @event Handsontable.Hooks#beforeGetCellMeta
+     * @event Hooks#beforeGetCellMeta
      * @param {Number} row
      * @param {Number} col
      * @param {Object} cellProperties
@@ -181,7 +181,7 @@ var Hooks = function() {
     beforeGetCellMeta: [],
 
     /**
-     * @event Handsontable.Hooks#beforeAutofill
+     * @event Hooks#beforeAutofill
      * @param {Object} start Object containing information about first filled cell: `{row: 2, col: 0}`
      * @param {Object} end Object containing information about last filled cell: `{row: 4, col: 1}`
      * @param {Array} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`
@@ -192,52 +192,52 @@ var Hooks = function() {
      * Callback fired before keydown event is handled. It can be used to overwrite default key bindings.
      * Caution - in your `beforeKeyDown` handler you need to call `event.stopImmediatePropagation()` to prevent default key behavior.
      *
-     * @event Handsontable.Hooks#beforeKeyDown
+     * @event Hooks#beforeKeyDown
      * @since 0.9.0
      * @param {Object} event Original DOM event
      */
     beforeKeyDown: [],
 
     /**
-     * @event Handsontable.Hooks#beforeOnCellMouseDown
+     * @event Hooks#beforeOnCellMouseDown
      */
     beforeOnCellMouseDown: [],
 
     /**
-     * @event Handsontable.Hooks#beforeTouchScroll
+     * @event Hooks#beforeTouchScroll
      */
     beforeTouchScroll: [],
 
     /**
      * Callback fired after Handsontable instance is initiated.
      *
-     * @event Handsontable.Hooks#afterInit
+     * @event Hooks#afterInit
      */
     afterInit: [],
 
     /**
      * Callback fired after new data is loaded (by `loadData` method) into the data source array.
      *
-     * @event Handsontable.Hooks#afterLoadData
+     * @event Hooks#afterLoadData
      */
     afterLoadData: [],
 
     /**
-     * @event Handsontable.Hooks#afterLoadData
+     * @event Hooks#afterUpdateSettings
      */
     afterUpdateSettings: [],
 
     /**
      * Callback fired after Handsontable table is rendered.
      *
-     * @event Handsontable.Hooks#afterRender
+     * @event Hooks#afterRender
      * @param {Boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
      *                           rendering was triggered by scrolling or moving selection.
      */
     afterRender: [],
 
     /**
-     * @event Handsontable.Hooks#afterRenderer
+     * @event Hooks#afterRenderer
      * @since 0.11
      * @param {Object} TD
      * @param {Number} row
@@ -254,7 +254,7 @@ var Hooks = function() {
      *
      * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
      *
-     * @event Handsontable.Hooks#afterChange
+     * @event Hooks#afterChange
      * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`
      * @param {String} source Is one of the strings: `"alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste"`.
      */
@@ -267,7 +267,7 @@ var Hooks = function() {
      *
      * __You can cancel current change by returning false.__
      *
-     * @event Handsontable.Hooks#afterValidate
+     * @event Hooks#afterValidate
      * @since 0.9.5
      * @param {Boolean} isValid
      * @param {*} value
@@ -280,7 +280,7 @@ var Hooks = function() {
     /**
      * Callback fired after getting cell settings.
      *
-     * @event Handsontable.Hooks#afterGetCellMeta
+     * @event Hooks#afterGetCellMeta
      * @param {Number} row
      * @param {Number} col
      * @param {Object} cellProperties
@@ -290,7 +290,7 @@ var Hooks = function() {
     /**
      * Called after cell meta was changed, e.g. using the context menu.
      *
-     * @event Handsontable.Hooks#afterSetCellMeta
+     * @event Hooks#afterSetCellMeta
      * @since 0.11.0
      * @param {Number} row
      * @param {Number} col
@@ -302,28 +302,28 @@ var Hooks = function() {
     /**
      * Callback fired after getting info about column header.
      *
-     * @event Handsontable.Hooks#afterGetColHeader
+     * @event Hooks#afterGetColHeader
      * @param {Number} col
      * @param {Element} TH
      */
     afterGetColHeader: [],
 
     /**
-     * @event Handsontable.Hooks#afterGetRowHeader
+     * @event Hooks#afterGetRowHeader
      */
     afterGetRowHeader: [],
 
     /**
      * Callback fired after destroing Handsontable instance.
      *
-     * @event Handsontable.Hooks#afterDestroy
+     * @event Hooks#afterDestroy
      */
     afterDestroy: [],
 
     /**
      * Callback is fired when one or more rows are removed.
      *
-     * @event Handsontable.Hooks#afterRemoveRow
+     * @event Hooks#afterRemoveRow
      * @param {Number} index Is an index of starter row.
      * @param {Number} amount Is an anount of removed rows.
      */
@@ -332,7 +332,7 @@ var Hooks = function() {
     /**
      * Callback is fired when a new row is created.
      *
-     * @event Handsontable.Hooks#afterCreateRow
+     * @event Hooks#afterCreateRow
      * @param {Number} index Represents the index of first newly created row in the data source array.
      * @param {Number} amount Number of newly created rows in the data source array.
      */
@@ -341,7 +341,7 @@ var Hooks = function() {
     /**
      * Callback is fired when one or more columns are removed.
      *
-     * @event Handsontable.Hooks#afterRemoveCol
+     * @event Hooks#afterRemoveCol
      * @param {Number} index Is an index of starter column.
      * @param {Number} amount Is an amount of removed columns.
      */
@@ -350,7 +350,7 @@ var Hooks = function() {
     /**
      * Callback is fired when a new column is created.
      *
-     * @event Handsontable.Hooks#afterCreateCol
+     * @event Hooks#afterCreateCol
      * @param {Number} index Represents the index of first newly created column in the data source array.
      * @param {Number} amount Number of newly created columns in the data source array.
      */
@@ -359,14 +359,14 @@ var Hooks = function() {
     /**
      * Event called when current cell is deselected.
      *
-     * @event Handsontable.Hooks#afterDeselect
+     * @event Hooks#afterDeselect
      */
     afterDeselect: [],
 
     /**
      * Callback fired while one or more cells are being selected (on mouse move).
      *
-     * @event Handsontable.Hooks#afterSelection
+     * @event Hooks#afterSelection
      * @param {Number} r Selection start row
      * @param {Number} c Selection start column
      * @param {Number} r2 Selection end row
@@ -377,7 +377,7 @@ var Hooks = function() {
     /**
      * The same as above, but data source object property name is used instead of the column number.
      *
-     * @event Handsontable.Hooks#afterSelectionByProp
+     * @event Hooks#afterSelectionByProp
      * @param {Number} r Selection start row
      * @param {String} p Selection start data source object property
      * @param {Number} r2 Selection end row
@@ -388,7 +388,7 @@ var Hooks = function() {
     /**
      * Callback fired after one or more cells are selected (on mouse up).
      *
-     * @event Handsontable.Hooks#afterSelectionEnd
+     * @event Hooks#afterSelectionEnd
      * @param {Number} r Selection start row
      * @param {Number} c Selection start column
      * @param {Number} r2 Selection end row
@@ -399,7 +399,7 @@ var Hooks = function() {
     /**
      * The same as above, but data source object property name is used instead of the column number.
      *
-     * @event Handsontable.Hooks#afterSelectionEndByProp
+     * @event Hooks#afterSelectionEndByProp
      * @param {Number} r Selection start row
      * @param {String} p Selection start data source object property
      * @param {Number} r2 Selection end row
@@ -412,7 +412,7 @@ var Hooks = function() {
      * In case the row/column header was clicked, the index is negative.
      * For example clicking on the row header of cell (0, 0) results with `afterOnCellMouseDown` called with coords `{row: 0, col: -1}`.
      *
-     * @event Handsontable.Hooks#afterOnCellMouseDown
+     * @event Hooks#afterOnCellMouseDown
      * @since 0.11
      * @param {Object} event
      * @param {Object} coords
@@ -425,7 +425,7 @@ var Hooks = function() {
      * In case the row/column header was hovered, the index is negative.
      * For example clicking on the row header of cell (0, 0) results with `afterOnCellMouseOver` called with coords `{row: 0, col: -1}`.
      *
-     * @event Handsontable.Hooks#afterOnCellMouseOver
+     * @event Hooks#afterOnCellMouseOver
      * @since 0.11
      * @param {Object} event
      * @param {Object} coords
@@ -434,20 +434,20 @@ var Hooks = function() {
     afterOnCellMouseOver: [],
 
     /**
-     * @event Handsontable.Hooks#afterOnCellCornerMouseDown
+     * @event Hooks#afterOnCellCornerMouseDown
      * @since 0.11
      * @param {Object} event
      */
     afterOnCellCornerMouseDown: [],
 
     /**
-     * @event Handsontable.Hooks#afterScrollVertically
+     * @event Hooks#afterScrollVertically
      * @since 0.11
      */
     afterScrollVertically: [],
 
     /**
-     * @event Handsontable.Hooks#afterScrollHorizontally
+     * @event Hooks#afterScrollHorizontally
      * @since 0.11
      */
     afterScrollHorizontally: [],
@@ -455,23 +455,23 @@ var Hooks = function() {
     /**
      * Callback fired after reset cell's meta.
      *
-     * @event Handsontable.Hooks#afterCellMetaReset
+     * @event Hooks#afterCellMetaReset
      * @since 0.11
      */
     afterCellMetaReset: [],
 
     /**
-     * @event Handsontable.Hooks#afterIsMultipleSelectionCheck
+     * @event Hooks#afterIsMultipleSelectionCheck
      */
     afterIsMultipleSelectionCheck: [],
 
     /**
-     * @event Handsontable.Hooks#afterDocumentKeyDown
+     * @event Hooks#afterDocumentKeyDown
      */
     afterDocumentKeyDown: [],
 
     /**
-     * @event Handsontable.Hooks#afterMomentumScroll
+     * @event Hooks#afterMomentumScroll
      */
     afterMomentumScroll: [],
     beforeCellAlignment: [],
@@ -479,7 +479,7 @@ var Hooks = function() {
     /**
      * Callback fired after modify column's width.
      *
-     * @event Handsontable.Hooks#modifyColWidth
+     * @event Hooks#modifyColWidth
      * @since 0.11
      * @param {Number} width
      * @param {Number} col
@@ -489,7 +489,7 @@ var Hooks = function() {
     /**
      * Callback fired after modify height of row.
      *
-     * @event Handsontable.Hooks#modifyRowHeight
+     * @event Hooks#modifyRowHeight
      * @since 0.11
      * @param {Number} height
      * @param {Number} row
@@ -499,7 +499,7 @@ var Hooks = function() {
     /**
      * Callback fired after row modify.
      *
-     * @event Handsontable.Hooks#modifyRow
+     * @event Hooks#modifyRow
      * @since 0.11
      * @param {Number} row
      */
@@ -508,7 +508,7 @@ var Hooks = function() {
     /**
      * Callback fired after column modify.
      *
-     * @event Handsontable.Hooks#modifyCol
+     * @event Hooks#modifyCol
      * @since 0.11
      * @param {Number} col
      */
@@ -520,7 +520,7 @@ var legacy = {
   /**
    * Now event is called {@link event:modifyCol}.
    *
-   * @event Handsontable.Hooks#onBeforeChange
+   * @event Hooks#onBeforeChange
    * @deprecated
    * @param {Array} changes
    * @param {String} source
@@ -530,7 +530,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterChange}.
    *
-   * @event Handsontable.Hooks#onChange
+   * @event Hooks#onChange
    * @deprecated
    * @param {Array} changes
    * @param {String} source
@@ -538,13 +538,13 @@ var legacy = {
   onChange: "afterChange",
 
   /**
-   * @event Handsontable.Hooks#onCreateRow
+   * @event Hooks#onCreateRow
    * @deprecated
    */
   onCreateRow: "afterCreateRow",
 
   /**
-   * @event Handsontable.Hooks#onCreateCol
+   * @event Hooks#onCreateCol
    * @deprecated
    */
   onCreateCol: "afterCreateCol",
@@ -552,7 +552,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterSelection}.
    *
-   * @event Handsontable.Hooks#onSelection
+   * @event Hooks#onSelection
    * @deprecated
    * @param {Number} r
    * @param {Number} c
@@ -564,7 +564,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterCopyLimit}.
    *
-   * @event Handsontable.Hooks#onCopyLimit
+   * @event Hooks#onCopyLimit
    * @deprecated
    * @param {Number} selectedRowsCount
    * @param {Number} selectedColsCount
@@ -576,7 +576,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterSelectionEnd}.
    *
-   * @event Handsontable.Hooks#onSelectionEnd
+   * @event Hooks#onSelectionEnd
    * @deprecated
    * @param {Number} r
    * @param {Number} c
@@ -588,7 +588,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterSelectionByProp}.
    *
-   * @event Handsontable.Hooks#onSelectionByProp
+   * @event Hooks#onSelectionByProp
    * @deprecated
    * @param {Number} r
    * @param {String} p
@@ -600,7 +600,7 @@ var legacy = {
   /**
    * Now event is called {@link event:afterSelectionEndByProp}.
    *
-   * @event Handsontable.Hooks#onSelectionEndByProp
+   * @event Hooks#onSelectionEndByProp
    * @deprecated
    * @param {Number} r
    * @param {String} p
@@ -621,7 +621,7 @@ function PluginHook() {
 /**
  * Get hook bucket based on Handsontable instance or if instance is `undefined` get global hook bucked.
  *
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function getBucket
  * @param {Object} instance Instance of Handsontable
  * @returns {Object} Returns global or handsontable instance bucket
@@ -639,12 +639,12 @@ PluginHook.prototype.getBucket = function(instance) {
 };
 
 /**
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function add
  * @param {String} key Hook/Event name
  * @param {Function} fn Callback function
  * @param {Object} instance Instance of Handsontable
- * @returns {PluginHook} Instance of Handsontable.Hooks
+ * @returns {PluginHook} Instance of Hooks
  */
 PluginHook.prototype.add = function(key, fn, instance) {
   // if fn is array, run this for all the array items
@@ -674,7 +674,7 @@ PluginHook.prototype.add = function(key, fn, instance) {
 };
 
 /**
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function once
  * @param {String} key Hook/Event name
  * @param {Function} fn Callback function
@@ -694,7 +694,7 @@ PluginHook.prototype.once = function(key, fn, instance) {
 };
 
 /**
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function remove
  * @param {String} key Hook/Event name
  * @param {Function} fn Callback function
@@ -724,7 +724,7 @@ PluginHook.prototype.remove = function(key, fn, instance) {
 };
 
 /**
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function run
  * @param {Object} instance of Handsontable
  * @param {String} key Hook/Event name
@@ -788,7 +788,7 @@ PluginHook.prototype.destroy = function(instance) {
  * register, but if you use it, your plugin hook will be used returned by getRegistered
  * (which itself is used in the demo http://handsontable.com/demo/callbacks.html)
  *
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function register
  * @private
  * @param key {String}
@@ -802,7 +802,7 @@ PluginHook.prototype.register = function(key) {
 /**
  * Deregisters a hook name (removes it from the list of known hook names)
  *
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function deregister
  * @private
  * @param key {String}
@@ -814,7 +814,7 @@ PluginHook.prototype.deregister = function(key) {
 /**
  * Returns boolean information if a hook by such name has been registered
  *
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function isRegistered
  * @private
  * @param key {String}
@@ -826,7 +826,7 @@ PluginHook.prototype.isRegistered = function(key) {
 /**
  * Returns an array of registered hooks
  *
- * @memberof Handsontable.Hooks#
+ * @memberof Hooks#
  * @function getRegistered
  * @private
  * @returns {Array}

@@ -143,6 +143,7 @@ DataMap.prototype.colToProp = function (col) {
 
 /**
  * @param {Object} prop
+ * @fires Hooks#modifyCol
  * @returns {*}
  */
 DataMap.prototype.propToCol = function (prop) {
@@ -177,6 +178,7 @@ DataMap.prototype.getSchema = function () {
  * Creates row at the bottom of the data array.
  *
  * @param {Number} [index] Index of the row before which the new row will be inserted
+ * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows
  */
 DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
@@ -233,6 +235,8 @@ DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
  *
  * @param {Number} [index] Index of the column before which the new column will be inserted
  * @param {Number} [amount]
+ * @param {Number} [createdAutomatically]
+ * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
 DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
@@ -288,6 +292,8 @@ DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
  *
  * @param {Number} [index] Index of the row to be removed. If not provided, the last row will be removed
  * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
+ * @fires Hooks#beforeRemoveRow
+ * @fires Hooks#afterRemoveRow
  */
 DataMap.prototype.removeRow = function (index, amount) {
   if (!amount) {
@@ -326,6 +332,8 @@ DataMap.prototype.removeRow = function (index, amount) {
  *
  * @param {Number} [index] Index of the column to be removed. If not provided, the last column will be removed
  * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
+ * @fires Hooks#beforeRemoveCol
+ * @fires Hooks#afterRemoveCol
  */
 DataMap.prototype.removeCol = function (index, amount) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
@@ -508,6 +516,7 @@ DataMap.prototype.set = function (row, prop, value, source) {
  *
  * @param {Number} index
  * @param {Number} amount
+ * @fires Hooks#modifyRow
  * @returns {Number}
  */
 DataMap.prototype.physicalRowsToLogical = function (index, amount) {

@@ -20,8 +20,7 @@ Handsontable.activeGuid = null;
  *
  * @core
  * @dependencies numeral
- * @alias Handsontable.Core
- * @constructor
+ * @constructor Core
  * @description
  *
  * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
@@ -45,7 +44,7 @@ Handsontable.activeGuid = null;
  * ```
  * ---
  */
-Handsontable.Core = function (rootElement, userSettings) {
+Handsontable.Core = function Core(rootElement, userSettings) {
   var priv
     , datamap
     , grid
@@ -87,6 +86,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Inserts or removes rows and columns
      *
+     * @memberof Core#
+     * @function alter
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
      * @param {Number} index
      * @param {Number} amount
@@ -298,6 +299,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Populate cells at position with 2d array
      *
+     * @memberof Core#
+     * @function populateFromArray
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
      * @param {Object} [end] End selection position (only for drag-down mode)
@@ -891,6 +894,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @fires Hooks#beforeChangeRender
+   * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
     var i = changes.length - 1;
@@ -993,6 +998,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * the current order will be used). `source` is a flag for before/afterChange events. If you pass only array of
    * changes then `source` could be set as second parameter.
    *
+   * @memberof Core#
+   * @function setDataAtCell
    * @param {Number|Array} row or array of changes in format `[[row, col, value], ...]`
    * @param {Number|String} col or source String
    * @param {String} value
@@ -1034,6 +1041,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Same as above, except instead of `col`, you provide name of the object property (e.g. `[0, 'first.name', 'Jennifer']`).
    *
+   * @memberof Core#
+   * @function setDataAtRowProp
    * @param {Number|Array} row or array of changes in format `[[row, prop, value], ...]`
    * @param {String} prop or source String
    * @param {String} value
@@ -1066,6 +1075,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Listen to keyboard input on document body.
    *
+   * @memberof Core#
+   * @function listen
    * @since 0.11
    */
   this.listen = function () {
@@ -1082,6 +1093,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Stop listening to keyboard input on document body.
    *
+   * @memberof Core#
+   * @function unlisten
    * @since 0.11
    */
   this.unlisten = function () {
@@ -1091,6 +1104,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns `true` if current Handsontable instance is listening to keyboard input on document body.
    *
+   * @memberof Core#
+   * @function isListening
    * @since 0.11
    * @returns {Boolean}
    */
@@ -1101,6 +1116,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Destroys current editor, renders and selects current cell.
    *
+   * @memberof Core#
+   * @function destroyEditor
    * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise previous value is restored
    */
   this.destroyEditor = function (revertOriginal) {
@@ -1114,6 +1131,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Optional `populateMethod` parameter (default value "overwrite", possible values "shift_down" and "shift_right")
    * has the same effect as pasteMethod option (see Options page)
    *
+   * @memberof Core#
+   * @function populateFromArray
    * @since 0.9.0
    * @param {Number} row Start row
    * @param {Number} col Start column
@@ -1144,8 +1163,10 @@ Handsontable.Core = function (rootElement, userSettings) {
    * If negative, will begin that many elements from the end. Parameter `amount`, is the number of old array elements to remove.
    * If the amount is 0, no elements are removed. Fourth and further parameters are the `elements` to add to the array.
    * If you don't specify any elements, spliceCol simply removes elements from the array.
-   * {@link Handsontable.DataMap#spliceCol}
+   * {@link DataMap#spliceCol}
    *
+   * @memberof Core#
+   * @function spliceCol
    * @since 0.9-beta2
    * @param {Number} col Index of column in which do you want to do splice.
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
@@ -1163,8 +1184,10 @@ Handsontable.Core = function (rootElement, userSettings) {
    * If negative, will begin that many elements from the end. Parameter `amount`, is the number of old array elements to remove.
    * If the amount is 0, no elements are removed. Fourth and further parameters are the `elements` to add to the array.
    * If you don't specify any elements, spliceCol simply removes elements from the array.
-   * {@link Handsontable.DataMap#spliceRow}
+   * {@link DataMap#spliceRow}
    *
+   * @memberof Core#
+   * @function spliceRow
    * @since 0.11
    * @param {Number} row Index of column in which do you want to do splice.
    * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
@@ -1180,6 +1203,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    *
    * Start row and start col are the coordinates of the active cell (where the selection was started).
    *
+   * @memberof Core#
+   * @function getSelected
    * @returns {Array}
    */
   this.getSelected = function () { //https://github.com/handsontable/handsontable/issues/44  //cjl
@@ -1191,6 +1216,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns current selection as a WalkontableCellRange object.
    *
+   * @memberof Core#
+   * @function getSelectedRange
    * @since 0.11
    * @returns {WalkontableCellRange} Returns `undefined` if there is no selection.
    */
@@ -1203,6 +1230,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Rerender the table.
+   *
+   * @memberof Core#
+   * @function render
    */
   this.render = function () {
     if (instance.view) {
@@ -1214,7 +1244,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Reset all cells in the grid to contain data from the data array.
    *
+   * @memberof Core#
+   * @function loadData
    * @param {Array} data
+   * @fires Hooks#afterLoadData
+   * @fires Hooks#afterChange
    */
   this.loadData = function (data) {
     if (typeof data === 'object' && data !== null) {
@@ -1279,6 +1313,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Return the current data object (the same that was passed by `data` configuration option or `loadData` method).
    * Optionally you can provide cell range `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
    *
+   * @memberof Core#
+   * @function getData
    * @param {Number} [r] From row
    * @param {Number} [c] From col
    * @param {Number} [r2] To row
@@ -1295,8 +1331,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Get value of selected range. Each column is separated by tab, each row is separated by new line character.
-   * {@link Handsontable.DataMap#getCopyableText}
+   * {@link DataMap#getCopyableText}
    *
+   * @memberof Core#
+   * @function getCopyableData
    * @since 0.11
    * @param {Number} startRow From row
    * @param {Number} startCol From col
@@ -1312,6 +1350,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Get schema provided by constructor settings or if it doesn't exist return schema based on data
    * structure on the first row.
    *
+   * @memberof Core#
+   * @function getSchema
    * @since 0.13.2
    * @returns {Object}
    */
@@ -1322,8 +1362,12 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Use it if you need to change configuration after initialization.
    *
+   * @memberof Core#
+   * @function updateSettings
    * @param {Object} settings Settings to update
    * @param {Boolean} init
+   * @fires Hooks#afterCellMetaReset
+   * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function (settings, init) {
     var i, clen;
@@ -1451,6 +1495,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Get value from selected cell.
    *
+   * @memberof Core#
+   * @function getValue
    * @since 0.11
    * @returns {*} Returns value of selected cell
    */
@@ -1502,6 +1548,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Get object settings.
    *
+   * @memberof Core#
+   * @function getSettings
    * @returns {Object} Returns an object containing the current grid settings
    */
   this.getSettings = function () {
@@ -1511,6 +1559,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Clears grid.
    *
+   * @memberof Core#
+   * @function clear
    * @since 0.11
    */
   this.clear = function () {
@@ -1521,6 +1571,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Inserts or removes rows and columns.
    *
+   * @memberof Core#
+   * @function alter
    * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
    * @param {Number} index
    * @param {Number} amount
@@ -1562,6 +1614,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Returns TD element for given `row`, `col` if it is rendered on screen.
    * Returns `null` if the TD is not rendered on screen (probably because that part of table is not visible).
    *
+   * @memberof Core#
+   * @function getCell
    * @param {Number} row
    * @param {Number} col
    * @param {Boolean} topmost
@@ -1574,6 +1628,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns coordinates for the provided element.
    *
+   * @memberof Core#
+   * @function getCoords
    * @param {Element} elem
    * @returns {WalkontableCellCoords}
    */
@@ -1582,8 +1638,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns property name that corresponds with the given column index. {@link Handsontable.DataMap#colToProp}
+   * Returns property name that corresponds with the given column index. {@link DataMap#colToProp}
    *
+   * @memberof Core#
+   * @function colToProp
    * @param {Number} col Column index
    * @returns {String}
    */
@@ -1592,8 +1650,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns column index that corresponds with the given property. {@link Handsontable.DataMap#propToCol}
+   * Returns column index that corresponds with the given property. {@link DataMap#propToCol}
    *
+   * @memberof Core#
+   * @function propToCol
    * @param {String} prop
    * @returns {Number}
    */
@@ -1606,6 +1666,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Return cell value at `row`, `col`. `row` and `col` are the __visible__ indexes (note that if columns were reordered or sorted,
    * the current order will be used).
    *
+   * @memberof Core#
+   * @function getDataAtCell
    * @param {Number} row
    * @param {Number} col
    * @returns {*}
@@ -1615,8 +1677,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return value at `row`, `prop`. {@link Handsontable.DataMap#get}
+   * Return value at `row`, `prop`. {@link DataMap#get}
    *
+   * @memberof Core#
+   * @function getDataAtRowProp
    * @param {Number} row
    * @param {String} prop
    * @returns {*}
@@ -1629,6 +1693,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @description
    * Returns array of column values from the data source. `col` is the __visible__ index of the column.
    *
+   * @memberof Core#
+   * @function getDataAtCol
    * @since 0.9-beta2
    * @param {Number} col
    * @returns {Array}
@@ -1642,6 +1708,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Given the object property name (e.g. `'first.name'`), returns array of column values from the data source.
    *
+   * @memberof Core#
+   * @function getDataAtProp
    * @since 0.9-beta2
    * @param {String} prop
    * @returns {*}
@@ -1661,6 +1729,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns array of column values from the data source. `col` is the index of the row in the data source.
    *
+   * @memberof Core#
+   * @function getSourceDataAtCol
    * @since 0.11.0-beta3
    * @param {Number} col
    * @returns {Array}
@@ -1679,6 +1749,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
    *
+   * @memberof Core#
+   * @function getSourceDataAtRow
    * @since 0.11.0-beta3
    * @param {Number} row
    * @returns {Array|Object}
@@ -1691,18 +1763,23 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @description
    * Returns a single row of the data (array or object, depending on what you have). `row` is the __visible__ index of the row.
    *
+   * @memberof Core#
+   * @function getDataAtRow
    * @param {Number} row
    * @returns {*}
    * @since 0.9-beta2
    */
   this.getDataAtRow = function (row) {
     var data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+
     return data[0];
   };
 
   /**
    * Remove `key` property object from cell meta data corresponding to params `row`, `col`.
    *
+   * @memberof Core#
+   * @function removeCellMeta
    * @param {Number} row
    * @param {Number} col
    * @param {String} key
@@ -1719,6 +1796,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Set cell meta data object `prop` to corresponding params `row`, `col`
    *
+   * @memberof Core#
+   * @function setCellMetaObject
    * @since 0.11
    * @param {Number} row
    * @param {Number} col
@@ -1738,11 +1817,14 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Sets cell meta data object `key` corresponding to params `row`, `col`.
    *
+   * @memberof Core#
+   * @function setCellMeta
    * @since 0.11
    * @param {Number} row
    * @param {Number} col
    * @param {String} key
    * @param {String} val
+   * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function (row, col, key, val) {
     if (!priv.cellSettings[row]) {
@@ -1758,9 +1840,13 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return cell properties for given `row`, `col` coordinates.
    *
+   * @memberof Core#
+   * @function getCellMeta
    * @param {Number} row
    * @param {Number} col
    * @returns {Object}
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function (row, col) {
     var prop = datamap.colToProp(col)
@@ -1808,8 +1894,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
    * we need to translate logical (stored) row index to physical (displayed) index.
    *
+   * @memberof Core#
+   * @function translateRowIndex
    * @param {Number} row Original row index
    * @returns {Number} Translated row index
+   * @fires Hooks#modifyRow
    */
   function translateRowIndex(row){
     return Handsontable.hooks.run(instance, 'modifyRow', row);
@@ -1819,9 +1908,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
    * we need to translate logical (stored) column index to physical (displayed) index.
    *
-   * @private
+   * @memberof Core#
+   * @function translateColIndex
    * @param {Number} col Original column index
    * @returns {Number} Translated column index
+   * @fires Hooks#modifyCol
    */
   function translateColIndex(col){
     // warning: this must be done after datamap.colToProp
@@ -1831,8 +1922,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   var rendererLookup = helper.cellMethodLookupFactory('renderer');
 
   /**
-   * Get rederer type by `row` and `col`.
+   * Get cell renderer type by `row` and `col`.
    *
+   * @memberof Core#
+   * @function getCellRenderer
    * @since 0.11
    * @param {Number} row
    * @param {Number} col
@@ -1844,14 +1937,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     return getRenderer(renderer);
   };
 
+  /**
+   * Get cell editor by `row` and `col`.
+   *
+   * @memberof Core#
+   * @function getCellEditor
+   * @returns {*}
+   */
   this.getCellEditor = helper.cellMethodLookupFactory('editor');
 
+  /**
+   * Get cell validator by `row` and `col`
+   *
+   * @memberof Core#
+   * @function getCellValidator
+   * @returns {*}
+   */
   this.getCellValidator = helper.cellMethodLookupFactory('validator');
 
 
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
    *
+   * @memberof Core#
+   * @function validateCells
    * @param {Function} callback
    */
   this.validateCells = function (callback) {
@@ -1878,6 +1987,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns array of row headers (if they are enabled). If param `row` given, return header at given row as string.
    *
+   * @memberof Core#
+   * @function getRowHeader
    * @param {Number} [row]
    * @returns {Array|String}
    */
@@ -1906,6 +2017,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns information of this table is configured to display row headers.
    *
+   * @memberof Core#
+   * @function hasRowHeaders
    * @returns {Boolean}
    * @since 0.11
    */
@@ -1916,6 +2029,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns information of this table is configured to display column headers.
    *
+   * @memberof Core#
+   * @function hasColHeaders
    * @since 0.11
    * @returns {Boolean}
    */
@@ -1934,6 +2049,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return array of column headers (if they are enabled). If param `col` given, return header at given column as string
    *
+   * @memberof Core#
+   * @function getColHeader
    * @param {Number} [col] Column index
    * @returns {Array|String}
    */
@@ -1972,6 +2089,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Return column width from settings (no guessing). Private use intended.
    *
    * @private
+   * @memberof Core#
+   * @function _getColWidthFromSettings
    * @param {Number} col
    * @returns {Number}
    */
@@ -2003,9 +2122,12 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return column width
    *
+   * @memberof Core#
+   * @function getColWidth
    * @since 0.11
    * @param {Number} col
    * @returns {Number}
+   * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function (col) {
     var width = instance._getColWidthFromSettings(col);
@@ -2022,6 +2144,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Return row height from settings (no guessing). Private use intended.
    *
    * @private
+   * @memberof Core#
+   * @function _getRowHeightFromSettings
    * @param {Number} row
    * @returns {Number}
    */
@@ -2049,9 +2173,12 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return row height.
    *
+   * @memberof Core#
+   * @function getRowHeight
+   * @since 0.11
    * @param {Number} row
    * @returns {Number}
-   * @since 0.11
+   * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function (row) {
     var height = instance._getRowHeightFromSettings(row);
@@ -2064,6 +2191,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns total number of rows in the grid.
    *
+   * @memberof Core#
+   * @function countRows
    * @returns {Number} Total number in rows the grid
    */
   this.countRows = function () {
@@ -2073,6 +2202,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns total number of columns in the grid.
    *
+   * @memberof Core#
+   * @function countCols
    * @returns {Number} Total number of columns
    */
   this.countCols = function () {
@@ -2100,6 +2231,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Get index of first visible row.
    *
+   * @memberof Core#
+   * @function rowOffset
    * @returns {Number} Returns index of first visible row
    */
   this.rowOffset = function () {
@@ -2109,6 +2242,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Get index of first visible column.
    *
+   * @memberof Core#
+   * @function colOffset
    * @returns {Number} Return index of first visible column.
    */
   this.colOffset = function () {
@@ -2118,6 +2253,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return number of rendered rows (including rows partially or fully rendered outside viewport).
    *
+   * @memberof Core#
+   * @function countRenderedRows
    * @returns {Number} Returns -1 if table is not visible
    */
   this.countRenderedRows = function () {
@@ -2127,6 +2264,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return number of visible rows (rendered rows that fully fit inside viewport).
    *
+   * @memberof Core#
+   * @function countVisibleRows
    * @returns {Number} Returns -1 if table is not visible
    */
   this.countVisibleRows = function () {
@@ -2136,6 +2275,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return number of visible columns.
    *
+   * @memberof Core#
+   * @function countRenderedCols
    * @returns {Number} Returns -1 if table is not visible
    */
   this.countRenderedCols = function () {
@@ -2144,6 +2285,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Return number of visible columns. Returns -1 if table is not visible
+   *
+   * @memberof Core#
+   * @function countVisibleCols
    * @return {Number}
    */
   this.countVisibleCols = function () {
@@ -2154,8 +2298,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Returns number of empty rows. If the optional ending parameter is 1, returns
    * number of empty rows at the bottom of the table.
    *
+   * @memberof Core#
+   * @function countEmptyRows
    * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source
    * @returns {Number} Count empty rows
+   * @fires Hooks#modifyRow
    */
   this.countEmptyRows = function (ending) {
     var i = instance.countRows() - 1,
@@ -2181,6 +2328,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Returns number of empty columns. If the optional `ending` parameter is `true`, returns number of empty
    * columns at right hand edge of the table.
    *
+   * @memberof Core#
+   * @function countEmptyCols
    * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row
    * @returns {Number} Count empty cols
    */
@@ -2206,6 +2355,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Check is `row` is empty.
    *
+   * @memberof Core#
+   * @function isEmptyRow
    * @param {Number} row Row index
    * @returns {Boolean} Return `true` if the row at the given `row` is empty, `false` otherwise.
    */
@@ -2216,6 +2367,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Check is `col` is empty.
    *
+   * @memberof Core#
+   * @function isEmptyCol
    * @param {Number} col Column index
    * @returns {Boolean} Return `true` if the column at the given `col` is empty, `false` otherwise.
    */
@@ -2226,6 +2379,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Select cell `row`, `col` or range finishing at `endRow`, `endCol`. By default, viewport will be scrolled to selection.
    *
+   * @memberof Core#
+   * @function selectCell
    * @param {Number} row
    * @param {Number} col
    * @param {Number} [endRow]
@@ -2260,14 +2415,16 @@ Handsontable.Core = function (rootElement, userSettings) {
     else {
       selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);
     }
-
     instance.selection.finish();
+
     return true;
   };
 
   /**
    * Select cell `row`, `prop` or range finishing at `endRow`, `endProp`. By default, viewport will be scrolled to selection.
    *
+   * @memberof Core#
+   * @function selectCellByProp
    * @param {Number} row
    * @param {Object} prop
    * @param {Number} [endRow]
@@ -2287,6 +2444,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Deselects current cell selection on grid.
+   *
+   * @memberof Core#
+   * @function deselectCell
    */
   this.deselectCell = function () {
     selection.deselect();
@@ -2294,6 +2454,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Remove grid from DOM.
+   *
+   * @memberof Core#
+   * @function destroy
+   * @fires Hooks#afterDestroy
    */
   this.destroy = function () {
 
@@ -2349,6 +2513,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns active editor object. {@link Handsontable.EditorManager#getActiveEditor}
    *
+   * @memberof Core#
+   * @function getActiveEditor
    * @returns {Object}
    */
   this.getActiveEditor = function(){
@@ -2358,6 +2524,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns plugin instance by plugin name
    *
+   * @memberof Core#
+   * @function getPlugin
    * @param {String} pluginName
    * @returns {*}
    * @since 0.15.0
@@ -2369,6 +2537,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return Handsontable instance.
    *
+   * @memberof Core#
+   * @function getInstance
    * @returns {Handsontable}
    */
   this.getInstance = function () {
@@ -2376,8 +2546,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * {@link Handsontable.Hooks#add}
+   * {@link Hooks#add}
    *
+   * @memberof Core#
+   * @function addHook
    * @param {String} key
    * @param {Function} fn
    */
@@ -2386,8 +2558,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * {@link Handsontable.Hooks#once}
+   * {@link Hooks#once}
    *
+   * @memberof Core#
+   * @function addHookOnce
    * @param {String} key
    * @param {Function} fn
    */
@@ -2396,8 +2570,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * {@link Handsontable.Hooks#remove}
+   * {@link Hooks#remove}
    *
+   * @memberof Core#
+   * @function removeHook
    * @param {String} key
    * @param {Function} fn
    */
@@ -2406,8 +2582,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * {@link Handsontable.Hooks#run}
+   * {@link Hooks#run}
    *
+   * @memberof Core#
+   * @function runHooks
    * @param {String} key
    * @param {*} p1
    * @param {*} p2
@@ -2452,7 +2630,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 };
 
 /**
- * @alias Handsontable.Options
+ * @alias Options
  * @constructor
  * @description
 
