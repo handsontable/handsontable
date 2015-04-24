@@ -1,65 +1,18 @@
 (function () {
 
-  function CustomBorders () {
-
-  }
-
-//  /***
-//   * Array for all custom border objects (for redraw)
-//   * @type {{}}
-//   */
-//  var bordersArray = {},
-        /***
-     * Current instance (table where borders should be placed)
-     */
-  var instance;
-
-
   /***
-   * Check if plugin should be enabled
+   * get index of border setting
+   * @param className
+   * @returns {number}
    */
-  var checkEnable = function (customBorders) {
-    if(typeof customBorders === "boolean"){
-      if (customBorders === true){
-        return true;
+  var getSettingIndex = function (className) {
+    for (var i = 0; i < this.view.wt.selections.length; i++) {
+      if (this.view.wt.selections[i].settings.className === className) {
+        return i;
       }
     }
-
-    if(typeof customBorders === "object"){
-      if(customBorders.length > 0) {
-        return true;
-      }
-    }
-    return false;
+    return -1;
   };
-
-
-  /***
-   * Initialize plugin
-    */
-  var init = function () {
-
-    if(checkEnable(this.getSettings().customBorders)){
-      if(!this.customBorders){
-        instance = this;
-        this.customBorders = new CustomBorders();
-      }
-    }
-  };
-
-	/***
-	 * get index of border setting
-	 * @param className
-	 * @returns {number}
-	 */
-	var getSettingIndex = function (className) {
-		for (var i = 0; i < instance.view.wt.selections.length; i++){
-			if (instance.view.wt.selections[i].settings.className == className){
-				return i;
-			}
-		}
-		return -1;
-	};
 
   /***
    * Insert WalkontableSelection instance into Walkontable.settings
@@ -71,13 +24,13 @@
       col: border.col
     };
     var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
-		var index = getSettingIndex(border.className);
+    var index = getSettingIndex.call(this, border.className);
 
-		if(index >=0) {
-			instance.view.wt.selections[index] = selection;
-		} else {
-			instance.view.wt.selections.push(selection);
-		}
+    if(index >= 0) {
+      this.view.wt.selections[index] = selection;
+    } else {
+      this.view.wt.selections.push(selection);
+    }
   };
 
   /***
@@ -87,12 +40,12 @@
    * @param col
    * @param borderObj
    */
-  var prepareBorderFromCustomAdded = function (row, col, borderObj){
+  var prepareBorderFromCustomAdded = function (row, col, borderObj) {
     var border = createEmptyBorders(row, col);
     border = extendDefaultBorder(border, borderObj);
     this.setCellMeta(row, col, 'borders', border);
 
-    insertBorderIntoSettings(border);
+    insertBorderIntoSettings.call(this, border);
   };
 
   /***
@@ -103,28 +56,28 @@
     var range = rowObj.range;
 
     for (var row = range.from.row; row <= range.to.row; row ++) {
-      for (var col = range.from.col; col<= range.to.col; col++){
+      for (var col = range.from.col; col<= range.to.col; col++) {
 
         var border = createEmptyBorders(row, col);
         var add = 0;
 
         if(row == range.from.row) {
           add++;
-          if(rowObj.hasOwnProperty('top')){
+          if(rowObj.hasOwnProperty('top')) {
             border.top = rowObj.top;
           }
         }
 
-        if(row == range.to.row){
+        if(row == range.to.row) {
           add++;
-          if(rowObj.hasOwnProperty('bottom')){
+          if(rowObj.hasOwnProperty('bottom')) {
             border.bottom = rowObj.bottom;
           }
         }
 
         if(col == range.from.col) {
           add++;
-          if(rowObj.hasOwnProperty('left')){
+          if(rowObj.hasOwnProperty('left')) {
             border.left = rowObj.left;
           }
         }
@@ -132,15 +85,15 @@
 
         if (col == range.to.col) {
           add++;
-          if(rowObj.hasOwnProperty('right')){
+          if(rowObj.hasOwnProperty('right')) {
             border.right = rowObj.right;
           }
         }
 
 
-        if(add>0){
+        if(add>0) {
           this.setCellMeta(row, col, 'borders', border);
-          insertBorderIntoSettings(border);
+          insertBorderIntoSettings.call(this, border);
         }
       }
     }
@@ -199,7 +152,7 @@
    * @param col
    * @returns {{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}
    */
-  var createEmptyBorders = function (row, col){
+  var createEmptyBorders = function (row, col) {
     return {
       className: createClassName(row, col),
       border: createDefaultHtBorder(),
@@ -213,25 +166,25 @@
   };
 
 
-  var extendDefaultBorder = function (defaultBorder, customBorder){
+  var extendDefaultBorder = function (defaultBorder, customBorder) {
 
-    if(customBorder.hasOwnProperty('border')){
+    if(customBorder.hasOwnProperty('border')) {
       defaultBorder.border = customBorder.border;
     }
 
-    if(customBorder.hasOwnProperty('top')){
+    if(customBorder.hasOwnProperty('top')) {
       defaultBorder.top = customBorder.top;
     }
 
-    if(customBorder.hasOwnProperty('right')){
+    if(customBorder.hasOwnProperty('right')) {
       defaultBorder.right = customBorder.right;
     }
 
-    if(customBorder.hasOwnProperty('bottom')){
+    if(customBorder.hasOwnProperty('bottom')) {
       defaultBorder.bottom = customBorder.bottom;
     }
 
-    if(customBorder.hasOwnProperty('left')){
+    if(customBorder.hasOwnProperty('left')) {
       defaultBorder.left = customBorder.left;
     }
     return defaultBorder;
@@ -243,18 +196,18 @@
    * @param borderClassName
    */
   var removeBordersFromDom = function (borderClassName) {
-	  var borders = document.querySelectorAll("." + borderClassName);
+    var borders = this.rootElement.querySelectorAll("." + borderClassName);
 
-		for(var i = 0; i< borders.length; i++) {
-			if (borders[i]) {
-				if(borders[i].nodeName != 'TD') {
-					var parent = borders[i].parentNode;
+    for(var i = 0; i< borders.length; i++) {
+      if (borders[i]) {
+        if(borders[i].nodeName != 'TD') {
+          var parent = borders[i].parentNode;
           if(parent.parentNode) {
             parent.parentNode.removeChild(parent);
           }
-				}
-			}
-		}
+        }
+      }
+    }
   };
 
 
@@ -266,7 +219,7 @@
    */
   var removeAllBorders = function(row,col) {
     var borderClassName = createClassName(row,col);
-    removeBordersFromDom(borderClassName);
+    removeBordersFromDom.call(this, borderClassName);
     this.removeCellMeta(row, col, 'borders');
   };
 
@@ -278,11 +231,11 @@
    * @param place
    * @param remove
    */
-  var setBorder = function (row, col,place, remove){
+  var setBorder = function (row, col,place, remove) {
 
     var bordersMeta = this.getCellMeta(row, col).borders;
     /* jshint ignore:start */
-    if (!bordersMeta || bordersMeta.border == undefined){
+    if (!bordersMeta || bordersMeta.border == undefined) {
       bordersMeta = createEmptyBorders(row, col);
     }
     /* jshint ignore:end */
@@ -296,8 +249,8 @@
     this.setCellMeta(row, col, 'borders', bordersMeta);
 
     var borderClassName = createClassName(row,col);
-    removeBordersFromDom(borderClassName);
-		insertBorderIntoSettings(bordersMeta);
+    removeBordersFromDom.call(this, borderClassName);
+    insertBorderIntoSettings.call(this, bordersMeta);
 
     this.render();
   };
@@ -312,8 +265,8 @@
    */
   var prepareBorder = function (range, place, remove) {
 
-		if (range.from.row == range.to.row && range.from.col == range.to.col){
-      if(place == "noBorders"){
+    if (range.from.row == range.to.row && range.from.col == range.to.col) {
+      if(place == "noBorders") {
         removeAllBorders.call(this, range.from.row, range.from.col);
       } else {
         setBorder.call(this, range.from.row, range.from.col, place, remove);
@@ -321,32 +274,32 @@
     } else {
       switch (place) {
         case "noBorders":
-          for(var column = range.from.col; column <= range.to.col; column++){
-            for(var row = range.from.row; row <= range.to.row; row++) {
-              removeAllBorders.call(this, row, column);
-            }
+          for(var column = range.from.col; column <= range.to.col; column++) {
+          for(var row = range.from.row; row <= range.to.row; row++) {
+            removeAllBorders.call(this, row, column);
           }
-          break;
+        }
+        break;
         case "top":
-          for(var topCol = range.from.col; topCol <= range.to.col; topCol++){
-            setBorder.call(this, range.from.row, topCol, place, remove);
-          }
-          break;
+          for(var topCol = range.from.col; topCol <= range.to.col; topCol++) {
+          setBorder.call(this, range.from.row, topCol, place, remove);
+        }
+        break;
         case "right":
-          for(var rowRight = range.from.row; rowRight <=range.to.row; rowRight++){
-            setBorder.call(this,rowRight, range.to.col, place);
-          }
-          break;
+          for(var rowRight = range.from.row; rowRight <=range.to.row; rowRight++) {
+          setBorder.call(this,rowRight, range.to.col, place);
+        }
+        break;
         case "bottom":
-          for(var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++){
-            setBorder.call(this, range.to.row, bottomCol, place);
-          }
-          break;
+          for(var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++) {
+          setBorder.call(this, range.to.row, bottomCol, place);
+        }
+        break;
         case "left":
-          for(var rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++){
-            setBorder.call(this,rowLeft, range.from.col, place);
-          }
-          break;
+          for(var rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++) {
+          setBorder.call(this,rowLeft, range.from.col, place);
+        }
+        break;
       }
     }
   };
@@ -365,7 +318,7 @@
 
       if (metaBorders) {
         if(direction) {
-          if (!metaBorders[direction].hasOwnProperty('hide')){
+          if (!metaBorders[direction].hasOwnProperty('hide')) {
             atLeastOneHasBorder = true;
             return false; //breaks forAll
           }
@@ -389,13 +342,13 @@
     return "<span class='selected'>" + String.fromCharCode(10003) + "</span>" + label; // workaround for https://github.com/handsontable/handsontable/issues/1946
   };
 
-  /***
-   * Add border options to context menu
-   *
-   * @param defaultOptions
-   */
+/***
+ * Add border options to context menu
+ *
+ * @param defaultOptions
+ */
   var addBordersOptionsToContextMenu = function (defaultOptions) {
-    if(!this.getSettings().customBorders){
+    if (!this.getSettings().customBorders) {
       return;
     }
 
@@ -482,29 +435,25 @@
     });
   };
 
-  Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-
 
   Handsontable.hooks.add('afterInit', function () {
     var customBorders = this.getSettings().customBorders;
 
-    if (customBorders){
+    if (customBorders) {
 
-      for(var i = 0; i< customBorders.length; i++) {
-        if(customBorders[i].range){
-          prepareBorderFromCustomAddedRange.call(this,customBorders[i]);
+      for (var i = 0; i< customBorders.length; i++) {
+        if(customBorders[i].range) {
+          prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
         } else {
-          prepareBorderFromCustomAdded.call(this,customBorders[i].row, customBorders[i].col, customBorders[i]);
+          prepareBorderFromCustomAdded.call(this, customBorders[i].row, customBorders[i].col, customBorders[i]);
         }
       }
 
-			this.render();
+      this.render();
       this.view.wt.draw(true);
     }
 
   });
-
-  Handsontable.CustomBorders = CustomBorders;
 
 }());
