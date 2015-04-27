@@ -86,6 +86,42 @@ export function toUpperCaseFirst(string) {
 }
 
 /**
+ * Generate schema for passed object
+ *
+ * @param {Array|Object} object
+ * @returns {Array|Object}
+ */
+export function duckSchema(object) {
+  var schema;
+
+  if (Array.isArray(object)) {
+    schema = [];
+  } else {
+    schema = {};
+
+    for (var i in object) {
+      if (object.hasOwnProperty(i)) {
+        if (object[i] && typeof object[i] === 'object' && !Array.isArray(object[i])) {
+          schema[i] = duckSchema(object[i]);
+
+        } else if (Array.isArray(object[i])) {
+          if (object[i].length && typeof object[i][0] === 'object' && !Array.isArray(object[i][0])) {
+            schema[i] = [duckSchema(object[i][0])];
+          } else {
+            schema[i] = [];
+          }
+
+        } else {
+          schema[i] = null;
+        }
+      }
+    }
+  }
+
+  return schema;
+}
+
+/**
  * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
  * @param index
  * @returns {String}
@@ -600,6 +636,7 @@ Handsontable.helper = {
   columnFactory,
   createSpreadsheetData,
   createSpreadsheetObjectData,
+  duckSchema,
   deepClone,
   deepExtend,
   defineGetter,
