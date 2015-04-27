@@ -373,7 +373,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             selected = { // selected range
               row: (end && start) ? (end.row - start.row + 1) : 1,
               col: (end && start) ? (end.col - start.col + 1) : 1
-            };
+            },
+            pushData = true;
 
           if (['up', 'left'].indexOf(direction) !== -1) {
             iterators = {
@@ -402,10 +403,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (!instance.getCellMeta(current.row, current.col).readOnly) {
                 var result,
                   value = input[r][c],
+                  orgValue = instance.getDataAtCell(current.row, current.col),
                   index = {
                     row: r,
                     col: c
-                  };
+                  },
+                  valueSchema,
+                  orgValueSchema;
 
                 if (source === 'autofill') {
                   result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
@@ -415,13 +419,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                     value = typeof(result.value) !== 'undefined' ? result.value : value;
                   }
                 }
-                if (Array.isArray(value) || helper.isObject(value)) {
-                  value = helper.deepClone(value);
+                if (value !== null && typeof value === 'object') {
+                  if (orgValue === null || typeof orgValue !== 'object') {
+                    pushData = false;
+
+                  } else {
+                    orgValueSchema = Handsontable.helper.duckSchema(orgValue[0] || orgValue);
+                    valueSchema = Handsontable.helper.duckSchema(value[0] || value);
+
+                    /* jshint -W073 */
+                    if (Handsontable.helper.isObjectEquals(orgValueSchema, valueSchema)) {
+                      value = Handsontable.helper.deepClone(value);
+                    } else {
+                      pushData = false;
+                    }
+                  }
+
+                } else if (orgValue !== null && typeof orgValue === 'object') {
+                  pushData = false;
                 }
-                setData.push([current.row, current.col, value]);
+                if (pushData) {
+                  setData.push([current.row, current.col, value]);
+                }
+                pushData = true;
               }
 
-              current.col++;
+              current.col ++;
 
               if (end && c === clen - 1) {
                 c = -1;
