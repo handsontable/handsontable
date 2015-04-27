@@ -270,7 +270,6 @@ module.exports = function (grunt) {
         }
       },
       options: {
-        external: ['plugins'],
         minify: true
       }
     }
