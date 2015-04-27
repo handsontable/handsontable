@@ -345,6 +345,8 @@ function EditorManager(instance, priv, selection){
   this.openEditor = function(initialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(initialValue, event);
+    } else if(activeEditor && activeEditor.cellProperties.readOnly) {
+      moveSelectionAfterEnter();
     }
   };
 
