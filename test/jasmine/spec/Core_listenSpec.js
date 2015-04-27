@@ -18,6 +18,18 @@ describe('Core_listen', function () {
     expect(hot.isListening()).toEqual(true);
   });
 
+  it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', function () {
+    var hot = handsontable();
+
+    hot.unlisten();
+
+    expect(hot.isListening()).toEqual(false);
+
+    hot.selectCell(0, 0, undefined, undefined, true, false);
+
+    expect(hot.isListening()).toEqual(false);
+  });
+
   it('should unlisten changes', function () {
     var hot = handsontable();
     hot.selectCell(0, 0);
