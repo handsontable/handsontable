@@ -72,6 +72,7 @@ AutocompleteEditor.prototype.open = function () {
 
   choicesListHot.updateSettings({
     'colWidths': [dom.outerWidth(this.TEXTAREA) - 2],
+    width: dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
@@ -89,7 +90,7 @@ AutocompleteEditor.prototype.open = function () {
   });
 
   // Add additional space for autocomplete holder
-  this.htEditor.view.wt.wtTable.holder.style['padding-right'] = dom.getScrollbarWidth() + 2 + 'px';
+  this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = dom.getScrollbarWidth() + 2 + 'px';
 
   if (skipOne) {
     skipOne = false;

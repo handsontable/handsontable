@@ -104,14 +104,15 @@ WalkontableTable.prototype.alignOverlaysWithTrimmingContainer = function() {
   var trimmingElement = dom.getTrimmingContainer(this.wtRootElement);
 
   if (!this.isWorkingOnClone()) {
-    this.holder.parentNode.style.position = "relative";
+    this.holder.parentNode.style.position = 'relative';
 
     if (trimmingElement !== window) {
       this.holder.style.width = dom.getStyle(trimmingElement, 'width');
       this.holder.style.height = dom.getStyle(trimmingElement, 'height');
+      this.holder.style.overflow = '';
     } else {
-      this.holder.style.overflow = "visible";
-      this.wtRootElement.style.overflow = "visible";
+      this.holder.style.overflow = 'visible';
+      this.wtRootElement.style.overflow = 'visible';
     }
   }
 };
