@@ -48,6 +48,18 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
 
   var tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
   elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+
+  this.hideBorderOnInitialPosition();
+};
+
+WalkontableTopOverlay.prototype.hideBorderOnInitialPosition = function () {
+  if(this.instance.getSetting('fixedRowsTop') === 0 && this.instance.getSetting('columnHeaders')) {
+    if(this.getScrollPosition() === 0) {
+      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+    } else {
+      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+    }
+  }
 };
 
 WalkontableTopOverlay.prototype.getScrollPosition = function () {

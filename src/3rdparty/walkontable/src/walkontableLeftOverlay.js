@@ -52,6 +52,18 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
   elem.style.width = elemWidth + 'px';
 
   this.clone.wtTable.holder.style.width = elemWidth + scrollbarWidth + 'px';
+
+  this.hideBorderOnInitialPosition();
+};
+
+WalkontableLeftOverlay.prototype.hideBorderOnInitialPosition = function () {
+  if(this.instance.getSetting('fixedColumnsLeft') === 0 && this.instance.getSetting('rowHeaders')) {
+    if(this.getScrollPosition() === 0) {
+      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+    } else {
+      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+    }
+  }
 };
 
 WalkontableLeftOverlay.prototype.refresh = function (fastDraw) {
