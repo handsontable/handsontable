@@ -49,32 +49,4 @@ WalkontableCornerOverlay.prototype.resetFixedPosition = function () {
 
   elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
   elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
-
-  this.hideBorderOnInitialPosition();
-};
-
-WalkontableCornerOverlay.prototype.hideBorderOnInitialPosition = function () {
-  if(this.instance.getSetting('fixedRowsTop') === 0 && this.instance.getSetting('columnHeaders')) {
-    if(this.getVerticalScrollPosition() === 0) {
-      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorderTop');
-    } else {
-      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorderTop');
-    }
-  }
-
-  if(this.instance.getSetting('fixedColumnsLeft') === 0 && this.instance.getSetting('rowHeaders')) {
-    if(this.getHorizontalScrollPosition() === 0) {
-      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorderLeft');
-    } else {
-      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorderLeft');
-    }
-  }
-};
-
-WalkontableCornerOverlay.prototype.getHorizontalScrollPosition = function () {
-  return dom.getScrollLeft(this.mainTableScrollableElement);
-};
-
-WalkontableCornerOverlay.prototype.getVerticalScrollPosition = function () {
-  return dom.getScrollTop(this.mainTableScrollableElement);
 };

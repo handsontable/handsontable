@@ -53,11 +53,21 @@ WalkontableTopOverlay.prototype.resetFixedPosition = function () {
 };
 
 WalkontableTopOverlay.prototype.hideBorderOnInitialPosition = function () {
-  if(this.instance.getSetting('fixedRowsTop') === 0 && this.instance.getSetting('columnHeaders')) {
+  if(this.instance.getSetting('fixedRowsTop') === 0 && this.instance.getSetting('columnHeaders').length > 0) {
+    var masterParent = this.instance.wtTable.holder.parentNode;
+
     if(this.getScrollPosition() === 0) {
-      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+      dom.removeClass(masterParent, 'innerBorderTop');
     } else {
-      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+      dom.addClass(masterParent, 'innerBorderTop');
+    }
+  }
+
+  // nasty workaround for double border in the header, TODO: find a pure-css solution
+  if(this.instance.getSetting('rowHeaders').length === 0) {
+    var secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
+    if(secondHeaderCell) {
+      secondHeaderCell.style['border-left-width'] = 0;
     }
   }
 };

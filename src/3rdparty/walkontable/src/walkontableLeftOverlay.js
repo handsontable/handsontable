@@ -57,11 +57,13 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
 };
 
 WalkontableLeftOverlay.prototype.hideBorderOnInitialPosition = function () {
-  if(this.instance.getSetting('fixedColumnsLeft') === 0 && this.instance.getSetting('rowHeaders')) {
+  if(this.instance.getSetting('fixedColumnsLeft') === 0 && this.instance.getSetting('rowHeaders').length > 0) {
+    var masterParent = this.instance.wtTable.holder.parentNode;
+
     if(this.getScrollPosition() === 0) {
-      dom.removeClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+      dom.removeClass(masterParent, 'innerBorderLeft');
     } else {
-      dom.addClass(this.clone.wtTable.holder.parentNode, 'innerBorder');
+      dom.addClass(masterParent, 'innerBorderLeft');
     }
   }
 };

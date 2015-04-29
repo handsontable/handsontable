@@ -341,18 +341,17 @@ WalkontableBorder.prototype.appear = function(corners) {
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-
-
-
     var style = dom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
+
     if (parseInt(style['borderLeftWidth'], 10) > 0) {
       left += 1;
       width = width > 0 ? width - 1 : 0;
     }
+
   } else {
     this.disappear();
     return;
