@@ -342,11 +342,15 @@ function EditorManager(instance, priv, selection){
    * @param {String} initialValue
    * @param {DOMEvent} event
    */
-  this.openEditor = function(initialValue, event) {
+  this.openEditor = function (initialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(initialValue, event);
-    } else if(activeEditor && activeEditor.cellProperties.readOnly) {
-      moveSelectionAfterEnter();
+    } else if (activeEditor && activeEditor.cellProperties.readOnly) {
+
+      // move the selection after opening the editor with ENTER key
+      if (event && event.keyCode === helper.keyCode.ENTER) {
+        moveSelectionAfterEnter();
+      }
     }
   };
 
