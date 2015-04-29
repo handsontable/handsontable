@@ -80,7 +80,7 @@ function TableView(instance) {
       return; // it must have been started in a cell
     }
 
-    // immediate click on "spreader" means click on the right side of vertical scrollbar
+    // immediate click on "holder" means click on the right side of vertical scrollbar
     if (next !== instance.view.wt.wtTable.holder) {
       while (next !== document.documentElement) {
         if (next === null) {
@@ -96,6 +96,13 @@ function TableView(instance) {
         }
         next = next.parentNode;
       }
+    } else {
+      var scrollbarWidth = Handsontable.Dom.getScrollbarWidth();
+
+      if (document.elementFromPoint(event.x + scrollbarWidth, event.y) !== instance.view.wt.wtTable.holder ||
+        document.elementFromPoint(event.x, event.y + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
+        return;
+      }
     }
 
     // function did not return until here, we have an outside click!
@@ -105,7 +112,6 @@ function TableView(instance) {
       instance.destroyEditor();
     }
   });
-
 
 
   this.eventManager.addEventListener(table, 'selectstart', function(event) {
