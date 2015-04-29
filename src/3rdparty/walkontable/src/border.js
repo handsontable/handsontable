@@ -1,3 +1,12 @@
+import * as dom from './../../../dom.js';
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {WalkontableCellCoords} from './cellCoords.js';
+import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+
+export {WalkontableBorder};
+
+window.WalkontableBorder = WalkontableBorder;
+
 function WalkontableBorder(instance, settings) {
   var style;
   var createMultipleSelectorHandles = function () {
@@ -7,8 +16,8 @@ function WalkontableBorder(instance, settings) {
       bottomRight: document.createElement('DIV'),
       bottomRightHitArea: document.createElement('DIV')
     };
-    var width = 10
-      , hitAreaWidth = 40;
+    var width = 10,
+      hitAreaWidth = 40;
 
     this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
     this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
@@ -26,7 +35,7 @@ function WalkontableBorder(instance, settings) {
       'position': 'absolute',
       'height': hitAreaWidth + 'px',
       'width': hitAreaWidth + 'px',
-      'border-radius': parseInt(hitAreaWidth/1.5,10) + 'px'
+      'border-radius': parseInt(hitAreaWidth / 1.5, 10) + 'px'
     };
 
     for (var prop in hitAreaStyle) {
@@ -40,7 +49,7 @@ function WalkontableBorder(instance, settings) {
       'position': 'absolute',
       'height': width + 'px',
       'width': width + 'px',
-      'border-radius': parseInt(width/1.5,10) + 'px',
+      'border-radius': parseInt(width / 1.5, 10) + 'px',
       'background': '#F5F5FF',
       'border': '1px solid #4285c8'
     };
@@ -58,11 +67,11 @@ function WalkontableBorder(instance, settings) {
     this.main.appendChild(this.selectionHandles.bottomRightHitArea);
   };
 
-  if(!settings){
+  if (!settings) {
     return;
   }
 
-  var eventManager = Handsontable.eventManager(instance);
+  var eventManager = eventManagerObject(instance);
 
   //reference to instance
   this.instance = instance;
@@ -74,14 +83,14 @@ function WalkontableBorder(instance, settings) {
   style.top = 0;
   style.left = 0;
 
-  var borderDivs = ['top','left','bottom','right','corner'];
+  var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
 
   for (var i = 0; i < 5; i++) {
     var position = borderDivs[i];
 
     var DIV = document.createElement('DIV');
     DIV.className = 'wtBorder ' + (this.settings.className || ''); // + borderDivs[i];
-    if(this.settings[position] && this.settings[position].hide){
+    if (this.settings[position] && this.settings[position].hide) {
       DIV.className += " hidden";
     }
 
@@ -119,10 +128,9 @@ function WalkontableBorder(instance, settings) {
   this.cornerStyle.border = [
     this.cornerDefaultStyle.borderWidth,
     this.cornerDefaultStyle.borderStyle,
-    this.cornerDefaultStyle.borderColor
-  ].join(' ');
+    this.cornerDefaultStyle.borderColor].join(' ');
 
-  if(Handsontable.mobileBrowser) {
+  if (Handsontable.mobileBrowser) {
     createMultipleSelectorHandles.call(this);
   }
 
@@ -137,7 +145,6 @@ function WalkontableBorder(instance, settings) {
   instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
-
 
 
   eventManager.addEventListener(document.body, 'mousedown', function () {
@@ -222,10 +229,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     s;
 
   var isPartRange = function () {
-    if(this.instance.selections.area.cellRange) {
+    if (this.instance.selections.area.cellRange) {
 
-      if (toRow != this.instance.selections.area.cellRange.to.row ||
-          toColumn != this.instance.selections.area.cellRange.to.col) {
+      if (toRow != this.instance.selections.area.cellRange.to.row || toColumn != this.instance.selections.area.cellRange.to.col) {
         return true;
       }
     }
@@ -234,25 +240,25 @@ WalkontableBorder.prototype.appear = function (corners) {
   };
 
   var updateMultipleSelectionHandlesPosition = function (top, left, width, height) {
-    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10)
-      , hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10),
+      hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
-    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth,10) + "px";
-    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth,10) + "px";
+    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth, 10) + "px";
+    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth, 10) + "px";
 
-    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth/4)*3,10) + "px";
-    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth/4)*3,10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth / 4) * 3, 10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth / 4) * 3, 10) + "px";
 
-    this.selectionHandles.styles.bottomRight.top = parseInt(top + height,10) + "px";
-    this.selectionHandles.styles.bottomRight.left = parseInt(left + width,10) + "px";
+    this.selectionHandles.styles.bottomRight.top = parseInt(top + height, 10) + "px";
+    this.selectionHandles.styles.bottomRight.left = parseInt(left + width, 10) + "px";
 
-    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth/4,10) + "px";
-    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth/4,10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth / 4, 10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth / 4, 10) + "px";
 
-    if(this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+    if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
       this.selectionHandles.styles.topLeft.display = "block";
       this.selectionHandles.styles.topLeftHitArea.display = "block";
-      if(!isPartRange.call(this)) {
+      if (!isPartRange.call(this)) {
         this.selectionHandles.styles.bottomRight.display = "block";
         this.selectionHandles.styles.bottomRightHitArea.display = "block";
       } else {
@@ -266,7 +272,7 @@ WalkontableBorder.prototype.appear = function (corners) {
       this.selectionHandles.styles.bottomRightHitArea.display = "none";
     }
 
-    if(fromRow == this.instance.wtSettings.getSetting('fixedRowsTop') || fromColumn == this.instance.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (fromRow == this.instance.wtSettings.getSetting('fixedRowsTop') || fromColumn == this.instance.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = "9999";
       this.selectionHandles.styles.topLeftHitArea.zIndex = "9999";
     } else {
@@ -278,8 +284,7 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (instance.cloneOverlay instanceof WalkontableTopOverlay || instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     ilen = instance.getSetting('fixedRowsTop');
-  }
-  else {
+  } else {
     ilen = instance.wtTable.getRenderedRowsCount();
   }
 
@@ -321,33 +326,31 @@ WalkontableBorder.prototype.appear = function (corners) {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = instance.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
     toTD = isMultiple ? instance.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
-    fromOffset = Handsontable.Dom.offset(fromTD);
-    toOffset = isMultiple ? Handsontable.Dom.offset(toTD) : fromOffset;
-    containerOffset = Handsontable.Dom.offset(instance.wtTable.TABLE);
+    fromOffset = dom.offset(fromTD);
+    toOffset = isMultiple ? dom.offset(toTD) : fromOffset;
+    containerOffset = dom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + Handsontable.Dom.outerHeight(toTD) - minTop;
+    height = toOffset.top + dom.outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + Handsontable.Dom.outerWidth(toTD) - minLeft;
+    width = toOffset.left + dom.outerWidth(toTD) - minLeft;
 
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-
-
-
-    var style = Handsontable.Dom.getComputedStyle(fromTD);
+    var style = dom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
+
     if (parseInt(style['borderLeftWidth'], 10) > 0) {
       left += 1;
       width = width > 0 ? width - 1 : 0;
     }
-  }
-  else {
+
+  } else {
     this.disappear();
     return;
   }
@@ -376,8 +379,7 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this))) {
     this.cornerStyle.display = 'none';
-  }
-  else {
+  } else {
     this.cornerStyle.top = top + height - 4 + 'px';
     this.cornerStyle.left = left + width - 4 + 'px';
     this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
@@ -385,8 +387,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.cornerStyle.display = 'block';
 
     if (toColumn === this.instance.getSetting('totalColumns') - 1) {
-      var trimmingContainer = Handsontable.Dom.getTrimmingContainer(instance.wtTable.TABLE),
-        cornerOverlappingContainer = toTD.offsetLeft + Handsontable.Dom.outerWidth(toTD) >= Handsontable.Dom.innerWidth(trimmingContainer);
+      var trimmingContainer = dom.getTrimmingContainer(instance.wtTable.TABLE),
+        cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
 
       if (cornerOverlappingContainer) {
         this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
@@ -410,7 +412,7 @@ WalkontableBorder.prototype.disappear = function () {
   this.rightStyle.display = 'none';
   this.cornerStyle.display = 'none';
 
-  if(Handsontable.mobileBrowser) {
+  if (Handsontable.mobileBrowser) {
     this.selectionHandles.styles.topLeft.display = 'none';
     this.selectionHandles.styles.bottomRight.display = 'none';
   }

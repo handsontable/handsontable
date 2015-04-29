@@ -1,24 +1,33 @@
-(function(Handsontable){
 
-  'use strict';
+import * as dom from './../dom.js';
+import {getRenderer, registerRenderer} from './../renderers.js';
 
-  var PasswordRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+export {passwordRenderer};
 
-    value = TD.innerHTML;
+registerRenderer('password', passwordRenderer);
 
-    var hash;
-    var hashLength = cellProperties.hashLength || value.length;
-    var hashSymbol = cellProperties.hashSymbol || '*';
+/**
+ * @private
+ * @renderer
+ * @component PasswordRenderer
+ * @param instance
+ * @param TD
+ * @param row
+ * @param col
+ * @param prop
+ * @param value
+ * @param cellProperties
+ */
+function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('text').apply(this, arguments);
 
-    for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {}
+  value = TD.innerHTML;
 
-    Handsontable.Dom.fastInnerHTML(TD, hash);
+  var hash;
+  var hashLength = cellProperties.hashLength || value.length;
+  var hashSymbol = cellProperties.hashSymbol || '*';
 
-  };
+  for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {}
 
-  Handsontable.PasswordRenderer = PasswordRenderer;
-  Handsontable.renderers.PasswordRenderer = PasswordRenderer;
-  Handsontable.renderers.registerRenderer('password', PasswordRenderer);
-
-})(Handsontable);
+  dom.fastInnerHTML(TD, hash);
+}

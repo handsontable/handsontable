@@ -1,43 +1,58 @@
 /**
  * Utility to register renderers and common namespace for keeping reference to all renderers classes
  */
-(function (Handsontable) {
-  'use strict';
 
-  var registeredRenderers = {};
+import * as helper from './helpers.js';
 
-  Handsontable.renderers = {
+export {registerRenderer, getRenderer, hasRenderer};
 
-    /**
-     * Registers renderer under given name
-     * @param {String} rendererName
-     * @param {Function} rendererFunction
-     */
-    registerRenderer: function (rendererName, rendererFunction) {
-      registeredRenderers[rendererName] = rendererFunction;
-    },
+var registeredRenderers = {};
 
-    /**
-     * @param {String|Function} rendererName/rendererFunction
-     * @returns {Function} rendererFunction
-     */
-    getRenderer: function (rendererName) {
-      if (typeof rendererName == 'function'){
-        return rendererName;
-      }
+// support for older versions of Handsontable
+Handsontable.renderers = Handsontable.renderers || {};
+Handsontable.renderers.registerRenderer = registerRenderer;
+Handsontable.renderers.getRenderer = getRenderer;
 
-      if (typeof rendererName != 'string'){
-        throw Error('Only strings and functions can be passed as "renderer" parameter ');
-      }
+/**
+ * Registers renderer under given name
+ * @param {String} rendererName
+ * @param {Function} rendererFunction
+ */
+function registerRenderer(rendererName, rendererFunction) {
+  var registerName;
 
-      if (!(rendererName in registeredRenderers)) {
-        throw Error('No editor registered under name "' + rendererName + '"');
-      }
+  registeredRenderers[rendererName] = rendererFunction;
 
-      return registeredRenderers[rendererName];
-    }
+  registerName = helper.toUpperCaseFirst(rendererName) + 'Renderer';
+  // support for older versions of Handsontable
+  Handsontable.renderers[registerName] = rendererFunction;
+  Handsontable[registerName] = rendererFunction;
+}
 
-  };
+/**
+ * @param {String|Function} rendererName
+ * @returns {Function} rendererFunction
+ */
+function getRenderer(rendererName) {
+  if (typeof rendererName == 'function') {
+    return rendererName;
+  }
 
+  if (typeof rendererName != 'string') {
+    throw Error('Only strings and functions can be passed as "renderer" parameter');
+  }
 
-})(Handsontable);
+  if (!(rendererName in registeredRenderers)) {
+    throw Error('No editor registered under name "' + rendererName + '"');
+  }
+
+  return registeredRenderers[rendererName];
+}
+
+/**
+ * @param rendererName
+ * @returns {Boolean}
+ */
+function hasRenderer(rendererName) {
+  return rendererName in registeredRenderers;
+}

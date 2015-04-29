@@ -1,5 +1,9 @@
 /**
  * Default text renderer
+ *
+ * @private
+ * @renderer
+ * @component TextRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row
@@ -8,40 +12,39 @@
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
-(function (Handsontable) {
-  'use strict';
 
-  var TextRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+import * as dom from './../dom.js';
+import * as helper from './../helpers.js';
+import {getRenderer, registerRenderer} from './../renderers.js';
 
-    Handsontable.renderers.cellDecorator.apply(this, arguments);
+export {textRenderer};
 
-    if (!value && cellProperties.placeholder) {
-      value = cellProperties.placeholder;
-    }
+registerRenderer('text', textRenderer);
 
-    var escaped = Handsontable.helper.stringify(value);
+function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('base').apply(this, arguments);
 
-    if(!instance.getSettings().trimWhitespace) {
-      escaped = escaped.replace(/ /g, String.fromCharCode(160));
-    }
+  if (!value && cellProperties.placeholder) {
+    value = cellProperties.placeholder;
+  }
 
-    if (cellProperties.rendererTemplate) {
-      Handsontable.Dom.empty(TD);
-      var TEMPLATE = document.createElement('TEMPLATE');
-      TEMPLATE.setAttribute('bind', '{{}}');
-      TEMPLATE.innerHTML = cellProperties.rendererTemplate;
-      HTMLTemplateElement.decorate(TEMPLATE);
-      TEMPLATE.model = instance.getSourceDataAtRow(row);
-      TD.appendChild(TEMPLATE);
-    }
-    else {
-      Handsontable.Dom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-    }
+  var escaped = helper.stringify(value);
 
-  };
+  if(!instance.getSettings().trimWhitespace) {
+    escaped = escaped.replace(/ /g, String.fromCharCode(160));
+  }
 
-  //Handsontable.TextRenderer = TextRenderer; //Left for backward compatibility
-  Handsontable.renderers.TextRenderer = TextRenderer;
-  Handsontable.renderers.registerRenderer('text', TextRenderer);
-
-})(Handsontable);
+  if (cellProperties.rendererTemplate) {
+    dom.empty(TD);
+    var TEMPLATE = document.createElement('TEMPLATE');
+    TEMPLATE.setAttribute('bind', '{{}}');
+    TEMPLATE.innerHTML = cellProperties.rendererTemplate;
+    HTMLTemplateElement.decorate(TEMPLATE);
+    TEMPLATE.model = instance.getSourceDataAtRow(row);
+    TD.appendChild(TEMPLATE);
+  }
+  else {
+    // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
+    dom.fastInnerText(TD, escaped);
+  }
+}

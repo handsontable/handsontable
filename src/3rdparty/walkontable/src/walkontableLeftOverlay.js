@@ -1,3 +1,10 @@
+import * as dom from './../../../dom.js';
+import {WalkontableOverlay} from './_overlay.js';
+
+export {WalkontableLeftOverlay};
+
+window.WalkontableLeftOverlay = WalkontableLeftOverlay;
+
 function WalkontableLeftOverlay(instance) {
   this.instance = instance;
   this.type = 'horizontal';
@@ -16,8 +23,8 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode,
-    scrollbarHeight = this.instance.wtTable.holder.clientHeight !== this.instance.wtTable.holder.offsetHeight ? Handsontable.Dom.getScrollbarWidth() : 0,
-    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? Handsontable.Dom.getScrollbarWidth() : 0;
+    scrollbarHeight = this.instance.wtTable.holder.clientHeight !== this.instance.wtTable.holder.offsetHeight ? dom.getScrollbarWidth() : 0,
+    scrollbarWidth = this.instance.wtTable.holder.clientWidth !== this.instance.wtTable.holder.offsetWidth ? dom.getScrollbarWidth() : 0;
 
   if (this.instance.wtOverlays.leftOverlay.trimmingContainer !== window) {
     elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
@@ -36,14 +43,32 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
     finalTop = this.instance.wtTable.hider.style.top;
     finalTop = finalTop === "" ? 0 : finalTop;
 
-    Handsontable.Dom.setOverlayPosition(elem, finalLeft, finalTop);
+    dom.setOverlayPosition(elem, finalLeft, finalTop);
   }
 
-  var tableWidth = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE);
+  var tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
   var elemWidth = (tableWidth === 0 ? tableWidth : tableWidth + 4);
   elem.style.width = elemWidth + 'px';
 
   this.clone.wtTable.holder.style.width = elemWidth + scrollbarWidth + 'px';
+
+  this.hideBorderOnInitialPosition();
+};
+
+/**
+ * Adds css classes to hide the header border's header on initial position (cell-selection border hiding issue)
+ * @private
+ */
+WalkontableLeftOverlay.prototype.hideBorderOnInitialPosition = function () {
+  if (this.instance.getSetting('fixedColumnsLeft') === 0 && this.instance.getSetting('rowHeaders').length > 0) {
+    var masterParent = this.instance.wtTable.holder.parentNode;
+
+    if (this.getScrollPosition() === 0) {
+      dom.removeClass(masterParent, 'innerBorderLeft');
+    } else {
+      dom.addClass(masterParent, 'innerBorderLeft');
+    }
+  }
 };
 
 WalkontableLeftOverlay.prototype.refresh = function (fastDraw) {
@@ -52,12 +77,12 @@ WalkontableLeftOverlay.prototype.refresh = function (fastDraw) {
 };
 
 WalkontableLeftOverlay.prototype.getScrollPosition = function () {
-  return Handsontable.Dom.getScrollLeft(this.mainTableScrollableElement);
+  return dom.getScrollLeft(this.mainTableScrollableElement);
 };
 
 WalkontableLeftOverlay.prototype.setScrollPosition = function (pos) {
   if (this.mainTableScrollableElement === window) {
-    window.scrollTo(pos, Handsontable.Dom.getWindowScrollTop());
+    window.scrollTo(pos, dom.getWindowScrollTop());
   } else {
     this.mainTableScrollableElement.scrollLeft = pos;
   }
@@ -68,11 +93,14 @@ WalkontableLeftOverlay.prototype.onScroll = function () {
 };
 
 WalkontableLeftOverlay.prototype.sumCellSizes = function (from, length) {
-  var sum = 0;
-  while(from < length) {
-    sum += this.instance.wtTable.getStretchedColumnWidth(from) || this.instance.wtSettings.defaultColumnWidth;
+  var sum = 0,
+    defaultColumnWidth = this.instance.wtSettings.defaultColumnWidth;
+
+  while (from < length) {
+    sum += this.instance.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
     from++;
   }
+
   return sum;
 };
 
@@ -87,17 +115,17 @@ WalkontableLeftOverlay.prototype.applyToDOM = function () {
     cloneHider = this.clone.wtTable.hider,
     masterHider = this.hider,
     cloneHolderParent = cloneHolder.parentNode,
-    scrollbarWidth = Handsontable.Dom.getScrollbarWidth(true);
+    scrollbarWidth = dom.getScrollbarWidth(true);
 
   masterHider.style.width = headerSize + this.sumCellSizes(0, total) + 'px';
 
-  cloneHolder.style.width = parseInt(cloneHolderParent.style.width,10) + scrollbarWidth + 'px';
+  cloneHolder.style.width = parseInt(cloneHolderParent.style.width, 10) + scrollbarWidth + 'px';
 
   cloneHider.style.height = masterHider.style.height;
 
   cloneHolder.style.height = cloneHolderParent.style.height;
 
-  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number'){
+  if (typeof this.instance.wtViewport.columnsRenderCalculator.startPosition === 'number') {
     this.spreader.style.left = this.instance.wtViewport.columnsRenderCalculator.startPosition + 'px';
   }
   else if (total === 0) {
@@ -111,7 +139,7 @@ WalkontableLeftOverlay.prototype.applyToDOM = function () {
 };
 
 WalkontableLeftOverlay.prototype.syncOverlayOffset = function () {
-  if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number'){
+  if (typeof this.instance.wtViewport.rowsRenderCalculator.startPosition === 'number') {
     this.clone.wtTable.spreader.style.top = this.instance.wtViewport.rowsRenderCalculator.startPosition + 'px';
   } else {
     this.clone.wtTable.spreader.style.top = '';
@@ -129,8 +157,8 @@ WalkontableLeftOverlay.prototype.scrollTo = function (sourceCol, beyondRendered)
     mainHolder = sourceInstance.wtTable.holder,
     scrollbarCompensation = 0;
 
-  if(beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
-    scrollbarCompensation = Handsontable.Dom.getScrollbarWidth();
+  if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
+    scrollbarCompensation = dom.getScrollbarWidth();
   }
 
   if (beyondRendered) {

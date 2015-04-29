@@ -1,18 +1,25 @@
-(function (Handsontable) {
 
-  var DropdownEditor = Handsontable.editors.AutocompleteEditor.prototype.extend();
+import {getEditor, registerEditor} from './../editors.js';
+import {AutocompleteEditor} from './autocompleteEditor.js';
 
-  DropdownEditor.prototype.prepare = function () {
-    Handsontable.editors.AutocompleteEditor.prototype.prepare.apply(this, arguments);
+var DropdownEditor = AutocompleteEditor.prototype.extend();
 
-    this.cellProperties.filter = false;
-    this.cellProperties.strict = true;
+export {DropdownEditor};
 
-  };
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DropdownEditor = DropdownEditor;
 
+/**
+ * @private
+ * @editor
+ * @class DropdownEditor
+ * @dependencies AutocompleteEditor
+ */
+DropdownEditor.prototype.prepare = function () {
+  AutocompleteEditor.prototype.prepare.apply(this, arguments);
 
-  Handsontable.editors.DropdownEditor = DropdownEditor;
-  Handsontable.editors.registerEditor('dropdown', DropdownEditor);
+  this.cellProperties.filter = false;
+  this.cellProperties.strict = true;
+};
 
-
-})(Handsontable);
+registerEditor('dropdown', DropdownEditor);

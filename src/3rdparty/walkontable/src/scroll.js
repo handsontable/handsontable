@@ -1,3 +1,8 @@
+
+export {WalkontableScroll};
+
+window.WalkontableScroll = WalkontableScroll;
+
 function WalkontableScroll(instance) {
   this.instance = instance;
 }
@@ -7,13 +12,12 @@ function WalkontableScroll(instance) {
  *
  * @param {WalkontableCellCoords} coords
  */
-WalkontableScroll.prototype.scrollViewport = function (coords) {
+WalkontableScroll.prototype.scrollViewport = function(coords) {
   if (!this.instance.drawn) {
     return;
   }
-
-  var totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns');
+  var totalRows = this.instance.getSetting('totalRows'),
+    totalColumns = this.instance.getSetting('totalColumns');
 
   if (coords.row < 0 || coords.row > totalRows - 1) {
     throw new Error('row ' + coords.row + ' does not exist');
@@ -23,17 +27,19 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     throw new Error('column ' + coords.col + ' does not exist');
   }
 
-    if (coords.row > this.instance.wtTable.getLastVisibleRow()) {
-      this.instance.wtOverlays.topOverlay.scrollTo(coords.row, true);
-    } else if (coords.row >= this.instance.getSetting('fixedRowsTop') && coords.row < this.instance.wtTable.getFirstVisibleRow()){
-      this.instance.wtOverlays.topOverlay.scrollTo(coords.row);
-    }
+  if (coords.row > this.instance.wtTable.getLastVisibleRow()) {
+    this.instance.wtOverlays.topOverlay.scrollTo(coords.row, true);
 
-    if (coords.col > this.instance.wtTable.getLastVisibleColumn()) {
-      this.instance.wtOverlays.leftOverlay.scrollTo(coords.col, true);
-    } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft') && coords.col < this.instance.wtTable.getFirstVisibleColumn()){
-      this.instance.wtOverlays.leftOverlay.scrollTo(coords.col);
-    }
+  } else if (coords.row >= this.instance.getSetting('fixedRowsTop') &&
+      coords.row < this.instance.wtTable.getFirstVisibleRow()) {
+    this.instance.wtOverlays.topOverlay.scrollTo(coords.row);
+  }
 
-  //}
+  if (coords.col > this.instance.wtTable.getLastVisibleColumn()) {
+    this.instance.wtOverlays.leftOverlay.scrollTo(coords.col, true);
+
+  } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft') &&
+      coords.col < this.instance.wtTable.getFirstVisibleColumn()) {
+    this.instance.wtOverlays.leftOverlay.scrollTo(coords.col);
+  }
 };
