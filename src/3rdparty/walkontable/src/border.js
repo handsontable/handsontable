@@ -1,4 +1,3 @@
-
 import * as dom from './../../../dom.js';
 import {eventManager as eventManagerObject} from './../../../eventManager.js';
 import {WalkontableCellCoords} from './cellCoords.js';
@@ -10,7 +9,7 @@ window.WalkontableBorder = WalkontableBorder;
 
 function WalkontableBorder(instance, settings) {
   var style;
-  var createMultipleSelectorHandles = function() {
+  var createMultipleSelectorHandles = function () {
     this.selectionHandles = {
       topLeft: document.createElement('DIV'),
       topLeftHitArea: document.createElement('DIV'),
@@ -148,20 +147,19 @@ function WalkontableBorder(instance, settings) {
   var down = false;
 
 
-
-  eventManager.addEventListener(document.body, 'mousedown', function() {
+  eventManager.addEventListener(document.body, 'mousedown', function () {
     down = true;
   });
 
 
-  eventManager.addEventListener(document.body, 'mouseup', function() {
+  eventManager.addEventListener(document.body, 'mouseup', function () {
     down = false;
   });
 
   /* jshint ignore:start */
   for (var c = 0, len = this.main.childNodes.length; c < len; c++) {
 
-    eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function(event) {
+    eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function (event) {
       if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
         return;
       }
@@ -172,7 +170,7 @@ function WalkontableBorder(instance, settings) {
 
       this.style.display = 'none';
 
-      var isOutside = function(event) {
+      var isOutside = function (event) {
         if (event.clientY < Math.floor(bounds.top)) {
           return true;
         }
@@ -187,7 +185,7 @@ function WalkontableBorder(instance, settings) {
         }
       };
 
-      var handler = function(event) {
+      var handler = function (event) {
         if (isOutside(event)) {
           eventManager.removeEventListener(document.body, 'mousemove', handler);
           this.style.display = 'block';
@@ -203,7 +201,7 @@ function WalkontableBorder(instance, settings) {
  * Show border around one or many cells
  * @param {Array} corners
  */
-WalkontableBorder.prototype.appear = function(corners) {
+WalkontableBorder.prototype.appear = function (corners) {
   if (this.disabled) {
     return;
   }
@@ -230,7 +228,7 @@ WalkontableBorder.prototype.appear = function(corners) {
     ilen,
     s;
 
-  var isPartRange = function() {
+  var isPartRange = function () {
     if (this.instance.selections.area.cellRange) {
 
       if (toRow != this.instance.selections.area.cellRange.to.row || toColumn != this.instance.selections.area.cellRange.to.col) {
@@ -241,7 +239,7 @@ WalkontableBorder.prototype.appear = function(corners) {
     return false;
   };
 
-  var updateMultipleSelectionHandlesPosition = function(top, left, width, height) {
+  var updateMultipleSelectionHandlesPosition = function (top, left, width, height) {
     var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10),
       hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
@@ -407,7 +405,7 @@ WalkontableBorder.prototype.appear = function(corners) {
 /**
  * Hide border
  */
-WalkontableBorder.prototype.disappear = function() {
+WalkontableBorder.prototype.disappear = function () {
   this.topStyle.display = 'none';
   this.leftStyle.display = 'none';
   this.bottomStyle.display = 'none';
@@ -422,7 +420,7 @@ WalkontableBorder.prototype.disappear = function() {
 
 };
 
-WalkontableBorder.prototype.hasSetting = function(setting) {
+WalkontableBorder.prototype.hasSetting = function (setting) {
   if (typeof setting === 'function') {
     return setting();
   }
