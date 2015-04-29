@@ -271,6 +271,10 @@ TextEditor.prototype.refreshDimensions = function() {
     editTop += 1;
   }
 
+  if (rowHeadersCount && this.instance.getSelected()[1] === 0) {
+    editLeft += 1;
+  }
+
   if (cssTransformOffset && cssTransformOffset != -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {

@@ -1,4 +1,3 @@
-
 import * as dom from './../../../dom.js';
 import {WalkontableOverlay} from './_overlay.js';
 

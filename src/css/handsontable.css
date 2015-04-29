@@ -124,7 +124,8 @@
 }
 
 .handsontable th:first-child,
-.handsontable td:first-child,
+.handsontable td:first-of-type,
+.handsontable thead tr th:nth-child(2),
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
   border-left: 1px solid #CCC;
@@ -135,11 +136,16 @@
   border-top: 1px solid #CCC;
 }
 
-.handsontable thead tr:last-child th {
-  border-bottom-width: 0;
+.ht_master:not(.innerBorderLeft) ~ .handsontable tbody tr th,
+.ht_master:not(.innerBorderLeft) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child
+{
+  border-right-width: 0;
 }
 
-.handsontable thead tr.lastChild th {
+.ht_master:not(.innerBorderTop) thead tr:last-child th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
