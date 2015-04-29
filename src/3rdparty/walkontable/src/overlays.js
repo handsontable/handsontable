@@ -1,13 +1,21 @@
+
+import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import * as dom from './../../../dom.js';
+
+export {WalkontableOverlays};
+
+window.WalkontableOverlays = WalkontableOverlays;
+
 function WalkontableOverlays(instance) {
   this.instance = instance;
-  instance.update('scrollbarWidth', Handsontable.Dom.getScrollbarWidth());
-  instance.update('scrollbarHeight', Handsontable.Dom.getScrollbarWidth());
+  instance.update('scrollbarWidth', dom.getScrollbarWidth());
+  instance.update('scrollbarHeight', dom.getScrollbarWidth());
 
   this.topOverlay = new WalkontableTopOverlay(instance);
   this.leftOverlay = new WalkontableLeftOverlay(instance);
   this.topLeftCornerOverlay = new WalkontableCornerOverlay(instance);
 
-  this.preventMultipleScrolling = false;
+  this.scrollCallbacksPending = 0;
 
   if (instance.getSetting('debug')) {
     this.debug = new WalkontableDebugOverlay(instance);
@@ -17,7 +25,7 @@ function WalkontableOverlays(instance) {
 
 WalkontableOverlays.prototype.registerListeners = function () {
   var that = this;
-  this.mainTableScrollableElement = Handsontable.Dom.getScrollableElement(this.instance.wtTable.TABLE);
+  this.mainTableScrollableElement = dom.getScrollableElement(this.instance.wtTable.TABLE);
 
   this.refreshAll = function refreshAll() {
     if (!that.instance.drawn) {
@@ -35,7 +43,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     that.leftOverlay.onScroll();
   };
 
-  var eventManager = Handsontable.eventManager(that.instance);
+  var eventManager = eventManagerObject(that.instance);
 
   this.requestAnimFrame = window.requestAnimationFrame ||
   window.webkitRequestAnimationFrame ||
@@ -73,7 +81,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     });
   });
 
-  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'mousewheel', function (e) {
+  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', function (e) {
     that.requestAnimFrame.call(window, function () {
       that.translateMouseWheelToScroll(e);
     });
@@ -85,7 +93,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
     });
   });
 
-  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'mousewheel', function (e) {
+  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', function (e) {
     that.requestAnimFrame.call(window, function () {
       that.translateMouseWheelToScroll(e);
     });
@@ -96,8 +104,10 @@ WalkontableOverlays.prototype.registerListeners = function () {
       that.refreshAll();
     });
 
-    eventManager.addEventListener(window, 'mousewheel', function (e) {
-      var overlay;
+    eventManager.addEventListener(window, 'wheel', function (e) {
+      var overlay,
+        deltaY = e.wheelDeltaY || e.deltaY,
+        deltaX = e.wheelDeltaX || e.deltaX;
 
       if (that.topOverlay.clone.wtTable.holder.contains(e.target)) {
         overlay = 'top';
@@ -105,9 +115,9 @@ WalkontableOverlays.prototype.registerListeners = function () {
         overlay = 'left';
       }
 
-      if (overlay == 'top' && e.wheelDeltaY !== 0) {
+      if (overlay == 'top' && deltaY !== 0) {
         e.preventDefault();
-      } else if (overlay == 'left' && e.wheelDeltaX !== 0) {
+      } else if (overlay == 'left' && deltaX !== 0) {
         e.preventDefault();
       }
     });
@@ -119,7 +129,9 @@ WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
     leftOverlay = this.leftOverlay.clone.wtTable.holder,
     parentHolder,
     tempElem = e.target,
-    eventMockup = {};
+    eventMockup = {},
+    deltaY = e.wheelDeltaY || (-1) * e.deltaY,
+    deltaX = e.wheelDeltaX || (-1) * e.deltaX;
 
   while (tempElem != document && tempElem != null) {
     if (tempElem.className.indexOf('wtHolder') > -1) {
@@ -132,9 +144,9 @@ WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
   eventMockup.target = parentHolder;
 
   if (parentHolder == topOverlay) {
-    this.syncScrollPositions(eventMockup, (-0.2) * e.wheelDeltaY);
+    this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
   } else if (parentHolder == leftOverlay) {
-    this.syncScrollPositions(eventMockup, (-0.2) * e.wheelDeltaX);
+    this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
   }
 
   return false;
@@ -145,13 +157,12 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     return;
   }
 
-  if (this.preventMultipleScrolling) {
-    this.preventMultipleScrolling = false;
-
+  if (this.scrollCallbacksPending > 0) {
+    this.scrollCallbacksPending--;
     return;
   }
 
-  this.preventMultipleScrolling = true;
+  //this.scrollCallbacksPending = true;
 
   var target = e.target,
     master = this.topOverlay.mainTableScrollableElement,
@@ -165,28 +176,31 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
   }
 
   if (target === master || target === document) {
-    tempScrollValue = Handsontable.Dom.getScrollLeft(target);
+    tempScrollValue = dom.getScrollLeft(target);
 
     // if scrolling the master table - populate the scroll values to both top and left overlays
     if (this.overlayScrollPositions.master.left !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       topOverlay.scrollLeft = tempScrollValue;
       this.overlayScrollPositions.master.left = tempScrollValue;
       scrollValueChanged = true;
     }
 
-    tempScrollValue = Handsontable.Dom.getScrollTop(target);
+    tempScrollValue = dom.getScrollTop(target);
 
     if (this.overlayScrollPositions.master.top !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       leftOverlay.scrollTop = tempScrollValue;
       this.overlayScrollPositions.master.top = tempScrollValue;
       scrollValueChanged = true;
     }
 
   } else if (target === topOverlay) {
-    tempScrollValue = Handsontable.Dom.getScrollLeft(target);
+    tempScrollValue = dom.getScrollLeft(target);
 
     // if scrolling the top overlay - populate the horizontal scroll to the master table
     if (this.overlayScrollPositions.top.left !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       master.scrollLeft = tempScrollValue;
       this.overlayScrollPositions.top.left = tempScrollValue;
       scrollValueChanged = true;
@@ -194,14 +208,16 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
     // "fake" scroll value calculated from the mousewheel event
     if (fakeScrollValue) {
+      //this.scrollCallbacksPending++;
       master.scrollTop += fakeScrollValue;
     }
 
   } else if (target === leftOverlay) {
-    tempScrollValue = Handsontable.Dom.getScrollTop(target);
+    tempScrollValue = dom.getScrollTop(target);
 
     // if scrolling the left overlay - populate the vertical scroll to the master table
     if (this.overlayScrollPositions.left.top !== tempScrollValue) {
+      this.scrollCallbacksPending++;
       master.scrollTop = tempScrollValue;
       this.overlayScrollPositions.left.top = tempScrollValue;
       scrollValueChanged = true;
@@ -216,13 +232,11 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
 
   if (scrollValueChanged) {
     this.refreshAll();
-  } else {
-    this.preventMultipleScrolling = false;
   }
 };
 
 WalkontableOverlays.prototype.destroy = function () {
-  var eventManager = Handsontable.eventManager(this.instance);
+  var eventManager = eventManagerObject(this.instance);
 
 
   if (this.topOverlay) {

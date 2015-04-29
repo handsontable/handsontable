@@ -1,60 +1,54 @@
-(function (window) {
-  'use strict';
 
-  function MultiMap() {
-    var map = {
-      arrayMap: [],
-      weakMap: new WeakMap()
-    };
+export {MultiMap};
 
-    return {
-      'get': function (key) {
-        if (canBeAnArrayMapKey(key)) {
-          return map.arrayMap[key];
-        } else if (canBeAWeakMapKey(key)) {
-          return map.weakMap.get(key);
-        }
-      },
+// TODO: Global expose for tests
+window.MultiMap = MultiMap;
 
-      'set': function (key, value) {
-        if (canBeAnArrayMapKey(key)) {
-          map.arrayMap[key] = value;
-        } else if (canBeAWeakMapKey(key)) {
-          map.weakMap.set(key, value);
-        } else {
-          throw new Error('Invalid key type');
-        }
+function MultiMap() {
+  var map = {
+    arrayMap: [],
+    weakMap: new WeakMap()
+  };
 
-
-      },
-
-      'delete': function (key) {
-        if (canBeAnArrayMapKey(key)) {
-          delete map.arrayMap[key];
-        } else if (canBeAWeakMapKey(key)) {
-          map.weakMap['delete'](key);  //Delete must be called using square bracket notation, because IE8 does not handle using `delete` with dot notation
-        }
+  return {
+    'get': function (key) {
+      if (canBeAnArrayMapKey(key)) {
+        return map.arrayMap[key];
+      } else if (canBeAWeakMapKey(key)) {
+        return map.weakMap.get(key);
       }
-    };
+    },
+
+    'set': function (key, value) {
+      if (canBeAnArrayMapKey(key)) {
+        map.arrayMap[key] = value;
+      } else if (canBeAWeakMapKey(key)) {
+        map.weakMap.set(key, value);
+      } else {
+        throw new Error('Invalid key type');
+      }
 
 
+    },
 
-    function canBeAnArrayMapKey(obj){
-      return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
+    'delete': function (key) {
+      if (canBeAnArrayMapKey(key)) {
+        delete map.arrayMap[key];
+      } else if (canBeAWeakMapKey(key)) {
+        map.weakMap['delete'](key);  //Delete must be called using square bracket notation, because IE8 does not handle using `delete` with dot notation
+      }
     }
+  };
 
-    function canBeAWeakMapKey(obj){
-      return obj !== null && (typeof obj == 'object' || typeof obj == 'function');
-    }
-
-    function isNaNSymbol(obj){
-      return obj !== obj; // NaN === NaN is always false
-    }
-
+  function canBeAnArrayMapKey(obj){
+    return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
   }
 
-  if (!window.MultiMap){
-    window.MultiMap = MultiMap;
+  function canBeAWeakMapKey(obj){
+    return obj !== null && (typeof obj == 'object' || typeof obj == 'function');
   }
 
-})(window);
+  function isNaNSymbol(obj){
+    return obj !== obj; // NaN === NaN is always false
+  }
+}

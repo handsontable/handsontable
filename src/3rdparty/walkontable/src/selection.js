@@ -1,3 +1,13 @@
+
+import * as dom from './../../../dom.js';
+import {WalkontableBorder} from './border.js';
+import {WalkontableCellCoords} from './cellCoords.js';
+import {WalkontableCellRange} from './cellRange.js';
+
+export {WalkontableSelection};
+
+window.WalkontableSelection = WalkontableSelection;
+
 function WalkontableSelection(settings, cellRange) {
   this.settings = settings;
   this.cellRange = cellRange || null;
@@ -10,7 +20,7 @@ function WalkontableSelection(settings, cellRange) {
  * @param {Walkontable} instance
  * @returns {WalkontableBorder}
  */
-WalkontableSelection.prototype.getBorder = function (instance) {
+WalkontableSelection.prototype.getBorder = function(instance) {
   if (this.instanceBorders[instance.guid]) {
     return this.instanceBorders[instance.guid];
   }
@@ -23,7 +33,7 @@ WalkontableSelection.prototype.getBorder = function (instance) {
  *
  * @returns {Boolean}
  */
-WalkontableSelection.prototype.isEmpty = function () {
+WalkontableSelection.prototype.isEmpty = function() {
   return this.cellRange === null;
 };
 
@@ -32,11 +42,10 @@ WalkontableSelection.prototype.isEmpty = function () {
  *
  * @param {WalkontableCellCoords} coords
  */
-WalkontableSelection.prototype.add = function (coords) {
+WalkontableSelection.prototype.add = function(coords) {
   if (this.isEmpty()) {
     this.cellRange = new WalkontableCellRange(coords, coords, coords);
-  }
-  else {
+  } else {
     this.cellRange.expand(coords);
   }
 };
@@ -48,7 +57,7 @@ WalkontableSelection.prototype.add = function (coords) {
  * @param {WalkontableCellCoords} newCoords
  * @returns {Boolean}
  */
-WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
+WalkontableSelection.prototype.replace = function(oldCoords, newCoords) {
   if (!this.isEmpty()) {
     if (this.cellRange.from.isEqual(oldCoords)) {
       this.cellRange.from = newCoords;
@@ -65,7 +74,7 @@ WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
   return false;
 };
 
-WalkontableSelection.prototype.clear = function () {
+WalkontableSelection.prototype.clear = function() {
   this.cellRange = null;
 };
 
@@ -74,7 +83,7 @@ WalkontableSelection.prototype.clear = function () {
  *
  * @returns {Object}
  */
-WalkontableSelection.prototype.getCorners = function () {
+WalkontableSelection.prototype.getCorners = function() {
   var
     topLeft = this.cellRange.getTopLeftCorner(),
     bottomRight = this.cellRange.getBottomRightCorner();
@@ -82,15 +91,15 @@ WalkontableSelection.prototype.getCorners = function () {
   return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
 };
 
-WalkontableSelection.prototype.addClassAtCoords = function (instance, sourceRow, sourceColumn, cls) {
+WalkontableSelection.prototype.addClassAtCoords = function(instance, sourceRow, sourceColumn, cls) {
   var TD = instance.wtTable.getCell(new WalkontableCellCoords(sourceRow, sourceColumn));
 
   if (typeof TD === 'object') {
-    Handsontable.Dom.addClass(TD, cls);
+    dom.addClass(TD, cls);
   }
 };
 
-WalkontableSelection.prototype.draw = function (instance) {
+WalkontableSelection.prototype.draw = function(instance) {
   var
     _this = this,
     renderedRows = instance.wtTable.getRenderedRowsCount(),
@@ -118,7 +127,7 @@ WalkontableSelection.prototype.draw = function (instance) {
       TH = instance.wtTable.getColumnHeader(sourceCol);
 
       if (TH && _this.settings.highlightColumnClassName) {
-        Handsontable.Dom.addClass(TH, _this.settings.highlightColumnClassName);
+        dom.addClass(TH, _this.settings.highlightColumnClassName);
       }
     }
   }
@@ -130,7 +139,7 @@ WalkontableSelection.prototype.draw = function (instance) {
       TH = instance.wtTable.getRowHeader(sourceRow);
 
       if (TH && _this.settings.highlightRowClassName) {
-        Handsontable.Dom.addClass(TH, _this.settings.highlightRowClassName);
+        dom.addClass(TH, _this.settings.highlightRowClassName);
       }
     }
 
@@ -142,14 +151,12 @@ WalkontableSelection.prototype.draw = function (instance) {
         if (_this.settings.className) {
           _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.className);
         }
-      }
-      else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
+      } else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
         // selection is in this row
         if (_this.settings.highlightRowClassName) {
           _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightRowClassName);
         }
-      }
-      else if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
+      } else if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
         // selection is in this column
         if (_this.settings.highlightColumnClassName) {
           _this.addClassAtCoords(instance, sourceRow, sourceCol, _this.settings.highlightColumnClassName);

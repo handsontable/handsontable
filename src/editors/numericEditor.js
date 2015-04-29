@@ -1,32 +1,41 @@
-(function (Handsontable) {
 
-  'use strict';
+import numeral from 'numeral';
+import {getEditor, registerEditor} from './../editors.js';
+import {TextEditor} from './textEditor.js';
 
-  var NumericEditor = Handsontable.editors.TextEditor.prototype.extend();
+var NumericEditor = TextEditor.prototype.extend();
 
-  NumericEditor.prototype.beginEditing = function (initialValue) {
+export {NumericEditor};
 
-    var BaseEditor = Handsontable.editors.TextEditor.prototype;
+Handsontable.editors = Handsontable.editors || {};
 
-    if (typeof (initialValue) === 'undefined' && this.originalValue) {
+/**
+ * @private
+ * @editor
+ * @class NumericEditor
+ * @dependencies TextEditor numeral
+ */
+Handsontable.editors.NumericEditor = NumericEditor;
 
-      var value = '' + this.originalValue;
+NumericEditor.prototype.beginEditing = function (initialValue) {
 
-      if (typeof this.cellProperties.language !== 'undefined') {
-        numeral.language(this.cellProperties.language);
-      }
+  var BaseEditor = TextEditor.prototype;
 
-      var decimalDelimiter = numeral.languageData().delimiters.decimal;
-      value = value.replace('.', decimalDelimiter);
+  if (typeof(initialValue) === 'undefined' && this.originalValue) {
 
-      BaseEditor.beginEditing.apply(this, [value]);
-    } else {
-      BaseEditor.beginEditing.apply(this, arguments);
+    var value = '' + this.originalValue;
+
+    if (typeof this.cellProperties.language !== 'undefined') {
+      numeral.language(this.cellProperties.language);
     }
 
-  };
+    var decimalDelimiter = numeral.languageData().delimiters.decimal;
+    value = value.replace('.', decimalDelimiter);
 
-  Handsontable.editors.NumericEditor = NumericEditor;
-  Handsontable.editors.registerEditor('numeric', NumericEditor);
+    BaseEditor.beginEditing.apply(this, [value]);
+  } else {
+    BaseEditor.beginEditing.apply(this, arguments);
+  }
 
-})(Handsontable);
+};
+registerEditor('numeric', NumericEditor);

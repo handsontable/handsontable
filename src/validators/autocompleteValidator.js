@@ -28,6 +28,10 @@ var process = function (value, callback) {
 
 /**
  * Autocomplete cell validator
+ *
+ * @private
+ * @validator
+ * @component AutocompleteValidator
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */

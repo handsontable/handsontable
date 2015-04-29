@@ -33,7 +33,7 @@ describe('Core_getCellMeta', function () {
 
     handsontable({
       cells: function () {
-        return {readOnly: allCellsReadOnly}
+        return {readOnly: allCellsReadOnly};
       }
     });
     allCellsReadOnly = false;
@@ -42,6 +42,21 @@ describe('Core_getCellMeta', function () {
     keyDown('enter');
 
     expect(isEditorVisible()).toEqual(true);
+  });
+
+  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3,3),
+      cells: function () {
+        return {readOnly: true};
+      }
+    });
+
+    selectCell(0,0);
+    expect(getCellMeta(0,0).readOnly).toBe(true);
+    keyDown('enter');
+    expect(getSelected()).toEqual([1, 0, 1, 0]);
+
   });
 
   it('should use default cell editor for a cell that has declared only cell renderer', function () {

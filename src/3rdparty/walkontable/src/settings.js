@@ -1,3 +1,10 @@
+
+import * as dom from './../../../dom.js';
+
+export {WalkontableSettings};
+
+window.WalkontableSettings = WalkontableSettings;
+
 function WalkontableSettings(instance, settings) {
   var that = this;
   this.instance = instance;
@@ -16,23 +23,23 @@ function WalkontableSettings(instance, settings) {
     data: void 0,
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
-    rowHeaders: function () {
+    rowHeaders: function() {
       return [];
     }, //this must be array of functions: [function (row, TH) {}]
-    columnHeaders: function () {
+    columnHeaders: function() {
       return [];
     }, //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
     totalColumns: void 0,
-    cellRenderer: function (row, column, TD) {
+    cellRenderer: function(row, column, TD) {
       var cellData = that.getSetting('data', row, column);
-      Handsontable.Dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
+      dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     //columnWidth: 50,
-    columnWidth: function (col) {
+    columnWidth: function(col) {
       return; //return undefined means use default size for the rendered cell content
     },
-    rowHeight: function (row) {
+    rowHeight: function(row) {
       return; //return undefined means use default size for the rendered cell content
     },
     defaultRowHeight: 23,
@@ -45,7 +52,7 @@ function WalkontableSettings(instance, settings) {
     //callbacks
     onCellMouseDown: null,
     onCellMouseOver: null,
-//    onCellMouseOut: null,
+    //    onCellMouseOut: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
@@ -71,11 +78,9 @@ function WalkontableSettings(instance, settings) {
     if (this.defaults.hasOwnProperty(i)) {
       if (settings[i] !== void 0) {
         this.settings[i] = settings[i];
-      }
-      else if (this.defaults[i] === void 0) {
+      } else if (this.defaults[i] === void 0) {
         throw new Error('A required setting "' + i + '" was not provided');
-      }
-      else {
+      } else {
         this.settings[i] = this.defaults[i];
       }
     }
@@ -85,32 +90,29 @@ function WalkontableSettings(instance, settings) {
 /**
  * generic methods
  */
-WalkontableSettings.prototype.update = function (settings, value) {
+WalkontableSettings.prototype.update = function(settings, value) {
   if (value === void 0) { //settings is object
     for (var i in settings) {
       if (settings.hasOwnProperty(i)) {
         this.settings[i] = settings[i];
       }
     }
-  }
-  else { //if value is defined then settings is the key
+  } else { //if value is defined then settings is the key
     this.settings[settings] = value;
   }
   return this.instance;
 };
 
-WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3, param4) {
+WalkontableSettings.prototype.getSetting = function(key, param1, param2, param3, param4) {
   if (typeof this.settings[key] === 'function') {
     return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-  }
-  else if (param1 !== void 0 && Array.isArray(this.settings[key])) { //perhaps this can be removed, it is only used in tests
+  } else if (param1 !== void 0 && Array.isArray(this.settings[key])) { //perhaps this can be removed, it is only used in tests
     return this.settings[key][param1];
-  }
-  else {
+  } else {
     return this.settings[key];
   }
 };
 
-WalkontableSettings.prototype.has = function (key) {
+WalkontableSettings.prototype.has = function(key) {
   return !!this.settings[key];
 };

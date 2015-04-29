@@ -1,19 +1,28 @@
+
+import {WalkontableCellCoords} from './cellCoords.js';
+
+export {WalkontableCellRange};
+
+// TODO: Temp fix for tests
+window.WalkontableCellRange = WalkontableCellRange;
+
 /**
  * A cell range is a set of exactly two WalkontableCellCoords (that can be the same or different)
  */
-
 function WalkontableCellRange(highlight, from, to) {
-  this.highlight = highlight; //this property is used to draw bold border around a cell where selection was started and to edit the cell when you press Enter
-  this.from = from; //this property is usually the same as highlight, but in Excel there is distinction - one can change highlight within a selection
+  //this property is used to draw bold border around a cell where selection was started and to edit the cell when you press Enter
+  this.highlight = highlight;
+  //this property is usually the same as highlight, but in Excel there is distinction - one can change highlight within a selection
+  this.from = from;
   this.to = to;
 }
 
-WalkontableCellRange.prototype.isValid = function (instance) {
-  return (this.from.isValid(instance) && this.to.isValid(instance));
+WalkontableCellRange.prototype.isValid = function(instance) {
+  return this.from.isValid(instance) && this.to.isValid(instance);
 };
 
-WalkontableCellRange.prototype.isSingle = function () {
-  return (this.from.row === this.to.row && this.from.col === this.to.col);
+WalkontableCellRange.prototype.isSingle = function() {
+  return this.from.row === this.to.row && this.from.col === this.to.col;
 };
 
 /**
@@ -21,7 +30,7 @@ WalkontableCellRange.prototype.isSingle = function () {
  *
  * @returns {number}
  */
-WalkontableCellRange.prototype.getHeight = function () {
+WalkontableCellRange.prototype.getHeight = function() {
   return Math.max(this.from.row, this.to.row) - Math.min(this.from.row, this.to.row) + 1;
 };
 
@@ -30,7 +39,7 @@ WalkontableCellRange.prototype.getHeight = function () {
  *
  * @returns {number}
  */
-WalkontableCellRange.prototype.getWidth = function () {
+WalkontableCellRange.prototype.getWidth = function() {
   return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
 };
 
@@ -40,7 +49,7 @@ WalkontableCellRange.prototype.getWidth = function () {
  * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */
-WalkontableCellRange.prototype.includes = function (cellCoords) {
+WalkontableCellRange.prototype.includes = function(cellCoords) {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
 
@@ -55,11 +64,11 @@ WalkontableCellRange.prototype.includes = function (cellCoords) {
   return (topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col);
 };
 
-WalkontableCellRange.prototype.includesRange = function (testedRange) {
+WalkontableCellRange.prototype.includesRange = function(testedRange) {
   return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
 };
 
-WalkontableCellRange.prototype.isEqual = function (testedRange) {
+WalkontableCellRange.prototype.isEqual = function(testedRange) {
   return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row)) &&
          (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row)) &&
          (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col)) &&
@@ -73,15 +82,15 @@ WalkontableCellRange.prototype.isEqual = function (testedRange) {
  * @param testedRange
  * @returns {boolean}
  */
-WalkontableCellRange.prototype.overlaps = function (testedRange) {
+WalkontableCellRange.prototype.overlaps = function(testedRange) {
   return testedRange.isSouthEastOf(this.getTopLeftCorner()) && testedRange.isNorthWestOf(this.getBottomRightCorner());
 };
 
-WalkontableCellRange.prototype.isSouthEastOf = function (testedCoords) {
+WalkontableCellRange.prototype.isSouthEastOf = function(testedCoords) {
   return this.getTopLeftCorner().isSouthEastOf(testedCoords) || this.getBottomRightCorner().isSouthEastOf(testedCoords);
 };
 
-WalkontableCellRange.prototype.isNorthWestOf = function (testedCoords) {
+WalkontableCellRange.prototype.isNorthWestOf = function(testedCoords) {
   return this.getTopLeftCorner().isNorthWestOf(testedCoords) || this.getBottomRightCorner().isNorthWestOf(testedCoords);
 };
 
@@ -91,7 +100,7 @@ WalkontableCellRange.prototype.isNorthWestOf = function (testedCoords) {
  * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */
-WalkontableCellRange.prototype.expand = function (cellCoords) {
+WalkontableCellRange.prototype.expand = function(cellCoords) {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
   if (cellCoords.row < topLeft.row || cellCoords.col < topLeft.col || cellCoords.row > bottomRight.row || cellCoords.col > bottomRight.col) {
@@ -102,15 +111,15 @@ WalkontableCellRange.prototype.expand = function (cellCoords) {
   return false;
 };
 
-WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
+WalkontableCellRange.prototype.expandByRange = function(expandingRange) {
   if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)) {
     return false;
   }
 
-  var topLeft = this.getTopLeftCorner()
-    , bottomRight = this.getBottomRightCorner()
-    , topRight = this.getTopRightCorner()
-    , bottomLeft = this.getBottomLeftCorner();
+  var topLeft = this.getTopLeftCorner(),
+    bottomRight = this.getBottomRightCorner(),
+    topRight = this.getTopRightCorner(),
+    bottomLeft = this.getBottomLeftCorner();
 
   var expandingTopLeft = expandingRange.getTopLeftCorner();
   var expandingBottomRight = expandingRange.getBottomRightCorner();
@@ -120,10 +129,10 @@ WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
   var resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
   var resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
 
-  var finalFrom = new WalkontableCellCoords(resultTopRow, resultTopCol)
-    , finalTo = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
-  var isCorner = new WalkontableCellRange(finalFrom, finalFrom, finalTo).isCorner(this.from, expandingRange)
-    , onlyMerge = expandingRange.isEqual(new WalkontableCellRange(finalFrom, finalFrom, finalTo));
+  var finalFrom = new WalkontableCellCoords(resultTopRow, resultTopCol),
+    finalTo = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
+  var isCorner = new WalkontableCellRange(finalFrom, finalFrom, finalTo).isCorner(this.from, expandingRange),
+    onlyMerge = expandingRange.isEqual(new WalkontableCellRange(finalFrom, finalFrom, finalTo));
 
   if (isCorner && !onlyMerge) {
     if (this.from.col > finalFrom.col) {
@@ -142,8 +151,8 @@ WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
   return true;
 };
 
-WalkontableCellRange.prototype.getDirection = function () {
-  if (this.from.isNorthWestOf(this.to)) {        // NorthWest - SouthEast
+WalkontableCellRange.prototype.getDirection = function() {
+  if (this.from.isNorthWestOf(this.to)) { // NorthWest - SouthEast
     return "NW-SE";
   } else if (this.from.isNorthEastOf(this.to)) { // NorthEast - SouthWest
     return "NE-SW";
@@ -154,44 +163,44 @@ WalkontableCellRange.prototype.getDirection = function () {
   }
 };
 
-WalkontableCellRange.prototype.setDirection = function (direction) {
+WalkontableCellRange.prototype.setDirection = function(direction) {
   switch (direction) {
-    case "NW-SE" :
+    case "NW-SE":
       this.from = this.getTopLeftCorner();
       this.to = this.getBottomRightCorner();
       break;
-    case "NE-SW" :
+    case "NE-SW":
       this.from = this.getTopRightCorner();
       this.to = this.getBottomLeftCorner();
       break;
-    case "SE-NW" :
+    case "SE-NW":
       this.from = this.getBottomRightCorner();
       this.to = this.getTopLeftCorner();
       break;
-    case "SW-NE" :
+    case "SW-NE":
       this.from = this.getBottomLeftCorner();
       this.to = this.getTopRightCorner();
       break;
   }
 };
 
-WalkontableCellRange.prototype.getTopLeftCorner = function () {
+WalkontableCellRange.prototype.getTopLeftCorner = function() {
   return new WalkontableCellCoords(Math.min(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
 };
 
-WalkontableCellRange.prototype.getBottomRightCorner = function () {
+WalkontableCellRange.prototype.getBottomRightCorner = function() {
   return new WalkontableCellCoords(Math.max(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
 };
 
-WalkontableCellRange.prototype.getTopRightCorner = function () {
+WalkontableCellRange.prototype.getTopRightCorner = function() {
   return new WalkontableCellCoords(Math.min(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
 };
 
-WalkontableCellRange.prototype.getBottomLeftCorner = function () {
+WalkontableCellRange.prototype.getBottomLeftCorner = function() {
   return new WalkontableCellCoords(Math.max(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
 };
 
-WalkontableCellRange.prototype.isCorner = function (coords, expandedRange) {
+WalkontableCellRange.prototype.isCorner = function(coords, expandedRange) {
   if (expandedRange) {
     if (expandedRange.includes(coords)) {
       if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col)) ||
@@ -202,10 +211,11 @@ WalkontableCellRange.prototype.isCorner = function (coords, expandedRange) {
       }
     }
   }
-  return coords.isEqual(this.getTopLeftCorner()) || coords.isEqual(this.getTopRightCorner()) || coords.isEqual(this.getBottomLeftCorner()) || coords.isEqual(this.getBottomRightCorner());
+  return coords.isEqual(this.getTopLeftCorner()) || coords.isEqual(this.getTopRightCorner()) ||
+    coords.isEqual(this.getBottomLeftCorner()) || coords.isEqual(this.getBottomRightCorner());
 };
 
-WalkontableCellRange.prototype.getOppositeCorner = function (coords, expandedRange) {
+WalkontableCellRange.prototype.getOppositeCorner = function(coords, expandedRange) {
   if (!(coords instanceof WalkontableCellCoords)) {
     return false;
   }
@@ -234,28 +244,26 @@ WalkontableCellRange.prototype.getOppositeCorner = function (coords, expandedRan
   } else if (coords.isEqual(this.getTopRightCorner())) {
     return this.getBottomLeftCorner();
   } else if (coords.isEqual(this.getBottomLeftCorner())) {
-    return  this.getTopRightCorner();
+    return this.getTopRightCorner();
   }
 };
 
-WalkontableCellRange.prototype.getBordersSharedWith = function (range) {
+WalkontableCellRange.prototype.getBordersSharedWith = function(range) {
   if (!this.includesRange(range)) {
     return [];
   }
 
   var thisBorders = {
-      top: Math.min(this.from.row, this.to.row),
-      bottom: Math.max(this.from.row, this.to.row),
-      left: Math.min(this.from.col, this.to.col),
-      right: Math.max(this.from.col, this.to.col)
-    }
-    , rangeBorders = {
-      top: Math.min(range.from.row, range.to.row),
-      bottom: Math.max(range.from.row, range.to.row),
-      left: Math.min(range.from.col, range.to.col),
-      right: Math.max(range.from.col, range.to.col)
-    }
-    , result = [];
+    top: Math.min(this.from.row, this.to.row),
+    bottom: Math.max(this.from.row, this.to.row),
+    left: Math.min(this.from.col, this.to.col),
+    right: Math.max(this.from.col, this.to.col)
+  }, rangeBorders = {
+    top: Math.min(range.from.row, range.to.row),
+    bottom: Math.max(range.from.row, range.to.row),
+    left: Math.min(range.from.col, range.to.col),
+    right: Math.max(range.from.col, range.to.col)
+  }, result = [];
 
   if (thisBorders.top == rangeBorders.top) {
     result.push('top');
@@ -273,7 +281,7 @@ WalkontableCellRange.prototype.getBordersSharedWith = function (range) {
   return result;
 };
 
-WalkontableCellRange.prototype.getInner = function () {
+WalkontableCellRange.prototype.getInner = function() {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
   var out = [];
@@ -287,7 +295,7 @@ WalkontableCellRange.prototype.getInner = function () {
   return out;
 };
 
-WalkontableCellRange.prototype.getAll = function () {
+WalkontableCellRange.prototype.getAll = function() {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
   var out = [];
@@ -295,11 +303,9 @@ WalkontableCellRange.prototype.getAll = function () {
     for (var c = topLeft.col; c <= bottomRight.col; c++) {
       if (topLeft.row === r && topLeft.col === c) {
         out.push(topLeft);
-      }
-      else if (bottomRight.row === r && bottomRight.col === c) {
+      } else if (bottomRight.row === r && bottomRight.col === c) {
         out.push(bottomRight);
-      }
-      else {
+      } else {
         out.push(new WalkontableCellCoords(r, c));
       }
     }
@@ -312,7 +318,7 @@ WalkontableCellRange.prototype.getAll = function () {
  *
  * @param callback {Function}
  */
-WalkontableCellRange.prototype.forAll = function (callback) {
+WalkontableCellRange.prototype.forAll = function(callback) {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
   for (var r = topLeft.row; r <= bottomRight.row; r++) {
@@ -324,5 +330,3 @@ WalkontableCellRange.prototype.forAll = function (callback) {
     }
   }
 };
-
-window.WalkontableCellRange = WalkontableCellRange; //export

@@ -1,4 +1,9 @@
-function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+
+export {WalkontableViewportColumnsCalculator};
+
+window.WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator;
+
+function WalkontableViewportColumnsCalculator(width, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
   var
     _this = this,
     ratio = 1,
@@ -68,7 +73,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
    *
    * @param {Number} totalWidth
    */
-  this.refreshStretching = function (totalWidth) {
+  this.refreshStretching = function(totalWidth) {
     var sumAll = 0,
       columnWidth,
       remainingSize;
@@ -84,8 +89,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
       this.stretchAllRatio = totalWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.needVerifyLastColumnWidth = true;
-    }
-    else if (this.stretch === 'last' && totalWidth !== Infinity) {
+    } else if (this.stretch === 'last' && totalWidth !== Infinity) {
       this.stretchLastWidth = -remainingSize + getColumnWidth(totalColumns - 1);
     }
   };
@@ -102,8 +106,7 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
 
     if (this.stretch === 'all' && this.stretchAllRatio !== 0) {
       result = getStretchedAllColumnWidth(column, baseWidth);
-    }
-    else if (this.stretch === 'last' && this.stretchLastWidth !== 0) {
+    } else if (this.stretch === 'last' && this.stretchLastWidth !== 0) {
       result = getStretchedLastColumnWidth(column, baseWidth);
     }
 
@@ -163,4 +166,3 @@ function WalkontableViewportColumnsCalculator (width, scrollOffset, totalColumns
     this.count = this.endColumn - this.startColumn + 1;
   }
 }
-

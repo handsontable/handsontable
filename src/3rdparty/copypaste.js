@@ -6,32 +6,31 @@
  * @constructor
  * @private
  */
-var CopyPaste = (function () {
-  var instance;
 
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = new CopyPasteClass();
+import * as helper from './../helpers.js';
+import {eventManager as eventManagerObject} from './../eventManager.js';
 
-      } else if (instance.hasBeenDestroyed()) {
-        instance.init();
-      }
-      instance.refCounter ++;
+export {copyPasteManager};
 
-      return instance;
-    }
-  };
-})();
+var instance;
+
+function copyPasteManager() {
+  if (!instance) {
+    instance = new CopyPasteClass();
+
+  } else if (instance.hasBeenDestroyed()){
+    instance.init();
+  }
+  instance.refCounter++;
+
+  return instance;
+}
 
 function CopyPasteClass() {
   this.refCounter = 0;
   this.init();
 }
 
-/**
- * Initialize CopyPaste class
- */
 CopyPasteClass.prototype.init = function () {
   var
     style,
@@ -40,7 +39,7 @@ CopyPasteClass.prototype.init = function () {
   this.copyCallbacks = [];
   this.cutCallbacks = [];
   this.pasteCallbacks = [];
-  this._eventManager = Handsontable.eventManager(this);
+  this._eventManager = eventManagerObject(this);
 
   // this.listenerElement = document.documentElement;
   parent = document.body;
@@ -119,9 +118,9 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
   }
 
   if (isCtrlDown &&
-      (event.keyCode === Handsontable.helper.keyCode.C ||
-      event.keyCode === Handsontable.helper.keyCode.V ||
-      event.keyCode === Handsontable.helper.keyCode.X)) {
+      (event.keyCode === helper.keyCode.C ||
+      event.keyCode === helper.keyCode.V ||
+      event.keyCode === helper.keyCode.X)) {
     // works in all browsers, incl. Opera < 12.12
     if (event.keyCode === 88) {
       setTimeout(function () {

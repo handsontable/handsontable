@@ -1,3 +1,8 @@
+
+export {WalkontableViewportRowsCalculator};
+
+window.WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
+
 /**
  * Viewport calculator constructor. Calculates indexes of rows to render OR rows that are visible.
  * To redo the calculation, you need to create a new calculator.
@@ -49,7 +54,7 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
     }
     startPositions.push(sum);
     sum += rowHeight;
-    if(!onlyFullyVisible) {
+    if (!onlyFullyVisible) {
       this.endRow = i;
     }
     if (sum >= scrollOffset + height) {
@@ -61,15 +66,13 @@ function WalkontableViewportRowsCalculator(height, scrollOffset, totalRows, rowH
   //If the estimation has reached the last row and there is still some space available in the viewport, we need to render in reverse in order to fill the whole viewport with rows
   if (this.endRow == totalRows - 1 && needReverse) {
     this.startRow = this.endRow;
-    while(this.startRow > 0) {
+    while (this.startRow > 0) {
       var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1]; //rowHeight is the height of the last row
-      if (viewportSum <= height || !onlyFullyVisible)
-      {
+      if (viewportSum <= height || !onlyFullyVisible) {
         this.startRow--;
       }
-      if (viewportSum >= height)
-      {
-       break;
+      if (viewportSum >= height) {
+        break;
       }
     }
   }

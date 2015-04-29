@@ -1,8 +1,8 @@
-if (typeof DragToScroll === 'undefined' && typeof require !== 'undefined') {
-  // having this allows you to run this test using:
-  // jasmine-node src/plugins/dragToScroll/test/dragToScroll.spec.js
-  eval(require('fs').readFileSync(__dirname + '/../dragToScroll.js', 'utf8'));
-}
+//if (typeof DragToScroll === 'undefined' && typeof require !== 'undefined') {
+//  // having this allows you to run this test using:
+//  // jasmine-node src/plugins/dragToScroll/test/dragToScroll.spec.js
+//  eval(require('fs').readFileSync(__dirname + '/../dragToScroll.js', 'utf8'));
+//}
 
 describe("DragToScroll", function () {
   function createBoundaries() {
