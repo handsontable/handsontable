@@ -173,9 +173,13 @@ DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
   while (numberOfCreatedRows < amount && this.instance.countRows() < maxRows) {
 
     if (this.instance.dataType === 'array') {
-      row = [];
-      for (var c = 0; c < colCount; c++) {
-        row.push(null);
+      if (this.instance.getSettings().dataSchema) {
+        row = JSON.parse(JSON.stringify(this.getSchema()));  // Clone template array
+      } else {        
+        row = [];
+        for (var c = 0; c < colCount; c++) {
+          row.push(null);
+        }
       }
 
     } else if (this.instance.dataType === 'function') {
