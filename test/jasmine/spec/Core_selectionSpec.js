@@ -564,5 +564,109 @@ describe('Core_selection', function () {
 
   });
 
+  it("should change selected coords by modifying coords object via `modifyTransformStart` hook", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
 
+    hot.addHook('modifyTransformStart', function(coords) {
+      coords.col += 1;
+      coords.row += 1;
+    });
+    keyDown('arrow_down');
+
+    expect(getSelected()).toEqual([2, 1, 2, 1]);
+  });
+
+  it("should change selected coords by modifying coords object via `modifyTransformEnd` hook", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
+
+    hot.addHook('modifyTransformEnd', function(coords) {
+      coords.col += 2;
+      coords.row += 1;
+    });
+    keyDown('shift+arrow_down');
+
+    expect(getSelected()).toEqual([0, 0, 2, 2]);
+  });
+
+  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', function () {
+    var spy = jasmine.createSpy();
+
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    hot.addHook('afterModifyTransformStart', spy);
+
+    selectCell(2, 0);
+    keyDownUp('arrow_left');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(-1);
+
+    spy.reset();
+    selectCell(2, 4);
+    keyDownUp('arrow_right');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(1);
+
+    spy.reset();
+    selectCell(4, 2);
+    keyDownUp('arrow_down');
+
+    expect(spy.mostRecentCall.args[1]).toBe(1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+
+    spy.reset();
+    selectCell(0, 2);
+    keyDownUp('arrow_up');
+
+    expect(spy.mostRecentCall.args[1]).toBe(-1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+  });
+
+  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', function () {
+    var spy = jasmine.createSpy();
+
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    hot.addHook('afterModifyTransformEnd', spy);
+
+    selectCell(2, 0);
+    keyDownUp('shift+arrow_left');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(-1);
+
+    spy.reset();
+    selectCell(2, 4);
+    keyDownUp('shift+arrow_right');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(1);
+
+    spy.reset();
+    selectCell(4, 2);
+    keyDownUp('shift+arrow_down');
+
+    expect(spy.mostRecentCall.args[1]).toBe(1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+
+    spy.reset();
+    selectCell(0, 2);
+    keyDownUp('shift+arrow_up');
+
+    expect(spy.mostRecentCall.args[1]).toBe(-1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+  });
 });
