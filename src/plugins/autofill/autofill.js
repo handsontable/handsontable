@@ -305,14 +305,13 @@ Autofill.prototype.checkIfNewRowNeeded = function () {
   var fillCorners,
     selection,
     tableRows = this.instance.countRows(),
-    that = this,
-    maxRowsSetting = this.instance.getSettings().maxRows;
+    that = this;
 
   if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
     selection = this.instance.getSelected();
     fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-    if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1 && tableRows !== maxRowsSetting) {
+    if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
       this.addingStarted = true;
 
       this.instance._registerTimeout(setTimeout(function () {

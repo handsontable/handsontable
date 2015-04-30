@@ -101,6 +101,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       switch (action) {
         case "insert_row":
+          
+          if(instance.getSettings().maxRows === instance.countRows()) {
+            return;
+          }
+          
           delta = datamap.createRow(index, amount);
 
           if (delta) {
