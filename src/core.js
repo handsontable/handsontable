@@ -651,6 +651,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", totalRows);
+          totalRows = instance.countRows();
 
         } else if (priv.settings.autoWrapCol) {
           delta.row = 1 - totalRows;
@@ -664,6 +665,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", totalCols);
+          totalCols = instance.countCols();
 
         } else if (priv.settings.autoWrapRow) {
           delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;

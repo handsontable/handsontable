@@ -597,6 +597,27 @@ describe('Core_selection', function () {
 
   });
 
+  it("should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0", function () {
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 2,
+      minSpareRows: 1
+    });
+
+    selectCell(4,0);
+
+    keyDownUp('enter');
+    waits(100);
+    runs(function() {
+      keyDownUp('enter');
+    });
+    waits(100);
+    runs(function () {
+      expect(countRows()).toEqual(6);
+      expect(getSelected()).toEqual([5,0,5,0]);
+    });
+  });
+
   it("should change selected coords by modifying coords object via `modifyTransformStart` hook", function(){
     var hot = handsontable({
       startRows: 5,
