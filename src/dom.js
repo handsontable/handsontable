@@ -168,14 +168,14 @@ function filterEmptyClassNames(classNames) {
   }
   while (classNames[len]) {
     result.push(classNames[len]);
-    len ++;
+    len++;
   }
 
   return result;
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function() {
+  var isSupportMultipleClassesArg = (function () {
     var element = document.createElement('div');
 
     element.classList.add('test', 'test2');
@@ -205,7 +205,7 @@ if (classListSupport) {
     } else {
       while (className && className[len]) {
         element.classList.add(className[len]);
-        len ++;
+        len++;
       }
     }
   };
@@ -224,7 +224,7 @@ if (classListSupport) {
     } else {
       while (className && className[len]) {
         element.classList.remove(className[len]);
-        len ++;
+        len++;
       }
     }
   };
@@ -254,7 +254,7 @@ if (classListSupport) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ' ' + className[len];
         }
-        len ++;
+        len++;
       }
     }
     element.className = _className;
@@ -270,7 +270,7 @@ if (classListSupport) {
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len ++;
+      len++;
     }
     if (element.className !== _className) {
       element.className = _className;
@@ -475,6 +475,10 @@ export function offset(elem) {
   };
 }
 
+/**
+ * Returns the document's scrollTop property
+ * @returns {Number}
+ */
 export function getWindowScrollTop() {
   var res = window.scrollY;
   if (res == void 0) { //IE8-11
@@ -483,6 +487,10 @@ export function getWindowScrollTop() {
   return res;
 }
 
+/**
+ * Returns the document's scrollLeft property
+ * @returns {Number}
+ */
 export function getWindowScrollLeft() {
   var res = window.scrollX;
   if (res == void 0) { //IE8-11
@@ -491,6 +499,11 @@ export function getWindowScrollLeft() {
   return res;
 }
 
+/**
+ * Returns the provided element's scrollTop property
+ * @param elem
+ * @returns {Number}
+ */
 export function getScrollTop(elem) {
   if (elem === window) {
     return getWindowScrollTop(elem);
@@ -500,6 +513,11 @@ export function getScrollTop(elem) {
   }
 }
 
+/**
+ * Returns the provided element's scrollLeft property
+ * @param elem
+ * @returns {Number}
+ */
 export function getScrollLeft(elem) {
   if (elem === window) {
     return getWindowScrollLeft(elem);
@@ -509,6 +527,11 @@ export function getScrollLeft(elem) {
   }
 }
 
+/**
+ * Returns a DOM element responsible for scrolling of the provided element
+ * @param {HTMLElement} element
+ * @returns {HTMLElement} Element's scrollable parent
+ */
 export function getScrollableElement(element) {
   var el = element.parentNode,
     props = ['auto', 'scroll'],
@@ -526,10 +549,10 @@ export function getScrollableElement(element) {
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
     } else if (window.getComputedStyle) {
-        computedStyle = window.getComputedStyle(el);
-        computedOverflow = computedStyle.getPropertyValue('overflow');
-        computedOverflowY = computedStyle.getPropertyValue('overflow-y');
-        computedOverflowX = computedStyle.getPropertyValue('overflow-x');
+      computedStyle = window.getComputedStyle(el);
+      computedOverflow = computedStyle.getPropertyValue('overflow');
+      computedOverflowY = computedStyle.getPropertyValue('overflow-y');
+      computedOverflowX = computedStyle.getPropertyValue('overflow-x');
 
       if (computedOverflow === 'scroll' || computedOverflowX === 'scroll' || computedOverflowY === 'scroll') {
         return el;
@@ -550,6 +573,11 @@ export function getScrollableElement(element) {
   return window;
 }
 
+/**
+ * Returns a DOM element responsible for trimming the provided element
+ * @param {HTMLElement} base Base element
+ * @returns {HTMLElement} Base element's trimming parent
+ */
 export function getTrimmingContainer(base) {
   var el = base.parentNode;
   while (el && el.style && document.body !== el) {
@@ -567,6 +595,12 @@ export function getTrimmingContainer(base) {
   return window;
 }
 
+/**
+ * Returns a style property for the provided element. (Be it an inline or external style)
+ * @param {HTMLElement} elem
+ * @param {string} prop Wanted property
+ * @returns {string} Element's style property
+ */
 export function getStyle(elem, prop) {
   if (!elem) {
     return;
@@ -592,14 +626,29 @@ export function getStyle(elem, prop) {
   }
 }
 
+/**
+ * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet)
+ * @param elem
+ * @returns {IEElementStyle|CssStyle} Elements computed style object
+ */
 export function getComputedStyle(elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 }
 
+/**
+ * Returns the element's outer width
+ * @param elem
+ * @returns {number} Element's outer width
+ */
 export function outerWidth(elem) {
   return elem.offsetWidth;
 }
 
+/**
+ * Returns the element's outer height
+ * @param elem
+ * @returns {number} Element's outer height
+ */
 export function outerHeight(elem) {
   if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
     //fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
@@ -616,10 +665,20 @@ export function outerHeight(elem) {
   }
 }
 
+/**
+ * Returns the element's inner height
+ * @param elem
+ * @returns {number} Element's inner height
+ */
 export function innerHeight(elem) {
   return elem.clientHeight || elem.innerHeight;
 }
 
+/**
+ * Returns the element's inner width
+ * @param elem
+ * @returns {number} Element's inner width
+ */
 export function innerWidth(elem) {
   return elem.clientWidth || elem.innerWidth;
 }
