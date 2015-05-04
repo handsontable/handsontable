@@ -498,10 +498,11 @@ Comment For Cell
   padding: 0 0 5px 0;
 }
 
-.handsontable .handsontable:not(.ht_master) table {
-  -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
-}
+/* removing shadows, TODO: remove the commented code and this comment  */
+/*.handsontable .handsontable:not(.ht_master) table {*/
+  /*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+  /*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+/*}*/
 
 /**
 * Autocomplete Editor
