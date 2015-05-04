@@ -1,4 +1,3 @@
-
 import * as dom from './../../dom.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
@@ -8,9 +7,9 @@ export {Autofill};
 
 function getDeltas(start, end, data, direction) {
   var
-    // rows
+  // rows
     rlength = data.length,
-    // cols
+  // cols
     clength = data ? data[0].length : 0,
     deltas = [],
     arr = [],
@@ -95,13 +94,13 @@ function Autofill(instance) {
       return false;
     }
     tableBottom = dom.offset(_this.instance.table).top - (window.pageYOffset ||
-        document.documentElement.scrollTop) + dom.outerHeight(_this.instance.table);
+      document.documentElement.scrollTop) + dom.outerHeight(_this.instance.table);
     tableRight = dom.offset(_this.instance.table).left - (window.pageXOffset ||
-        document.documentElement.scrollLeft) + dom.outerWidth(_this.instance.table);
+      document.documentElement.scrollLeft) + dom.outerWidth(_this.instance.table);
 
     // dragged outside bottom
     if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom &&
-        event.clientX <= tableRight) {
+      event.clientX <= tableRight) {
       _this.instance.mouseDragOutside = true;
       _this.addingStarted = true;
 
@@ -110,19 +109,20 @@ function Autofill(instance) {
     }
 
     if (_this.instance.mouseDragOutside) {
-      setTimeout(function() {
+      setTimeout(function () {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
       }, 200);
     }
   }
+
   eventManager.addEventListener(document, 'mouseup', mouseUpCallback);
   eventManager.addEventListener(document, 'mousemove', mouseMoveCallback);
 
   // Appeding autofill-specific methods to walkontable event settings
   wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
 
-  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
+  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function (event) {
     instance.autofill.handle.isDragged = 1;
     mouseDownOnCellCorner = true;
     wtOnCellCornerMouseDown(event);
@@ -130,9 +130,9 @@ function Autofill(instance) {
 
   wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
 
-  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
+  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function (event, coords, TD, wt) {
     if (instance.autofill && mouseDownOnCellCorner && !instance.view.isMouseDown() &&
-        instance.autofill.handle && instance.autofill.handle.isDragged) {
+      instance.autofill.handle && instance.autofill.handle.isDragged) {
       instance.autofill.handle.isDragged++;
       instance.autofill.showBorder(coords);
       instance.autofill.checkIfNewRowNeeded();
@@ -140,7 +140,7 @@ function Autofill(instance) {
     wtOnCellMouseOver(event, coords, TD, wt);
   };
 
-  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function() {
+  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function () {
     instance.autofill.selectAdjacent();
   };
 }
@@ -151,7 +151,7 @@ function Autofill(instance) {
  * @function init
  * @memberof Autofill#
  */
-Autofill.prototype.init = function() {
+Autofill.prototype.init = function () {
   this.handle = {};
 };
 
@@ -161,7 +161,7 @@ Autofill.prototype.init = function() {
  * @function disable
  * @memberof Autofill#
  */
-Autofill.prototype.disable = function() {
+Autofill.prototype.disable = function () {
   this.handle.disabled = true;
 };
 
@@ -171,7 +171,7 @@ Autofill.prototype.disable = function() {
  * @function selectAdjacent
  * @memberof Autofill#
  */
-Autofill.prototype.selectAdjacent = function() {
+Autofill.prototype.selectAdjacent = function () {
   var select, data, r, maxR, c;
 
   if (this.instance.selection.isMultiple()) {
@@ -188,7 +188,7 @@ Autofill.prototype.selectAdjacent = function() {
         break rows;
       }
     }
-    if ( !! data[r][select[1] - 1] || !! data[r][select[3] + 1]) {
+    if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
       maxR = r;
     }
   }
@@ -206,7 +206,7 @@ Autofill.prototype.selectAdjacent = function() {
  * @function apply
  * @memberof Autofill#
  */
-Autofill.prototype.apply = function() {
+Autofill.prototype.apply = function () {
   var drag, select, start, end, _data, direction, deltas, selRange;
 
   this.handle.isDragged = 0;
@@ -275,7 +275,7 @@ Autofill.prototype.apply = function() {
  * @memberof Autofill#
  * @param {WalkontableCellCoords} coords
  */
-Autofill.prototype.showBorder = function(coords) {
+Autofill.prototype.showBorder = function (coords) {
   var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),
     bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
 
@@ -297,10 +297,11 @@ Autofill.prototype.showBorder = function(coords) {
 };
 
 /**
+ * Adds new rows if they are needed to continue auto-filling values
  * @function checkIfNewRowNeeded
  * @memberof Autofill#
  */
-Autofill.prototype.checkIfNewRowNeeded = function() {
+Autofill.prototype.checkIfNewRowNeeded = function () {
   var fillCorners,
     selection,
     tableRows = this.instance.countRows(),
@@ -313,7 +314,7 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
     if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
       this.addingStarted = true;
 
-      this.instance._registerTimeout(setTimeout(function() {
+      this.instance._registerTimeout(setTimeout(function () {
         that.instance.alter('insert_row');
         that.addingStarted = false;
       }, 200));
@@ -322,7 +323,7 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
 };
 
 
-Handsontable.hooks.add('afterInit', function() {
+Handsontable.hooks.add('afterInit', function () {
   var autofill = new Autofill(this);
 
   if (typeof this.getSettings().fillHandle !== 'undefined') {

@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.15.0-beta1
+ * Handsontable 0.15.0-beta2
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,12 +7,12 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Apr 29 2015 13:16:22 GMT+0200 (CEST)
+ * Date: Mon May 04 2015 10:11:13 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.15.0-beta1'
+  version: '0.15.0-beta2'
 };
 require=(function outer (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
@@ -4548,6 +4548,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       amount = amount || 1;
       switch (action) {
         case "insert_row":
+          if (instance.getSettings().maxRows === instance.countRows()) {
+            return;
+          }
           delta = datamap.createRow(index, amount);
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
@@ -4930,6 +4933,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", totalRows);
+          totalRows = instance.countRows();
         } else if (priv.settings.autoWrapCol) {
           delta.row = 1 - totalRows;
           delta.col = priv.selRange.highlight.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
@@ -4941,6 +4945,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", totalCols);
+          totalCols = instance.countCols();
         } else if (priv.settings.autoWrapRow) {
           delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
           delta.col = 1 - totalCols;
