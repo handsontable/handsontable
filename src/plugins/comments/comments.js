@@ -1,190 +1,254 @@
-
 import * as dom from './../../dom.js';
-import * as helper from './../../helpers.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
-//import {registerPlugin} from './../plugins.js';
-//
-//export {Comments};
-//
-//registerPlugin('comments', Comments);
+import {registerPlugin, getPlugin} from './../../plugins.js';
+import BasePlugin from './../_base.js';
 
 /**
  * @class Comments
- * @private
  * @plugin
  */
-function Comments(instance) {
+class Comments extends BasePlugin {
+  /**
+   * @param {Object} hotInstance
+   */
+  constructor (hotInstance) {
+    super (hotInstance);
 
-  var eventManager = eventManagerObject(instance),
-    doSaveComment = function(row, col, comment, instance) {
-      instance.setCellMeta(row, col, 'comment', comment);
-      instance.render();
-    },
-    saveComment = function(range, comment, instance) {
-      //LIKE IN EXCEL (TOP LEFT CELL)
-      doSaveComment(range.from.row, range.from.col, comment, instance);
-    },
-    hideCommentTextArea = function() {
-      var commentBox = createCommentBox();
-      commentBox.style.display = 'none';
-      commentBox.value = '';
-    },
-    bindMouseEvent = function(range) {
+    this.hot.addHook('beforeInit', () => this.beforeInit());
+    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
+    this.hot.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.afterRenderer(TD, row, col, prop, value, cellProperties));
+  }
 
-      function commentsListener(event) {
-        eventManager.removeEventListener(document, 'mouseover');
-        if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
-          var value = document.querySelector('.htCommentTextArea').value;
-          if (value.trim().length > 1) {
-            saveComment(range, value, instance);
-          }
-          unBindMouseEvent();
-          hideCommentTextArea();
+  /***
+   * BEFORE INIT PLUGIN
+   */
+  beforeInit() {
+    if (!this.hot.getSettings().comments) {
+      return;
+    }
+    var commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
+
+    eventManager.addEventListener(document, 'mouseover', (event) => this.bindMouseOverCommentListener(event));
+  }
+
+
+  /***
+   * Hide placeholder for comment't textarea and clear value
+   */
+  hideCommentTextArea () {
+    var commentBox = this.createCommentBox();
+    commentBox.style.display = 'none';
+    commentBox.value = '';
+  }
+
+  /***
+   * Bind mouse events
+   *
+   * @param range
+   */
+  bindEvents (range) {
+    var commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
+
+    function commentsListener(event) {
+      eventManager.removeEventListener(document, 'mouseover');
+      if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
+        var value = document.querySelector('.htCommentTextArea').value;
+        if (value.trim().length > 1) {
+          commentPlugin.saveComment(range.from.row, range.from.col, value);
         }
+        commentPlugin.unBindMouseEvent();
+        commentPlugin.hideCommentTextArea();
       }
+    }
 
-      eventManager.addEventListener(document, 'mousedown', helper.proxy(commentsListener));
-    },
-    unBindMouseEvent = function() {
-      eventManager.removeEventListener(document, 'mousedown');
-      eventManager.addEventListener(document, 'mousedown', helper.proxy(commentsMouseOverListener));
-    },
-    placeCommentBox = function(range, commentBox) {
-      var TD = instance.view.wt.wtTable.getCell(range.from),
-        offset = dom.offset(TD),
-        lastColWidth = instance.getColWidth(range.from.col);
+    eventManager.addEventListener(document, 'mousedown', (event) => commentsListener(event));
+  }
 
-      commentBox.style.position = 'absolute';
-      commentBox.style.left = offset.left + lastColWidth + 'px';
-      commentBox.style.top = offset.top + 'px';
-      commentBox.style.zIndex = 2;
-      bindMouseEvent(range, commentBox);
-    },
-    createCommentBox = function(value) {
-      var comments = document.querySelector('.htComments');
+  /***
+   * Unbind mouse events
+   */
+  unBindMouseEvent () {
+    var commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
 
-      if (!comments) {
-        comments = document.createElement('DIV');
+    eventManager.removeEventListener(document, 'mousedown');
+    eventManager.addEventListener(document, 'mouseover', (event) => this.bindMouseOverCommentListener(event));
+  }
 
-        var textArea = document.createElement('TEXTAREA');
-        dom.addClass(textArea, 'htCommentTextArea');
-        comments.appendChild(textArea);
 
-        dom.addClass(comments, 'htComments');
-        document.getElementsByTagName('body')[0].appendChild(comments);
-      }
-
-      value = value || '';
-
-      document.querySelector('.htCommentTextArea').value = value;
-
-      //var tA = document.getElementsByClassName('htCommentTextArea')[0];
-      //tA.focus();
-      return comments;
-    },
-    commentsMouseOverListener = function(event) {
-      if (event.target.className.indexOf('htCommentCell') != -1) {
-        unBindMouseEvent();
-        var coords = instance.view.wt.wtTable.getCoords(event.target);
-        var range = {
+  /***
+   * Bind mouse over commented cell event
+   *
+   * @param event
+   */
+  bindMouseOverCommentListener (event) {
+    if (event.target.className.indexOf('htCommentCell') != -1) {
+      this.unBindMouseEvent();
+      var coords = this.hot.view.wt.wtTable.getCoords(event.target),
+        range = {
           from: new WalkontableCellCoords(coords.row, coords.col)
         };
 
-        Handsontable.Comments.showComment(range);
-      } else if (event.target.className != 'htCommentTextArea') {
-        hideCommentTextArea();
-      }
-    };
+      this.showComment(range);
+    } else if (event.target.className != 'htCommentTextArea') {
+      this.hideCommentTextArea();
+    }
+  }
 
-  return {
-    init: function() {
-      eventManager.addEventListener(document, 'mouseover', helper.proxy(commentsMouseOverListener));
-    },
-    showComment: function(range) {
-      var meta = instance.getCellMeta(range.from.row, range.from.col),
-        value = '';
+  /***
+   * Save comment for cell
+   *
+   * @param row
+   * @param col
+   * @param comment
+   */
+  saveComment (row, col, comment) {
+    this.hot.setCellMeta(row, col, 'comment', comment);
+    this.hot.render();
+  }
 
-      if (meta.comment) {
-        value = meta.comment;
-      }
-      var commentBox = createCommentBox(value);
-      commentBox.style.display = 'block';
-      placeCommentBox(range, commentBox);
-    },
-    removeComment: function(row, col) {
-      instance.removeCellMeta(row, col, 'comment');
-      instance.render();
-    },
-    checkSelectionCommentsConsistency: function() {
-      var hasComment = false;
+  /***
+   * Remove comment
+   *
+   * @param row
+   * @param col
+   */
+  removeComment (row, col) {
+    this.hot.removeCellMeta(row, col, 'comment');
+    this.hot.render();
+  }
+
+  /***
+   * Place comment textarea in proper place
+   *
+   * @param range
+   * @param commentBox
+   */
+  placeCommentBox (range, commentBox) {
+    var TD = this.hot.view.wt.wtTable.getCell(range.from),
+      offset = dom.offset(TD),
+      lastColWidth = this.hot.getColWidth(range.from.col);
+
+    commentBox.style.position = 'absolute';
+    commentBox.style.left = offset.left + lastColWidth + 'px';
+    commentBox.style.top = offset.top + 'px';
+    commentBox.style.zIndex = 2;
+    this.bindEvents(range, commentBox);
+  }
+
+  /***
+   * Create placeholder for comment's textarea
+   *
+   * @param value
+   * @returns {Element}
+   */
+  createCommentBox (value) {
+    var comments = document.querySelector('.htComments');
+
+    if (!comments) {
+      comments = document.createElement('DIV');
+
+      var textArea = document.createElement('TEXTAREA');
+      dom.addClass(textArea, 'htCommentTextArea');
+      comments.appendChild(textArea);
+
+      dom.addClass(comments, 'htComments');
+      document.getElementsByTagName('body')[0].appendChild(comments);
+    }
+
+    value = value || '';
+
+    document.querySelector('.htCommentTextArea').value = value;
+
+    return comments;
+  }
+
+  /***
+   * Show comment for selected range
+   *
+   * @param range
+   */
+  showComment (range) {
+    var meta = this.hot.getCellMeta(range.from.row, range.from.col),
+      value = '',
+      commentBox;
+
+    if (meta.comment) {
+      value = meta.comment;
+    }
+
+    commentBox = this.createCommentBox(value);
+    commentBox.style.display = 'block';
+    this.placeCommentBox(range, commentBox);
+  }
+
+
+  afterRenderer(TD, row, col, prop, value, cellProperties) {
+    if (cellProperties.comment) {
+      dom.addClass(TD, cellProperties.commentedCellClassName);
+    }
+  }
+
+
+  /***
+   * Check if there is a comment for selected range
+   *
+   * @returns {boolean}
+   */
+  checkSelectionCommentsConsistency () {
+      var hasComment = false,
       // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
-      var cell = instance.getSelectedRange().from;
+        cell = this.hot.getSelectedRange().from;
 
-      if (instance.getCellMeta(cell.row, cell.col).comment) {
+      if (this.hot.getCellMeta(cell.row, cell.col).comment) {
         hasComment = true;
       }
       return hasComment;
     }
 
-
-  };
-}
-
-
-var init = function() {
-    var instance = this;
-    var commentsSetting = instance.getSettings().comments;
-
-    if (commentsSetting) {
-      Handsontable.Comments = new Comments(instance);
-      Handsontable.Comments.init();
-    }
-  },
-  afterRenderer = function(TD, row, col, prop, value, cellProperties) {
-    if (cellProperties.comment) {
-      dom.addClass(TD, cellProperties.commentedCellClassName);
-    }
-  },
-  addCommentsActionsToContextMenu = function(defaultOptions) {
-    var instance = this;
-    if (!instance.getSettings().comments) {
+  /**
+   * Add Comments to context menu
+   *
+   * @param defaultOptions
+   */
+  addToContextMenu(defaultOptions) {
+    if (!this.hot.getSettings().comments) {
       return;
     }
 
-    defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
-
-    defaultOptions.items.push({
-      key: 'commentsAddEdit',
-      name: function() {
-        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
-        return hasComment ? "Edit Comment" : "Add Comment";
-
+    defaultOptions.items.push(
+      Handsontable.ContextMenu.SEPARATOR,
+      {
+        key: 'commentsAddEdit',
+        name: () => {
+          return this.checkSelectionCommentsConsistency() ? "Edit Comment" : "Add Comment";
+        },
+        callback: () => {
+          this.showComment(this.hot.getSelectedRange());
+        },
+        disabled: function() {
+          return false;
+        }
       },
-      callback: function(key, selection, event) {
-        Handsontable.Comments.showComment(this.getSelectedRange());
-      },
-      disabled: function() {
-        return false;
+      {
+        key: 'commentsRemove',
+        name: function() {
+          return "Delete Comment";
+        },
+        callback: (key, selection) => {
+          this.removeComment(selection.start.row, selection.start.col);
+        },
+        disabled: () => {
+          return !this.checkSelectionCommentsConsistency();
+        }
       }
-    });
+    );
+  }
+}
 
-    defaultOptions.items.push({
-      key: 'commentsRemove',
-      name: function() {
-        return "Delete Comment";
-      },
-      callback: function(key, selection, event) {
-        Handsontable.Comments.removeComment(selection.start.row, selection.start.col);
-      },
-      disabled: function() {
-        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
-        return !hasComment;
-      }
-    });
-  };
+export {Comments};
 
-Handsontable.hooks.add('beforeInit', init);
-Handsontable.hooks.add('afterContextMenuDefaultOptions', addCommentsActionsToContextMenu);
-Handsontable.hooks.add('afterRenderer', afterRenderer);
-
+registerPlugin('Comments', Comments);
