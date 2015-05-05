@@ -16,7 +16,7 @@ function WalkontableLeftOverlay(instance) {
 WalkontableLeftOverlay.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
-WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
+WalkontableLeftOverlay.prototype.resetFixedPosition = function() {
   var finalLeft, finalTop;
 
   if (!this.instance.wtTable.holder.parentNode) {
@@ -49,6 +49,10 @@ WalkontableLeftOverlay.prototype.resetFixedPosition = function () {
   var tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
   var elemWidth = (tableWidth === 0 ? tableWidth : tableWidth + 4);
   elem.style.width = elemWidth + 'px';
+
+  if (scrollbarWidth === 0) {
+    scrollbarWidth = 30;
+  }
 
   this.clone.wtTable.holder.style.width = elemWidth + scrollbarWidth + 'px';
 

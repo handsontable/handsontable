@@ -132,10 +132,10 @@ WalkontableTopOverlay.prototype.refresh = function (fastDraw) {
 };
 
 //applyToDOM (in future merge it with this.refresh?)
-WalkontableTopOverlay.prototype.applyToDOM = function () {
+WalkontableTopOverlay.prototype.applyToDOM = function() {
   var total = this.instance.getSetting('totalRows');
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
-  var scrollbarWidth = dom.getScrollbarWidth(true);
+  var scrollbarWidth = dom.getScrollbarWidth();
 
   var totalEstimatedHeight = headerSize + this.sumCellSizes(0, total) + 1 + 'px';
 
@@ -144,6 +144,10 @@ WalkontableTopOverlay.prototype.applyToDOM = function () {
   this.clone.wtTable.hider.style.width = this.hider.style.width;
 
   this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
+
+  if (scrollbarWidth === 0) {
+    scrollbarWidth = 30;
+  }
 
   this.clone.wtTable.holder.style.height = parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth + 'px';
 
