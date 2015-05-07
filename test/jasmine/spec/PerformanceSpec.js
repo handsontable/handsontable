@@ -41,18 +41,60 @@ describe('Performance', function () {
     expect(count).toEqual(2); //1 for autoColumnSize, 1 for actual cell render
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto column width)', function () {
+  it('should call getCellMeta minimum number of times for one cell (auto column width, without overlays)', function () {
     var count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       beforeGetCellMeta: function(){
         count++;
-
       }
     });
 
-    expect(count).toEqual(13); //changed for the dynamic column loading feature
+    expect(count).toEqual(8);
+  });
+
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', function () {
+    var count = 0;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      colHeaders: true,
+      beforeGetCellMeta: function(){
+        count++;
+      }
+    });
+
+    expect(count).toEqual(10);
+  });
+
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', function () {
+    var count = 0;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      rowHeaders: true,
+      beforeGetCellMeta: function(){
+        count++;
+      }
+    });
+
+    expect(count).toEqual(10);
+  });
+
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', function () {
+    var count = 0;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      colHeaders: true,
+      rowHeaders: true,
+      beforeGetCellMeta: function(){
+        count++;
+      }
+    });
+
+    expect(count).toEqual(13);
   });
 
   it('should call renderer twice for each cell (auto column width)', function () {
@@ -79,6 +121,7 @@ describe('Performance', function () {
     });
 
     //expect(count).toEqual(76); //changed for the dynamic column loading feature
-    expect(count).toEqual(100); // ugly fix for this test failing TODO: needs updating (probably has something to do with scrollHandler recognition)
+    // ugly fix for this test failing TODO: needs updating (probably has something to do with scrollHandler recognition)
+    expect(count).toEqual(71);
   });
 });

@@ -47,7 +47,7 @@ describe('Core_setDataAtCell', function () {
     var called;
     runs(function () {
       handsontable({
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }
@@ -79,7 +79,7 @@ describe('Core_setDataAtCell', function () {
           col2: null,
           col3: null
         },
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }
@@ -107,7 +107,7 @@ describe('Core_setDataAtCell', function () {
         minSpareRows: 1,
         minRows: 5,
         maxRows: 10,
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }
@@ -135,7 +135,7 @@ describe('Core_setDataAtCell', function () {
         minSpareCols: 1,
         minCols: 5,
         maxCols: 10,
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }
@@ -165,7 +165,7 @@ describe('Core_setDataAtCell', function () {
         minCols: 5,
         maxRows: 6,
         maxCols: 6,
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }
@@ -199,7 +199,7 @@ describe('Core_setDataAtCell', function () {
           {data: "name.first"}
         ],
         minSpareRows: 1,
-        onChange: function (changes, source) {
+        afterChange: function (changes, source) {
           if (source === 'paste') {
             called = true;
           }

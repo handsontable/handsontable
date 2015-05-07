@@ -1,6 +1,6 @@
 
 import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cellRange.js';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
 import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection.js';
 
 //registerPlugin('customBorders', CustomBorders);

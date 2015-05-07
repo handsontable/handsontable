@@ -2,9 +2,6 @@
 import * as dom from './../../../dom.js';
 import {eventManager as eventManagerObject} from './../../../eventManager.js';
 
-export {WalkontableEvent};
-
-window.WalkontableEvent = WalkontableEvent;
 
 function WalkontableEvent(instance) {
   var that = this;
@@ -253,3 +250,7 @@ WalkontableEvent.prototype.parentCell = function(elem) {
 
   return cell;
 };
+
+export {WalkontableEvent};
+
+window.WalkontableEvent = WalkontableEvent;

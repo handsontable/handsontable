@@ -31,15 +31,22 @@ TouchScroll.prototype.init = function(instance) {
 
   this.scrollbars = [
     this.instance.view.wt.wtOverlays.topOverlay,
-    this.instance.view.wt.wtOverlays.leftOverlay,
-    this.instance.view.wt.wtOverlays.topLeftCornerOverlay
+    this.instance.view.wt.wtOverlays.leftOverlay
   ];
+  if (this.instance.view.wt.wtOverlays.topLeftCornerOverlay) {
+    this.scrollbars.push(this.instance.view.wt.wtOverlays.topLeftCornerOverlay);
+  }
+  this.clones = [];
 
-  this.clones = [
-    this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode,
-    this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode,
-    this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode
-  ];
+  if (this.instance.view.wt.wtOverlays.topOverlay.needFullRender) {
+    this.clones.push(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (this.instance.view.wt.wtOverlays.leftOverlay.needFullRender) {
+    this.clones.push(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+  }
+  if (this.instance.view.wt.wtOverlays.topLeftCornerOverlay) {
+    this.clones.push(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+  }
 };
 
 TouchScroll.prototype.bindEvents = function () {

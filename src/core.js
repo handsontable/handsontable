@@ -8,8 +8,8 @@ import {getPlugin} from './plugins.js';
 import {getRenderer} from './renderers.js';
 import {PluginHook} from './pluginHooks.js';
 import {TableView} from './tableView.js';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
-import {WalkontableCellRange} from './3rdparty/walkontable/src/cellRange.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
+import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range.js';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
 
 Handsontable.activeGuid = null;
@@ -1430,7 +1430,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (Handsontable.hooks.hooks[i] !== void 0 || Handsontable.hooks.legacy[i] !== void 0) {
+        if (Handsontable.hooks.hooks[i] !== void 0) {
           if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
@@ -2606,53 +2606,77 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * {@link Hooks#add}
+   * Adds listener to specified hook name and only for this Handsontable instance.
    *
    * @memberof Core#
    * @function addHook
-   * @param {String} key
-   * @param {Function} fn
+   * @see Hooks#add
+   * @param {String} key Hook name
+   * @param {Function|Array} callback Function or array of Functions
+   *
+   * @example
+   * ```js
+   * hot.addHook('beforeInit', myCallback);
+   * ```
    */
-  this.addHook = function(key, fn) {
-    Handsontable.hooks.add(key, fn, instance);
+  this.addHook = function(key, callback) {
+    Handsontable.hooks.add(key, callback, instance);
   };
 
   /**
-   * {@link Hooks#once}
+   * Adds listener to specified hook name and only for this Handsontable instance. After hook runs this
+   * listener will be automatically removed.
    *
    * @memberof Core#
    * @function addHookOnce
-   * @param {String} key
-   * @param {Function} fn
+   * @see Hooks#once
+   * @param {String} key Hook name
+   * @param {Function|Array} callback Function or array of Functions
+   *
+   * @example
+   * ```js
+   * hot.addHookOnce('beforeInit', myCallback);
+   * ```
    */
-  this.addHookOnce = function(key, fn) {
-    Handsontable.hooks.once(key, fn, instance);
+  this.addHookOnce = function(key, callback) {
+    Handsontable.hooks.once(key, callback, instance);
   };
 
   /**
-   * {@link Hooks#remove}
+   * Removes the hook listener previously registered with {@link Core#addHook}.
    *
    * @memberof Core#
    * @function removeHook
-   * @param {String} key
-   * @param {Function} fn
+   * @see Hooks#remove
+   * @param {String} key Hook name
+   * @param {Function} callback Function which have been registered via {@link Core#addHook}
+   *
+   * @example
+   * ```js
+   * hot.removeHook('beforeInit', myCallback);
+   * ```
    */
-  this.removeHook = function(key, fn) {
-    Handsontable.hooks.remove(key, fn, instance);
+  this.removeHook = function(key, callback) {
+    Handsontable.hooks.remove(key, callback, instance);
   };
 
   /**
-   * {@link Hooks#run}
-   *
    * @memberof Core#
    * @function runHooks
-   * @param {String} key
+   * @see Hooks#run
+   * @param {String} key Hook name
    * @param {*} p1
    * @param {*} p2
    * @param {*} p3
    * @param {*} p4
    * @param {*} p5
    * @param {*} p6
+   * @returns {*}
+   *
+   * @example
+   * ```js
+   * hot.runHooks('beforeInit');
+   * ```
    */
   this.runHooks = function(key, p1, p2, p3, p4, p5, p6) {
     return Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5, p6);

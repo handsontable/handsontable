@@ -1,7 +1,7 @@
 import * as dom from './../../dom.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 
 export {Autofill};
 

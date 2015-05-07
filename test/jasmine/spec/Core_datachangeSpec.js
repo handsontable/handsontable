@@ -16,7 +16,7 @@ describe('Core_datachange', function () {
     var output = null;
 
     handsontable({
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -33,7 +33,7 @@ describe('Core_datachange', function () {
         src    = null;
 
     handsontable({
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         output = changes;
         src = source;
       }
@@ -49,7 +49,7 @@ describe('Core_datachange', function () {
         src    = null;
 
     handsontable({
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         output = changes;
         src = source;
       }
@@ -64,7 +64,7 @@ describe('Core_datachange', function () {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add("onChange", function (changes) {
+    Handsontable.hooks.add("afterChange", function (changes) {
       output = changes;
     });
     setDataAtCell(1, 2, "test");
@@ -80,7 +80,7 @@ describe('Core_datachange', function () {
     var $container = this.$container;
 
     handsontable({
-      onChange: function () {
+      afterChange: function () {
         output = this.rootElement;
       }
     });
@@ -97,7 +97,7 @@ describe('Core_datachange', function () {
       data: [
         ['Joe Red']
       ],
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if (source === 'loadData') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -115,7 +115,7 @@ describe('Core_datachange', function () {
       data: [
         ['Joe Red']
       ],
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if (source === 'edit') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -138,7 +138,7 @@ describe('Core_datachange', function () {
 
     handsontable({
       data: sampleData,
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if ('edit' == source) {
           event = changes.shift();
         }
@@ -159,7 +159,7 @@ describe('Core_datachange', function () {
       data: [
         ['Joe Red']
       ],
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         sources.push(source);
       }
     });

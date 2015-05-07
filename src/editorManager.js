@@ -1,5 +1,5 @@
 
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import * as helper from './helpers.js';
 import * as dom from './dom.js';
 import {getEditor} from './editors.js';

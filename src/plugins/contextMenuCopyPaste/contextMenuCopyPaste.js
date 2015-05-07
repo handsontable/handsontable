@@ -21,9 +21,9 @@ class ContextMenuCopyPaste extends BasePlugin {
     this.hotContextMenu = null;
     this.outsideClickDeselectsCache = null;
 
-    this.hot.addHook('afterContextMenuShow', htContextMenu => this.setupZeroClipboard(htContextMenu));
+    this.hot.addHook('afterContextMenuShow', (htContextMenu) => this.setupZeroClipboard(htContextMenu));
     this.hot.addHook('afterInit', () => this.afterInit());
-    this.hot.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
+    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
   }
 
   /**
@@ -162,6 +162,6 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 }
 
-export default ContextMenuCopyPaste;
+export {ContextMenuCopyPaste};
 
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);

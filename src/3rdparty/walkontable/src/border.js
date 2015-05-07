@@ -1,11 +1,8 @@
+
 import * as dom from './../../../dom.js';
 import {eventManager as eventManagerObject} from './../../../eventManager.js';
-import {WalkontableCellCoords} from './cellCoords.js';
-import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
+import {WalkontableCellCoords} from './cell/coords.js';
 
-export {WalkontableBorder};
-
-window.WalkontableBorder = WalkontableBorder;
 
 function WalkontableBorder(instance, settings) {
   var style;
@@ -426,3 +423,7 @@ WalkontableBorder.prototype.hasSetting = function (setting) {
   }
   return !!setting;
 };
+
+export {WalkontableBorder};
+
+window.WalkontableBorder = WalkontableBorder;

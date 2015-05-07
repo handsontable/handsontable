@@ -1,9 +1,6 @@
 
 import * as dom from './../../../dom.js';
 
-export {WalkontableTableRenderer};
-
-window.WalkontableTableRenderer = WalkontableTableRenderer;
 
 function WalkontableTableRenderer(wtTable) {
   this.wtTable = wtTable;
@@ -488,3 +485,7 @@ WalkontableTableRenderer.utils.replaceThWithTd = function(TH, TR) {
 
   return TD;
 };
+
+export {WalkontableTableRenderer};
+
+window.WalkontableTableRenderer = WalkontableTableRenderer;
