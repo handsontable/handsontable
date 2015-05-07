@@ -274,6 +274,7 @@ function ColumnSorting() {
   this.getColHeader = function(col, TH) {
     if (this.getSettings().columnSorting && col >= 0) {
       dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
+      dom.addClass(TH.querySelector('.colHeaderWrapper'), 'columnSorting');
     }
   };
 
