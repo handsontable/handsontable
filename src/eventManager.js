@@ -34,7 +34,7 @@ function eventManager(instance) {
       return event;
     }
     event = dom.polymerWrap(event);
-    len = event.path.length;
+    len = event.path ? event.path.length : 0;
 
     while (len --) {
       if (event.path[len].nodeName === componentName) {
