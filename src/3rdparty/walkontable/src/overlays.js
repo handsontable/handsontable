@@ -1,4 +1,3 @@
-
 import {eventManager as eventManagerObject} from './../../../eventManager.js';
 import * as dom from './../../../dom.js';
 
@@ -23,7 +22,7 @@ function WalkontableOverlays(instance) {
   this.registerListeners();
 }
 
-WalkontableOverlays.prototype.registerListeners = function () {
+WalkontableOverlays.prototype.registerListeners = function() {
   var that = this;
   this.mainTableScrollableElement = dom.getScrollableElement(this.instance.wtTable.TABLE);
 
@@ -46,13 +45,13 @@ WalkontableOverlays.prototype.registerListeners = function () {
   var eventManager = eventManagerObject(that.instance);
 
   this.requestAnimFrame = window.requestAnimationFrame ||
-  window.webkitRequestAnimationFrame ||
-  window.mozRequestAnimationFrame ||
-  window.msRequestAnimationFrame ||
-  window.oRequestAnimationFrame ||
-  function (callback) {
-    window.setTimeout(callback, 1000 / 60);
-  };
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    function(callback) {
+      window.setTimeout(callback, 1000 / 60);
+    };
 
   this.overlayScrollPositions = {
     'master': {
@@ -69,42 +68,58 @@ WalkontableOverlays.prototype.registerListeners = function () {
     }
   };
 
-  eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', function (e) {
-    that.requestAnimFrame.call(window, function () {
-      that.syncScrollPositions(e);
+  eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', function(e) {
+    that.requestAnimFrame.call(window, function() {
+      // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
+      if (Handsontable.mobileBrowser) {
+        return;
+      } else {
+        that.syncScrollPositions(e);
+      }
     });
   });
 
-  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', function (e) {
-    that.requestAnimFrame.call(window, function () {
-      that.syncScrollPositions(e);
+  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', function(e) {
+    that.requestAnimFrame.call(window, function() {
+      
+      // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
+      if (Handsontable.mobileBrowser && that.scrollCallbacksPending > 1) {
+        return;
+      } else {
+        that.syncScrollPositions(e);
+      }
     });
   });
 
-  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', function (e) {
-    that.requestAnimFrame.call(window, function () {
+  eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', function(e) {
+    that.requestAnimFrame.call(window, function() {
       that.translateMouseWheelToScroll(e);
     });
   });
 
-  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', function (e) {
-    that.requestAnimFrame.call(window, function () {
-      that.syncScrollPositions(e);
+  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', function(e) {
+    that.requestAnimFrame.call(window, function() {
+      // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
+      if (Handsontable.mobileBrowser && that.scrollCallbacksPending > 1) {
+        return;
+      } else {
+        that.syncScrollPositions(e);
+      }
     });
   });
 
-  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', function (e) {
-    that.requestAnimFrame.call(window, function () {
+  eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', function(e) {
+    that.requestAnimFrame.call(window, function() {
       that.translateMouseWheelToScroll(e);
     });
   });
 
   if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
-    eventManager.addEventListener(window, 'scroll', function (e) {
+    eventManager.addEventListener(window, 'scroll', function(e) {
       that.refreshAll();
     });
 
-    eventManager.addEventListener(window, 'wheel', function (e) {
+    eventManager.addEventListener(window, 'wheel', function(e) {
       var overlay,
         deltaY = e.wheelDeltaY || e.deltaY,
         deltaX = e.wheelDeltaX || e.deltaX;
@@ -124,7 +139,7 @@ WalkontableOverlays.prototype.registerListeners = function () {
   }
 };
 
-WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
+WalkontableOverlays.prototype.translateMouseWheelToScroll = function(e) {
   var topOverlay = this.topOverlay.clone.wtTable.holder,
     leftOverlay = this.leftOverlay.clone.wtTable.holder,
     parentHolder,
@@ -152,13 +167,19 @@ WalkontableOverlays.prototype.translateMouseWheelToScroll = function (e) {
   return false;
 };
 
-WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue) {
+WalkontableOverlays.prototype.syncScrollPositions = function(e, fakeScrollValue) {
   if (this.destroyed) {
     return;
   }
 
   if (this.scrollCallbacksPending > 0) {
     this.scrollCallbacksPending--;
+    return;
+  }
+
+  if(arguments.length === 0) {
+    this.syncScrollWithMaster();
+
     return;
   }
 
@@ -171,7 +192,7 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
     tempScrollValue = 0,
     scrollValueChanged = false;
 
-  if(target === document) {
+  if (target === document) {
     target = window;
   }
 
@@ -235,7 +256,14 @@ WalkontableOverlays.prototype.syncScrollPositions = function (e, fakeScrollValue
   }
 };
 
-WalkontableOverlays.prototype.destroy = function () {
+WalkontableOverlays.prototype.syncScrollWithMaster = function() {
+  var master = this.topOverlay.mainTableScrollableElement;
+
+  this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
+  this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
+};
+
+WalkontableOverlays.prototype.destroy = function() {
   var eventManager = eventManagerObject(this.instance);
 
 
@@ -258,7 +286,7 @@ WalkontableOverlays.prototype.destroy = function () {
   this.destroyed = true;
 };
 
-WalkontableOverlays.prototype.refresh = function (fastDraw) {
+WalkontableOverlays.prototype.refresh = function(fastDraw) {
   if (this.leftOverlay) {
     this.leftOverlay.refresh(fastDraw);
   }
@@ -273,7 +301,7 @@ WalkontableOverlays.prototype.refresh = function (fastDraw) {
   }
 };
 
-WalkontableOverlays.prototype.applyToDOM = function () {
+WalkontableOverlays.prototype.applyToDOM = function() {
   if (this.leftOverlay) {
     this.leftOverlay.applyToDOM();
   }
