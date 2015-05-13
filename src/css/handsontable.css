@@ -271,9 +271,27 @@
   display: block;
 }
 
+.handsontable .columnSorting {
+  position: relative;
+}
+
 .handsontable .columnSorting:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.handsontable .columnSorting.ascending::after {
+  content: '\25B2';
+  color: #5f5f5f;
+  position: absolute;
+  left: 10px;
+}
+
+.handsontable .columnSorting.descending::after {
+  content: '\25BC';
+  color: #5f5f5f;
+  position: absolute;
+  left: 10px;
 }
 
 /* border line */
