@@ -37,7 +37,7 @@ class Comments extends BasePlugin {
    * @param range
    */
   saveCommentListener(event, range) {
-    if (event.target.className !== 'htCommentTextArea') {
+    if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
       let value = document.querySelector('.htCommentTextArea').value;
       this.saveComment(range.from.row, range.from.col, value);
       this.unBindMouseDownEvent();
