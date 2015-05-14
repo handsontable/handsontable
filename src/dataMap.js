@@ -214,7 +214,7 @@ DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
  * @returns {Number} Returns number of created columns
  */
 DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
-  if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
+  if (!this.instance.isColumnModificationAllowed()) {
     throw new Error("Cannot create new column. When data source in an object, " +
       "you can only have as much columns as defined in first data row, data schema or in the 'columns' setting." +
       "If you want to be able to add new columns, you have to use array datasource.");

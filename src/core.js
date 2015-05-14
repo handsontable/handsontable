@@ -1937,6 +1937,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Checks if the data format and config allows user to modify the column structure.
+   * @returns {boolean}
+   */
+  this.isColumnModificationAllowed = function() {
+    return !(instance.dataType === 'object' || instance.getSettings().columns);
+  };
+
+  /**
    * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
    * we need to translate logical (stored) row index to physical (displayed) index.
    *
