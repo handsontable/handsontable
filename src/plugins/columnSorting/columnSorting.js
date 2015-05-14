@@ -176,16 +176,22 @@ class ColumnSorting extends BasePlugin {
       if (dom.hasClass(e.target, 'columnSorting')) {
         let col = getColumn(e.target);
 
-        switch(_this.hot.sortOrder) {
-          case void 0:
-            _this.sortOrderClass = 'ascending';
-            break;
-          case true:
-            _this.sortOrderClass = 'descending';
-            break;
-          case false:
-            _this.sortOrderClass = void 0;
+        if(col !== this.lastSortedColumn) {
+          _this.sortOrderClass = 'ascending';
+        } else {
+          switch(_this.hot.sortOrder) {
+            case void 0:
+              _this.sortOrderClass = 'ascending';
+              break;
+            case true:
+              _this.sortOrderClass = 'descending';
+              break;
+            case false:
+              _this.sortOrderClass = void 0;
+          }
         }
+
+        this.lastSortedColumn = col;
 
         _this.sortByColumn(col);
       }
@@ -413,33 +419,6 @@ class ColumnSorting extends BasePlugin {
     }
 
     this.saveSortingState();
-  }
-
-  afterChangeSort(changes /*, source*/) {
-    let sortColumnChanged = false,
-      selection = {},
-      _this = this;
-
-    if (!changes) {
-      return;
-    }
-
-    for (var i = 0; i < changes.length; i++) {
-      if (changes[i][1] == this.hot.sortColumn) {
-        sortColumnChanged = true;
-        selection.row = this.translateRow(changes[i][0]);
-        selection.col = changes[i][1];
-        break;
-      }
-    }
-
-    if (sortColumnChanged) {
-      this.hot._registerTimeout(setTimeout(function() {
-        _this.sort();
-        _this.hot.render();
-        _this.hot.selectCell(this.untranslateRow(selection.row), selection.col);
-      }, 0));
-    }
   }
 
 }
