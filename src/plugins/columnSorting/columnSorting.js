@@ -104,7 +104,7 @@ class ColumnSorting extends BasePlugin {
 
       return;
     } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
-      if(this.hot.sortOrder === false) {
+      if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
         this.hot.sortOrder = !this.hot.sortOrder;
@@ -176,10 +176,10 @@ class ColumnSorting extends BasePlugin {
       if (dom.hasClass(e.target, 'columnSorting')) {
         let col = getColumn(e.target);
 
-        if(col !== this.lastSortedColumn) {
+        if (col !== this.lastSortedColumn) {
           _this.sortOrderClass = 'ascending';
         } else {
-          switch(_this.hot.sortOrder) {
+          switch (_this.hot.sortOrder) {
             case void 0:
               _this.sortOrderClass = 'ascending';
               break;
@@ -358,10 +358,10 @@ class ColumnSorting extends BasePlugin {
       dom.addClass(headerLink, 'columnSorting');
     }
 
-    if(col === this.hot.sortColumn) {
-      if(this.sortOrderClass === 'ascending') {
+    if (col === this.hot.sortColumn) {
+      if (this.sortOrderClass === 'ascending') {
         dom.addClass(headerLink, 'ascending');
-      } else if(this.sortOrderClass === 'descending') {
+      } else if (this.sortOrderClass === 'descending') {
         dom.addClass(headerLink, 'descending');
       }
     }
