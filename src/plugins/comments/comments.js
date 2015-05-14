@@ -26,8 +26,6 @@ class Comments extends BasePlugin {
         Comments.afterRenderer(TD, cellProperties);
       }
     );
-
-    this.eventManager = eventManagerObject(this);
   }
 
   /***
@@ -37,43 +35,52 @@ class Comments extends BasePlugin {
    * @param range
    */
   saveCommentListener(event, range) {
-    if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
-      let value = document.querySelector('.htCommentTextArea').value;
+    let commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
+
+    if (!(event.target.className === 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
+      eventManager.removeEventListener(document, 'mouseover');
+      let value = this.getCommentValue(range);
+
       this.saveComment(range.from.row, range.from.col, value);
-      this.unBindMouseDownEvent();
-      Comments.hideCommentTextArea();
+      Comments.hideCommentTextArea(range);
     }
   }
 
-  /***
-   * Bind mouse down event
-   *
-   * @param range
-   */
-  bindMouseDownEvents(range) {
-    this.eventManager.addEventListener(document, 'mousedown', (event) => this.saveCommentListener(event, range));
-  }
 
-  /***
-   * Unbind mouse down event
-   */
-  unBindMouseDownEvent() {
-    this.eventManager.removeEventListener(document, 'mousedown');
-    this.bindMouseOverEvent();
-  }
 
   /***
    * Bind mouse over event
    */
   bindMouseOverEvent() {
-    this.eventManager.addEventListener(this.hot.view.wt.wtTable.TABLE, 'mouseover', (event) => this.bindMouseOverListener(event));
+    let commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
+
+    eventManager.addEventListener(document, 'mousedown', (event) => {
+      if (!(event.target.innerHTML.indexOf('Comment') !== -1 || event.target.className === 'htCommentTextArea')){
+        Comments.hideCommentTextAreas();
+      }
+    });
+
+    eventManager.addEventListener(this.hot.view.wt.wtTable.TABLE, 'mouseover', (event) => this.bindMouseOverListener(event));
   }
 
   /***
-   * Unbind mouse over event
+   * Bind action when mouse is over textarea
+   * @param range
+   * @param commentBox
    */
-  unBindMouseOverEvent() {
-    this.eventManager.removeEventListener(this.hot.view.wt.wtTable.TABLE, 'mouseover');
+  bindOverTextArea(range, commentBox) {
+    let commentPlugin = getPlugin(this.hot, 'Comments'),
+      eventManager = eventManagerObject(commentPlugin);
+
+    eventManager.addEventListener(commentBox, 'mouseover', () => {
+      eventManager.removeEventListener(document, 'mouseover');
+      eventManager.removeEventListener(commentBox, 'mouseover');
+
+      eventManager.addEventListener(document, 'mouseover', (event) => this.saveCommentListener(event, range));
+    });
+
   }
 
   /***
@@ -83,17 +90,15 @@ class Comments extends BasePlugin {
    */
   bindMouseOverListener(event) {
     if (event.target.className.indexOf('htCommentCell') != -1) {
-      this.unBindMouseOverEvent();
       let coordinates = this.hot.view.wt.wtTable.getCoords(event.target),
         range = {
           from: new WalkontableCellCoords(coordinates.row, coordinates.col)
         };
 
       this.showComment(range);
-    } else if (event.target.className != 'htCommentTextArea') {
-      Comments.hideCommentTextArea();
     }
   }
+
 
   /***
    * Save comment for cell
@@ -118,6 +123,7 @@ class Comments extends BasePlugin {
     this.hot.render();
   }
 
+
   /***
    * Place comment textarea in proper place
    *
@@ -137,7 +143,7 @@ class Comments extends BasePlugin {
     commentBox.style.top = cellTopOffset + 'px';
     commentBox.style.zIndex = 2;
 
-    this.bindMouseDownEvents(range);
+    this.bindOverTextArea(range, commentBox);
   }
 
   /***
@@ -145,12 +151,13 @@ class Comments extends BasePlugin {
    *
    * @returns {Element}
    */
-  static createCommentBox() {
-    let comments = document.querySelector('.htComments');
+  static createCommentBox(range) {
+    let comments = document.querySelector('.comment_' + range.from.row + '_' + range.from.col);
 
     if (!comments) {
       comments = document.createElement('DIV');
       dom.addClass(comments, 'htComments');
+      dom.addClass(comments, 'comment_' + range.from.row + '_' + range.from.col);
 
       let textArea = document.createElement('TEXTAREA');
       dom.addClass(textArea, 'htCommentTextArea');
@@ -167,18 +174,39 @@ class Comments extends BasePlugin {
    *
    * @param value
    */
-  static setCommentValue(value) {
+  static setCommentValue(commentBox, value) {
     value = value || '';
-    document.querySelector('.htCommentTextArea').value = value;
+    commentBox.querySelector('.htCommentTextArea').value = value;
+  }
+
+  getCommentValue(range) {
+    let comments = document.querySelector('.comment_' + range.from.row + '_' + range.from.col);
+    if (comments) {
+      return comments.querySelector('.htCommentTextArea').value;
+    }
+  }
+
+  static hideCommentTextAreas () {
+    let textAreas = document.querySelectorAll('.htComments');
+
+    for (var i = 0, len = textAreas.length; i < len; i++) {
+      document.body.removeChild(textAreas[i]);
+    }
   }
 
   /***
    * Hide placeholder for comment't textarea and clear value
    */
-  static hideCommentTextArea() {
-    let commentBox = Comments.createCommentBox();
-    commentBox.style.display = 'none';
-    Comments.setCommentValue();
+  static hideCommentTextArea(range) {
+    let comments = document.querySelector('.comment_' + range.from.row + '_' + range.from.col);
+
+    if (comments) {
+      document.body.removeChild(comments);
+    }
+
+    //let commentBox = Comments.createCommentBox();
+    //commentBox.style.display = 'none';
+    //Comments.setCommentValue();
   }
 
   /***
@@ -188,9 +216,9 @@ class Comments extends BasePlugin {
    */
   showComment(range) {
     let meta = this.hot.getCellMeta(range.from.row, range.from.col),
-      commentBox = Comments.createCommentBox();
+      commentBox = Comments.createCommentBox(range);
 
-    Comments.setCommentValue(meta.comment);
+    Comments.setCommentValue(commentBox,meta.comment);
 
     this.placeCommentBox(range, commentBox);
   }
@@ -230,7 +258,6 @@ class Comments extends BasePlugin {
           return this.checkSelectionCommentsConsistency() ? "Edit Comment" : "Add Comment";
         },
         callback: () => {
-          this.unBindMouseOverEvent();
           this.showComment(this.hot.getSelectedRange());
         },
         disabled: function () {

@@ -113,57 +113,6 @@
 
 
 
-
-
-
-
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example2">
-
-      <div id="example2"></div>
-
-      <p>
-        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
-      </p>
-    </div>
-  </div>
-
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
-      </div>
-
-
-      <script data-jsfiddle="example2">
-        var container2 = document.getElementById('example2'),
-          hot2 = Handsontable(container2, {
-            height: 200,
-            data: Handsontable.helper.createSpreadsheetData(15, 15),
-            startRows: 5,
-            startCols: 5,
-            minRows: 5,
-            minCols: 5,
-            maxRows: 10,
-            maxCols: 10,
-            rowHeaders: true,
-            colHeaders: true,
-            minSpareRows: 1,
-            contextMenu: true,
-            comments: true,
-            cell: [
-              {row: 1, col: 1, comment: 'HOT2 Test Comment'},
-              {row: 2, col: 2, comment: 'HOT2 Another comment'}
-            ]
-          });
-      </script>
-    </div>
-  </div>
-
-
-
 </div>
 
 <div class="footer-text">
