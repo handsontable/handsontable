@@ -70,6 +70,10 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     elemWidth = (tableWidth === 0 ? tableWidth : tableWidth + 4);
     elem.style.width = elemWidth + 'px';
 
+    if (scrollbarWidth === 0) {
+      scrollbarWidth = 30;
+    }
+
     this.clone.wtTable.holder.style.width = elemWidth + scrollbarWidth + 'px';
   }
 
