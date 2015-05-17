@@ -979,7 +979,7 @@ describe('ContextMenu', function () {
       expect(getCell(0,0).className).toContain('htBottom');
     });
 
-    xit("should add comment", function () {
+    it("should add comment", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
