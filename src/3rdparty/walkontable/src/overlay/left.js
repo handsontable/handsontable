@@ -124,18 +124,37 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let total = this.wot.getSetting('totalColumns');
     let headerSize = this.wot.wtViewport.getRowHeaderWidth();
     let masterHider = this.hider;
+    let masterHideWidth = masterHider.style.width;
+    let newMasterHiderWidth = headerSize + this.sumCellSizes(0, total) + 'px';
 
-    masterHider.style.width = (headerSize + this.sumCellSizes(0, total)) + 'px';
+    if(masterHideWidth !== newMasterHiderWidth) {
+      masterHider.style.width = newMasterHiderWidth;
+    }
 
     if (this.needFullRender) {
       let cloneHolder = this.clone.wtTable.holder;
       let cloneHider = this.clone.wtTable.hider;
       let cloneHolderParent = cloneHolder.parentNode;
-      let scrollbarWidth = dom.getScrollbarWidth(true);
+      let scrollbarWidth = dom.getScrollbarWidth();
+      let masterHiderHeight = masterHider.style.height;
+      let cloneHolderParentWidth = cloneHolderParent.style.width;
+      let cloneHolderParentHeight = cloneHolderParent.style.height;
+      let cloneHolderWidth = cloneHolder.style.width;
+      let cloneHolderHeight = cloneHolder.style.height;
+      let cloneHiderHeight = cloneHider.style.height;
+      let newCloneHolderWidth = parseInt(cloneHolderParentWidth, 10) + scrollbarWidth + 'px';
 
-      cloneHolder.style.width = parseInt(cloneHolderParent.style.width, 10) + scrollbarWidth + 'px';
-      cloneHider.style.height = masterHider.style.height;
-      cloneHolder.style.height = cloneHolderParent.style.height;
+      if (cloneHolderWidth !== newCloneHolderWidth) {
+        cloneHolder.style.width = newCloneHolderWidth;
+      }
+
+      if (cloneHolderHeight !== cloneHolderParentHeight) {
+        cloneHolder.style.height = cloneHolderParentHeight;
+      }
+
+      if (cloneHiderHeight !== masterHiderHeight) {
+        cloneHider.style.height = masterHiderHeight;
+      }
     }
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
