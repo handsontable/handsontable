@@ -158,20 +158,36 @@ WalkontableTableRenderer.prototype.resetOversizedRow = function(sourceRow) {
  * Check if any of the rendered rows is higher than expected, and if so, cache them
  */
 WalkontableTableRenderer.prototype.markOversizedRows = function() {
-  var previousRowHeight, trInnerHeight, sourceRowIndex, currentTr;
+  var previousRowHeight,
+    rowInnerHeight,
+    sourceRowIndex,
+    currentTr,
+    rowHeader,
+    rowCount = this.instance.wtTable.TBODY.childNodes.length,
+    expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight,
+    actualTableHeight = dom.innerHeight(this.instance.wtTable.TBODY) - 1;
+  
+  if(expectedTableHeight === actualTableHeight) {
+    // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
+    return;
+  }
 
-  var rowCount = this.instance.wtTable.TBODY.childNodes.length;
   while (rowCount) {
     rowCount--;
     sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
     previousRowHeight = this.instance.wtTable.getRowHeight(sourceRowIndex);
     currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
+    rowHeader = currentTr.querySelector('th');
 
-    trInnerHeight = dom.innerHeight(currentTr) - 1;
+    if(rowHeader) {
+      rowInnerHeight = dom.innerHeight(rowHeader);
+    } else {
+      rowInnerHeight = dom.innerHeight(currentTr) - 1;
+    }
 
-    if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight ||
-        previousRowHeight < trInnerHeight)) {
-      this.instance.wtViewport.oversizedRows[sourceRowIndex] = trInnerHeight;
+    if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
+        previousRowHeight < rowInnerHeight)) {
+      this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
     }
   }
 
