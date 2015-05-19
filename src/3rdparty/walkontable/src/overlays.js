@@ -49,7 +49,6 @@ class WalkontableOverlays {
         left: null
       }
     };
-    this.scrollCallbacksPending = 0;
     this.registerListeners();
   }
 
@@ -77,51 +76,22 @@ class WalkontableOverlays {
    */
   registerListeners() {
     const eventManager = eventManagerObject(this.wot);
-    let _this = this;
 
-    eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', function(event) {
-      // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-      if (Handsontable.mobileBrowser) {
-        return;
-      } else {
-        _this.syncScrollPositions(event);
-      }
-    });
+    eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
     if (this.topOverlay.needFullRender) {
-      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', function(event) {
-        // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-        if (Handsontable.mobileBrowser && _this.scrollCallbacksPending > 1) {
-          return;
-        } else {
-          _this.syncScrollPositions(event);
-        }
-      });
-      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', function(event) {
-        // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-        if (Handsontable.mobileBrowser && _this.scrollCallbacksPending > 1) {
-          return;
-        } else {
-          _this.translateMouseWheelToScroll(event);
-        }
-      });
+      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
+      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
     if (this.leftOverlay.needFullRender) {
-      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', function(event) {
-        // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-        if (Handsontable.mobileBrowser && _this.scrollCallbacksPending > 1) {
-          return;
-        } else {
-          _this.syncScrollPositions(event);
-        }
-      });
-      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.translateMouseWheelToScroll(event));
+      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
+      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
-      eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
-
+      // This is necessary?
+      //eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
       eventManager.addEventListener(window, 'wheel', (event) => {
         let overlay;
         let deltaY = event.wheelDeltaY || event.deltaY;
@@ -144,15 +114,33 @@ class WalkontableOverlays {
   }
 
   /**
+   * Scroll listener
+   *
+   * @param {Event} event
+   */
+  onTableScroll(event) {
+    // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
+    if (Handsontable.mobileBrowser) {
+      return;
+    }
+    if (event.type === 'scroll') {
+      this.syncScrollPositions(event);
+
+    } else  {
+      this.translateMouseWheelToScroll(event);
+    }
+  }
+
+  /**
    * Translate wheel event into scroll event and sync scroll overlays position
    *
-   * @param {DOMEvent} event
+   * @param {Event} event
    * @returns {Boolean}
    */
   translateMouseWheelToScroll(event) {
     let topOverlay = this.topOverlay.clone.wtTable.holder;
     let leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    let eventMockup = {};
+    let eventMockup = {type: 'wheel'};
     let tempElem = event.target;
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
@@ -180,26 +168,18 @@ class WalkontableOverlays {
   /**
    * Synchronize scroll position between master table and overlay table
    *
-   * @param {DOMEvent} event
-   * @param {Boolean} [fakeScrollValue=false]
+   * @param {Event|Object} event
+   * @param {Number} [fakeScrollValue=null]
    */
-  syncScrollPositions(event, fakeScrollValue = false) {
+  syncScrollPositions(event, fakeScrollValue = null) {
     if (this.destroyed) {
       return;
     }
-    if (this.scrollCallbacksPending > 0 &&
-      (this.topOverlay.needFullRender || this.leftOverlay.needFullRender)) {
-      this.scrollCallbacksPending--;
-
-      return;
-    }
-
     if (arguments.length === 0) {
       this.syncScrollWithMaster();
 
       return;
     }
-
     let master = this.mainTableScrollableElement;
     let target = event.target;
     let tempScrollValue = 0;
@@ -218,12 +198,11 @@ class WalkontableOverlays {
       target = window;
     }
 
-    if (target === master || target === document) {
+    if (target === master) {
       tempScrollValue = dom.getScrollLeft(target);
 
       // if scrolling the master table - populate the scroll values to both top and left overlays
       if (this.overlayScrollPositions.master.left !== tempScrollValue) {
-        this.scrollCallbacksPending++;
         this.overlayScrollPositions.master.left = tempScrollValue;
         scrollValueChanged = true;
 
@@ -234,7 +213,6 @@ class WalkontableOverlays {
       tempScrollValue = dom.getScrollTop(target);
 
       if (this.overlayScrollPositions.master.top !== tempScrollValue) {
-        this.scrollCallbacksPending++;
         this.overlayScrollPositions.master.top = tempScrollValue;
         scrollValueChanged = true;
 
@@ -248,7 +226,6 @@ class WalkontableOverlays {
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
       if (this.overlayScrollPositions.top.left !== tempScrollValue) {
-        this.scrollCallbacksPending++;
         this.overlayScrollPositions.top.left = tempScrollValue;
         scrollValueChanged = true;
 
@@ -256,7 +233,8 @@ class WalkontableOverlays {
       }
 
       // "fake" scroll value calculated from the mousewheel event
-      if (fakeScrollValue) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
         master.scrollTop += fakeScrollValue;
       }
 
@@ -265,7 +243,6 @@ class WalkontableOverlays {
 
       // if scrolling the left overlay - populate the vertical scroll to the master table
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
-        this.scrollCallbacksPending++;
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
 
@@ -273,12 +250,13 @@ class WalkontableOverlays {
       }
 
       // "fake" scroll value calculated from the mousewheel event
-      if (fakeScrollValue) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
         master.scrollLeft += fakeScrollValue;
       }
     }
 
-    if (scrollValueChanged) {
+    if (scrollValueChanged && event.type === 'scroll') {
       this.refreshAll();
     }
   }
@@ -289,10 +267,10 @@ class WalkontableOverlays {
   syncScrollWithMaster() {
     var master = this.topOverlay.mainTableScrollableElement;
 
-    if(this.topOverlay.needFullRender) {
+    if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
     }
-    if(this.leftOverlay.needFullRender) {
+    if (this.leftOverlay.needFullRender) {
       this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
     }
   }
