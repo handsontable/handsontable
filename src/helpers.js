@@ -628,10 +628,60 @@ export function defineGetter(object, property, value, options) {
   Object.defineProperty(object, property, options);
 }
 
+// https://gist.github.com/paulirish/1579671
+let lastTime = 0;
+let vendors = ['ms', 'moz', 'webkit', 'o'];
+let _requestAnimationFrame = window.requestAnimationFrame;
+let _cancelAnimationFrame = window.cancelAnimationFrame;
+
+for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+}
+
+if (!_requestAnimationFrame) {
+  _requestAnimationFrame = function(callback) {
+    let currTime = new Date().getTime();
+    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    let id = window.setTimeout(function() {
+      callback(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
+
+    return id;
+  };
+}
+
+if (!_cancelAnimationFrame) {
+  _cancelAnimationFrame = function(id) {
+    clearTimeout(id);
+  };
+}
+
+/**
+ * Polyfill for requestAnimationFrame
+ *
+ * @param {Function} callback
+ * @returns {Number}
+ */
+export function requestAnimationFrame(callback) {
+  return _requestAnimationFrame.call(window, callback);
+}
+
+/**
+ * Polyfill for cancelAnimationFrame
+ *
+ * @param {Number} id
+ */
+export function cancelAnimationFrame(id) {
+  _cancelAnimationFrame.call(window, id);
+}
+
 
 window.Handsontable = window.Handsontable || {};
 // support for older versions of Handsontable
 Handsontable.helper = {
+  cancelAnimationFrame,
   cellMethodLookupFactory,
   columnFactory,
   createSpreadsheetData,
@@ -660,6 +710,7 @@ Handsontable.helper = {
   pivot,
   proxy,
   randomString,
+  requestAnimationFrame,
   spreadsheetColumnLabel,
   stopPropagation,
   stringify,
