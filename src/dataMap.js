@@ -24,13 +24,7 @@ function DataMap(instance, priv, GridSettings) {
   this.priv = priv;
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
-
-  if (this.dataSource[0]) {
-    this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
-  }
-  else {
-    this.duckSchema = {};
-  }
+  this.duckSchema = null;
   this.createMap();
 }
 
@@ -145,6 +139,14 @@ DataMap.prototype.getSchema = function () {
     return schema;
   }
 
+  if (this.duckSchema === null) {
+    if (this.dataSource[0]) {
+      this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
+    }
+    else {
+      this.duckSchema = {};
+    }
+  }
   return this.duckSchema;
 };
 
