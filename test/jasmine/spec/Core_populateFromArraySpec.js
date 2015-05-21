@@ -26,7 +26,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -40,7 +40,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -54,7 +54,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -68,7 +68,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -82,7 +82,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       }
     });
@@ -96,7 +96,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       },
       minSpareRows: 1
@@ -120,7 +120,7 @@ describe('Core_populateFromArray', function () {
 
     handsontable({
       data : arrayOfArrays(),
-      onChange: function (changes) {
+      afterChange: function (changes) {
         output = changes;
       },
       minSpareCols: 1

@@ -2,11 +2,10 @@
 import * as dom from './dom.js';
 import * as helper from './helpers.js';
 import {eventManager as eventManagerObject} from './eventManager.js';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
 import {Walkontable} from './3rdparty/walkontable/src/core.js';
 
-export {TableView};
 
 // Support for older Handsontable versions
 Handsontable.TableView = TableView;
@@ -342,6 +341,7 @@ function TableView(instance) {
       if (that.settings.viewportRowRenderingOffset) {
         calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
         calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+      //console.log(calc);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
@@ -533,3 +533,5 @@ TableView.prototype.destroy = function() {
   this.wt.destroy();
   this.eventManager.clear();
 };
+
+export {TableView};

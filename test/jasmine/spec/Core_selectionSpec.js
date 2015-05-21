@@ -16,7 +16,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelection: function (r, c) {
+      afterSelection: function (r, c) {
         output = [r, c];
       }
     });
@@ -30,7 +30,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add('onSelection', function (r, c) {
+    Handsontable.hooks.add('afterSelection', function (r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -43,7 +43,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelection: function () {
+      afterSelection: function () {
         output = this.rootElement;
       }
     });
@@ -56,7 +56,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelectionByProp: function () {
+      afterSelectionByProp: function () {
         output = this.rootElement;
       }
     });
@@ -333,10 +333,10 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelection: function () {
+      afterSelection: function () {
         tick++;
       },
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tickEnd++;
       }
     });
@@ -352,7 +352,7 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tick++;
       }
     });
@@ -370,7 +370,7 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tick++;
       }
     });
@@ -388,10 +388,10 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelection: function () {
+      afterSelection: function () {
         tick++;
       },
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tickEnd++;
       }
     });
@@ -474,7 +474,7 @@ describe('Core_selection', function () {
       fixedColumnsLeft: 2
     });
 
-    this.$container.find('.ht_clone_corner thead th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
     expect(getSelected()).toEqual([0, 0, 49, 0]);
   });
 

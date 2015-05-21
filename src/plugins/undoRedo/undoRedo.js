@@ -129,7 +129,7 @@ Handsontable.UndoRedo.prototype.redo = function() {
 /**
  * Check if undo action is available.
  *
- * @function usUndoAvailable
+ * @function isUndoAvailable
  * @memberof UndoRedo#
  * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
  */

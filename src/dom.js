@@ -913,6 +913,7 @@ Handsontable.Dom = {
   getScrollTop,
   getStyle,
   getSelectionEndPosition,
+  getTrimmingContainer,
   getWindowScrollLeft,
   getWindowScrollTop,
   hasCaptionProblem,

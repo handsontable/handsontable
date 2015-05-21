@@ -2,7 +2,7 @@
 import * as dom from './../dom.js';
 import {eventManager as eventManagerObject} from './../eventManager.js';
 import {getRenderer, registerRenderer} from './../renderers.js';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords.js';
 
 export {autocompleteRenderer};
 
