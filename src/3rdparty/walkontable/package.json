@@ -3,7 +3,6 @@
   "description": "Table view engine that will enable virtual rendering in HTML/JavaScript",
   "author": "Marcin Warpechowski <hello@handsontable.com>",
   "version": "0.2.0",
-  "browser": "./src/browser.js",
   "devDependencies": {
     "grunt": "~0.4.0",
     "grunt-contrib-concat": "~0.1.0",

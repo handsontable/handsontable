@@ -2,7 +2,7 @@
 import * as dom from './../../dom.js';
 import * as helper from './../../helpers.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 //import {registerPlugin} from './../plugins.js';
 //
 //export {Comments};

@@ -64,6 +64,10 @@ function ContextMenu(instance, customOptions) {
           this.alter("insert_col", selection.start.col);
         },
         disabled: function() {
+          if (!this.isColumnModificationAllowed()) {
+            return true;
+          }
+
           var selected = this.getSelected(),
             entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
             rowSelected = entireRowSelection.join(',') == selected.join(',');
@@ -77,6 +81,10 @@ function ContextMenu(instance, customOptions) {
           this.alter("insert_col", selection.end.col + 1);
         },
         disabled: function() {
+          if (!this.isColumnModificationAllowed()) {
+            return true;
+          }
+
           var selected = this.getSelected(),
             entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
             rowSelected = entireRowSelection.join(',') == selected.join(',');
@@ -105,6 +113,10 @@ function ContextMenu(instance, customOptions) {
           this.alter("remove_col", selection.start.col, amount);
         },
         disabled: function() {
+          if (!this.isColumnModificationAllowed()) {
+            return true;
+          }
+
           var selected = this.getSelected(),
             entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1],
             rowSelected = entireRowSelection.join(',') == selected.join(',');

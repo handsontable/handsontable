@@ -49,7 +49,7 @@
             }
           }
           else {
-            if (c === cLen - 1 && rows[r][c].indexOf('"') === 0) {
+            if (c === cLen - 1 && rows[r][c].indexOf('"') === 0 && (countQuotes(rows[r][c]) & 1)) {
               arr[a].push(rows[r][c].substring(1).replace(/""/g, '"'));
               multiline = true;
             }

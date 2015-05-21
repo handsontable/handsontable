@@ -1,6 +1,6 @@
 
 import * as helper from './../helpers.js';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords.js';
 
 export {BaseEditor};
 

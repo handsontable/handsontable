@@ -100,7 +100,7 @@ describe('Core_loadData', function () {
     var called = false;
 
     handsontable({
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -115,7 +115,7 @@ describe('Core_loadData', function () {
     var called = false;
 
     handsontable({
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -130,7 +130,7 @@ describe('Core_loadData', function () {
     var called = false;
 
     handsontable({
-      onChange: function (changes, source) {
+      afterChange: function (changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -176,7 +176,7 @@ describe('Core_loadData', function () {
   });
 
   //https://github.com/handsontable/handsontable/pull/233
-  it('Should not invoke the cells callback multiple times with the same row/col', function () {
+  it('should not invoke the cells callback multiple times with the same row/col (without overlays)', function () {
     var cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
@@ -186,8 +186,23 @@ describe('Core_loadData', function () {
     });
     //expect(cellsSpy.calls.length).toEqual(3 * (countRows() * countCols()) + 4 * countCols()); // changed for the dynamic column loading feature
 
-    expect(cellsSpy.calls.length).toEqual(55); // ugly fix for this test failing, TODO: needs updating (probably has something to do with scrollHandler recognition)
+    // ugly fix for this test failing, TODO: needs updating (probably has something to do with scrollHandler recognition)
+    expect(cellsSpy.calls.length).toEqual(34);
 
+  });
+
+  it('should not invoke the cells callback multiple times with the same row/col (with overlays)', function () {
+    var cellsSpy = jasmine.createSpy('cellsSpy');
+
+    handsontable({
+      data: arrayOfNestedObjects(),
+      colHeaders: true,
+      rowHeaders: true,
+      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
+      cells: cellsSpy
+    });
+
+    expect(cellsSpy.calls.length).toEqual(55);
   });
 
   it('should remove grid rows if new data source has less of them', function () {

@@ -54,7 +54,7 @@ describe('Core_copy', function () {
       data: arrayOfArrays(),
       copyRowsLimit: 2,
       copyColsLimit: 2,
-      onCopyLimit: function (selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit) {
+      afterCopyLimit: function (selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit) {
         result = [selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit];
       }
     });

@@ -1,295 +1,338 @@
-
 import * as dom from './../../dom.js';
+import BasePlugin from './../_base.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
-
-export {MultipleSelectionHandles};
-
-//registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
 
 /**
  * @class MultipleSelectionHandles
  * @private
  * @plugin
  */
-function MultipleSelectionHandles(instance) {
-  this.instance = instance;
-  this.dragged = [];
-  this.eventManager = eventManagerObject(instance);
-  this.bindTouchEvents();
-}
 
-MultipleSelectionHandles.prototype.getCurrentRangeCoords = function(selectedRange, currentTouch, touchStartDirection,
-                                                                    currentDirection, draggedHandle) {
-  var topLeftCorner = selectedRange.getTopLeftCorner(),
-    bottomRightCorner = selectedRange.getBottomRightCorner(),
-    bottomLeftCorner = selectedRange.getBottomLeftCorner(),
-    topRightCorner = selectedRange.getTopRightCorner();
+class MultipleSelectionHandles extends BasePlugin {
+  /**
+   * @param {Object} hotInstance
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
 
-  var newCoords = {
-    start: null,
-    end: null
-  };
+    this.dragged = [];
+    this.eventManager = eventManagerObject(this.hot);
+    this.bindTouchEvents();
 
-  switch (touchStartDirection) {
-    case "NE-SW":
-      switch (currentDirection) {
-        case "NE-SW":
-        case "NW-SE":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: new WalkontableCellCoords(currentTouch.row, selectedRange.highlight.col),
-              end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
-            };
-          } else {
-            newCoords = {
-              start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
-              end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
-            };
-          }
-          break;
-        case "SE-NW":
-          if (draggedHandle == "bottomRight") {
-            newCoords = {
-              start: new WalkontableCellCoords(bottomRightCorner.row, currentTouch.col),
-              end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
-            };
-          }
-          break;
-        //case "SW-NE":
-        //  break;
-      }
-      break;
-    case "NW-SE":
-      switch (currentDirection) {
-        case "NE-SW":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: currentTouch,
-              end: bottomLeftCorner
-            };
-          } else {
-            newCoords.end = currentTouch;
-          }
-          break;
-        case "NW-SE":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: currentTouch,
-              end: bottomRightCorner
-            };
-          } else {
-            newCoords.end = currentTouch;
-          }
-          break;
-        case "SE-NW":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: currentTouch,
-              end: topLeftCorner
-            };
-          } else {
-            newCoords.end = currentTouch;
-          }
-          break;
-        case "SW-NE":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: currentTouch,
-              end: topRightCorner
-            };
-          } else {
-            newCoords.end = currentTouch;
-          }
-          break;
-      }
-      break;
-    case "SW-NE":
-      switch (currentDirection) {
-        case "NW-SE":
-          if (draggedHandle == "bottomRight") {
-            newCoords = {
-              start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
-              end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
-            };
-          } else {
-            newCoords = {
-              start: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col),
-              end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
-            };
-          }
-          break;
-        //case "NE-SW":
-        //
-        //  break;
-        case "SW-NE":
-          if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
-              end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
-            };
-          } else {
-            newCoords = {
-              start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
-              end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
-            };
-          }
-          break;
-        case "SE-NW":
-          if (draggedHandle == "bottomRight") {
-            newCoords = {
-              start: new WalkontableCellCoords(currentTouch.row, topRightCorner.col),
-              end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
-            };
-          } else if (draggedHandle == "topLeft") {
-            newCoords = {
-              start: bottomLeftCorner,
-              end: currentTouch
-            };
-          }
-          break;
-      }
-      break;
-    case "SE-NW":
-      switch (currentDirection) {
-        case "NW-SE":
-        case "NE-SW":
-        case "SW-NE":
-          if (draggedHandle == "topLeft") {
-            newCoords.end = currentTouch;
-          }
-          break;
-        case "SE-NW":
-          if (draggedHandle == "topLeft") {
-            newCoords.end = currentTouch;
-          } else {
-            newCoords = {
-              start: currentTouch,
-              end: topLeftCorner
-            };
-          }
-          break;
-      }
-      break;
+    this.hot.addHook('afterInit', () => this.init());
   }
 
-  return newCoords;
-};
+  /**
+   * Initial settings
+   */
+  init() {
+    this.lastSetCell = null;
+    Handsontable.plugins.multipleSelectionHandles = new MultipleSelectionHandles(this.hot);
+  }
 
-MultipleSelectionHandles.prototype.bindTouchEvents = function() {
-  var that = this;
-  var removeFromDragged = function(query) {
 
-    if (this.dragged.length == 1) {
-      this.dragged = [];
-      return true;
+  /**
+   * Bind the touch events
+   * @private
+   */
+  bindTouchEvents() {
+    var _this = this;
+
+    function removeFromDragged(query) {
+
+      if (_this.dragged.length === 1) {
+        // clear array
+        _this.dragged.splice(0, _this.dragged.length);
+
+        return true;
+      }
+
+      var entryPosition = _this.dragged.indexOf(query);
+
+      if (entryPosition == -1) {
+        return false;
+      } else if (entryPosition === 0) {
+        _this.dragged = _this.dragged.slice(0, 1);
+      } else if (entryPosition == 1) {
+        _this.dragged = _this.dragged.slice(-1);
+      }
     }
 
-    var entryPosition = this.dragged.indexOf(query);
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
+      let selectedRange;
 
-    if (entryPosition == -1) {
-      return false;
-    } else if (entryPosition === 0) {
-      this.dragged = this.dragged.slice(0, 1);
-    } else if (entryPosition == 1) {
-      this.dragged = this.dragged.slice(-1);
-    }
-  };
+      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        selectedRange = _this.hot.getSelectedRange();
 
-  this.eventManager.addEventListener(this.instance.rootElement, 'touchstart', function(event) {
-    if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
-      that.dragged.push("topLeft");
-      var selectedRange = that.instance.getSelectedRange();
-      that.touchStartRange = {
-        width: selectedRange.getWidth(),
-        height: selectedRange.getHeight(),
-        direction: selectedRange.getDirection()
-      };
-      event.preventDefault();
+        _this.dragged.push("topLeft");
 
-      return false;
-    } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
-      that.dragged.push("bottomRight");
-      var selectedRange = that.instance.getSelectedRange();
-      that.touchStartRange = {
-        width: selectedRange.getWidth(),
-        height: selectedRange.getHeight(),
-        direction: selectedRange.getDirection()
-      };
-      event.preventDefault();
+        _this.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
 
-      return false;
-    }
-  });
+        event.preventDefault();
+        return false;
 
-  this.eventManager.addEventListener(this.instance.rootElement, 'touchend', function(event) {
-    if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
-      removeFromDragged.call(that, "topLeft");
-      that.touchStartRange = void 0;
-      event.preventDefault();
+      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        selectedRange = _this.hot.getSelectedRange();
 
-      return false;
-    } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
-      removeFromDragged.call(that, "bottomRight");
-      that.touchStartRange = void 0;
-      event.preventDefault();
+        _this.dragged.push("bottomRight");
 
-      return false;
-    }
-  });
+        _this.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
 
-  this.eventManager.addEventListener(this.instance.rootElement, 'touchmove', function(event) {
-    var scrollTop = dom.getWindowScrollTop(),
-      scrollLeft = dom.getWindowScrollLeft();
+        event.preventDefault();
+        return false;
+      }
+    });
 
-    if (that.dragged.length > 0) {
-      var endTarget = document.elementFromPoint(
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
+      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        removeFromDragged.call(_this, "topLeft");
+
+        _this.touchStartRange = void 0;
+
+        event.preventDefault();
+        return false;
+
+      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        removeFromDragged.call(_this, "bottomRight");
+
+        _this.touchStartRange = void 0;
+
+        event.preventDefault();
+        return false;
+      }
+    });
+
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function(event) {
+      let scrollTop = dom.getWindowScrollTop(),
+        scrollLeft = dom.getWindowScrollLeft(),
+        endTarget,
+        targetCoords,
+        selectedRange,
+        rangeWidth,
+        rangeHeight,
+        rangeDirection,
+        newRangeCoords;
+
+      if (_this.dragged.length === 0) {
+        return;
+      }
+
+      endTarget = document.elementFromPoint(
         event.touches[0].screenX - scrollLeft,
         event.touches[0].screenY - scrollTop);
 
-      if (!endTarget) {
+      if (!endTarget || endTarget === _this.lastSetCell) {
         return;
       }
 
       if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
-        var targetCoords = that.instance.getCoords(endTarget);
+        targetCoords = _this.hot.getCoords(endTarget);
 
         if (targetCoords.col == -1) {
           targetCoords.col = 0;
         }
 
-        var selectedRange = that.instance.getSelectedRange(),
-          rangeWidth = selectedRange.getWidth(),
-          rangeHeight = selectedRange.getHeight(),
-          rangeDirection = selectedRange.getDirection();
+        selectedRange = _this.hot.getSelectedRange();
+        rangeWidth = selectedRange.getWidth();
+        rangeHeight = selectedRange.getHeight();
+        rangeDirection = selectedRange.getDirection();
 
         if (rangeWidth == 1 && rangeHeight == 1) {
-          that.instance.selection.setRangeEnd(targetCoords);
+          _this.hot.selection.setRangeEnd(targetCoords);
         }
 
-        var newRangeCoords = that.getCurrentRangeCoords(selectedRange, targetCoords, that.touchStartRange.direction, rangeDirection, that.dragged[0]);
+        newRangeCoords = _this.getCurrentRangeCoords(selectedRange, targetCoords, _this.touchStartRange.direction, rangeDirection, _this.dragged[0]);
 
-        if (newRangeCoords.start != null) {
-          that.instance.selection.setRangeStart(newRangeCoords.start);
+        if (newRangeCoords.start !== null) {
+          _this.hot.selection.setRangeStart(newRangeCoords.start);
         }
-        that.instance.selection.setRangeEnd(newRangeCoords.end);
+
+        _this.hot.selection.setRangeEnd(newRangeCoords.end);
+
+        _this.lastSetCell = endTarget;
 
       }
 
       event.preventDefault();
+    });
+  }
+
+  getCurrentRangeCoords(selectedRange, currentTouch, touchStartDirection, currentDirection, draggedHandle) {
+    var topLeftCorner = selectedRange.getTopLeftCorner(),
+      bottomRightCorner = selectedRange.getBottomRightCorner(),
+      bottomLeftCorner = selectedRange.getBottomLeftCorner(),
+      topRightCorner = selectedRange.getTopRightCorner();
+
+    var newCoords = {
+      start: null,
+      end: null
+    };
+
+    switch (touchStartDirection) {
+      case "NE-SW":
+        switch (currentDirection) {
+          case "NE-SW":
+          case "NW-SE":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: new WalkontableCellCoords(currentTouch.row, selectedRange.highlight.col),
+                end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
+              };
+            } else {
+              newCoords = {
+                start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
+                end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
+              };
+            }
+            break;
+          case "SE-NW":
+            if (draggedHandle == "bottomRight") {
+              newCoords = {
+                start: new WalkontableCellCoords(bottomRightCorner.row, currentTouch.col),
+                end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
+              };
+            }
+            break;
+          //case "SW-NE":
+          //  break;
+        }
+        break;
+      case "NW-SE":
+        switch (currentDirection) {
+          case "NE-SW":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: currentTouch,
+                end: bottomLeftCorner
+              };
+            } else {
+              newCoords.end = currentTouch;
+            }
+            break;
+          case "NW-SE":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: currentTouch,
+                end: bottomRightCorner
+              };
+            } else {
+              newCoords.end = currentTouch;
+            }
+            break;
+          case "SE-NW":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: currentTouch,
+                end: topLeftCorner
+              };
+            } else {
+              newCoords.end = currentTouch;
+            }
+            break;
+          case "SW-NE":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: currentTouch,
+                end: topRightCorner
+              };
+            } else {
+              newCoords.end = currentTouch;
+            }
+            break;
+        }
+        break;
+      case "SW-NE":
+        switch (currentDirection) {
+          case "NW-SE":
+            if (draggedHandle == "bottomRight") {
+              newCoords = {
+                start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
+                end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
+              };
+            } else {
+              newCoords = {
+                start: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col),
+                end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
+              };
+            }
+            break;
+          //case "NE-SW":
+          //
+          //  break;
+          case "SW-NE":
+            if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
+                end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
+              };
+            } else {
+              newCoords = {
+                start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
+                end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
+              };
+            }
+            break;
+          case "SE-NW":
+            if (draggedHandle == "bottomRight") {
+              newCoords = {
+                start: new WalkontableCellCoords(currentTouch.row, topRightCorner.col),
+                end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
+              };
+            } else if (draggedHandle == "topLeft") {
+              newCoords = {
+                start: bottomLeftCorner,
+                end: currentTouch
+              };
+            }
+            break;
+        }
+        break;
+      case "SE-NW":
+        switch (currentDirection) {
+          case "NW-SE":
+          case "NE-SW":
+          case "SW-NE":
+            if (draggedHandle == "topLeft") {
+              newCoords.end = currentTouch;
+            }
+            break;
+          case "SE-NW":
+            if (draggedHandle == "topLeft") {
+              newCoords.end = currentTouch;
+            } else {
+              newCoords = {
+                start: currentTouch,
+                end: topLeftCorner
+              };
+            }
+            break;
+        }
+        break;
     }
-  });
 
-};
+    return newCoords;
+  }
 
-MultipleSelectionHandles.prototype.isDragged = function () {
-  return this.dragged.length > 0;
-};
+  /**
+   * Check if user is currently dragging the handle
+   * @private
+   * @returns {boolean} Dragging state
+   */
+  isDragged() {
+    return this.dragged.length > 0;
+  }
 
-var init = function () {
-  var instance = this;
+}
 
-  Handsontable.plugins.multipleSelectionHandles = new MultipleSelectionHandles(instance);
-};
+export default MultipleSelectionHandles;
 
-Handsontable.hooks.add('afterInit', init);
+registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);

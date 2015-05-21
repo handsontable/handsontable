@@ -24,6 +24,8 @@ describe('CustomBorders', function () {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(7, 7),
+      colHeaders: true,
+      rowHeaders: true,
       customBorders: [
         {
           row: 2,
@@ -53,6 +55,8 @@ describe('CustomBorders', function () {
   it('should draw custom borders for range', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(7, 7),
+      colHeaders: true,
+      rowHeaders: true,
       customBorders: [
         {
           range:{

@@ -1,19 +1,16 @@
 
 import * as dom from './../../../dom.js';
-import {WalkontableCellCoords} from './cellCoords.js';
-import {WalkontableCellRange} from './cellRange.js';
-import {WalkontableColumnFilter} from './columnFilter.js';
-import {WalkontableCornerOverlay} from './walkontableCornerOverlay.js';
-import {WalkontableDebugOverlay} from './debugOverlay.js';
-import {WalkontableHorizontalScrollbarNative} from './scrollbarNativeHorizontal.js';
-import {WalkontableLeftOverlay} from './walkontableLeftOverlay.js';
-import {WalkontableRowFilter} from './rowFilter.js';
+import {WalkontableCellCoords} from './cell/coords.js';
+import {WalkontableCellRange} from './cell/range.js';
+import {WalkontableColumnFilter} from './filter/column.js';
+import {WalkontableCornerOverlay} from './overlay/corner.js';
+import {WalkontableDebugOverlay} from './overlay/debug.js';
+import {WalkontableLeftOverlay} from './overlay/left.js';
+import {WalkontableRowFilter} from './filter/row.js';
 import {WalkontableTableRenderer} from './tableRenderer.js';
-import {WalkontableTopOverlay} from './walkontableTopOverlay.js';
+import {WalkontableTopOverlay} from './overlay/top.js';
 
-export {WalkontableTable};
 
-window.WalkontableTable = WalkontableTable;
 function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
@@ -185,7 +182,10 @@ WalkontableTable.prototype.draw = function(fastDraw) {
   if (!this.isWorkingOnClone()) {
     this.instance.wtOverlays.topOverlay.resetFixedPosition();
     this.instance.wtOverlays.leftOverlay.resetFixedPosition();
-    this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+
+    if (this.instance.wtOverlays.topLeftCornerOverlay) {
+      this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+    }
   }
   this.instance.drawn = true;
 
@@ -479,3 +479,7 @@ WalkontableTable.prototype.getStretchedColumnWidth = function(sourceColumn) {
 
   return width;
 };
+
+export {WalkontableTable};
+
+window.WalkontableTable = WalkontableTable;
