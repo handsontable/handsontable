@@ -12,8 +12,6 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-
-    this.type = 'vertical';
     this.clone = this.makeClone(WalkontableOverlay.CLONE_TOP);
   }
 

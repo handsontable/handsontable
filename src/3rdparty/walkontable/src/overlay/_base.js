@@ -65,6 +65,7 @@ class WalkontableOverlay {
     // legacy support, deprecated in the future
     this.instance = this.wot;
 
+    this.type = '';
     this.TABLE = this.wot.wtTable.TABLE;
     this.hider = this.wot.wtTable.hider;
     this.spreader = this.wot.wtTable.spreader;
@@ -107,6 +108,7 @@ class WalkontableOverlay {
     clonedTable.className = this.wot.wtTable.TABLE.className;
     clone.appendChild(clonedTable);
 
+    this.type = direction;
     this.wot.wtTable.wtRootElement.parentNode.appendChild(clone);
 
     return new Walkontable({
