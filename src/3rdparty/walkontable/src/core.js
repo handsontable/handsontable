@@ -169,6 +169,15 @@ class Walkontable {
   }
 
   /**
+   * Get overlay name
+   *
+   * @returns {String}
+   */
+  getOverlayName() {
+    return this.cloneOverlay ? this.cloneOverlay.type : 'master';
+  }
+
+  /**
    * Get/Set Walkontable instance setting
    *
    * @param {String} key

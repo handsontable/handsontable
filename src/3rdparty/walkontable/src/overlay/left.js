@@ -12,8 +12,6 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-
-    this.type = 'horizontal';
     this.clone = this.makeClone(WalkontableOverlay.CLONE_LEFT);
   }
 
@@ -61,7 +59,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
         finalLeft = '0';
       }
       finalTop = this.wot.wtTable.hider.style.top;
-      finalTop = finalTop === "" ? 0 : finalTop;
+      finalTop = finalTop === '' ? 0 : finalTop;
 
       dom.setOverlayPosition(elem, finalLeft, finalTop);
     }
@@ -127,7 +125,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let masterHideWidth = masterHider.style.width;
     let newMasterHiderWidth = headerSize + this.sumCellSizes(0, total) + 'px';
 
-    if(masterHideWidth !== newMasterHiderWidth) {
+    if (masterHideWidth !== newMasterHiderWidth) {
       masterHider.style.width = newMasterHiderWidth;
     }
 

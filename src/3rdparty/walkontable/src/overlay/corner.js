@@ -12,8 +12,6 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-
-    this.type = 'corner';
     this.clone = this.makeClone(WalkontableOverlay.CLONE_CORNER);
   }
 
