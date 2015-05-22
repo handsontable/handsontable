@@ -295,7 +295,7 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.length = 0;
 
     var colOffset = this.hot.colOffset();
-    for (var i = 0, ilen = this.hot.countRows() - this.hot.getSettings()['minSpareRows']; i < ilen; i++) {
+    for (var i = 0, ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn + colOffset)]);
     }
 

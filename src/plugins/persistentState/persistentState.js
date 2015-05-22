@@ -69,7 +69,7 @@ function HandsontablePersistentState() {
 
   this.init = function () {
     var instance = this,
-      pluginSettings = instance.getSettings()['persistentState'];
+      pluginSettings = instance.getSettings().persistentState;
 
     plugin.enabled = !!(pluginSettings);
 
