@@ -26,10 +26,8 @@ class WalkontableOverlays {
 
     this.topOverlay = new WalkontableTopOverlay(this.wot);
     this.leftOverlay = new WalkontableLeftOverlay(this.wot);
+    this.topLeftCornerOverlay = new WalkontableCornerOverlay(this.wot);
 
-    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-      this.topLeftCornerOverlay = new WalkontableCornerOverlay(this.wot);
-    }
     if (this.wot.getSetting('debug')) {
       this.debug = new WalkontableDebugOverlay(this.wot);
     }
@@ -120,13 +118,10 @@ class WalkontableOverlays {
    */
   onTableScroll(event) {
     // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-    if (Handsontable.mobileBrowser) {
-      return;
-    }
     if (event.type === 'scroll') {
       this.syncScrollPositions(event);
 
-    } else  {
+    } else {
       this.translateMouseWheelToScroll(event);
     }
   }
@@ -283,10 +278,8 @@ class WalkontableOverlays {
 
     this.topOverlay.destroy();
     this.leftOverlay.destroy();
+    this.topLeftCornerOverlay.destroy();
 
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.destroy();
-    }
     if (this.debug) {
       this.debug.destroy();
     }
@@ -299,10 +292,8 @@ class WalkontableOverlays {
   refresh(fastDraw = false) {
     this.leftOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
+    this.topLeftCornerOverlay.refresh(fastDraw);
 
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.refresh(fastDraw);
-    }
     if (this.debug) {
       this.debug.refresh(fastDraw);
     }
