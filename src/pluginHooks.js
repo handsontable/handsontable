@@ -516,7 +516,25 @@ class PluginHook {
        * @since 0.11
        * @param {Number} col
        */
-      modifyCol: []
+      modifyCol: [],
+
+      /**
+       * Callback fired after column sorting.
+       *
+       * @event Hooks#afterColumnSort
+       * @param {Number} col
+       * @param {Boolean|undefined} order
+       */
+      afterColumnSort: [],
+
+      /**
+       * Callback fired before column sorting.
+       *
+       * @event Hooks#beforeColumnSort
+       * @param {Number} col
+       * @param {Boolean|undefined} order
+       */
+      beforeColumnSort: []
     };
     this.globalBucket = {};
   }
