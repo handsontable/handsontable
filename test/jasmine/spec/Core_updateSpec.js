@@ -34,6 +34,20 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should ignore mixed in properties to the cell array option', function() {
+    Array.prototype.willFail = "BOOM";
+
+    handsontable({
+      data : [[1, true]],
+      columns : [
+        { type : 'numeric' },
+        { type : 'checkbox' }
+      ]
+    });
+
+    updateSettings({ cell: new Array() });
+  });
+
   it('should not reset columns types to text', function () {
     handsontable({
       data : [[1, true]],
