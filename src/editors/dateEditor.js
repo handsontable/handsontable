@@ -170,7 +170,9 @@ DateEditor.prototype.showDatepicker = function(event) {
           this.setValue('');
         }
       }
-      //this.setValue(dateStr);
+    } else {
+      // if a default date is not defined, set a soft-default-date: display the current day and month in the datepicker, but don't fill the editor input
+      this.$datePicker.gotoToday();
     }
   }
 
