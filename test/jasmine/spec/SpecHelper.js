@@ -331,7 +331,7 @@ var handsontableMethodFactory = function (method) {
     try{
       instance = spec().$container.handsontable('getInstance');
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
     if (!instance) {
