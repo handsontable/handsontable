@@ -1,6 +1,6 @@
 import * as dom from './../../dom.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cellCoords.js';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 import {registerPlugin, getPlugin} from './../../plugins.js';
 import BasePlugin from './../_base.js';
 
@@ -21,7 +21,7 @@ class Comments extends BasePlugin {
     }
 
     this.hot.addHook('afterInit', () => this.registerListeners());
-    this.hot.addHook('afterContextMenuDefaultOptions', (options) => Comments.addToContextMenu(options));
+    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.hot.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => {
         Comments.afterRenderer(TD, cellProperties);
       }
@@ -258,7 +258,7 @@ class Comments extends BasePlugin {
    *
    * @param defaultOptions
    */
-  static addToContextMenu(defaultOptions) {
+  addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
       Handsontable.ContextMenu.SEPARATOR,
       {
