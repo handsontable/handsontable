@@ -21,7 +21,7 @@ class Comments extends BasePlugin {
     }
 
     this.hot.addHook('afterInit', () => this.registerListeners());
-    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
+    this.hot.addHook('afterContextMenuDefaultOptions', (options) => Comments.addToContextMenu(options));
     this.hot.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => {
         Comments.afterRenderer(TD, cellProperties);
       }
@@ -141,7 +141,6 @@ class Comments extends BasePlugin {
       this.clearRange();
       this.contextMenuEvent = false;
     }
-
   }
 
   /***
@@ -259,7 +258,7 @@ class Comments extends BasePlugin {
    *
    * @param defaultOptions
    */
-  addToContextMenu(defaultOptions) {
+  static addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
       Handsontable.ContextMenu.SEPARATOR,
       {
