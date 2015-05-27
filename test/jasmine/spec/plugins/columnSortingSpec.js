@@ -1134,14 +1134,14 @@ describe('ColumnSorting', function() {
     //ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual("'" + String.fromCharCode(9650) + "'");
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     this.sortByColumn(1);
 
     //descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual("'" + String.fromCharCode(9660) + "'");
+    expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     this.sortByColumn(1);
 
@@ -1175,7 +1175,7 @@ describe('ColumnSorting', function() {
     this.sortByColumn(2);
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual("'" + String.fromCharCode(9650) + "'");
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
   });
 });
