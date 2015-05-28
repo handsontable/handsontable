@@ -79,7 +79,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(10);
+    expect(count).toEqual(9);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', function () {
@@ -94,7 +94,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(13);
+    expect(count).toEqual(12);
   });
 
   it('should call renderer twice for each cell (auto column width)', function () {

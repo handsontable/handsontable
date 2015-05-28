@@ -1430,7 +1430,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (Handsontable.hooks.hooks[i] !== void 0) {
+        if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
           if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }

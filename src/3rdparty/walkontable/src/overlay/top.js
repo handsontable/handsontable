@@ -37,14 +37,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     if (!this.needFullRender) {
       return;
     }
-    let elem = this.clone.wtTable.holder.parentNode;
-    let scrollbarWidth = this.wot.wtTable.holder.clientWidth !== this.wot.wtTable.holder.offsetWidth ? dom.getScrollbarWidth() : 0;
-    let tableHeight;
+    let overlayRoot = this.clone.wtTable.holder.parentNode;
 
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer !== window) {
-      elem.style.width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
-
-    } else {
+    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let top = Math.ceil(box.top);
       let bottom = Math.ceil(box.bottom);
@@ -54,18 +49,14 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       finalLeft = this.wot.wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
 
-      if (top < 0 && (bottom - elem.offsetHeight) > 0) {
+      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
         finalTop = -top + 'px';
       } else {
         finalTop = '0';
       }
 
-      dom.setOverlayPosition(elem, finalLeft, finalTop);
+      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
     }
-    this.clone.wtTable.holder.style.width = elem.style.width;
-
-    tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
-    elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
   }
 
   /**
@@ -109,9 +100,32 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   }
 
   /**
+   * Adjust overlay root element size (width and height).
+   */
+  adjustRootElementSize() {
+    let overlayRoot = this.clone.wtTable.holder.parentNode;
+    let overlayRootStyle = overlayRoot.style;
+
+    let scrollbarWidth = this.wot.wtTable.holder.clientWidth !== this.wot.wtTable.holder.offsetWidth ? dom.getScrollbarWidth() : 0;
+    let tableHeight;
+
+    if (this.trimmingContainer !== window) {
+      overlayRootStyle.width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
+    }
+    this.clone.wtTable.holder.style.width = overlayRootStyle.width;
+
+    tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
+    overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+  }
+
+  /**
    * Adjust the overlay dimensions and position
    */
   applyToDOM() {
+    if (this.needFullRender) {
+      this.adjustRootElementSize();
+    }
+
     let total = this.wot.getSetting('totalRows');
     let headerSize = this.wot.wtViewport.getColumnHeaderHeight();
 

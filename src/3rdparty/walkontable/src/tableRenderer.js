@@ -28,7 +28,6 @@ class WalkontableTableRenderer {
     this.columnHeaders = [];
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
-    this.block = false;
   }
 
   /**
@@ -83,8 +82,8 @@ class WalkontableTableRenderer {
       this.markOversizedRows();
 
       this.wot.wtViewport.createVisibleCalculators();
-      this.wot.wtOverlays.applyToDOM();
       this.wot.wtOverlays.refresh(false);
+      this.wot.wtOverlays.applyToDOM();
 
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching

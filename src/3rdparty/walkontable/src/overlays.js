@@ -1,5 +1,5 @@
 import * as dom from './../../../dom.js';
-import {eventManager as eventManagerObject} from './../../../eventManager.js';
+import {EventManager} from './../../../eventManager.js';
 import {WalkontableCornerOverlay} from './overlay/corner.js';
 import {WalkontableDebugOverlay} from './overlay/debug.js';
 import {WalkontableLeftOverlay} from './overlay/left.js';
@@ -18,6 +18,7 @@ class WalkontableOverlays {
 
     // legacy support
     this.instance = this.wot;
+    this.eventManager = new EventManager(this.wot);
 
     this.wot.update('scrollbarWidth', dom.getScrollbarWidth());
     this.wot.update('scrollbarHeight', dom.getScrollbarWidth());
@@ -35,6 +36,7 @@ class WalkontableOverlays {
     }
 
     this.destroyed = false;
+    this.keyPressed = false;
     this.overlayScrollPositions = {
       'master': {
         top: 0,
@@ -75,24 +77,25 @@ class WalkontableOverlays {
    * Register all necessary event listeners
    */
   registerListeners() {
-    const eventManager = eventManagerObject(this.wot);
+    this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
+    this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
 
-    eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
+    this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
     if (this.topOverlay.needFullRender) {
-      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
-      eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
+      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
+      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
     if (this.leftOverlay.needFullRender) {
-      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
-      eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
+      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
+      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
       // This is necessary?
       //eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
-      eventManager.addEventListener(window, 'wheel', (event) => {
+      this.eventManager.addEventListener(window, 'wheel', (event) => {
         let overlay;
         let deltaY = event.wheelDeltaY || event.deltaY;
         let deltaX = event.wheelDeltaX || event.deltaX;
@@ -123,12 +126,32 @@ class WalkontableOverlays {
     if (Handsontable.mobileBrowser) {
       return;
     }
+    // For key press sync only master -> overlay position because while pressing Walkontable.render is triggered
+    // by hot.refreshBorder
+    if (this.keyPressed && this.mainTableScrollableElement !== window &&
+        !event.target.contains(this.mainTableScrollableElement)) {
+      return;
+    }
     if (event.type === 'scroll') {
       this.syncScrollPositions(event);
 
     } else  {
       this.translateMouseWheelToScroll(event);
     }
+  }
+
+  /**
+   * Key down listener
+   */
+  onKeyDown() {
+    this.keyPressed = true;
+  }
+
+  /**
+   * Key up listener
+   */
+  onKeyUp() {
+    this.keyPressed = false;
   }
 
   /**
@@ -256,7 +279,7 @@ class WalkontableOverlays {
       }
     }
 
-    if (scrollValueChanged && event.type === 'scroll') {
+    if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
       this.refreshAll();
     }
   }
@@ -279,7 +302,7 @@ class WalkontableOverlays {
    *
    */
   destroy() {
-    eventManagerObject(this.wot).clear();
+    this.eventManager.clear();
 
     this.topOverlay.destroy();
     this.leftOverlay.destroy();
@@ -312,8 +335,8 @@ class WalkontableOverlays {
    *
    */
   applyToDOM() {
-    this.leftOverlay.applyToDOM();
     this.topOverlay.applyToDOM();
+    this.leftOverlay.applyToDOM();
   }
 }
 

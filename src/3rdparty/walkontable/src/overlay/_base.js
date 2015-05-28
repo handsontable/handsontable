@@ -127,14 +127,8 @@ class WalkontableOverlay {
     // When hot settings are changed we allow to refresh overlay once before blocking
     var nextCycleRenderFlag = this.isShouldBeFullyRendered();
 
-    if (this.needFullRender || nextCycleRenderFlag) {
-      if (this.applyToDOM) {
-        this.applyToDOM();
-      }
-      if (this.clone) {
-        this.clone.draw(fastDraw);
-      }
-
+    if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
+      this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
   };

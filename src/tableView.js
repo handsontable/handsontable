@@ -213,8 +213,8 @@ function TableView(instance) {
 
       var arr = [];
       if (instance.hasColHeaders()) {
-        arr.push(function(index, TH) {
-          that.appendColHeader(index, TH);
+        arr.push(function(index, TH, a, b) {
+          that.appendColHeader(index, TH, a , b);
         });
       }
       Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', arr);
@@ -341,7 +341,6 @@ function TableView(instance) {
       if (that.settings.viewportRowRenderingOffset) {
         calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
         calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
-      //console.log(calc);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
@@ -451,24 +450,28 @@ TableView.prototype.scrollViewport = function(coords) {
  * @param TH
  */
 TableView.prototype.appendRowHeader = function(row, TH) {
-  var DIV = document.createElement('DIV'),
-    SPAN = document.createElement('SPAN');
+  if (TH.firstChild) {
+    let container = TH.firstChild;
 
-  DIV.className = 'relative';
-  SPAN.className = 'rowHeader';
+    if (!dom.hasClass(container, 'relative')) {
+      dom.empty(TH);
+      this.appendRowHeader(row, TH);
 
-  if (row > -1) {
-    dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
+      return;
+    }
+    this.updateCellHeader(container.firstChild, row, this.instance.getRowHeader);
+
   } else {
-    // workaround for https://github.com/handsontable/handsontable/issues/1946
-    dom.fastInnerText(SPAN, String.fromCharCode(160));
+    let div = document.createElement('div');
+    let span = document.createElement('span');
+
+    div.className = 'relative';
+    span.className = 'colHeader';
+    this.updateCellHeader(span, row, this.instance.getRowHeader);
+
+    div.appendChild(span);
+    TH.appendChild(div);
   }
-
-  DIV.appendChild(SPAN);
-  dom.empty(TH);
-
-  TH.appendChild(DIV);
-
   Handsontable.hooks.run(this.instance, 'afterGetRowHeader', row, TH);
 };
 
@@ -478,25 +481,48 @@ TableView.prototype.appendRowHeader = function(row, TH) {
  * @param TH
  */
 TableView.prototype.appendColHeader = function(col, TH) {
-  var DIV = document.createElement('DIV'),
-    SPAN = document.createElement('SPAN');
+  if (TH.firstChild) {
+    let container = TH.firstChild;
 
-  DIV.className = 'relative';
-  SPAN.className = 'colHeader';
+    if (!dom.hasClass(container, 'relative')) {
+      dom.empty(TH);
+      this.appendRowHeader(col, TH);
 
-  if (col > -1) {
-    dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
+      return;
+    }
+    this.updateCellHeader(container.firstChild, col, this.instance.getColHeader);
+
+  } else {
+    var div = document.createElement('div');
+    let span = document.createElement('span');
+
+    div.className = 'relative';
+    span.className = 'colHeader';
+    this.updateCellHeader(span, col, this.instance.getColHeader);
+
+    div.appendChild(span);
+    TH.appendChild(div);
+  }
+  Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
+};
+
+/**
+ * Update header cell content
+ *
+ * @since 0.15.0-beta4
+ * @param {HTMLElement} element Element to update
+ * @param {Number} index Row index or column index
+ * @param {Function} content Function which should be returns content for this cell
+ */
+TableView.prototype.updateCellHeader = function(element, index, content) {
+  if (index > -1) {
+    dom.fastInnerHTML(element, content(index));
 
   } else {
     // workaround for https://github.com/handsontable/handsontable/issues/1946
-    dom.fastInnerText(SPAN, String.fromCharCode(160));
-    dom.addClass(SPAN, 'cornerHeader');
+    dom.fastInnerText(element, String.fromCharCode(160));
+    dom.addClass(element, 'cornerHeader');
   }
-  DIV.appendChild(SPAN);
-
-  dom.empty(TH);
-  TH.appendChild(DIV);
-  Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };
 
 /**
