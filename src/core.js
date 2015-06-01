@@ -6,7 +6,6 @@ import {EditorManager} from './editorManager.js';
 import {eventManager as eventManagerObject} from './eventManager.js';
 import {getPlugin} from './plugins.js';
 import {getRenderer} from './renderers.js';
-import {PluginHook} from './pluginHooks.js';
 import {TableView} from './tableView.js';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range.js';
@@ -297,6 +296,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (selectionChanged) {
           instance.selectCell(fromRow, fromCol, toRow, toCol);
         }
+      }
+      if (instance.view) {
+        instance.view.wt.wtOverlays.adjustElementsSize();
       }
     },
 
@@ -3271,7 +3273,7 @@ DefaultSettings.prototype = {
    * __persistentStateLoad__ (key: String, valuePlaceholder: Object)
    *
    *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in `valuePlaceholder.value`
-   *     (this is due to specific behaviour of `PluginHooks.execute()` method). If no value have been saved under key `valuePlaceholder.value`
+   *     (this is due to specific behaviour of `Hooks.run()` method). If no value have been saved under key `valuePlaceholder.value`
    *     will be `undefined`.
    *
    * __persistentStateReset__ (key: String)

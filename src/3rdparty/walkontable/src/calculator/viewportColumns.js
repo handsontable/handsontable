@@ -149,6 +149,9 @@ class WalkontableViewportColumnsCalculator {
    * @param {Number} totalWidth
    */
   refreshStretching(totalWidth) {
+    if (this.stretch === 'none') {
+      return;
+    }
     let sumAll = 0;
     let columnWidth;
     let remainingSize;

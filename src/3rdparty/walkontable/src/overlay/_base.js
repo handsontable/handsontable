@@ -74,6 +74,7 @@ class WalkontableOverlay {
     this.trimmingContainer = dom.getTrimmingContainer(this.hider.parentNode.parentNode);
     this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
     this.needFullRender = this.isShouldBeFullyRendered();
+    this.isElementSizesAdjusted = false;
   }
 
   /**
@@ -131,7 +132,7 @@ class WalkontableOverlay {
       this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
-  };
+  }
 
   /**
    * Destroy overlay instance

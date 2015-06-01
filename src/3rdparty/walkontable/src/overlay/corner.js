@@ -23,9 +23,9 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
       // removed from DOM
       return;
     }
-    let elem = this.clone.wtTable.holder.parentNode;
-    let tableHeight;
-    let tableWidth;
+    let overlayRoot = this.clone.wtTable.holder.parentNode;
+    let tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
+    let tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
 
     if (this.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
@@ -36,24 +36,21 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
       let finalLeft;
       let finalTop;
 
-      if (left < 0 && (right - elem.offsetWidth) > 0) {
+      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
         finalLeft = -left + 'px';
       } else {
         finalLeft = '0';
       }
 
-      if (top < 0 && (bottom - elem.offsetHeight) > 0) {
+      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
         finalTop = -top + 'px';
       } else {
         finalTop = '0';
       }
-      dom.setOverlayPosition(elem, finalLeft, finalTop);
+      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
     }
-    tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
-    tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
-
-    elem.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
-    elem.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
+    overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+    overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
   }
 }
 

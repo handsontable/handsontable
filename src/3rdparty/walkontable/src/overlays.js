@@ -37,6 +37,10 @@ class WalkontableOverlays {
 
     this.destroyed = false;
     this.keyPressed = false;
+    this.spreaderLastSize = {
+      width: null,
+      height: null
+    };
     this.overlayScrollPositions = {
       'master': {
         top: 0,
@@ -320,6 +324,17 @@ class WalkontableOverlays {
    * @param {Boolean} [fastDraw=false]
    */
   refresh(fastDraw = false) {
+    if (this.topOverlay.isElementSizesAdjusted && this.leftOverlay.isElementSizesAdjusted) {
+      let container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
+      let width = container.clientWidth;
+      let height = container.clientHeight;
+
+      if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
+        this.spreaderLastSize.width = width;
+        this.spreaderLastSize.height = height;
+        this.adjustElementsSize();
+      }
+    }
     this.leftOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
 
@@ -332,9 +347,29 @@ class WalkontableOverlays {
   }
 
   /**
+   * Adjust overlays elements size and master table size
+   */
+  adjustElementsSize() {
+    let totalColumns = this.wot.getSetting('totalColumns');
+    let totalRows = this.wot.getSetting('totalRows');
+    let headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
+    let headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
+    let hiderStyle = this.wot.wtTable.hider.style;
+
+    hiderStyle.width = (headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)) + 'px';
+    hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
+
+    this.topOverlay.adjustElementsSize();
+    this.leftOverlay.adjustElementsSize();
+  }
+
+  /**
    *
    */
   applyToDOM() {
+    if (!this.topOverlay.isElementSizesAdjusted || !this.leftOverlay.isElementSizesAdjusted) {
+      this.adjustElementsSize();
+    }
     this.topOverlay.applyToDOM();
     this.leftOverlay.applyToDOM();
   }
