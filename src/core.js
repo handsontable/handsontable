@@ -2673,12 +2673,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @function runHooks
    * @see Hooks#run
    * @param {String} key Hook name
-   * @param {*} p1
-   * @param {*} p2
-   * @param {*} p3
-   * @param {*} p4
-   * @param {*} p5
-   * @param {*} p6
+   * @param {*} [p1]
+   * @param {*} [p2]
+   * @param {*} [p3]
+   * @param {*} [p4]
+   * @param {*} [p5]
+   * @param {*} [p6]
    * @returns {*}
    *
    * @example

@@ -865,34 +865,35 @@ export function setOverlayPosition(overlayElem, left, top) {
     overlayElem.style.top = top;
     overlayElem.style.left = left;
   } else if (_isSafari) {
+    /* jshint sub:true */
     overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
   } else {
-    overlayElem.style['transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
   }
 }
 
 export function getCssTransform(elem) {
   var transform;
 
-  /* jshint ignore:start */
-  if (elem.style['transform'] && (transform = elem.style['transform']) != "") {
+  /* jshint sub:true */
+  if (elem.style['transform'] && (transform = elem.style['transform']) !== '') {
     return ['transform', transform];
-  } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) != "") {
+
+  } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) !== '') {
+
     return ['-webkit-transform', transform];
-  } else {
-    return -1;
   }
-  /* jshint ignore:end */
+
+  return -1;
 }
 
 export function resetCssTransform(elem) {
-  /* jshint ignore:start */
-  if (elem['transform'] && elem['transform'] != "") {
-    elem['transform'] = "";
-  } else if (elem['-webkit-transform'] && elem['-webkit-transform'] != "") {
-    elem['-webkit-transform'] = "";
+  /* jshint sub:true */
+  if (elem['transform'] && elem['transform'] !== '') {
+    elem['transform'] = '';
+  } else if (elem['-webkit-transform'] && elem['-webkit-transform'] !== '') {
+    elem['-webkit-transform'] = '';
   }
-  /* jshint ignore:end */
 }
 
 window.Handsontable = window.Handsontable || {};

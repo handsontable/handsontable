@@ -666,12 +666,12 @@ class PluginHook {
    * @see Core#runHooks
    * @param {Object} context
    * @param {String} key Hook/Event name
-   * @param {*} p1
-   * @param {*} p2
-   * @param {*} p3
-   * @param {*} p4
-   * @param {*} p5
-   * @param {*} p6
+   * @param {*} [p1]
+   * @param {*} [p2]
+   * @param {*} [p3]
+   * @param {*} [p4]
+   * @param {*} [p5]
+   * @param {*} [p6]
    * @returns {*}
    *
    * @example
@@ -690,12 +690,12 @@ class PluginHook {
    * @param bucket
    * @param context
    * @param key
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @param p5
-   * @param p6
+   * @param [p1]
+   * @param [p2]
+   * @param [p3]
+   * @param [p4]
+   * @param [p5]
+   * @param [p6]
    * @returns {*}
    * @private
    */
