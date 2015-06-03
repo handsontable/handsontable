@@ -370,6 +370,7 @@ class Comments extends BasePlugin {
   /**
    * Check if there is a comment for selected range.
    *
+   * @private
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
