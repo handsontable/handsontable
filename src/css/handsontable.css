@@ -284,14 +284,14 @@
   content: '\25B2';
   color: #5f5f5f;
   position: absolute;
-  left: 10px;
+  right: -15px;
 }
 
 .handsontable .columnSorting.descending::after {
   content: '\25BC';
   color: #5f5f5f;
   position: absolute;
-  left: 10px;
+  right: -15px;
 }
 
 /* border line */

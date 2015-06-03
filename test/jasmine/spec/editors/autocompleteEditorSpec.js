@@ -1,15 +1,15 @@
-describe('AutocompleteEditor', function () {
+describe('AutocompleteEditor', function() {
   var id = 'testContainer';
 
   var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"];
 
   var hot;
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (hot) {
       hot = null;
     }
@@ -20,8 +20,8 @@ describe('AutocompleteEditor', function () {
     }
   });
 
-  describe("open editor", function () {
-    it("should display editor (after hitting ENTER)", function () {
+  describe("open editor", function() {
+    it("should display editor (after hitting ENTER)", function() {
 
 
       handsontable({
@@ -45,7 +45,7 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should display editor (after hitting F2)", function () {
+    it("should display editor (after hitting F2)", function() {
 
       handsontable({
         columns: [
@@ -68,7 +68,7 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should display editor (after doubleclicking)", function () {
+    it("should display editor (after doubleclicking)", function() {
 
       handsontable({
         columns: [
@@ -92,9 +92,9 @@ describe('AutocompleteEditor', function () {
     });
   });
 
-  describe("choices", function () {
+  describe("choices", function() {
 
-    it("should display given choices (array)", function () {
+    it("should display given choices (array)", function() {
 
       handsontable({
         columns: [
@@ -113,7 +113,7 @@ describe('AutocompleteEditor', function () {
 
       waits(100); //List filtering in async
 
-      runs(function () {
+      runs(function() {
         expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
         expect(editor.find('tbody td:eq(1)').text()).toEqual(choices[1]);
         expect(editor.find('tbody td:eq(2)').text()).toEqual(choices[2]);
@@ -123,11 +123,11 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should display given choices (sync function)", function () {
+    it("should display given choices (sync function)", function() {
 
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -147,11 +147,11 @@ describe('AutocompleteEditor', function () {
       syncSources.reset();
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
         expect(editor.find('tbody td:eq(1)').text()).toEqual(choices[1]);
         expect(editor.find('tbody td:eq(2)').text()).toEqual(choices[2]);
@@ -161,11 +161,11 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should display given choices (async function)", function () {
+    it("should display given choices (async function)", function() {
 
       var asyncSources = jasmine.createSpy('asyncSources');
 
-      asyncSources.plan = function (process) {
+      asyncSources.plan = function(process) {
         process(choices);
       };
 
@@ -173,8 +173,8 @@ describe('AutocompleteEditor', function () {
         columns: [
           {
             editor: 'autocomplete',
-            source: function (query, process) {
-              setTimeout(function () {
+            source: function(query, process) {
+              setTimeout(function() {
                 asyncSources(process);
               }, 0);
             }
@@ -188,11 +188,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return asyncSources.calls.length > 0;
       }, 'asyncSources call', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(asyncSources.calls.length).toEqual(1);
         expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
         expect(editor.find('tbody td:eq(1)').text()).toEqual(choices[1]);
@@ -203,7 +203,7 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should NOT update choices list, after cursor leaves and enters the list (#1330)", function () {
+    it("should NOT update choices list, after cursor leaves and enters the list (#1330)", function() {
 
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
       var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
@@ -223,11 +223,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return updateChoicesList.calls.length > 0;
       }, 'Initial choices load', 100);
 
-      runs(function () {
+      runs(function() {
         updateChoicesList.reset();
         $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseenter();
         $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseleave();
@@ -236,13 +236,13 @@ describe('AutocompleteEditor', function () {
 
       waits(100);
 
-      runs(function () {
+      runs(function() {
         expect(updateChoicesList).not.toHaveBeenCalled();
       });
 
     });
 
-    it("should update choices list exactly once after a key is pressed (#1330)", function () {
+    it("should update choices list exactly once after a key is pressed (#1330)", function() {
 
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
       var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
@@ -264,31 +264,31 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return updateChoicesList.calls.length > 0;
       }, 'Initial choices load', 1000);
 
-      runs(function () {
+      runs(function() {
         updateChoicesList.reset();
         editor.TEXTAREA.value = 'red';
 
-        $(editor.TEXTAREA).simulate('keydown',{
+        $(editor.TEXTAREA).simulate('keydown', {
           keyCode: 'd'.charCodeAt(0)
         });
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return updateChoicesList.calls.length > 0;
       }, 'Initial choices load', 100);
 
-      runs(function () {
+      runs(function() {
         expect(updateChoicesList.calls.length).toEqual(1);
       });
 
     });
 
-    it("should not initialize the dropdown with unneeded scrollbars (scrollbar causing a scrollbar issue)", function () {
+    it("should not initialize the dropdown with unneeded scrollbars (scrollbar causing a scrollbar issue)", function() {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
       var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
 
@@ -317,19 +317,19 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return updateChoicesList.calls.length > 0;
       }, 'Initial choices load', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(editor.htContainer.scrollWidth).toEqual(editor.htContainer.clientWidth);
       });
     });
 
-    it('autocomplete list should have textarea dimensions', function () {
+    it('autocomplete list should have textarea dimensions', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -350,18 +350,18 @@ describe('AutocompleteEditor', function () {
       syncSources.reset();
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width());
         expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(188);
       });
     });
 
-    it('autocomplete textarea should have cell dimensions (after render)', function () {
-      runs(function () {
+    it('autocomplete textarea should have cell dimensions (after render)', function() {
+      runs(function() {
         var data = [
           ["a", "b"],
           ["c", "d"]
@@ -373,7 +373,7 @@ describe('AutocompleteEditor', function () {
           minCols: 4,
           minSpareRows: 4,
           minSpareCols: 4,
-          cells: function () {
+          cells: function() {
             return {
               type: Handsontable.AutocompleteCell
             };
@@ -389,13 +389,13 @@ describe('AutocompleteEditor', function () {
 
       waits(10);
 
-      runs(function () {
+      runs(function() {
         var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
         expect(autocompleteEditor().width()).toEqual($td.width());
       });
     });
 
-    it("should invoke beginEditing only once after dobleclicking on a cell (#1011)", function () {
+    it("should invoke beginEditing only once after dobleclicking on a cell (#1011)", function() {
       var hot = handsontable({
         columns: [
           {},
@@ -426,12 +426,15 @@ describe('AutocompleteEditor', function () {
       expect(hot.getActiveEditor().beginEditing.calls.length).toBe(3);
     });
 
-    it("should not display all the choices from a long source list and not leave any unused space in the dropdown (YouTrack: #HOT-32)", function () {
+    it("should not display all the choices from a long source list and not leave any unused space in the dropdown (YouTrack: #HOT-32)", function() {
       var hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
-            source: ["Acura","Audi","BMW","Buick","Cadillac","Chevrolet","Chrysler","Citroen","Dodge","Eagle","Ferrari","Ford","General Motors","GMC","Honda","Hummer","Hyundai","Infiniti","Isuzu","Jaguar","Jeep","Kia","Lamborghini","Land Rover","Lexus","Lincoln","Lotus","Mazda","Mercedes-Benz","Mercury","Mitsubishi","Nissan","Oldsmobile","Peugeot","Pontiac","Porsche","Regal","Renault","Saab","Saturn","Seat","Skoda","Subaru","Suzuki","Toyota","Volkswagen","Volvo"]
+            source: [
+              "Acura", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler", "Citroen", "Dodge", "Eagle", "Ferrari", "Ford", "General Motors", "GMC", "Honda",
+              "Hummer", "Hyundai", "Infiniti", "Isuzu", "Jaguar", "Jeep", "Kia", "Lamborghini", "Land Rover", "Lexus", "Lincoln", "Lotus", "Mazda", "Mercedes-Benz", "Mercury",
+              "Mitsubishi", "Nissan", "Oldsmobile", "Peugeot", "Pontiac", "Porsche", "Regal", "Renault", "Saab", "Saturn", "Seat", "Skoda", "Subaru", "Suzuki", "Toyota", "Volkswagen", "Volvo"]
           }
         ]
       });
@@ -442,23 +445,50 @@ describe('AutocompleteEditor', function () {
       var $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
 
       waits(100);
-      runs(function () {
+      runs(function() {
         expect($autocomplete.find("td").first().text()).toEqual("Acura");
         $autocompleteHolder.scrollTop($autocompleteHolder[0].scrollHeight);
       });
       waits(100);
-      runs(function () {
+      runs(function() {
         expect($autocomplete.find("td").last().text()).toEqual("Volvo");
       });
     });
 
+    it("should display the choices, regardless if they're declared as string or numeric", function() {
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: ["1", "2", 3, "4", 5, 6]
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = $('.autocompleteEditor');
+
+      keyDownUp('enter');
+
+      waits(100); //List filtering in async
+
+      runs(function() {
+        expect(editor.find('tbody td:eq(0)').text()).toEqual('1');
+        expect(editor.find('tbody td:eq(1)').text()).toEqual('2');
+        expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
+        expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
+        expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
+        expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
+      });
+    });
   });
 
-  describe("closing editor", function () {
-    it('should destroy editor when value change with mouse click on suggestion', function () {
+  describe("closing editor", function() {
+    it('should destroy editor when value change with mouse click on suggestion', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -474,11 +504,11 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         autocomplete().find('tbody td:eq(3)').simulate('mousedown');
 
         expect(getDataAtCell(0, 0)).toEqual('green');
@@ -486,10 +516,10 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('should destroy editor when value change with Enter on suggestion', function () {
+    it('should destroy editor when value change with Enter on suggestion', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -505,27 +535,27 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
         keyDownUp('enter');
 
-        expect(getDataAtCell(0, 0)).toEqual('green')
+        expect(getDataAtCell(0, 0)).toEqual('green');
       });
 
 
     });
 
-    it('should destroy editor when pressed Enter then Esc', function () {
+    it('should destroy editor when pressed Enter then Esc', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -543,11 +573,11 @@ describe('AutocompleteEditor', function () {
       keyDownUp('enter');
 
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(autocompleteEditor().is(":visible")).toBe(true);
 
@@ -559,10 +589,10 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('should destroy editor when mouse double clicked then Esc', function () {
+    it('should destroy editor when mouse double clicked then Esc', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -578,11 +608,11 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(autocompleteEditor().is(":visible")).toBe(true);
 
@@ -593,10 +623,10 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('cancel editing (Esc) should restore the previous value', function () {
+    it('cancel editing (Esc) should restore the previous value', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -613,11 +643,11 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         autocomplete().siblings('.handsontableInput').val("ye");
         keyDownUp(69); //e
@@ -629,10 +659,10 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('should destroy editor when clicked outside the table', function () {
+    it('should destroy editor when clicked outside the table', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -648,11 +678,11 @@ describe('AutocompleteEditor', function () {
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(autocompleteEditor().is(":visible")).toBe(true);
 
         $('body').simulate('mousedown');
@@ -663,13 +693,13 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('finish editing should move the focus aways from textarea to table cell', function () {
+    it('finish editing should move the focus aways from textarea to table cell', function() {
       var last;
       var finishEdit = false;
 
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -689,28 +719,28 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         autocomplete().siblings('.handsontableInput').val("ye");
         keyDownUp(69); //e
         deselectCell();
 
-        setTimeout(function () {
+        setTimeout(function() {
           keyDownUp('enter');
           finishEdit = true;
         });
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return finishEdit;
       }, 'Edition finish', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(document.activeElement.nodeName).toEqual(last.nodeName);
       });
 
@@ -718,12 +748,12 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  describe("non strict mode", function () {
+  describe("non strict mode", function() {
 
-    it("should allow any value in non strict mode (close editor with ENTER)", function () {
+    it("should allow any value in non strict mode (close editor with ENTER)", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -740,11 +770,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         var editor = $('.handsontableInput');
         editor.val('foo');
@@ -757,10 +787,10 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it("should allow any value in non strict mode (close editor by clicking on table)", function () {
+    it("should allow any value in non strict mode (close editor by clicking on table)", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices);
       };
 
@@ -777,11 +807,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         var editor = $('.handsontableInput');
         editor.val('foo');
@@ -793,11 +823,11 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it("should save the value from textarea after hitting ENTER", function () {
+    it("should save the value from textarea after hitting ENTER", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.indexOf(query) != -1;
         }));
       };
@@ -818,27 +848,27 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         syncSources.reset();
 
         editorInput.val("b");
         keyDownUp("b".charCodeAt(0));
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'blue' ],
+          ['blue'],
           ['black']
         ]);
 
@@ -855,15 +885,15 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  describe("strict mode", function () {
+  describe("strict mode", function() {
 
-    it('strict mode should NOT use value if it DOES NOT match the list (sync reponse is empty)', function () {
+    it('strict mode should NOT use value if it DOES NOT match the list (sync reponse is empty)', function() {
 
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var onAfterChange = jasmine.createSpy('onAfterChange');
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process([]); // hardcoded empty result
       };
 
@@ -879,9 +909,7 @@ describe('AutocompleteEditor', function () {
             allowInvalid: false,
             strict: true
           },
-          {
-
-          }
+          {}
         ],
         afterValidate: onAfterValidate,
         afterChange: onAfterChange
@@ -889,11 +917,11 @@ describe('AutocompleteEditor', function () {
 
       setDataAtCell(0, 0, 'unexistent');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(getData()).toEqual([
           ['one', 'two'],
@@ -907,13 +935,13 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('strict mode should use value if it DOES match the list (sync reponse is not empty)', function () {
+    it('strict mode should use value if it DOES match the list (sync reponse is not empty)', function() {
 
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var onAfterChange = jasmine.createSpy('onAfterChange');
       var syncSources = jasmine.createSpy('asyncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(choices); // hardcoded empty result
       };
 
@@ -929,9 +957,7 @@ describe('AutocompleteEditor', function () {
             allowInvalid: false,
             strict: true
           },
-          {
-
-          }
+          {}
         ],
         afterValidate: onAfterValidate,
         afterChange: onAfterChange
@@ -939,11 +965,11 @@ describe('AutocompleteEditor', function () {
 
       setDataAtCell(0, 0, 'yellow');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(getData()).toEqual([
           ['yellow', 'two'],
@@ -957,14 +983,14 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', function () {
+    it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', function() {
 
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var onAfterChange = jasmine.createSpy('onAfterChange');
       var asyncSources = jasmine.createSpy('asyncSources');
 
-      asyncSources.plan = function (query, process) {
-        setTimeout(function () {
+      asyncSources.plan = function(query, process) {
+        setTimeout(function() {
           process([]); // hardcoded empty result
         });
       };
@@ -981,9 +1007,7 @@ describe('AutocompleteEditor', function () {
             allowInvalid: false,
             strict: true
           },
-          {
-
-          }
+          {}
         ],
         afterValidate: onAfterValidate,
         afterChange: onAfterChange
@@ -991,11 +1015,11 @@ describe('AutocompleteEditor', function () {
 
       setDataAtCell(0, 0, 'unexistent');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(getData()).toEqual([
           ['one', 'two'],
@@ -1009,14 +1033,14 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('strict mode should use value if it DOES match the list (async reponse is not empty)', function () {
+    it('strict mode should use value if it DOES match the list (async reponse is not empty)', function() {
 
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var onAfterChange = jasmine.createSpy('onAfterChange');
       var asyncSources = jasmine.createSpy('asyncSources');
 
-      asyncSources.plan = function (query, process) {
-        setTimeout(function () {
+      asyncSources.plan = function(query, process) {
+        setTimeout(function() {
           process(choices); // hardcoded empty result
         });
       };
@@ -1033,9 +1057,7 @@ describe('AutocompleteEditor', function () {
             allowInvalid: false,
             strict: true
           },
-          {
-
-          }
+          {}
         ],
         afterValidate: onAfterValidate,
         afterChange: onAfterChange
@@ -1043,11 +1065,11 @@ describe('AutocompleteEditor', function () {
 
       setDataAtCell(0, 0, 'yellow');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(getData()).toEqual([
           ['yellow', 'two'],
@@ -1061,13 +1083,13 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', function () {
+    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', function() {
 
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var onAfterChange = jasmine.createSpy('onAfterChange');
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process([]); // hardcoded empty result
       };
 
@@ -1083,9 +1105,7 @@ describe('AutocompleteEditor', function () {
             allowInvalid: true,
             strict: true
           },
-          {
-
-          }
+          {}
         ],
         afterValidate: onAfterValidate,
         afterChange: onAfterChange
@@ -1096,11 +1116,11 @@ describe('AutocompleteEditor', function () {
 
       setDataAtCell(0, 0, 'unexistent');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
 
         expect(getData()).toEqual([
           ['unexistent', 'two'],
@@ -1113,12 +1133,12 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it("should select the best matching option after hitting ENTER", function () {
+    it("should select the best matching option after hitting ENTER", function() {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.indexOf(query) != -1;
         }));
       };
@@ -1141,28 +1161,28 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         syncSources.reset();
 
         editorInput.val("b");
         keyDownUp("b".charCodeAt(0));
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'blue' ],
+          ['blue'],
           ['black']
         ]);
 
@@ -1177,22 +1197,22 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.call.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(getDataAtCell(0, 0)).toEqual('blue');
       });
 
     });
 
-    it("should select the best matching option after hitting TAB", function () {
+    it("should select the best matching option after hitting TAB", function() {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.indexOf(query) != -1;
         }));
       };
@@ -1215,28 +1235,28 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         syncSources.reset();
 
         editorInput.val("b");
         keyDownUp("b".charCodeAt(0));
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'blue' ],
+          ['blue'],
           ['black']
         ]);
 
@@ -1251,20 +1271,20 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return onAfterValidate.call.length > 0;
       }, 'Cell validation', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(getDataAtCell(0, 0)).toEqual('blue');
       });
 
     });
 
-    it("should mark list item corresponding to current cell value as selected", function () {
+    it("should mark list item corresponding to current cell value as selected", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
+      syncSources.plan = function(query, process) {
         process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
       };
 
@@ -1287,11 +1307,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         expect(autocomplete().find('.current').text()).toEqual(getDataAtCell(0, 0));
       });
 
@@ -1300,13 +1320,13 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  describe("filtering", function () {
+  describe("filtering", function() {
 
-    it('typing in textarea should filter the lookup list', function () {
+    it('typing in textarea should filter the lookup list', function() {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.indexOf(query) != -1;
         }));
       };
@@ -1327,11 +1347,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         syncSources.reset();
 
@@ -1341,24 +1361,24 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-           [ 'red' ],
-          [ 'yellow' ],
-          [ 'green' ],
-          [ 'blue' ],
-          [ 'lime'],
-          [ 'white' ],
-          [ 'olive'],
-          [ 'orange' ],
-          [ 'purple']
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
         ]);
 
         syncSources.reset();
@@ -1367,20 +1387,20 @@ describe('AutocompleteEditor', function () {
         keyDownUp(68); //d
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'red' ]
+          ['red']
         ]);
       });
     });
-    it('default filtering should be case insensitive', function () {
+    it('default filtering should be case insensitive', function() {
 
 
       hot = handsontable({
@@ -1406,20 +1426,20 @@ describe('AutocompleteEditor', function () {
 
       waits(50); //filtering is always async
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-		  [ 'red' ],
-          [ 'yellow' ],
-          [ 'green' ],
-          [ 'blue' ],
-          [ 'lime'],
-          [ 'white' ],
-          [ 'olive'],
-          [ 'orange' ],
-          [ 'purple']
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
         ]);
 
         editorInput.val("E");
@@ -1428,24 +1448,24 @@ describe('AutocompleteEditor', function () {
 
       waits(50); //filtering is always async
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'red' ],
-          [ 'yellow' ],
-          [ 'green' ],
-          [ 'blue' ],
-          [ 'lime'],
-          [ 'white' ],
-          [ 'olive'],
-          [ 'orange' ],
-          [ 'purple']
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
         ]);
       });
     });
-    it('default filtering should be case sensitive when filteringCaseSensitive is false', function () {
+    it('default filtering should be case sensitive when filteringCaseSensitive is false', function() {
 
 
       hot = handsontable({
@@ -1472,20 +1492,20 @@ describe('AutocompleteEditor', function () {
 
       waits(50); //filtering is always async
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          [ 'red' ],
-          [ 'yellow' ],
-          [ 'green' ],
-          [ 'blue' ],
-          [ 'lime'],
-          [ 'white' ],
-          [ 'olive'],
-          [ 'orange' ],
-          [ 'purple']
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
         ]);
 
         editorInput.val("E");
@@ -1494,14 +1514,14 @@ describe('AutocompleteEditor', function () {
 
       waits(50); //filtering is always async
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
-        expect(innerHot.getData()).toEqual([ ]);
+        expect(innerHot.getData()).toEqual([]);
       });
     });
-    it('typing in textarea should NOT filter the lookup list when filtering is disabled', function () {
+    it('typing in textarea should NOT filter the lookup list when filtering is disabled', function() {
 
       hot = handsontable({
         columns: [
@@ -1522,7 +1542,7 @@ describe('AutocompleteEditor', function () {
 
       waits(20);
 
-      runs(function () {
+      runs(function() {
 
         editorInput.val("e");
         keyDownUp("e".charCodeAt(0)); //e
@@ -1531,7 +1551,7 @@ describe('AutocompleteEditor', function () {
 
       waits(20);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
@@ -1543,7 +1563,7 @@ describe('AutocompleteEditor', function () {
 
       waits(20);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
@@ -1553,14 +1573,14 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('typing in textarea should highlight the matching phrase', function () {
+    it('typing in textarea should highlight the matching phrase', function() {
 
       var choices = ['Male', 'Female'];
 
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.search(new RegExp(query, 'i')) != -1;
         }));
       };
@@ -1582,11 +1602,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         syncSources.reset();
 
@@ -1596,11 +1616,11 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
         var autocompleteList = $(innerHot.rootElement);
@@ -1612,7 +1632,7 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('text in textarea should not be interpreted as regexp', function () {
+    it('text in textarea should not be interpreted as regexp', function() {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
       var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
@@ -1632,11 +1652,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return queryChoices.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         queryChoices.reset();
 
@@ -1646,11 +1666,11 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return queryChoices.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
@@ -1658,13 +1678,13 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it('text in textarea should not be interpreted as regexp when highlighting the matching phrase', function () {
+    it('text in textarea should not be interpreted as regexp when highlighting the matching phrase', function() {
       var choices = ['Male', 'Female'];
 
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.search(new RegExp(query, 'i')) != -1;
         }));
       };
@@ -1686,11 +1706,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         syncSources.reset();
 
@@ -1700,11 +1720,11 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
 
@@ -1717,7 +1737,7 @@ describe('AutocompleteEditor', function () {
       });
     });
 
-    it("should allow any value if filter === false and allowInvalid === true", function () {
+    it("should allow any value if filter === false and allowInvalid === true", function() {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
       var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
@@ -1740,11 +1760,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return queryChoices.calls.length > 0;
       }, 'queryChoices function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         queryChoices.reset();
 
@@ -1754,11 +1774,11 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return queryChoices.calls.length > 0;
       }, 'queryChoices function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         keyDownUp(Handsontable.helper.keyCode.ENTER);
 
@@ -1767,13 +1787,13 @@ describe('AutocompleteEditor', function () {
 
     });
 
-    it('typing in textarea should highlight best choice, if strict === true', function () {
+    it('typing in textarea should highlight best choice, if strict === true', function() {
       var choices = ['Male', 'Female'];
 
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function (query, process) {
-        process(choices.filter(function (choice) {
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
           return choice.search(new RegExp(query, 'i')) != -1;
         }));
       };
@@ -1796,11 +1816,11 @@ describe('AutocompleteEditor', function () {
 
       keyDownUp('enter');
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
 
         syncSources.reset();
 
@@ -1810,11 +1830,11 @@ describe('AutocompleteEditor', function () {
 
       });
 
-      waitsFor(function () {
+      waitsFor(function() {
         return syncSources.calls.length > 0;
       }, 'Source function call', 1000);
 
-      runs(function () {
+      runs(function() {
         var ac = Handsontable.editors.getEditor('autocomplete', hot);
         var innerHot = ac.htEditor;
         expect(innerHot.getSelected()).toEqual([1, 0, 1, 0]);
@@ -1823,10 +1843,10 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {
+  it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function() {
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process(choices);
     };
 
@@ -1845,11 +1865,11 @@ describe('AutocompleteEditor', function () {
 
     keyDownUp('enter');
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
 
       autocomplete().find('tbody td:eq(1)').simulate('mouseenter');
       autocomplete().find('tbody td:eq(1)').simulate('mouseleave');
@@ -1863,11 +1883,11 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it('should be able to use empty value ("")', function () {
+  it('should be able to use empty value ("")', function() {
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process(['', 'BMW', 'Bentley']);
     };
 
@@ -1888,11 +1908,11 @@ describe('AutocompleteEditor', function () {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
 
       expect(getDataAtCell(0, 0)).toEqual('one');
 
@@ -1902,20 +1922,20 @@ describe('AutocompleteEditor', function () {
     });
   });
 
-  describe("Autocomplete helper functions:", function () {
-    describe("sortByRelevance", function () {
-      it("should sort the provided array, so items more relevant to the provided value are listed first", function () {
+  describe("Autocomplete helper functions:", function() {
+    describe("sortByRelevance", function() {
+      it("should sort the provided array, so items more relevant to the provided value are listed first", function() {
         var choices = [
-          'Wayne',//0
-          'Draven',//1
-          'Banner',//2
-          'Stark',//3
-          'Parker',//4
-          'Kent',//5
-          'Gordon',//6
-          'Kyle',//7
-          'Simmons'//8
-        ]
+            'Wayne',//0
+            'Draven',//1
+            'Banner',//2
+            'Stark',//3
+            'Parker',//4
+            'Kent',//5
+            'Gordon',//6
+            'Kyle',//7
+            'Simmons'//8
+          ]
           , value = 'a';
 
         var sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
@@ -1947,11 +1967,11 @@ describe('AutocompleteEditor', function () {
   });
 
 
-  it("should fire one afterChange event when value is changed", function () {
+  it("should fire one afterChange event when value is changed", function() {
     var onAfterChange = jasmine.createSpy('onAfterChange');
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process(choices);
     };
 
@@ -1969,11 +1989,11 @@ describe('AutocompleteEditor', function () {
 
     keyDownUp('enter');
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
       onAfterChange.reset();
       autocomplete().find('tbody td:eq(1)').simulate('mousedown');
 
@@ -1986,11 +2006,11 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it("should not affect other cell values after clicking on autocomplete cell (#1021)", function () {
+  it("should not affect other cell values after clicking on autocomplete cell (#1021)", function() {
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process(choices);
     };
 
@@ -2023,17 +2043,17 @@ describe('AutocompleteEditor', function () {
 
     mouseDoubleClick(getCell(2, 2));
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length == 3;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
       expect(getDataAtCol(2)).toEqual(['yellow', 'red', 'blue']);
     });
 
   });
 
-  it("should handle editor if cell data is a function", function () {
+  it("should handle editor if cell data is a function", function() {
 
     spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
     var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
@@ -2041,17 +2061,17 @@ describe('AutocompleteEditor', function () {
 
     var hot = handsontable({
       data: [
-        Model({
+        new Model({
           id: 1,
           name: "Ted Right",
           address: ""
         }),
-        Model({
+        new Model({
           id: 2,
           name: "Frank Honest",
           address: ""
         }),
-        Model({
+        new Model({
           id: 3,
           name: "Joan Well",
           address: ""
@@ -2082,33 +2102,33 @@ describe('AutocompleteEditor', function () {
 
     keyDownUp('enter');
 
-    waitsFor(function () {
+    waitsFor(function() {
       return updateChoicesList.calls.length > 0;
     }, 'UpdateChoicesList call', 1000);
 
-    runs(function () {
+    runs(function() {
       expect(hot.getActiveEditor().isOpened()).toBe(true);
       afterValidateCallback.reset();
       $(hot.getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
     });
 
 
-    waitsFor(function () {
+    waitsFor(function() {
       return afterValidateCallback.calls.length > 0;
     }, 'Autocomplete validation', 1000);
 
-    runs(function () {
+    runs(function() {
       expect(getDataAtCell(0, 0)).toEqual('2');
-    })
+    });
 
   });
 
 
-  it("should not call the `source` has been selected", function () {
+  it("should not call the `source` has been selected", function() {
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process([]); // hardcoded empty result
     };
 
@@ -2124,15 +2144,13 @@ describe('AutocompleteEditor', function () {
           allowInvalid: false,
           strict: true
         },
-        {
-
-        }
+        {}
       ],
-      cells: function (row, col) {
+      cells: function(row, col) {
 
         var cellProperties = {};
 
-        if (row === 0 && col == 0) {
+        if (row === 0 && col === 0) {
           cellProperties.readOnly = true;
         }
 
@@ -2156,11 +2174,11 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it("should not call the `source` method if cell is read only and the arrow has been clicked", function () {
+  it("should not call the `source` method if cell is read only and the arrow has been clicked", function() {
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
+    syncSources.plan = function(query, process) {
       process([]); // hardcoded empty result
     };
 
@@ -2176,15 +2194,13 @@ describe('AutocompleteEditor', function () {
           allowInvalid: false,
           strict: true
         },
-        {
-
-        }
+        {}
       ],
-      cells: function (row, col) {
+      cells: function(row, col) {
 
         var cellProperties = {};
 
-        if (row === 0 && col == 0) {
+        if (row === 0 && col === 0) {
           cellProperties.readOnly = true;
         }
 
@@ -2202,7 +2218,7 @@ describe('AutocompleteEditor', function () {
 
     waits(100);
 
-    runs(function () {
+    runs(function() {
       expect(syncSources).not.toHaveBeenCalled();
 
       syncSources.reset();
@@ -2212,11 +2228,11 @@ describe('AutocompleteEditor', function () {
       $(getCell(1, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     });
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'SyncSources call', 1000);
 
-    runs(function () {
+    runs(function() {
       expect(syncSources).toHaveBeenCalled();
       expect(syncSources.calls.length).toEqual(1);
     });
@@ -2224,7 +2240,7 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it("should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10", function () {
+  it("should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10", function() {
 
     var hot = handsontable({
       data: [
@@ -2238,12 +2254,8 @@ describe('AutocompleteEditor', function () {
           allowInvalid: false,
           strict: false
         },
-        {
-
-        },
-        {
-
-        }
+        {},
+        {}
       ]
     });
 
@@ -2281,7 +2293,7 @@ describe('AutocompleteEditor', function () {
 
   });
 
-  it("should not close editor on scrolling", function () {
+  it("should not close editor on scrolling", function() {
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2294,12 +2306,8 @@ describe('AutocompleteEditor', function () {
           allowInvalid: false,
           strict: false
         },
-        {
-
-        },
-        {
-
-        }
+        {},
+        {}
       ]
     });
 
@@ -2315,14 +2323,14 @@ describe('AutocompleteEditor', function () {
 
     waits(30);
 
-    runs(function () {
+    runs(function() {
       expect($(dropdown).is(':visible')).toBe(true);
       selectCell(0, 0);
     });
 
     waits(30);
 
-    runs(function () {
+    runs(function() {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
       hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
@@ -2330,16 +2338,16 @@ describe('AutocompleteEditor', function () {
 
     waits(30);
 
-    runs(function () {
+    runs(function() {
       expect($(dropdown).is(':visible')).toBe(true);
     });
   });
 
-  it("should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)", function () {
+  it("should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)", function() {
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
-      process(choices.filter(function (choice) {
+    syncSources.plan = function(query, process) {
+      process(choices.filter(function(choice) {
         return choice.indexOf(query) != -1;
       }));
     };
@@ -2360,13 +2368,13 @@ describe('AutocompleteEditor', function () {
     $editorInput.val("an");
     keyDownUp(65); //a
     keyDownUp(78); //n
-    Handsontable.Dom.setCaretPosition($editorInput[0],1);
+    Handsontable.Dom.setCaretPosition($editorInput[0], 1);
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
       keyDownUp('arrow_down');
       expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
       keyDownUp('arrow_down');
@@ -2375,11 +2383,11 @@ describe('AutocompleteEditor', function () {
     });
   });
 
-  it("should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)", function () {
+  it("should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)", function() {
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function (query, process) {
-      process(choices.filter(function (choice) {
+    syncSources.plan = function(query, process) {
+      process(choices.filter(function(choice) {
         return choice.indexOf(query) != -1;
       }));
     };
@@ -2400,13 +2408,13 @@ describe('AutocompleteEditor', function () {
     $editorInput.val("an");
     keyDownUp(65); //a
     keyDownUp(78); //n
-    Handsontable.Dom.setCaretPosition($editorInput[0],1,2);
+    Handsontable.Dom.setCaretPosition($editorInput[0], 1, 2);
 
-    waitsFor(function () {
+    waitsFor(function() {
       return syncSources.calls.length > 0;
     }, 'Source function call', 1000);
 
-    runs(function () {
+    runs(function() {
       keyDownUp('arrow_down');
       expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
       expect(Handsontable.Dom.getSelectionEndPosition($editorInput[0])).toEqual(2);

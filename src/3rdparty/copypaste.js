@@ -60,9 +60,20 @@ CopyPasteClass.prototype.init = function () {
     this.elTextarea = document.createElement('textarea');
     this.elTextarea.className = 'copyPaste';
     this.elTextarea.onpaste = function(event) {
-      if ('WebkitAppearance' in document.documentElement.style) { // chrome and safari
-        this.value = event.clipboardData.getData("Text");
+      var clipboardContents,
+        temp;
 
+      if ('WebkitAppearance' in document.documentElement.style) { // chrome and safari
+        clipboardContents = event.clipboardData.getData("Text");
+
+        //Safari adds an additional newline to copied text
+        if(navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+          temp = clipboardContents.split('\n');
+          temp.pop();
+          clipboardContents = temp.join('\n');
+        }
+
+        this.value = clipboardContents;
         return false;
       }
     };
@@ -113,7 +124,9 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
     }
     this.selectNodeText(this.elTextarea);
     setTimeout(function () {
-      _this.selectNodeText(_this.elTextarea);
+      if(document.activeElement !== _this.elTextarea) {
+        _this.selectNodeText(_this.elTextarea);
+      }
     }, 0);
   }
 
@@ -122,12 +135,12 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
       event.keyCode === helper.keyCode.V ||
       event.keyCode === helper.keyCode.X)) {
     // works in all browsers, incl. Opera < 12.12
-    if (event.keyCode === 88) {
+    if (event.keyCode === helper.keyCode.X) {
       setTimeout(function () {
         _this.triggerCut(event);
       }, 0);
 
-    } else if (event.keyCode === 86) {
+    } else if (event.keyCode === helper.keyCode.V) {
       setTimeout(function () {
         _this.triggerPaste(event);
       }, 0);
@@ -177,6 +190,7 @@ CopyPasteClass.prototype.copyable = function(string) {
     throw new Error('copyable requires string parameter');
   }
   this.elTextarea.value = string;
+  this.selectNodeText(this.elTextarea);
 };
 
 /*CopyPasteClass.prototype.onCopy = function (fn) {
