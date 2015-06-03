@@ -90,6 +90,8 @@ class Comments extends BasePlugin {
 
   /**
    * Register all necessary DOM listeners.
+   *
+   * @private
    */
   registerListeners() {
     this.eventManager.addEventListener(document, 'mouseover', (event) => this.onMouseOver(event));
@@ -103,7 +105,7 @@ class Comments extends BasePlugin {
    * Set current cell range to be able to use general methods like {@link Comments#saveComment},
    * {@link Comments#removeComment}, {@link Comments#show}.
    *
-   * @param {Object} range
+   * @param {Object} range Object with `row` and `col` properties.
    */
   setRange(range) {
     this.range = range;
@@ -275,6 +277,7 @@ class Comments extends BasePlugin {
   /**
    * Mouse down DOM listener.
    *
+   * @private
    * @param {Event} event
    */
   onMouseDown(event) {
@@ -292,6 +295,7 @@ class Comments extends BasePlugin {
   /**
    * Mouse over DOM listener.
    *
+   * @private
    * @param {Event} event
    */
   onMouseOver(event) {
@@ -314,6 +318,7 @@ class Comments extends BasePlugin {
   /**
    * Mouse move DOM listener.
    *
+   * @private
    * @param {Event} event
    */
   onMouseMove(event) {
@@ -332,6 +337,7 @@ class Comments extends BasePlugin {
   /**
    * Mouse up DOM listener.
    *
+   * @private
    * @param {Event} event
    */
   onMouseUp(event) {
@@ -341,6 +347,7 @@ class Comments extends BasePlugin {
   /***
    * After renderer Handsontable hook listener.
    *
+   * @private
    * @param {HTMLTableCellElement} TD
    * @param {Object} cellProperties
    */
@@ -353,6 +360,7 @@ class Comments extends BasePlugin {
   /**
    * Comment input blur DOM event listener
    *
+   * @private
    * @param {Event} event
    */
   onEditorBlur(event) {
@@ -377,6 +385,8 @@ class Comments extends BasePlugin {
 
   /**
    * Listen on context menu add/edit comment action.
+   *
+   * @private
    */
   onContextMenuAddComment() {
     let coords = this.hot.getSelectedRange();
@@ -397,6 +407,7 @@ class Comments extends BasePlugin {
   /**
    * Listen on context menu remove comment action.
    *
+   * @private
    * @param {String} key
    * @param {Array} selection
    */
@@ -408,6 +419,7 @@ class Comments extends BasePlugin {
   /**
    * Add Comments to context menu.
    *
+   * @private
    * @param {Object} defaultOptions
    */
   addToContextMenu(defaultOptions) {
