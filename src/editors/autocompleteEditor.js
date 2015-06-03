@@ -76,7 +76,8 @@ AutocompleteEditor.prototype.open = function () {
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
-        match;
+        match,
+		    value = Handsontable.helper.stringify(value);
 
       if (value) {
         indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
@@ -222,7 +223,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   }
 
   for (i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-    currentItem = choices[i];
+    currentItem = Handsontable.helper.stringify(choices[i]);
 
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);

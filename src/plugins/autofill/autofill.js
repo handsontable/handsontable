@@ -222,6 +222,7 @@ Autofill.prototype.apply = function () {
   } else {
     select = this.instance.view.wt.selections.current.getCorners();
   }
+  Handsontable.hooks.run(this.instance, 'afterAutofillApplyValues', select, drag);
 
   if (drag[0] === select[0] && drag[1] < select[1]) {
     direction = 'left';

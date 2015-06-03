@@ -252,9 +252,43 @@ describe('DateEditor', function () {
 
   });
 
+  it("should display a calendar based on a current date, even if a date in a wrong format was entered previously", function () {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      columns: [
+        {type: 'date'},
+        {type: 'date', dateFormat: 'YYYY-MM-DD'}
+      ],
+      minSpareRows: 1
+    }),
+      resultDate;
+
+    setDataAtCell(4,1, '15-11-11');
+
+    waits(100);
+    runs(function() {
+
+      selectCell(5,1);
+      keyDown('enter');
+
+      expect($('.pika-single').is(':visible')).toBe(true);
+
+      mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
+    });
+
+    waits(100);
+    runs(function() {
+      resultDate = getDataAtCell(5,1);
+
+      expect(moment(resultDate).year()).toEqual(moment().year());
+      expect(moment(resultDate).month()).toEqual(moment().month());
+    });
+
+  });
+
   it("should display Pikaday Calendar bottom of the selected cell", function() {
     var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 2),
         columns: [
           {type: 'date'},
           {type: 'date'}

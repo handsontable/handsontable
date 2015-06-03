@@ -1000,10 +1000,11 @@ describe('ContextMenu', function () {
       expect(comments[0]).not.toBeUndefined();
       expect(comments.css('display')).toEqual('block');
 
-      comments.find('textarea').val(testComment);
+      var textArea = comments.find('textarea');
+      textArea.val(testComment);
+
       mouseDown(hot.rootElement);
       expect(getCellMeta(0,0).comment).toEqual(testComment);
-      expect(comments.css('display')).toEqual('none');
       expect(getCell(0,0).className).toContain('htCommentCell');
     });
 

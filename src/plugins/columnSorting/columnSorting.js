@@ -18,6 +18,7 @@ class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     let _this = this;
+    this.sortIndicators = [];
 
     this.hot.addHook('afterInit', () => this.init.call(this, 'afterInit'));
     this.hot.addHook('afterUpdateSettings', () => this.init.call(this, 'afterUpdateSettings'));
@@ -295,11 +296,13 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.length = 0;
 
     var colOffset = this.hot.colOffset();
-    for (var i = 0, ilen = this.hot.countRows() - this.hot.getSettings()['minSpareRows']; i < ilen; i++) {
+    for (var i = 0, ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn + colOffset)]);
     }
 
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+
+    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
 
     switch (colMeta.type) {
       case 'date':
@@ -358,11 +361,13 @@ class ColumnSorting extends BasePlugin {
       dom.addClass(headerLink, 'columnSorting');
     }
 
-    if (col === this.hot.sortColumn) {
-      if (this.sortOrderClass === 'ascending') {
-        dom.addClass(headerLink, 'ascending');
-      } else if (this.sortOrderClass === 'descending') {
-        dom.addClass(headerLink, 'descending');
+    if (this.sortIndicators[col]) {
+      if (col === this.hot.sortColumn) {
+        if (this.sortOrderClass === 'ascending') {
+          dom.addClass(headerLink, 'ascending');
+        } else if (this.sortOrderClass === 'descending') {
+          dom.addClass(headerLink, 'descending');
+        }
       }
     }
   }

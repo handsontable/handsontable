@@ -1,4 +1,3 @@
-
 import * as dom from './../../../../dom.js';
 import {defineGetter} from './../../../../helpers.js';
 import {eventManager as eventManagerObject} from './../../../../eventManager.js';
@@ -73,7 +72,7 @@ class WalkontableOverlay {
     this.wtRootElement = this.wot.wtTable.wtRootElement;
     this.trimmingContainer = dom.getTrimmingContainer(this.hider.parentNode.parentNode);
     this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
-    this.needFullRender = this.isShouldBeFullyRendered();
+    this.needFullRender = this.shouldBeRendered();
   }
 
   /**
@@ -81,7 +80,7 @@ class WalkontableOverlay {
    *
    * @returns {Boolean}
    */
-  isShouldBeFullyRendered() {
+  shouldBeRendered() {
     return true;
   }
 
@@ -125,7 +124,7 @@ class WalkontableOverlay {
    */
   refresh(fastDraw = false) {
     // When hot settings are changed we allow to refresh overlay once before blocking
-    var nextCycleRenderFlag = this.isShouldBeFullyRendered();
+    var nextCycleRenderFlag = this.shouldBeRendered();
 
     if (this.needFullRender || nextCycleRenderFlag) {
       if (this.applyToDOM) {
@@ -137,7 +136,7 @@ class WalkontableOverlay {
 
     }
     this.needFullRender = nextCycleRenderFlag;
-  };
+  }
 
   /**
    * Destroy overlay instance
