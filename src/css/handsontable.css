@@ -696,11 +696,12 @@ Cell borders
 }
 
 .htCommentTextArea{
+  -moz-box-shadow: 1px 1px 2px #bbb;
+  -webkit-box-shadow: 1px 1px 2px #bbb;
   background-color: #FFFACD;
+  border: 1px solid #999;
   box-shadow: 1px 1px 2px #bbb;
   font-family: 'Arial';
-  -webkit-box-shadow: 1px 1px 2px #bbb;
-  -moz-box-shadow: 1px 1px 2px #bbb;
 }
 
 
