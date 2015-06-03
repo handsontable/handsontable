@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.15.0-beta4
+ * Handsontable 0.15.0-beta5
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jun 03 2015 13:41:00 GMT+0200 (CEST)
+ * Date: Wed Jun 03 2015 14:13:30 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -696,11 +696,12 @@ Cell borders
 }
 
 .htCommentTextArea{
+  -moz-box-shadow: 1px 1px 2px #bbb;
+  -webkit-box-shadow: 1px 1px 2px #bbb;
   background-color: #FFFACD;
+  border: 1px solid #999;
   box-shadow: 1px 1px 2px #bbb;
   font-family: 'Arial';
-  -webkit-box-shadow: 1px 1px 2px #bbb;
-  -moz-box-shadow: 1px 1px 2px #bbb;
 }
 
 
