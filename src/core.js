@@ -3556,7 +3556,7 @@ DefaultSettings.prototype = {
    * @description
    * Turn on [Column sorting](http://handsontable.com/demo/sorting.html).
    *
-   * @type {Boolean}
+   * @type {Boolean|Object}
    * @default undefined
    */
   columnSorting: void 0,
@@ -3697,6 +3697,16 @@ DefaultSettings.prototype = {
    * ```
    */
   disableVisualSelection: false,
+
+  /**
+   * @description
+   * Set whether to display the current sorting indicator (a triangle icon in the column header, specifying the sorting order).
+   *
+   * @type {Boolean}
+   * @default false
+   * @since 0.15.0-beta3
+   */
+  sortIndicator: false,
   manualColumnFreeze: void 0,
   trimWhitespace: true,
   settings: void 0,
