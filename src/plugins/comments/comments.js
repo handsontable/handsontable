@@ -56,26 +56,41 @@ class Comments extends BasePlugin {
       return;
     }
     /**
+     * Instance of {@link CommentEditor}
+     *
      * @type {CommentEditor}
      */
     this.editor = new CommentEditor();
+
     /**
+     * Instance of {@link EventManager}
+     *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
+
     /**
+     * Current cell range
+     *
      * @type {Object}
      */
     this.range = {};
+
     /**
+     * @private
      * @type {Boolean}
      */
     this.mouseDown = false;
+
     /**
+     * @private
      * @type {Boolean}
      */
     this.contextMenuEvent = false;
+
     /**
+     * @private
      * @type {*}
      */
     this.timer = null;
@@ -121,7 +136,7 @@ class Comments extends BasePlugin {
   /**
    * Check if event target is cell with comment.
    *
-   * @param {Event} event
+   * @param {Event} event DOM event
    * @returns {Boolean}
    */
   targetIsCellWithComment(event) {
@@ -131,7 +146,7 @@ class Comments extends BasePlugin {
   /**
    * Check if event target is comment textarea.
    *
-   * @param {Event} event
+   * @param {Event} event DOM event
    * @returns {Boolean}
    */
   targetIsCommentTextArea(event) {
@@ -225,7 +240,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Hide all comments input editor.
+   * Hide all comments input editors.
    */
   hide() {
     this.editor.hide();
