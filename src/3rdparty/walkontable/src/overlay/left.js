@@ -1,4 +1,3 @@
-
 import * as dom from './../../../../dom.js';
 import {WalkontableOverlay} from './_base.js';
 
@@ -20,7 +19,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    *
    * @returns {Boolean}
    */
-  isShouldBeFullyRendered() {
+  shouldBeRendered() {
     return this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length ? true : false;
   }
 
@@ -87,7 +86,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollLeft = pos;
     }
-  };
+  }
 
   /**
    * Triggers onScroll hook callback
@@ -109,7 +108,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 
     while (from < to) {
       sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-      from ++;
+      from++;
     }
 
     return sum;
