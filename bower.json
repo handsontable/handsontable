@@ -30,8 +30,6 @@
     "**/.*",
     "components",
     "demo",
-    "lib",
-    "plugins",
     "node_modules",
     "src",
     "test"
