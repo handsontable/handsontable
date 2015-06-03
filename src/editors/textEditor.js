@@ -1,7 +1,7 @@
 
 import * as dom from './../dom.js';
 import * as helper from './../helpers.js';
-import {autoResize} from './../3rdparty/autoResize.js';
+import autoResize from 'autoResize';
 import {BaseEditor} from './_baseEditor.js';
 import {eventManager as eventManagerObject} from './../eventManager.js';
 import {getEditor, registerEditor} from './../editors.js';
@@ -16,6 +16,7 @@ Handsontable.editors = Handsontable.editors || {};
  * @private
  * @editor
  * @class TextEditor
+ * @dependencies autoResize
  */
 Handsontable.editors.TextEditor = TextEditor;
 

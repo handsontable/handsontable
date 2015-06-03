@@ -12,5 +12,6 @@
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '@@version'
+  version: '@@version',
+  buildDate: '@@timestamp'
 };

@@ -1,7 +1,7 @@
 
 import * as helper from './helpers.js';
 import {MultiMap} from './multiMap.js';
-import SheetClip from './3rdparty/sheetclip.js';
+import SheetClip from 'SheetClip';
 
 export {DataMap};
 
@@ -18,6 +18,7 @@ Handsontable.DataMap = DataMap;
  * @param {*} GridSettings Grid settings
  * @util
  * @class DataMap
+ * @dependencies SheetClip
  */
 function DataMap(instance, priv, GridSettings) {
   this.instance = instance;

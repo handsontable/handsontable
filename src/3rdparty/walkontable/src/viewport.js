@@ -97,6 +97,24 @@ class WalkontableViewport {
   }
 
   /**
+   * Checks if viewport has vertical scroll
+   *
+   * @returns {Boolean}
+   */
+  hasVerticalScroll() {
+    return this.getWorkspaceActualHeight() > this.getWorkspaceHeight();
+  }
+
+  /**
+   * Checks if viewport has horizontal scroll
+   *
+   * @returns {Boolean}
+   */
+  hasHorizontalScroll() {
+    return this.getWorkspaceActualWidth() > this.getWorkspaceWidth();
+  }
+
+  /**
    * @param from
    * @param length
    * @returns {Number}

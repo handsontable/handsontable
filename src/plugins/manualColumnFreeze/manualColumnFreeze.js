@@ -154,6 +154,7 @@ function ManualColumnFreeze(instance) {
     addFixedColumn();
 
     instance.view.wt.wtOverlays.leftOverlay.refresh();
+    instance.view.wt.wtOverlays.adjustElementsSize();
   }
 
   /**

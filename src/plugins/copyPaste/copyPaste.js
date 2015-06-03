@@ -1,7 +1,7 @@
 
 import * as helper from './../../helpers.js';
-import SheetClip from './../../3rdparty/sheetclip.js';
-import {copyPasteManager} from './../../3rdparty/copypaste.js';
+import copyPaste from 'copyPaste';
+import SheetClip from 'SheetClip';
 import {registerPlugin} from './../../plugins.js';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
@@ -13,11 +13,12 @@ export {CopyPaste};
 /**
  * @class CopyPaste
  * @plugin
+ * @dependencies copyPaste SheetClip
  */
 function CopyPastePlugin(instance) {
   var _this = this;
 
-  this.copyPasteInstance = copyPasteManager();
+  this.copyPasteInstance = copyPaste();
   this.copyPasteInstance.onCut(onCut);
   this.copyPasteInstance.onPaste(onPaste);
 
