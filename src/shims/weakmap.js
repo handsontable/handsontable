@@ -45,7 +45,7 @@ if (typeof WeakMap === 'undefined') {
             entry[1] : undefined;
         },
         has: function(key) {
-          this.get(key) ? true : false;
+          return this.get(key) ? true : false;
         },
         'delete': function(key) {
           this.set(key, undefined);
@@ -77,10 +77,10 @@ if (typeof WeakMap === 'undefined') {
             }
           }
 
-          return;
+          return void 0;
         },
         has: function(key) {
-          this.get(key) ? true : false;
+          return this.get(key) ? true : false;
         },
         'delete': function(key) {
 

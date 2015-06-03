@@ -1,4 +1,3 @@
-
 import * as dom from './../../../../dom.js';
 import {WalkontableOverlay} from './_base.js';
 
@@ -13,6 +12,16 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(WalkontableOverlay.CLONE_CORNER);
+  }
+
+  /**
+   * Checks if overlay should be fully rendered
+   *
+   * @returns {Boolean}
+   */
+  shouldBeRendered() {
+    return (this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length) &&
+    (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length) ? true : false;
   }
 
   /**

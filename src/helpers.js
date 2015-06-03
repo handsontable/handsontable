@@ -385,7 +385,7 @@ export function extendArray(arr, extension) {
 export function isInput(element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
-  return inputs.indexOf(element.nodeName) > -1;
+  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
 }
 
 /**

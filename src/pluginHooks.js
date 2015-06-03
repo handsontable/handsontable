@@ -516,7 +516,25 @@ class PluginHook {
        * @since 0.11
        * @param {Number} col
        */
-      modifyCol: []
+      modifyCol: [],
+
+      /**
+       * Callback fired after column sorting.
+       *
+       * @event Hooks#afterColumnSort
+       * @param {Number} col
+       * @param {Boolean|undefined} order
+       */
+      afterColumnSort: [],
+
+      /**
+       * Callback fired before column sorting.
+       *
+       * @event Hooks#beforeColumnSort
+       * @param {Number} col
+       * @param {Boolean|undefined} order
+       */
+      beforeColumnSort: []
     };
     this.globalBucket = {};
   }
@@ -648,12 +666,12 @@ class PluginHook {
    * @see Core#runHooks
    * @param {Object} context
    * @param {String} key Hook/Event name
-   * @param {*} p1
-   * @param {*} p2
-   * @param {*} p3
-   * @param {*} p4
-   * @param {*} p5
-   * @param {*} p6
+   * @param {*} [p1]
+   * @param {*} [p2]
+   * @param {*} [p3]
+   * @param {*} [p4]
+   * @param {*} [p5]
+   * @param {*} [p6]
    * @returns {*}
    *
    * @example
@@ -672,12 +690,12 @@ class PluginHook {
    * @param bucket
    * @param context
    * @param key
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @param p5
-   * @param p6
+   * @param [p1]
+   * @param [p2]
+   * @param [p3]
+   * @param [p4]
+   * @param [p5]
+   * @param [p6]
    * @returns {*}
    * @private
    */

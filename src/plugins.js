@@ -16,6 +16,8 @@ function registerPlugin(pluginName, PluginClass) {
   Handsontable.hooks.add('beforeInit', function () {
     var holder;
 
+    pluginName = pluginName.toLowerCase();
+
     if (!registeredPlugins.has(this)) {
       registeredPlugins.set(this, {});
     }
@@ -32,7 +34,7 @@ function registerPlugin(pluginName, PluginClass) {
       pluginsHolder = registeredPlugins.get(this);
 
       for (i in pluginsHolder) {
-        if (pluginsHolder.hasOwnProperty(i) && pluginsHolder[i].destroy) {
+        if (pluginsHolder.hasOwnProperty(i)) {
           pluginsHolder[i].destroy();
         }
       }
@@ -50,10 +52,11 @@ function getPlugin(instance, pluginName) {
   if (typeof pluginName != 'string'){
     throw Error('Only strings can be passed as "plugin" parameter');
   }
+  let _pluginName = pluginName.toLowerCase();
 
-  if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[pluginName]) {
+  if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
     throw Error('No plugin registered under name "' + pluginName + '"');
   }
 
-  return registeredPlugins.get(instance)[pluginName];
+  return registeredPlugins.get(instance)[_pluginName];
 }

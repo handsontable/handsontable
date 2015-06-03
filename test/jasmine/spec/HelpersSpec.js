@@ -25,6 +25,23 @@ describe('Handsontable.helper', function () {
   });
 
   //
+  // Handsontable.helper.isInput
+  //
+  describe('isInput', function () {
+    it("should return true for inputs, selects, and textareas", function () {
+      expect(Handsontable.helper.isInput(document.createElement('input'))).toBe(true);
+      expect(Handsontable.helper.isInput(document.createElement('select'))).toBe(true);
+      expect(Handsontable.helper.isInput(document.createElement('textarea'))).toBe(true);
+    });
+    
+    it("should return true for contenteditable elements", function () {
+      var div = document.createElement('div');
+      div.contentEditable = true;
+      expect(Handsontable.helper.isInput(div)).toBe(true);
+    });
+  });
+
+  //
   // Handsontable.helper.duckSchema
   //
   describe('duckSchema', function() {

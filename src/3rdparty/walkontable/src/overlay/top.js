@@ -1,4 +1,3 @@
-
 import * as dom from './../../../../dom.js';
 import {WalkontableOverlay} from './_base.js';
 
@@ -20,7 +19,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    *
    * @returns {Boolean}
    */
-  isShouldBeFullyRendered() {
+  shouldBeRendered() {
     return this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length ? true : false;
   }
 
@@ -102,7 +101,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
     while (from < to) {
       sum += this.wot.wtTable.getRowHeight(from) || defaultRowHeight;
-      from ++;
+      from++;
     }
 
     return sum;
