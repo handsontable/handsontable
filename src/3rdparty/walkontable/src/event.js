@@ -219,7 +219,9 @@ function WalkontableEvent(instance) {
   }
 
   eventManager.addEventListener(window, 'resize', function() {
-    that.instance.draw();
+    if (that.instance.getSetting('stretchH') !== 'none') {
+      that.instance.draw();
+    }
   });
 
   this.destroy = function() {

@@ -164,6 +164,7 @@ function ManualColumnResize() {
         if (newSize != startWidth) {
           instance.forceFullRender = true;
           instance.view.render(); //updates all
+          instance.view.wt.wtOverlays.adjustElementsSize();
 
           saveManualColumnWidths.call(instance);
 

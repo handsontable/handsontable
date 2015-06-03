@@ -989,6 +989,7 @@ describe('ContextMenu', function () {
 
       var testComment = 'Test comment';
 
+      selectCell(1, 1, 1, 1);
       contextMenu();
 
       var menu = $('.htContextMenu .ht_master .htCore tbody');
@@ -996,16 +997,18 @@ describe('ContextMenu', function () {
 
       menu.find('td').not('.htSeparator').eq(10).simulate('mousedown');
 
-      var comments = $('body > .htComments');
+      var comments = $('body > .htCommentsContainer > .htComments');
       expect(comments[0]).not.toBeUndefined();
       expect(comments.css('display')).toEqual('block');
 
       var textArea = comments.find('textarea');
+      textArea.focus();
       textArea.val(testComment);
+      textArea.blur();
 
       mouseDown(hot.rootElement);
-      expect(getCellMeta(0,0).comment).toEqual(testComment);
-      expect(getCell(0,0).className).toContain('htCommentCell');
+      expect(getCellMeta(1, 1).comment).toEqual(testComment);
+      expect(getCell(1, 1).className).toContain('htCommentCell');
     });
 
     it("should delete comment", function () {

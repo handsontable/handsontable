@@ -1,6 +1,6 @@
 
 import {registerPlugin} from './../../plugins.js';
-import jsonPatch from './../../3rdparty/json-patch-duplex.js';
+import jsonpatch from 'jsonpatch';
 
 export {ObserveChanges};
 
@@ -10,6 +10,7 @@ export {ObserveChanges};
  * @class ObserveChanges
  * @private
  * @plugin
+ * @dependencies jsonpatch
  */
 function ObserveChanges() {
 
@@ -51,7 +52,7 @@ function createObserver() {
   };
 
   instance.observedData = instance.getData();
-  instance.observer = jsonPatch.observe(instance.observedData, function(patches) {
+  instance.observer = jsonpatch.observe(instance.observedData, function(patches) {
     if (instance.observeChangesActive) {
       runHookForOperation.call(instance, patches);
       instance.render();
@@ -156,7 +157,7 @@ function destroy() {
 function destroyObserver() {
   var instance = this;
 
-  jsonPatch.unobserve(instance.observedData, instance.observer);
+  jsonpatch.unobserve(instance.observedData, instance.observer);
   delete instance.observeChangesActive;
   delete instance.pauseObservingChanges;
   delete instance.resumeObservingChanges;

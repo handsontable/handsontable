@@ -241,9 +241,6 @@ describe('CheckboxRenderer', function () {
     keyDown('space');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
-
-
-
   });
 
   it("double click on checkbox cell should invert the value", function () {
@@ -336,4 +333,67 @@ describe('CheckboxRenderer', function () {
 
   });
 
+  it("should change checkbox state to unchecked after hitting DELETE", function () {
+    handsontable({
+      data  :  [[true], [false], [true]],
+      columns : [
+        { type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    var checkboxes = this.$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+
+    selectCell(0, 0);
+    keyDown('delete');
+    selectCell(0, 1);
+    keyDown('delete');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false], [false], [true]]);
+
+    expect(afterChangeCallback.calls.length).toEqual(2);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+  });
+
+  it("should change checkbox state to unchecked after hitting BACKSPACE", function () {
+    handsontable({
+      data  :  [[true], [false], [true]],
+      columns : [
+        { type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    var checkboxes = this.$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+
+    selectCell(0, 0);
+    keyDown('backspace');
+    selectCell(0, 1);
+    keyDown('backspace');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false], [false], [true]]);
+
+    expect(afterChangeCallback.calls.length).toEqual(2);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+  });
 });
