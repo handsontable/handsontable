@@ -194,6 +194,10 @@ var handsontableKeyTriggerFactory = function (type) {
           ev.keyCode = 8;
           break;
 
+        case 'delete':
+          ev.keyCode = 46;
+          break;
+
         case 'space':
           ev.keyCode = 32;
           break;
