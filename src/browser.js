@@ -1,5 +1,6 @@
 
 var version = Handsontable.version;
+var buildDate = Handsontable.buildDate;
 
 window.Handsontable = function (rootElement, userSettings) {
   var instance = new Handsontable.Core(rootElement, userSettings || {});
@@ -10,6 +11,7 @@ window.Handsontable = function (rootElement, userSettings) {
 };
 
 Handsontable.version = version;
+Handsontable.buildDate = buildDate;
 
 import './shims/array.filter.js';
 import './shims/array.indexOf.js';
@@ -21,10 +23,10 @@ import './shims/weakmap.js';
 
 Handsontable.plugins = {};
 
-import {PluginHook} from './pluginHooks.js';
+import {Hooks} from './pluginHooks.js';
 
 if (!Handsontable.hooks) {
-  Handsontable.hooks = new PluginHook();
+  Handsontable.hooks = new Hooks();
 }
 
 import './core.js';

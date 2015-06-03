@@ -33,23 +33,25 @@ class TouchScroll extends BasePlugin {
 
     // Wait for the overlays to render and update their .needFullRender property
     this.hot.addHookOnce('afterRender', function() {
+      let wtOverlays = _this.hot.view.wt.wtOverlays;
+
       _this.scrollbars = [];
-      _this.scrollbars.push(_this.hot.view.wt.wtOverlays.topOverlay);
-      _this.scrollbars.push(_this.hot.view.wt.wtOverlays.leftOverlay);
+      _this.scrollbars.push(wtOverlays.topOverlay);
+      _this.scrollbars.push(wtOverlays.leftOverlay);
 
-      if (_this.hot.view.wt.wtOverlays.topLeftCornerOverlay) {
-        _this.scrollbars.push(_this.hot.view.wt.wtOverlays.topLeftCornerOverlay);
+      if (wtOverlays.topLeftCornerOverlay) {
+        _this.scrollbars.push(wtOverlays.topLeftCornerOverlay);
       }
-
       _this.clones = [];
-      if (_this.hot.view.wt.wtOverlays.topOverlay.needFullRender) {
-        _this.clones.push(_this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+
+      if (wtOverlays.topOverlay.needFullRender) {
+        _this.clones.push(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
       }
-      if (_this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-        _this.clones.push(_this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+      if (wtOverlays.leftOverlay.needFullRender) {
+        _this.clones.push(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       }
-      if (_this.hot.view.wt.wtOverlays.topOverlay.needFullRender && _this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-        _this.clones.push(_this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      if (wtOverlays.topLeftCornerOverlay) {
+        _this.clones.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
       }
     });
   }

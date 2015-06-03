@@ -16,12 +16,10 @@ describe('hooks', function () {
     var errors = 0;
 
     try {
-      Handsontable.hooks.add('afterInit', function () {
-      });
+      Handsontable.hooks.add('afterInit', function() {});
     } catch (e) {
       errors++;
     }
-
     expect(errors).toEqual(0);
   });
 
@@ -30,8 +28,7 @@ describe('hooks', function () {
     handsontable();
 
     try {
-      getInstance().addHook('afterInit', function () {
-      });
+      getInstance().addHook('afterInit', function() {});
     } catch (e) {
       errors++;
     }
@@ -65,8 +62,9 @@ describe('hooks', function () {
   });
 
   it('should remove a global hook', function () {
-    var test = 0
-      , hook = function () {
+    var
+      test = 0,
+      hook = function () {
         test = 5;
       };
 
@@ -79,8 +77,9 @@ describe('hooks', function () {
   });
 
   it('should remove a local hook', function () {
-    var test = 0
-      , hook = function () {
+    var
+      test = 0,
+      hook = function () {
         test = 5;
       };
 
@@ -94,6 +93,7 @@ describe('hooks', function () {
 
   it('should run global hook', function () {
     var test = 0;
+
     Handsontable.hooks.add('afterInit', function () {
       test = 5;
     });
@@ -143,31 +143,12 @@ describe('hooks', function () {
     });
 
     expect(test).toEqual(10);
-
   });
 
-  it('should run all hooks', function () {
-    var test = 0;
+  it('list of all avaliable plugin hooks should be exposed as a public method', function () {
+    var hooks = Handsontable.hooks.getRegistered(); //this is used in demo/callbacks.html
 
-    Handsontable.hooks.add('afterInit', function () {
-      test += 5;
-    });
-
-    handsontable({
-      afterInit: function () {
-        test += 5;
-      }
-    });
-
-    expect(test).toEqual(10);
-
-  });
-
-  it('list of all avaliable plugin hooks should be exposed as a public object', function () {
-    var hooks = Handsontable.hooks.hooks; //this is used in demo/callbacks.html
-
-    expect(hooks.beforeInit).toBeDefined(); //duck check is fine
-
+    expect(hooks.indexOf('beforeInit')).toBeGreaterThan(-1);
   });
 
   it('should add a local hook with addHooks method', function(){
@@ -178,7 +159,6 @@ describe('hooks', function () {
     hot1.addHook('myHook', function(){
       test += 5;
     });
-
     hot1.runHooks('myHook');
 
     expect(test).toEqual(5);
