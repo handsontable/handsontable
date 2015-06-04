@@ -10,6 +10,7 @@ import {registerPlugin} from './../../plugins.js';
  * @class ColumnSorting
  * @plugin
  * @constructor
+ * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
   /**
