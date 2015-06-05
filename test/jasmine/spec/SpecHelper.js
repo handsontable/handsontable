@@ -147,6 +147,7 @@ var handsontableKeyTriggerFactory = function (type) {
       if (key.indexOf('ctrl+') > -1) {
         key = key.substring(5);
         ev.ctrlKey = true;
+        ev.metaKey = true;
       }
 
       switch (key) {
@@ -200,6 +201,18 @@ var handsontableKeyTriggerFactory = function (type) {
 
         case 'space':
           ev.keyCode = 32;
+          break;
+
+        case 'x':
+          ev.keyCode = 88;
+          break;
+
+        case 'c':
+          ev.keyCode = 67;
+          break;
+
+        case 'v':
+          ev.keyCode = 86;
           break;
 
         default:
