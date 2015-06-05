@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.15.0-beta5
+ * Handsontable 0.15.0-beta6
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,18 +7,18 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jun 03 2015 14:13:30 GMT+0200 (CEST)
+ * Date: Fri Jun 05 2015 09:18:04 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.15.0-beta5',
-  buildDate: 'Wed Jun 03 2015 14:13:30 GMT+0200 (CEST)'
+  version: '0.15.0-beta6',
+  buildDate: 'Fri Jun 05 2015 09:18:04 GMT+0200 (CEST)'
 };
 require=(function outer (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof require == "function" && require;
-  var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","copyPaste":"copyPaste","SheetClip":"SheetClip","jsonpatch":"jsonpatch","moment":"moment","numeral":"numeral","autoResize":"autoResize","pikaday":"Pikaday"}') || {};
+  var globalNS = JSON.parse('{"jsonpatch":"jsonpatch","zeroclipboard":"ZeroClipboard","copyPaste":"copyPaste","SheetClip":"SheetClip","moment":"moment","numeral":"numeral","autoResize":"autoResize","pikaday":"Pikaday"}') || {};
 
   function newRequire(name, jumped){
     if(!cache[name]) {
@@ -17603,4 +17603,4 @@ Handsontable.NumericValidator = function(value, callback) {
 
 
 //# 
-},{}]},{},[23,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,86,87,88,72,73,74,75,76,77,31,35,40,32,33,34,36,37,38,39]);
+},{}]},{},[23,47,48,49,65,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,86,87,88,72,73,74,75,76,77,31,35,40,32,33,34,36,37,38,39]);
