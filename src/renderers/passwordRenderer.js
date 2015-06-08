@@ -8,8 +8,7 @@ registerRenderer('password', passwordRenderer);
 
 /**
  * @private
- * @renderer
- * @component PasswordRenderer
+ * @renderer PasswordRenderer
  * @param instance
  * @param TD
  * @param row

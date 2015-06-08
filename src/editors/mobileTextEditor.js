@@ -15,7 +15,7 @@ Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
- * @editor
+ * @editor MobileTextEditor
  * @class MobileTextEditor
  */
 Handsontable.editors.MobileTextEditor = MobileTextEditor;

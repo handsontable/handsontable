@@ -16,7 +16,7 @@ Handsontable.editors.DateEditor = DateEditor;
 
 /**
  * @private
- * @editor
+ * @editor DateEditor
  * @class DateEditor
  * @dependencies TextEditor moment pikaday
  */

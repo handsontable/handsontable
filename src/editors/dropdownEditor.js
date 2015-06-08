@@ -11,7 +11,7 @@ Handsontable.editors.DropdownEditor = DropdownEditor;
 
 /**
  * @private
- * @editor
+ * @editor DropdownEditor
  * @class DropdownEditor
  * @dependencies AutocompleteEditor
  */

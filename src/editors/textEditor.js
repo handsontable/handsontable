@@ -14,7 +14,7 @@ Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
- * @editor
+ * @editor TextEditor
  * @class TextEditor
  * @dependencies autoResize
  */
