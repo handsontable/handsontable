@@ -17,9 +17,8 @@ export {ManualRowMove};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
- * @class ManualRowMove
  * @private
- * @plugin
+ * @plugin ManualRowMove
  */
 function ManualRowMove() {
 

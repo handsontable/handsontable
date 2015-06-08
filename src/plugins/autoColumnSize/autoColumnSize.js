@@ -9,7 +9,7 @@ export {AutoColumnSize};
 
 /**
  * @class AutoColumnSize
- * @plugin
+ * @plugin AutoColumnSize
  */
 function AutoColumnSize() {
   var plugin = this

@@ -11,10 +11,8 @@ Handsontable.plugins.DragToScroll = DragToScroll;
 /**
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of visible viewport
  *
- * @class DragToScroll
  * @private
- * @plugin
- * @constructor
+ * @plugin DragToScroll
  */
 function DragToScroll() {
   this.boundaries = null;

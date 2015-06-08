@@ -59,9 +59,8 @@ function Storage(prefix) {
 }
 
 /**
- * @class PersistentState
  * @private
- * @plugin
+ * @plugin PersistentState
  */
 function HandsontablePersistentState() {
   var plugin = this;

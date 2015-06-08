@@ -12,7 +12,7 @@ export {CopyPaste};
 
 /**
  * @class CopyPaste
- * @plugin
+ * @plugin CopyPaste
  * @dependencies copyPaste SheetClip
  */
 function CopyPastePlugin(instance) {

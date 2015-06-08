@@ -86,6 +86,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      *
      * @memberof Core#
      * @function alter
+     * @private
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
      * @param {Number} index
      * @param {Number} amount
@@ -1617,8 +1618,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Inserts or removes rows and columns.
-   *
    * @memberof Core#
    * @function alter
    * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
@@ -3007,7 +3006,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * If `true`, enables Comments plugin, which enables applying cell comments through the context menu
+   * If `true`, enables {@link Comments} plugin, which enables applying cell comments through the context menu
    * (configurable with context menu keys commentsAddEdit, commentsRemove).
    *
    * To initialize Handsontable with predefined comments, provide cell coordinates and comment texts in form of an array.
