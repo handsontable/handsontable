@@ -8,6 +8,7 @@ export {ObserveChanges};
 
 /**
  * @private
+ * @class ObserveChanges
  * @plugin ObserveChanges
  * @dependencies jsonpatch
  */

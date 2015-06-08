@@ -50,6 +50,7 @@ function CellInfoCollection() {
  *
  * @private
  * @plugin MergeCells
+ * @class MergeCells
  */
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();

@@ -60,6 +60,7 @@ function Storage(prefix) {
 
 /**
  * @private
+ * @class PersistentState
  * @plugin PersistentState
  */
 function HandsontablePersistentState() {

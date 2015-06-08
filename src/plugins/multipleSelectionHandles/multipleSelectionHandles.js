@@ -5,6 +5,7 @@ import {registerPlugin} from './../../plugins.js';
 
 /**
  * @private
+ * @class MultipleSelectionHandles
  * @plugin MultipleSelectionHandles
  */
 

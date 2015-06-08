@@ -10,6 +10,7 @@ import {registerPlugin} from './../../plugins.js';
 
 /**
  * @private
+ * @class Grouping
  * @plugin Grouping
  */
 function Grouping(instance) {

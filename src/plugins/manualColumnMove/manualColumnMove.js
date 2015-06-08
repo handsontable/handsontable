@@ -18,6 +18,7 @@ export {ManualColumnMove};
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
  * @private
+ * @class ManualColumnMove
  * @plugin ManualColumnMove
  */
 function ManualColumnMove() {

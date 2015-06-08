@@ -3,6 +3,7 @@ import * as dom from './../../dom.js';
 /**
  * Comment editor for Comments plugin.
  *
+ * @class CommentEditor
  * @plugin Comments
  */
 class CommentEditor {

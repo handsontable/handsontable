@@ -7,6 +7,7 @@ import {registerPlugin} from './../../plugins.js';
  * This plugin sorts the view by a column (but does not sort the data source!)
  *
  * @private
+ * @class ColumnSorting
  * @plugin ColumnSorting
  * @dependencies ObserveChanges
  */
