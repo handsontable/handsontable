@@ -52,6 +52,10 @@ class WalkontableOverlays {
         top: null,
         left: 0
       },
+      'bottom': {
+        top: null,
+        left: 0
+      },
       'left': {
         top: 0,
         left: null
@@ -93,6 +97,11 @@ class WalkontableOverlays {
       this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
+    if (this.topOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
+      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
+    }
+
     if (this.leftOverlay.needFullRender) {
       this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
       this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
@@ -109,6 +118,9 @@ class WalkontableOverlays {
         if (this.topOverlay.clone.wtTable.holder.contains(event.target)) {
           overlay = 'top';
 
+        } else if (this.bottomOverlay.clone.wtTable.holder.contains(event.target)) {
+          overlay = 'bottom';
+
         } else if (this.leftOverlay.clone.wtTable.holder.contains(event.target)) {
           overlay = 'left';
         }
@@ -116,6 +128,8 @@ class WalkontableOverlays {
         if (overlay == 'top' && deltaY !== 0) {
           event.preventDefault();
         } else if (overlay == 'left' && deltaX !== 0) {
+          event.preventDefault();
+        } else if (overlay == 'bottom' && deltaY !== 0) {
           event.preventDefault();
         }
       });
@@ -168,6 +182,7 @@ class WalkontableOverlays {
    */
   translateMouseWheelToScroll(event) {
     let topOverlay = this.topOverlay.clone.wtTable.holder;
+    let bottomOverlay = this.bottomOverlay.clone.wtTable.holder;
     let leftOverlay = this.leftOverlay.clone.wtTable.holder;
     let eventMockup = {type: 'wheel'};
     let tempElem = event.target;
@@ -185,6 +200,9 @@ class WalkontableOverlays {
     eventMockup.target = parentHolder;
 
     if (parentHolder == topOverlay) {
+      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
+
+    } else if (parentHolder == bottomOverlay) {
       this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
 
     } else if (parentHolder == leftOverlay) {
@@ -258,6 +276,23 @@ class WalkontableOverlays {
         if (leftOverlay) {
           leftOverlay.scrollTop = tempScrollValue;
         }
+      }
+
+    } else if (target === bottomOverlay) {
+      tempScrollValue = dom.getScrollLeft(target);
+
+      // if scrolling the bottom overlay - populate the horizontal scroll to the master table
+      if (this.overlayScrollPositions.bottom.left !== tempScrollValue) {
+        this.overlayScrollPositions.bottom.left = tempScrollValue;
+        scrollValueChanged = true;
+
+        master.scrollLeft = tempScrollValue;
+      }
+
+      // "fake" scroll value calculated from the mousewheel event
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
+        master.scrollTop += fakeScrollValue;
       }
 
     } else if (target === topOverlay) {

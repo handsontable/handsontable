@@ -214,3 +214,25 @@ BaseEditor.prototype.isOpened = function() {
 BaseEditor.prototype.isWaiting = function() {
   return this.state === Handsontable.EditorState.WAITING;
 };
+
+BaseEditor.prototype.checkEditorSection = function() {
+  var totalRows = this.instance.countRows();
+
+  if (this.row < this.instance.getSettings().fixedRowsTop) {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      return 'top-left-corner';
+    } else {
+      return 'top';
+    }
+  } else if (this.row >= totalRows - this.instance.getSettings().fixedRowsTop - 1) {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      return 'bottom-left-corner';
+    } else {
+      return 'bottom';
+    }
+  } else {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      return 'left';
+    }
+  }
+};

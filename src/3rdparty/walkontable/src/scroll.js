@@ -1,4 +1,3 @@
-
 /**
  * @class WalkontableScroll
  */
@@ -33,11 +32,12 @@ class WalkontableScroll {
       throw new Error('column ' + coords.col + ' does not exist');
     }
 
-    if (coords.row > this.instance.wtTable.getLastVisibleRow()) {
+    if (coords.row < totalRows - this.instance.getSetting('fixedRowsBottom') - 1 &&
+      coords.row > this.instance.wtTable.getLastVisibleRow()) {
       this.wot.wtOverlays.topOverlay.scrollTo(coords.row, true);
 
     } else if (coords.row >= this.instance.getSetting('fixedRowsTop') &&
-               coords.row < this.instance.wtTable.getFirstVisibleRow()) {
+      coords.row < this.instance.wtTable.getFirstVisibleRow()) {
       this.wot.wtOverlays.topOverlay.scrollTo(coords.row);
     }
 
@@ -45,7 +45,7 @@ class WalkontableScroll {
       this.wot.wtOverlays.leftOverlay.scrollTo(coords.col, true);
 
     } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft') &&
-               coords.col < this.instance.wtTable.getFirstVisibleColumn()) {
+      coords.col < this.instance.wtTable.getFirstVisibleColumn()) {
       this.wot.wtOverlays.leftOverlay.scrollTo(coords.col);
     }
   }

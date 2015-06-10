@@ -166,9 +166,6 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
    */
   applyToDOM() {
     let total = this.wot.getSetting('totalRows');
-
-    
-    console.log('apply to dom');
     
     if (!this.isElementSizesAdjusted) {
       this.adjustElementsSize();

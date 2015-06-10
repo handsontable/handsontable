@@ -109,21 +109,6 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-// TODO: Refactor this with the use of new getCell() after 0.12.1
-SelectEditor.prototype.checkEditorSection = function() {
-  if (this.row < this.instance.getSettings().fixedRowsTop) {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'corner';
-    } else {
-      return 'top';
-    }
-  } else {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'left';
-    }
-  }
-};
-
 SelectEditor.prototype.open = function() {
   var width = dom.outerWidth(this.TD); //important - group layout reads together for better performance
   var height = dom.outerHeight(this.TD);
@@ -139,8 +124,11 @@ SelectEditor.prototype.open = function() {
     case 'left':
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       break;
-    case 'corner':
+    case 'top-left-corner':
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      break;
+    case 'bottom':
+      cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       break;
   }
 

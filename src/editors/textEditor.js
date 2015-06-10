@@ -170,19 +170,6 @@ TextEditor.prototype.createElements = function() {
   }, 0));
 };
 
-TextEditor.prototype.checkEditorSection = function() {
-  if (this.row < this.instance.getSettings().fixedRowsTop) {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'corner';
-    } else {
-      return 'top';
-    }
-  } else {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'left';
-    }
-  }
-};
 
 TextEditor.prototype.getEditedCell = function() {
   var editorSection = this.checkEditorSection(),
@@ -196,7 +183,7 @@ TextEditor.prototype.getEditedCell = function() {
       });
       this.textareaParentStyle.zIndex = 101;
       break;
-    case 'corner':
+    case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
@@ -205,6 +192,13 @@ TextEditor.prototype.getEditedCell = function() {
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.textareaParentStyle.zIndex = 102;
+      break;
+    case 'bottom':
+      editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
@@ -228,7 +222,7 @@ TextEditor.prototype.refreshDimensions = function() {
   ///start prepare textarea position
   //    this.TD = this.instance.getCell(this.row, this.col);
   this.TD = this.getEditedCell();
-
+  
   if (!this.TD) {
     //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
     return;
@@ -256,8 +250,11 @@ TextEditor.prototype.refreshDimensions = function() {
     case 'left':
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       break;
-    case 'corner':
+    case 'top-left-corner':
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      break;
+    case 'bottom':
+      cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       break;
   }
 

@@ -363,11 +363,11 @@ WalkontableTable.prototype.isRowBeforeRenderedRows = function(r) {
 };
 
 WalkontableTable.prototype.isRowAfterViewport = function(r) {
-  return (r > this.getLastVisibleRow());
+  return (this.rowFilter.sourceToRendered(r) > this.getLastVisibleRow());
 };
 
 WalkontableTable.prototype.isRowAfterRenderedRows = function(r) {
-  return (r > this.getLastRenderedRow());
+  return (this.rowFilter.sourceToRendered(r) > this.getLastRenderedRow());
 };
 
 WalkontableTable.prototype.isColumnBeforeViewport = function(c) {
@@ -375,7 +375,7 @@ WalkontableTable.prototype.isColumnBeforeViewport = function(c) {
 };
 
 WalkontableTable.prototype.isColumnAfterViewport = function(c) {
-  return (c > this.getLastVisibleColumn());
+  return (this.columnFilter.sourceToRendered(c) > this.getLastVisibleColumn());
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function() {
