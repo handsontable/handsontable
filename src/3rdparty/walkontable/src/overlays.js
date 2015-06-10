@@ -356,6 +356,7 @@ class WalkontableOverlays {
     this.eventManager.clear();
 
     this.topOverlay.destroy();
+    this.bottomOverlay.destroy();
     this.leftOverlay.destroy();
 
     if (this.topLeftCornerOverlay) {
