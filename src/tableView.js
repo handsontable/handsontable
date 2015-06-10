@@ -198,6 +198,9 @@ function TableView(instance) {
     fixedRowsTop: function() {
       return that.settings.fixedRowsTop;
     },
+    fixedRowsBottom: function () {
+      return that.settings.fixedRowsBottom;
+    },
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function() {
       var arr = [];

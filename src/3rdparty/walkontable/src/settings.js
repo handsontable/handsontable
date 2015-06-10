@@ -29,6 +29,7 @@ class WalkontableSettings {
       data: void 0,
       fixedColumnsLeft: 0,
       fixedRowsTop: 0,
+      fixedRowsBottom: 0,
       // this must be array of functions: [function (row, TH) {}]
       rowHeaders: function() {
         return [];

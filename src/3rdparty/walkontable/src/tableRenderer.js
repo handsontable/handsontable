@@ -28,6 +28,7 @@ class WalkontableTableRenderer {
     this.columnHeaders = [];
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
+    this.fixedRowsBottom = 0;
   }
 
   /**
@@ -41,6 +42,7 @@ class WalkontableTableRenderer {
     this.rowHeaders = this.wot.getSetting('rowHeaders');
     this.rowHeaderCount = this.rowHeaders.length;
     this.fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+    this.fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
     this.columnHeaders = this.wot.getSetting('columnHeaders');
     this.columnHeaderCount = this.columnHeaders.length;
 
@@ -51,14 +53,23 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
+    if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay) {
+
+      // do NOT render headers on the bottom overlay
+      this.columnHeaders = false;
+      this.columnHeaderCount = 0;
+    }
+
     if (totalColumns > 0) {
       // prepare COL and TH elements for rendering
       this.adjustAvailableNodes();
       adjusted = true;
 
+
       // assign row header classnames
       this.renderColGroups();
       this.renderColumnHeaders();
+
 
       //Render table rows
       this.renderRows(totalRows, rowsToRender, columnsToRender);

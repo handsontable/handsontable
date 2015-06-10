@@ -875,7 +875,8 @@ thead .htCollapseButton:after {
 
 .ht_master,
 .ht_clone_left,
-.ht_clone_top {
+.ht_clone_top,
+.ht_clone_bottom {
   overflow: hidden;
 }
 
@@ -888,7 +889,8 @@ thead .htCollapseButton:after {
   overflow-y: auto;
 }
 
-.ht_clone_top .wtHolder {
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
   overflow-x: auto;
   overflow-y: hidden;
 }

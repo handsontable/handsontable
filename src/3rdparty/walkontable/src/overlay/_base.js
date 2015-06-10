@@ -21,6 +21,13 @@ class WalkontableOverlay {
   /**
    * @type {String}
    */
+  static get CLONE_BOTTOM() {
+    return 'bottom';
+  }
+
+  /**
+   * @type {String}
+   */
   static get CLONE_LEFT() {
     return 'left';
   }
@@ -47,6 +54,7 @@ class WalkontableOverlay {
   static get CLONE_TYPES() {
     return [
       WalkontableOverlay.CLONE_TOP,
+      WalkontableOverlay.CLONE_BOTTOM,
       WalkontableOverlay.CLONE_LEFT,
       WalkontableOverlay.CLONE_CORNER,
       WalkontableOverlay.CLONE_DEBUG

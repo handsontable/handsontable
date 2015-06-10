@@ -4,6 +4,7 @@ import {WalkontableCornerOverlay} from './overlay/corner.js';
 import {WalkontableDebugOverlay} from './overlay/debug.js';
 import {WalkontableLeftOverlay} from './overlay/left.js';
 import {WalkontableTopOverlay} from './overlay/top.js';
+import {WalkontableBottomOverlay} from './overlay/bottom.js';
 
 
 /**
@@ -26,6 +27,7 @@ class WalkontableOverlays {
     this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
 
     this.topOverlay = new WalkontableTopOverlay(this.wot);
+    this.bottomOverlay = new WalkontableBottomOverlay(this.wot);
     this.leftOverlay = new WalkontableLeftOverlay(this.wot);
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
@@ -213,10 +215,16 @@ class WalkontableOverlays {
     let scrollValueChanged = false;
     let topOverlay;
     let leftOverlay;
+    let bottomOverlay;
 
     if (this.topOverlay.needFullRender) {
       topOverlay = this.topOverlay.clone.wtTable.holder;
     }
+
+    if (this.bottomOverlay.needFullRender) {
+      bottomOverlay = this.bottomOverlay.clone.wtTable.holder;
+    }
+
     if (this.leftOverlay.needFullRender) {
       leftOverlay = this.leftOverlay.clone.wtTable.holder;
     }
@@ -235,6 +243,10 @@ class WalkontableOverlays {
 
         if (topOverlay) {
           topOverlay.scrollLeft = tempScrollValue;
+        }
+
+        if (bottomOverlay) {
+          bottomOverlay.scrollLeft = tempScrollValue;
         }
       }
       tempScrollValue = dom.getScrollTop(target);
@@ -337,6 +349,7 @@ class WalkontableOverlays {
     }
     this.leftOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
+    this.bottomOverlay.refresh(fastDraw);
 
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.refresh(fastDraw);
@@ -371,6 +384,7 @@ class WalkontableOverlays {
       this.adjustElementsSize();
     }
     this.topOverlay.applyToDOM();
+    this.bottomOverlay.applyToDOM();
     this.leftOverlay.applyToDOM();
   }
 }

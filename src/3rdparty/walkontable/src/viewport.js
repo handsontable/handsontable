@@ -270,6 +270,8 @@ class WalkontableViewport {
     let height;
     let pos;
     let fixedRowsTop;
+    let fixedRowsBottom;
+    let fixedRowsHeight;
 
     this.rowHeaderWidth = NaN;
 
@@ -284,9 +286,17 @@ class WalkontableViewport {
       pos = 0;
     }
     fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+    fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
 
     if (fixedRowsTop) {
-      let fixedRowsHeight = this.wot.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
+      fixedRowsHeight = this.wot.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
+      pos += fixedRowsHeight;
+      height -= fixedRowsHeight;
+    }
+
+    if (fixedRowsBottom) {
+      fixedRowsHeight = this.wot.wtOverlays.bottomOverlay.sumCellSizes(0, fixedRowsBottom);
+
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
     }

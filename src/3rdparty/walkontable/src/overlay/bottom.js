@@ -3,15 +3,25 @@ import {WalkontableOverlay} from './_base.js';
 
 
 /**
- * @class WalkontableTopOverlay
+ * @class WalkontableBottomOverlay
  */
-class WalkontableTopOverlay extends WalkontableOverlay {
+class WalkontableBottomOverlay extends WalkontableOverlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_TOP);
+    this.clone = this.makeClone(WalkontableOverlay.CLONE_BOTTOM);
+  }
+
+  /**
+   *
+   */
+  repositionOverlay() {
+    let scrollbarWidth = dom.getScrollbarWidth();
+    let cloneRoot = this.clone.wtTable.holder.parentNode;
+    cloneRoot.style.top = 'auto';
+    cloneRoot.style.bottom = scrollbarWidth + 'px';
   }
 
   /**
@@ -20,7 +30,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length ? true : false;
+    return this.wot.getSetting('fixedRowsBottom') ? true : false;
   }
 
   /**
@@ -31,33 +41,39 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
 
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let top = Math.ceil(box.top);
-      let bottom = Math.ceil(box.bottom);
-      let finalLeft;
-      let finalTop;
+    //let overlayRoot = this.clone.wtTable.holder.parentNode;
+    //let headerPosition = 0;
 
-      finalLeft = this.wot.wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : finalLeft;
+    //TODO: PROBABLY NEEDED FOR FULLSCREEN
 
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-        finalTop = -top;
-      } else {
-        finalTop = 0;
-      }
-      headerPosition = finalTop;
-      finalTop = finalTop + 'px';
+    //if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
+    //  let box = this.wot.wtTable.hider.getBoundingClientRect();
+    //  let top = Math.ceil(box.top);
+    //  let bottom = Math.ceil(box.bottom);
+    //  let finalLeft;
+    //  let finalTop;
+    //
+    //  finalLeft = this.wot.wtTable.hider.style.left;
+    //  finalLeft = finalLeft === '' ? 0 : finalLeft;
+    //
+    //  if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+    //    finalTop = -top;
+    //  } else {
+    //    finalTop = 0;
+    //  }
+    //  headerPosition = finalTop;
+    //  finalTop = finalTop + 'px';
+    //
+    //  dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
+    //
+    //} else {
+      //headerPosition = this.getScrollPosition();
+      this.repositionOverlay();
+    //}
+    //this.adjustHeaderBordersPosition(headerPosition);
 
-      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
 
-    } else {
-      headerPosition = this.getScrollPosition();
-    }
-    this.adjustHeaderBordersPosition(headerPosition);
   }
 
   /**
@@ -127,7 +143,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
-    overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+    overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight) + 'px';
   }
 
   /**
@@ -151,6 +167,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   applyToDOM() {
     let total = this.wot.getSetting('totalRows');
 
+    
+    console.log('apply to dom');
+    
     if (!this.isElementSizesAdjusted) {
       this.adjustElementsSize();
     }
@@ -206,7 +225,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       newY += 1;
 
     } else {
-      newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
+      newY += this.sumCellSizes(this.wot.getSetting('fixedRowsBottom'), sourceRow);
     }
     newY += scrollbarCompensation;
 
@@ -242,7 +261,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @param {Number} position Header Y position if trimming container is window or scroll top if not
    */
   adjustHeaderBordersPosition(position) {
-    if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
+    if (this.wot.getSetting('fixedRowsBottom') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
       let masterParent = this.wot.wtTable.holder.parentNode;
       let previousState = dom.hasClass(masterParent, 'innerBorderTop');
 
@@ -266,6 +285,6 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableTopOverlay};
+export {WalkontableBottomOverlay};
 
-window.WalkontableTopOverlay = WalkontableTopOverlay;
+window.WalkontableBottomOverlay = WalkontableBottomOverlay;

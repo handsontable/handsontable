@@ -147,9 +147,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
 
+          var totalRows = instance.countRows();
           var fixedRowsTop = instance.getSettings().fixedRowsTop;
           if (fixedRowsTop >= index + 1) {
             instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
+          }
+
+          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+          if (totalRows - fixedRowsBottom <= index + 1) {
+            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom - index); //TODO: not sure if right
           }
 
           grid.adjustRowsAndCols();
@@ -3168,6 +3174,14 @@ DefaultSettings.prototype = {
    * @default 0
    */
   fixedRowsTop: 0,
+
+  /**
+   * Allows to specify the number of rows fixed (aka freezed) on the bottom of the table.
+   *
+   * @type {Number}
+   * @default 0
+   */
+  fixedRowsBottom: 0,
 
   /**
    * Allows to specify the number of columns fixed (aka freezed) on the left side of the table.

@@ -1,4 +1,3 @@
-
 import * as dom from './../../../dom.js';
 import {WalkontableCellCoords} from './cell/coords.js';
 import {WalkontableCellRange} from './cell/range.js';
@@ -9,6 +8,7 @@ import {WalkontableLeftOverlay} from './overlay/left.js';
 import {WalkontableRowFilter} from './filter/row.js';
 import {WalkontableTableRenderer} from './tableRenderer.js';
 import {WalkontableTopOverlay} from './overlay/top.js';
+import {WalkontableBottomOverlay} from './overlay/bottom.js';
 
 
 function WalkontableTable(instance, table) {
@@ -71,11 +71,15 @@ function WalkontableTable(instance, table) {
     this.TBODY = document.createElement('TBODY');
     this.TABLE.appendChild(this.TBODY);
   }
+
+
   this.THEAD = this.TABLE.getElementsByTagName('THEAD')[0];
   if (!this.THEAD) {
     this.THEAD = document.createElement('THEAD');
     this.TABLE.insertBefore(this.THEAD, this.TBODY);
   }
+
+
   this.COLGROUP = this.TABLE.getElementsByTagName('COLGROUP')[0];
   if (!this.COLGROUP) {
     this.COLGROUP = document.createElement('COLGROUP');
@@ -125,6 +129,8 @@ WalkontableTable.prototype.isWorkingOnClone = function() {
  * @returns {WalkontableTable}
  */
 WalkontableTable.prototype.draw = function(fastDraw) {
+  var totalRows = this.instance.getSetting('totalRows');
+
   if (!this.isWorkingOnClone()) {
     this.holderOffset = dom.offset(this.holder);
     fastDraw = this.instance.wtViewport.createRenderCalculators(fastDraw);
@@ -138,9 +144,11 @@ WalkontableTable.prototype.draw = function(fastDraw) {
     }
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+      this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
+      this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startRow = 0;
+    } else if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay) {
+      startRow = totalRows - this.instance.getSetting('fixedRowsBottom') - 1;
     } else {
       startRow = this.instance.wtViewport.rowsRenderCalculator.startRow;
     }
@@ -148,8 +156,8 @@ WalkontableTable.prototype.draw = function(fastDraw) {
 
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableLeftOverlay ||
-        this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+      this.instance.cloneOverlay instanceof WalkontableLeftOverlay ||
+      this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
@@ -157,7 +165,7 @@ WalkontableTable.prototype.draw = function(fastDraw) {
 
     this.rowFilter = new WalkontableRowFilter(
       startRow,
-      this.instance.getSetting('totalRows'),
+      totalRows,
       this.instance.getSetting('columnHeaders').length);
     this.columnFilter = new WalkontableColumnFilter(
       startColumn,
@@ -181,6 +189,7 @@ WalkontableTable.prototype.draw = function(fastDraw) {
 
   if (!this.isWorkingOnClone()) {
     this.instance.wtOverlays.topOverlay.resetFixedPosition();
+    this.instance.wtOverlays.bottomOverlay.resetFixedPosition();
     this.instance.wtOverlays.leftOverlay.resetFixedPosition();
 
     if (this.instance.wtOverlays.topLeftCornerOverlay) {
@@ -392,8 +401,10 @@ WalkontableTable.prototype.getRenderedRowsCount = function() {
     return this.instance.getSetting('totalRows');
 
   } else if (this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
-      this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+    this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
     return this.instance.getSetting('fixedRowsTop');
+  } else if (this.instance.cloneOverlay instanceof  WalkontableBottomOverlay) {
+    return this.instance.getSetting('fixedRowsBottom');
   }
 
   return this.instance.wtViewport.rowsRenderCalculator.count;
@@ -443,7 +454,6 @@ WalkontableTable.prototype.getVisibleColumnsCount = function() {
 WalkontableTable.prototype.allColumnsInViewport = function() {
   return this.instance.getSetting('totalColumns') == this.getVisibleColumnsCount();
 };
-
 
 
 WalkontableTable.prototype.getColumnWidth = function(sourceColumn) {
