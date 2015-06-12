@@ -93,13 +93,18 @@ class Walkontable {
       return this.wtTable.getCell(coords);
     }
 
-    let fixedRows = this.wtSettings.getSetting('fixedRowsTop');
+    let totalRows = this.wtSettings.getSetting('totalRows');
+    let fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+    let fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     let fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
 
-    if (coords.row < fixedRows && coords.col < fixedColumns) {
+    if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row < fixedRows) {
+    } else if (coords.row > totalRows - fixedRowsBottom - 1 && coords.col < fixedColumns) {
+      return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
+
+    } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumns) {

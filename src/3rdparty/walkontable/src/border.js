@@ -279,8 +279,10 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   };
 
-  if (instance.cloneOverlay instanceof WalkontableTopOverlay || instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+  if (instance.cloneOverlay instanceof WalkontableTopOverlay || instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
     ilen = instance.getSetting('fixedRowsTop');
+  } else if (instance.cloneOverlay instanceof WalkontableBottomOverlay || instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+    ilen = instance.getSetting('fixedRowsBottom');
   } else {
     ilen = instance.wtTable.getRenderedRowsCount();
   }

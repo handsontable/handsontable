@@ -1,6 +1,7 @@
 import * as dom from './../../../dom.js';
 import {EventManager} from './../../../eventManager.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
+import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
+import {WalkontableBottomLeftCornerOverlay} from './overlay/bottomLeftCorner.js';
 import {WalkontableDebugOverlay} from './overlay/debug.js';
 import {WalkontableLeftOverlay} from './overlay/left.js';
 import {WalkontableTopOverlay} from './overlay/top.js';
@@ -31,8 +32,13 @@ class WalkontableOverlays {
     this.leftOverlay = new WalkontableLeftOverlay(this.wot);
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-      this.topLeftCornerOverlay = new WalkontableCornerOverlay(this.wot);
+      this.topLeftCornerOverlay = new WalkontableTopLeftCornerOverlay(this.wot);
     }
+
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      this.bottomLeftCornerOverlay = new WalkontableBottomLeftCornerOverlay(this.wot);
+    }
+
     if (this.wot.getSetting('debug')) {
       this.debug = new WalkontableDebugOverlay(this.wot);
     }
@@ -362,6 +368,11 @@ class WalkontableOverlays {
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.destroy();
     }
+
+    if (this.bottomLeftCornerOverlay) {
+      this.bottomLeftCornerOverlay.destroy();
+    }
+
     if (this.debug) {
       this.debug.destroy();
     }
@@ -390,6 +401,11 @@ class WalkontableOverlays {
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.refresh(fastDraw);
     }
+
+    if (this.bottomLeftCornerOverlay) {
+      this.bottomLeftCornerOverlay.refresh(fastDraw);
+    }
+
     if (this.debug) {
       this.debug.refresh(fastDraw);
     }

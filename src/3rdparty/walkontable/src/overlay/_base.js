@@ -35,8 +35,15 @@ class WalkontableOverlay {
   /**
    * @type {String}
    */
-  static get CLONE_CORNER() {
-    return 'corner';
+  static get CLONE_TOP_LEFT_CORNER() {
+    return 'top_left_corner';
+  }
+
+  /**
+   * @type {String}
+   */
+  static get CLONE_BOTTOM_LEFT_CORNER() {
+    return 'bottom_left_corner';
   }
 
   /**
@@ -56,7 +63,8 @@ class WalkontableOverlay {
       WalkontableOverlay.CLONE_TOP,
       WalkontableOverlay.CLONE_BOTTOM,
       WalkontableOverlay.CLONE_LEFT,
-      WalkontableOverlay.CLONE_CORNER,
+      WalkontableOverlay.CLONE_TOP_LEFT_CORNER,
+      WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER,
       WalkontableOverlay.CLONE_DEBUG
     ];
   }
@@ -97,7 +105,7 @@ class WalkontableOverlay {
    * Make a clone of table for overlay
    *
    * @param {String} direction Can be `WalkontableOverlay.CLONE_TOP`, `WalkontableOverlay.CLONE_LEFT`,
-   *                           `WalkontableOverlay.CLONE_CORNER`, `WalkontableOverlay.CLONE_DEBUG`
+   *                           `WalkontableOverlay.CLONE_TOP_LEFT_CORNER`, `WalkontableOverlay.CLONE_DEBUG`
    * @returns {Walkontable}
    */
   makeClone(direction) {

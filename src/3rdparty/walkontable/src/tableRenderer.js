@@ -53,9 +53,10 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
-    if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay) {
+    if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay ||
+      this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
 
-      // do NOT render headers on the bottom overlay
+      // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = false;
       this.columnHeaderCount = 0;
     }

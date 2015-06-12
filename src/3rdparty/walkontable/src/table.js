@@ -2,7 +2,7 @@ import * as dom from './../../../dom.js';
 import {WalkontableCellCoords} from './cell/coords.js';
 import {WalkontableCellRange} from './cell/range.js';
 import {WalkontableColumnFilter} from './filter/column.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
+import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
 import {WalkontableDebugOverlay} from './overlay/debug.js';
 import {WalkontableLeftOverlay} from './overlay/left.js';
 import {WalkontableRowFilter} from './filter/row.js';
@@ -145,9 +145,10 @@ WalkontableTable.prototype.draw = function(fastDraw) {
     var startRow;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
       this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
-      this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+      this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
       startRow = 0;
-    } else if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay) {
+    } else if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay ||
+      this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
       startRow = totalRows - this.instance.getSetting('fixedRowsBottom') - 1;
     } else {
       startRow = this.instance.wtViewport.rowsRenderCalculator.startRow;
@@ -157,7 +158,7 @@ WalkontableTable.prototype.draw = function(fastDraw) {
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
       this.instance.cloneOverlay instanceof WalkontableLeftOverlay ||
-      this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+      this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
@@ -194,6 +195,10 @@ WalkontableTable.prototype.draw = function(fastDraw) {
 
     if (this.instance.wtOverlays.topLeftCornerOverlay) {
       this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+    }
+
+    if (this.instance.wtOverlays.bottomLeftCornerOverlay) {
+      this.instance.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
     }
   }
   this.instance.drawn = true;
@@ -389,7 +394,9 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function() {
 WalkontableTable.prototype.getRenderedColumnsCount = function() {
   if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     return this.instance.getSetting('totalColumns');
-  } else if (this.instance.cloneOverlay instanceof WalkontableLeftOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+  } else if (this.instance.cloneOverlay instanceof WalkontableLeftOverlay ||
+    this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay ||
+    this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
     return this.instance.getSetting('fixedColumnsLeft');
   } else {
     return this.instance.wtViewport.columnsRenderCalculator.count;
@@ -401,9 +408,10 @@ WalkontableTable.prototype.getRenderedRowsCount = function() {
     return this.instance.getSetting('totalRows');
 
   } else if (this.instance.cloneOverlay instanceof WalkontableTopOverlay ||
-    this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
+    this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
     return this.instance.getSetting('fixedRowsTop');
-  } else if (this.instance.cloneOverlay instanceof  WalkontableBottomOverlay) {
+  } else if (this.instance.cloneOverlay instanceof  WalkontableBottomOverlay ||
+    this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
     return this.instance.getSetting('fixedRowsBottom');
   }
 

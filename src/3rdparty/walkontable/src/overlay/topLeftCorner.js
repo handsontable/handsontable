@@ -3,15 +3,15 @@ import {WalkontableOverlay} from './_base.js';
 
 
 /**
- * @class WalkontableCornerOverlay
+ * @class WalkontableTopLeftCornerOverlay
  */
-class WalkontableCornerOverlay extends WalkontableOverlay {
+class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_CORNER);
+    this.clone = this.makeClone(WalkontableOverlay.CLONE_TOP_LEFT_CORNER);
   }
 
   /**
@@ -63,6 +63,6 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableCornerOverlay};
+export {WalkontableTopLeftCornerOverlay};
 
-window.WalkontableCornerOverlay = WalkontableCornerOverlay;
+window.WalkontableTopLeftCornerOverlay = WalkontableTopLeftCornerOverlay;

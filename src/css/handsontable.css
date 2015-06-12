@@ -585,7 +585,7 @@ Comment For Cell
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
+.htContextMenu .ht_clone_top_left_corner,
 .htContextMenu .ht_clone_debug {
   display: none;
 }
@@ -598,7 +598,8 @@ Comment For Cell
   z-index: 102;
 }
 
-.ht_clone_corner {
+.ht_clone_top_left_corner,
+.ht_clone_bottom_left_corner {
   z-index: 103;
 }
 
@@ -736,7 +737,7 @@ Cell borders
 }
 
 
-.ht_clone_corner thead tr th:nth-last-child(2) {
+.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
 }
 
