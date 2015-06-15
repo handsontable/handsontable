@@ -20,7 +20,7 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
   repositionOverlay() {
     let scrollbarWidth = dom.getScrollbarWidth();
     let cloneRoot = this.clone.wtTable.holder.parentNode;
-    cloneRoot.style.top = 'auto';
+    cloneRoot.style.top = '';
     cloneRoot.style.bottom = scrollbarWidth + 'px';
   }
 
@@ -42,36 +42,35 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
       return;
     }
 
-    //let overlayRoot = this.clone.wtTable.holder.parentNode;
-    //let headerPosition = 0;
+    let overlayRoot = this.clone.wtTable.holder.parentNode;
+    let headerPosition = 0;
+    overlayRoot.style.top = '';
 
-    //TODO: PROBABLY NEEDED FOR FULLSCREEN
+    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
+      let box = this.wot.wtTable.hider.getBoundingClientRect();
+      let bottom = Math.ceil(box.bottom);
+      let finalLeft;
+      let finalBottom;
+      let bodyHeight = document.body.offsetHeight;
 
-    //if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
-    //  let box = this.wot.wtTable.hider.getBoundingClientRect();
-    //  let top = Math.ceil(box.top);
-    //  let bottom = Math.ceil(box.bottom);
-    //  let finalLeft;
-    //  let finalTop;
-    //
-    //  finalLeft = this.wot.wtTable.hider.style.left;
-    //  finalLeft = finalLeft === '' ? 0 : finalLeft;
-    //
-    //  if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-    //    finalTop = -top;
-    //  } else {
-    //    finalTop = 0;
-    //  }
-    //  headerPosition = finalTop;
-    //  finalTop = finalTop + 'px';
-    //
-    //  dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
-    //
-    //} else {
-      //headerPosition = this.getScrollPosition();
+      finalLeft = this.wot.wtTable.hider.style.left;
+      finalLeft = finalLeft === '' ? 0 : finalLeft;
+
+      if (bottom > bodyHeight) {
+        finalBottom = (bottom - bodyHeight);
+      } else {
+        finalBottom = 0;
+      }
+      headerPosition = finalBottom;
+      finalBottom = finalBottom + 'px';
+
+      dom.setOverlayPosition(overlayRoot, finalLeft, null, finalBottom);
+
+    } else {
+      headerPosition = this.getScrollPosition();
       this.repositionOverlay();
-    //}
-    //this.adjustHeaderBordersPosition(headerPosition);
+    }
+    this.adjustHeaderBordersPosition(headerPosition);
 
 
   }

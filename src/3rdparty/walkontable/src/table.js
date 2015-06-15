@@ -158,7 +158,8 @@ WalkontableTable.prototype.draw = function(fastDraw) {
     var startColumn;
     if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay ||
       this.instance.cloneOverlay instanceof WalkontableLeftOverlay ||
-      this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
+      this.instance.cloneOverlay instanceof WalkontableTopLeftCornerOverlay ||
+      this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
       startColumn = 0;
     } else {
       startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;

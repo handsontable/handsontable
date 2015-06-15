@@ -860,15 +860,20 @@ export function isSafari() {
 /**
  * Sets overlay position depending on it's type and used browser
  */
-export function setOverlayPosition(overlayElem, left, top) {
-  if (_isIE8 || _isIE9) {
-    overlayElem.style.top = top;
-    overlayElem.style.left = left;
-  } else if (_isSafari) {
-    /* jshint sub:true */
-    overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+export function setOverlayPosition(overlayElem, left, top, bottom) {
+  if(bottom === void 0) {
+    if (_isIE8 || _isIE9) {
+      overlayElem.style.top = top;
+      overlayElem.style.left = left;
+    } else if (_isSafari) {
+      /* jshint sub:true */
+      overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    } else {
+      overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
+    }
   } else {
-    overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
+      overlayElem.style.bottom = bottom;
+      overlayElem.style.left = left;
   }
 }
 

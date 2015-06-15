@@ -45,28 +45,32 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
     let tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
+    overlayRoot.style.top = '';
 
     if (this.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let top = Math.ceil(box.top);
-      let left = Math.ceil(box.left);
       let bottom = Math.ceil(box.bottom);
-      let right = Math.ceil(box.right);
+      let left = Math.ceil(box.left);
       let finalLeft;
-      let finalTop;
+      let finalBottom;
+      let bodyHeight = document.body.offsetHeight;
 
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left + 'px';
+      if (left < 0) {
+        finalLeft = -left;
       } else {
-        finalLeft = '0';
+        finalLeft = 0;
       }
 
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-        finalTop = -top + 'px';
+      if (bottom > bodyHeight) {
+        finalBottom = (bottom - bodyHeight);
       } else {
-        finalTop = '0';
+        finalBottom = 0;
       }
-      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      finalBottom = finalBottom + 'px';
+      finalLeft = finalLeft + 'px';
+
+      dom.setOverlayPosition(overlayRoot, finalLeft, null, finalBottom);
+
     } else {
       this.repositionOverlay();
     }
