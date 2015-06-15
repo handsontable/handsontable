@@ -87,7 +87,7 @@ module.exports = function (grunt) {
         '!src/3rdparty/walkontable/test/**/*',
         'lib/**/*(*.js|*.css)'
       ],
-      tasks: ['build-dev']
+      tasks: ['build']
     },
 
     jasmine: {

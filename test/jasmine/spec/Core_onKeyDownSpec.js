@@ -32,19 +32,81 @@ describe('Core_onKeyDown', function () {
     expect(getSelected()).toEqual([1, 2, 1, 2]);
   });
 
-  it('while editing, should finish editing and advance to lower cell when down arrow is pressed', function () {
+  it('while editing, should finish editing and advance to lower cell when enter is pressed', function () {
     //https://github.com/handsontable/handsontable/issues/215
     handsontable();
     selectCell(1, 1);
 
     keyDownUp('enter');
     keyProxy().val('Ted');
-    keyDownUp('arrow_down');
+    keyDownUp('enter');
     expect(getData()[1][1]).toEqual('Ted');
     expect(getSelected()).toEqual([2, 1, 2, 1]);
   });
 
-  it('while editing, should finish editing and advance to lower cell when down arrow is pressed (with sync validator)', function () {
+  it('while editing, should finish editing and advance to higher cell when shift+enter is pressed', function () {
+    //https://github.com/handsontable/handsontable/issues/215
+    handsontable();
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('shift+enter');
+    expect(getData()[1][1]).toEqual('Ted');
+    expect(getSelected()).toEqual([0, 1, 0, 1]);
+  });
+
+  it('while editing, shouldn\'t finish editing and advance to lower cell when down arrow is pressed', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('arrow_down');
+    expect(getData()[1][1]).toEqual(null);
+    expect(getSelected()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('while editing, shouldn\'t finish editing and advance to higher cell when up arrow is pressed', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('arrow_up');
+    expect(getData()[1][1]).toEqual(null);
+    expect(getSelected()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('while editing, shouldn\'t finish editing and advance to right cell when right arrow is pressed', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('arrow_right');
+    keyDownUp('arrow_right');
+    keyDownUp('arrow_right');
+    keyDownUp('arrow_right');
+    expect(getData()[1][1]).toEqual(null);
+    expect(getSelected()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('while editing, shouldn\'t finish editing and advance to left cell when left arrow is pressed', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('arrow_left');
+    keyDownUp('arrow_left');
+    keyDownUp('arrow_left');
+    keyDownUp('arrow_left');
+    expect(getData()[1][1]).toEqual(null);
+    expect(getSelected()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('while editing, should finish editing and advance to lower cell when enter is pressed (with sync validator)', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -60,7 +122,7 @@ describe('Core_onKeyDown', function () {
     keyProxy().val('Ted');
 
     onAfterValidate.reset();
-    keyDownUp('arrow_down');
+    keyDownUp('enter');
 
     waitsFor(function () {
       return onAfterValidate.calls.length > 0;
@@ -73,7 +135,7 @@ describe('Core_onKeyDown', function () {
     });
   });
 
-  it('while editing, should finish editing and advance to lower cell when down arrow is pressed (with async validator)', function () {
+  it('while editing, should finish editing and advance to lower cell when enter is pressed (with async validator)', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -90,7 +152,7 @@ describe('Core_onKeyDown', function () {
     keyProxy().val('Ted');
 
     onAfterValidate.reset();
-    keyDownUp('arrow_down');
+    keyDownUp('enter');
 
     waitsFor(function () {
       return onAfterValidate.calls.length > 0;
@@ -101,43 +163,5 @@ describe('Core_onKeyDown', function () {
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([2, 1, 2, 1]);
     });
-  });
-
-  it('while editing, should finish editing and advance to upper cell when up arrow is pressed', function () {
-    //https://github.com/handsontable/handsontable/issues/215
-    handsontable();
-    selectCell(1, 1);
-
-    keyDownUp('enter');
-    keyProxy().val('Ted');
-    keyDownUp('arrow_up');
-    expect(getData()[1][1]).toEqual('Ted');
-    expect(getSelected()).toEqual([0, 1, 0, 1]);
-  });
-
-  it('while editing, should finish editing and advance to next cell when right arrow is pressed', function () {
-    //https://github.com/handsontable/handsontable/issues/215
-    handsontable();
-    selectCell(1, 1);
-
-    keyDownUp('enter');
-    keyProxy().val('Ted');
-    keyDownUp('arrow_right');
-    expect(getData()[1][1]).toEqual('Ted');
-    expect(getSelected()).toEqual([1, 2, 1, 2]);
-  });
-
-  it('while editing, should finish editing and advance to previous cell when left arrow is pressed and the text cursor is at position 0', function () {
-    //this test almost always *succeeds* in Chrome so be sure to also test in FF, IE
-    //https://github.com/handsontable/handsontable/issues/215
-    handsontable();
-    selectCell(2, 2);
-
-    keyDownUp('enter');
-    keyProxy().val('Ted');
-    setCaretPosition(0); //set's text cursor to the beginning of the textarea
-    keyDownUp('arrow_left');
-    expect(getData()[2][2]).toEqual('Ted');
-    expect(getSelected()).toEqual([2, 1, 2, 1]);
   });
 });
