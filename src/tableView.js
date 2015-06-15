@@ -201,6 +201,9 @@ function TableView(instance) {
     fixedRowsBottom: function () {
       return that.settings.fixedRowsBottom;
     },
+    minSpareRows: function () {
+      return that.settings.minSpareRows;
+    },
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function() {
       var arr = [];

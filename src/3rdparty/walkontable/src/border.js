@@ -221,6 +221,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     fromColumn,
     toRow,
     toColumn,
+    trimmingContainer,
+    cornerOverlappingContainer,
     i,
     ilen,
     s;
@@ -385,15 +387,25 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.cornerStyle.width = this.cornerDefaultStyle.width;
     this.cornerStyle.display = 'block';
 
+    trimmingContainer = dom.getTrimmingContainer(instance.wtTable.TABLE);
     if (toColumn === this.instance.getSetting('totalColumns') - 1) {
-      var trimmingContainer = dom.getTrimmingContainer(instance.wtTable.TABLE),
-        cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
+      cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
 
       if (cornerOverlappingContainer) {
         this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
         this.cornerStyle.borderRightWidth = 0;
       }
     }
+
+    if (toRow === this.instance.getSetting('totalRows') - 1) {
+      cornerOverlappingContainer = toTD.offsetTop + dom.outerHeight(toTD) >= dom.innerHeight(trimmingContainer);
+
+      if (cornerOverlappingContainer) {
+        this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + "px";
+        this.cornerStyle.borderBottomWidth = 0;
+      }
+    }
+
   }
 
   if (Handsontable.mobileBrowser) {

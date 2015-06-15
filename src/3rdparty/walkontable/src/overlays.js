@@ -103,7 +103,7 @@ class WalkontableOverlays {
       this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
 
-    if (this.topOverlay.needFullRender) {
+    if (this.bottomOverlay.needFullRender) {
       this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event));
       this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event));
     }
@@ -426,6 +426,7 @@ class WalkontableOverlays {
 
     this.topOverlay.adjustElementsSize();
     this.leftOverlay.adjustElementsSize();
+    this.bottomOverlay.adjustElementsSize();
   }
 
   /**
