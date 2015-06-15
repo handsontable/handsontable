@@ -663,7 +663,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
-        if (force && priv.settings.minSpareRows > 0 && (priv.selRange.highlight.row < totalRows - fixedRowsBottom - 1)) {
+        if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
           instance.alter("insert_row", totalRows);
           totalRows = instance.countRows();
 
