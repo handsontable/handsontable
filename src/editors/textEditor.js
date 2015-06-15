@@ -239,6 +239,7 @@ TextEditor.prototype.refreshDimensions = function() {
   var currentOffset = dom.offset(this.TD),
     containerOffset = dom.offset(this.instance.rootElement),
     scrollableContainer = dom.getScrollableElement(this.TD),
+    totalRowsCount = this.instance.countRows(),
     editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
@@ -275,7 +276,8 @@ TextEditor.prototype.refreshDimensions = function() {
     editLeft = 0;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0) {
+  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
+    (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
     editTop += 1;
   }
 
