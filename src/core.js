@@ -3414,8 +3414,6 @@ DefaultSettings.prototype = {
   readOnlyCellClassName: 'htDimmed',
 
   /**
-   * String or rendering function.
-   *
    * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `numeric`. Function will
    * receive the following arguments: `function(instance, TD, row, col, prop, value, cellProperties) {}`.
    * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myRenderer = myRenderer;`
@@ -3487,11 +3485,23 @@ DefaultSettings.prototype = {
   copyable: true,
 
   /**
-   * String or rendering function.
-   * String may be one of the following predefined values: `autocomplete`, `checkbox`, `text`, `date`, `handsontable`, `mobile`.
+   * String, rendering function or boolean.
+   *
+   * String may be one of the following predefined values:
+   *  * [autocomplete](http://handsontable.com/demo/autocomplete.html)
+   *  * [checkbox](http://handsontable.com/demo/checkbox.html)
+   *  * [date](http://handsontable.com/demo/date.html)
+   *  * [dropdown](http://handsontable.com/demo/dropdown.html)
+   *  * [handsontable](http://handsontable.com/demo/handsontable.html)
+   *  * [mobile](http://docs.handsontable.com/demo-mobiles-and-tablets.html)
+   *  * [password](http://handsontable.com/demo/password.html)
+   *  * [select](http://handsontable.com/demo/selectEditor.html)
+   *  * text
+   *
+   * Or you can disable cell editing passing `false`.
    *
    * @type {String|Function|Boolean}
-   * @default undefined
+   * @default 'text'
    */
   editor: void 0,
 
