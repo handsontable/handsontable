@@ -200,95 +200,90 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols: function() {
-      var r, rlen, emptyRows, emptyCols;
+      if (priv.settings.minRows) {
+        // should I add empty rows to data source to meet minRows?
+        let rows = instance.countRows();
 
-      //should I add empty rows to data source to meet minRows?
-      rlen = instance.countRows();
-      if (rlen < priv.settings.minRows) {
-        for (r = 0; r < priv.settings.minRows - rlen; r++) {
-          datamap.createRow(instance.countRows(), 1, true);
+        if (rows < priv.settings.minRows) {
+          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
+            datamap.createRow(instance.countRows(), 1, true);
+          }
         }
       }
+      if (priv.settings.minSpareRows) {
+        let emptyRows = instance.countEmptyRows(true);
 
-      emptyRows = instance.countEmptyRows(true);
-
-      //should I add empty rows to meet minSpareRows?
-      if (emptyRows < priv.settings.minSpareRows) {
-        for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
-          datamap.createRow(instance.countRows(), 1, true);
+        // should I add empty rows to meet minSpareRows?
+        if (emptyRows < priv.settings.minSpareRows) {
+          for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
+            datamap.createRow(instance.countRows(), 1, true);
+          }
         }
       }
+      {
+        let emptyCols;
 
-      //count currently empty cols
-      emptyCols = instance.countEmptyCols(true);
+        // count currently empty cols
+        if (priv.settings.minCols || priv.settings.minSpareCols) {
+          emptyCols = instance.countEmptyCols(true);
+        }
 
-      //should I add empty cols to meet minCols?
-      if (!priv.settings.columns && instance.countCols() < priv.settings.minCols) {
-        for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-          datamap.createCol(instance.countCols(), 1, true);
+        // should I add empty cols to meet minCols?
+        if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
+            datamap.createCol(instance.countCols(), 1, true);
+          }
+        }
+        // should I add empty cols to meet minSpareCols?
+        if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
+            emptyCols < priv.settings.minSpareCols) {
+          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
+            datamap.createCol(instance.countCols(), 1, true);
+          }
         }
       }
-
-      //should I add empty cols to meet minSpareCols?
-      if (!priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
-        for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-          datamap.createCol(instance.countCols(), 1, true);
-        }
-      }
-
-      // if (priv.settings.enterBeginsEditing) {
-      //   for (; (((priv.settings.minRows || priv.settings.minSpareRows) &&
-      // instance.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
-      //     datamap.removeRow();
-      //   }
-      // }
-
-      // if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
-      //   for (; (((priv.settings.minCols || priv.settings.minSpareCols) &&
-      // instance.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
-      //     datamap.removeCol();
-      //   }
-      // }
-
-      var rowCount = instance.countRows();
-      var colCount = instance.countCols();
+      let rowCount = instance.countRows();
+      let colCount = instance.countCols();
 
       if (rowCount === 0 || colCount === 0) {
         selection.deselect();
       }
 
       if (selection.isSelected()) {
-        var selectionChanged;
-        var fromRow = priv.selRange.from.row;
-        var fromCol = priv.selRange.from.col;
-        var toRow = priv.selRange.to.row;
-        var toCol = priv.selRange.to.col;
+        let selectionChanged = false;
+        let fromRow = priv.selRange.from.row;
+        let fromCol = priv.selRange.from.col;
+        let toRow = priv.selRange.to.row;
+        let toCol = priv.selRange.to.col;
 
-        //if selection is outside, move selection to last row
+        // if selection is outside, move selection to last row
         if (fromRow > rowCount - 1) {
           fromRow = rowCount - 1;
           selectionChanged = true;
+
           if (toRow > fromRow) {
             toRow = fromRow;
           }
         } else if (toRow > rowCount - 1) {
           toRow = rowCount - 1;
           selectionChanged = true;
+
           if (fromRow > toRow) {
             fromRow = toRow;
           }
         }
-
-        //if selection is outside, move selection to last row
+        // if selection is outside, move selection to last row
         if (fromCol > colCount - 1) {
           fromCol = colCount - 1;
           selectionChanged = true;
+
           if (toCol > fromCol) {
             toCol = fromCol;
           }
         } else if (toCol > colCount - 1) {
           toCol = colCount - 1;
           selectionChanged = true;
+
           if (fromCol > toCol) {
             fromCol = toCol;
           }
