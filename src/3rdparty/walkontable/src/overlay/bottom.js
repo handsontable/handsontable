@@ -10,6 +10,7 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
+    this.wot = wotInstance;
     super(wotInstance);
     this.clone = this.makeClone(WalkontableOverlay.CLONE_BOTTOM);
   }
@@ -145,6 +146,40 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
     overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight) + 'px';
   }
 
+  markOversizedFixedBottomRows() {
+    let rowCount;
+    let sourceRowIndex;
+    let previousRowHeight;
+    let currentTr;
+    let rowHeader;
+    let rowInnerHeight = 0;
+    let totalRows = this.wot.getSetting('totalRows');
+
+    if(this.wot.getSetting('fixedRowsBottom')) {
+      // mark oversized rows within the fixed bottom rows
+      rowCount = this.wot.wtOverlays.bottomOverlay.clone.wtTable.TBODY.childNodes.length;
+
+      while (rowCount) {
+        rowCount--;
+        sourceRowIndex = totalRows - rowCount - 1;
+        previousRowHeight = this.wot.wtTable.getRowHeight(sourceRowIndex);
+        currentTr = this.getTrForRow(sourceRowIndex);
+        rowHeader = currentTr.querySelector('th');
+
+        if (rowHeader) {
+          rowInnerHeight = dom.innerHeight(rowHeader);
+        } else {
+          rowInnerHeight = dom.innerHeight(currentTr) - 1;
+        }
+
+        if ((!previousRowHeight && this.wot.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
+          previousRowHeight < rowInnerHeight)) {
+          this.wot.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+        }
+      }
+    }
+  }
+
   /**
    * Adjust overlay root childs size
    */
@@ -184,6 +219,17 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
     if (this.needFullRender) {
       this.syncOverlayOffset();
     }
+  }
+
+  /**
+   * Return a TR element for a provided source row index
+   * @param souceRowIndex
+   * @returns {HTMLElement}
+   */
+  getTrForRow(souceRowIndex) {
+    let totalRows = this.wot.getSetting('totalRows');
+    return this.clone.wtTable.TBODY.childNodes[this.clone.wtTable.TBODY.childNodes.length - (totalRows - souceRowIndex)];
+    //return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
   /**

@@ -93,6 +93,7 @@ class WalkontableTableRenderer {
     if (!this.wtTable.isWorkingOnClone()) {
       this.markOversizedRows();
 
+
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
       this.wot.wtOverlays.applyToDOM();
@@ -113,6 +114,17 @@ class WalkontableTableRenderer {
       }
 
       this.wot.getSetting('onDraw', true);
+
+    } else if (this.wot.cloneOverlay instanceof WalkontableBottomOverlay) {
+      let masterOverlay = this.wot.cloneOverlay.instance;
+
+      this.wot.cloneOverlay.markOversizedFixedBottomRows();
+
+      masterOverlay.wtOverlays.adjustElementsSize();
+
+      //this.wot.cloneOverlay.adjustElementsSize();
+      //masterOverlay.wtOverlays.leftOverlay.adjustElementsSize();
+      //masterOverlay.wtOverlays.bottomLeftCornerOverlay.refresh();
     }
   }
 
@@ -154,7 +166,7 @@ class WalkontableTableRenderer {
 
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
 
-      if (!isWorkingOnClone) {
+      if (!isWorkingOnClone || this.wot.cloneOverlay instanceof WalkontableBottomOverlay) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }
@@ -198,8 +210,9 @@ class WalkontableTableRenderer {
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
+    let totalRows = this.instance.getSetting('totalRows');
 
-    if (expectedTableHeight === actualTableHeight) {
+    if (expectedTableHeight === actualTableHeight && !this.instance.getSetting('fixedRowsBottom')) {
       // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
       return;
     }

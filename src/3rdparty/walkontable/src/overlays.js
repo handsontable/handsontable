@@ -394,9 +394,10 @@ class WalkontableOverlays {
         this.adjustElementsSize();
       }
     }
+
+    this.bottomOverlay.refresh(fastDraw);
     this.leftOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
-    this.bottomOverlay.refresh(fastDraw);
 
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.refresh(fastDraw);

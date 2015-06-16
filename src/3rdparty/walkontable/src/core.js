@@ -101,14 +101,17 @@ class Walkontable {
     if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row > totalRows - fixedRowsBottom - 1 && coords.col < fixedColumns) {
-      return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
-
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
+    } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
+      return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
+
+    } else if (coords.row >= totalRows - fixedRowsBottom) {
+      return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
     }
 
     return this.wtTable.getCell(coords);
