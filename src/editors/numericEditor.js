@@ -3,11 +3,8 @@ import numeral from 'numeral';
 import {getEditor, registerEditor} from './../editors.js';
 import {TextEditor} from './textEditor.js';
 
-var NumericEditor = TextEditor.prototype.extend();
-
-export {NumericEditor};
-
 Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.NumericEditor = NumericEditor;
 
 /**
  * @private
@@ -15,27 +12,22 @@ Handsontable.editors = Handsontable.editors || {};
  * @class NumericEditor
  * @dependencies TextEditor numeral
  */
-Handsontable.editors.NumericEditor = NumericEditor;
-
-NumericEditor.prototype.beginEditing = function (initialValue) {
-
-  var BaseEditor = TextEditor.prototype;
-
-  if (typeof(initialValue) === 'undefined' && this.originalValue) {
-
-    var value = '' + this.originalValue;
-
-    if (typeof this.cellProperties.language !== 'undefined') {
-      numeral.language(this.cellProperties.language);
+class NumericEditor extends TextEditor {
+  /**
+   * @param {*} initialValue
+   */
+  beginEditing(initialValue) {
+    if (typeof(initialValue) === 'undefined' && this.originalValue) {
+      if (typeof this.cellProperties.language !== 'undefined') {
+        numeral.language(this.cellProperties.language);
+      }
+      let decimalDelimiter = numeral.languageData().delimiters.decimal;
+      initialValue = ('' + this.originalValue).replace('.', decimalDelimiter);
     }
-
-    var decimalDelimiter = numeral.languageData().delimiters.decimal;
-    value = value.replace('.', decimalDelimiter);
-
-    BaseEditor.beginEditing.apply(this, [value]);
-  } else {
-    BaseEditor.beginEditing.apply(this, arguments);
+    super.beginEditing(initialValue);
   }
+}
 
-};
+export {NumericEditor};
+
 registerEditor('numeric', NumericEditor);
