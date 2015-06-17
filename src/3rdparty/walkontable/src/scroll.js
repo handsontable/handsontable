@@ -23,6 +23,9 @@ class WalkontableScroll {
     }
     let totalRows = this.wot.getSetting('totalRows');
     let totalColumns = this.wot.getSetting('totalColumns');
+    let fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+    let fixedRowsBottom = this.instance.getSetting('fixedRowsBottom');
+    let fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
     if (coords.row < 0 || coords.row > totalRows - 1) {
       throw new Error('row ' + coords.row + ' does not exist');
@@ -32,14 +35,10 @@ class WalkontableScroll {
       throw new Error('column ' + coords.col + ' does not exist');
     }
 
-    if (coords.row > this.instance.wtTable.getLastVisibleRow()) {
-      if(!this.instance.getSetting('fixedRowsBottom') ||
-        (this.instance.getSetting('fixedRowsBottom') &&
-        coords.row < totalRows - this.instance.getSetting('fixedRowsBottom') - 1)) {
-        this.wot.wtOverlays.topOverlay.scrollTo(coords.row, true);
-      }
+    if (coords.row > this.instance.wtTable.getLastVisibleRow() && coords.row < totalRows - fixedRowsBottom) {
+      this.wot.wtOverlays.topOverlay.scrollTo(coords.row, true);
 
-    } else if (coords.row >= this.instance.getSetting('fixedRowsTop') &&
+    } else if (coords.row >= fixedRowsTop &&
       coords.row < this.instance.wtTable.getFirstVisibleRow()) {
       this.wot.wtOverlays.topOverlay.scrollTo(coords.row);
     }
@@ -47,7 +46,7 @@ class WalkontableScroll {
     if (coords.col > this.instance.wtTable.getLastVisibleColumn()) {
       this.wot.wtOverlays.leftOverlay.scrollTo(coords.col, true);
 
-    } else if (coords.col >= this.instance.getSetting('fixedColumnsLeft') &&
+    } else if (coords.col >= fixedColumnsLeft &&
       coords.col < this.instance.wtTable.getFirstVisibleColumn()) {
       this.wot.wtOverlays.leftOverlay.scrollTo(coords.col);
     }

@@ -272,6 +272,7 @@ class WalkontableViewport {
     let fixedRowsTop;
     let fixedRowsBottom;
     let fixedRowsHeight;
+    let totalRows;
 
     this.rowHeaderWidth = NaN;
 
@@ -287,6 +288,7 @@ class WalkontableViewport {
     }
     fixedRowsTop = this.wot.getSetting('fixedRowsTop');
     fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+    totalRows = this.wot.getSetting('totalRows');
 
     if (fixedRowsTop) {
       fixedRowsHeight = this.wot.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -295,9 +297,13 @@ class WalkontableViewport {
     }
 
     if (fixedRowsBottom) {
-      fixedRowsHeight = this.wot.wtOverlays.bottomOverlay.sumCellSizes(0, fixedRowsBottom);
+      fixedRowsHeight = this.wot.wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       height -= fixedRowsHeight;
+    }
+
+    if (this.wot.wtTable.holder.clientHeight !== this.wot.wtTable.holder.offsetHeight) {
+      height -= dom.getScrollbarWidth();
     }
 
     return new WalkontableViewportRowsCalculator(

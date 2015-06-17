@@ -116,7 +116,7 @@ describe('FixedRowsBottom', function() {
           height: 400
         });
 
-        hot.view.scrollViewport(new WalkontableCellCoords(30,30));
+        hot.view.scrollViewport(new WalkontableCellCoords(30, 30));
 
         waits(100);
 
@@ -148,7 +148,7 @@ describe('FixedRowsBottom', function() {
           height: 400
         });
 
-        hot.view.scrollViewport(new WalkontableCellCoords(49,49));
+        hot.view.scrollViewport(new WalkontableCellCoords(49, 49));
 
         waits(100);
 
@@ -176,7 +176,7 @@ describe('FixedRowsBottom', function() {
             height: 400
           });
 
-          var editedCell = getCell(49,5, true);
+          var editedCell = getCell(49, 5, true);
           var editedCellOffset = $(editedCell).offset();
           selectCell(49, 5);
           keyDownUp(Handsontable.helper.keyCode.ENTER);
@@ -196,24 +196,62 @@ describe('FixedRowsBottom', function() {
           });
 
           selectCell(49, 5);
-          expect(getDataAtCell(49,5)).toEqual('F50');
+          expect(getDataAtCell(49, 5)).toEqual('F50');
 
           keyDownUp(Handsontable.helper.keyCode.ENTER);
 
           var editorHolder = $('.handsontableInputHolder');
           editorHolder.find('textarea').eq(0).val(':x');
           keyDownUp(Handsontable.helper.keyCode.ENTER);
-          expect(getDataAtCell(49,5)).toEqual(':x');
+          expect(getDataAtCell(49, 5)).toEqual(':x');
         });
       });
 
-      xdescribe('Navigation', function() {
-        var hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
-          fixedRowsBottom: 3,
-          fixedColumnsLeft: 2,
-          width: 400,
-          height: 400
+      describe('Navigation', function() {
+
+        it('should scroll the table, when trying to navigate the selection over the fixed bottom rows', function() {
+          var hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            fixedRowsBottom: 3,
+            fixedColumnsLeft: 2,
+            width: 400,
+            height: 400
+          });
+
+          selectCell(12, 4);
+
+          var holder = hot.view.wt.wtTable.holder;
+
+          expect(holder.scrollTop).toEqual(0);
+
+          keyDownUp('arrow_down');
+
+          var newScrollValue = holder.scrollTop;
+
+          expect(newScrollValue).toBeGreaterThan(0);
+
+          keyDownUp('arrow_down');
+
+          expect(holder.scrollTop).toBeGreaterThan(newScrollValue);
+        });
+
+        it('should scroll to the last non-fixed bottom row, when navigating from the upmost bottom-fixed row up', function() {
+          var hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            fixedRowsBottom: 3,
+            fixedColumnsLeft: 2,
+            width: 400,
+            height: 400
+          });
+
+          selectCell(47,4);
+          var holder = hot.view.wt.wtTable.holder;
+
+          expect(holder.scrollTop).toEqual(0);
+
+          keyDownUp('arrow_up');
+
+          expect(holder.scrollTop).toBeGreaterThan(750);
         });
 
       });
