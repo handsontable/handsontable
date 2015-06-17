@@ -33,7 +33,7 @@
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-gitinfo": "~0.1.6",
-    "hot-builder": "^0.2.1",
+    "hot-builder": "^0.2.2",
     "grunt-saucelabs": "~8.3.3",
     "load-grunt-tasks": "^3.0.0",
     "time-grunt": "~1.0.0"
