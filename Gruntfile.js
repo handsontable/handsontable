@@ -296,4 +296,5 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
   grunt.loadTasks('tasks');
+  grunt.loadNpmTasks('hot-builder');
 };
