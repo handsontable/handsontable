@@ -33,6 +33,7 @@ describe('Handsontable.helper', function () {
       expect(Handsontable.helper.isInput(document.createElement('select'))).toBe(true);
       expect(Handsontable.helper.isInput(document.createElement('textarea'))).toBe(true);
     });
+
     
     it("should return true for contenteditable elements", function () {
       var div = document.createElement('div');
