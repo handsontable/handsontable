@@ -102,8 +102,8 @@ function EditorManager(instance, priv, selection){
     switch (event.keyCode) {
 
       case keyCodes.A:
-        if (ctrlDown) {
-          selection.selectAll(); //select all cells
+        if (!_this.isEditorOpened() && ctrlDown) {
+          selection.selectAll();
 
           event.preventDefault();
           helper.stopPropagation(event);
