@@ -422,7 +422,7 @@ export function isInput(element) {
  * @returns {boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') == -1;
+  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
 }
 
 export var keyCode = {
