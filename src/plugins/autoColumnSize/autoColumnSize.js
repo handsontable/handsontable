@@ -170,6 +170,7 @@ function AutoColumnSize() {
         }
       }
     }
+    this.view.wt.wtOverlays.adjustElementsSize();
   };
 
   /**
