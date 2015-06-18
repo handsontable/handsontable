@@ -74,6 +74,8 @@ function TableView(instance) {
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
     var next = event.target;
+    var eventX = event.x || event.clientX;
+    var eventY = event.y || event.clientY;
 
     if (isMouseDown) {
       return; // it must have been started in a cell
@@ -98,8 +100,8 @@ function TableView(instance) {
     } else {
       var scrollbarWidth = Handsontable.Dom.getScrollbarWidth();
 
-      if (document.elementFromPoint(event.x + scrollbarWidth, event.y) !== instance.view.wt.wtTable.holder ||
-        document.elementFromPoint(event.x, event.y + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
+      if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
+        document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
         return;
       }
     }
