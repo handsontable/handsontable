@@ -170,7 +170,9 @@ function AutoColumnSize() {
         }
       }
     }
-    this.view.wt.wtOverlays.adjustElementsSize();
+    if (this.view.wt) {
+      this.view.wt.wtOverlays.adjustElementsSize();
+    }
   };
 
   /**
