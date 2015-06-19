@@ -3,8 +3,6 @@ import numeral from 'numeral';
 import {getEditor, registerEditor} from './../editors.js';
 import {TextEditor} from './textEditor.js';
 
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.NumericEditor = NumericEditor;
 
 /**
  * @private
