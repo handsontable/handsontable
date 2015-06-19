@@ -3721,6 +3721,10 @@ DefaultSettings.prototype = {
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
   format: void 0,
-  className: void 0
+  className: void 0,
+  selectedAreaBorderWidth: 1,
+  selectedAreaBorderColor: '#89AFF9',
+  selectedCellBorderWidth: 2,
+  selectedCellBorderColor: '#5292F7'
 };
 Handsontable.DefaultSettings = DefaultSettings;

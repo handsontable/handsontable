@@ -142,8 +142,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'current',
       border: {
-        width: 2,
-        color: '#5292F7',
+        width: that.settings.selectedCellBorderWidth,
+        color: that.settings.selectedCellBorderColor,
         //style: 'solid', //not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
@@ -156,8 +156,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'area',
       border: {
-        width: 1,
-        color: '#89AFF9',
+        width: that.settings.selectedAreaBorderWidth,
+        color: that.settings.selectedAreaBorderColor,
         //style: 'solid', // not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
