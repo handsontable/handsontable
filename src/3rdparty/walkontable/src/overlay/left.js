@@ -102,12 +102,17 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 
   /**
    * Adjust overlay root element, childs and master table element sizes (width, height).
+   *
+   * @param {Boolean} [force=false]
    */
-  adjustElementsSize() {
-    if (this.needFullRender) {
+  adjustElementsSize(force = false) {
+    if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildsSize();
-      this.isElementSizesAdjusted = true;
+
+      if (!force) {
+        this.isElementSizesAdjusted = true;
+      }
     }
   }
 

@@ -4,9 +4,9 @@ import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
 
 /**
- * @class MultipleSelectionHandles
  * @private
- * @plugin
+ * @class MultipleSelectionHandles
+ * @plugin MultipleSelectionHandles
  */
 
 class MultipleSelectionHandles extends BasePlugin {

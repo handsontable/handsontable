@@ -2,8 +2,7 @@
  * Checkbox renderer
  *
  * @private
- * @renderer
- * @component CheckboxRenderer
+ * @renderer CheckboxRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row
@@ -41,11 +40,11 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
   dom.empty(TD); // TODO identify under what circumstances this line can be removed
 
-  if (value === cellProperties.checkedTemplate || value === helper.stringify(cellProperties.checkedTemplate)) {
+  if (value === cellProperties.checkedTemplate || helper.equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
     input.checked = true;
     TD.appendChild(input);
   }
-  else if (value === cellProperties.uncheckedTemplate || value === helper.stringify(cellProperties.uncheckedTemplate)) {
+  else if (value === cellProperties.uncheckedTemplate || helper.equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     TD.appendChild(input);
   }
   else if (value === null) { // default value

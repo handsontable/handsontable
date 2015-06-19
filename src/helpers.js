@@ -81,8 +81,35 @@ export function stringify(value) {
   }
 }
 
+/**
+ * Convert string to upper case first letter.
+ *
+ * @param {String} string String to convert.
+ * @returns {String}
+ */
 export function toUpperCaseFirst(string) {
   return string[0].toUpperCase() + string.substr(1);
+}
+
+/**
+ * Compare strings case insensitively.
+ *
+ * @param {...String} strings Strings to compare.
+ * @returns {Boolean}
+ */
+export function equalsIgnoreCase(...strings) {
+  let unique = [];
+  let length = strings.length;
+
+  while (length --) {
+    let string = stringify(strings[length]).toLowerCase();
+
+    if (unique.indexOf(string) === -1) {
+      unique.push(string);
+    }
+  }
+
+  return unique.length === 1;
 }
 
 /**
@@ -395,7 +422,7 @@ export function isInput(element) {
  * @returns {boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') == -1;
+  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
 }
 
 export var keyCode = {
@@ -686,10 +713,11 @@ Handsontable.helper = {
   columnFactory,
   createSpreadsheetData,
   createSpreadsheetObjectData,
-  duckSchema,
   deepClone,
   deepExtend,
   defineGetter,
+  duckSchema,
+  equalsIgnoreCase,
   extend,
   extendArray,
   getPrototypeOf,

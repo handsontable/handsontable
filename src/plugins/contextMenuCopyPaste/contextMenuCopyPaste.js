@@ -6,10 +6,10 @@ import BasePlugin from './../_base.js';
 import ZeroClipboard from 'zeroclipboard';
 
 /**
-* @class ContextMenuCopyPaste
-* @plugin
-* @dependencies ContextMenu zeroclipboard
-*/
+ * @class ContextMenuCopyPaste
+ * @plugin ContextMenuCopyPaste
+ * @dependencies ContextMenu zeroclipboard
+ */
 class ContextMenuCopyPaste extends BasePlugin {
   /**
    * @param {Object} hotInstance

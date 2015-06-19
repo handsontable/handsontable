@@ -1119,7 +1119,7 @@ describe('ColumnSorting', function() {
     var sortedColumn = this.$container.find('th span.columnSorting')[1],
       afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
-    expect(afterValue).toEqual('');
+    expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     // ---------------------------------
     // INDICATOR SET FOR THE WHOLE TABLE
@@ -1147,7 +1147,7 @@ describe('ColumnSorting', function() {
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual('');
+    expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     // ---------------------------------
     // INDICATOR SET FOR A SINGLE COLUMN
@@ -1165,12 +1165,12 @@ describe('ColumnSorting', function() {
     this.sortByColumn(0);
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual('');
+    expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(1);
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue).toEqual('');
+    expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(2);
     sortedColumn = this.$container.find('th span.columnSorting')[2];

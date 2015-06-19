@@ -8,8 +8,7 @@ import {registerPlugin} from './../../plugins.js';
  *
  * @private
  * @class ColumnSorting
- * @plugin
- * @constructor
+ * @plugin ColumnSorting
  * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {

@@ -33,7 +33,6 @@ describe('Handsontable.helper', function () {
       expect(Handsontable.helper.isInput(document.createElement('select'))).toBe(true);
       expect(Handsontable.helper.isInput(document.createElement('textarea'))).toBe(true);
     });
-    
     it("should return true for contenteditable elements", function () {
       var div = document.createElement('div');
       div.contentEditable = true;
@@ -59,6 +58,21 @@ describe('Handsontable.helper', function () {
       expect(Handsontable.helper.duckSchema({test: {a: {b: 11}}})).toEqual({test: {a: {b: null}}});
       expect(Handsontable.helper.duckSchema({test: {a: {b: []}}})).toEqual({test: {a: {b: []}}});
       expect(Handsontable.helper.duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
+    });
+  });
+
+  //
+  // Handsontable.helper.equalsIgnoreCase
+  //
+  describe('equalsIgnoreCase', function() {
+    it("should correct equals strings", function () {
+      expect(Handsontable.helper.equalsIgnoreCase()).toEqual(false);
+      expect(Handsontable.helper.equalsIgnoreCase('', '')).toEqual(true);
+      expect(Handsontable.helper.equalsIgnoreCase('True', 'TRUE', 'TrUe', true)).toEqual(true);
+      expect(Handsontable.helper.equalsIgnoreCase('FALSE', 'false')).toEqual(true);
+
+      expect(Handsontable.helper.equalsIgnoreCase('True', 'TRUE', false)).toEqual(false);
+      expect(Handsontable.helper.equalsIgnoreCase('fals e', false)).toEqual(false);
     });
   });
 });

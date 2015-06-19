@@ -2,8 +2,7 @@
  * Default text renderer
  *
  * @private
- * @renderer
- * @component TextRenderer
+ * @renderer TextRenderer
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row

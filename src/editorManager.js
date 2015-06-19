@@ -102,70 +102,66 @@ function EditorManager(instance, priv, selection){
     switch (event.keyCode) {
 
       case keyCodes.A:
-        if (ctrlDown) {
-          selection.selectAll(); //select all cells
+        if (!_this.isEditorOpened() && ctrlDown) {
+          selection.selectAll();
 
           event.preventDefault();
           helper.stopPropagation(event);
-          //event.stopPropagation();
         }
         break;
 
       case keyCodes.ARROW_UP:
-        if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()) {
+        if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
         moveSelectionUp(event.shiftKey);
 
         event.preventDefault();
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.ARROW_DOWN:
-        if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()) {
+        if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
         moveSelectionDown(event.shiftKey);
 
         event.preventDefault();
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.ARROW_RIGHT:
-        if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()) {
+        if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
         moveSelectionRight(event.shiftKey);
 
         event.preventDefault();
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.ARROW_LEFT:
-        if (_this.isEditorOpened() && activeEditor && !activeEditor.isWaiting()) {
+        if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
         moveSelectionLeft(event.shiftKey);
 
         event.preventDefault();
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.TAB:
         var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
 
         if (event.shiftKey) {
-          selection.transformStart(-tabMoves.row, - tabMoves.col); //move selection left
+          // move selection left
+          selection.transformStart(-tabMoves.row, -tabMoves.col);
         } else {
-          selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
+          // move selection right (add a new column if needed)
+          selection.transformStart(tabMoves.row, tabMoves.col, true);
         }
         event.preventDefault();
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.BACKSPACE:
@@ -216,7 +212,6 @@ function EditorManager(instance, priv, selection){
         }
         event.preventDefault(); //don't scroll the window
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.END:
@@ -227,21 +222,18 @@ function EditorManager(instance, priv, selection){
         }
         event.preventDefault(); //don't scroll the window
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.PAGE_UP:
         selection.transformStart(-instance.countVisibleRows(), 0);
         event.preventDefault(); //don't page up the window
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
 
       case keyCodes.PAGE_DOWN:
         selection.transformStart(instance.countVisibleRows(), 0);
         event.preventDefault(); //don't page down the window
         helper.stopPropagation(event);
-        //event.stopPropagation(); //required by HandsontableEditor
         break;
     }
   }

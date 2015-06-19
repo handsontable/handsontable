@@ -51,7 +51,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(7);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', function () {
@@ -65,7 +65,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toEqual(9);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', function () {
@@ -79,7 +79,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(7);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', function () {
@@ -94,7 +94,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toEqual(9);
   });
 
   it('should call renderer twice for each cell (auto column width)', function () {
@@ -122,6 +122,6 @@ describe('Performance', function () {
 
     //expect(count).toEqual(76); //changed for the dynamic column loading feature
     // ugly fix for this test failing TODO: needs updating (probably has something to do with scrollHandler recognition)
-    expect(count).toEqual(67);
+    expect(count).toEqual(71);
   });
 });

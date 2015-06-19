@@ -4,7 +4,7 @@ import * as dom from './../../dom.js';
  * Comment editor for Comments plugin.
  *
  * @class CommentEditor
- * @plugin
+ * @plugin Comments
  */
 class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {

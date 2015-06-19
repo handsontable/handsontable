@@ -9,9 +9,9 @@ export {ContextMenu};
 //registerPlugin('contextMenu', ContextMenu);
 
 /**
- * @class ContextMenu
  * @private
- * @plugin
+ * @class ContextMenu
+ * @plugin ContextMenu
  */
 function ContextMenu(instance, customOptions) {
   this.instance = instance;

@@ -87,7 +87,7 @@ module.exports = function (grunt) {
         '!src/3rdparty/walkontable/test/**/*',
         'lib/**/*(*.js|*.css)'
       ],
-      tasks: ['build-dev']
+      tasks: ['build']
     },
 
     jasmine: {
@@ -296,4 +296,5 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
   grunt.loadTasks('tasks');
+  grunt.loadNpmTasks('hot-builder');
 };

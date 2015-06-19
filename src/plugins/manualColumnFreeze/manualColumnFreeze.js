@@ -4,9 +4,9 @@ import {registerPlugin} from './../../plugins.js';
 export {ManualColumnFreeze};
 
 /**
- * @class ManualColumnFreeze
  * @private
- * @plugin
+ * @class ManualColumnFreeze
+ * @plugin ManualColumnFreeze
  */
 function ManualColumnFreeze(instance) {
   var fixedColumnsCount = instance.getSettings().fixedColumnsLeft;

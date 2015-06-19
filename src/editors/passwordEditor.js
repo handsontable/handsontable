@@ -11,7 +11,7 @@ Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
- * @editor
+ * @editor PasswordEditor
  * @class PasswordEditor
  * @dependencies TextEditor
  */

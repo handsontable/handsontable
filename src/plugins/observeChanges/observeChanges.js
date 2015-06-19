@@ -7,9 +7,9 @@ export {ObserveChanges};
 //registerPlugin('observeChanges', ObserveChanges);
 
 /**
- * @class ObserveChanges
  * @private
- * @plugin
+ * @class ObserveChanges
+ * @plugin ObserveChanges
  * @dependencies jsonpatch
  */
 function ObserveChanges() {

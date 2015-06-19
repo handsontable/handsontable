@@ -4,8 +4,8 @@ import {registerPlugin} from './../../plugins.js';
 
 
 /**
+ * @plugin TouchScroll
  * @class TouchScroll
- * @plugin
  */
 class TouchScroll extends BasePlugin {
   /**
