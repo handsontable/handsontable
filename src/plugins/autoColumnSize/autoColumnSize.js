@@ -116,8 +116,7 @@ function AutoColumnSize() {
       }
     }
 
-    var settings = instance.getSettings();
-    if (settings.colHeaders) {
+    if (instance.getColHeader(col) !== null) {
       instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
     }
 
