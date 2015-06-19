@@ -58,7 +58,7 @@ function getDeltas(start, end, data, direction) {
  * below when you double click the small square.
  *
  * @class Autofill
- * @plugin
+ * @plugin Autofill
  */
 function Autofill(instance) {
   var

@@ -17,9 +17,9 @@ export {ManualColumnResize};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
- * @class ManualColumnResize
  * @private
- * @plugin
+ * @class ManualColumnResize
+ * @plugin ManualColumnResize
  */
 function ManualColumnResize() {
   var currentTH, currentCol, currentWidth, instance, newSize, startX, startWidth, startOffset, handle = document.createElement('DIV'),

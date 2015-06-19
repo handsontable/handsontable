@@ -48,11 +48,9 @@ function CellInfoCollection() {
 /**
  * Plugin used to merge cells in Handsontable
  *
+ * @private
+ * @plugin MergeCells
  * @class MergeCells
- * @private
- * @plugin
- * @constructor
- * @private
  */
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();

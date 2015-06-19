@@ -9,7 +9,7 @@ export {CheckboxEditor};
 
 /**
  * @private
- * @editor
+ * @editor CheckboxEditor
  * @class CheckboxEditor
  */
 Handsontable.editors = Handsontable.editors || {};

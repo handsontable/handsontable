@@ -17,9 +17,9 @@ export {ManualColumnMove};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
- * @class ManualColumnMove
  * @private
- * @plugin
+ * @class ManualColumnMove
+ * @plugin ManualColumnMove
  */
 function ManualColumnMove() {
   var startCol, endCol, startX, startOffset, currentCol, instance, currentTH, handle = document.createElement('DIV'),

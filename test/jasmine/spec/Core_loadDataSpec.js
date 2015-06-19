@@ -187,7 +187,7 @@ describe('Core_loadData', function () {
     //expect(cellsSpy.calls.length).toEqual(3 * (countRows() * countCols()) + 4 * countCols()); // changed for the dynamic column loading feature
 
     // ugly fix for this test failing, TODO: needs updating (probably has something to do with scrollHandler recognition)
-    expect(cellsSpy.calls.length).toEqual(31);
+    expect(cellsSpy.calls.length).toEqual(34);
 
   });
 
@@ -202,7 +202,7 @@ describe('Core_loadData', function () {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.length).toEqual(40);
+    expect(cellsSpy.calls.length).toEqual(43);
   });
 
   it('should remove grid rows if new data source has less of them', function () {

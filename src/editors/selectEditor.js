@@ -12,7 +12,7 @@ Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
- * @editor
+ * @editor SelectEditor
  * @class SelectEditor
  */
 Handsontable.editors.SelectEditor = SelectEditor;

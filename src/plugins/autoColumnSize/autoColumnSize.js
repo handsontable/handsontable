@@ -9,7 +9,7 @@ export {AutoColumnSize};
 
 /**
  * @class AutoColumnSize
- * @plugin
+ * @plugin AutoColumnSize
  */
 function AutoColumnSize() {
   var plugin = this
@@ -169,6 +169,9 @@ function AutoColumnSize() {
           this.autoColumnWidths[c] = plugin.determineColumnWidth.call(instance, c);
         }
       }
+    }
+    if (this.view.wt) {
+      this.view.wt.wtOverlays.adjustElementsSize(true);
     }
   };
 

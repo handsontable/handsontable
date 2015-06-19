@@ -9,9 +9,9 @@ import {registerPlugin} from './../../plugins.js';
 /* jshint sub:true */
 
 /**
- * @class Grouping
  * @private
- * @plugin
+ * @class Grouping
+ * @plugin Grouping
  */
 function Grouping(instance) {
   /**

@@ -8,7 +8,7 @@ import * as helper from './../../helpers.js';
  * Handsontable UndoRedo class
  *
  * @class UndoRedo
- * @plugin
+ * @plugin UndoRedo
  */
 Handsontable.UndoRedo = function(instance) {
   var plugin = this;

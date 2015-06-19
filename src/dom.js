@@ -733,6 +733,7 @@ export function hasCaptionProblem() {
 
 /**
  * Returns caret position in text input
+ *
  * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
  * @return {Number}
  */
@@ -740,34 +741,42 @@ export function getCaretPosition(el) {
   if (el.selectionStart) {
     return el.selectionStart;
   }
-  else if (document.selection) { //IE8
+  else if (document.selection) { // IE8
     el.focus();
-    var r = document.selection.createRange();
+
+    let r = document.selection.createRange();
+
     if (r == null) {
       return 0;
     }
-    var re = el.createTextRange(),
-      rc = re.duplicate();
+    let re = el.createTextRange();
+    let rc = re.duplicate();
+
     re.moveToBookmark(r.getBookmark());
     rc.setEndPoint('EndToStart', re);
+
     return rc.text.length;
   }
+
   return 0;
 }
 
 /**
  * Returns end of the selection in text input
+ *
  * @return {Number}
  */
 export function getSelectionEndPosition(el) {
   if (el.selectionEnd) {
     return el.selectionEnd;
+
   } else if (document.selection) { //IE8
-    var r = document.selection.createRange();
+    let r = document.selection.createRange();
+
     if (r == null) {
       return 0;
     }
-    var re = el.createTextRange();
+    let re = el.createTextRange();
 
     return re.text.indexOf(r.text) + r.text.length;
   }
@@ -786,7 +795,18 @@ export function setCaretPosition(el, pos, endPos) {
   }
   if (el.setSelectionRange) {
     el.focus();
-    el.setSelectionRange(pos, endPos);
+
+    try {
+      el.setSelectionRange(pos, endPos);
+    }
+    catch(err) {
+      var elementParent = el.parentNode;
+      var parentDisplayValue = elementParent.style.display;
+      elementParent.style.display = 'block';
+      el.setSelectionRange(pos, endPos);
+      elementParent.style.display = parentDisplayValue;
+    }
+
   }
   else if (el.createTextRange) { //IE8
     var range = el.createTextRange();

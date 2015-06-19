@@ -2,7 +2,7 @@
 var version = Handsontable.version;
 var buildDate = Handsontable.buildDate;
 
-window.Handsontable = function (rootElement, userSettings) {
+window.Handsontable = function Handsontable(rootElement, userSettings) {
   var instance = new Handsontable.Core(rootElement, userSettings || {});
 
   instance.init();

@@ -3,9 +3,9 @@ import * as dom from './../../dom.js';
 import {registerRenderer, getRenderer} from './../../renderers.js';
 
 /**
- * @class Search
  * @private
- * @plugin
+ * @plugin Search
+ * @class Search
  */
 Handsontable.Search = function Search(instance) {
   this.query = function (queryStr, callback, queryMethod) {

@@ -12,7 +12,7 @@ export {CopyPaste};
 
 /**
  * @class CopyPaste
- * @plugin
+ * @plugin CopyPaste
  * @dependencies copyPaste SheetClip
  */
 function CopyPastePlugin(instance) {
@@ -72,10 +72,9 @@ function CopyPastePlugin(instance) {
   function onBeforeKeyDown(event) {
     var ctrlDown;
 
-    if (instance.getSelected()) {
+    if (instance.getSelected() && instance.getActiveEditor() && !instance.getActiveEditor().isOpened()) {
       if (helper.isCtrlKey(event.keyCode)) {
         // when CTRL is pressed, prepare selectable text in textarea
-        // http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
         _this.setCopyableText();
         event.stopImmediatePropagation();
 

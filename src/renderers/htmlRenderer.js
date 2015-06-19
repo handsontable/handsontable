@@ -8,8 +8,7 @@ registerRenderer('html', htmlRenderer);
 
 /**
  * @private
- * @renderer
- * @component HtmlRenderer
+ * @renderer HtmlRenderer
  * @param instance
  * @param TD
  * @param row

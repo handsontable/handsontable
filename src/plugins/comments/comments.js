@@ -7,12 +7,11 @@ import {CommentEditor} from './commentEditor.js';
 
 /**
  * @class Comments
- * @plugin
+ * @plugin Comments
  *
  * @description
  * With option `comments: true`, you can manage cell comments programmatically or through the context menu.
- * To initialize Handsontable with predefined comments, provide comment cell
- * property: `{row: 1, col: 1, comment: "Test comment"}`
+ * To initialize Handsontable with predefined comments, provide comment cell property: `{row: 1, col: 1, comment: "Test comment"}`
  *
  * @example
  *
@@ -47,7 +46,7 @@ import {CommentEditor} from './commentEditor.js';
  */
 class Comments extends BasePlugin {
   /**
-   * @param {Handsontable} hotInstance
+   * @param {Core} hotInstance Handsontable instance passed in plugin class constructor
    */
   constructor(hotInstance) {
     super(hotInstance);

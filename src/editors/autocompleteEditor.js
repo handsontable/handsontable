@@ -13,7 +13,7 @@ Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
 
 /**
  * @private
- * @editor
+ * @editor AutocompleteEditor
  * @class AutocompleteEditor
  * @dependencies HandsontableEditor
  */
