@@ -22,6 +22,54 @@ describe('BaseEditor', function () {
 
       expect(getDataAtCell(1,1)).toEqual("B2");
       expect(getDataAtCell(2,2)).toEqual("C3");
+
+      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown('ctrl+enter');
+
+      expect(getDataAtCell(1,1)).toEqual("B2");
+      expect(getDataAtCell(1,2)).toEqual("B2");
+      expect(getDataAtCell(2,1)).toEqual("B2");
+      expect(getDataAtCell(2,2)).toEqual("B2");
+
+      loadData(Handsontable.helper.createSpreadsheetData(6,6));
+
+      selectCell(1, 2, 2, 1);
+
+      expect(getDataAtCell(1,2)).toEqual("C2");
+      expect(getDataAtCell(2,1)).toEqual("B3");
+
+      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown('ctrl+enter');
+
+      expect(getDataAtCell(1,1)).toEqual("C2");
+      expect(getDataAtCell(1,2)).toEqual("C2");
+      expect(getDataAtCell(2,1)).toEqual("C2");
+      expect(getDataAtCell(2,2)).toEqual("C2");
+
+      loadData(Handsontable.helper.createSpreadsheetData(6,6));
+      selectCell(2, 2, 1, 1);
+      expect(getDataAtCell(2,2)).toEqual("C3");
+
+      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown('ctrl+enter');
+
+      expect(getDataAtCell(1,1)).toEqual("C3");
+      expect(getDataAtCell(1,2)).toEqual("C3");
+      expect(getDataAtCell(2,1)).toEqual("C3");
+      expect(getDataAtCell(2,2)).toEqual("C3");
+
+      loadData(Handsontable.helper.createSpreadsheetData(6,6));
+      selectCell(2, 1, 1, 2);
+      expect(getDataAtCell(2,1)).toEqual("B3");
+
+      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown('ctrl+enter');
+
+      expect(getDataAtCell(1,1)).toEqual("B3");
+      expect(getDataAtCell(1,2)).toEqual("B3");
+      expect(getDataAtCell(2,1)).toEqual("B3");
+      expect(getDataAtCell(2,2)).toEqual("B3");
+
     });
   });
 
