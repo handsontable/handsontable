@@ -1015,7 +1015,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
           done(valid);
           Handsontable.hooks.run(instance, "postAfterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
-        });
+        }, cellProperties.row);
       }, 0));
 
     } else {
