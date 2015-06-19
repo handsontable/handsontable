@@ -795,7 +795,18 @@ export function setCaretPosition(el, pos, endPos) {
   }
   if (el.setSelectionRange) {
     el.focus();
-    el.setSelectionRange(pos, endPos);
+
+    try {
+      el.setSelectionRange(pos, endPos);
+    }
+    catch(err) {
+      var elementParent = el.parentNode;
+      var parentDisplayValue = elementParent.style.display;
+      elementParent.style.display = 'block';
+      el.setSelectionRange(pos, endPos);
+      elementParent.style.display = parentDisplayValue;
+    }
+
   }
   else if (el.createTextRange) { //IE8
     var range = el.createTextRange();

@@ -348,8 +348,10 @@ class WalkontableOverlays {
 
   /**
    * Adjust overlays elements size and master table size
+   *
+   * @param {Boolean} [force=false]
    */
-  adjustElementsSize() {
+  adjustElementsSize(force = false) {
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
     let headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
@@ -359,8 +361,8 @@ class WalkontableOverlays {
     hiderStyle.width = (headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)) + 'px';
     hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
 
-    this.topOverlay.adjustElementsSize();
-    this.leftOverlay.adjustElementsSize();
+    this.topOverlay.adjustElementsSize(force);
+    this.leftOverlay.adjustElementsSize(force);
   }
 
   /**
