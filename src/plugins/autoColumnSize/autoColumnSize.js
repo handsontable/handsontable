@@ -171,7 +171,7 @@ function AutoColumnSize() {
       }
     }
     if (this.view.wt) {
-      this.view.wt.wtOverlays.adjustElementsSize();
+      this.view.wt.wtOverlays.adjustElementsSize(true);
     }
   };
 
