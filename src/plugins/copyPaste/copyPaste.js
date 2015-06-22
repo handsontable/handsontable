@@ -70,22 +70,24 @@ function CopyPastePlugin(instance) {
   }
 
   function onBeforeKeyDown(event) {
-    var ctrlDown;
+    if (!instance.getSelected()) {
+      return;
+    }
+    if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
+      return;
+    }
+    if (helper.isCtrlKey(event.keyCode)) {
+      // when CTRL is pressed, prepare selectable text in textarea
+      _this.setCopyableText();
+      event.stopImmediatePropagation();
 
-    if (instance.getSelected() && instance.getActiveEditor() && !instance.getActiveEditor().isOpened()) {
-      if (helper.isCtrlKey(event.keyCode)) {
-        // when CTRL is pressed, prepare selectable text in textarea
-        _this.setCopyableText();
-        event.stopImmediatePropagation();
+      return;
+    }
+    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-        return;
-      }
-      // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-      ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-
-      if (event.keyCode == helper.keyCode.A && ctrlDown) {
-        instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
-      }
+    if (event.keyCode == helper.keyCode.A && ctrlDown) {
+      instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
     }
   }
 
