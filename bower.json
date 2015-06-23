@@ -35,9 +35,9 @@
     "test"
   ],
   "dependencies": {
-    "zeroclipboard": ">=2.1.6",
-    "moment": "2.9.0",
-    "pikaday": "1.3.0"
+    "zeroclipboard": "^2.2.0",
+    "moment": "^2.9.0",
+    "pikaday": "^1.3.2"
   },
   "devDependencies": {
     "chroma-js": "~0.5.6"
