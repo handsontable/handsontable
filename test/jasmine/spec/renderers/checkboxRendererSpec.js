@@ -396,4 +396,82 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls.length).toEqual(2);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
+
+  it("should change checkbox state to unchecked after hitting DELETE (from #bad-value# state)", function () {
+    handsontable({
+      data: [['foo'], ['bar']],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    expect(getDataAtCell(0, 0)).toBe('foo');
+    expect(getDataAtCell(1, 0)).toBe('bar');
+
+    selectCell(0, 0);
+    keyDown('delete');
+    selectCell(1, 0);
+    keyDown('delete');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(getData()).toEqual([[false], [false]]);
+
+    expect(afterChangeCallback.calls.length).toEqual(2);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+  });
+
+  it("should change checkbox state to unchecked after hitting BACKSPACE (from #bad-value# state)", function () {
+    handsontable({
+      data: [['foo'], ['bar']],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    expect(getDataAtCell(0, 0)).toBe('foo');
+    expect(getDataAtCell(1, 0)).toBe('bar');
+
+    selectCell(0, 0);
+    keyDown('backspace');
+    selectCell(1, 0);
+    keyDown('backspace');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(getData()).toEqual([[false], [false]]);
+
+    expect(afterChangeCallback.calls.length).toEqual(2);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+  });
+
+  it("shouldn't change checkbox state after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)", function () {
+    handsontable({
+      data: [['foo'], ['bar']],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    expect(getDataAtCell(0, 0)).toBe('foo');
+
+    selectCell(0, 0);
+    keyDown('space');
+    selectCell(0, 0);
+    keyDown('c');
+
+    expect(getDataAtCell(0, 0)).toBe('foo');
+    expect(getData()).toEqual([['foo'], ['bar']]);
+
+    expect(afterChangeCallback.calls.length).toEqual(0);
+  });
 });

@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.15.0
+ * Handsontable 0.15.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,19 +7,19 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jun 19 2015 09:15:37 GMT+0200 (CEST)
+ * Date: Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.15.0',
-  buildDate: 'Fri Jun 19 2015 09:15:37 GMT+0200 (CEST)'
+  version: '0.15.1',
+  buildDate: 'Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
     // Save the require from previous bundle to this closure if any
     var previousRequire = typeof require == "function" && require;
-    var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","copyPaste":"copyPaste","SheetClip":"SheetClip","jsonpatch":"jsonpatch","moment":"moment","numeral":"numeral","pikaday":"Pikaday","autoResize":"autoResize"}') || {};
+    var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","pikaday":"Pikaday"}') || {};
 
     function newRequire(name, jumped){
       if(!cache[name]) {
@@ -6590,8 +6590,9 @@ function RegisteredEditor(editorClass) {
 }
 function registerEditor(editorName, editorClass) {
   var editor = new RegisteredEditor(editorClass);
-  if (typeof editorName === "string") {
+  if (typeof editorName === 'string') {
     registeredEditorNames[editorName] = editor;
+    Handsontable.editors[helper.toUpperCaseFirst(editorName) + 'Editor'] = editorClass;
   }
   registeredEditorClasses.set(editorClass, editor);
 }
@@ -6825,9 +6826,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var HandsontableEditor = ($__handsontableEditor_46_js__ = require("./handsontableEditor.js"), $__handsontableEditor_46_js__ && $__handsontableEditor_46_js__.__esModule && $__handsontableEditor_46_js__ || {default: $__handsontableEditor_46_js__}).HandsontableEditor;
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
 AutocompleteEditor.prototype.init = function() {
   HandsontableEditor.prototype.init.apply(this, arguments);
   this.query = null;
@@ -7028,6 +7026,7 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
+;
 registerEditor('autocomplete', AutocompleteEditor);
 
 //# 
@@ -7040,30 +7039,35 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_editors_46_js__,
-    $___95_baseEditor_46_js__;
+    $___95_baseEditor_46_js__,
+    $___46__46__47_dom_46_js__;
 var registerEditor = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46__46__47_editors_46_js__ && $___46__46__47_editors_46_js__.__esModule && $___46__46__47_editors_46_js__ || {default: $___46__46__47_editors_46_js__}).registerEditor;
 var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___95_baseEditor_46_js__ && $___95_baseEditor_46_js__.__esModule && $___95_baseEditor_46_js__ || {default: $___95_baseEditor_46_js__}).BaseEditor;
-var CheckboxEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.CheckboxEditor = CheckboxEditor;
-CheckboxEditor.prototype.beginEditing = function() {
-  var checkbox = this.TD.querySelector('input[type="checkbox"]');
-  if (checkbox) {
-    checkbox.click();
-  }
+var dom = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__});
+var CheckboxEditor = function CheckboxEditor() {
+  $traceurRuntime.superConstructor($CheckboxEditor).apply(this, arguments);
 };
-CheckboxEditor.prototype.finishEditing = function() {};
-CheckboxEditor.prototype.init = function() {};
-CheckboxEditor.prototype.open = function() {};
-CheckboxEditor.prototype.close = function() {};
-CheckboxEditor.prototype.getValue = function() {};
-CheckboxEditor.prototype.setValue = function() {};
-CheckboxEditor.prototype.focus = function() {};
+var $CheckboxEditor = CheckboxEditor;
+($traceurRuntime.createClass)(CheckboxEditor, {
+  beginEditing: function() {
+    var checkbox = this.TD.querySelector('input[type="checkbox"]');
+    if (!dom.hasClass(checkbox, 'htBadValue')) {
+      checkbox.click();
+    }
+  },
+  finishEditing: function() {},
+  init: function() {},
+  open: function() {},
+  close: function() {},
+  getValue: function() {},
+  setValue: function() {},
+  focus: function() {}
+}, {}, BaseEditor);
+;
 registerEditor('checkbox', CheckboxEditor);
 
 //# 
-},{"./../editors.js":29,"./_baseEditor.js":30}],33:[function(require,module,exports){
+},{"./../dom.js":27,"./../editors.js":29,"./_baseEditor.js":30}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DateEditor: {get: function() {
@@ -7087,8 +7091,6 @@ var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEdi
 var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
 var moment = ($__moment__ = require("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = require("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -7244,15 +7246,16 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__0.getEditor,
     registerEditor = $__0.registerEditor;
 var AutocompleteEditor = ($__autocompleteEditor_46_js__ = require("./autocompleteEditor.js"), $__autocompleteEditor_46_js__ && $__autocompleteEditor_46_js__.__esModule && $__autocompleteEditor_46_js__ || {default: $__autocompleteEditor_46_js__}).AutocompleteEditor;
-var DropdownEditor = AutocompleteEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DropdownEditor = DropdownEditor;
-DropdownEditor.prototype.prepare = function() {
-  AutocompleteEditor.prototype.prepare.apply(this, arguments);
-  this.cellProperties.filter = false;
-  this.cellProperties.strict = true;
+var DropdownEditor = function DropdownEditor() {
+  $traceurRuntime.superConstructor($DropdownEditor).apply(this, arguments);
 };
+var $DropdownEditor = DropdownEditor;
+($traceurRuntime.createClass)(DropdownEditor, {prepare: function(row, col, prop, td, originalValue, cellProperties) {
+    $traceurRuntime.superGet(this, $DropdownEditor.prototype, "prepare").call(this, row, col, prop, td, originalValue, cellProperties);
+    this.cellProperties.filter = false;
+    this.cellProperties.strict = true;
+  }}, {}, AutocompleteEditor);
+;
 registerEditor('dropdown', DropdownEditor);
 
 //# 
@@ -7275,9 +7278,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
 var HandsontableEditor = TextEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.HandsontableEditor = HandsontableEditor;
 HandsontableEditor.prototype.createElements = function() {
   TextEditor.prototype.createElements.apply(this, arguments);
   var DIV = document.createElement('DIV');
@@ -7409,6 +7409,7 @@ HandsontableEditor.prototype.assignHooks = function() {
     }
   });
 };
+;
 registerEditor('handsontable', HandsontableEditor);
 
 //# 
@@ -7434,9 +7435,6 @@ var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___9
 var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
 var MobileTextEditor = BaseEditor.prototype.extend(),
     domDimensionsCache = {};
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.MobileTextEditor = MobileTextEditor;
 var createControls = function() {
   this.controls = {};
   this.controls.leftButton = document.createElement('DIV');
@@ -7658,6 +7656,7 @@ MobileTextEditor.prototype.destroy = function() {
   this.eventManager.clear();
   this.editorContainer.parentNode.removeChild(this.editorContainer);
 };
+;
 registerEditor('mobile', MobileTextEditor);
 
 //# 
@@ -7677,8 +7676,6 @@ var $__1 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__1.getEditor,
     registerEditor = $__1.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.NumericEditor = NumericEditor;
 var NumericEditor = function NumericEditor() {
   $traceurRuntime.superConstructor($NumericEditor).apply(this, arguments);
 };
@@ -7713,21 +7710,22 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__0.getEditor,
     registerEditor = $__0.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
-var PasswordEditor = TextEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.PasswordEditor = PasswordEditor;
-PasswordEditor.prototype.createElements = function() {
-  TextEditor.prototype.createElements.apply(this, arguments);
-  this.TEXTAREA = document.createElement('input');
-  this.TEXTAREA.setAttribute('type', 'password');
-  this.TEXTAREA.className = 'handsontableInput';
-  this.textareaStyle = this.TEXTAREA.style;
-  this.textareaStyle.width = 0;
-  this.textareaStyle.height = 0;
-  dom.empty(this.TEXTAREA_PARENT);
-  this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+var PasswordEditor = function PasswordEditor() {
+  $traceurRuntime.superConstructor($PasswordEditor).apply(this, arguments);
 };
+var $PasswordEditor = PasswordEditor;
+($traceurRuntime.createClass)(PasswordEditor, {createElements: function() {
+    $traceurRuntime.superGet(this, $PasswordEditor.prototype, "createElements").call(this);
+    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA.setAttribute('type', 'password');
+    this.TEXTAREA.className = 'handsontableInput';
+    this.textareaStyle = this.TEXTAREA.style;
+    this.textareaStyle.width = 0;
+    this.textareaStyle.height = 0;
+    dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+  }}, {}, TextEditor);
+;
 registerEditor('password', PasswordEditor);
 
 //# 
@@ -7750,9 +7748,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___95_baseEditor_46_js__ && $___95_baseEditor_46_js__.__esModule && $___95_baseEditor_46_js__ || {default: $___95_baseEditor_46_js__}).BaseEditor;
 var SelectEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.SelectEditor = SelectEditor;
 SelectEditor.prototype.init = function() {
   this.select = document.createElement('SELECT');
   dom.addClass(this.select, 'htSelectEditor');
@@ -7879,6 +7874,7 @@ SelectEditor.prototype.close = function() {
 SelectEditor.prototype.focus = function() {
   this.select.focus();
 };
+;
 registerEditor('select', SelectEditor);
 
 //# 
@@ -7905,9 +7901,6 @@ var $__3 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__3.getEditor,
     registerEditor = $__3.registerEditor;
 var TextEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.TextEditor = TextEditor;
 TextEditor.prototype.init = function() {
   var that = this;
   this.createElements();
@@ -8163,6 +8156,7 @@ TextEditor.prototype.bindEvents = function() {
 TextEditor.prototype.destroy = function() {
   this.eventManager.clear();
 };
+;
 registerEditor('text', TextEditor);
 
 //# 
@@ -9256,8 +9250,7 @@ function AutoColumnSize() {
         samples[len].needed--;
       }
     }
-    var settings = instance.getSettings();
-    if (settings.colHeaders) {
+    if (instance.getColHeader(col) !== null) {
       instance.view.appendColHeader(col, tmp.theadTh);
     }
     dom.empty(tmp.tbody);
@@ -11396,17 +11389,20 @@ function CopyPastePlugin(instance) {
     instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
   }
   function onBeforeKeyDown(event) {
-    var ctrlDown;
-    if (instance.getSelected() && instance.getActiveEditor() && !instance.getActiveEditor().isOpened()) {
-      if (helper.isCtrlKey(event.keyCode)) {
-        _this.setCopyableText();
-        event.stopImmediatePropagation();
-        return;
-      }
-      ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-      if (event.keyCode == helper.keyCode.A && ctrlDown) {
-        instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
-      }
+    if (!instance.getSelected()) {
+      return;
+    }
+    if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
+      return;
+    }
+    if (helper.isCtrlKey(event.keyCode)) {
+      _this.setCopyableText();
+      event.stopImmediatePropagation();
+      return;
+    }
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+    if (event.keyCode == helper.keyCode.A && ctrlDown) {
+      instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
     }
   }
   this.destroy = function() {
@@ -15710,14 +15706,11 @@ var EventManager = ($___46__46__47_eventManager_46_js__ = require("./../eventMan
 var $__1 = ($___46__46__47_renderers_46_js__ = require("./../renderers.js"), $___46__46__47_renderers_46_js__ && $___46__46__47_renderers_46_js__.__esModule && $___46__46__47_renderers_46_js__ || {default: $___46__46__47_renderers_46_js__}),
     getRenderer = $__1.getRenderer,
     registerRenderer = $__1.registerRenderer;
-var clonableINPUT = document.createElement('INPUT');
-clonableINPUT.className = 'htCheckboxRendererInput';
-clonableINPUT.type = 'checkbox';
-clonableINPUT.setAttribute('autocomplete', 'off');
 var isListeningKeyDownEvent = new WeakMap();
+var BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var eventManager = new EventManager(instance);
-  var input = clonableINPUT.cloneNode(false);
+  var input = createInput();
   if (typeof cellProperties.checkedTemplate === 'undefined') {
     cellProperties.checkedTemplate = true;
   }
@@ -15734,7 +15727,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     dom.addClass(input, 'noValue');
     TD.appendChild(input);
   } else {
-    dom.fastInnerText(TD, '#bad value#');
+    input.style.display = 'none';
+    dom.addClass(input, BAD_VALUE_CLASS);
+    TD.appendChild(input);
+    TD.appendChild(document.createTextNode('#bad-value#'));
   }
   if (cellProperties.readOnly) {
     eventManager.addEventListener(input, 'click', preventDefault);
@@ -15770,6 +15766,9 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     eachSelectedCheckboxCell(function(checkboxes) {
       for (var i = 0,
           len = checkboxes.length; i < len; i++) {
+        if (dom.hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+          return;
+        }
         toggleCheckbox(checkboxes[i], checked);
       }
     });
@@ -15798,15 +15797,22 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       }
     }
   }
-  function preventDefault(event) {
-    event.preventDefault();
-  }
-  function stopPropagation(event) {
-    helper.stopPropagation(event);
-  }
 }
 ;
 registerRenderer('checkbox', checkboxRenderer);
+function createInput() {
+  var input = document.createElement('INPUT');
+  input.className = 'htCheckboxRendererInput';
+  input.type = 'checkbox';
+  input.setAttribute('autocomplete', 'off');
+  return input.cloneNode(false);
+}
+function preventDefault(event) {
+  event.preventDefault();
+}
+function stopPropagation(event) {
+  helper.stopPropagation(event);
+}
 
 //# 
 },{"./../dom.js":27,"./../eventManager.js":41,"./../helpers.js":42,"./../renderers.js":70}],74:[function(require,module,exports){

@@ -9,17 +9,12 @@ var
   MobileTextEditor = BaseEditor.prototype.extend(),
   domDimensionsCache = {};
 
-export {MobileTextEditor};
-
-Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
  * @editor MobileTextEditor
  * @class MobileTextEditor
  */
-Handsontable.editors.MobileTextEditor = MobileTextEditor;
-
 var createControls = function () {
   this.controls = {};
 
@@ -334,5 +329,7 @@ MobileTextEditor.prototype.destroy = function() {
 
   this.editorContainer.parentNode.removeChild(this.editorContainer);
 };
+
+export {MobileTextEditor};
 
 registerEditor('mobile', MobileTextEditor);

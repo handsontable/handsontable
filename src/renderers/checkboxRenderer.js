@@ -1,3 +1,11 @@
+import * as dom from './../dom.js';
+import * as helper from './../helpers.js';
+import {EventManager} from './../eventManager.js';
+import {getRenderer, registerRenderer} from './../renderers.js';
+
+const isListeningKeyDownEvent = new WeakMap();
+const BAD_VALUE_CLASS = 'htBadValue';
+
 /**
  * Checkbox renderer
  *
@@ -11,26 +19,9 @@
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
-
-import * as dom from './../dom.js';
-import * as helper from './../helpers.js';
-import {EventManager} from './../eventManager.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
-
-
-let clonableINPUT = document.createElement('INPUT');
-
-clonableINPUT.className = 'htCheckboxRendererInput';
-clonableINPUT.type = 'checkbox';
-clonableINPUT.setAttribute('autocomplete', 'off');
-
-const isListeningKeyDownEvent = new WeakMap();
-
-
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const eventManager = new EventManager(instance);
-  // this is faster than createElement
-  const input = clonableINPUT.cloneNode(false);
+  const input = createInput();
 
   if (typeof cellProperties.checkedTemplate === 'undefined') {
     cellProperties.checkedTemplate = true;
@@ -52,7 +43,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     TD.appendChild(input);
   }
   else {
-    dom.fastInnerText(TD, '#bad value#');
+    input.style.display = 'none';
+    dom.addClass(input, BAD_VALUE_CLASS);
+    TD.appendChild(input);
+    TD.appendChild(document.createTextNode('#bad-value#'));
   }
 
   if (cellProperties.readOnly) {
@@ -107,7 +101,11 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    */
   function toggleSelected(checked = null) {
     eachSelectedCheckboxCell(function(checkboxes) {
-      for (var i = 0, len = checkboxes.length; i < len; i++) {
+      for (let i = 0, len = checkboxes.length; i < len; i++) {
+        // Block changing checked property on toggle keys (SPACE and ENTER)
+        if (dom.hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+          return;
+        }
         toggleCheckbox(checkboxes[i], checked);
       }
     });
@@ -152,15 +150,31 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       }
     }
   }
-
-  function preventDefault(event) {
-    event.preventDefault();
-  }
-  function stopPropagation(event) {
-    helper.stopPropagation(event);
-  }
 }
 
 export {checkboxRenderer};
 
 registerRenderer('checkbox', checkboxRenderer);
+
+
+/**
+ * Create input element.
+ *
+ * @returns {Node}
+ */
+function createInput() {
+  let input = document.createElement('INPUT');
+
+  input.className = 'htCheckboxRendererInput';
+  input.type = 'checkbox';
+  input.setAttribute('autocomplete', 'off');
+
+  return input.cloneNode(false);
+}
+
+function preventDefault(event) {
+  event.preventDefault();
+}
+function stopPropagation(event) {
+  helper.stopPropagation(event);
+}

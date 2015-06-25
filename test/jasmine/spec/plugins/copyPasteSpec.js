@@ -235,6 +235,29 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
     });
 
+    it("should set copyable text when selecting a single cell with editor type as false (#2574)", function () {
+      handsontable({
+        data: [['A', 1], ['B', 2]],
+        columns: [
+          {
+            type: 'text'
+          },
+          {
+            editor: false
+          }
+        ]
+      });
+
+      var copyPasteTextarea = $('textarea.copyPaste');
+
+      expect(copyPasteTextarea.val().length).toEqual(0);
+
+      selectCell(1, 1, 1, 1);
+      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+
+      expect(copyPasteTextarea.val()).toEqual('2\n');
+    });
+
 
     describe("working with multiple tables", function () {
 

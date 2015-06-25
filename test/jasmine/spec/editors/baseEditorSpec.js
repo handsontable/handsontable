@@ -73,4 +73,17 @@ describe('BaseEditor', function () {
     });
   });
 
+  it("should exported every editor into Handsontable.editor object", function() {
+    expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
+    expect(Handsontable.editors.BaseEditor).toBeDefined();
+    expect(Handsontable.editors.CheckboxEditor).toBeDefined();
+    expect(Handsontable.editors.DateEditor).toBeDefined();
+    expect(Handsontable.editors.DropdownEditor).toBeDefined();
+    expect(Handsontable.editors.HandsontableEditor).toBeDefined();
+    expect(Handsontable.editors.MobileEditor).toBeDefined();
+    expect(Handsontable.editors.NumericEditor).toBeDefined();
+    expect(Handsontable.editors.PasswordEditor).toBeDefined();
+    expect(Handsontable.editors.SelectEditor).toBeDefined();
+    expect(Handsontable.editors.TextEditor).toBeDefined();
+  });
 });
