@@ -9,10 +9,6 @@ import {TextEditor} from './textEditor.js';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 
-export {HandsontableEditor};
-
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.HandsontableEditor = HandsontableEditor;
 
 /**
  * @private
@@ -199,5 +195,7 @@ HandsontableEditor.prototype.assignHooks = function() {
     }
   });
 };
+
+export {HandsontableEditor};
 
 registerEditor('handsontable', HandsontableEditor);

@@ -6,17 +6,12 @@ import {BaseEditor} from './_baseEditor.js';
 
 var SelectEditor = BaseEditor.prototype.extend();
 
-export {SelectEditor};
-
-Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
  * @editor SelectEditor
  * @class SelectEditor
  */
-Handsontable.editors.SelectEditor = SelectEditor;
-
 SelectEditor.prototype.init = function() {
   this.select = document.createElement('SELECT');
   dom.addClass(this.select, 'htSelectEditor');
@@ -170,6 +165,8 @@ SelectEditor.prototype.close = function() {
 SelectEditor.prototype.focus = function() {
   this.select.focus();
 };
+
+export {SelectEditor};
 
 registerEditor('select', SelectEditor);
 

@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.15.0
+ * Handsontable 0.15.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,19 +7,19 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jun 19 2015 09:15:37 GMT+0200 (CEST)
+ * Date: Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.15.0',
-  buildDate: 'Fri Jun 19 2015 09:15:37 GMT+0200 (CEST)'
+  version: '0.15.1',
+  buildDate: 'Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
     // Save the require from previous bundle to this closure if any
     var previousRequire = typeof require == "function" && require;
-    var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","copyPaste":"copyPaste","SheetClip":"SheetClip","jsonpatch":"jsonpatch","moment":"moment","numeral":"numeral","pikaday":"Pikaday","autoResize":"autoResize"}') || {};
+    var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","pikaday":"Pikaday"}') || {};
 
     function newRequire(name, jumped){
       if(!cache[name]) {
@@ -5517,7 +5517,7 @@ DataMap.prototype.getCopyableText = function(start, end) {
 };
 
 //# 
-},{"./helpers.js":42,"./multiMap.js":43,"SheetClip":undefined}],27:[function(require,module,exports){
+},{"./helpers.js":42,"./multiMap.js":43,"SheetClip":"SheetClip"}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   enableImmediatePropagation: {get: function() {
@@ -6590,8 +6590,9 @@ function RegisteredEditor(editorClass) {
 }
 function registerEditor(editorName, editorClass) {
   var editor = new RegisteredEditor(editorClass);
-  if (typeof editorName === "string") {
+  if (typeof editorName === 'string') {
     registeredEditorNames[editorName] = editor;
+    Handsontable.editors[helper.toUpperCaseFirst(editorName) + 'Editor'] = editorClass;
   }
   registeredEditorClasses.set(editorClass, editor);
 }
@@ -6825,9 +6826,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var HandsontableEditor = ($__handsontableEditor_46_js__ = require("./handsontableEditor.js"), $__handsontableEditor_46_js__ && $__handsontableEditor_46_js__.__esModule && $__handsontableEditor_46_js__ || {default: $__handsontableEditor_46_js__}).HandsontableEditor;
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
 AutocompleteEditor.prototype.init = function() {
   HandsontableEditor.prototype.init.apply(this, arguments);
   this.query = null;
@@ -7028,6 +7026,7 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
+;
 registerEditor('autocomplete', AutocompleteEditor);
 
 //# 
@@ -7040,30 +7039,35 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_editors_46_js__,
-    $___95_baseEditor_46_js__;
+    $___95_baseEditor_46_js__,
+    $___46__46__47_dom_46_js__;
 var registerEditor = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46__46__47_editors_46_js__ && $___46__46__47_editors_46_js__.__esModule && $___46__46__47_editors_46_js__ || {default: $___46__46__47_editors_46_js__}).registerEditor;
 var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___95_baseEditor_46_js__ && $___95_baseEditor_46_js__.__esModule && $___95_baseEditor_46_js__ || {default: $___95_baseEditor_46_js__}).BaseEditor;
-var CheckboxEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.CheckboxEditor = CheckboxEditor;
-CheckboxEditor.prototype.beginEditing = function() {
-  var checkbox = this.TD.querySelector('input[type="checkbox"]');
-  if (checkbox) {
-    checkbox.click();
-  }
+var dom = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__});
+var CheckboxEditor = function CheckboxEditor() {
+  $traceurRuntime.superConstructor($CheckboxEditor).apply(this, arguments);
 };
-CheckboxEditor.prototype.finishEditing = function() {};
-CheckboxEditor.prototype.init = function() {};
-CheckboxEditor.prototype.open = function() {};
-CheckboxEditor.prototype.close = function() {};
-CheckboxEditor.prototype.getValue = function() {};
-CheckboxEditor.prototype.setValue = function() {};
-CheckboxEditor.prototype.focus = function() {};
+var $CheckboxEditor = CheckboxEditor;
+($traceurRuntime.createClass)(CheckboxEditor, {
+  beginEditing: function() {
+    var checkbox = this.TD.querySelector('input[type="checkbox"]');
+    if (!dom.hasClass(checkbox, 'htBadValue')) {
+      checkbox.click();
+    }
+  },
+  finishEditing: function() {},
+  init: function() {},
+  open: function() {},
+  close: function() {},
+  getValue: function() {},
+  setValue: function() {},
+  focus: function() {}
+}, {}, BaseEditor);
+;
 registerEditor('checkbox', CheckboxEditor);
 
 //# 
-},{"./../editors.js":29,"./_baseEditor.js":30}],33:[function(require,module,exports){
+},{"./../dom.js":27,"./../editors.js":29,"./_baseEditor.js":30}],33:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DateEditor: {get: function() {
@@ -7087,8 +7091,6 @@ var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEdi
 var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
 var moment = ($__moment__ = require("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = require("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -7244,15 +7246,16 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__0.getEditor,
     registerEditor = $__0.registerEditor;
 var AutocompleteEditor = ($__autocompleteEditor_46_js__ = require("./autocompleteEditor.js"), $__autocompleteEditor_46_js__ && $__autocompleteEditor_46_js__.__esModule && $__autocompleteEditor_46_js__ || {default: $__autocompleteEditor_46_js__}).AutocompleteEditor;
-var DropdownEditor = AutocompleteEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DropdownEditor = DropdownEditor;
-DropdownEditor.prototype.prepare = function() {
-  AutocompleteEditor.prototype.prepare.apply(this, arguments);
-  this.cellProperties.filter = false;
-  this.cellProperties.strict = true;
+var DropdownEditor = function DropdownEditor() {
+  $traceurRuntime.superConstructor($DropdownEditor).apply(this, arguments);
 };
+var $DropdownEditor = DropdownEditor;
+($traceurRuntime.createClass)(DropdownEditor, {prepare: function(row, col, prop, td, originalValue, cellProperties) {
+    $traceurRuntime.superGet(this, $DropdownEditor.prototype, "prepare").call(this, row, col, prop, td, originalValue, cellProperties);
+    this.cellProperties.filter = false;
+    this.cellProperties.strict = true;
+  }}, {}, AutocompleteEditor);
+;
 registerEditor('dropdown', DropdownEditor);
 
 //# 
@@ -7275,9 +7278,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
 var HandsontableEditor = TextEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.HandsontableEditor = HandsontableEditor;
 HandsontableEditor.prototype.createElements = function() {
   TextEditor.prototype.createElements.apply(this, arguments);
   var DIV = document.createElement('DIV');
@@ -7409,6 +7409,7 @@ HandsontableEditor.prototype.assignHooks = function() {
     }
   });
 };
+;
 registerEditor('handsontable', HandsontableEditor);
 
 //# 
@@ -7434,9 +7435,6 @@ var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___9
 var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
 var MobileTextEditor = BaseEditor.prototype.extend(),
     domDimensionsCache = {};
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.MobileTextEditor = MobileTextEditor;
 var createControls = function() {
   this.controls = {};
   this.controls.leftButton = document.createElement('DIV');
@@ -7658,6 +7656,7 @@ MobileTextEditor.prototype.destroy = function() {
   this.eventManager.clear();
   this.editorContainer.parentNode.removeChild(this.editorContainer);
 };
+;
 registerEditor('mobile', MobileTextEditor);
 
 //# 
@@ -7677,8 +7676,6 @@ var $__1 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__1.getEditor,
     registerEditor = $__1.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.NumericEditor = NumericEditor;
 var NumericEditor = function NumericEditor() {
   $traceurRuntime.superConstructor($NumericEditor).apply(this, arguments);
 };
@@ -7713,21 +7710,22 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__0.getEditor,
     registerEditor = $__0.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
-var PasswordEditor = TextEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.PasswordEditor = PasswordEditor;
-PasswordEditor.prototype.createElements = function() {
-  TextEditor.prototype.createElements.apply(this, arguments);
-  this.TEXTAREA = document.createElement('input');
-  this.TEXTAREA.setAttribute('type', 'password');
-  this.TEXTAREA.className = 'handsontableInput';
-  this.textareaStyle = this.TEXTAREA.style;
-  this.textareaStyle.width = 0;
-  this.textareaStyle.height = 0;
-  dom.empty(this.TEXTAREA_PARENT);
-  this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+var PasswordEditor = function PasswordEditor() {
+  $traceurRuntime.superConstructor($PasswordEditor).apply(this, arguments);
 };
+var $PasswordEditor = PasswordEditor;
+($traceurRuntime.createClass)(PasswordEditor, {createElements: function() {
+    $traceurRuntime.superGet(this, $PasswordEditor.prototype, "createElements").call(this);
+    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA.setAttribute('type', 'password');
+    this.TEXTAREA.className = 'handsontableInput';
+    this.textareaStyle = this.TEXTAREA.style;
+    this.textareaStyle.width = 0;
+    this.textareaStyle.height = 0;
+    dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+  }}, {}, TextEditor);
+;
 registerEditor('password', PasswordEditor);
 
 //# 
@@ -7750,9 +7748,6 @@ var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     registerEditor = $__0.registerEditor;
 var BaseEditor = ($___95_baseEditor_46_js__ = require("./_baseEditor.js"), $___95_baseEditor_46_js__ && $___95_baseEditor_46_js__.__esModule && $___95_baseEditor_46_js__ || {default: $___95_baseEditor_46_js__}).BaseEditor;
 var SelectEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.SelectEditor = SelectEditor;
 SelectEditor.prototype.init = function() {
   this.select = document.createElement('SELECT');
   dom.addClass(this.select, 'htSelectEditor');
@@ -7879,6 +7874,7 @@ SelectEditor.prototype.close = function() {
 SelectEditor.prototype.focus = function() {
   this.select.focus();
 };
+;
 registerEditor('select', SelectEditor);
 
 //# 
@@ -7905,9 +7901,6 @@ var $__3 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__3.getEditor,
     registerEditor = $__3.registerEditor;
 var TextEditor = BaseEditor.prototype.extend();
-;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.TextEditor = TextEditor;
 TextEditor.prototype.init = function() {
   var that = this;
   this.createElements();
@@ -8163,10 +8156,11 @@ TextEditor.prototype.bindEvents = function() {
 TextEditor.prototype.destroy = function() {
   this.eventManager.clear();
 };
+;
 registerEditor('text', TextEditor);
 
 //# 
-},{"./../dom.js":27,"./../editors.js":29,"./../eventManager.js":41,"./../helpers.js":42,"./_baseEditor.js":30,"autoResize":undefined}],41:[function(require,module,exports){
+},{"./../dom.js":27,"./../editors.js":29,"./../eventManager.js":41,"./../helpers.js":42,"./_baseEditor.js":30,"autoResize":"autoResize"}],41:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   EventManager: {get: function() {
@@ -9256,8 +9250,7 @@ function AutoColumnSize() {
         samples[len].needed--;
       }
     }
-    var settings = instance.getSettings();
-    if (settings.colHeaders) {
+    if (instance.getColHeader(col) !== null) {
       instance.view.appendColHeader(col, tmp.theadTh);
     }
     dom.empty(tmp.tbody);
@@ -11396,17 +11389,20 @@ function CopyPastePlugin(instance) {
     instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
   }
   function onBeforeKeyDown(event) {
-    var ctrlDown;
-    if (instance.getSelected() && instance.getActiveEditor() && !instance.getActiveEditor().isOpened()) {
-      if (helper.isCtrlKey(event.keyCode)) {
-        _this.setCopyableText();
-        event.stopImmediatePropagation();
-        return;
-      }
-      ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-      if (event.keyCode == helper.keyCode.A && ctrlDown) {
-        instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
-      }
+    if (!instance.getSelected()) {
+      return;
+    }
+    if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
+      return;
+    }
+    if (helper.isCtrlKey(event.keyCode)) {
+      _this.setCopyableText();
+      event.stopImmediatePropagation();
+      return;
+    }
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+    if (event.keyCode == helper.keyCode.A && ctrlDown) {
+      instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
     }
   }
   this.destroy = function() {
@@ -11452,7 +11448,7 @@ Handsontable.hooks.add('afterUpdateSettings', init);
 Handsontable.hooks.register('afterCopyLimit');
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../helpers.js":42,"./../../plugins.js":45,"SheetClip":undefined,"copyPaste":undefined}],55:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../helpers.js":42,"./../../plugins.js":45,"SheetClip":"SheetClip","copyPaste":"copyPaste"}],55:[function(require,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_plugins_46_js__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__,
@@ -14931,7 +14927,7 @@ function afterTableAlter() {
 }
 
 //# 
-},{"./../../plugins.js":45,"jsonpatch":undefined}],66:[function(require,module,exports){
+},{"./../../plugins.js":45,"jsonpatch":"jsonpatch"}],66:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   HandsontablePersistentState: {get: function() {
@@ -15710,14 +15706,11 @@ var EventManager = ($___46__46__47_eventManager_46_js__ = require("./../eventMan
 var $__1 = ($___46__46__47_renderers_46_js__ = require("./../renderers.js"), $___46__46__47_renderers_46_js__ && $___46__46__47_renderers_46_js__.__esModule && $___46__46__47_renderers_46_js__ || {default: $___46__46__47_renderers_46_js__}),
     getRenderer = $__1.getRenderer,
     registerRenderer = $__1.registerRenderer;
-var clonableINPUT = document.createElement('INPUT');
-clonableINPUT.className = 'htCheckboxRendererInput';
-clonableINPUT.type = 'checkbox';
-clonableINPUT.setAttribute('autocomplete', 'off');
 var isListeningKeyDownEvent = new WeakMap();
+var BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var eventManager = new EventManager(instance);
-  var input = clonableINPUT.cloneNode(false);
+  var input = createInput();
   if (typeof cellProperties.checkedTemplate === 'undefined') {
     cellProperties.checkedTemplate = true;
   }
@@ -15734,7 +15727,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     dom.addClass(input, 'noValue');
     TD.appendChild(input);
   } else {
-    dom.fastInnerText(TD, '#bad value#');
+    input.style.display = 'none';
+    dom.addClass(input, BAD_VALUE_CLASS);
+    TD.appendChild(input);
+    TD.appendChild(document.createTextNode('#bad-value#'));
   }
   if (cellProperties.readOnly) {
     eventManager.addEventListener(input, 'click', preventDefault);
@@ -15770,6 +15766,9 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     eachSelectedCheckboxCell(function(checkboxes) {
       for (var i = 0,
           len = checkboxes.length; i < len; i++) {
+        if (dom.hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+          return;
+        }
         toggleCheckbox(checkboxes[i], checked);
       }
     });
@@ -15798,15 +15797,22 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       }
     }
   }
-  function preventDefault(event) {
-    event.preventDefault();
-  }
-  function stopPropagation(event) {
-    helper.stopPropagation(event);
-  }
 }
 ;
 registerRenderer('checkbox', checkboxRenderer);
+function createInput() {
+  var input = document.createElement('INPUT');
+  input.className = 'htCheckboxRendererInput';
+  input.type = 'checkbox';
+  input.setAttribute('autocomplete', 'off');
+  return input.cloneNode(false);
+}
+function preventDefault(event) {
+  event.preventDefault();
+}
+function stopPropagation(event) {
+  helper.stopPropagation(event);
+}
 
 //# 
 },{"./../dom.js":27,"./../eventManager.js":41,"./../helpers.js":42,"./../renderers.js":70}],74:[function(require,module,exports){
@@ -17042,6 +17048,882 @@ Handsontable.NumericValidator = function(value, callback) {
   }
   callback(/^-?\d*(\.|\,)?\d*$/.test(value));
 };
+
+//# 
+},{}],"SheetClip":[function(require,module,exports){
+"use strict";
+(function(global) {
+  "use strict";
+  function countQuotes(str) {
+    return str.split('"').length - 1;
+  }
+  var SheetClip = {
+    parse: function(str) {
+      var r,
+          rLen,
+          rows,
+          arr = [],
+          a = 0,
+          c,
+          cLen,
+          multiline,
+          last;
+      rows = str.split('\n');
+      if (rows.length > 1 && rows[rows.length - 1] === '') {
+        rows.pop();
+      }
+      for (r = 0, rLen = rows.length; r < rLen; r += 1) {
+        rows[r] = rows[r].split('\t');
+        for (c = 0, cLen = rows[r].length; c < cLen; c += 1) {
+          if (!arr[a]) {
+            arr[a] = [];
+          }
+          if (multiline && c === 0) {
+            last = arr[a].length - 1;
+            arr[a][last] = arr[a][last] + '\n' + rows[r][0];
+            if (multiline && (countQuotes(rows[r][0]) & 1)) {
+              multiline = false;
+              arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
+            }
+          } else {
+            if (c === cLen - 1 && rows[r][c].indexOf('"') === 0 && (countQuotes(rows[r][c]) & 1)) {
+              arr[a].push(rows[r][c].substring(1).replace(/""/g, '"'));
+              multiline = true;
+            } else {
+              arr[a].push(rows[r][c].replace(/""/g, '"'));
+              multiline = false;
+            }
+          }
+        }
+        if (!multiline) {
+          a += 1;
+        }
+      }
+      return arr;
+    },
+    stringify: function(arr) {
+      var r,
+          rLen,
+          c,
+          cLen,
+          str = '',
+          val;
+      for (r = 0, rLen = arr.length; r < rLen; r += 1) {
+        cLen = arr[r].length;
+        for (c = 0; c < cLen; c += 1) {
+          if (c > 0) {
+            str += '\t';
+          }
+          val = arr[r][c];
+          if (typeof val === 'string') {
+            if (val.indexOf('\n') > -1) {
+              str += '"' + val.replace(/"/g, '""') + '"';
+            } else {
+              str += val;
+            }
+          } else if (val === null || val === void 0) {
+            str += '';
+          } else {
+            str += val;
+          }
+        }
+        str += '\n';
+      }
+      return str;
+    }
+  };
+  if (typeof exports !== 'undefined') {
+    exports.parse = SheetClip.parse;
+    exports.stringify = SheetClip.stringify;
+  } else {
+    global.SheetClip = SheetClip;
+  }
+}(window));
+
+//# 
+},{}],"autoResize":[function(require,module,exports){
+"use strict";
+function autoResize() {
+  var defaults = {
+    minHeight: 200,
+    maxHeight: 300,
+    minWidth: 100,
+    maxWidth: 300
+  },
+      el,
+      body = document.body,
+      text = document.createTextNode(''),
+      span = document.createElement('SPAN'),
+      observe = function(element, event, handler) {
+        if (window.attachEvent) {
+          element.attachEvent('on' + event, handler);
+        } else {
+          element.addEventListener(event, handler, false);
+        }
+      },
+      unObserve = function(element, event, handler) {
+        if (window.removeEventListener) {
+          element.removeEventListener(event, handler, false);
+        } else {
+          element.detachEvent('on' + event, handler);
+        }
+      },
+      resize = function(newChar) {
+        var width,
+            scrollHeight;
+        if (!newChar) {
+          newChar = "";
+        } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
+          newChar = ".";
+        }
+        if (text.textContent !== void 0) {
+          text.textContent = el.value + newChar;
+        } else {
+          text.data = el.value + newChar;
+        }
+        span.style.fontSize = Handsontable.Dom.getComputedStyle(el).fontSize;
+        span.style.fontFamily = Handsontable.Dom.getComputedStyle(el).fontFamily;
+        span.style.whiteSpace = "pre";
+        body.appendChild(span);
+        width = span.clientWidth + 2;
+        body.removeChild(span);
+        el.style.height = defaults.minHeight + 'px';
+        if (defaults.minWidth > width) {
+          el.style.width = defaults.minWidth + 'px';
+        } else if (width > defaults.maxWidth) {
+          el.style.width = defaults.maxWidth + 'px';
+        } else {
+          el.style.width = width + 'px';
+        }
+        scrollHeight = el.scrollHeight ? el.scrollHeight - 1 : 0;
+        if (defaults.minHeight > scrollHeight) {
+          el.style.height = defaults.minHeight + 'px';
+        } else if (defaults.maxHeight < scrollHeight) {
+          el.style.height = defaults.maxHeight + 'px';
+          el.style.overflowY = 'visible';
+        } else {
+          el.style.height = scrollHeight + 'px';
+        }
+      },
+      delayedResize = function() {
+        window.setTimeout(resize, 0);
+      },
+      extendDefaults = function(config) {
+        if (config && config.minHeight) {
+          if (config.minHeight == 'inherit') {
+            defaults.minHeight = el.clientHeight;
+          } else {
+            var minHeight = parseInt(config.minHeight);
+            if (!isNaN(minHeight)) {
+              defaults.minHeight = minHeight;
+            }
+          }
+        }
+        if (config && config.maxHeight) {
+          if (config.maxHeight == 'inherit') {
+            defaults.maxHeight = el.clientHeight;
+          } else {
+            var maxHeight = parseInt(config.maxHeight);
+            if (!isNaN(maxHeight)) {
+              defaults.maxHeight = maxHeight;
+            }
+          }
+        }
+        if (config && config.minWidth) {
+          if (config.minWidth == 'inherit') {
+            defaults.minWidth = el.clientWidth;
+          } else {
+            var minWidth = parseInt(config.minWidth);
+            if (!isNaN(minWidth)) {
+              defaults.minWidth = minWidth;
+            }
+          }
+        }
+        if (config && config.maxWidth) {
+          if (config.maxWidth == 'inherit') {
+            defaults.maxWidth = el.clientWidth;
+          } else {
+            var maxWidth = parseInt(config.maxWidth);
+            if (!isNaN(maxWidth)) {
+              defaults.maxWidth = maxWidth;
+            }
+          }
+        }
+        if (!span.firstChild) {
+          span.className = "autoResize";
+          span.style.display = 'inline-block';
+          span.appendChild(text);
+        }
+      },
+      init = function(el_, config, doObserve) {
+        el = el_;
+        extendDefaults(config);
+        if (el.nodeName == 'TEXTAREA') {
+          el.style.resize = 'none';
+          el.style.overflowY = '';
+          el.style.height = defaults.minHeight + 'px';
+          el.style.minWidth = defaults.minWidth + 'px';
+          el.style.maxWidth = defaults.maxWidth + 'px';
+          el.style.overflowY = 'hidden';
+        }
+        if (doObserve) {
+          observe(el, 'change', resize);
+          observe(el, 'cut', delayedResize);
+          observe(el, 'paste', delayedResize);
+          observe(el, 'drop', delayedResize);
+          observe(el, 'keydown', delayedResize);
+        }
+        resize();
+      };
+  return {
+    init: function(el_, config, doObserve) {
+      init(el_, config, doObserve);
+    },
+    unObserve: function() {
+      unObserve(el, 'change', resize);
+      unObserve(el, 'cut', delayedResize);
+      unObserve(el, 'paste', delayedResize);
+      unObserve(el, 'drop', delayedResize);
+      unObserve(el, 'keydown', delayedResize);
+    },
+    resize: resize
+  };
+}
+if (typeof exports !== 'undefined') {
+  module.exports = autoResize;
+}
+
+//# 
+},{}],"copyPaste":[function(require,module,exports){
+"use strict";
+var instance;
+function copyPaste() {
+  if (!instance) {
+    instance = new CopyPasteClass();
+  } else if (instance.hasBeenDestroyed()) {
+    instance.init();
+  }
+  instance.refCounter++;
+  return instance;
+}
+if (typeof exports !== 'undefined') {
+  module.exports = copyPaste;
+}
+function CopyPasteClass() {
+  this.refCounter = 0;
+  this.init();
+}
+CopyPasteClass.prototype.init = function() {
+  var style,
+      parent;
+  this.copyCallbacks = [];
+  this.cutCallbacks = [];
+  this.pasteCallbacks = [];
+  parent = document.body;
+  if (document.getElementById('CopyPasteDiv')) {
+    this.elDiv = document.getElementById('CopyPasteDiv');
+    this.elTextarea = this.elDiv.firstChild;
+  } else {
+    this.elDiv = document.createElement('div');
+    this.elDiv.id = 'CopyPasteDiv';
+    style = this.elDiv.style;
+    style.position = 'fixed';
+    style.top = '-10000px';
+    style.left = '-10000px';
+    parent.appendChild(this.elDiv);
+    this.elTextarea = document.createElement('textarea');
+    this.elTextarea.className = 'copyPaste';
+    this.elTextarea.onpaste = function(event) {
+      var clipboardContents,
+          temp;
+      if ('WebkitAppearance' in document.documentElement.style) {
+        clipboardContents = event.clipboardData.getData("Text");
+        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+          temp = clipboardContents.split('\n');
+          temp.pop();
+          clipboardContents = temp.join('\n');
+        }
+        this.value = clipboardContents;
+        return false;
+      }
+    };
+    style = this.elTextarea.style;
+    style.width = '10000px';
+    style.height = '10000px';
+    style.overflow = 'hidden';
+    this.elDiv.appendChild(this.elTextarea);
+    if (typeof style.opacity !== 'undefined') {
+      style.opacity = 0;
+    }
+  }
+  this.onKeyDownRef = this.onKeyDown.bind(this);
+  document.documentElement.addEventListener('keydown', this.onKeyDownRef, false);
+};
+CopyPasteClass.prototype.onKeyDown = function(event) {
+  var _this = this,
+      isCtrlDown = false;
+  function isActiveElementEditable() {
+    var element = document.activeElement;
+    if (element.shadowRoot && element.shadowRoot.activeElement) {
+      element = element.shadowRoot.activeElement;
+    }
+    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
+  }
+  if (event.metaKey) {
+    isCtrlDown = true;
+  } else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) {
+    isCtrlDown = true;
+  }
+  if (isCtrlDown) {
+    if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' || isActiveElementEditable())) {
+      return;
+    }
+    this.selectNodeText(this.elTextarea);
+    setTimeout(function() {
+      if (document.activeElement !== _this.elTextarea) {
+        _this.selectNodeText(_this.elTextarea);
+      }
+    }, 0);
+  }
+  if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
+    if (event.keyCode === 88) {
+      setTimeout(function() {
+        _this.triggerCut(event);
+      }, 0);
+    } else if (event.keyCode === 86) {
+      setTimeout(function() {
+        _this.triggerPaste(event);
+      }, 0);
+    }
+  }
+};
+CopyPasteClass.prototype.selectNodeText = function(element) {
+  if (element) {
+    element.select();
+  }
+};
+CopyPasteClass.prototype.getSelectionText = function() {
+  var text = '';
+  if (window.getSelection) {
+    text = window.getSelection().toString();
+  } else if (document.selection && document.selection.type !== 'Control') {
+    text = document.selection.createRange().text;
+  }
+  return text;
+};
+CopyPasteClass.prototype.copyable = function(string) {
+  if (typeof string !== 'string' && string.toString === void 0) {
+    throw new Error('copyable requires string parameter');
+  }
+  this.elTextarea.value = string;
+  this.selectNodeText(this.elTextarea);
+};
+CopyPasteClass.prototype.onCut = function(callback) {
+  this.cutCallbacks.push(callback);
+};
+CopyPasteClass.prototype.onPaste = function(callback) {
+  this.pasteCallbacks.push(callback);
+};
+CopyPasteClass.prototype.removeCallback = function(callback) {
+  var i,
+      len;
+  for (i = 0, len = this.copyCallbacks.length; i < len; i++) {
+    if (this.copyCallbacks[i] === callback) {
+      this.copyCallbacks.splice(i, 1);
+      return true;
+    }
+  }
+  for (i = 0, len = this.cutCallbacks.length; i < len; i++) {
+    if (this.cutCallbacks[i] === callback) {
+      this.cutCallbacks.splice(i, 1);
+      return true;
+    }
+  }
+  for (i = 0, len = this.pasteCallbacks.length; i < len; i++) {
+    if (this.pasteCallbacks[i] === callback) {
+      this.pasteCallbacks.splice(i, 1);
+      return true;
+    }
+  }
+  return false;
+};
+CopyPasteClass.prototype.triggerCut = function(event) {
+  var _this = this;
+  if (_this.cutCallbacks) {
+    setTimeout(function() {
+      for (var i = 0,
+          len = _this.cutCallbacks.length; i < len; i++) {
+        _this.cutCallbacks[i](event);
+      }
+    }, 50);
+  }
+};
+CopyPasteClass.prototype.triggerPaste = function(event, string) {
+  var _this = this;
+  if (_this.pasteCallbacks) {
+    setTimeout(function() {
+      var val = string || _this.elTextarea.value;
+      for (var i = 0,
+          len = _this.pasteCallbacks.length; i < len; i++) {
+        _this.pasteCallbacks[i](val, event);
+      }
+    }, 50);
+  }
+};
+CopyPasteClass.prototype.destroy = function() {
+  if (!this.hasBeenDestroyed() && --this.refCounter === 0) {
+    if (this.elDiv && this.elDiv.parentNode) {
+      this.elDiv.parentNode.removeChild(this.elDiv);
+      this.elDiv = null;
+      this.elTextarea = null;
+    }
+    document.documentElement.removeEventListener('keydown', this.onKeyDownRef);
+  }
+};
+CopyPasteClass.prototype.hasBeenDestroyed = function() {
+  return !this.refCounter;
+};
+
+//# 
+},{}],"jsonpatch":[function(require,module,exports){
+"use strict";
+var jsonpatch;
+(function(jsonpatch) {
+  var objOps = {
+    add: function(obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    remove: function(obj, key) {
+      delete obj[key];
+      return true;
+    },
+    replace: function(obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    move: function(obj, key, tree) {
+      var temp = {
+        op: "_get",
+        path: this.from
+      };
+      apply(tree, [temp]);
+      apply(tree, [{
+        op: "remove",
+        path: this.from
+      }]);
+      apply(tree, [{
+        op: "add",
+        path: this.path,
+        value: temp.value
+      }]);
+      return true;
+    },
+    copy: function(obj, key, tree) {
+      var temp = {
+        op: "_get",
+        path: this.from
+      };
+      apply(tree, [temp]);
+      apply(tree, [{
+        op: "add",
+        path: this.path,
+        value: temp.value
+      }]);
+      return true;
+    },
+    test: function(obj, key) {
+      return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+    },
+    _get: function(obj, key) {
+      this.value = obj[key];
+    }
+  };
+  var arrOps = {
+    add: function(arr, i) {
+      arr.splice(i, 0, this.value);
+      return true;
+    },
+    remove: function(arr, i) {
+      arr.splice(i, 1);
+      return true;
+    },
+    replace: function(arr, i) {
+      arr[i] = this.value;
+      return true;
+    },
+    move: objOps.move,
+    copy: objOps.copy,
+    test: objOps.test,
+    _get: objOps._get
+  };
+  var observeOps = {
+    add: function(patches, path) {
+      var patch = {
+        op: "add",
+        path: path + escapePathComponent(this.name),
+        value: this.object[this.name]
+      };
+      patches.push(patch);
+    },
+    'delete': function(patches, path) {
+      var patch = {
+        op: "remove",
+        path: path + escapePathComponent(this.name)
+      };
+      patches.push(patch);
+    },
+    update: function(patches, path) {
+      var patch = {
+        op: "replace",
+        path: path + escapePathComponent(this.name),
+        value: this.object[this.name]
+      };
+      patches.push(patch);
+    }
+  };
+  function escapePathComponent(str) {
+    if (str.indexOf('/') === -1 && str.indexOf('~') === -1) {
+      return str;
+    }
+    return str.replace(/~/g, '~0').replace(/\//g, '~1');
+  }
+  function _getPathRecursive(root, obj) {
+    var found;
+    for (var key in root) {
+      if (root.hasOwnProperty(key)) {
+        if (root[key] === obj) {
+          return escapePathComponent(key) + '/';
+        } else if (typeof root[key] === 'object') {
+          found = _getPathRecursive(root[key], obj);
+          if (found != '') {
+            return escapePathComponent(key) + '/' + found;
+          }
+        }
+      }
+    }
+    return '';
+  }
+  function getPath(root, obj) {
+    if (root === obj) {
+      return '/';
+    }
+    var path = _getPathRecursive(root, obj);
+    if (path === '') {
+      throw new Error("Object not found in root");
+    }
+    return '/' + path;
+  }
+  var beforeDict = [];
+  jsonpatch.intervals;
+  var Mirror = (function() {
+    function Mirror(obj) {
+      this.observers = [];
+      this.obj = obj;
+    }
+    return Mirror;
+  })();
+  var ObserverInfo = (function() {
+    function ObserverInfo(callback, observer) {
+      this.callback = callback;
+      this.observer = observer;
+    }
+    return ObserverInfo;
+  })();
+  function getMirror(obj) {
+    for (var i = 0,
+        ilen = beforeDict.length; i < ilen; i++) {
+      if (beforeDict[i].obj === obj) {
+        return beforeDict[i];
+      }
+    }
+  }
+  function getObserverFromMirror(mirror, callback) {
+    for (var j = 0,
+        jlen = mirror.observers.length; j < jlen; j++) {
+      if (mirror.observers[j].callback === callback) {
+        return mirror.observers[j].observer;
+      }
+    }
+  }
+  function removeObserverFromMirror(mirror, observer) {
+    for (var j = 0,
+        jlen = mirror.observers.length; j < jlen; j++) {
+      if (mirror.observers[j].observer === observer) {
+        mirror.observers.splice(j, 1);
+        return;
+      }
+    }
+  }
+  function unobserve(root, observer) {
+    generate(observer);
+    if (Object.observe) {
+      _unobserve(observer, root);
+    } else {
+      clearTimeout(observer.next);
+    }
+    var mirror = getMirror(root);
+    removeObserverFromMirror(mirror, observer);
+  }
+  jsonpatch.unobserve = unobserve;
+  function observe(obj, callback) {
+    var patches = [];
+    var root = obj;
+    var observer;
+    var mirror = getMirror(obj);
+    if (!mirror) {
+      mirror = new Mirror(obj);
+      beforeDict.push(mirror);
+    } else {
+      observer = getObserverFromMirror(mirror, callback);
+    }
+    if (observer) {
+      return observer;
+    }
+    if (Object.observe) {
+      observer = function(arr) {
+        _unobserve(observer, obj);
+        _observe(observer, obj);
+        var a = 0,
+            alen = arr.length;
+        while (a < alen) {
+          if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
+            var type = arr[a].type;
+            switch (type) {
+              case 'new':
+                type = 'add';
+                break;
+              case 'deleted':
+                type = 'delete';
+                break;
+              case 'updated':
+                type = 'update';
+                break;
+            }
+            observeOps[type].call(arr[a], patches, getPath(root, arr[a].object));
+          }
+          a++;
+        }
+        if (patches) {
+          if (callback) {
+            callback(patches);
+          }
+        }
+        observer.patches = patches;
+        patches = [];
+      };
+    } else {
+      observer = {};
+      mirror.value = JSON.parse(JSON.stringify(obj));
+      if (callback) {
+        observer.callback = callback;
+        observer.next = null;
+        var intervals = this.intervals || [100, 1000, 10000, 60000];
+        var currentInterval = 0;
+        var dirtyCheck = function() {
+          generate(observer);
+        };
+        var fastCheck = function() {
+          clearTimeout(observer.next);
+          observer.next = setTimeout(function() {
+            dirtyCheck();
+            currentInterval = 0;
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+          }, 0);
+        };
+        var slowCheck = function() {
+          dirtyCheck();
+          if (currentInterval == intervals.length) {
+            currentInterval = intervals.length - 1;
+          }
+          observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        };
+        if (typeof window !== 'undefined') {
+          if (window.addEventListener) {
+            window.addEventListener('mousedown', fastCheck);
+            window.addEventListener('mouseup', fastCheck);
+            window.addEventListener('keydown', fastCheck);
+          } else {
+            window.attachEvent('onmousedown', fastCheck);
+            window.attachEvent('onmouseup', fastCheck);
+            window.attachEvent('onkeydown', fastCheck);
+          }
+        }
+        observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+      }
+    }
+    observer.patches = patches;
+    observer.object = obj;
+    mirror.observers.push(new ObserverInfo(callback, observer));
+    return _observe(observer, obj);
+  }
+  jsonpatch.observe = observe;
+  function _observe(observer, obj) {
+    if (Object.observe) {
+      Object.observe(obj, observer);
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          var v = obj[key];
+          if (v && typeof(v) === "object") {
+            _observe(observer, v);
+          }
+        }
+      }
+    }
+    return observer;
+  }
+  function _unobserve(observer, obj) {
+    if (Object.observe) {
+      Object.unobserve(obj, observer);
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          var v = obj[key];
+          if (v && typeof(v) === "object") {
+            _unobserve(observer, v);
+          }
+        }
+      }
+    }
+    return observer;
+  }
+  function generate(observer) {
+    if (Object.observe) {
+      Object.deliverChangeRecords(observer);
+    } else {
+      var mirror;
+      for (var i = 0,
+          ilen = beforeDict.length; i < ilen; i++) {
+        if (beforeDict[i].obj === observer.object) {
+          mirror = beforeDict[i];
+          break;
+        }
+      }
+      _generate(mirror.value, observer.object, observer.patches, "");
+    }
+    var temp = observer.patches;
+    if (temp.length > 0) {
+      observer.patches = [];
+      if (observer.callback) {
+        observer.callback(temp);
+      }
+    }
+    return temp;
+  }
+  jsonpatch.generate = generate;
+  var _objectKeys;
+  if (Object.keys) {
+    _objectKeys = Object.keys;
+  } else {
+    _objectKeys = function(obj) {
+      var keys = [];
+      for (var o in obj) {
+        if (obj.hasOwnProperty(o)) {
+          keys.push(o);
+        }
+      }
+      return keys;
+    };
+  }
+  function _generate(mirror, obj, patches, path) {
+    var newKeys = _objectKeys(obj);
+    var oldKeys = _objectKeys(mirror);
+    var changed = false;
+    var deleted = false;
+    for (var t = oldKeys.length - 1; t >= 0; t--) {
+      var key = oldKeys[t];
+      var oldVal = mirror[key];
+      if (obj.hasOwnProperty(key)) {
+        var newVal = obj[key];
+        if (oldVal instanceof Object) {
+          _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
+        } else {
+          if (oldVal != newVal) {
+            changed = true;
+            patches.push({
+              op: "replace",
+              path: path + "/" + escapePathComponent(key),
+              value: newVal
+            });
+            mirror[key] = newVal;
+          }
+        }
+      } else {
+        patches.push({
+          op: "remove",
+          path: path + "/" + escapePathComponent(key)
+        });
+        delete mirror[key];
+        deleted = true;
+      }
+    }
+    if (!deleted && newKeys.length == oldKeys.length) {
+      return;
+    }
+    for (var t = 0; t < newKeys.length; t++) {
+      var key = newKeys[t];
+      if (!mirror.hasOwnProperty(key)) {
+        patches.push({
+          op: "add",
+          path: path + "/" + escapePathComponent(key),
+          value: obj[key]
+        });
+        mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+      }
+    }
+  }
+  var _isArray;
+  if (Array.isArray) {
+    _isArray = Array.isArray;
+  } else {
+    _isArray = function(obj) {
+      return obj.push && typeof obj.length === 'number';
+    };
+  }
+  function apply(tree, patches) {
+    var result = false,
+        p = 0,
+        plen = patches.length,
+        patch;
+    while (p < plen) {
+      patch = patches[p];
+      var keys = patch.path.split('/');
+      var obj = tree;
+      var t = 1;
+      var len = keys.length;
+      while (true) {
+        if (_isArray(obj)) {
+          var index = parseInt(keys[t], 10);
+          t++;
+          if (t >= len) {
+            result = arrOps[patch.op].call(patch, obj, index, tree);
+            break;
+          }
+          obj = obj[index];
+        } else {
+          var key = keys[t];
+          if (key.indexOf('~') != -1) {
+            key = key.replace(/~1/g, '/').replace(/~0/g, '~');
+          }
+          t++;
+          if (t >= len) {
+            result = objOps[patch.op].call(patch, obj, key, tree);
+            break;
+          }
+          obj = obj[key];
+        }
+      }
+      p++;
+    }
+    return result;
+  }
+  jsonpatch.apply = apply;
+})(jsonpatch || (jsonpatch = {}));
+if (typeof exports !== "undefined") {
+  exports.apply = jsonpatch.apply;
+  exports.observe = jsonpatch.observe;
+  exports.unobserve = jsonpatch.unobserve;
+  exports.generate = jsonpatch.generate;
+}
 
 //# 
 },{}],"numeral":[function(require,module,exports){
