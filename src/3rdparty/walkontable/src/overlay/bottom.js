@@ -21,6 +21,11 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
   repositionOverlay() {
     let scrollbarWidth = dom.getScrollbarWidth();
     let cloneRoot = this.clone.wtTable.holder.parentNode;
+
+    if(this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
+      scrollbarWidth = 0;
+    }
+
     cloneRoot.style.top = '';
     cloneRoot.style.bottom = scrollbarWidth + 'px';
   }

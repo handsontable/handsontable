@@ -149,8 +149,7 @@ WalkontableTable.prototype.draw = function(fastDraw) {
       startRow = 0;
     } else if (this.instance.cloneOverlay instanceof WalkontableBottomOverlay ||
       this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
-      startRow = totalRows - this.instance.getSetting('fixedRowsBottom') +
-        (this.instance.getSetting('minSpareRows') ? this.instance.getSetting('minSpareRows') - 1 : 0);
+      startRow = totalRows - this.instance.getSetting('fixedRowsBottom');
     } else {
       startRow = this.instance.wtViewport.rowsRenderCalculator.startRow;
     }

@@ -459,6 +459,30 @@ function getRenderedContent(trIndex, tdIndex) {
 }
 
 /**
+ * Create numerical data values for the table
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+function createNumericData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push((i + 1));
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+/**
  * Model factory, which creates object with private properties, accessible by setters and getters.
  * Created for the purpose of testing HOT with Backbone-like Models
  * @param opts
