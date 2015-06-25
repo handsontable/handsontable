@@ -42,8 +42,9 @@ function RegisteredEditor(editorClass) {
 function registerEditor(editorName, editorClass) {
   var editor = new RegisteredEditor(editorClass);
 
-  if (typeof editorName === "string") {
+  if (typeof editorName === 'string') {
     registeredEditorNames[editorName] = editor;
+    Handsontable.editors[helper.toUpperCaseFirst(editorName) + 'Editor'] = editorClass;
   }
   registeredEditorClasses.set(editorClass, editor);
 }

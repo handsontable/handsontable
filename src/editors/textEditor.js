@@ -8,9 +8,6 @@ import {getEditor, registerEditor} from './../editors.js';
 
 var TextEditor = BaseEditor.prototype.extend();
 
-export {TextEditor};
-
-Handsontable.editors = Handsontable.editors || {};
 
 /**
  * @private
@@ -18,8 +15,6 @@ Handsontable.editors = Handsontable.editors || {};
  * @class TextEditor
  * @dependencies autoResize
  */
-Handsontable.editors.TextEditor = TextEditor;
-
 TextEditor.prototype.init = function() {
   var that = this;
   this.createElements();
@@ -360,5 +355,7 @@ TextEditor.prototype.bindEvents = function() {
 TextEditor.prototype.destroy = function() {
   this.eventManager.clear();
 };
+
+export {TextEditor};
 
 registerEditor('text', TextEditor);
