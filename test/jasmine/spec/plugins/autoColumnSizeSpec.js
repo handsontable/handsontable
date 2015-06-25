@@ -31,6 +31,31 @@ describe('AutoColumnSize', function () {
     expect(width1).toBeLessThan(width2);
   });
 
+  it('should correctly detect column width with colHeaders', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colHeaders: ['Identifier'],
+      columns: [
+        {data: 'id'}
+      ]
+    });
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+  });
+
+  it('should correctly detect column width with columns.title', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      columns: [
+        {data: 'id', title: 'Identifier'}
+      ]
+    });
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+  });
+
   it('should be possible to disable plugin using updateSettings', function () {
 
     handsontable({
