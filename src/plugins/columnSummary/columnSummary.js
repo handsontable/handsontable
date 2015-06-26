@@ -41,7 +41,6 @@ class ColumnSummary extends BasePlugin {
         _this.refreshChangedEndpoints(changes);
       }
     });
-
   }
 
   parseSettings() {
@@ -140,6 +139,12 @@ class ColumnSummary extends BasePlugin {
     let needToRefresh = [];
 
     for (var i = 0, changesCount = changes.length; i < changesCount; i++) {
+
+      // if nothing changed, dont update anything
+      if((changes[i][2] || '') + '' === changes[i][3] + '') {
+        continue;
+      }
+
       for (var j = 0, endpointsCount = this.endpoints.length; j < endpointsCount; j++) {
         if (changes[i][1] === this.endpoints[j].sourceColumn && needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
