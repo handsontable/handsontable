@@ -10,7 +10,6 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
-    this.wot = wotInstance;
     super(wotInstance);
     this.clone = this.makeClone(WalkontableOverlay.CLONE_BOTTOM);
   }
@@ -22,7 +21,7 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
     let scrollbarWidth = dom.getScrollbarWidth();
     let cloneRoot = this.clone.wtTable.holder.parentNode;
 
-    if(this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
+    if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
       scrollbarWidth = 0;
     }
 
@@ -160,7 +159,7 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
     let rowInnerHeight = 0;
     let totalRows = this.wot.getSetting('totalRows');
 
-    if(this.wot.getSetting('fixedRowsBottom')) {
+    if (this.wot.getSetting('fixedRowsBottom')) {
       // mark oversized rows within the fixed bottom rows
       rowCount = this.wot.wtOverlays.bottomOverlay.clone.wtTable.TBODY.childNodes.length;
 
@@ -205,7 +204,7 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
    */
   applyToDOM() {
     let total = this.wot.getSetting('totalRows');
-    
+
     if (!this.isElementSizesAdjusted) {
       this.adjustElementsSize();
     }
@@ -233,8 +232,8 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
    */
   getTrForRow(souceRowIndex) {
     let totalRows = this.wot.getSetting('totalRows');
+
     return this.clone.wtTable.TBODY.childNodes[this.clone.wtTable.TBODY.childNodes.length - (totalRows - souceRowIndex)];
-    //return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
   /**
@@ -287,10 +286,9 @@ class WalkontableBottomOverlay extends WalkontableOverlay {
   getTableParentOffset() {
     if (this.mainTableScrollableElement === window) {
       return this.wot.wtTable.holderOffset.top;
-
-    } else {
-      return 0;
     }
+
+    return 0;
   }
 
   /**

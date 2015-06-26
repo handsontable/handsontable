@@ -18,7 +18,7 @@ describe("ColumnSummarySpec", function() {
         var hi = null;
       };
 
-      var hot = new Handsontable(this.$container[0], {
+      var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
         height: 200,
         width: 200,

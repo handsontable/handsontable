@@ -7,12 +7,12 @@
 
 export function enableImmediatePropagation(event) {
   if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function () {
+    event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
     };
     event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function () {
+    event.isImmediatePropagationStopped = function() {
       return !this.isImmediatePropagationEnabled;
     };
   }
@@ -175,7 +175,7 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function () {
+  var isSupportMultipleClassesArg = (function() {
     var element = document.createElement('div');
 
     element.classList.add('test', 'test2');
@@ -861,7 +861,7 @@ export function isSafari() {
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top, bottom) {
-  if(bottom === void 0) {
+  if (bottom === void 0) {
     if (_isIE8 || _isIE9) {
       overlayElem.style.top = top;
       overlayElem.style.left = left;
@@ -872,8 +872,8 @@ export function setOverlayPosition(overlayElem, left, top, bottom) {
       overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
     }
   } else {
-      overlayElem.style.bottom = bottom;
-      overlayElem.style.left = left;
+    overlayElem.style.bottom = bottom;
+    overlayElem.style.left = left;
   }
 }
 

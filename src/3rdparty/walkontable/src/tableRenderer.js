@@ -57,7 +57,7 @@ class WalkontableTableRenderer {
       this.instance.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
-      this.columnHeaders = false;
+      this.columnHeaders = [];
       this.columnHeaderCount = 0;
     }
 
@@ -121,10 +121,6 @@ class WalkontableTableRenderer {
       this.wot.cloneOverlay.markOversizedFixedBottomRows();
 
       masterOverlay.wtOverlays.adjustElementsSize();
-
-      //this.wot.cloneOverlay.adjustElementsSize();
-      //masterOverlay.wtOverlays.leftOverlay.adjustElementsSize();
-      //masterOverlay.wtOverlays.bottomLeftCornerOverlay.refresh();
     }
   }
 

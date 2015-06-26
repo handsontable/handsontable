@@ -30,6 +30,7 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
   repositionOverlay() {
     let scrollbarWidth = dom.getScrollbarWidth();
     let cloneRoot = this.clone.wtTable.holder.parentNode;
+
     cloneRoot.style.top = '';
     cloneRoot.style.bottom = scrollbarWidth + 'px';
   }
@@ -45,6 +46,7 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
     let tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
+
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === window) {

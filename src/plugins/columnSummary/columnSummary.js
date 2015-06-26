@@ -3,9 +3,7 @@ import {registerPlugin, getPlugin} from './../../plugins.js';
 
 /**
  * @class ColumnSummary
- * @plugin
- *
- *
+ * @plugin ColumnSummary
  */
 class ColumnSummary extends BasePlugin {
   constructor(hotInstance) {
@@ -28,23 +26,42 @@ class ColumnSummary extends BasePlugin {
     this.bindHooks();
   }
 
+  /**
+   * Bind HOT hooks for the plugin
+   */
   bindHooks() {
-    let _this = this;
-
-    this.hot.addHook('afterInit', function() {
-      _this.parseSettings(_this.settings);
-      _this.refreshAllEndpoints(true);
-    });
-
-    this.hot.addHook('afterChange', function(changes, source) {
-      if (changes && source !== 'columnSummary' && source !== 'loadData') {
-        _this.refreshChangedEndpoints(changes);
-      }
-    });
+    this.hot.addHook('afterInit', () => this.onAfterInit());
+    this.hot.addHook('afterChange', () => this.onAfterChange());
   }
 
+  /**
+   * afterInit hook callback
+   *
+   * @private
+   */
+  onAfterInit() {
+      this.parseSettings(this.settings);
+      this.refreshAllEndpoints(true);
+  }
+
+  /**
+   * afterChange hook callback
+   *
+   * @private
+   * @param {Array} changes
+   * @param {String} source
+   */
+  onAfterChange(changes, source) {
+    if (changes && source !== 'columnSummary' && source !== 'loadData') {
+      this.refreshChangedEndpoints(changes);
+    }
+  }
+
+  /**
+   * Parse plugin's settings
+   */
   parseSettings() {
-    for (var s in this.settings) {
+    for (let s in this.settings) {
       if (this.settings.hasOwnProperty(s)) {
         let newEndpoint = {};
 
@@ -66,6 +83,14 @@ class ColumnSummary extends BasePlugin {
     }
   }
 
+  /**
+   * Setter for the internal setting objects
+   *
+   * @param {Object} settings
+   * @param {Object} endpoint
+   * @param {String} name
+   * @param defaultValue
+   */
   assignSetting(settings, endpoint, name, defaultValue) {
     if (name === 'ranges' && settings[name] === void 0) {
       endpoint[name] = defaultValue;
@@ -94,6 +119,7 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Do the math for a single endpoint
+   *
    * @param endpoint
    */
   calculate(endpoint) {
@@ -121,9 +147,11 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Calculate and refresh all defined endpoints
+   *
+   * @param {Boolean} init True if initial call
    */
   refreshAllEndpoints(init) {
-    for (var i = 0; i < this.endpoints.length; i++) {
+    for (let i = 0; i < this.endpoints.length; i++) {
       this.currentEndpoint = this.endpoints[i];
       this.calculate(this.endpoints[i]);
       this.setEndpointValue(this.endpoints[i], 'init');
@@ -133,33 +161,35 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Calculate and refresh endpoints only in the changed columns
-   * @param changes
+   *
+   * @param {Array} changes
    */
   refreshChangedEndpoints(changes) {
     let needToRefresh = [];
 
-    for (var i = 0, changesCount = changes.length; i < changesCount; i++) {
+    for (let i = 0, changesCount = changes.length; i < changesCount; i++) {
 
       // if nothing changed, dont update anything
       if((changes[i][2] || '') + '' === changes[i][3] + '') {
         continue;
       }
 
-      for (var j = 0, endpointsCount = this.endpoints.length; j < endpointsCount; j++) {
+      for (let j = 0, endpointsCount = this.endpoints.length; j < endpointsCount; j++) {
         if (changes[i][1] === this.endpoints[j].sourceColumn && needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
         }
       }
     }
 
-    for (var i = 0, refreshListCount = needToRefresh.length; i < refreshListCount; i++) {
+    for (let i = 0, refreshListCount = needToRefresh.length; i < refreshListCount; i++) {
       this.refreshEndpoint(this.endpoints[needToRefresh[i]]);
     }
   }
 
   /**
    * Calculate and refresh a single endpoint
-   * @param endpoint
+   *
+   * @param {Object} endpoint
    */
   refreshEndpoint(endpoint) {
     this.currentEndpoint = endpoint;
@@ -170,7 +200,8 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Set the endpoint value
-   * @param endpoint
+   *
+   * @param {Object} endpoint
    */
   setEndpointValue(endpoint, source) {
     if (source === 'init') {
@@ -187,11 +218,14 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Calculate sum of the values contained in ranges provided in the plugin config
+   *
+   * @param {Object} endpoint
+   * @returns {Number} Sum for the selected range
    */
   calculateSum(endpoint) {
     let sum = 0;
 
-    for (var r in endpoint.ranges) {
+    for (let r in endpoint.ranges) {
       if (endpoint.ranges.hasOwnProperty(r)) {
         sum += this.getPartialSum(endpoint.ranges[r], endpoint.sourceColumn);
       }
@@ -202,8 +236,9 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Get partial sum of values from a single row range
-   * @param range
-   * @returns {number}
+   *
+   * @param {Array} range
+   * @returns {Number}
    */
   getPartialSum(rowRange, col) {
     let sum = 0;
@@ -219,13 +254,14 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Calculate the minimal value for the selected ranges
-   * @param endpoint
-   * @returns {*}
+   *
+   * @param {Object} endpoint
+   * @returns {Number}
    */
   calculateMinMax(endpoint, type) {
     let result = null;
 
-    for (var r in endpoint.ranges) {
+    for (let r in endpoint.ranges) {
       if (endpoint.ranges.hasOwnProperty(r)) {
         let partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
 
@@ -253,9 +289,11 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Get a local minimum of the provided sub-range
-   * @param rowRange
-   * @param col
-   * @returns {*}
+   *
+   * @param {Array} rowRange
+   * @param {Number} col
+   * @param {String} type `min` or `max`
+   * @returns {Number}
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -287,9 +325,9 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Count empty cells in the provided row range
-   * @param rowRange
-   * @param col
-   * @returns {number}
+   * @param {Array} rowRange
+   * @param {Number} col
+   * @returns {Number}
    */
   countEmpty(rowRange, col) {
     let cellValue;
@@ -311,14 +349,15 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Count non-empty cells in the provided row range
-   * @param endpoint
-   * @returns {number}
+   *
+   * @param {Object} endpoint
+   * @returns {Number}
    */
   countEntries(endpoint) {
     let result = 0;
     let ranges = endpoint.ranges;
 
-    for (var r in ranges) {
+    for (let r in ranges) {
       if (ranges.hasOwnProperty(r)) {
         let partial = ranges[r][1] !== void 0 ? ranges[r][1] - ranges[r][0] + 1 : 1;
         let emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
@@ -332,6 +371,12 @@ class ColumnSummary extends BasePlugin {
   }
 
 
+  /**
+   * Calculate the average value from the cells in the range
+   *
+   * @param {Object} endpoint
+   * @returns {Number}
+   */
   calculateAverage(endpoint) {
     let sum = this.calculateSum(endpoint);
     let entriesCount = this.countEntries(endpoint);
@@ -341,9 +386,10 @@ class ColumnSummary extends BasePlugin {
 
   /**
    * Gets a cell value, taking into consideration a basic validation
-   * @param row
-   * @param col
-   * @returns {string}
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @returns {String}
    */
   getCellValue(row, col) {
     let cellValue = this.hot.getDataAtCell(row, col);
