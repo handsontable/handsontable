@@ -31,7 +31,7 @@ class ColumnSummary extends BasePlugin {
    */
   bindHooks() {
     this.hot.addHook('afterInit', () => this.onAfterInit());
-    this.hot.addHook('afterChange', () => this.onAfterChange());
+    this.hot.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
   }
 
   /**

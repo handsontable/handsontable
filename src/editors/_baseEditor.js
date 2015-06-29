@@ -224,7 +224,7 @@ BaseEditor.prototype.checkEditorSection = function() {
     } else {
       return 'top';
     }
-  } else if (this.instance.getSettings().fixedRowsBottom && this.row >= totalRows - this.instance.getSettings().fixedRowsBottom - 1) {
+  } else if (this.instance.getSettings().fixedRowsBottom && this.row >= totalRows - this.instance.getSettings().fixedRowsBottom) {
     if (this.col < this.instance.getSettings().fixedColumnsLeft) {
       return 'bottom-left-corner';
     } else {
