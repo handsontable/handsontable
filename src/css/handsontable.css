@@ -294,6 +294,35 @@
   right: -15px;
 }
 
+.handsontable .beforeHiddenColumn {
+  position: relative;
+}
+
+.handsontable .beforeHiddenColumn::after,
+.handsontable .afterHiddenColumn::before {
+  content: '\25C0';
+  color: #bbb;
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  font-size: 5pt;
+}
+
+.handsontable .afterHiddenColumn {
+  position: relative;
+}
+
+.handsontable .afterHiddenColumn::before {
+  left: 1px;
+  top: 2px;
+  right: auto;
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
 /* border line */
 
 .handsontable .wtBorder {

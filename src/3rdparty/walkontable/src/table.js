@@ -465,7 +465,8 @@ WalkontableTable.prototype.getColumnWidth = function(sourceColumn) {
 
 WalkontableTable.prototype.getStretchedColumnWidth = function(sourceColumn) {
   var
-    width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth,
+    columnWidth = this.getColumnWidth(sourceColumn),
+    width = [void 0, null].indexOf(columnWidth) === -1 ? columnWidth : this.instance.wtSettings.settings.defaultColumnWidth,
     calculator = this.instance.wtViewport.columnsRenderCalculator,
     stretchedWidth;
 
