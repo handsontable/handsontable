@@ -20,6 +20,7 @@ function CopyPastePlugin(instance) {
   this.copyPasteInstance = copyPaste();
   this.copyPasteInstance.onCut(onCut);
   this.copyPasteInstance.onPaste(onPaste);
+  this.onPaste = onPaste; // for paste testing purposes
 
   instance.addHook('beforeKeyDown', onBeforeKeyDown);
 

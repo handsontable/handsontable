@@ -294,12 +294,12 @@
   right: -15px;
 }
 
-.handsontable .beforeHiddenColumn {
+.handsontable th.beforeHiddenColumn {
   position: relative;
 }
 
-.handsontable .beforeHiddenColumn::after,
-.handsontable .afterHiddenColumn::before {
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
   content: '\25C0';
   color: #bbb;
   position: absolute;
@@ -308,11 +308,11 @@
   font-size: 5pt;
 }
 
-.handsontable .afterHiddenColumn {
+.handsontable th.afterHiddenColumn {
   position: relative;
 }
 
-.handsontable .afterHiddenColumn::before {
+.handsontable th.afterHiddenColumn::before {
   left: 1px;
   top: 2px;
   right: auto;
@@ -321,6 +321,10 @@
   -o-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
+}
+
+.handsontable td.afterHiddenColumn.firstVisible {
+  border-left: 1px solid #CCC;
 }
 
 /* border line */

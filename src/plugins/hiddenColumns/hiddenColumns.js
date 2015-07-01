@@ -49,7 +49,7 @@ class HiddenColumns extends BasePlugin {
   //}
 
   onmodifyCopyableColumnRange(ranges) {
-    if(this.settings.copyPasteEnabled) {
+    if (this.settings.copyPasteEnabled) {
       return ranges;
     }
 
@@ -58,7 +58,7 @@ class HiddenColumns extends BasePlugin {
     for (let i = 0, rangeCount = ranges.length; i < rangeCount; i++) {
       let partial = this.splitCopyableRange(ranges[i]);
 
-      for(var j = 0; j < partial.length; j++) {
+      for (var j = 0; j < partial.length; j++) {
         newRanges.push(partial[j]);
       }
     }
@@ -71,7 +71,7 @@ class HiddenColumns extends BasePlugin {
     let newStart = range.startCol;
     let isHidden = (i) => (this.hiddenColumns[i]);
 
-    for (let i = range.startCol; i <= range.endCol + 1; i++) {
+    for (let i = range.startCol; i <= range.endCol; i++) {
 
       if (isHidden(i) && i !== range.startCol) {
 
@@ -115,25 +115,6 @@ class HiddenColumns extends BasePlugin {
     if (this.hiddenColumns[col + 1]) {
       dom.addClass(TH, 'beforeHiddenColumn');
     }
-
-    //let headerLink = TH.querySelector('.colHeader');
-    //
-    //if (this.hot.getSettings().columnSorting && col >= 0) {
-    //  dom.addClass(headerLink, 'columnSorting');
-    //}
-    //dom.removeClass(headerLink, 'descending');
-    //dom.removeClass(headerLink, 'ascending');
-    //
-    //if (this.sortIndicators[col]) {
-    //  if (col === this.hot.sortColumn) {
-    //    if (this.sortOrderClass === 'ascending') {
-    //      dom.addClass(headerLink, 'ascending');
-    //
-    //    } else if (this.sortOrderClass === 'descending') {
-    //      dom.addClass(headerLink, 'descending');
-    //    }
-    //  }
-    //}
   }
 
   hideColumns(elements) {
@@ -151,6 +132,26 @@ class HiddenColumns extends BasePlugin {
     if (this.settings.copyPasteEnabled === false && this.hiddenColumns[col]) {
       cellProperties.copyable = false;
       cellProperties.skipColumnOnPaste = true;
+    }
+
+    if (this.hiddenColumns[col - 1]) {
+      let firstSectionHidden = true;
+      let i = col - 1;
+
+      cellProperties.className = cellProperties.className || '' + ' afterHiddenColumn';
+
+      do {
+        if (!this.hiddenColumns[i]) {
+          firstSectionHidden = false;
+          break;
+        }
+        i--;
+      } while (i >= 0);
+
+      if (firstSectionHidden && cellProperties.className.indexOf('firstVisible') === -1) {
+        cellProperties.className += ' firstVisible';
+      }
+
     }
   }
 

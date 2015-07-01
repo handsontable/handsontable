@@ -411,7 +411,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 break;
               }
 
-              if (source === 'paste' && instance.getCellMeta(current.row, current.col).skipColumnOnPaste) {
+              if ((source === 'paste' || source === 'autofill') && instance.getCellMeta(current.row, current.col).skipColumnOnPaste) {
                 current.col++;
                 clen++;
                 if(end !== null) {
