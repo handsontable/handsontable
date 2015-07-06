@@ -61,6 +61,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = document.createElement('DIV');
+  this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -826,6 +827,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     editorManager = new EditorManager(instance, priv, selection, datamap);
 
     this.forceFullRender = true; //used when data was changed
+
+    Handsontable.hooks.run(instance, 'init');
     this.view.render();
 
     if (typeof priv.firstRun === 'object') {
@@ -1281,6 +1284,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.render = function() {
     if (instance.view) {
+      instance.renderCall = true;
       instance.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
     }
@@ -2153,7 +2157,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     if (width !== void 0 && width !== null) {
       switch (typeof width) {
-        case 'object': //array
+        case 'object': // array
           width = width[col];
           break;
 
@@ -2200,11 +2204,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Number}
    */
   this._getRowHeightFromSettings = function(row) {
-    var height = priv.settings.rowHeights; //only uses grid settings
+    let cellProperties = instance.getCellMeta(row, 0);
+    let height = cellProperties.height;
 
+    if (height === void 0 || height === priv.settings.height) {
+      height = cellProperties.rowHeights;
+    }
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
-        case 'object': //array
+        case 'object': // array
           height = height[row];
           break;
 
@@ -2715,6 +2723,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @type {String}
    */
   this.version = Handsontable.version;
+
+  Handsontable.hooks.run(instance, 'construct');
 };
 
 /**
@@ -3721,6 +3731,24 @@ DefaultSettings.prototype = {
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
   format: void 0,
-  className: void 0
+  className: void 0,
+
+  /**
+   * Enables or disables autoColumnSize plugin. Default value is `undefined` which is the same effect as `true`.
+   * Disable this plugin can increase performance.
+   *
+   * @type {Boolean}
+   * @default undefined
+   */
+  autoColumnSize: void 0,
+
+  /**
+   * Enables or disables autoRowSize plugin. Default value is `undefined` which is the same effect as `true`.
+   * Disable this plugin can increase performance.
+   *
+   * @type {Boolean}
+   * @default undefined
+   */
+  autoRowSize: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

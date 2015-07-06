@@ -158,6 +158,8 @@ function ManualColumnMove() {
         createPositionData(instance.manualColumnPositions, instance.countCols());
         instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
 
+        Handsontable.hooks.run(instance, 'beforeColumnMove', startCol, endCol);
+
         instance.forceFullRender = true;
         instance.view.render(); //updates all
 
@@ -318,6 +320,7 @@ Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
 
 Handsontable.hooks.add('afterRemoveCol', htManualColumnMove.afterRemoveCol);
 Handsontable.hooks.add('afterCreateCol', htManualColumnMove.afterCreateCol);
+Handsontable.hooks.register('beforeColumnMove');
 Handsontable.hooks.register('afterColumnMove');
 
 

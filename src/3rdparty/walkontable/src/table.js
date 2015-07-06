@@ -496,11 +496,6 @@ class WalkontableTable {
     } else if (typeof width === 'object') {
       width = width[sourceColumn];
     }
-    let oversizedWidth = this.wot.wtViewport.oversizedCols[sourceColumn];
-
-    if (oversizedWidth !== void 0) {
-      width = width ? Math.max(width, oversizedWidth) : oversizedWidth;
-    }
 
     return width;
   }

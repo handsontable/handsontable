@@ -65,7 +65,6 @@ describe("Grouping plugin:", function () {
 
       expect(groups.getRowGroups().length).toEqual(2);
       expect(groups.getColGroups().length).toEqual(1);
-
     });
 
     it("should throw an error when trying to define an empty group", function () {

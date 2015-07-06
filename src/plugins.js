@@ -4,7 +4,7 @@
 
 export {registerPlugin, getPlugin};
 
-var registeredPlugins = new WeakMap();
+const registeredPlugins = new WeakMap();
 
 /**
  * Registers plugin under given name
@@ -13,7 +13,7 @@ var registeredPlugins = new WeakMap();
  * @param {Function} PluginClass
  */
 function registerPlugin(pluginName, PluginClass) {
-  Handsontable.hooks.add('beforeInit', function () {
+  Handsontable.hooks.add('construct', function () {
     var holder;
 
     pluginName = pluginName.toLowerCase();
@@ -46,7 +46,7 @@ function registerPlugin(pluginName, PluginClass) {
 /**
  * @param {Object} instance
  * @param {String|Function} pluginName
- * @returns {Function} pluginClass
+ * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
   if (typeof pluginName != 'string'){
@@ -55,7 +55,7 @@ function getPlugin(instance, pluginName) {
   let _pluginName = pluginName.toLowerCase();
 
   if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
-    throw Error('No plugin registered under name "' + pluginName + '"');
+    return void 0;
   }
 
   return registeredPlugins.get(instance)[_pluginName];

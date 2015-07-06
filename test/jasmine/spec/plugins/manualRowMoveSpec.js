@@ -12,52 +12,6 @@ describe('manualRowMove', function () {
     }
   });
 
-  var moveSecondDisplayedRowBeforeFirstRow = function(container, secondDisplayedRowIndex) {
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first(),
-      $rowHeaders = container.find('tbody tr th'),
-      $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
-      $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
-
-    $secondRowHeader.simulate('mouseover');
-    var $manualRowMover = $mainContainer.find('.manualRowMover');
-
-    if($manualRowMover.length) {
-      $manualRowMover.simulate('mousedown',{
-        clientY: $manualRowMover[0].getBoundingClientRect().top
-      });
-
-      $manualRowMover.simulate('mousemove',{
-        clientY:$manualRowMover[0].getBoundingClientRect().top - 20
-      });
-
-      $firstRowHeader.simulate('mouseover');
-      $secondRowHeader.simulate('mouseup');
-    }
-  };
-
-  var moveFirstDisplayedRowAfterSecondRow = function(container, firstDisplayedRowIndex) {
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first(),
-      $rowHeaders = container.find('tbody tr th'),
-      $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
-      $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
-
-    $secondRowHeader.simulate('mouseover');
-    var $manualRowMover = $mainContainer.find('.manualRowMover');
-
-    if($manualRowMover.length) {
-      $manualRowMover.simulate('mousedown',{
-        clientY: $manualRowMover[0].getBoundingClientRect().top
-      });
-
-      $manualRowMover.simulate('mousemove',{
-        clientY:$manualRowMover[0].getBoundingClientRect().top + 20
-      });
-
-      $firstRowHeader.simulate('mouseover');
-      $secondRowHeader.simulate('mouseup');
-    }
-  };
-
   it('should change row order at init', function () {
     handsontable({
       data: [

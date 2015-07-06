@@ -28,7 +28,10 @@ HandsontableEditor.prototype.createElements = function() {
   this.TEXTAREA_PARENT.appendChild(DIV);
 
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV);
+  this.htEditor = new Handsontable(DIV, {
+    autoColumnSize: false,
+    autoRowSize: false
+  });
 
   this.assignHooks();
 };
@@ -46,6 +49,8 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     minCols: 0,
     className: 'listbox',
     copyPaste: false,
+    autoColumnSize: false,
+    autoRowSize: false,
     cells: function() {
       return {
         readOnly: true

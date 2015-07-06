@@ -1,6 +1,6 @@
 import * as dom from './../../dom.js';
 import BasePlugin from './../_base.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
+import {EventManager} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
 
 /**
@@ -15,28 +15,50 @@ class MultipleSelectionHandles extends BasePlugin {
    */
   constructor(hotInstance) {
     super(hotInstance);
-
+    /**
+     * @type {Array}
+     */
     this.dragged = [];
-    this.eventManager = eventManagerObject(this.hot);
-    this.bindTouchEvents();
-
-    this.hot.addHook('afterInit', () => this.init());
+    /**
+     * Instance of EventManager.
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = null;
+    /**
+     * @type {null}
+     */
+    this.lastSetCell = null;
   }
 
   /**
-   * Initial settings
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
    */
-  init() {
-    this.lastSetCell = null;
-    Handsontable.plugins.multipleSelectionHandles = new MultipleSelectionHandles(this.hot);
+  isEnabled() {
+    return Handsontable.mobileBrowser;
   }
 
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.registerListeners();
+    super.enablePlugin();
+  }
 
   /**
    * Bind the touch events
    * @private
    */
-  bindTouchEvents() {
+  registerListeners() {
     var _this = this;
 
     function removeFromDragged(query) {
@@ -323,16 +345,15 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * Check if user is currently dragging the handle
-   * @private
+   * Check if user is currently dragging the handle.
+   *
    * @returns {boolean} Dragging state
    */
   isDragged() {
     return this.dragged.length > 0;
   }
-
 }
 
-export default MultipleSelectionHandles;
+export {MultipleSelectionHandles};
 
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
