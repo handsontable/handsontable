@@ -42,12 +42,6 @@ class HiddenColumns extends BasePlugin {
     this.hideColumns(this.settings.columns);
   }
 
-  //onAfterInit() {
-  //  if (this.settings.indicators === true) {
-  //    this.setIndicators();
-  //  }
-  //}
-
   onmodifyCopyableColumnRange(ranges) {
     if (this.settings.copyPasteEnabled) {
       return ranges;
