@@ -209,14 +209,13 @@ class DateEditor extends TextEditor {
     if (this.cellProperties && this.cellProperties.datePickerConfig) {
       deepExtend(options, this.cellProperties.datePickerConfig);
     }
+    const origOnSelect = options.onSelect;
+    const origOnClose = options.onClose;
+
     options.field = htInput;
     options.trigger = htInput;
     options.container = this.datePicker;
     options.bound = false;
-
-    const origOnSelect = options.onSelect;
-    const origOnClose = options.onClose;
-
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
     options.onSelect = (dateStr) => {
