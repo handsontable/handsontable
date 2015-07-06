@@ -14,6 +14,7 @@ Handsontable.version = version;
 Handsontable.buildDate = buildDate;
 
 import './shims/classes.js';
+import 'es6collections';
 
 Handsontable.plugins = {};
 
