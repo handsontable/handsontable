@@ -1,5 +1,6 @@
 import * as dom from './dom.js';
 import * as helper from './helpers.js';
+import es6collections from 'es6collections';
 import numeral from 'numeral';
 import {DataMap} from './dataMap.js';
 import {EditorManager} from './editorManager.js';
