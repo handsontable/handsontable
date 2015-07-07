@@ -174,6 +174,12 @@ class DateEditor extends TextEditor {
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
 
+    if (this.cellProperties.datePickerConfig != undefined) {
+      for (var attrname in this.cellProperties.datePickerConfig) { 
+        datePickerConfig[attrname] = this.cellProperties.datePickerConfig[attrname]; 
+      }
+    }
+
     if (this.originalValue) {
       dateStr = this.originalValue;
 
