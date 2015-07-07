@@ -730,7 +730,7 @@ Cell borders
   border-right: 1px solid #CCC;
 }
 
-.handsontable thead tr:nth-last-child(2) th {
+.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
   border-bottom: 1px solid #CCC;
   padding-bottom: 5px;
 }
