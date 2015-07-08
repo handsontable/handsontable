@@ -13,10 +13,10 @@ import BasePlugin from './../_base.js';
  *
  * ```js
  * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * let hot = new Handsontable(document.getElementById('example'), {
  *   date: getData(),
  *   nestedHeaders: {
- *     headers: [
+ *     colHeaders: [
  *       ['a', 'b', 'c', 'd', 'e'],
  *       function() {
  *         return ['f', 'g', 'h', 'i', 'j', 'k']
@@ -76,7 +76,7 @@ class NestedHeaders extends BasePlugin {
     let _this = this;
 
     return function(index, TH) {
-      let colspan = _this.settings.colspan[headerRow] ? _this.settings.colspan[headerRow][index] : 1;
+      let colspan = _this.settings.colspan && _this.settings.colspan[headerRow] ? _this.settings.colspan[headerRow][index] : 1;
 
       if (colspan && colspan > 1) {
         TH.setAttribute('colspan', colspan);
@@ -88,7 +88,7 @@ class NestedHeaders extends BasePlugin {
       dom.addClass(divEl, 'relative');
       let spanEl = document.createElement('SPAN');
       dom.addClass(spanEl, 'colHeader');
-      dom.fastInnerText(spanEl, _this.prepareHeaderValue(_this.settings.headers[headerRow])[index] || '');
+      dom.fastInnerText(spanEl, _this.prepareHeaderValue(_this.settings.colHeaders[headerRow])[index] || '');
 
       divEl.appendChild(spanEl);
       TH.appendChild(divEl);
@@ -108,7 +108,7 @@ class NestedHeaders extends BasePlugin {
         array.length = 0;
       }
 
-      for (let headersCount = this.settings.headers.length, i = headersCount - (!overwriteHeaders ? array.length : 0) - 1; i >= 0; i--) {
+      for (let headersCount = this.settings.colHeaders.length, i = headersCount - (!overwriteHeaders ? array.length : 0) - 1; i >= 0; i--) {
         array.push(this.headerRendererFactory(i));
       }
 
