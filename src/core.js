@@ -236,7 +236,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
+          emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -2293,6 +2293,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         return 0;
       }
     }
+  };
+
+  this.getColspanOffset = function(col, level) {
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var colspanSum = 0;
+
+    for (var i = 0; i < col; i++) {
+      if (TR.childNodes[i].hasAttribute('colspan')) {
+        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
+      }
+    }
+
+    return colspanSum;
+  };
+
+  this.getHeaderColspan = function(col, level) {
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+
+    if(TR.childNodes[col].hasAttribute('colspan')) {
+      return parseInt(TR.childNodes[col].getAttribute('colspan'), 10);
+    }
+    return 0;
   };
 
   /**
