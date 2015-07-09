@@ -12,58 +12,6 @@ describe('manualColumnMove', function () {
     }
   });
 
-  function moveSecondDisplayedColumnBeforeFirstColumn(container, secondDisplayedColIndex){
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
-    var $colHeaders = container.find('thead tr:eq(0) th');
-    var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
-    var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
-
-    //Enter the second column header
-    $secondColHeader.simulate('mouseover');
-    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
-
-    //Grab the second column
-    $manualColumnMover.simulate('mousedown',{
-      pageX : $manualColumnMover[0].getBoundingClientRect().left
-    });
-
-    //Drag the second column over the first column
-    $manualColumnMover.simulate('mousemove',{
-      pageX : $manualColumnMover[0].getBoundingClientRect().left - 20
-    });
-
-    $firstColHeader.simulate('mouseover');
-
-    //Drop the second column
-    $secondColHeader.simulate('mouseup');
-  }
-
-  function moveFirstDisplayedColumnAfterSecondColumn(container, firstDisplayedColIndex){
-    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
-    var $colHeaders = container.find('thead tr:eq(0) th');
-    var $firstColHeader = $colHeaders.eq(firstDisplayedColIndex);
-    var $secondColHeader = $colHeaders.eq(firstDisplayedColIndex + 1);
-
-    //Enter the first column header
-    $firstColHeader.simulate('mouseover');
-    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
-
-    //Grab the first column
-    $manualColumnMover.simulate('mousedown',{
-      pageX:$manualColumnMover[0].getBoundingClientRect().left
-    });
-
-    //Drag the first column over the second column
-    $manualColumnMover.simulate('mousemove',{
-      pageX:$manualColumnMover[0].getBoundingClientRect().left + 20
-    });
-
-    $secondColHeader.simulate('mouseover');
-
-    //Drop the first column
-    $firstColHeader.simulate('mouseup');
-  }
-
   it("should change column order at init", function () {
     handsontable({
       data: [

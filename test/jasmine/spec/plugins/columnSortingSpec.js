@@ -7,7 +7,7 @@ describe('ColumnSorting', function() {
     this.sortByColumn = function(columnIndex) {
 //      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
       this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
-    }
+    };
   });
 
   afterEach(function() {
@@ -298,7 +298,7 @@ describe('ColumnSorting', function() {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -317,7 +317,7 @@ describe('ColumnSorting', function() {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -327,7 +327,7 @@ describe('ColumnSorting', function() {
     updateSettings({
       columnSorting: {
         column: 1,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -346,7 +346,7 @@ describe('ColumnSorting', function() {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -355,7 +355,7 @@ describe('ColumnSorting', function() {
     updateSettings({
       columnSorting: {
         column: 0,
-        order: false
+        sortOrder: false
       }
     });
 
@@ -397,7 +397,7 @@ describe('ColumnSorting', function() {
     updateSettings({
       columnSorting: {
         column: 0,
-        order: false
+        sortOrder: true
       }
     });
 
@@ -418,7 +418,7 @@ describe('ColumnSorting', function() {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -490,7 +490,7 @@ describe('ColumnSorting', function() {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 
@@ -877,7 +877,7 @@ describe('ColumnSorting', function() {
       ],
       columnSorting: {
         column: 1,
-        order: true
+        sortOrder: true
       }
     });
 

@@ -189,6 +189,7 @@ function TableView(instance) {
     debug: function() {
       return that.settings.debug;
     },
+    externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
@@ -340,16 +341,42 @@ function TableView(instance) {
       instance.runHooks('afterMomentumScroll');
     },
     viewportRowCalculatorOverride: function(calc) {
-      if (that.settings.viewportRowRenderingOffset) {
-        calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
-        calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+      let rows = instance.countRows();
+      let viewportOffset = that.settings.viewportRowRenderingOffset;
+
+      if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+        calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+      }
+      if (viewportOffset === 'auto') {
+        let center = calc.startRow + calc.endRow - calc.startRow;
+        let offset = Math.ceil(center / rows * 12);
+
+        calc.startRow = Math.max(calc.startRow - offset, 0);
+        calc.endRow = Math.min(calc.endRow + offset, rows - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
     viewportColumnCalculatorOverride: function(calc) {
-      if (that.settings.viewportColumnRenderingOffset) {
-        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
-        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      let cols = instance.countCols();
+      let viewportOffset = that.settings.viewportColumnRenderingOffset;
+
+      if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+      }
+      if (viewportOffset === 'auto') {
+        let center = calc.startColumn + calc.endColumn - calc.startColumn;
+        let offset = Math.ceil(center / cols * 12);
+
+        calc.startRow = Math.max(calc.startColumn - offset, 0);
+        calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
@@ -421,6 +448,7 @@ TableView.prototype.onDraw = function(force) {
 TableView.prototype.render = function() {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.renderCall = false;
 };
 
 /**

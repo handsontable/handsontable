@@ -12,29 +12,6 @@ describe('manualColumnResize', function () {
     }
   });
 
-  function resizeColumn(displayedColumnIndex, width) {
-    var $container = spec().$container;
-    var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
-
-    $th.simulate('mouseover');
-
-    var $resizer = $container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
-
-    $resizer.simulate('mousedown',{
-      clientX:resizerPosition.left
-    });
-
-
-    var delta = width - $th.width() - 2;
-    var newPosition = resizerPosition.left + delta;
-    $resizer.simulate('mousemove',
-      {clientX: newPosition}
-    );
-
-    $resizer.simulate('mouseup');
-  }
-
   it("should change column widths at init", function () {
     handsontable({
       manualColumnResize: [100, 150, 180]
@@ -113,7 +90,7 @@ describe('manualColumnResize', function () {
        initialColumnWidths.push($(this).width());
     });
 
-    resizeColumn.call(this, 0, 100)
+    resizeColumn.call(this, 0, 100);
 
     var $resizedTh = $columnHeaders.eq(0);
 
@@ -124,7 +101,6 @@ describe('manualColumnResize', function () {
     for(var i = 1; i < $columnHeaders.length; i++){
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
-
   });
 
   it("should trigger an afterColumnResize event after column size changes", function () {
@@ -144,7 +120,6 @@ describe('manualColumnResize', function () {
 
     expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0, void 0);
     expect(colWidth(this.$container, 0)).toEqual(100);
-
   });
 
   it("should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)", function () {
