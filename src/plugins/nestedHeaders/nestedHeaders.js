@@ -93,7 +93,7 @@ class NestedHeaders extends BasePlugin {
       divEl.appendChild(spanEl);
       TH.appendChild(divEl);
 
-      Handsontable.hooks.run(this.instance, 'afterGetColHeader', index, TH);
+      Handsontable.hooks.run(_this.hot, 'afterGetColHeader', index, TH);
     };
   }
 
