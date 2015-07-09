@@ -22,8 +22,11 @@ class HiddenColumns extends BasePlugin {
 
   init() {
     this.settings = this.hot.getSettings().hiddenColumns;
-    if (this.settings.copyPasteEnabled === void 0) {
-      this.settings.copyPasteEnabled = true;
+    if (typeof this.settings !== 'boolean') {
+      if (this.settings.copyPasteEnabled === void 0) {
+        this.settings.copyPasteEnabled = true;
+
+      }
     }
 
     this.bindHooks();
@@ -31,18 +34,36 @@ class HiddenColumns extends BasePlugin {
 
   bindHooks() {
     this.hot.addHook('beforeInit', () => this.onBeforeInit());
-    //this.hot.addHook('afterInit', () => this.onAfterInit());
     this.hot.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
     this.hot.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.hot.addHook('modifyCopyableColumnRange', (ranges) => this.onmodifyCopyableColumnRange(ranges));
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
+    this.hot.addHook('modifyCopyableColumnRange', (ranges) => this.onModifyCopyableColumnRange(ranges));
+    this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+
+    this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
   }
 
   onBeforeInit() {
+    if (typeof this.settings === 'boolean') {
+      return;
+    }
+
     this.hideColumns(this.settings.columns);
   }
 
-  onmodifyCopyableColumnRange(ranges) {
+  onAfterUpdateSettings() {
+    this.settings = this.hot.getSettings().hiddenColumns;
+    this.hiddenColumns = [];
+    
+    if (typeof this.settings !== 'boolean') {
+      this.hideColumns(this.settings.columns);
+    }
+  }
+
+  onModifyCopyableColumnRange(ranges) {
+    if (typeof this.settings === 'boolean') {
+      return;
+    }
+
     if (this.settings.copyPasteEnabled) {
       return ranges;
     }
@@ -98,7 +119,11 @@ class HiddenColumns extends BasePlugin {
     return splitRanges;
   }
 
-  getColHeader(col, TH) {
+  onAfterGetColHeader(col, TH) {
+    if (typeof this.settings === 'boolean') {
+      return;
+    }
+
     if (!this.settings.indicators || this.hiddenColumns[col]) {
       return;
     }
@@ -123,6 +148,10 @@ class HiddenColumns extends BasePlugin {
   }
 
   onAfterGetCellMeta(row, col, cellProperties) {
+    if (typeof this.settings === 'boolean') {
+      return;
+    }
+
     if (this.settings.copyPasteEnabled === false && this.hiddenColumns[col]) {
       cellProperties.copyable = false;
       cellProperties.skipColumnOnPaste = true;
@@ -150,6 +179,10 @@ class HiddenColumns extends BasePlugin {
   }
 
   onModifyColWidth(width, col) {
+    if (typeof this.settings === 'boolean') {
+      return;
+    }
+
     if (this.hiddenColumns[col]) {
       return 0;
     } else if (this.settings.indicators && (this.hiddenColumns[col + 1] || this.hiddenColumns[col - 1])) {
