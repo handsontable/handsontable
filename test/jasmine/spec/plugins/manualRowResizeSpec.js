@@ -148,6 +148,7 @@ describe('manualRowResize', function () {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
+      autoRowSize: true,
       afterRowResize: afterRowResizeCallback
     });
 

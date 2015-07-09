@@ -210,7 +210,7 @@ class WalkontableTableRenderer {
       if (rowHeader) {
         rowInnerHeight = dom.innerHeight(rowHeader);
       } else {
-        rowInnerHeight = dom.innerHeight(currentTr);
+        rowInnerHeight = dom.innerHeight(currentTr) - 1;
       }
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||

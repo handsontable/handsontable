@@ -186,7 +186,7 @@ describe('Core_loadData', function () {
       cells: cellsSpy
     });
     //
-    expect(cellsSpy.calls.length).toEqual(64);
+    expect(cellsSpy.calls.length).toEqual(31);
 
   });
 
@@ -202,7 +202,7 @@ describe('Core_loadData', function () {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.length).toEqual(76);
+    expect(cellsSpy.calls.length).toEqual(40);
   });
 
   it('should remove grid rows if new data source has less of them', function () {

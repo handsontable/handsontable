@@ -26,7 +26,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(2);
+    expect(count).toEqual(1); // only for master table
   });
 
   it('should call renderer twice for one cell (auto column width)', function () {
@@ -40,7 +40,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(3); //1 for autoColumnSize, 1 for autoRowSize, 1 for actual cell render
+    expect(count).toEqual(2); // 1 for autoColumnSize, 1 for actual cell render
   });
 
   it('should call renderer twice for one cell (auto row height)', function () {
@@ -54,13 +54,15 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(2); //1 for autoColumnSize, 1 for actual cell render
+    expect(count).toEqual(1); // 1 for actual cell render (colWidths prevent autoColumnSize to enable)
   });
 
   it('should call renderer triple times for one cell (auto row height, auto column width)', function () {
     var count = 0;
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
+      autoRowSize: true,
+      autoColumnSize: true,
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
@@ -81,7 +83,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(14);
+    expect(count).toEqual(7);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', function () {
@@ -95,7 +97,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(12);
+    expect(count).toEqual(5);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', function () {
@@ -110,7 +112,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(15);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', function () {
@@ -125,7 +127,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(13);
+    expect(count).toEqual(6);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', function () {
@@ -140,7 +142,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(15);
+    expect(count).toEqual(7);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', function () {
@@ -155,7 +157,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(13);
+    expect(count).toEqual(5);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', function () {
@@ -171,7 +173,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(16);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', function () {
@@ -187,7 +189,7 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(14);
+    expect(count).toEqual(6);
   });
 
   it('should call renderer twice for each cell (auto column width)', function () {
@@ -195,13 +197,14 @@ describe('Performance', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       rowHeights: 23,
+      autoColumnSize: true,
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
       }
     });
 
-    expect(count).toEqual(40); // 16x2 in main table, 4 columns for autoColumnSize and 4 columns for autoRowSize
+    expect(count).toEqual(28);
   });
 
   it('should call renderer twice for each cell (auto row height)', function () {
@@ -209,6 +212,7 @@ describe('Performance', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       colWidths: 50,
+      autoRowSize: true,
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
@@ -222,12 +226,14 @@ describe('Performance', function () {
     var count = 0;
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
+      autoRowSize: true,
+      autoColumnSize: true,
       renderer: function () {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         count++;
       }
     });
 
-    expect(count).toEqual(40); // 16 in main table, 4 rows for autoRowSize and 4 cols for autoColumnSize
+    expect(count).toEqual(40); // 16x2 in main table, 4 rows for autoRowSize and 4 cols for autoColumnSize
   });
 });

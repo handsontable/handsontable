@@ -1,9 +1,10 @@
 
 import BasePlugin from './../_base.js';
-import {arrayEach, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame} from './../../helpers.js';
+import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame, isObject,
+        isPercentValue, valueAccordingPercent} from './../../helpers.js';
 import {GhostTable} from './../../utils/ghostTable.js';
-import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 import {registerPlugin} from './../../plugins.js';
+import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
 
 /**
@@ -12,7 +13,10 @@ import {registerPlugin} from './../../plugins.js';
  */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
-    return 19;
+    return 50;
+  }
+  static get SYNC_CALCULATION_LIMIT() {
+    return 50;
   }
 
   /**
@@ -38,6 +42,14 @@ class AutoColumnSize extends BasePlugin {
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    /**
+     * @type {Boolean}
+     */
+    this.firstCalculation = true;
+    /**
+     * @type {Boolean}
+     */
+    this.inProgress = false;
   }
 
   /**
@@ -103,25 +115,28 @@ class AutoColumnSize extends BasePlugin {
    */
   calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
     let current = 0;
-    let length = this.hot.countRows() - 1;
+    let length = this.hot.countCols() - 1;
     let timer = null;
+
+    this.inProgress = true;
 
     let loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
         cancelAnimationFrame(timer);
+        this.inProgress = false;
 
         return;
       }
-      this.calculateColumnsWidth({from: current, to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)}, rowRange, true);
+      this.calculateColumnsWidth({from: current, to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)}, rowRange);
       current = current + AutoColumnSize.CALCULATION_STEP + 1;
 
       if (current < length) {
         timer = requestAnimationFrame(loop);
       } else {
-        if (timer !== null) {
-          cancelAnimationFrame(timer);
-        }
+        cancelAnimationFrame(timer);
+        this.inProgress = false;
+
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.wt.wtOverlays.adjustElementsSize(true);
         // tmp
@@ -130,9 +145,49 @@ class AutoColumnSize extends BasePlugin {
         }
       }
     };
+    // sync
+    if (this.firstCalculation && this.getSyncCalculationLimit()) {
+      this.calculateColumnsWidth({from: 0, to: this.getSyncCalculationLimit()}, rowRange);
+      this.firstCalculation = false;
+      current = this.getSyncCalculationLimit() + 1;
+    }
+    // async
     if (current < length) {
       loop();
+    } else {
+      this.inProgress = false;
     }
+  }
+
+  /**
+   * Recalculate all columns width (overwrite cache values).
+   */
+  recalculateAllColumnsWidth() {
+    this.clearCache();
+    this.calculateAllColumnsWidth();
+  }
+
+  /**
+   * Get value which tells how much columns will be calculated synchronously. Rest columns will be calculated asynchronously.
+   *
+   * @returns {Number}
+   */
+  getSyncCalculationLimit() {
+    let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
+    let colsLimit = this.hot.countCols() - 1;
+
+    if (isObject(this.hot.getSettings().autoColumnSize)) {
+      limit = this.hot.getSettings().autoColumnSize.syncLimit;
+
+      if (isPercentValue(limit)) {
+        limit = valueAccordingPercent(colsLimit, limit);
+      } else {
+        // Force to Number
+        limit = limit >> 0;
+      }
+    }
+
+    return Math.min(limit, colsLimit);
   }
 
   /**
@@ -196,6 +251,15 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Check if all widths were calculated. If not then return `true` (need recalculate).
+   *
+   * @returns {Boolean}
+   */
+  isNeedRecalculate() {
+    return arrayFilter(this.widths, (item) => (item === void 0)).length ? true : false;
+  }
+
+  /**
    * On before render listener.
    *
    * @private
@@ -203,6 +267,10 @@ class AutoColumnSize extends BasePlugin {
   onBeforeRender() {
     let force = this.hot.renderCall;
     this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
+
+    if (this.isNeedRecalculate() && !this.inProgress) {
+      this.calculateAllColumnsWidth();
+    }
   }
 
   /**
@@ -213,7 +281,7 @@ class AutoColumnSize extends BasePlugin {
   onAfterLoadData() {
     setTimeout(() => {
       if (this.hot) {
-        this.calculateAllColumnsWidth();
+        this.recalculateAllColumnsWidth();
       }
     }, 0);
   }

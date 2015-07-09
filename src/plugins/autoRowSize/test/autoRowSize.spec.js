@@ -91,10 +91,12 @@ describe('AutoRowSize', function () {
   it('should consider CSS style of each instance separately', function () {
     var $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
+      autoRowSize: true
     });
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
+      autoRowSize: true
     });
     var hot1 = $container1.handsontable('getInstance');
     var hot2 = $container2.handsontable('getInstance');
@@ -153,7 +155,8 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(69); // -1px of cell border
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through columns.width)', function () {
+  // Currently columns.height is not supported
+  xit('should not trigger autoColumnSize when column width is defined (through columns.width)', function () {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,

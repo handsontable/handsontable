@@ -1,9 +1,9 @@
 
-import {arrayEach, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame} from './../../helpers.js';
-import {addClass, removeClass} from './../../dom.js';
 import BasePlugin from './../_base.js';
-import {registerPlugin} from './../../plugins.js';
+import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame, isObject,
+        isPercentValue, valueAccordingPercent} from './../../helpers.js';
 import {GhostTable} from './../../utils/ghostTable.js';
+import {registerPlugin} from './../../plugins.js';
 import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
 
@@ -13,7 +13,10 @@ import {SamplesGenerator} from './../../utils/samplesGenerator.js';
  */
 class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
-    return 19;
+    return 50;
+  }
+  static get SYNC_CALCULATION_LIMIT() {
+    return 500;
   }
 
   /**
@@ -39,6 +42,14 @@ class AutoRowSize extends BasePlugin {
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    /**
+     * @type {Boolean}
+     */
+    this.firstCalculation = true;
+    /**
+     * @type {Boolean}
+     */
+    this.inProgress = false;
   }
 
   /**
@@ -47,7 +58,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().autoRowSize !== false;
+    return this.hot.getSettings().autoRowSize === true || isObject(this.hot.getSettings().autoRowSize);
   }
 
   /**
@@ -59,8 +70,8 @@ class AutoRowSize extends BasePlugin {
     }
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
-    this.addHook('beforeColumnMove', () => this.calculateAllRowsHeight());
-    this.addHook('beforeColumnResize', () => this.calculateAllRowsHeight());
+    this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
+    this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnSort', () => this.clearCache());
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
@@ -119,22 +130,25 @@ class AutoRowSize extends BasePlugin {
     let length = this.hot.countRows() - 1;
     let timer = null;
 
+    this.inProgress = true;
+
     let loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
         cancelAnimationFrame(timer);
+        this.inProgress = false;
 
         return;
       }
-      this.calculateRowsHeight({from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)}, colRange, true);
+      this.calculateRowsHeight({from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)}, colRange);
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
         timer = requestAnimationFrame(loop);
       } else {
-        if (timer !== null) {
-          cancelAnimationFrame(timer);
-        }
+        cancelAnimationFrame(timer);
+        this.inProgress = false;
+
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.wt.wtOverlays.adjustElementsSize(true);
         // tmp
@@ -143,9 +157,49 @@ class AutoRowSize extends BasePlugin {
         }
       }
     };
+    // sync
+    if (this.firstCalculation && this.getSyncCalculationLimit()) {
+      this.calculateRowsHeight({from: 0, to: this.getSyncCalculationLimit()}, colRange);
+      this.firstCalculation = false;
+      current = this.getSyncCalculationLimit() + 1;
+    }
+    // async
     if (current < length) {
       loop();
+    } else {
+      this.inProgress = false;
     }
+  }
+
+  /**
+   * Recalculate all rows height (overwrite cache values).
+   */
+  recalculateAllRowsHeight() {
+    this.clearCache();
+    this.calculateAllRowsHeight();
+  }
+
+  /**
+   * Get value which tells how much rows will be calculated synchronously. Rest rows will be calculated asynchronously.
+   *
+   * @returns {Number}
+   */
+  getSyncCalculationLimit() {
+    let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
+    let rowsLimit = this.hot.countRows() - 1;
+
+    if (isObject(this.hot.getSettings().autoRowSize)) {
+      limit = this.hot.getSettings().autoRowSize.syncLimit;
+
+      if (isPercentValue(limit)) {
+        limit = valueAccordingPercent(rowsLimit, limit);
+      } else {
+        // Force to Number
+        limit = limit >> 0;
+      }
+    }
+
+    return Math.min(limit, rowsLimit);
   }
 
   /**
@@ -223,6 +277,13 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * @returns {Boolean}
+   */
+  isNeedRecalculate() {
+     return arrayFilter(this.heights, (item) => (item === void 0)).length ? true : false;
+  }
+
+  /**
    * On before render listener.
    *
    * @private
@@ -230,6 +291,10 @@ class AutoRowSize extends BasePlugin {
   onBeforeRender() {
     let force = this.hot.renderCall;
     this.calculateRowsHeight({from: this.getFirstVisibleRow(), to: this.getLastVisibleRow()}, void 0, force);
+
+    if (this.isNeedRecalculate() && !this.inProgress) {
+      this.calculateAllRowsHeight();
+    }
   }
 
   /**
@@ -241,6 +306,7 @@ class AutoRowSize extends BasePlugin {
    */
   onBeforeRowMove(from, to) {
     this.clearCacheByRange({from, to});
+    this.calculateAllRowsHeight();
   }
 
   /**
@@ -266,7 +332,7 @@ class AutoRowSize extends BasePlugin {
   onAfterLoadData() {
     setTimeout(() => {
       if (this.hot) {
-        this.calculateAllRowsHeight();
+        this.recalculateAllRowsHeight();
       }
     }, 0);
   }
@@ -278,9 +344,19 @@ class AutoRowSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => {
-      this.heights[data[0]] = void 0;
-    });
+    let range = null;
+
+    if (changes.length === 1) {
+      range = changes[0][0];
+    } else if (changes.length > 1) {
+      range = {
+        from: changes[0][0],
+        to: changes[changes.length - 1][0]
+      };
+    }
+    if (range) {
+      this.clearCacheByRange(range);
+    }
   }
 
   /**

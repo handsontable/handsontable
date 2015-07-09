@@ -846,16 +846,115 @@ export function arrayAvg(array) {
   return arraySum(array) / array.length;
 }
 
+/**
+ * Checks if value is valid percent.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+export function isPercentValue(value) {
+  return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
+}
+
+/**
+ * Calculate value from percent.
+ *
+ * @param {Number} value Base value from percent will be calculated.
+ * @param {String|Number} percent Can be Number or String (eq. `'33%'`).
+ * @returns {Number}
+ */
+export function valueAccordingPercent(value, percent) {
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = parseInt(value * percent / 100);
+
+  return percent;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds).
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @returns {Function}
+ */
+export function throttle(func, wait = 200) {
+  let lastCalled = 0;
+  let result = {
+    lastCallThrottled: true
+  };
+  let lastTimer = null;
+
+  function _throttle() {
+    const args = arguments;
+    let stamp = Date.now();
+    let needCall = false;
+
+    result.lastCallThrottled = true;
+
+    if (!lastCalled) {
+      lastCalled = stamp;
+      needCall = true;
+    }
+    let remaining = wait - (stamp - lastCalled);
+
+    if (needCall) {
+      result.lastCallThrottled = false;
+      func.apply(this, args);
+    } else {
+      if (lastTimer) {
+        clearTimeout(lastTimer);
+      }
+      lastTimer = setTimeout(() => {
+        result.lastCallThrottled = false;
+        func.apply(this, args);
+        lastCalled = 0;
+        lastTimer = void 0;
+      }, remaining);
+    }
+
+    return result;
+  }
+
+  return _throttle;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds) after hits.
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @param {Number} hits
+ * @returns {Function}
+ */
+export function throttleAfterHits(func, wait = 200, hits = 10) {
+  const funcThrottle = throttle(func, wait);
+  let remainHits = hits;
+
+  function _clearHits() {
+    remainHits = hits;
+  }
+  function _throttleAfterHits() {
+    if (remainHits) {
+      remainHits --;
+
+      return func.apply(this, arguments);
+    }
+
+    return funcThrottle.apply(this, arguments);
+  }
+  _throttleAfterHits.clearHits = _clearHits;
+
+  return _throttleAfterHits;
+}
+
 
 window.Handsontable = window.Handsontable || {};
 Handsontable.helper = {
+  arrayAvg,
   arrayEach,
-  arraySum,
   arrayFilter,
   arrayReduce,
-  arrayAvg,
-  rangeEach,
-  objectEach,
+  arraySum,
   cancelAnimationFrame,
   cellMethodLookupFactory,
   columnFactory,
@@ -878,19 +977,25 @@ Handsontable.helper = {
   isObject,
   isObjectEquals,
   isOutsideInput,
+  isPercentValue,
   isPrintableChar,
   isTouchSupported,
   keyCode,
+  objectEach,
   pageX,
   pageY,
   pivot,
   proxy,
   randomString,
+  rangeEach,
   requestAnimationFrame,
   spreadsheetColumnLabel,
   stopPropagation,
   stringify,
+  throttle,
+  throttleAfterHits,
   to2dArray,
   toUpperCaseFirst,
-  translateRowsToColumns
+  translateRowsToColumns,
+  valueAccordingPercent
 };
