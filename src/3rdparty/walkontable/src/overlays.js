@@ -104,10 +104,10 @@ class WalkontableOverlays {
         let deltaY = event.wheelDeltaY || event.deltaY;
         let deltaX = event.wheelDeltaX || event.deltaX;
 
-        if (this.topOverlay.clone.wtTable.holder.contains(event.target)) {
+        if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
 
-        } else if (this.leftOverlay.clone.wtTable.holder.contains(event.target)) {
+        } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
         }
 
