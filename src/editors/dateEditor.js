@@ -1,12 +1,15 @@
 
-import * as helper from './../helpers.js';
-import * as dom from './../dom.js';
+import {deepExtend, stopPropagation, isMetaKey} from './../helpers.js';
+import {addClass, outerHeight} from './../dom.js';
 import {getEditor, registerEditor} from './../editors.js';
 import {TextEditor} from './textEditor.js';
 import {eventManager as eventManagerObject} from './../eventManager.js';
 import moment from 'moment';
 import Pikaday from 'pikaday';
 
+
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 
 /**
  * @private
@@ -57,40 +60,16 @@ class DateEditor extends TextEditor {
     this.datePickerStyle.left = 0;
     this.datePickerStyle.zIndex = 9999;
 
-    dom.addClass(this.datePicker, 'htDatepickerHolder');
+    addClass(this.datePicker, 'htDatepickerHolder');
     document.body.appendChild(this.datePicker);
 
-    let htInput = this.TEXTAREA;
-    let defaultOptions = {
-      format: this.defaultDateFormat,
-      field: htInput,
-      trigger: htInput,
-      container: this.datePicker,
-      reposition: false,
-      bound: false,
-      onSelect: (dateStr) => {
-        if (!isNaN(dateStr.getTime())) {
-          dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
-        }
-        this.setValue(dateStr);
-        this.hideDatepicker();
-      },
-      onClose: () => {
-        if (!this.parentDestroyed) {
-          this.finishEditing(false);
-        }
-      }
-    };
-
-    this.$datePicker = new Pikaday(defaultOptions);
+    this.$datePicker = new Pikaday(this.getDatePickerConfig());
     const eventManager = eventManagerObject(this);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
-      helper.stopPropagation(event);
-    });
+    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => stopPropagation(event));
     this.hideDatepicker();
   }
 
@@ -161,14 +140,16 @@ class DateEditor extends TextEditor {
    * @param {Event} event
    */
   showDatepicker(event) {
+    this.$datePicker.config(this.getDatePickerConfig());
+
     let offset = this.TD.getBoundingClientRect();
     let dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     let datePickerConfig = this.$datePicker.config();
     let dateStr;
     let isMouseDown = this.instance.view.isMouseDown();
-    let isMeta = event ? helper.isMetaKey(event.keyCode) : false;
+    let isMeta = event ? isMetaKey(event.keyCode) : false;
 
-    this.datePickerStyle.top = (window.pageYOffset + offset.top + dom.outerHeight(this.TD)) + 'px';
+    this.datePickerStyle.top = (window.pageYOffset + offset.top + outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
 
     this.$datePicker._onInputFocus = function() {};
@@ -214,6 +195,50 @@ class DateEditor extends TextEditor {
   hideDatepicker() {
     this.datePickerStyle.display = 'none';
     this.$datePicker.hide();
+  }
+
+  /**
+   * Get date picker options.
+   *
+   * @returns {Object}
+   */
+  getDatePickerConfig() {
+    let htInput = this.TEXTAREA;
+    let options = {};
+
+    if (this.cellProperties && this.cellProperties.datePickerConfig) {
+      deepExtend(options, this.cellProperties.datePickerConfig);
+    }
+    const origOnSelect = options.onSelect;
+    const origOnClose = options.onClose;
+
+    options.field = htInput;
+    options.trigger = htInput;
+    options.container = this.datePicker;
+    options.bound = false;
+    options.format = options.format || this.defaultDateFormat;
+    options.reposition = options.reposition || false;
+    options.onSelect = (dateStr) => {
+      if (!isNaN(dateStr.getTime())) {
+        dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
+      }
+      this.setValue(dateStr);
+      this.hideDatepicker();
+
+      if (origOnSelect) {
+        origOnSelect();
+      }
+    };
+    options.onClose = () => {
+      if (!this.parentDestroyed) {
+        this.finishEditing(false);
+      }
+      if (origOnClose) {
+        origOnClose();
+      }
+    };
+
+    return options;
   }
 }
 
