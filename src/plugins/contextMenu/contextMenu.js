@@ -487,6 +487,7 @@ ContextMenu.prototype.show = function(menu, items) {
     data: items,
     colHeaders: false,
     colWidths: [200],
+    autoRowSize: false,
     readOnly: true,
     copyPaste: false,
     columns: [{

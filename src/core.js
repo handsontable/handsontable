@@ -2210,7 +2210,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     //if (height === void 0 || height === priv.settings.height) {
     //  height = cellProperties.rowHeights;
     //}
-    var height = priv.settings.rowHeights || 23;
+    var height = priv.settings.rowHeights;
 
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
