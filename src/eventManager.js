@@ -124,8 +124,6 @@ class EventManager {
 
   /**
    * Clear all events
-   *
-   * @deprecated
    */
   clear() {
     this.clearEvents();

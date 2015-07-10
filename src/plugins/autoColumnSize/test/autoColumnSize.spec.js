@@ -165,18 +165,21 @@ describe('AutoColumnSize', function () {
   });
 
   it('should consider CSS style of each instance separately', function () {
-    var $style = $('<style>.big .htCore td {font-size: 40px}</style>').appendTo('head');
+    var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
+    var hot1 = $container1.handsontable('getInstance');
+    var hot2 = $container2.handsontable('getInstance');
 
     expect(colWidth($container1, 0)).toEqual(colWidth($container2, 0));
 
-    $container1.addClass('big').handsontable('render');
-    $container2.handsontable('render');
+    $container1.addClass('big');
+    hot1.render();
+    hot2.render();
     expect(colWidth($container1, 0)).toBeGreaterThan(colWidth($container2, 0));
 
     $container1.removeClass('big').handsontable('render');
@@ -212,14 +215,7 @@ describe('AutoColumnSize', function () {
       autoColumnSize: true
     });
 
-    var HOT = getInstance();
-    var tmp = HOT.autoColumnSizeTmp.container;
-
-    expect(tmp.nodeName).toBeDefined();
-
-    destroy();
-
-    expect(tmp.parentNode).not.toBe(document.body); //null in standard browsers, #document-fragment in IE8
+    expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
   it('should not trigger autoColumnSize when column width is defined (through colWidths)', function () {

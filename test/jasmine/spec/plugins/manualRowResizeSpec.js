@@ -13,40 +13,13 @@ describe('manualRowResize', function () {
     }
   });
 
-  function resizeRow(displayedRowIndex, height) {
-
-    var $container = spec().$container;
-    var $th = $container.find('tbody tr:eq(' + displayedRowIndex + ') th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    var $resizer = $container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
-
-    $resizer.simulate('mousedown',{
-      clientY: resizerPosition.top
-    });
-
-    var delta = height - $th.height() - 2;
-
-    if (delta < 0) {
-      delta = 0;
-    }
-
-    $resizer.simulate('mousemove',{
-      clientY: resizerPosition.top + delta
-    });
-
-    $resizer.simulate('mouseup');
-  }
-
   it("should change row heights at init", function () {
     handsontable({
       rowHeaders: true,
       manualRowResize: [50, 40, 100]
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(50);
+    expect(rowHeight(this.$container, 0)).toEqual(51);
     expect(rowHeight(this.$container, 1)).toEqual(40);
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
@@ -56,15 +29,15 @@ describe('manualRowResize', function () {
       manualRowResize: true
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
 
     updateSettings({
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(60);
+    expect(rowHeight(this.$container, 0)).toEqual(61);
     expect(rowHeight(this.$container, 1)).toEqual(50);
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
@@ -74,7 +47,7 @@ describe('manualRowResize', function () {
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(60);
+    expect(rowHeight(this.$container, 0)).toEqual(61);
     expect(rowHeight(this.$container, 1)).toEqual(50);
     expect(rowHeight(this.$container, 2)).toEqual(80);
 
@@ -82,7 +55,7 @@ describe('manualRowResize', function () {
       manualRowResize: [30, 80, 100]
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(30);
+    expect(rowHeight(this.$container, 0)).toEqual(31);
     expect(rowHeight(this.$container, 1)).toEqual(80);
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
@@ -92,17 +65,17 @@ describe('manualRowResize', function () {
       manualRowResize: true
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
 
     updateSettings({
       manualRowResize: true
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
-    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
   it("should trigger afterRowResize event after row height changes", function () {
@@ -115,11 +88,11 @@ describe('manualRowResize', function () {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, 100);
     expect(afterRowResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0, void 0);
-    expect(rowHeight(this.$container, 0)).toEqual(100);
+    expect(rowHeight(this.$container, 0)).toEqual(101);
   });
 
   it("should not trigger afterRowResize event if row height does not change (delta = 0)", function () {
@@ -132,11 +105,11 @@ describe('manualRowResize', function () {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, defaultRowHeight);
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
   it("should not trigger afterRowResize event after if row height does not change (no mousemove event)", function () {
@@ -149,7 +122,7 @@ describe('manualRowResize', function () {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
 
     var $th = this.$container.find('tbody tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
@@ -165,7 +138,7 @@ describe('manualRowResize', function () {
     $resizer.simulate('mouseup');
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
   it("should trigger an afterRowResize after row size changes, after double click", function () {
@@ -175,10 +148,11 @@ describe('manualRowResize', function () {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       manualRowResize: true,
+      autoRowSize: true,
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
 
     var $th = this.$container.find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
@@ -205,7 +179,7 @@ describe('manualRowResize', function () {
       expect(afterRowResizeCallback.calls[0].args[0]).toEqual(2);
 
       expect(afterRowResizeCallback.calls[0].args[1]).toEqual(defaultRowHeight + 1);
-      expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
+      expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
     });
   });
 
@@ -219,7 +193,7 @@ describe('manualRowResize', function () {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
 
     var $th = this.$container.find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
@@ -233,7 +207,7 @@ describe('manualRowResize', function () {
     $resizer.simulate('mouseup');
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   })
 
   it("should display the resize handle in the correct place after the table has been scrolled", function () {

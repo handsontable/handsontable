@@ -1006,9 +1006,14 @@ describe('ContextMenu', function () {
       textArea.val(testComment);
       textArea.blur();
 
-      mouseDown(hot.rootElement);
-      expect(getCellMeta(1, 1).comment).toEqual(testComment);
-      expect(getCell(1, 1).className).toContain('htCommentCell');
+      mouseDown(document.body);
+
+      waits(100);
+
+      runs(function() {
+        expect(getCellMeta(1, 1).comment).toEqual(testComment);
+        expect(getCell(1, 1).className).toContain('htCommentCell');
+      });
     });
 
     it("should delete comment", function () {

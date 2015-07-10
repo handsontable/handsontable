@@ -21,6 +21,7 @@ class WalkontableSettings {
       debug: false, // shows WalkontableDebugOverlay
 
       // presentation mode
+      externalRowCalculator: false,
       stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,

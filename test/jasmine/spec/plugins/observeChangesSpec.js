@@ -138,7 +138,7 @@ describe('HandsontableObserveChanges', function () {
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
+        }, 'Table render', 1500);
 
         runs(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -148,7 +148,7 @@ describe('HandsontableObserveChanges', function () {
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
+        }, 'Table render', 1500);
 
         runs(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('new string');
@@ -182,7 +182,7 @@ describe('HandsontableObserveChanges', function () {
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
+        }, 'Table render', 1500);
 
         runs(function () {
           expect(htCore.find('tr').length).toEqual(3);
@@ -241,7 +241,7 @@ describe('HandsontableObserveChanges', function () {
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
+        }, 'Table render', 1500);
 
         runs(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -251,7 +251,7 @@ describe('HandsontableObserveChanges', function () {
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
+        }, 'Table render', 1500);
 
         runs(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('new string');
