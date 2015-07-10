@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.15.1
+ * Handsontable 0.16.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)
+ * Date: Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.15.1',
-  buildDate: 'Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)'
+  version: '0.16.0',
+  buildDate: 'Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -123,19 +123,145 @@ var $___46__46__47__46__46__47__46__46__47_dom_46_js__,
     $___46__46__47__46__46__47__46__46__47_eventManager_46_js__,
     $__cell_47_coords_46_js__;
 var dom = ($___46__46__47__46__46__47__46__46__47_dom_46_js__ = require("./../../../dom.js"), $___46__46__47__46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_dom_46_js__});
-var eventManagerObject = ($___46__46__47__46__46__47__46__46__47_eventManager_46_js__ = require("./../../../eventManager.js"), $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager_46_js__}).eventManager;
+var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager_46_js__ = require("./../../../eventManager.js"), $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager_46_js__}).EventManager;
 var WalkontableCellCoords = ($__cell_47_coords_46_js__ = require("./cell/coords.js"), $__cell_47_coords_46_js__ && $__cell_47_coords_46_js__.__esModule && $__cell_47_coords_46_js__ || {default: $__cell_47_coords_46_js__}).WalkontableCellCoords;
-function WalkontableBorder(instance, settings) {
-  var style;
-  var createMultipleSelectorHandles = function() {
+var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
+  if (!settings) {
+    return;
+  }
+  this.eventManager = new EventManager(wotInstance);
+  this.instance = wotInstance;
+  this.wot = wotInstance;
+  this.settings = settings;
+  this.mouseDown = false;
+  this.main = null;
+  this.top = null;
+  this.left = null;
+  this.bottom = null;
+  this.right = null;
+  this.topStyle = null;
+  this.leftStyle = null;
+  this.bottomStyle = null;
+  this.rightStyle = null;
+  this.cornerDefaultStyle = {
+    width: '5px',
+    height: '5px',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: '#FFF'
+  };
+  this.corner = null;
+  this.cornerStyle = null;
+  this.createBorders(settings);
+  this.registerListeners();
+};
+($traceurRuntime.createClass)(WalkontableBorder, {
+  registerListeners: function() {
+    var $__2 = this;
+    this.eventManager.addEventListener(document.body, 'mousedown', (function() {
+      return $__2.onMouseDown();
+    }));
+    this.eventManager.addEventListener(document.body, 'mouseup', (function() {
+      return $__2.onMouseUp();
+    }));
+    for (var c = 0,
+        len = this.main.childNodes.length; c < len; c++) {
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (function(event) {
+        return $__2.onMouseEnter(event);
+      }));
+    }
+  },
+  onMouseDown: function() {
+    this.mouseDown = true;
+  },
+  onMouseUp: function() {
+    this.mouseDown = false;
+  },
+  onMouseEnter: function(event) {
+    if (!this.mouseDown || !this.wot.getSetting('hideBorderOnMouseDownOver')) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    var _this = this;
+    var bounds = this.getBoundingClientRect();
+    this.style.display = 'none';
+    function isOutside(event) {
+      if (event.clientY < Math.floor(bounds.top)) {
+        return true;
+      }
+      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+        return true;
+      }
+      if (event.clientX < Math.floor(bounds.left)) {
+        return true;
+      }
+      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+        return true;
+      }
+    }
+    function handler(event) {
+      if (isOutside(event)) {
+        _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
+        _this.style.display = 'block';
+      }
+    }
+    this.eventManager.addEventListener(document.body, 'mousemove', handler);
+  },
+  createBorders: function(settings) {
+    this.main = document.createElement('div');
+    var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    var style = this.main.style;
+    style.position = 'absolute';
+    style.top = 0;
+    style.left = 0;
+    for (var i = 0; i < 5; i++) {
+      var position = borderDivs[i];
+      var div = document.createElement('div');
+      div.className = 'wtBorder ' + (this.settings.className || '');
+      if (this.settings[position] && this.settings[position].hide) {
+        div.className += ' hidden';
+      }
+      style = div.style;
+      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
+      style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
+      style.width = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
+      this.main.appendChild(div);
+    }
+    this.top = this.main.childNodes[0];
+    this.left = this.main.childNodes[1];
+    this.bottom = this.main.childNodes[2];
+    this.right = this.main.childNodes[3];
+    this.topStyle = this.top.style;
+    this.leftStyle = this.left.style;
+    this.bottomStyle = this.bottom.style;
+    this.rightStyle = this.right.style;
+    this.corner = this.main.childNodes[4];
+    this.corner.className += ' corner';
+    this.cornerStyle = this.corner.style;
+    this.cornerStyle.width = this.cornerDefaultStyle.width;
+    this.cornerStyle.height = this.cornerDefaultStyle.height;
+    this.cornerStyle.border = [this.cornerDefaultStyle.borderWidth, this.cornerDefaultStyle.borderStyle, this.cornerDefaultStyle.borderColor].join(' ');
+    if (Handsontable.mobileBrowser) {
+      this.createMultipleSelectorHandles();
+    }
+    this.disappear();
+    if (!this.wot.wtTable.bordersHolder) {
+      this.wot.wtTable.bordersHolder = document.createElement('div');
+      this.wot.wtTable.bordersHolder.className = 'htBorders';
+      this.wot.wtTable.spreader.appendChild(this.wot.wtTable.bordersHolder);
+    }
+    this.wot.wtTable.bordersHolder.insertBefore(this.main, this.wot.wtTable.bordersHolder.firstChild);
+  },
+  createMultipleSelectorHandles: function() {
     this.selectionHandles = {
       topLeft: document.createElement('DIV'),
       topLeftHitArea: document.createElement('DIV'),
       bottomRight: document.createElement('DIV'),
       bottomRightHitArea: document.createElement('DIV')
     };
-    var width = 10,
-        hitAreaWidth = 40;
+    var width = 10;
+    var hitAreaWidth = 40;
     this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
     this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
     this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
@@ -166,149 +292,28 @@ function WalkontableBorder(instance, settings) {
       'background': '#F5F5FF',
       'border': '1px solid #4285c8'
     };
-    for (var prop in handleStyle) {
-      if (handleStyle.hasOwnProperty(prop)) {
-        this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
-        this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
+    for (var prop$__4 in handleStyle) {
+      if (handleStyle.hasOwnProperty(prop$__4)) {
+        this.selectionHandles.styles.bottomRight[prop$__4] = handleStyle[prop$__4];
+        this.selectionHandles.styles.topLeft[prop$__4] = handleStyle[prop$__4];
       }
     }
     this.main.appendChild(this.selectionHandles.topLeft);
     this.main.appendChild(this.selectionHandles.bottomRight);
     this.main.appendChild(this.selectionHandles.topLeftHitArea);
     this.main.appendChild(this.selectionHandles.bottomRightHitArea);
-  };
-  if (!settings) {
-    return;
-  }
-  var eventManager = eventManagerObject(instance);
-  this.instance = instance;
-  this.settings = settings;
-  this.main = document.createElement("div");
-  style = this.main.style;
-  style.position = 'absolute';
-  style.top = 0;
-  style.left = 0;
-  var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
-  for (var i = 0; i < 5; i++) {
-    var position = borderDivs[i];
-    var DIV = document.createElement('DIV');
-    DIV.className = 'wtBorder ' + (this.settings.className || '');
-    if (this.settings[position] && this.settings[position].hide) {
-      DIV.className += " hidden";
-    }
-    style = DIV.style;
-    style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
-    style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
-    style.width = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
-    this.main.appendChild(DIV);
-  }
-  this.top = this.main.childNodes[0];
-  this.left = this.main.childNodes[1];
-  this.bottom = this.main.childNodes[2];
-  this.right = this.main.childNodes[3];
-  this.topStyle = this.top.style;
-  this.leftStyle = this.left.style;
-  this.bottomStyle = this.bottom.style;
-  this.rightStyle = this.right.style;
-  this.cornerDefaultStyle = {
-    width: '5px',
-    height: '5px',
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    borderColor: '#FFF'
-  };
-  this.corner = this.main.childNodes[4];
-  this.corner.className += ' corner';
-  this.cornerStyle = this.corner.style;
-  this.cornerStyle.width = this.cornerDefaultStyle.width;
-  this.cornerStyle.height = this.cornerDefaultStyle.height;
-  this.cornerStyle.border = [this.cornerDefaultStyle.borderWidth, this.cornerDefaultStyle.borderStyle, this.cornerDefaultStyle.borderColor].join(' ');
-  if (Handsontable.mobileBrowser) {
-    createMultipleSelectorHandles.call(this);
-  }
-  this.disappear();
-  if (!instance.wtTable.bordersHolder) {
-    instance.wtTable.bordersHolder = document.createElement('div');
-    instance.wtTable.bordersHolder.className = 'htBorders';
-    instance.wtTable.spreader.appendChild(instance.wtTable.bordersHolder);
-  }
-  instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
-  var down = false;
-  eventManager.addEventListener(document.body, 'mousedown', function() {
-    down = true;
-  });
-  eventManager.addEventListener(document.body, 'mouseup', function() {
-    down = false;
-  });
-  for (var c = 0,
-      len = this.main.childNodes.length; c < len; c++) {
-    eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', function(event) {
-      if (!down || !instance.getSetting('hideBorderOnMouseDownOver')) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      var bounds = this.getBoundingClientRect();
-      this.style.display = 'none';
-      var isOutside = function(event) {
-        if (event.clientY < Math.floor(bounds.top)) {
-          return true;
-        }
-        if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
-          return true;
-        }
-        if (event.clientX < Math.floor(bounds.left)) {
-          return true;
-        }
-        if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
-          return true;
-        }
-      };
-      var handler = function(event) {
-        if (isOutside(event)) {
-          eventManager.removeEventListener(document.body, 'mousemove', handler);
-          this.style.display = 'block';
-        }
-      };
-      eventManager.addEventListener(document.body, 'mousemove', handler);
-    });
-  }
-}
-WalkontableBorder.prototype.appear = function(corners) {
-  if (this.disabled) {
-    return;
-  }
-  var instance = this.instance;
-  var isMultiple,
-      fromTD,
-      toTD,
-      fromOffset,
-      toOffset,
-      containerOffset,
-      top,
-      minTop,
-      left,
-      minLeft,
-      height,
-      width,
-      fromRow,
-      fromColumn,
-      toRow,
-      toColumn,
-      i,
-      ilen,
-      s;
-  var isPartRange = function() {
-    if (this.instance.selections.area.cellRange) {
-      if (toRow != this.instance.selections.area.cellRange.to.row || toColumn != this.instance.selections.area.cellRange.to.col) {
+  },
+  isPartRange: function(row, col) {
+    if (this.wot.selections.area.cellRange) {
+      if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
         return true;
       }
     }
     return false;
-  };
-  var updateMultipleSelectionHandlesPosition = function(top, left, width, height) {
-    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10),
-        hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+  },
+  updateMultipleSelectionHandlesPosition: function(row, col, top, left, width, height) {
+    var handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
+    var hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
     this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth, 10) + "px";
     this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth, 10) + "px";
     this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth / 4) * 3, 10) + "px";
@@ -320,7 +325,7 @@ WalkontableBorder.prototype.appear = function(corners) {
     if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
       this.selectionHandles.styles.topLeft.display = "block";
       this.selectionHandles.styles.topLeftHitArea.display = "block";
-      if (!isPartRange.call(this)) {
+      if (!this.isPartRange(row, col)) {
         this.selectionHandles.styles.bottomRight.display = "block";
         this.selectionHandles.styles.bottomRightHitArea.display = "block";
       } else {
@@ -333,55 +338,79 @@ WalkontableBorder.prototype.appear = function(corners) {
       this.selectionHandles.styles.topLeftHitArea.display = "none";
       this.selectionHandles.styles.bottomRightHitArea.display = "none";
     }
-    if (fromRow == this.instance.wtSettings.getSetting('fixedRowsTop') || fromColumn == this.instance.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = "9999";
       this.selectionHandles.styles.topLeftHitArea.zIndex = "9999";
     } else {
       this.selectionHandles.styles.topLeft.zIndex = "";
       this.selectionHandles.styles.topLeftHitArea.zIndex = "";
     }
-  };
-  if (instance.cloneOverlay instanceof WalkontableTopOverlay || instance.cloneOverlay instanceof WalkontableCornerOverlay) {
-    ilen = instance.getSetting('fixedRowsTop');
-  } else {
-    ilen = instance.wtTable.getRenderedRowsCount();
-  }
-  for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.rowFilter.renderedToSource(i);
-    if (s >= corners[0] && s <= corners[2]) {
-      fromRow = s;
-      break;
+  },
+  appear: function(corners) {
+    if (this.disabled) {
+      return;
     }
-  }
-  for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.rowFilter.renderedToSource(i);
-    if (s >= corners[0] && s <= corners[2]) {
-      toRow = s;
-      break;
+    var isMultiple,
+        fromTD,
+        toTD,
+        fromOffset,
+        toOffset,
+        containerOffset,
+        top,
+        minTop,
+        left,
+        minLeft,
+        height,
+        width,
+        fromRow,
+        fromColumn,
+        toRow,
+        toColumn,
+        ilen;
+    if (this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+      ilen = this.wot.getSetting('fixedRowsTop');
+    } else {
+      ilen = this.wot.wtTable.getRenderedRowsCount();
     }
-  }
-  ilen = instance.wtTable.getRenderedColumnsCount();
-  for (i = 0; i < ilen; i++) {
-    s = instance.wtTable.columnFilter.renderedToSource(i);
-    if (s >= corners[1] && s <= corners[3]) {
-      fromColumn = s;
-      break;
+    for (var i = 0; i < ilen; i++) {
+      var s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      if (s >= corners[0] && s <= corners[2]) {
+        fromRow = s;
+        break;
+      }
     }
-  }
-  for (i = ilen - 1; i >= 0; i--) {
-    s = instance.wtTable.columnFilter.renderedToSource(i);
-    if (s >= corners[1] && s <= corners[3]) {
-      toColumn = s;
-      break;
+    for (var i$__5 = ilen - 1; i$__5 >= 0; i$__5--) {
+      var s$__6 = this.wot.wtTable.rowFilter.renderedToSource(i$__5);
+      if (s$__6 >= corners[0] && s$__6 <= corners[2]) {
+        toRow = s$__6;
+        break;
+      }
     }
-  }
-  if (fromRow !== void 0 && fromColumn !== void 0) {
+    ilen = this.wot.wtTable.getRenderedColumnsCount();
+    for (var i$__7 = 0; i$__7 < ilen; i$__7++) {
+      var s$__8 = this.wot.wtTable.columnFilter.renderedToSource(i$__7);
+      if (s$__8 >= corners[1] && s$__8 <= corners[3]) {
+        fromColumn = s$__8;
+        break;
+      }
+    }
+    for (var i$__9 = ilen - 1; i$__9 >= 0; i$__9--) {
+      var s$__10 = this.wot.wtTable.columnFilter.renderedToSource(i$__9);
+      if (s$__10 >= corners[1] && s$__10 <= corners[3]) {
+        toColumn = s$__10;
+        break;
+      }
+    }
+    if (fromRow === void 0 || fromColumn === void 0) {
+      this.disappear();
+      return;
+    }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = instance.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
-    toTD = isMultiple ? instance.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
+    fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
+    toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = dom.offset(fromTD);
     toOffset = isMultiple ? dom.offset(toTD) : fromOffset;
-    containerOffset = dom.offset(instance.wtTable.TABLE);
+    containerOffset = dom.offset(this.wot.wtTable.TABLE);
     minTop = fromOffset.top;
     height = toOffset.top + dom.outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
@@ -397,65 +426,62 @@ WalkontableBorder.prototype.appear = function(corners) {
       left += 1;
       width = width > 0 ? width - 1 : 0;
     }
-  } else {
-    this.disappear();
-    return;
-  }
-  this.topStyle.top = top + 'px';
-  this.topStyle.left = left + 'px';
-  this.topStyle.width = width + 'px';
-  this.topStyle.display = 'block';
-  this.leftStyle.top = top + 'px';
-  this.leftStyle.left = left + 'px';
-  this.leftStyle.height = height + 'px';
-  this.leftStyle.display = 'block';
-  var delta = Math.floor(this.settings.border.width / 2);
-  this.bottomStyle.top = top + height - delta + 'px';
-  this.bottomStyle.left = left + 'px';
-  this.bottomStyle.width = width + 'px';
-  this.bottomStyle.display = 'block';
-  this.rightStyle.top = top + 'px';
-  this.rightStyle.left = left + width - delta + 'px';
-  this.rightStyle.height = height + 1 + 'px';
-  this.rightStyle.display = 'block';
-  if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || isPartRange.call(this))) {
-    this.cornerStyle.display = 'none';
-  } else {
-    this.cornerStyle.top = top + height - 4 + 'px';
-    this.cornerStyle.left = left + width - 4 + 'px';
-    this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
-    this.cornerStyle.width = this.cornerDefaultStyle.width;
-    this.cornerStyle.display = 'block';
-    if (toColumn === this.instance.getSetting('totalColumns') - 1) {
-      var trimmingContainer = dom.getTrimmingContainer(instance.wtTable.TABLE),
-          cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
-      if (cornerOverlappingContainer) {
-        this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
-        this.cornerStyle.borderRightWidth = 0;
+    this.topStyle.top = top + 'px';
+    this.topStyle.left = left + 'px';
+    this.topStyle.width = width + 'px';
+    this.topStyle.display = 'block';
+    this.leftStyle.top = top + 'px';
+    this.leftStyle.left = left + 'px';
+    this.leftStyle.height = height + 'px';
+    this.leftStyle.display = 'block';
+    var delta = Math.floor(this.settings.border.width / 2);
+    this.bottomStyle.top = top + height - delta + 'px';
+    this.bottomStyle.left = left + 'px';
+    this.bottomStyle.width = width + 'px';
+    this.bottomStyle.display = 'block';
+    this.rightStyle.top = top + 'px';
+    this.rightStyle.left = left + width - delta + 'px';
+    this.rightStyle.height = height + 1 + 'px';
+    this.rightStyle.display = 'block';
+    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+      this.cornerStyle.display = 'none';
+    } else {
+      this.cornerStyle.top = top + height - 4 + 'px';
+      this.cornerStyle.left = left + width - 4 + 'px';
+      this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
+      this.cornerStyle.width = this.cornerDefaultStyle.width;
+      this.cornerStyle.display = 'block';
+      if (toColumn === this.wot.getSetting('totalColumns') - 1) {
+        var trimmingContainer = dom.getTrimmingContainer(this.wot.wtTable.TABLE);
+        var cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
+        if (cornerOverlappingContainer) {
+          this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
+          this.cornerStyle.borderRightWidth = 0;
+        }
       }
     }
+    if (Handsontable.mobileBrowser) {
+      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+    }
+  },
+  disappear: function() {
+    this.topStyle.display = 'none';
+    this.leftStyle.display = 'none';
+    this.bottomStyle.display = 'none';
+    this.rightStyle.display = 'none';
+    this.cornerStyle.display = 'none';
+    if (Handsontable.mobileBrowser) {
+      this.selectionHandles.styles.topLeft.display = 'none';
+      this.selectionHandles.styles.bottomRight.display = 'none';
+    }
+  },
+  hasSetting: function(setting) {
+    if (typeof setting === 'function') {
+      return setting();
+    }
+    return !!setting;
   }
-  if (Handsontable.mobileBrowser) {
-    updateMultipleSelectionHandlesPosition.call(this, top, left, width, height);
-  }
-};
-WalkontableBorder.prototype.disappear = function() {
-  this.topStyle.display = 'none';
-  this.leftStyle.display = 'none';
-  this.bottomStyle.display = 'none';
-  this.rightStyle.display = 'none';
-  this.cornerStyle.display = 'none';
-  if (Handsontable.mobileBrowser) {
-    this.selectionHandles.styles.topLeft.display = 'none';
-    this.selectionHandles.styles.bottomRight.display = 'none';
-  }
-};
-WalkontableBorder.prototype.hasSetting = function(setting) {
-  if (typeof setting === 'function') {
-    return setting();
-  }
-  return !!setting;
-};
+}, {});
 ;
 window.WalkontableBorder = WalkontableBorder;
 
@@ -2001,9 +2027,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         var overlay;
         var deltaY = event.wheelDeltaY || event.deltaY;
         var deltaX = event.wheelDeltaX || event.deltaX;
-        if ($__5.topOverlay.clone.wtTable.holder.contains(event.target)) {
+        if ($__5.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
-        } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.target)) {
+        } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
         }
         if (overlay == 'top' && deltaY !== 0) {
@@ -2374,6 +2400,7 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
   this.defaults = {
     table: void 0,
     debug: false,
+    externalRowCalculator: false,
     stretchH: 'none',
     currentRowClassName: null,
     currentColumnClassName: null,
@@ -2492,329 +2519,340 @@ var WalkontableLeftOverlay = ($__overlay_47_left_46_js__ = require("./overlay/le
 var WalkontableRowFilter = ($__filter_47_row_46_js__ = require("./filter/row.js"), $__filter_47_row_46_js__ && $__filter_47_row_46_js__.__esModule && $__filter_47_row_46_js__ || {default: $__filter_47_row_46_js__}).WalkontableRowFilter;
 var WalkontableTableRenderer = ($__tableRenderer_46_js__ = require("./tableRenderer.js"), $__tableRenderer_46_js__ && $__tableRenderer_46_js__.__esModule && $__tableRenderer_46_js__ || {default: $__tableRenderer_46_js__}).WalkontableTableRenderer;
 var WalkontableTopOverlay = ($__overlay_47_top_46_js__ = require("./overlay/top.js"), $__overlay_47_top_46_js__ && $__overlay_47_top_46_js__.__esModule && $__overlay_47_top_46_js__ || {default: $__overlay_47_top_46_js__}).WalkontableTopOverlay;
-function WalkontableTable(instance, table) {
-  this.instance = instance;
+var WalkontableTable = function WalkontableTable(wotInstance, table) {
+  this.wot = wotInstance;
+  this.instance = this.wot;
   this.TABLE = table;
+  this.TBODY = null;
+  this.THEAD = null;
+  this.COLGROUP = null;
+  this.tableOffset = 0;
+  this.holderOffset = 0;
   dom.removeTextNodes(this.TABLE);
-  var parent = this.TABLE.parentNode;
-  if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
-    var spreader = document.createElement('DIV');
-    spreader.className = 'wtSpreader';
-    if (parent) {
-      parent.insertBefore(spreader, this.TABLE);
-    }
-    spreader.appendChild(this.TABLE);
-  }
-  this.spreader = this.TABLE.parentNode;
-  this.spreader.style.position = 'relative';
-  parent = this.spreader.parentNode;
-  if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
-    var hider = document.createElement('DIV');
-    hider.className = 'wtHider';
-    if (parent) {
-      parent.insertBefore(hider, this.spreader);
-    }
-    hider.appendChild(this.spreader);
-  }
-  this.hider = this.spreader.parentNode;
-  parent = this.hider.parentNode;
-  if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
-    var holder = document.createElement('DIV');
-    holder.style.position = 'relative';
-    holder.className = 'wtHolder';
-    if (parent) {
-      parent.insertBefore(holder, this.hider);
-    }
-    if (!instance.cloneSource) {
-      holder.parentNode.className += 'ht_master handsontable';
-    }
-    holder.appendChild(this.hider);
-  }
-  this.holder = this.hider.parentNode;
+  this.spreader = this.createSpreader(this.TABLE);
+  this.hider = this.createHider(this.spreader);
+  this.holder = this.createHolder(this.hider);
   this.wtRootElement = this.holder.parentNode;
   this.alignOverlaysWithTrimmingContainer();
-  this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
-  if (!this.TBODY) {
-    this.TBODY = document.createElement('TBODY');
-    this.TABLE.appendChild(this.TBODY);
-  }
-  this.THEAD = this.TABLE.getElementsByTagName('THEAD')[0];
-  if (!this.THEAD) {
-    this.THEAD = document.createElement('THEAD');
-    this.TABLE.insertBefore(this.THEAD, this.TBODY);
-  }
-  this.COLGROUP = this.TABLE.getElementsByTagName('COLGROUP')[0];
-  if (!this.COLGROUP) {
-    this.COLGROUP = document.createElement('COLGROUP');
-    this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-  }
-  if (this.instance.getSetting('columnHeaders').length) {
-    if (!this.THEAD.childNodes.length) {
-      var TR = document.createElement('TR');
-      this.THEAD.appendChild(TR);
-    }
-  }
+  this.fixTableDomTree();
   this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
   this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
   this.rowFilter = null;
   this.columnFilter = null;
-}
-WalkontableTable.prototype.alignOverlaysWithTrimmingContainer = function() {
-  var trimmingElement = dom.getTrimmingContainer(this.wtRootElement);
-  if (!this.isWorkingOnClone()) {
-    this.holder.parentNode.style.position = 'relative';
-    if (trimmingElement !== window) {
-      this.holder.style.width = dom.getStyle(trimmingElement, 'width');
-      this.holder.style.height = dom.getStyle(trimmingElement, 'height');
-      this.holder.style.overflow = '';
-    } else {
-      this.holder.style.overflow = 'visible';
-      this.wtRootElement.style.overflow = 'visible';
-    }
-  }
 };
-WalkontableTable.prototype.isWorkingOnClone = function() {
-  return !!this.instance.cloneSource;
-};
-WalkontableTable.prototype.draw = function(fastDraw) {
-  if (!this.isWorkingOnClone()) {
-    this.holderOffset = dom.offset(this.holder);
-    fastDraw = this.instance.wtViewport.createRenderCalculators(fastDraw);
-  }
-  if (!fastDraw) {
-    if (this.isWorkingOnClone()) {
-      this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
-    } else {
-      this.tableOffset = dom.offset(this.TABLE);
+($traceurRuntime.createClass)(WalkontableTable, {
+  fixTableDomTree: function() {
+    this.TBODY = this.TABLE.querySelector('tbody');
+    if (!this.TBODY) {
+      this.TBODY = document.createElement('tbody');
+      this.TABLE.appendChild(this.TBODY);
     }
-    var startRow;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.cloneOverlay instanceof WalkontableTopOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
-      startRow = 0;
-    } else {
-      startRow = this.instance.wtViewport.rowsRenderCalculator.startRow;
+    this.THEAD = this.TABLE.querySelector('thead');
+    if (!this.THEAD) {
+      this.THEAD = document.createElement('thead');
+      this.TABLE.insertBefore(this.THEAD, this.TBODY);
     }
-    var startColumn;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay || this.instance.cloneOverlay instanceof WalkontableLeftOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
-      startColumn = 0;
-    } else {
-      startColumn = this.instance.wtViewport.columnsRenderCalculator.startColumn;
+    this.COLGROUP = this.TABLE.querySelector('colgroup');
+    if (!this.COLGROUP) {
+      this.COLGROUP = document.createElement('colgroup');
+      this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
     }
-    this.rowFilter = new WalkontableRowFilter(startRow, this.instance.getSetting('totalRows'), this.instance.getSetting('columnHeaders').length);
-    this.columnFilter = new WalkontableColumnFilter(startColumn, this.instance.getSetting('totalColumns'), this.instance.getSetting('rowHeaders').length);
-    this._doDraw();
-    this.alignOverlaysWithTrimmingContainer();
-  } else {
+    if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
+      this.THEAD.appendChild(document.createElement('TR'));
+    }
+  },
+  createSpreader: function(table) {
+    var parent = table.parentNode;
+    var spreader;
+    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+      spreader = document.createElement('div');
+      spreader.className = 'wtSpreader';
+      if (parent) {
+        parent.insertBefore(spreader, table);
+      }
+      spreader.appendChild(table);
+    }
+    spreader.style.position = 'relative';
+    return spreader;
+  },
+  createHider: function(spreader) {
+    var parent = spreader.parentNode;
+    var hider;
+    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+      hider = document.createElement('div');
+      hider.className = 'wtHider';
+      if (parent) {
+        parent.insertBefore(hider, spreader);
+      }
+      hider.appendChild(spreader);
+    }
+    return hider;
+  },
+  createHolder: function(hider) {
+    var parent = hider.parentNode;
+    var holder;
+    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+      holder = document.createElement('div');
+      holder.style.position = 'relative';
+      holder.className = 'wtHolder';
+      if (parent) {
+        parent.insertBefore(holder, hider);
+      }
+      if (!this.isWorkingOnClone()) {
+        holder.parentNode.className += 'ht_master handsontable';
+      }
+      holder.appendChild(hider);
+    }
+    return holder;
+  },
+  alignOverlaysWithTrimmingContainer: function() {
+    var trimmingElement = dom.getTrimmingContainer(this.wtRootElement);
     if (!this.isWorkingOnClone()) {
-      this.instance.wtViewport.createVisibleCalculators();
-    }
-    if (this.instance.wtOverlays) {
-      this.instance.wtOverlays.refresh(true);
-    }
-  }
-  this.refreshSelections(fastDraw);
-  if (!this.isWorkingOnClone()) {
-    this.instance.wtOverlays.topOverlay.resetFixedPosition();
-    this.instance.wtOverlays.leftOverlay.resetFixedPosition();
-    if (this.instance.wtOverlays.topLeftCornerOverlay) {
-      this.instance.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
-    }
-  }
-  this.instance.drawn = true;
-  return this;
-};
-WalkontableTable.prototype._doDraw = function() {
-  var wtRenderer = new WalkontableTableRenderer(this);
-  wtRenderer.render();
-};
-WalkontableTable.prototype.removeClassFromCells = function(className) {
-  var nodes = this.TABLE.querySelectorAll('.' + className);
-  for (var i = 0,
-      ilen = nodes.length; i < ilen; i++) {
-    dom.removeClass(nodes[i], className);
-  }
-};
-WalkontableTable.prototype.refreshSelections = function(fastDraw) {
-  var i,
-      len;
-  if (!this.instance.selections) {
-    return;
-  }
-  len = this.instance.selections.length;
-  if (fastDraw) {
-    for (i = 0; i < len; i++) {
-      if (this.instance.selections[i].settings.className) {
-        this.removeClassFromCells(this.instance.selections[i].settings.className);
-      }
-      if (this.instance.selections[i].settings.highlightRowClassName) {
-        this.removeClassFromCells(this.instance.selections[i].settings.highlightRowClassName);
-      }
-      if (this.instance.selections[i].settings.highlightColumnClassName) {
-        this.removeClassFromCells(this.instance.selections[i].settings.highlightColumnClassName);
+      this.holder.parentNode.style.position = 'relative';
+      if (trimmingElement !== window) {
+        this.holder.style.width = dom.getStyle(trimmingElement, 'width');
+        this.holder.style.height = dom.getStyle(trimmingElement, 'height');
+        this.holder.style.overflow = '';
+      } else {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
       }
     }
-  }
-  for (i = 0; i < len; i++) {
-    this.instance.selections[i].draw(this.instance, fastDraw);
-  }
-};
-WalkontableTable.prototype.getCell = function(coords) {
-  if (this.isRowBeforeRenderedRows(coords.row)) {
-    return -1;
-  } else if (this.isRowAfterRenderedRows(coords.row)) {
-    return -2;
-  }
-  var TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
-  if (TR) {
-    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
-  }
-};
-WalkontableTable.prototype.getColumnHeader = function(col, level) {
-  if (!level) {
-    level = 0;
-  }
-  var TR = this.THEAD.childNodes[level];
-  if (TR) {
-    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
-  }
-};
-WalkontableTable.prototype.getRowHeader = function(row) {
-  if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-    return null;
-  }
-  var TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-  if (TR) {
-    return TR.childNodes[0];
-  }
-};
-WalkontableTable.prototype.getCoords = function(TD) {
-  var TR = TD.parentNode;
-  var row = dom.index(TR);
-  if (TR.parentNode === this.THEAD) {
-    row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-  } else {
-    row = this.rowFilter.renderedToSource(row);
-  }
-  return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
-};
-WalkontableTable.prototype.getTrForRow = function(row) {
-  return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-};
-WalkontableTable.prototype.getFirstRenderedRow = function() {
-  return this.instance.wtViewport.rowsRenderCalculator.startRow;
-};
-WalkontableTable.prototype.getFirstVisibleRow = function() {
-  return this.instance.wtViewport.rowsVisibleCalculator.startRow;
-};
-WalkontableTable.prototype.getFirstRenderedColumn = function() {
-  return this.instance.wtViewport.columnsRenderCalculator.startColumn;
-};
-WalkontableTable.prototype.getFirstVisibleColumn = function() {
-  return this.instance.wtViewport.columnsVisibleCalculator.startColumn;
-};
-WalkontableTable.prototype.getLastRenderedRow = function() {
-  return this.instance.wtViewport.rowsRenderCalculator.endRow;
-};
-WalkontableTable.prototype.getLastVisibleRow = function() {
-  return this.instance.wtViewport.rowsVisibleCalculator.endRow;
-};
-WalkontableTable.prototype.getLastRenderedColumn = function() {
-  return this.instance.wtViewport.columnsRenderCalculator.endColumn;
-};
-WalkontableTable.prototype.getLastVisibleColumn = function() {
-  return this.instance.wtViewport.columnsVisibleCalculator.endColumn;
-};
-WalkontableTable.prototype.isRowBeforeRenderedRows = function(r) {
-  return (this.rowFilter.sourceToRendered(r) < 0 && r >= 0);
-};
-WalkontableTable.prototype.isRowAfterViewport = function(r) {
-  return (r > this.getLastVisibleRow());
-};
-WalkontableTable.prototype.isRowAfterRenderedRows = function(r) {
-  return (r > this.getLastRenderedRow());
-};
-WalkontableTable.prototype.isColumnBeforeViewport = function(c) {
-  return (this.columnFilter.sourceToRendered(c) < 0 && c >= 0);
-};
-WalkontableTable.prototype.isColumnAfterViewport = function(c) {
-  return (c > this.getLastVisibleColumn());
-};
-WalkontableTable.prototype.isLastRowFullyVisible = function() {
-  return (this.getLastVisibleRow() === this.getLastRenderedRow());
-};
-WalkontableTable.prototype.isLastColumnFullyVisible = function() {
-  return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
-};
-WalkontableTable.prototype.getRenderedColumnsCount = function() {
-  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    return this.instance.getSetting('totalColumns');
-  } else if (this.instance.cloneOverlay instanceof WalkontableLeftOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
-    return this.instance.getSetting('fixedColumnsLeft');
-  } else {
-    return this.instance.wtViewport.columnsRenderCalculator.count;
-  }
-};
-WalkontableTable.prototype.getRenderedRowsCount = function() {
-  if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    return this.instance.getSetting('totalRows');
-  } else if (this.instance.cloneOverlay instanceof WalkontableTopOverlay || this.instance.cloneOverlay instanceof WalkontableCornerOverlay) {
-    return this.instance.getSetting('fixedRowsTop');
-  }
-  return this.instance.wtViewport.rowsRenderCalculator.count;
-};
-WalkontableTable.prototype.getVisibleRowsCount = function() {
-  return this.instance.wtViewport.rowsVisibleCalculator.count;
-};
-WalkontableTable.prototype.allRowsInViewport = function() {
-  return this.instance.getSetting('totalRows') == this.getVisibleRowsCount();
-};
-WalkontableTable.prototype.getRowHeight = function(sourceRow) {
-  var height = this.instance.wtSettings.settings.rowHeight(sourceRow),
-      oversizedHeight = this.instance.wtViewport.oversizedRows[sourceRow];
-  if (oversizedHeight !== void 0) {
-    height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
-  }
-  return height;
-};
-WalkontableTable.prototype.getColumnHeaderHeight = function(level) {
-  var height = this.instance.wtSettings.settings.defaultRowHeight,
-      oversizedHeight = this.instance.wtViewport.oversizedColumnHeaders[level];
-  if (oversizedHeight !== void 0) {
-    height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
-  }
-  return height;
-};
-WalkontableTable.prototype.getVisibleColumnsCount = function() {
-  return this.instance.wtViewport.columnsVisibleCalculator.count;
-};
-WalkontableTable.prototype.allColumnsInViewport = function() {
-  return this.instance.getSetting('totalColumns') == this.getVisibleColumnsCount();
-};
-WalkontableTable.prototype.getColumnWidth = function(sourceColumn) {
-  var width = this.instance.wtSettings.settings.columnWidth;
-  if (typeof width === 'function') {
-    width = width(sourceColumn);
-  } else if (typeof width === 'object') {
-    width = width[sourceColumn];
-  }
-  var oversizedWidth = this.instance.wtViewport.oversizedCols[sourceColumn];
-  if (oversizedWidth !== void 0) {
-    width = width ? Math.max(width, oversizedWidth) : oversizedWidth;
-  }
-  return width;
-};
-WalkontableTable.prototype.getStretchedColumnWidth = function(sourceColumn) {
-  var width = this.getColumnWidth(sourceColumn) || this.instance.wtSettings.settings.defaultColumnWidth,
-      calculator = this.instance.wtViewport.columnsRenderCalculator,
-      stretchedWidth;
-  if (calculator) {
-    stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
-    if (stretchedWidth) {
-      width = stretchedWidth;
+  },
+  isWorkingOnClone: function() {
+    return !!this.wot.cloneSource;
+  },
+  draw: function(fastDraw) {
+    if (!this.isWorkingOnClone()) {
+      this.holderOffset = dom.offset(this.holder);
+      fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
     }
+    if (!fastDraw) {
+      if (this.isWorkingOnClone()) {
+        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
+      } else {
+        this.tableOffset = dom.offset(this.TABLE);
+      }
+      var startRow;
+      if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay || this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        startRow = 0;
+      } else {
+        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+      }
+      var startColumn;
+      if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay || this.wot.cloneOverlay instanceof WalkontableLeftOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        startColumn = 0;
+      } else {
+        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+      }
+      this.rowFilter = new WalkontableRowFilter(startRow, this.wot.getSetting('totalRows'), this.wot.getSetting('columnHeaders').length);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this._doDraw();
+      this.alignOverlaysWithTrimmingContainer();
+    } else {
+      if (!this.isWorkingOnClone()) {
+        this.wot.wtViewport.createVisibleCalculators();
+      }
+      if (this.wot.wtOverlays) {
+        this.wot.wtOverlays.refresh(true);
+      }
+    }
+    this.refreshSelections(fastDraw);
+    if (!this.isWorkingOnClone()) {
+      this.wot.wtOverlays.topOverlay.resetFixedPosition();
+      this.wot.wtOverlays.leftOverlay.resetFixedPosition();
+      if (this.wot.wtOverlays.topLeftCornerOverlay) {
+        this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      }
+    }
+    this.wot.drawn = true;
+    return this;
+  },
+  _doDraw: function() {
+    var wtRenderer = new WalkontableTableRenderer(this);
+    wtRenderer.render();
+  },
+  removeClassFromCells: function(className) {
+    var nodes = this.TABLE.querySelectorAll('.' + className);
+    for (var i = 0,
+        len = nodes.length; i < len; i++) {
+      dom.removeClass(nodes[i], className);
+    }
+  },
+  refreshSelections: function(fastDraw) {
+    if (!this.wot.selections) {
+      return;
+    }
+    var len = this.wot.selections.length;
+    if (fastDraw) {
+      for (var i = 0; i < len; i++) {
+        if (this.wot.selections[i].settings.className) {
+          this.removeClassFromCells(this.wot.selections[i].settings.className);
+        }
+        if (this.wot.selections[i].settings.highlightRowClassName) {
+          this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
+        }
+        if (this.wot.selections[i].settings.highlightColumnClassName) {
+          this.removeClassFromCells(this.wot.selections[i].settings.highlightColumnClassName);
+        }
+      }
+    }
+    for (var i$__10 = 0; i$__10 < len; i$__10++) {
+      this.wot.selections[i$__10].draw(this.wot, fastDraw);
+    }
+  },
+  getCell: function(coords) {
+    if (this.isRowBeforeRenderedRows(coords.row)) {
+      return -1;
+    } else if (this.isRowAfterRenderedRows(coords.row)) {
+      return -2;
+    }
+    var TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
+    if (TR) {
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+    }
+  },
+  getColumnHeader: function(col) {
+    var level = arguments[1] !== (void 0) ? arguments[1] : 0;
+    var TR = this.THEAD.childNodes[level];
+    if (TR) {
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+    }
+  },
+  getRowHeader: function(row) {
+    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+      return null;
+    }
+    var TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    if (TR) {
+      return TR.childNodes[0];
+    }
+  },
+  getCoords: function(TD) {
+    var TR = TD.parentNode;
+    var row = dom.index(TR);
+    if (TR.parentNode === this.THEAD) {
+      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+    } else {
+      row = this.rowFilter.renderedToSource(row);
+    }
+    return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
+  },
+  getTrForRow: function(row) {
+    return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+  },
+  getFirstRenderedRow: function() {
+    return this.wot.wtViewport.rowsRenderCalculator.startRow;
+  },
+  getFirstVisibleRow: function() {
+    return this.wot.wtViewport.rowsVisibleCalculator.startRow;
+  },
+  getFirstRenderedColumn: function() {
+    return this.wot.wtViewport.columnsRenderCalculator.startColumn;
+  },
+  getFirstVisibleColumn: function() {
+    return this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+  },
+  getLastRenderedRow: function() {
+    return this.wot.wtViewport.rowsRenderCalculator.endRow;
+  },
+  getLastVisibleRow: function() {
+    return this.wot.wtViewport.rowsVisibleCalculator.endRow;
+  },
+  getLastRenderedColumn: function() {
+    return this.wot.wtViewport.columnsRenderCalculator.endColumn;
+  },
+  getLastVisibleColumn: function() {
+    return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
+  },
+  isRowBeforeRenderedRows: function(row) {
+    return (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+  },
+  isRowAfterViewport: function(row) {
+    return (row > this.getLastVisibleRow());
+  },
+  isRowAfterRenderedRows: function(row) {
+    return (row > this.getLastRenderedRow());
+  },
+  isColumnBeforeViewport: function(column) {
+    return (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+  },
+  isColumnAfterViewport: function(column) {
+    return (column > this.getLastVisibleColumn());
+  },
+  isLastRowFullyVisible: function() {
+    return (this.getLastVisibleRow() === this.getLastRenderedRow());
+  },
+  isLastColumnFullyVisible: function() {
+    return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
+  },
+  getRenderedColumnsCount: function() {
+    if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay) {
+      return this.wot.getSetting('totalColumns');
+    } else if (this.wot.cloneOverlay instanceof WalkontableLeftOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+      return this.wot.getSetting('fixedColumnsLeft');
+    } else {
+      return this.wot.wtViewport.columnsRenderCalculator.count;
+    }
+  },
+  getRenderedRowsCount: function() {
+    if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay) {
+      return this.wot.getSetting('totalRows');
+    } else if (this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+      return this.wot.getSetting('fixedRowsTop');
+    }
+    return this.wot.wtViewport.rowsRenderCalculator.count;
+  },
+  getVisibleRowsCount: function() {
+    return this.wot.wtViewport.rowsVisibleCalculator.count;
+  },
+  allRowsInViewport: function() {
+    return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+  },
+  getRowHeight: function(sourceRow) {
+    var height = this.wot.wtSettings.settings.rowHeight(sourceRow);
+    var oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
+    if (oversizedHeight !== void 0) {
+      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+    }
+    return height;
+  },
+  getColumnHeaderHeight: function(level) {
+    var height = this.wot.wtSettings.settings.defaultRowHeight;
+    var oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
+    if (oversizedHeight !== void 0) {
+      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+    }
+    return height;
+  },
+  getVisibleColumnsCount: function() {
+    return this.wot.wtViewport.columnsVisibleCalculator.count;
+  },
+  allColumnsInViewport: function() {
+    return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+  },
+  getColumnWidth: function(sourceColumn) {
+    var width = this.wot.wtSettings.settings.columnWidth;
+    if (typeof width === 'function') {
+      width = width(sourceColumn);
+    } else if (typeof width === 'object') {
+      width = width[sourceColumn];
+    }
+    return width;
+  },
+  getStretchedColumnWidth: function(sourceColumn) {
+    var width = this.getColumnWidth(sourceColumn) || this.wot.wtSettings.settings.defaultColumnWidth;
+    var calculator = this.wot.wtViewport.columnsRenderCalculator;
+    if (calculator) {
+      var stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
+      if (stretchedWidth) {
+        width = stretchedWidth;
+      }
+    }
+    return width;
   }
-  return width;
-};
+}, {});
 ;
 window.WalkontableTable = WalkontableTable;
 
@@ -2927,6 +2965,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       if (TR.firstChild) {
         var height = this.wot.wtTable.getRowHeight(sourceRowIndex);
         if (height) {
+          height--;
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
@@ -2937,11 +2976,17 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     }
   },
   resetOversizedRow: function(sourceRow) {
+    if (this.wot.getSetting('externalRowCalculator')) {
+      return;
+    }
     if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
       this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
     }
   },
   markOversizedRows: function() {
+    if (this.wot.getSetting('externalRowCalculator')) {
+      return;
+    }
     var rowCount = this.instance.wtTable.TBODY.childNodes.length;
     var expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight;
     var actualTableHeight = dom.innerHeight(this.instance.wtTable.TBODY) - 1;
@@ -2965,7 +3010,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         rowInnerHeight = dom.innerHeight(currentTr) - 1;
       }
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight || previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
       }
     }
   },
@@ -3208,7 +3253,7 @@ var $___46__46__47__46__46__47__46__46__47_dom_46_js__,
     $__calculator_47_viewportColumns_46_js__,
     $__calculator_47_viewportRows_46_js__;
 var dom = ($___46__46__47__46__46__47__46__46__47_dom_46_js__ = require("./../../../dom.js"), $___46__46__47__46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_dom_46_js__});
-var eventManagerObject = ($___46__46__47__46__46__47__46__46__47_eventManager_46_js__ = require("./../../../eventManager.js"), $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager_46_js__}).eventManager;
+var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager_46_js__ = require("./../../../eventManager.js"), $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager_46_js__}).EventManager;
 var WalkontableViewportColumnsCalculator = ($__calculator_47_viewportColumns_46_js__ = require("./calculator/viewportColumns.js"), $__calculator_47_viewportColumns_46_js__ && $__calculator_47_viewportColumns_46_js__.__esModule && $__calculator_47_viewportColumns_46_js__ || {default: $__calculator_47_viewportColumns_46_js__}).WalkontableViewportColumnsCalculator;
 var WalkontableViewportRowsCalculator = ($__calculator_47_viewportRows_46_js__ = require("./calculator/viewportRows.js"), $__calculator_47_viewportRows_46_js__ && $__calculator_47_viewportRows_46_js__.__esModule && $__calculator_47_viewportRows_46_js__ || {default: $__calculator_47_viewportRows_46_js__}).WalkontableViewportRowsCalculator;
 var WalkontableViewport = function WalkontableViewport(wotInstance) {
@@ -3216,15 +3261,14 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.wot = wotInstance;
   this.instance = this.wot;
   this.oversizedRows = [];
-  this.oversizedCols = [];
   this.oversizedColumnHeaders = [];
   this.clientHeight = 0;
   this.containerWidth = NaN;
   this.rowHeaderWidth = NaN;
   this.rowsVisibleCalculator = null;
   this.columnsVisibleCalculator = null;
-  var eventManager = eventManagerObject(wotInstance);
-  eventManager.addEventListener(window, 'resize', (function() {
+  this.eventManager = new EventManager(this.wot);
+  this.eventManager.addEventListener(window, 'resize', (function() {
     $__3.clientHeight = $__3.getWorkspaceHeight();
   }));
 };
@@ -3464,13 +3508,8 @@ window.WalkontableViewport = WalkontableViewport;
 //# 
 },{"./../../../dom.js":27,"./../../../eventManager.js":41,"./calculator/viewportColumns.js":3,"./calculator/viewportRows.js":4}],23:[function(require,module,exports){
 "use strict";
-var $__shims_47_array_46_filter_46_js__,
-    $__shims_47_array_46_indexOf_46_js__,
-    $__shims_47_array_46_isArray_46_js__,
-    $__shims_47_classes_46_js__,
-    $__shims_47_object_46_keys_46_js__,
-    $__shims_47_string_46_trim_46_js__,
-    $__shims_47_weakmap_46_js__,
+var $__shims_47_classes_46_js__,
+    $__es6collections__,
     $__pluginHooks_46_js__,
     $__core_46_js__,
     $__renderers_47__95_cellDecorator_46_js__,
@@ -3485,13 +3524,8 @@ window.Handsontable = function Handsontable(rootElement, userSettings) {
 };
 Handsontable.version = version;
 Handsontable.buildDate = buildDate;
-($__shims_47_array_46_filter_46_js__ = require("./shims/array.filter.js"), $__shims_47_array_46_filter_46_js__ && $__shims_47_array_46_filter_46_js__.__esModule && $__shims_47_array_46_filter_46_js__ || {default: $__shims_47_array_46_filter_46_js__});
-($__shims_47_array_46_indexOf_46_js__ = require("./shims/array.indexOf.js"), $__shims_47_array_46_indexOf_46_js__ && $__shims_47_array_46_indexOf_46_js__.__esModule && $__shims_47_array_46_indexOf_46_js__ || {default: $__shims_47_array_46_indexOf_46_js__});
-($__shims_47_array_46_isArray_46_js__ = require("./shims/array.isArray.js"), $__shims_47_array_46_isArray_46_js__ && $__shims_47_array_46_isArray_46_js__.__esModule && $__shims_47_array_46_isArray_46_js__ || {default: $__shims_47_array_46_isArray_46_js__});
 ($__shims_47_classes_46_js__ = require("./shims/classes.js"), $__shims_47_classes_46_js__ && $__shims_47_classes_46_js__.__esModule && $__shims_47_classes_46_js__ || {default: $__shims_47_classes_46_js__});
-($__shims_47_object_46_keys_46_js__ = require("./shims/object.keys.js"), $__shims_47_object_46_keys_46_js__ && $__shims_47_object_46_keys_46_js__.__esModule && $__shims_47_object_46_keys_46_js__ || {default: $__shims_47_object_46_keys_46_js__});
-($__shims_47_string_46_trim_46_js__ = require("./shims/string.trim.js"), $__shims_47_string_46_trim_46_js__ && $__shims_47_string_46_trim_46_js__.__esModule && $__shims_47_string_46_trim_46_js__ || {default: $__shims_47_string_46_trim_46_js__});
-($__shims_47_weakmap_46_js__ = require("./shims/weakmap.js"), $__shims_47_weakmap_46_js__ && $__shims_47_weakmap_46_js__.__esModule && $__shims_47_weakmap_46_js__ || {default: $__shims_47_weakmap_46_js__});
+($__es6collections__ = require("es6collections"), $__es6collections__ && $__es6collections__.__esModule && $__es6collections__ || {default: $__es6collections__});
 Handsontable.plugins = {};
 var Hooks = ($__pluginHooks_46_js__ = require("./pluginHooks.js"), $__pluginHooks_46_js__ && $__pluginHooks_46_js__.__esModule && $__pluginHooks_46_js__ || {default: $__pluginHooks_46_js__}).Hooks;
 if (!Handsontable.hooks) {
@@ -3503,7 +3537,7 @@ if (!Handsontable.hooks) {
 ($___46__46__47_plugins_47_jqueryHandsontable_46_js__ = require("./../plugins/jqueryHandsontable.js"), $___46__46__47_plugins_47_jqueryHandsontable_46_js__ && $___46__46__47_plugins_47_jqueryHandsontable_46_js__.__esModule && $___46__46__47_plugins_47_jqueryHandsontable_46_js__ || {default: $___46__46__47_plugins_47_jqueryHandsontable_46_js__});
 
 //# 
-},{"./../plugins/jqueryHandsontable.js":1,"./cellTypes.js":24,"./core.js":25,"./pluginHooks.js":44,"./renderers/_cellDecorator.js":71,"./shims/array.filter.js":78,"./shims/array.indexOf.js":79,"./shims/array.isArray.js":80,"./shims/classes.js":81,"./shims/object.keys.js":82,"./shims/string.trim.js":83,"./shims/weakmap.js":84}],24:[function(require,module,exports){
+},{"./../plugins/jqueryHandsontable.js":1,"./cellTypes.js":24,"./core.js":25,"./pluginHooks.js":44,"./renderers/_cellDecorator.js":72,"./shims/classes.js":79,"es6collections":"es6collections"}],24:[function(require,module,exports){
 "use strict";
 var $__helpers_46_js__,
     $__editors_46_js__,
@@ -3604,7 +3638,7 @@ Handsontable.cellLookup = {validator: {
   }};
 
 //# 
-},{"./editors.js":29,"./editors/autocompleteEditor.js":31,"./editors/checkboxEditor.js":32,"./editors/dateEditor.js":33,"./editors/dropdownEditor.js":34,"./editors/handsontableEditor.js":35,"./editors/mobileTextEditor.js":36,"./editors/numericEditor.js":37,"./editors/passwordEditor.js":38,"./editors/selectEditor.js":39,"./editors/textEditor.js":40,"./helpers.js":42,"./renderers.js":70,"./renderers/autocompleteRenderer.js":72,"./renderers/checkboxRenderer.js":73,"./renderers/htmlRenderer.js":74,"./renderers/numericRenderer.js":75,"./renderers/passwordRenderer.js":76,"./renderers/textRenderer.js":77,"./validators/autocompleteValidator.js":86,"./validators/dateValidator.js":87,"./validators/numericValidator.js":88}],25:[function(require,module,exports){
+},{"./editors.js":29,"./editors/autocompleteEditor.js":31,"./editors/checkboxEditor.js":32,"./editors/dateEditor.js":33,"./editors/dropdownEditor.js":34,"./editors/handsontableEditor.js":35,"./editors/mobileTextEditor.js":36,"./editors/numericEditor.js":37,"./editors/passwordEditor.js":38,"./editors/selectEditor.js":39,"./editors/textEditor.js":40,"./helpers.js":42,"./renderers.js":71,"./renderers/autocompleteRenderer.js":73,"./renderers/checkboxRenderer.js":74,"./renderers/htmlRenderer.js":75,"./renderers/numericRenderer.js":76,"./renderers/passwordRenderer.js":77,"./renderers/textRenderer.js":78,"./validators/autocompleteValidator.js":83,"./validators/dateValidator.js":84,"./validators/numericValidator.js":85}],25:[function(require,module,exports){
 "use strict";
 var $__dom_46_js__,
     $__helpers_46_js__,
@@ -3647,6 +3681,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.isHotTableEnv = dom.isChildOfWebComponentTable(this.rootElement);
   Handsontable.eventManager.isHotTableEnv = this.isHotTableEnv;
   this.container = document.createElement('DIV');
+  this.renderCall = false;
   rootElement.insertBefore(this.container, rootElement.firstChild);
   this.guid = 'ht_' + helper.randomString();
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === "ht_") {
@@ -4188,6 +4223,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     this.view = new TableView(this);
     editorManager = new EditorManager(instance, priv, selection, datamap);
     this.forceFullRender = true;
+    Handsontable.hooks.run(instance, 'init');
     this.view.render();
     if (typeof priv.firstRun === 'object') {
       Handsontable.hooks.run(instance, 'afterChange', priv.firstRun[0], priv.firstRun[1]);
@@ -4426,6 +4462,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.render = function() {
     if (instance.view) {
+      instance.renderCall = true;
       instance.forceFullRender = true;
       selection.refreshBorders(null, true);
     }
@@ -5041,6 +5078,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.version = Handsontable.version;
+  Handsontable.hooks.run(instance, 'construct');
 };
 var DefaultSettings = function() {};
 DefaultSettings.prototype = {
@@ -5146,8 +5184,8 @@ DefaultSettings.prototype = {
   manualRowMove: void 0,
   manualRowResize: void 0,
   mergeCells: false,
-  viewportRowRenderingOffset: 10,
-  viewportColumnRenderingOffset: 10,
+  viewportRowRenderingOffset: 'auto',
+  viewportColumnRenderingOffset: 'auto',
   groups: void 0,
   validator: void 0,
   disableVisualSelection: false,
@@ -5160,12 +5198,14 @@ DefaultSettings.prototype = {
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
   format: void 0,
-  className: void 0
+  className: void 0,
+  autoColumnSize: void 0,
+  autoRowSize: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/cell/range.js":6,"./3rdparty/walkontable/src/selection.js":18,"./dataMap.js":26,"./dom.js":27,"./editorManager.js":28,"./eventManager.js":41,"./helpers.js":42,"./plugins.js":45,"./renderers.js":70,"./tableView.js":85,"numeral":"numeral"}],26:[function(require,module,exports){
+},{"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/cell/range.js":6,"./3rdparty/walkontable/src/selection.js":18,"./dataMap.js":26,"./dom.js":27,"./editorManager.js":28,"./eventManager.js":41,"./helpers.js":42,"./plugins.js":45,"./renderers.js":71,"./tableView.js":80,"numeral":"numeral"}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -6863,11 +6903,12 @@ AutocompleteEditor.prototype.open = function() {
   HandsontableEditor.prototype.open.apply(this, arguments);
   var choicesListHot = this.htEditor.getInstance();
   var that = this;
+  var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
   this.TEXTAREA.style.visibility = 'visible';
   this.focus();
   choicesListHot.updateSettings({
-    'colWidths': [dom.outerWidth(this.TEXTAREA) - 2],
-    width: dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2,
+    'colWidths': trimDropdown ? [dom.outerWidth(this.TEXTAREA) - 2] : void 0,
+    width: trimDropdown ? dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
           indexOfMatch,
@@ -6880,6 +6921,9 @@ AutocompleteEditor.prototype.open = function() {
           TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+    },
+    modifyColWidth: function(width, col) {
+      return trimDropdown ? width : width + 15;
     }
   });
   this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = dom.getScrollbarWidth() + 2 + 'px';
@@ -6947,7 +6991,12 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
 };
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
-  this.htEditor.updateSettings({height: this.getDropdownHeight()});
+  var currentDropdownWidth = this.htEditor.getColWidth(0) + dom.getScrollbarWidth() + 2;
+  var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+  this.htEditor.updateSettings({
+    height: this.getDropdownHeight(),
+    width: trimDropdown ? void 0 : currentDropdownWidth
+  });
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
 };
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
@@ -7082,15 +7131,22 @@ var $___46__46__47_helpers_46_js__,
     $___46__46__47_eventManager_46_js__,
     $__moment__,
     $__pikaday__;
-var helper = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__});
-var dom = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__});
-var $__0 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46__46__47_editors_46_js__ && $___46__46__47_editors_46_js__.__esModule && $___46__46__47_editors_46_js__ || {default: $___46__46__47_editors_46_js__}),
-    getEditor = $__0.getEditor,
-    registerEditor = $__0.registerEditor;
+var $__0 = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__}),
+    deepExtend = $__0.deepExtend,
+    stopPropagation = $__0.stopPropagation,
+    isMetaKey = $__0.isMetaKey;
+var $__1 = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__}),
+    addClass = $__1.addClass,
+    outerHeight = $__1.outerHeight;
+var $__2 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46__46__47_editors_46_js__ && $___46__46__47_editors_46_js__.__esModule && $___46__46__47_editors_46_js__ || {default: $___46__46__47_editors_46_js__}),
+    getEditor = $__2.getEditor,
+    registerEditor = $__2.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
 var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
 var moment = ($__moment__ = require("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = require("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -7103,7 +7159,7 @@ var DateEditor = function DateEditor(hotInstance) {
 var $DateEditor = DateEditor;
 ($traceurRuntime.createClass)(DateEditor, {
   init: function() {
-    var $__5 = this;
+    var $__7 = this;
     if (typeof moment !== 'function') {
       throw new Error("You need to include moment.js to your project.");
     }
@@ -7112,12 +7168,11 @@ var $DateEditor = DateEditor;
     }
     $traceurRuntime.superGet(this, $DateEditor.prototype, "init").call(this);
     this.instance.addHook('afterDestroy', (function() {
-      $__5.parentDestroyed = true;
-      $__5.destroyElements();
+      $__7.parentDestroyed = true;
+      $__7.destroyElements();
     }));
   },
   createElements: function() {
-    var $__5 = this;
     $traceurRuntime.superGet(this, $DateEditor.prototype, "createElements").call(this);
     this.datePicker = document.createElement('DIV');
     this.datePickerStyle = this.datePicker.style;
@@ -7125,33 +7180,12 @@ var $DateEditor = DateEditor;
     this.datePickerStyle.top = 0;
     this.datePickerStyle.left = 0;
     this.datePickerStyle.zIndex = 9999;
-    dom.addClass(this.datePicker, 'htDatepickerHolder');
+    addClass(this.datePicker, 'htDatepickerHolder');
     document.body.appendChild(this.datePicker);
-    var htInput = this.TEXTAREA;
-    var defaultOptions = {
-      format: this.defaultDateFormat,
-      field: htInput,
-      trigger: htInput,
-      container: this.datePicker,
-      reposition: false,
-      bound: false,
-      onSelect: (function(dateStr) {
-        if (!isNaN(dateStr.getTime())) {
-          dateStr = moment(dateStr).format($__5.cellProperties.dateFormat || $__5.defaultDateFormat);
-        }
-        $__5.setValue(dateStr);
-        $__5.hideDatepicker();
-      }),
-      onClose: (function() {
-        if (!$__5.parentDestroyed) {
-          $__5.finishEditing(false);
-        }
-      })
-    };
-    this.$datePicker = new Pikaday(defaultOptions);
+    this.$datePicker = new Pikaday(this.getDatePickerConfig());
     var eventManager = eventManagerObject(this);
     eventManager.addEventListener(this.datePicker, 'mousedown', (function(event) {
-      helper.stopPropagation(event);
+      return stopPropagation(event);
     }));
     this.hideDatepicker();
   },
@@ -7168,10 +7202,10 @@ var $DateEditor = DateEditor;
     this.showDatepicker(event);
   },
   close: function() {
-    var $__5 = this;
+    var $__7 = this;
     this._opened = false;
     this.instance._registerTimeout(setTimeout((function() {
-      $__5.instance.selection.refreshBorders();
+      $__7.instance.selection.refreshBorders();
     }), 0));
     $traceurRuntime.superGet(this, $DateEditor.prototype, "close").call(this);
   },
@@ -7188,13 +7222,14 @@ var $DateEditor = DateEditor;
     $traceurRuntime.superGet(this, $DateEditor.prototype, "finishEditing").call(this, isCancelled, ctrlDown);
   },
   showDatepicker: function(event) {
+    this.$datePicker.config(this.getDatePickerConfig());
     var offset = this.TD.getBoundingClientRect();
     var dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     var datePickerConfig = this.$datePicker.config();
     var dateStr;
     var isMouseDown = this.instance.view.isMouseDown();
-    var isMeta = event ? helper.isMetaKey(event.keyCode) : false;
-    this.datePickerStyle.top = (window.pageYOffset + offset.top + dom.outerHeight(this.TD)) + 'px';
+    var isMeta = event ? isMetaKey(event.keyCode) : false;
+    this.datePickerStyle.top = (window.pageYOffset + offset.top + outerHeight(this.TD)) + 'px';
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
@@ -7226,6 +7261,41 @@ var $DateEditor = DateEditor;
   hideDatepicker: function() {
     this.datePickerStyle.display = 'none';
     this.$datePicker.hide();
+  },
+  getDatePickerConfig: function() {
+    var $__7 = this;
+    var htInput = this.TEXTAREA;
+    var options = {};
+    if (this.cellProperties && this.cellProperties.datePickerConfig) {
+      deepExtend(options, this.cellProperties.datePickerConfig);
+    }
+    var origOnSelect = options.onSelect;
+    var origOnClose = options.onClose;
+    options.field = htInput;
+    options.trigger = htInput;
+    options.container = this.datePicker;
+    options.bound = false;
+    options.format = options.format || this.defaultDateFormat;
+    options.reposition = options.reposition || false;
+    options.onSelect = (function(dateStr) {
+      if (!isNaN(dateStr.getTime())) {
+        dateStr = moment(dateStr).format($__7.cellProperties.dateFormat || $__7.defaultDateFormat);
+      }
+      $__7.setValue(dateStr);
+      $__7.hideDatepicker();
+      if (origOnSelect) {
+        origOnSelect();
+      }
+    });
+    options.onClose = (function() {
+      if (!$__7.parentDestroyed) {
+        $__7.finishEditing(false);
+      }
+      if (origOnClose) {
+        origOnClose();
+      }
+    });
+    return options;
   }
 }, {}, TextEditor);
 ;
@@ -7284,7 +7354,10 @@ HandsontableEditor.prototype.createElements = function() {
   DIV.className = 'handsontableEditor';
   this.TEXTAREA_PARENT.appendChild(DIV);
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV);
+  this.htEditor = new Handsontable(DIV, {
+    autoColumnSize: false,
+    autoRowSize: false
+  });
   this.assignHooks();
 };
 HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties) {
@@ -7297,6 +7370,8 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     minCols: 0,
     className: 'listbox',
     copyPaste: false,
+    autoColumnSize: false,
+    autoRowSize: false,
     cells: function() {
       return {readOnly: true};
     },
@@ -8460,6 +8535,36 @@ Object.defineProperties(exports, {
   cancelAnimationFrame: {get: function() {
       return cancelAnimationFrame;
     }},
+  arrayFilter: {get: function() {
+      return arrayFilter;
+    }},
+  arrayEach: {get: function() {
+      return arrayEach;
+    }},
+  objectEach: {get: function() {
+      return objectEach;
+    }},
+  rangeEach: {get: function() {
+      return rangeEach;
+    }},
+  arraySum: {get: function() {
+      return arraySum;
+    }},
+  arrayAvg: {get: function() {
+      return arrayAvg;
+    }},
+  isPercentValue: {get: function() {
+      return isPercentValue;
+    }},
+  valueAccordingPercent: {get: function() {
+      return valueAccordingPercent;
+    }},
+  throttle: {get: function() {
+      return throttle;
+    }},
+  throttleAfterHits: {get: function() {
+      return throttleAfterHits;
+    }},
   __esModule: {value: true}
 });
 var $__dom_46_js__;
@@ -8497,8 +8602,8 @@ function toUpperCaseFirst(string) {
 }
 function equalsIgnoreCase() {
   for (var strings = [],
-      $__0 = 0; $__0 < arguments.length; $__0++)
-    strings[$__0] = arguments[$__0];
+      $__1 = 0; $__1 < arguments.length; $__1++)
+    strings[$__1] = arguments[$__1];
   var unique = [];
   var length = strings.length;
   while (length--) {
@@ -8862,8 +8967,142 @@ function requestAnimationFrame(callback) {
 function cancelAnimationFrame(id) {
   _cancelAnimationFrame.call(window, id);
 }
+function arrayReduce(array, iteratee, accumulator, initFromArray) {
+  var index = -1,
+      length = array.length;
+  if (initFromArray && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+  return accumulator;
+}
+function arrayFilter(array, predicate) {
+  var index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+  while (++index < length) {
+    var value = array[index];
+    if (predicate(value, index, array)) {
+      result[++resIndex] = value;
+    }
+  }
+  return result;
+}
+function arrayEach(array, iteratee) {
+  var index = -1,
+      length = array.length;
+  while (++index < length) {
+    if (iteratee(array[index], index, array) === false) {
+      break;
+    }
+  }
+  return array;
+}
+function objectEach(object, iteratee) {
+  for (var key in object) {
+    if (!object.hasOwnProperty || (object.hasOwnProperty && object.hasOwnProperty(key))) {
+      if (iteratee(object[key], key, object) === false) {
+        break;
+      }
+    }
+  }
+  return object;
+}
+function rangeEach(rangeFrom, rangeTo, iteratee) {
+  var index = -1;
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = rangeFrom;
+  } else {
+    index = rangeFrom - 1;
+  }
+  while (++index <= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
+    }
+  }
+}
+function arraySum(array) {
+  return arrayReduce(array, (function(a, b) {
+    return (a + b);
+  }), 0);
+}
+function arrayAvg(array) {
+  if (!array.length) {
+    return 0;
+  }
+  return arraySum(array) / array.length;
+}
+function isPercentValue(value) {
+  return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
+}
+function valueAccordingPercent(value, percent) {
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = parseInt(value * percent / 100);
+  return percent;
+}
+function throttle(func) {
+  var wait = arguments[1] !== (void 0) ? arguments[1] : 200;
+  var lastCalled = 0;
+  var result = {lastCallThrottled: true};
+  var lastTimer = null;
+  function _throttle() {
+    var $__0 = this;
+    var args = arguments;
+    var stamp = Date.now();
+    var needCall = false;
+    result.lastCallThrottled = true;
+    if (!lastCalled) {
+      lastCalled = stamp;
+      needCall = true;
+    }
+    var remaining = wait - (stamp - lastCalled);
+    if (needCall) {
+      result.lastCallThrottled = false;
+      func.apply(this, args);
+    } else {
+      if (lastTimer) {
+        clearTimeout(lastTimer);
+      }
+      lastTimer = setTimeout((function() {
+        result.lastCallThrottled = false;
+        func.apply($__0, args);
+        lastCalled = 0;
+        lastTimer = void 0;
+      }), remaining);
+    }
+    return result;
+  }
+  return _throttle;
+}
+function throttleAfterHits(func) {
+  var wait = arguments[1] !== (void 0) ? arguments[1] : 200;
+  var hits = arguments[2] !== (void 0) ? arguments[2] : 10;
+  var funcThrottle = throttle(func, wait);
+  var remainHits = hits;
+  function _clearHits() {
+    remainHits = hits;
+  }
+  function _throttleAfterHits() {
+    if (remainHits) {
+      remainHits--;
+      return func.apply(this, arguments);
+    }
+    return funcThrottle.apply(this, arguments);
+  }
+  _throttleAfterHits.clearHits = _clearHits;
+  return _throttleAfterHits;
+}
 window.Handsontable = window.Handsontable || {};
 Handsontable.helper = {
+  arrayAvg: arrayAvg,
+  arrayEach: arrayEach,
+  arrayFilter: arrayFilter,
+  arrayReduce: arrayReduce,
+  arraySum: arraySum,
   cancelAnimationFrame: cancelAnimationFrame,
   cellMethodLookupFactory: cellMethodLookupFactory,
   columnFactory: columnFactory,
@@ -8886,21 +9125,27 @@ Handsontable.helper = {
   isObject: isObject,
   isObjectEquals: isObjectEquals,
   isOutsideInput: isOutsideInput,
+  isPercentValue: isPercentValue,
   isPrintableChar: isPrintableChar,
   isTouchSupported: isTouchSupported,
   keyCode: keyCode,
+  objectEach: objectEach,
   pageX: pageX,
   pageY: pageY,
   pivot: pivot,
   proxy: proxy,
   randomString: randomString,
+  rangeEach: rangeEach,
   requestAnimationFrame: requestAnimationFrame,
   spreadsheetColumnLabel: spreadsheetColumnLabel,
   stopPropagation: stopPropagation,
   stringify: stringify,
+  throttle: throttle,
+  throttleAfterHits: throttleAfterHits,
   to2dArray: to2dArray,
   toUpperCaseFirst: toUpperCaseFirst,
-  translateRowsToColumns: translateRowsToColumns
+  translateRowsToColumns: translateRowsToColumns,
+  valueAccordingPercent: valueAccordingPercent
 };
 
 //# 
@@ -9112,7 +9357,7 @@ Object.defineProperties(exports, {
 ;
 var registeredPlugins = new WeakMap();
 function registerPlugin(pluginName, PluginClass) {
-  Handsontable.hooks.add('beforeInit', function() {
+  Handsontable.hooks.add('construct', function() {
     var holder;
     pluginName = pluginName.toLowerCase();
     if (!registeredPlugins.has(this)) {
@@ -9143,7 +9388,7 @@ function getPlugin(instance, pluginName) {
   }
   var _pluginName = pluginName.toLowerCase();
   if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
-    throw Error('No plugin registered under name "' + pluginName + '"');
+    return void 0;
   }
   return registeredPlugins.get(instance)[_pluginName];
 }
@@ -9158,13 +9403,78 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_helpers_46_js__;
-var defineGetter = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__}).defineGetter;
+var $__0 = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__}),
+    defineGetter = $__0.defineGetter,
+    objectEach = $__0.objectEach,
+    arrayEach = $__0.arrayEach;
+var privatePool = new WeakMap();
 var BasePlugin = function BasePlugin(hotInstance) {
+  var $__1 = this;
   defineGetter(this, 'hot', hotInstance, {writable: false});
+  privatePool.set(this, {hooks: {}});
+  this.enabled = false;
+  this.hot.addHook('afterUpdateSettings', (function() {
+    return $__1.onUpdateSettings();
+  }));
+  this.hot.addHook('beforeInit', (function() {
+    return $__1.init();
+  }));
 };
-($traceurRuntime.createClass)(BasePlugin, {destroy: function() {
+($traceurRuntime.createClass)(BasePlugin, {
+  init: function() {
+    if (this.isEnabled) {
+      this[(this.isEnabled() ? 'enable' : 'disable') + 'Plugin']();
+      this.enabled = this.isEnabled();
+    }
+  },
+  enablePlugin: function() {
+    this.enabled = true;
+  },
+  disablePlugin: function() {
+    if (this.eventManager) {
+      this.eventManager.clear();
+    }
+    this.clearHooks();
+    this.enabled = false;
+  },
+  addHook: function(name, callback) {
+    var hooks = privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+    this.hot.addHook(name, callback);
+    hooks.push(callback);
+    privatePool.get(this).hooks[name] = hooks;
+  },
+  removeHooks: function(name) {
+    var $__1 = this;
+    arrayEach(privatePool.get(this).hooks[name] || [], (function(callback) {
+      $__1.hot.removeHook(name, callback);
+    }));
+  },
+  clearHooks: function() {
+    var $__1 = this;
+    var hooks = privatePool.get(this).hooks;
+    objectEach(hooks, (function(callbacks, name) {
+      return $__1.removeHooks(name);
+    }));
+    hooks.length = 0;
+  },
+  onUpdateSettings: function() {
+    if (this.isEnabled) {
+      if (this.enabled && !this.isEnabled()) {
+        this.disablePlugin();
+      }
+      if (!this.enabled && this.isEnabled()) {
+        this.enablePlugin();
+      }
+    }
+  },
+  destroy: function() {
+    if (this.eventManager) {
+      this.eventManager.clear();
+    }
+    this.clearHooks();
     delete this.hot;
-  }}, {});
+  }
+}, {});
 var $__default = BasePlugin;
 
 //# 
@@ -9176,159 +9486,539 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_helpers_46_js__,
-    $___46__46__47__46__46__47_dom_46_js__,
-    $___46__46__47__46__46__47_plugins_46_js__;
-var helper = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helpers.js"), $___46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47_helpers_46_js__});
-var dom = ($___46__46__47__46__46__47_dom_46_js__ = require("./../../dom.js"), $___46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47_dom_46_js__});
+var $___46__46__47__95_base_46_js__,
+    $___46__46__47__46__46__47_helpers_46_js__,
+    $___46__46__47__46__46__47_utils_47_ghostTable_46_js__,
+    $___46__46__47__46__46__47_plugins_46_js__,
+    $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__;
+var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
+var $__1 = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helpers.js"), $___46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47_helpers_46_js__}),
+    arrayEach = $__1.arrayEach,
+    arrayFilter = $__1.arrayFilter,
+    objectEach = $__1.objectEach,
+    rangeEach = $__1.rangeEach,
+    requestAnimationFrame = $__1.requestAnimationFrame,
+    cancelAnimationFrame = $__1.cancelAnimationFrame,
+    isObject = $__1.isObject,
+    isPercentValue = $__1.isPercentValue,
+    valueAccordingPercent = $__1.valueAccordingPercent;
+var GhostTable = ($___46__46__47__46__46__47_utils_47_ghostTable_46_js__ = require("./../../utils/ghostTable.js"), $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ || {default: $___46__46__47__46__46__47_utils_47_ghostTable_46_js__}).GhostTable;
 var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
-;
-function AutoColumnSize() {
-  var plugin = this,
-      sampleCount = 5;
-  this.beforeInit = function() {
-    var instance = this;
-    instance.autoColumnWidths = [];
-    if (instance.getSettings().autoColumnSize !== false) {
-      if (!instance.autoColumnSizeTmp) {
-        instance.autoColumnSizeTmp = {
-          table: null,
-          tableStyle: null,
-          theadTh: null,
-          tbody: null,
-          container: null,
-          containerStyle: null,
-          determineBeforeNextRender: true
-        };
-        instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.addHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
-        instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
-        instance.determineColumnWidth = plugin.determineColumnWidth;
+var SamplesGenerator = ($___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ = require("./../../utils/samplesGenerator.js"), $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ || {default: $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__}).SamplesGenerator;
+var AutoColumnSize = function AutoColumnSize(hotInstance) {
+  var $__5 = this;
+  $traceurRuntime.superConstructor($AutoColumnSize).call(this, hotInstance);
+  this.widths = [];
+  this.ghostTable = new GhostTable(this.hot);
+  this.samplesGenerator = new SamplesGenerator((function(row, col) {
+    return $__5.hot.getDataAtCell(row, col);
+  }));
+  this.firstCalculation = true;
+  this.inProgress = false;
+};
+var $AutoColumnSize = AutoColumnSize;
+($traceurRuntime.createClass)(AutoColumnSize, {
+  isEnabled: function() {
+    return this.hot.getSettings().autoColumnSize !== false && !this.hot.getSettings().colWidths;
+  },
+  enablePlugin: function() {
+    var $__5 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('beforeRender', (function(force) {
+      return $__5.onBeforeRender(force);
+    }));
+    this.addHook('modifyColWidth', (function(width, col) {
+      return $__5.getColumnWidth(col, width);
+    }));
+    this.addHook('beforeChange', (function(changes) {
+      return $__5.onBeforeChange(changes);
+    }));
+    this.addHook('afterLoadData', (function() {
+      return $__5.onAfterLoadData();
+    }));
+    this.addHook('beforeColumnResize', (function(col, size, isDblClick) {
+      return $__5.onBeforeColumnResize(col, size, isDblClick);
+    }));
+    $traceurRuntime.superGet(this, $AutoColumnSize.prototype, "enablePlugin").call(this);
+  },
+  calculateColumnsWidth: function() {
+    var colRange = arguments[0] !== (void 0) ? arguments[0] : {
+      from: 0,
+      to: this.hot.countCols() - 1
+    };
+    var rowRange = arguments[1] !== (void 0) ? arguments[1] : {
+      from: 0,
+      to: this.hot.countRows() - 1
+    };
+    var force = arguments[2] !== (void 0) ? arguments[2] : false;
+    var $__5 = this;
+    if (typeof colRange === 'number') {
+      colRange = {
+        from: colRange,
+        to: colRange
+      };
+    }
+    if (typeof rowRange === 'number') {
+      rowRange = {
+        from: rowRange,
+        to: rowRange
+      };
+    }
+    rangeEach(colRange.from, colRange.to, (function(col) {
+      if (force || ($__5.widths[col] === void 0 && !$__5.hot._getColWidthFromSettings(col))) {
+        var samples = $__5.samplesGenerator.generateColumnSamples(col, rowRange);
+        samples.forEach((function(sample, col) {
+          $__5.ghostTable.addColumn(col, sample);
+        }));
       }
+    }));
+    if (this.ghostTable.columns.length) {
+      this.ghostTable.getWidths((function(col, width) {
+        $__5.widths[col] = width;
+      }));
+      this.ghostTable.clean();
+    }
+  },
+  calculateAllColumnsWidth: function() {
+    var rowRange = arguments[0] !== (void 0) ? arguments[0] : {
+      from: 0,
+      to: this.hot.countRows() - 1
+    };
+    var $__5 = this;
+    var current = 0;
+    var length = this.hot.countCols() - 1;
+    var timer = null;
+    this.inProgress = true;
+    var loop = (function() {
+      if (!$__5.hot) {
+        cancelAnimationFrame(timer);
+        $__5.inProgress = false;
+        return;
+      }
+      $__5.calculateColumnsWidth({
+        from: current,
+        to: Math.min(current + $AutoColumnSize.CALCULATION_STEP, length)
+      }, rowRange);
+      current = current + $AutoColumnSize.CALCULATION_STEP + 1;
+      if (current < length) {
+        timer = requestAnimationFrame(loop);
+      } else {
+        cancelAnimationFrame(timer);
+        $__5.inProgress = false;
+        $__5.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        if ($__5.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+          $__5.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+        }
+      }
+    });
+    if (this.firstCalculation && this.getSyncCalculationLimit()) {
+      this.calculateColumnsWidth({
+        from: 0,
+        to: this.getSyncCalculationLimit()
+      }, rowRange);
+      this.firstCalculation = false;
+      current = this.getSyncCalculationLimit() + 1;
+    }
+    if (current < length) {
+      loop();
     } else {
-      if (instance.autoColumnSizeTmp) {
-        instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.removeHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
-        instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
-        delete instance.determineColumnWidth;
-        plugin.afterDestroy.call(instance);
+      this.inProgress = false;
+    }
+  },
+  recalculateAllColumnsWidth: function() {
+    this.clearCache();
+    this.calculateAllColumnsWidth();
+  },
+  getSyncCalculationLimit: function() {
+    var limit = $AutoColumnSize.SYNC_CALCULATION_LIMIT;
+    var colsLimit = this.hot.countCols() - 1;
+    if (isObject(this.hot.getSettings().autoColumnSize)) {
+      limit = this.hot.getSettings().autoColumnSize.syncLimit;
+      if (isPercentValue(limit)) {
+        limit = valueAccordingPercent(colsLimit, limit);
+      } else {
+        limit = limit >> 0;
       }
     }
-  };
-  this.determineIfChanged = function(force) {
-    if (force) {
-      htAutoColumnSize.determineColumnsWidth.apply(this, arguments);
-    }
-  };
-  this.determineColumnWidth = function(col) {
-    var instance = this,
-        tmp = instance.autoColumnSizeTmp;
-    if (!tmp.container) {
-      createTmpContainer.call(tmp, instance);
-    }
-    tmp.container.className = instance.rootElement.className + ' htAutoColumnSize';
-    tmp.table.className = instance.table.className;
-    var rows = instance.countRows();
-    var samples = {};
-    for (var r = 0; r < rows; r++) {
-      var value = instance.getDataAtCell(r, col);
-      if (!Array.isArray(value)) {
-        value = helper.stringify(value);
-      }
-      var len = value.length;
-      if (!samples[len]) {
-        samples[len] = {
-          needed: sampleCount,
-          strings: []
-        };
-      }
-      if (samples[len].needed) {
-        samples[len].strings.push({
-          value: value,
-          row: r
-        });
-        samples[len].needed--;
-      }
-    }
-    if (instance.getColHeader(col) !== null) {
-      instance.view.appendColHeader(col, tmp.theadTh);
-    }
-    dom.empty(tmp.tbody);
-    for (var i in samples) {
-      if (samples.hasOwnProperty(i)) {
-        for (var j = 0,
-            jlen = samples[i].strings.length; j < jlen; j++) {
-          var row = samples[i].strings[j].row;
-          var cellProperties = instance.getCellMeta(row, col);
-          cellProperties.col = col;
-          cellProperties.row = row;
-          var renderer = instance.getCellRenderer(cellProperties);
-          var tr = document.createElement('tr');
-          var td = document.createElement('td');
-          renderer(instance, td, row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
-          r++;
-          tr.appendChild(td);
-          tmp.tbody.appendChild(tr);
-        }
-      }
-    }
-    var parent = instance.rootElement.parentNode;
-    parent.appendChild(tmp.container);
-    var width = dom.outerWidth(tmp.table);
-    parent.removeChild(tmp.container);
-    return width;
-  };
-  this.determineColumnsWidth = function() {
-    var instance = this;
-    var settings = this.getSettings();
-    if (settings.autoColumnSize || !settings.colWidths) {
-      var cols = this.countCols();
-      for (var c = 0; c < cols; c++) {
-        if (!instance._getColWidthFromSettings(c)) {
-          this.autoColumnWidths[c] = plugin.determineColumnWidth.call(instance, c);
-        }
-      }
-    }
-    if (this.view.wt) {
-      this.view.wt.wtOverlays.adjustElementsSize(true);
-    }
-  };
-  this.modifyColWidth = function(width, col) {
-    if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > width) {
-      return this.autoColumnWidths[col];
+    return Math.min(limit, colsLimit);
+  },
+  getColumnWidth: function(col) {
+    var defaultWidth = arguments[1];
+    var width = defaultWidth;
+    if (this.widths[col] !== void 0 && this.widths[col] > (defaultWidth || 0)) {
+      width = this.widths[col];
     }
     return width;
-  };
-  this.afterDestroy = function() {
-    var instance = this;
-    if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {
-      instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
+  },
+  getFirstVisibleColumn: function() {
+    var wot = this.hot.view.wt;
+    if (wot.wtViewport.columnsVisibleCalculator) {
+      return wot.wtTable.getFirstVisibleColumn();
     }
-    instance.autoColumnSizeTmp = null;
-  };
-  function createTmpContainer(instance) {
-    var d = document,
-        tmp = this;
-    tmp.table = d.createElement('table');
-    tmp.theadTh = d.createElement('th');
-    tmp.table.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(tmp.theadTh);
-    tmp.tableStyle = tmp.table.style;
-    tmp.tableStyle.tableLayout = 'auto';
-    tmp.tableStyle.width = 'auto';
-    tmp.tbody = d.createElement('tbody');
-    tmp.table.appendChild(tmp.tbody);
-    tmp.container = d.createElement('div');
-    tmp.container.className = instance.rootElement.className + ' hidden';
-    tmp.containerStyle = tmp.container.style;
-    tmp.container.appendChild(tmp.table);
+    if (wot.wtViewport.columnsRenderCalculator) {
+      return wot.wtTable.getFirstRenderedColumn();
+    }
+    return -1;
+  },
+  getLastVisibleColumn: function() {
+    var wot = this.hot.view.wt;
+    if (wot.wtViewport.columnsVisibleCalculator) {
+      return wot.wtTable.getLastVisibleColumn();
+    }
+    if (wot.wtViewport.columnsRenderCalculator) {
+      return wot.wtTable.getLastRenderedColumn();
+    }
+    return -1;
+  },
+  clearCache: function() {
+    this.widths.length = 0;
+  },
+  isNeedRecalculate: function() {
+    return arrayFilter(this.widths, (function(item) {
+      return (item === void 0);
+    })).length ? true : false;
+  },
+  onBeforeRender: function() {
+    var force = this.hot.renderCall;
+    this.calculateColumnsWidth({
+      from: this.getFirstVisibleColumn(),
+      to: this.getLastVisibleColumn()
+    }, void 0, force);
+    if (this.isNeedRecalculate() && !this.inProgress) {
+      this.calculateAllColumnsWidth();
+    }
+  },
+  onAfterLoadData: function() {
+    var $__5 = this;
+    setTimeout((function() {
+      if ($__5.hot) {
+        $__5.recalculateAllColumnsWidth();
+      }
+    }), 0);
+  },
+  onBeforeChange: function(changes) {
+    var $__5 = this;
+    arrayEach(changes, (function(data) {
+      $__5.widths[data[1]] = void 0;
+    }));
+  },
+  onBeforeColumnResize: function(col, size, isDblClick) {
+    if (isDblClick) {
+      this.calculateColumnsWidth(void 0, col, true);
+      size = this.getColumnWidth(col);
+    }
+    return size;
+  },
+  destroy: function() {
+    this.ghostTable.clean();
+    $traceurRuntime.superGet(this, $AutoColumnSize.prototype, "destroy").call(this);
   }
-}
-var htAutoColumnSize = new AutoColumnSize();
-Handsontable.hooks.add('beforeInit', htAutoColumnSize.beforeInit);
-Handsontable.hooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
+}, {
+  get CALCULATION_STEP() {
+    return 50;
+  },
+  get SYNC_CALCULATION_LIMIT() {
+    return 50;
+  }
+}, BasePlugin);
+;
+registerPlugin('autoColumnSize', AutoColumnSize);
 
 //# 
-},{"./../../dom.js":27,"./../../helpers.js":42,"./../../plugins.js":45}],48:[function(require,module,exports){
+},{"./../../helpers.js":42,"./../../plugins.js":45,"./../../utils/ghostTable.js":81,"./../../utils/samplesGenerator.js":82,"./../_base.js":46}],48:[function(require,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  AutoRowSize: {get: function() {
+      return AutoRowSize;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__95_base_46_js__,
+    $___46__46__47__46__46__47_helpers_46_js__,
+    $___46__46__47__46__46__47_utils_47_ghostTable_46_js__,
+    $___46__46__47__46__46__47_plugins_46_js__,
+    $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__;
+var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
+var $__1 = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helpers.js"), $___46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47_helpers_46_js__}),
+    arrayEach = $__1.arrayEach,
+    arrayFilter = $__1.arrayFilter,
+    objectEach = $__1.objectEach,
+    rangeEach = $__1.rangeEach,
+    requestAnimationFrame = $__1.requestAnimationFrame,
+    cancelAnimationFrame = $__1.cancelAnimationFrame,
+    isObject = $__1.isObject,
+    isPercentValue = $__1.isPercentValue,
+    valueAccordingPercent = $__1.valueAccordingPercent;
+var GhostTable = ($___46__46__47__46__46__47_utils_47_ghostTable_46_js__ = require("./../../utils/ghostTable.js"), $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ || {default: $___46__46__47__46__46__47_utils_47_ghostTable_46_js__}).GhostTable;
+var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
+var SamplesGenerator = ($___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ = require("./../../utils/samplesGenerator.js"), $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ || {default: $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__}).SamplesGenerator;
+var AutoRowSize = function AutoRowSize(hotInstance) {
+  var $__5 = this;
+  $traceurRuntime.superConstructor($AutoRowSize).call(this, hotInstance);
+  this.heights = [];
+  this.ghostTable = new GhostTable(this.hot);
+  this.samplesGenerator = new SamplesGenerator((function(row, col) {
+    return $__5.hot.getDataAtCell(row, col);
+  }));
+  this.firstCalculation = true;
+  this.inProgress = false;
+};
+var $AutoRowSize = AutoRowSize;
+($traceurRuntime.createClass)(AutoRowSize, {
+  isEnabled: function() {
+    return this.hot.getSettings().autoRowSize === true || isObject(this.hot.getSettings().autoRowSize);
+  },
+  enablePlugin: function() {
+    var $__5 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('afterLoadData', (function() {
+      return $__5.onAfterLoadData();
+    }));
+    this.addHook('beforeChange', (function(changes) {
+      return $__5.onBeforeChange(changes);
+    }));
+    this.addHook('beforeColumnMove', (function() {
+      return $__5.recalculateAllRowsHeight();
+    }));
+    this.addHook('beforeColumnResize', (function() {
+      return $__5.recalculateAllRowsHeight();
+    }));
+    this.addHook('beforeColumnSort', (function() {
+      return $__5.clearCache();
+    }));
+    this.addHook('beforeRender', (function(force) {
+      return $__5.onBeforeRender(force);
+    }));
+    this.addHook('beforeRowMove', (function(rowStart, rowEnd) {
+      return $__5.onBeforeRowMove(rowStart, rowEnd);
+    }));
+    this.addHook('beforeRowResize', (function(row, size, isDblClick) {
+      return $__5.onBeforeRowResize(row, size, isDblClick);
+    }));
+    this.addHook('modifyRowHeight', (function(height, row) {
+      return $__5.getRowHeight(row, height);
+    }));
+    $traceurRuntime.superGet(this, $AutoRowSize.prototype, "enablePlugin").call(this);
+  },
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $AutoRowSize.prototype, "disablePlugin").call(this);
+  },
+  calculateRowsHeight: function() {
+    var rowRange = arguments[0] !== (void 0) ? arguments[0] : {
+      from: 0,
+      to: this.hot.countRows() - 1
+    };
+    var colRange = arguments[1] !== (void 0) ? arguments[1] : {
+      from: 0,
+      to: this.hot.countCols() - 1
+    };
+    var force = arguments[2] !== (void 0) ? arguments[2] : false;
+    var $__5 = this;
+    if (typeof rowRange === 'number') {
+      rowRange = {
+        from: rowRange,
+        to: rowRange
+      };
+    }
+    if (typeof colRange === 'number') {
+      colRange = {
+        from: colRange,
+        to: colRange
+      };
+    }
+    rangeEach(rowRange.from, rowRange.to, (function(row) {
+      if (force || $__5.heights[row] === void 0) {
+        var samples = $__5.samplesGenerator.generateRowSamples(row, colRange);
+        samples.forEach((function(sample, row) {
+          $__5.ghostTable.addRow(row, sample);
+        }));
+      }
+    }));
+    if (this.ghostTable.rows.length) {
+      this.ghostTable.getHeights((function(row, height) {
+        $__5.heights[row] = height;
+      }));
+      this.ghostTable.clean();
+    }
+  },
+  calculateAllRowsHeight: function() {
+    var colRange = arguments[0] !== (void 0) ? arguments[0] : {
+      from: 0,
+      to: this.hot.countCols() - 1
+    };
+    var $__5 = this;
+    var current = 0;
+    var length = this.hot.countRows() - 1;
+    var timer = null;
+    this.inProgress = true;
+    var loop = (function() {
+      if (!$__5.hot) {
+        cancelAnimationFrame(timer);
+        $__5.inProgress = false;
+        return;
+      }
+      $__5.calculateRowsHeight({
+        from: current,
+        to: Math.min(current + $AutoRowSize.CALCULATION_STEP, length)
+      }, colRange);
+      current = current + $AutoRowSize.CALCULATION_STEP + 1;
+      if (current < length) {
+        timer = requestAnimationFrame(loop);
+      } else {
+        cancelAnimationFrame(timer);
+        $__5.inProgress = false;
+        $__5.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        if ($__5.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+          $__5.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+        }
+      }
+    });
+    if (this.firstCalculation && this.getSyncCalculationLimit()) {
+      this.calculateRowsHeight({
+        from: 0,
+        to: this.getSyncCalculationLimit()
+      }, colRange);
+      this.firstCalculation = false;
+      current = this.getSyncCalculationLimit() + 1;
+    }
+    if (current < length) {
+      loop();
+    } else {
+      this.inProgress = false;
+    }
+  },
+  recalculateAllRowsHeight: function() {
+    this.clearCache();
+    this.calculateAllRowsHeight();
+  },
+  getSyncCalculationLimit: function() {
+    var limit = $AutoRowSize.SYNC_CALCULATION_LIMIT;
+    var rowsLimit = this.hot.countRows() - 1;
+    if (isObject(this.hot.getSettings().autoRowSize)) {
+      limit = this.hot.getSettings().autoRowSize.syncLimit;
+      if (isPercentValue(limit)) {
+        limit = valueAccordingPercent(rowsLimit, limit);
+      } else {
+        limit = limit >> 0;
+      }
+    }
+    return Math.min(limit, rowsLimit);
+  },
+  getRowHeight: function(row) {
+    var defaultHeight = arguments[1];
+    var height = defaultHeight;
+    if (this.heights[row] !== void 0 && this.heights[row] > (defaultHeight || 0)) {
+      height = this.heights[row];
+    }
+    return height;
+  },
+  getFirstVisibleRow: function() {
+    var wot = this.hot.view.wt;
+    if (wot.wtViewport.rowsVisibleCalculator) {
+      return wot.wtTable.getFirstVisibleRow();
+    }
+    if (wot.wtViewport.rowsRenderCalculator) {
+      return wot.wtTable.getFirstRenderedRow();
+    }
+    return -1;
+  },
+  getLastVisibleRow: function() {
+    var wot = this.hot.view.wt;
+    if (wot.wtViewport.rowsVisibleCalculator) {
+      return wot.wtTable.getLastVisibleRow();
+    }
+    if (wot.wtViewport.rowsRenderCalculator) {
+      return wot.wtTable.getLastRenderedRow();
+    }
+    return -1;
+  },
+  clearCache: function() {
+    this.heights.length = 0;
+  },
+  clearCacheByRange: function(range) {
+    var $__5 = this;
+    if (typeof range === 'number') {
+      range = {
+        from: range,
+        to: range
+      };
+    }
+    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (function(row) {
+      $__5.heights[row] = void 0;
+    }));
+  },
+  isNeedRecalculate: function() {
+    return arrayFilter(this.heights, (function(item) {
+      return (item === void 0);
+    })).length ? true : false;
+  },
+  onBeforeRender: function() {
+    var force = this.hot.renderCall;
+    this.calculateRowsHeight({
+      from: this.getFirstVisibleRow(),
+      to: this.getLastVisibleRow()
+    }, void 0, force);
+    if (this.isNeedRecalculate() && !this.inProgress) {
+      this.calculateAllRowsHeight();
+    }
+  },
+  onBeforeRowMove: function(from, to) {
+    this.clearCacheByRange({
+      from: from,
+      to: to
+    });
+    this.calculateAllRowsHeight();
+  },
+  onBeforeRowResize: function(row, size, isDblClick) {
+    if (isDblClick) {
+      this.calculateRowsHeight(row, void 0, true);
+      size = this.getRowHeight(row);
+    }
+    return size;
+  },
+  onAfterLoadData: function() {
+    var $__5 = this;
+    setTimeout((function() {
+      if ($__5.hot) {
+        $__5.recalculateAllRowsHeight();
+      }
+    }), 0);
+  },
+  onBeforeChange: function(changes) {
+    var range = null;
+    if (changes.length === 1) {
+      range = changes[0][0];
+    } else if (changes.length > 1) {
+      range = {
+        from: changes[0][0],
+        to: changes[changes.length - 1][0]
+      };
+    }
+    if (range) {
+      this.clearCacheByRange(range);
+    }
+  },
+  destroy: function() {
+    this.ghostTable.clean();
+    $traceurRuntime.superGet(this, $AutoRowSize.prototype, "destroy").call(this);
+  }
+}, {
+  get CALCULATION_STEP() {
+    return 50;
+  },
+  get SYNC_CALCULATION_LIMIT() {
+    return 500;
+  }
+}, BasePlugin);
+;
+registerPlugin('autoRowSize', AutoRowSize);
+
+//# 
+},{"./../../helpers.js":42,"./../../plugins.js":45,"./../../utils/ghostTable.js":81,"./../../utils/samplesGenerator.js":82,"./../_base.js":46}],49:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Autofill: {get: function() {
@@ -9576,7 +10266,7 @@ Handsontable.hooks.add('afterInit', function() {
 Handsontable.Autofill = Autofill;
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45}],49:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45}],50:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   default: {get: function() {
@@ -9592,70 +10282,81 @@ var dom = ($___46__46__47__46__46__47_dom_46_js__ = require("./../../dom.js"), $
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager_46_js__ = require("./../../eventManager.js"), $___46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47_eventManager_46_js__}).eventManager;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
+Handsontable.hooks.register('beforeColumnSort');
+Handsontable.hooks.register('afterColumnSort');
 var ColumnSorting = function ColumnSorting(hotInstance) {
-  var $__3 = this;
   $traceurRuntime.superConstructor($ColumnSorting).call(this, hotInstance);
-  var _this = this;
   this.sortIndicators = [];
-  this.hot.addHook('afterInit', (function() {
-    return $__3.init.call($__3, 'afterInit');
-  }));
-  this.hot.addHook('afterUpdateSettings', (function() {
-    return $__3.init.call($__3, 'afterUpdateSettings');
-  }));
-  this.hot.addHook('modifyRow', function() {
-    return _this.translateRow.apply(_this, arguments);
-  });
-  this.hot.addHook('afterGetColHeader', function() {
-    return _this.getColHeader.apply(_this, arguments);
-  });
-  Handsontable.hooks.register('beforeColumnSort');
-  Handsontable.hooks.register('afterColumnSort');
 };
 var $ColumnSorting = ColumnSorting;
 ($traceurRuntime.createClass)(ColumnSorting, {
-  init: function(source) {
-    var sortingSettings = this.hot.getSettings().columnSorting,
-        _this = this;
-    this.hot.sortingEnabled = !!(sortingSettings);
-    if (this.hot.sortingEnabled) {
-      this.hot.sortIndex = [];
-      var loadedSortingState = this.loadSortingState(),
-          sortingColumn,
-          sortingOrder;
-      if (typeof loadedSortingState != 'undefined') {
-        sortingColumn = loadedSortingState.sortColumn;
-        sortingOrder = loadedSortingState.sortOrder;
-      } else {
-        sortingColumn = sortingSettings.column;
-        sortingOrder = sortingSettings.sortOrder;
-      }
-      this.sortByColumn(sortingColumn, sortingOrder);
-      this.hot.sort = function() {
-        var args = Array.prototype.slice.call(arguments);
-        return _this.sortByColumn.apply(_this, args);
-      };
-      if (typeof this.hot.getSettings().observeChanges == 'undefined') {
-        this.enableObserveChangesPlugin();
-      }
-      if (source == 'afterInit') {
-        this.bindColumnSortingAfterClick();
-        this.hot.addHook('afterCreateRow', function() {
-          _this.afterCreateRow.apply(_this, arguments);
-        });
-        this.hot.addHook('afterRemoveRow', function() {
-          _this.afterRemoveRow.apply(_this, arguments);
-        });
-        this.hot.addHook('afterLoadData', function() {
-          _this.init.apply(_this, arguments);
-        });
-      }
-    } else {
-      this.hot.sort = void 0;
-      this.hot.removeHook('afterCreateRow', this.afterCreateRow);
-      this.hot.removeHook('afterRemoveRow', this.afterRemoveRow);
-      this.hot.removeHook('afterLoadData', this.init);
+  isEnabled: function() {
+    return !!(this.hot.getSettings().columnSorting);
+  },
+  enablePlugin: function() {
+    var $__3 = this;
+    if (this.enabled) {
+      return;
     }
+    var _this = this;
+    this.hot.sortIndex = [];
+    this.hot.sort = function() {
+      var args = Array.prototype.slice.call(arguments);
+      return _this.sortByColumn.apply(_this, args);
+    };
+    if (typeof this.hot.getSettings().observeChanges === 'undefined') {
+      this.enableObserveChangesPlugin();
+    }
+    this.bindColumnSortingAfterClick();
+    this.addHook('modifyRow', (function(row) {
+      return $__3.translateRow(row);
+    }));
+    this.addHook('afterUpdateSettings', (function() {
+      return $__3.onAfterUpdateSettings();
+    }));
+    this.addHook('afterGetColHeader', (function(col, TH) {
+      return $__3.getColHeader(col, TH);
+    }));
+    this.addHook('afterCreateRow', function() {
+      _this.afterCreateRow.apply(_this, arguments);
+    });
+    this.addHook('afterRemoveRow', function() {
+      _this.afterRemoveRow.apply(_this, arguments);
+    });
+    this.addHook('afterInit', (function() {
+      return $__3.sortBySettings();
+    }));
+    this.addHook('afterLoadData', (function() {
+      $__3.hot.sortIndex = [];
+      if ($__3.hot.view) {
+        $__3.sortBySettings();
+      }
+    }));
+    if (this.hot.view) {
+      this.sortBySettings();
+    }
+    $traceurRuntime.superGet(this, $ColumnSorting.prototype, "enablePlugin").call(this);
+  },
+  disablePlugin: function() {
+    this.hot.sort = void 0;
+    $traceurRuntime.superGet(this, $ColumnSorting.prototype, "disablePlugin").call(this);
+  },
+  onAfterUpdateSettings: function() {
+    this.sortBySettings();
+  },
+  sortBySettings: function() {
+    var sortingSettings = this.hot.getSettings().columnSorting;
+    var loadedSortingState = this.loadSortingState();
+    var sortingColumn;
+    var sortingOrder;
+    if (typeof loadedSortingState !== 'undefined') {
+      sortingColumn = loadedSortingState.sortColumn;
+      sortingOrder = loadedSortingState.sortOrder;
+    } else {
+      sortingColumn = sortingSettings.column;
+      sortingOrder = sortingSettings.sortOrder;
+    }
+    this.sortByColumn(sortingColumn, sortingOrder);
   },
   setSortingColumn: function(col, order) {
     if (typeof col == 'undefined') {
@@ -9702,8 +10403,12 @@ var $ColumnSorting = ColumnSorting;
     return storedState.value;
   },
   bindColumnSortingAfterClick: function() {
+    if (this.bindedSortEvent) {
+      return;
+    }
     var eventManager = eventManagerObject(this.hot),
         _this = this;
+    this.bindedSortEvent = true;
     eventManager.addEventListener(this.hot.rootElement, 'click', function(e) {
       if (dom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
@@ -9883,7 +10588,7 @@ var $__default = ColumnSorting;
 registerPlugin('columnSorting', ColumnSorting);
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46}],50:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46}],51:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommentEditor: {get: function() {
@@ -9971,7 +10676,7 @@ var $CommentEditor = CommentEditor;
 ;
 
 //# 
-},{"./../../dom.js":27}],51:[function(require,module,exports){
+},{"./../../dom.js":27}],52:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Comments: {get: function() {
@@ -9994,38 +10699,48 @@ var $__2 = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugin
 var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var CommentEditor = ($__commentEditor_46_js__ = require("./commentEditor.js"), $__commentEditor_46_js__ && $__commentEditor_46_js__.__esModule && $__commentEditor_46_js__ || {default: $__commentEditor_46_js__}).CommentEditor;
 var Comments = function Comments(hotInstance) {
-  var $__5 = this;
   $traceurRuntime.superConstructor($Comments).call(this, hotInstance);
-  if (!this.hot.getSettings().comments) {
-    return;
-  }
-  this.editor = new CommentEditor();
-  this.eventManager = new EventManager(this);
+  this.editor = null;
+  this.eventManager = null;
   this.range = {};
   this.mouseDown = false;
   this.contextMenuEvent = false;
   this.timer = null;
-  this.hot.addHook('afterInit', (function() {
-    return $__5.registerListeners();
-  }));
-  this.hot.addHook('afterContextMenuDefaultOptions', (function(options) {
-    return $__5.addToContextMenu(options);
-  }));
-  this.hot.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
-    return $__5.onAfterRenderer(TD, cellProperties);
-  }));
-  this.hot.addHook('afterScrollVertically', (function() {
-    return $__5.refreshEditorPosition();
-  }));
-  this.hot.addHook('afterColumnResize', (function() {
-    return $__5.refreshEditorPosition();
-  }));
-  this.hot.addHook('afterRowResize', (function() {
-    return $__5.refreshEditorPosition();
-  }));
 };
 var $Comments = Comments;
 ($traceurRuntime.createClass)(Comments, {
+  isEnabled: function() {
+    return this.hot.getSettings().comments;
+  },
+  enablePlugin: function() {
+    var $__5 = this;
+    if (this.enabled) {
+      return;
+    }
+    if (!this.editor) {
+      this.editor = new CommentEditor();
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.addHook('afterContextMenuDefaultOptions', (function(options) {
+      return $__5.addToContextMenu(options);
+    }));
+    this.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
+      return $__5.onAfterRenderer(TD, cellProperties);
+    }));
+    this.addHook('afterScrollVertically', (function() {
+      return $__5.refreshEditorPosition();
+    }));
+    this.addHook('afterColumnResize', (function() {
+      return $__5.refreshEditorPosition();
+    }));
+    this.addHook('afterRowResize', (function() {
+      return $__5.refreshEditorPosition();
+    }));
+    this.registerListeners();
+    $traceurRuntime.superGet(this, $Comments.prototype, "enablePlugin").call(this);
+  },
   registerListeners: function() {
     var $__5 = this;
     this.eventManager.addEventListener(document, 'mouseover', (function(event) {
@@ -10243,7 +10958,7 @@ var $Comments = Comments;
 registerPlugin('comments', Comments);
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46,"./commentEditor.js":50}],52:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46,"./commentEditor.js":51}],53:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenu: {get: function() {
@@ -10649,6 +11364,7 @@ ContextMenu.prototype.show = function(menu, items) {
     data: items,
     colHeaders: false,
     colWidths: [200],
+    autoRowSize: false,
     readOnly: true,
     copyPaste: false,
     columns: [{
@@ -11188,7 +11904,7 @@ Handsontable.hooks.register('afterContextMenuHide');
 Handsontable.ContextMenu = ContextMenu;
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],53:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],54:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenuCopyPaste: {get: function() {
@@ -11324,7 +12040,7 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46,"zeroclipboard":undefined}],54:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46,"zeroclipboard":undefined}],55:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CopyPaste: {get: function() {
@@ -11448,7 +12164,7 @@ Handsontable.hooks.add('afterUpdateSettings', init);
 Handsontable.hooks.register('afterCopyLimit');
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../helpers.js":42,"./../../plugins.js":45,"SheetClip":"SheetClip","copyPaste":"copyPaste"}],55:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../helpers.js":42,"./../../plugins.js":45,"SheetClip":"SheetClip","copyPaste":"copyPaste"}],56:[function(require,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_plugins_46_js__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__,
@@ -11786,7 +12502,7 @@ Handsontable.hooks.add('afterInit', function() {
 Handsontable.CustomBorders = CustomBorders;
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../3rdparty/walkontable/src/selection.js":18,"./../../plugins.js":45}],56:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../3rdparty/walkontable/src/selection.js":18,"./../../plugins.js":45}],57:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DragToScroll: {get: function() {
@@ -11876,7 +12592,7 @@ Handsontable.hooks.add('afterOnCellCornerMouseDown', function() {
 Handsontable.plugins.DragToScroll = DragToScroll;
 
 //# 
-},{"./../../eventManager.js":41,"./../../plugins.js":45}],57:[function(require,module,exports){
+},{"./../../eventManager.js":41,"./../../plugins.js":45}],58:[function(require,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_dom_46_js__,
     $___46__46__47__46__46__47_plugins_46_js__;
@@ -12469,6 +13185,9 @@ function Grouping(instance) {
       Handsontable.Grouping.initGroups(groupSettings);
     },
     afterGetRowHeader: function(row, TH) {
+      if (!TH.parentNode) {
+        return;
+      }
       var currentRowHidden = false;
       for (var i = 0,
           levels = hiddenRows.length; i < levels; i++) {
@@ -12955,7 +13674,7 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
 Handsontable.plugins.Grouping = Grouping;
 
 //# 
-},{"./../../dom.js":27,"./../../plugins.js":45}],58:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../plugins.js":45}],59:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnFreeze: {get: function() {
@@ -13111,7 +13830,7 @@ var init = function init() {
 Handsontable.hooks.add('beforeInit', init);
 
 //# 
-},{"./../../plugins.js":45}],59:[function(require,module,exports){
+},{"./../../plugins.js":45}],60:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnMove: {get: function() {
@@ -13251,6 +13970,7 @@ function ManualColumnMove() {
         pressed = false;
         createPositionData(instance.manualColumnPositions, instance.countCols());
         instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        Handsontable.hooks.run(instance, 'beforeColumnMove', startCol, endCol);
         instance.forceFullRender = true;
         instance.view.render();
         saveManualColumnPositions.call(instance);
@@ -13369,10 +14089,11 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
 Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
 Handsontable.hooks.add('afterRemoveCol', htManualColumnMove.afterRemoveCol);
 Handsontable.hooks.add('afterCreateCol', htManualColumnMove.afterCreateCol);
+Handsontable.hooks.register('beforeColumnMove');
 Handsontable.hooks.register('afterColumnMove');
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],60:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],61:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnResize: {get: function() {
@@ -13489,11 +14210,15 @@ function ManualColumnResize() {
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function() {
             if (dblclick >= 2) {
-              newSize = instance.determineColumnWidth.call(instance, currentCol);
+              var hookNewSize = Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize, true);
+              if (hookNewSize !== void 0) {
+                newSize = hookNewSize;
+              }
               setManualSize(currentCol, newSize);
               instance.forceFullRender = true;
               instance.view.render();
-              Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
+              instance.view.wt.wtOverlays.adjustElementsSize(true);
+              Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize, true);
             }
             dblclick = 0;
             autoresizeTimeout = null;
@@ -13518,9 +14243,10 @@ function ManualColumnResize() {
         hideHandleAndGuide();
         pressed = false;
         if (newSize != startWidth) {
+          Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize);
           instance.forceFullRender = true;
           instance.view.render();
-          instance.view.wt.wtOverlays.adjustElementsSize();
+          instance.view.wt.wtOverlays.adjustElementsSize(true);
           saveManualColumnWidths.call(instance);
           Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
         }
@@ -13532,10 +14258,8 @@ function ManualColumnResize() {
   var unbindEvents = function() {
     eventManager.clear();
   };
-  this.beforeInit = function() {
-    this.manualColumnWidths = [];
-  };
   this.init = function(source) {
+    this.manualColumnWidths = [];
     var instance = this;
     var manualColumnWidthEnabled = !!(this.getSettings().manualColumnResize);
     if (manualColumnWidthEnabled) {
@@ -13553,12 +14277,8 @@ function ManualColumnResize() {
       } else {
         this.manualColumnWidths = [];
       }
-      if (source == 'afterInit') {
+      if (!source) {
         bindEvents.call(this);
-        if (this.manualColumnWidths.length > 0) {
-          this.forceFullRender = true;
-          this.render();
-        }
       }
     } else {
       var pluginUsagesIndex = instance.manualColumnWidthsPluginUsages ? instance.manualColumnWidthsPluginUsages.indexOf('manualColumnResize') : -1;
@@ -13583,18 +14303,16 @@ function ManualColumnResize() {
   };
 }
 var htManualColumnResize = new ManualColumnResize();
-Handsontable.hooks.add('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.hooks.add('afterInit', function() {
-  htManualColumnResize.init.call(this, 'afterInit');
-});
+Handsontable.hooks.add('init', htManualColumnResize.init);
 Handsontable.hooks.add('afterUpdateSettings', function() {
   htManualColumnResize.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 Handsontable.hooks.register('afterColumnResize');
+Handsontable.hooks.register('beforeColumnResize');
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],61:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],62:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowMove: {get: function() {
@@ -13730,6 +14448,7 @@ function ManualRowMove() {
         pressed = false;
         createPositionData(instance.manualRowPositions, instance.countRows());
         instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
+        Handsontable.hooks.run(instance, 'beforeRowMove', startRow, endRow);
         instance.forceFullRender = true;
         instance.view.render();
         saveManualRowPositions.call(instance);
@@ -13806,10 +14525,11 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
   htManualRowMove.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyRow', htManualRowMove.modifyRow);
+Handsontable.hooks.register('beforeRowMove');
 Handsontable.hooks.register('afterRowMove');
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],62:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],63:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowResize: {get: function() {
@@ -13926,10 +14646,14 @@ function ManualRowResize() {
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function() {
             if (dblclick >= 2) {
-              setManualSize(currentRow, null);
+              var hookNewSize = Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize, true);
+              if (hookNewSize !== void 0) {
+                newSize = hookNewSize;
+              }
+              setManualSize(currentRow, newSize);
               instance.forceFullRender = true;
               instance.view.render();
-              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
+              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize, true);
             }
             dblclick = 0;
             autoresizeTimeout = null;
@@ -13954,6 +14678,7 @@ function ManualRowResize() {
         hideHandleAndGuide();
         pressed = false;
         if (newSize != startHeight) {
+          Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize);
           instance.forceFullRender = true;
           instance.view.render();
           saveManualRowHeights.call(instance);
@@ -13967,10 +14692,8 @@ function ManualRowResize() {
   var unbindEvents = function() {
     eventManager.clear();
   };
-  this.beforeInit = function() {
-    this.manualRowHeights = [];
-  };
   this.init = function(source) {
+    this.manualRowHeights = [];
     var instance = this;
     var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
     if (manualColumnHeightEnabled) {
@@ -13988,15 +14711,8 @@ function ManualRowResize() {
       } else {
         this.manualRowHeights = [];
       }
-      if (source === 'afterInit') {
+      if (source === void 0) {
         bindEvents.call(this);
-        if (this.manualRowHeights.length > 0) {
-          this.forceFullRender = true;
-          this.render();
-        }
-      } else {
-        this.forceFullRender = true;
-        this.render();
       }
     } else {
       var pluginUsagesIndex = instance.manualRowHeightsPluginUsages ? instance.manualRowHeightsPluginUsages.indexOf('manualRowResize') : -1;
@@ -14023,18 +14739,16 @@ function ManualRowResize() {
   };
 }
 var htManualRowResize = new ManualRowResize();
-Handsontable.hooks.add('beforeInit', htManualRowResize.beforeInit);
-Handsontable.hooks.add('afterInit', function() {
-  htManualRowResize.init.call(this, 'afterInit');
-});
+Handsontable.hooks.add('init', htManualRowResize.init);
 Handsontable.hooks.add('afterUpdateSettings', function() {
   htManualRowResize.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
+Handsontable.hooks.register('beforeRowResize');
 Handsontable.hooks.register('afterRowResize');
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],63:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../helpers.js":42,"./../../plugins.js":45}],64:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MergeCells: {get: function() {
@@ -14495,11 +15209,11 @@ Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
 Handsontable.MergeCells = MergeCells;
 
 //# 
-},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../3rdparty/walkontable/src/table.js":20,"./../../plugins.js":45}],64:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../3rdparty/walkontable/src/table.js":20,"./../../plugins.js":45}],65:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
-  default: {get: function() {
-      return $__default;
+  MultipleSelectionHandles: {get: function() {
+      return MultipleSelectionHandles;
     }},
   __esModule: {value: true}
 });
@@ -14509,25 +15223,30 @@ var $___46__46__47__46__46__47_dom_46_js__,
     $___46__46__47__46__46__47_plugins_46_js__;
 var dom = ($___46__46__47__46__46__47_dom_46_js__ = require("./../../dom.js"), $___46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47_dom_46_js__});
 var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
-var eventManagerObject = ($___46__46__47__46__46__47_eventManager_46_js__ = require("./../../eventManager.js"), $___46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47_eventManager_46_js__}).eventManager;
+var EventManager = ($___46__46__47__46__46__47_eventManager_46_js__ = require("./../../eventManager.js"), $___46__46__47__46__46__47_eventManager_46_js__ && $___46__46__47__46__46__47_eventManager_46_js__.__esModule && $___46__46__47__46__46__47_eventManager_46_js__ || {default: $___46__46__47__46__46__47_eventManager_46_js__}).EventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
 var MultipleSelectionHandles = function MultipleSelectionHandles(hotInstance) {
-  var $__3 = this;
   $traceurRuntime.superConstructor($MultipleSelectionHandles).call(this, hotInstance);
   this.dragged = [];
-  this.eventManager = eventManagerObject(this.hot);
-  this.bindTouchEvents();
-  this.hot.addHook('afterInit', (function() {
-    return $__3.init();
-  }));
+  this.eventManager = null;
+  this.lastSetCell = null;
 };
 var $MultipleSelectionHandles = MultipleSelectionHandles;
 ($traceurRuntime.createClass)(MultipleSelectionHandles, {
-  init: function() {
-    this.lastSetCell = null;
-    Handsontable.plugins.multipleSelectionHandles = new $MultipleSelectionHandles(this.hot);
+  isEnabled: function() {
+    return Handsontable.mobileBrowser;
   },
-  bindTouchEvents: function() {
+  enablePlugin: function() {
+    if (this.enabled) {
+      return;
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.registerListeners();
+    $traceurRuntime.superGet(this, $MultipleSelectionHandles.prototype, "enablePlugin").call(this);
+  },
+  registerListeners: function() {
     var _this = this;
     function removeFromDragged(query) {
       if (_this.dragged.length === 1) {
@@ -14770,11 +15489,11 @@ var $MultipleSelectionHandles = MultipleSelectionHandles;
     return this.dragged.length > 0;
   }
 }, {}, BasePlugin);
-var $__default = MultipleSelectionHandles;
+;
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
 
 //# 
-},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46}],65:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46}],66:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ObserveChanges: {get: function() {
@@ -14927,7 +15646,7 @@ function afterTableAlter() {
 }
 
 //# 
-},{"./../../plugins.js":45,"jsonpatch":"jsonpatch"}],66:[function(require,module,exports){
+},{"./../../plugins.js":45,"jsonpatch":"jsonpatch"}],67:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   HandsontablePersistentState: {get: function() {
@@ -15039,7 +15758,7 @@ Handsontable.hooks.add('beforeInit', htPersistentState.init);
 Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
 
 //# 
-},{"./../../plugins.js":45}],67:[function(require,module,exports){
+},{"./../../plugins.js":45}],68:[function(require,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_dom_46_js__,
     $___46__46__47__46__46__47_renderers_46_js__;
@@ -15145,7 +15864,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 //# 
-},{"./../../dom.js":27,"./../../renderers.js":70}],68:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../renderers.js":71}],69:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TouchScroll: {get: function() {
@@ -15244,7 +15963,7 @@ var $TouchScroll = TouchScroll;
 registerPlugin('touchScroll', TouchScroll);
 
 //# 
-},{"./../../dom.js":27,"./../../plugins.js":45,"./../_base.js":46}],69:[function(require,module,exports){
+},{"./../../dom.js":27,"./../../plugins.js":45,"./../_base.js":46}],70:[function(require,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_helpers_46_js__;
 var helper = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helpers.js"), $___46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47_helpers_46_js__});
@@ -15549,7 +16268,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 //# 
-},{"./../../helpers.js":42}],70:[function(require,module,exports){
+},{"./../../helpers.js":42}],71:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerRenderer: {get: function() {
@@ -15594,7 +16313,7 @@ function hasRenderer(rendererName) {
 }
 
 //# 
-},{"./helpers.js":42}],71:[function(require,module,exports){
+},{"./helpers.js":42}],72:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   cellDecorator: {get: function() {
@@ -15634,7 +16353,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 //# 
-},{"./../dom.js":27,"./../renderers.js":70}],72:[function(require,module,exports){
+},{"./../dom.js":27,"./../renderers.js":71}],73:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   autocompleteRenderer: {get: function() {
@@ -15688,7 +16407,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 }
 
 //# 
-},{"./../3rdparty/walkontable/src/cell/coords.js":5,"./../dom.js":27,"./../eventManager.js":41,"./../renderers.js":70}],73:[function(require,module,exports){
+},{"./../3rdparty/walkontable/src/cell/coords.js":5,"./../dom.js":27,"./../eventManager.js":41,"./../renderers.js":71}],74:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   checkboxRenderer: {get: function() {
@@ -15815,7 +16534,7 @@ function stopPropagation(event) {
 }
 
 //# 
-},{"./../dom.js":27,"./../eventManager.js":41,"./../helpers.js":42,"./../renderers.js":70}],74:[function(require,module,exports){
+},{"./../dom.js":27,"./../eventManager.js":41,"./../helpers.js":42,"./../renderers.js":71}],75:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   htmlRenderer: {get: function() {
@@ -15837,7 +16556,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 //# 
-},{"./../dom.js":27,"./../renderers.js":70}],75:[function(require,module,exports){
+},{"./../dom.js":27,"./../renderers.js":71}],76:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   numericRenderer: {get: function() {
@@ -15869,7 +16588,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 //# 
-},{"./../dom.js":27,"./../helpers.js":42,"./../renderers.js":70,"numeral":"numeral"}],76:[function(require,module,exports){
+},{"./../dom.js":27,"./../helpers.js":42,"./../renderers.js":71,"numeral":"numeral"}],77:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   passwordRenderer: {get: function() {
@@ -15896,7 +16615,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 //# 
-},{"./../dom.js":27,"./../renderers.js":70}],77:[function(require,module,exports){
+},{"./../dom.js":27,"./../renderers.js":71}],78:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   textRenderer: {get: function() {
@@ -15937,79 +16656,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 //# 
-},{"./../dom.js":27,"./../helpers.js":42,"./../renderers.js":70}],78:[function(require,module,exports){
-"use strict";
-if (!Array.prototype.filter) {
-  Array.prototype.filter = function(fun, thisp) {
-    "use strict";
-    if (typeof this === "undefined" || this === null) {
-      throw new TypeError();
-    }
-    if (typeof fun !== "function") {
-      throw new TypeError();
-    }
-    thisp = thisp || this;
-    if (isNodeList(thisp)) {
-      thisp = convertNodeListToArray(thisp);
-    }
-    var len = thisp.length,
-        res = [],
-        i,
-        val;
-    for (i = 0; i < len; i += 1) {
-      if (thisp.hasOwnProperty(i)) {
-        val = thisp[i];
-        if (fun.call(thisp, val, i, thisp)) {
-          res.push(val);
-        }
-      }
-    }
-    return res;
-    function isNodeList(object) {
-      return /NodeList/i.test(object.item);
-    }
-    function convertNodeListToArray(nodeList) {
-      var array = [];
-      for (var i = 0,
-          len = nodeList.length; i < len; i++) {
-        array[i] = nodeList[i];
-      }
-      return array;
-    }
-  };
-}
-
-//# 
-},{}],79:[function(require,module,exports){
-"use strict";
-if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(elt) {
-    var len = this.length >>> 0;
-    var from = Number(arguments[1]) || 0;
-    from = (from < 0) ? Math.ceil(from) : Math.floor(from);
-    if (from < 0) {
-      from += len;
-    }
-    for (; from < len; from++) {
-      if (from in this && this[from] === elt) {
-        return from;
-      }
-    }
-    return -1;
-  };
-}
-
-//# 
-},{}],80:[function(require,module,exports){
-"use strict";
-if (!Array.isArray) {
-  Array.isArray = function(obj) {
-    return Object.prototype.toString.call(obj) == '[object Array]';
-  };
-}
-
-//# 
-},{}],81:[function(require,module,exports){
+},{"./../dom.js":27,"./../helpers.js":42,"./../renderers.js":71}],79:[function(require,module,exports){
 "use strict";
 (function(global) {
   'use strict';
@@ -16412,140 +17059,7 @@ if (!Array.isArray) {
 })();
 
 //# 
-},{"path":undefined}],82:[function(require,module,exports){
-"use strict";
-if (!Object.keys) {
-  Object.keys = (function() {
-    'use strict';
-    var hasOwnProperty = Object.prototype.hasOwnProperty,
-        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-        dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'],
-        dontEnumsLength = dontEnums.length;
-    return function(obj) {
-      if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
-        throw new TypeError('Object.keys called on non-object');
-      }
-      var result = [],
-          prop,
-          i;
-      for (prop in obj) {
-        if (hasOwnProperty.call(obj, prop)) {
-          result.push(prop);
-        }
-      }
-      if (hasDontEnumBug) {
-        for (i = 0; i < dontEnumsLength; i++) {
-          if (hasOwnProperty.call(obj, dontEnums[i])) {
-            result.push(dontEnums[i]);
-          }
-        }
-      }
-      return result;
-    };
-  }());
-}
-
-//# 
-},{}],83:[function(require,module,exports){
-"use strict";
-if (!String.prototype.trim) {
-  var trimRegex = /^\s+|\s+$/g;
-  String.prototype.trim = function() {
-    return this.replace(trimRegex, '');
-  };
-}
-
-//# 
-},{}],84:[function(require,module,exports){
-"use strict";
-if (typeof WeakMap === 'undefined') {
-  (function() {
-    var defineProperty = Object.defineProperty;
-    try {
-      var properDefineProperty = true;
-      defineProperty(function() {}, 'foo', {});
-    } catch (e) {
-      properDefineProperty = false;
-    }
-    var counter = +(new Date) % 1e9;
-    var WeakMap = function() {
-      this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
-      if (!properDefineProperty) {
-        this._wmCache = [];
-      }
-    };
-    if (properDefineProperty) {
-      WeakMap.prototype = {
-        set: function(key, value) {
-          var entry = key[this.name];
-          if (entry && entry[0] === key)
-            entry[1] = value;
-          else
-            defineProperty(key, this.name, {
-              value: [key, value],
-              writable: true
-            });
-        },
-        get: function(key) {
-          var entry;
-          return (entry = key[this.name]) && entry[0] === key ? entry[1] : undefined;
-        },
-        has: function(key) {
-          return this.get(key) ? true : false;
-        },
-        'delete': function(key) {
-          this.set(key, undefined);
-        }
-      };
-    } else {
-      WeakMap.prototype = {
-        set: function(key, value) {
-          if (typeof key == 'undefined' || typeof value == 'undefined')
-            return;
-          for (var i = 0,
-              len = this._wmCache.length; i < len; i++) {
-            if (this._wmCache[i].key == key) {
-              this._wmCache[i].value = value;
-              return;
-            }
-          }
-          this._wmCache.push({
-            key: key,
-            value: value
-          });
-        },
-        get: function(key) {
-          if (typeof key == 'undefined')
-            return;
-          for (var i = 0,
-              len = this._wmCache.length; i < len; i++) {
-            if (this._wmCache[i].key == key) {
-              return this._wmCache[i].value;
-            }
-          }
-          return void 0;
-        },
-        has: function(key) {
-          return this.get(key) ? true : false;
-        },
-        'delete': function(key) {
-          if (typeof key == 'undefined')
-            return;
-          for (var i = 0,
-              len = this._wmCache.length; i < len; i++) {
-            if (this._wmCache[i].key == key) {
-              Array.prototype.slice.call(this._wmCache, i, 1);
-            }
-          }
-        }
-      };
-    }
-    window.WeakMap = WeakMap;
-  })();
-}
-
-//# 
-},{}],85:[function(require,module,exports){
+},{"path":undefined}],80:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TableView: {get: function() {
@@ -16701,6 +17215,7 @@ function TableView(instance) {
     debug: function() {
       return that.settings.debug;
     },
+    externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
@@ -16825,16 +17340,38 @@ function TableView(instance) {
       instance.runHooks('afterMomentumScroll');
     },
     viewportRowCalculatorOverride: function(calc) {
-      if (that.settings.viewportRowRenderingOffset) {
-        calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
-        calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+      var rows = instance.countRows();
+      var viewportOffset = that.settings.viewportRowRenderingOffset;
+      if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+        calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+      }
+      if (viewportOffset === 'auto') {
+        var center = calc.startRow + calc.endRow - calc.startRow;
+        var offset = Math.ceil(center / rows * 12);
+        calc.startRow = Math.max(calc.startRow - offset, 0);
+        calc.endRow = Math.min(calc.endRow + offset, rows - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
     viewportColumnCalculatorOverride: function(calc) {
-      if (that.settings.viewportColumnRenderingOffset) {
-        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
-        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      var cols = instance.countCols();
+      var viewportOffset = that.settings.viewportColumnRenderingOffset;
+      if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+      }
+      if (viewportOffset === 'auto') {
+        var center = calc.startColumn + calc.endColumn - calc.startColumn;
+        var offset = Math.ceil(center / cols * 12);
+        calc.startRow = Math.max(calc.startColumn - offset, 0);
+        calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
@@ -16887,6 +17424,7 @@ TableView.prototype.onDraw = function(force) {
 TableView.prototype.render = function() {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.renderCall = false;
 };
 TableView.prototype.getCellAtCoords = function(coords, topmost) {
   var td = this.wt.getCell(coords, topmost);
@@ -16967,7 +17505,341 @@ TableView.prototype.destroy = function() {
 ;
 
 //# 
-},{"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/core.js":7,"./3rdparty/walkontable/src/selection.js":18,"./dom.js":27,"./eventManager.js":41,"./helpers.js":42}],86:[function(require,module,exports){
+},{"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/core.js":7,"./3rdparty/walkontable/src/selection.js":18,"./dom.js":27,"./eventManager.js":41,"./helpers.js":42}],81:[function(require,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  GhostTable: {get: function() {
+      return GhostTable;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_dom_46_js__,
+    $___46__46__47_helpers_46_js__;
+var $__0 = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__}),
+    addClass = $__0.addClass,
+    outerHeight = $__0.outerHeight,
+    outerWidth = $__0.outerWidth;
+var $__1 = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__}),
+    arrayEach = $__1.arrayEach,
+    objectEach = $__1.objectEach,
+    rangeEach = $__1.rangeEach,
+    stringify = $__1.stringify;
+var GhostTable = function GhostTable(hotInstance) {
+  this.hot = hotInstance;
+  this.container = null;
+  this.injected = false;
+  this.rows = [];
+  this.columns = [];
+  this.samples = null;
+};
+($traceurRuntime.createClass)(GhostTable, {
+  addRow: function(row, samples) {
+    if (this.columns.length) {
+      throw new Error('Doesn\'t support multi-dimensional table');
+    }
+    if (!this.rows.length) {
+      this.container = this.createContainer(this.hot.rootElement.className);
+    }
+    var rowObject = {row: row};
+    this.rows.push(rowObject);
+    this.samples = samples;
+    this.table = this.createTable(this.hot.table.className);
+    this.table.colGroup.appendChild(this.createColGroupsCol());
+    this.table.tr.appendChild(this.createRow(row));
+    this.container.container.appendChild(this.table.fragment);
+    rowObject.table = this.table.table;
+  },
+  addColumn: function(column, samples) {
+    if (this.rows.length) {
+      throw new Error('Doesn\'t support multi-dimensional table');
+    }
+    if (!this.columns.length) {
+      this.container = this.createContainer(this.hot.rootElement.className);
+    }
+    var columnObject = {col: column};
+    this.columns.push(columnObject);
+    this.samples = samples;
+    this.table = this.createTable(this.hot.table.className);
+    if (this.hot.getColHeader(column) !== null) {
+      this.hot.view.appendColHeader(column, this.table.th);
+    }
+    this.table.tBody.appendChild(this.createCol(column));
+    this.container.container.appendChild(this.table.fragment);
+    columnObject.table = this.table.table;
+  },
+  getHeights: function(callback) {
+    if (!this.injected) {
+      this.injectTable();
+    }
+    arrayEach(this.rows, (function(row) {
+      callback(row.row, outerHeight(row.table) - 1);
+    }));
+  },
+  getWidths: function(callback) {
+    if (!this.injected) {
+      this.injectTable();
+    }
+    arrayEach(this.columns, (function(column) {
+      callback(column.col, outerWidth(column.table));
+    }));
+  },
+  createColGroupsCol: function() {
+    var $__2 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    fragment.appendChild(this.createColElement(-1));
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        fragment.appendChild($__2.createColElement(string.col));
+      }));
+    }));
+    return fragment;
+  },
+  createRow: function(row) {
+    var $__2 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    var th = d.createElement('th');
+    if (this.hot.getRowHeader(row) !== null) {
+      this.hot.view.appendRowHeader(row, th);
+    }
+    fragment.appendChild(th);
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        var column = string.col;
+        var cellProperties = $__2.hot.getCellMeta(row, column);
+        cellProperties.col = column;
+        cellProperties.row = row;
+        var renderer = $__2.hot.getCellRenderer(cellProperties);
+        var td = d.createElement('td');
+        renderer($__2.hot, td, row, column, $__2.hot.colToProp(column), string.value, cellProperties);
+        fragment.appendChild(td);
+      }));
+    }));
+    return fragment;
+  },
+  createCol: function(column) {
+    var $__2 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        var row = string.row;
+        var cellProperties = $__2.hot.getCellMeta(row, column);
+        cellProperties.col = column;
+        cellProperties.row = row;
+        var renderer = $__2.hot.getCellRenderer(cellProperties);
+        var td = d.createElement('td');
+        var tr = d.createElement('tr');
+        renderer($__2.hot, td, row, column, $__2.hot.colToProp(row), string.value, cellProperties);
+        tr.appendChild(td);
+        fragment.appendChild(tr);
+      }));
+    }));
+    return fragment;
+  },
+  clean: function() {
+    this.rows.length = 0;
+    this.columns.length = 0;
+    if (this.samples) {
+      this.samples.clear();
+    }
+    this.samples = null;
+    this.removeTable();
+  },
+  injectTable: function() {
+    var parent = arguments[0] !== (void 0) ? arguments[0] : null;
+    if (!this.injected) {
+      (parent || this.hot.rootElement).appendChild(this.container.fragment);
+      this.injected = true;
+    }
+  },
+  removeTable: function() {
+    if (this.injected && this.container.container.parentNode) {
+      this.container.container.parentNode.removeChild(this.container.container);
+      this.container = null;
+      this.injected = false;
+    }
+  },
+  createColElement: function(column) {
+    var d = document;
+    var col = d.createElement('col');
+    col.style.width = this.hot.view.wt.wtTable.getStretchedColumnWidth(column) + 'px';
+    return col;
+  },
+  createTable: function() {
+    var className = arguments[0] !== (void 0) ? arguments[0] : '';
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    var table = d.createElement('table');
+    var tHead = d.createElement('thead');
+    var tBody = d.createElement('tbody');
+    var colGroup = d.createElement('colgroup');
+    var tr = d.createElement('tr');
+    var th = d.createElement('th');
+    if (this.isVertical()) {
+      table.appendChild(colGroup);
+    }
+    if (this.isHorizontal()) {
+      tr.appendChild(th);
+      tHead.appendChild(tr);
+      table.style.tableLayout = 'auto';
+      table.style.width = 'auto';
+    }
+    table.appendChild(tHead);
+    if (this.isVertical()) {
+      tBody.appendChild(tr);
+    }
+    table.appendChild(tBody);
+    addClass(table, className);
+    fragment.appendChild(table);
+    return {
+      fragment: fragment,
+      table: table,
+      tHead: tHead,
+      tBody: tBody,
+      colGroup: colGroup,
+      tr: tr,
+      th: th
+    };
+  },
+  createContainer: function() {
+    var className = arguments[0] !== (void 0) ? arguments[0] : '';
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    var container = d.createElement('div');
+    className = 'htGhostTable htAutoSize ' + className.trim();
+    addClass(container, className);
+    fragment.appendChild(container);
+    return {
+      fragment: fragment,
+      container: container
+    };
+  },
+  isVertical: function() {
+    return this.rows.length && !this.columns.length ? true : false;
+  },
+  isHorizontal: function() {
+    return this.columns.length && !this.rows.length ? true : false;
+  }
+}, {});
+;
+Handsontable.utils = Handsontable.utils || {};
+Handsontable.utils.GhostTable = GhostTable;
+
+//# 
+},{"./../dom.js":27,"./../helpers.js":42}],82:[function(require,module,exports){
+"use strict";
+var $__4;
+Object.defineProperties(exports, {
+  SamplesGenerator: {get: function() {
+      return SamplesGenerator;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_dom_46_js__,
+    $___46__46__47_helpers_46_js__;
+var $__0 = ($___46__46__47_dom_46_js__ = require("./../dom.js"), $___46__46__47_dom_46_js__ && $___46__46__47_dom_46_js__.__esModule && $___46__46__47_dom_46_js__ || {default: $___46__46__47_dom_46_js__}),
+    addClass = $__0.addClass,
+    outerHeight = $__0.outerHeight,
+    outerWidth = $__0.outerWidth;
+var $__1 = ($___46__46__47_helpers_46_js__ = require("./../helpers.js"), $___46__46__47_helpers_46_js__ && $___46__46__47_helpers_46_js__.__esModule && $___46__46__47_helpers_46_js__ || {default: $___46__46__47_helpers_46_js__}),
+    arrayEach = $__1.arrayEach,
+    objectEach = $__1.objectEach,
+    rangeEach = $__1.rangeEach,
+    stringify = $__1.stringify;
+var SamplesGenerator = function SamplesGenerator(dataFactory) {
+  this.samples = null;
+  this.dataFactory = dataFactory;
+};
+var $SamplesGenerator = SamplesGenerator;
+($traceurRuntime.createClass)(SamplesGenerator, ($__4 = {}, Object.defineProperty($__4, "generateRowSamples", {
+  value: function(rowRange, colRange) {
+    return this.generateSamples('row', colRange, rowRange);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__4, "generateColumnSamples", {
+  value: function(colRange, rowRange) {
+    return this.generateSamples('col', rowRange, colRange);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__4, "generateSamples", {
+  value: function(type, range, specifierRange) {
+    var $__2 = this;
+    var samples = new Map();
+    if (typeof specifierRange === 'number') {
+      specifierRange = {
+        from: specifierRange,
+        to: specifierRange
+      };
+    }
+    rangeEach(specifierRange.from, specifierRange.to, (function(index) {
+      var sample = $__2.generateSample(type, range, index);
+      samples.set(index, sample);
+    }));
+    return samples;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__4, "generateSample", {
+  value: function(type, range, specifierValue) {
+    var $__2 = this;
+    var samples = new Map();
+    rangeEach(range.from, range.to, (function(index) {
+      var $__4;
+      var value;
+      if (type === 'row') {
+        value = $__2.dataFactory(specifierValue, index);
+      } else if (type === 'col') {
+        value = $__2.dataFactory(index, specifierValue);
+      } else {
+        throw new Error('Unsupported sample type');
+      }
+      if (!Array.isArray(value)) {
+        value = stringify(value);
+      }
+      var len = value.length;
+      if (!samples.has(len)) {
+        samples.set(len, {
+          needed: $SamplesGenerator.SAMPLE_COUNT,
+          strings: []
+        });
+      }
+      var sample = samples.get(len);
+      if (sample.needed) {
+        sample.strings.push(($__4 = {}, Object.defineProperty($__4, "value", {
+          value: value,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        }), Object.defineProperty($__4, type === 'row' ? 'col' : 'row', {
+          value: index,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        }), $__4));
+        sample.needed--;
+      }
+    }));
+    return samples;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__4), {get SAMPLE_COUNT() {
+    return 3;
+  }});
+;
+Handsontable.utils = Handsontable.utils || {};
+Handsontable.utils.SamplesGenerator = SamplesGenerator;
+
+//# 
+},{"./../dom.js":27,"./../helpers.js":42}],83:[function(require,module,exports){
 "use strict";
 var process = function(value, callback) {
   var originalVal = value;
@@ -17000,7 +17872,7 @@ Handsontable.AutocompleteValidator = function(value, callback) {
 };
 
 //# 
-},{}],87:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 "use strict";
 var $__moment__,
     $___46__46__47_editors_46_js__;
@@ -17040,7 +17912,7 @@ var correctFormat = function correctFormat(value, dateFormat) {
 };
 
 //# 
-},{"./../editors.js":29,"moment":undefined}],88:[function(require,module,exports){
+},{"./../editors.js":29,"moment":undefined}],85:[function(require,module,exports){
 "use strict";
 Handsontable.NumericValidator = function(value, callback) {
   if (value === null) {
@@ -17483,6 +18355,173 @@ CopyPasteClass.prototype.destroy = function() {
 CopyPasteClass.prototype.hasBeenDestroyed = function() {
   return !this.refCounter;
 };
+
+//# 
+},{}],"es6collections":[function(require,module,exports){
+"use strict";
+(function(exports) {
+  'use strict';
+  var i;
+  var defineProperty = Object.defineProperty,
+      is = function(a, b) {
+        return isNaN(a) ? isNaN(b) : a === b;
+      };
+  if (typeof WeakMap == 'undefined') {
+    exports.WeakMap = createCollection({
+      'delete': sharedDelete,
+      clear: sharedClear,
+      get: sharedGet,
+      has: mapHas,
+      set: sharedSet
+    }, true);
+  }
+  if (typeof Map == 'undefined') {
+    exports.Map = createCollection({
+      'delete': sharedDelete,
+      has: mapHas,
+      get: sharedGet,
+      set: sharedSet,
+      keys: sharedKeys,
+      values: sharedValues,
+      entries: mapEntries,
+      forEach: sharedForEach,
+      clear: sharedClear
+    });
+  }
+  if (typeof Set == 'undefined') {
+    exports.Set = createCollection({
+      has: setHas,
+      add: sharedAdd,
+      'delete': sharedDelete,
+      clear: sharedClear,
+      keys: sharedValues,
+      values: sharedValues,
+      entries: setEntries,
+      forEach: sharedForEach
+    });
+  }
+  if (typeof WeakSet == 'undefined') {
+    exports.WeakSet = createCollection({
+      'delete': sharedDelete,
+      add: sharedAdd,
+      clear: sharedClear,
+      has: setHas
+    }, true);
+  }
+  function createCollection(proto, objectOnly) {
+    function Collection(a) {
+      if (!this || this.constructor !== Collection)
+        return new Collection(a);
+      this._keys = [];
+      this._values = [];
+      this._itp = [];
+      this.objectOnly = objectOnly;
+      if (a)
+        init.call(this, a);
+    }
+    if (!objectOnly) {
+      defineProperty(proto, 'size', {get: sharedSize});
+    }
+    proto.constructor = Collection;
+    Collection.prototype = proto;
+    return Collection;
+  }
+  function init(a) {
+    var i;
+    if (this.add)
+      a.forEach(this.add, this);
+    else
+      a.forEach(function(a) {
+        this.set(a[0], a[1]);
+      }, this);
+  }
+  function sharedDelete(key) {
+    if (this.has(key)) {
+      this._keys.splice(i, 1);
+      this._values.splice(i, 1);
+      this._itp.forEach(function(p) {
+        if (i < p[0])
+          p[0]--;
+      });
+    }
+    return -1 < i;
+  }
+  ;
+  function sharedGet(key) {
+    return this.has(key) ? this._values[i] : undefined;
+  }
+  function has(list, key) {
+    if (this.objectOnly && key !== Object(key))
+      throw new TypeError("Invalid value used as weak collection key");
+    if (key != key || key === 0)
+      for (i = list.length; i-- && !is(list[i], key); ) {}
+    else
+      i = list.indexOf(key);
+    return -1 < i;
+  }
+  function setHas(value) {
+    return has.call(this, this._values, value);
+  }
+  function mapHas(value) {
+    return has.call(this, this._keys, value);
+  }
+  function sharedSet(key, value) {
+    this.has(key) ? this._values[i] = value : this._values[this._keys.push(key) - 1] = value;
+    return this;
+  }
+  function sharedAdd(value) {
+    if (!this.has(value))
+      this._values.push(value);
+    return this;
+  }
+  function sharedClear() {
+    this._values.length = 0;
+  }
+  function sharedKeys() {
+    return sharedIterator(this._itp, this._keys);
+  }
+  function sharedValues() {
+    return sharedIterator(this._itp, this._values);
+  }
+  function mapEntries() {
+    return sharedIterator(this._itp, this._keys, this._values);
+  }
+  function setEntries() {
+    return sharedIterator(this._itp, this._values, this._values);
+  }
+  function sharedIterator(itp, array, array2) {
+    var p = [0],
+        done = false;
+    itp.push(p);
+    return {next: function() {
+        var v,
+            k = p[0];
+        if (!done && k < array.length) {
+          v = array2 ? [array[k], array2[k]] : array[k];
+          p[0]++;
+        } else {
+          done = true;
+          itp.splice(itp.indexOf(p), 1);
+        }
+        return {
+          done: done,
+          value: v
+        };
+      }};
+  }
+  function sharedSize() {
+    return this._values.length;
+  }
+  function sharedForEach(callback, context) {
+    var it = this.entries();
+    for (; ; ) {
+      var r = it.next();
+      if (r.done)
+        break;
+      callback.call(context, r.value[1], r.value[0], this);
+    }
+  }
+})(typeof exports != 'undefined' && typeof global != 'undefined' ? global : window);
 
 //# 
 },{}],"jsonpatch":[function(require,module,exports){
@@ -18458,5 +19497,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,47,48,49,65,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,86,87,88,72,73,74,75,76,77,31,35,32,33,40,34,36,37,38,39])("numeral")
+},{}]},{},[23,47,48,49,50,66,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,68,69,70,83,84,85,73,74,75,76,77,78,31,35,32,33,40,34,36,37,38,39])("numeral")
 });
