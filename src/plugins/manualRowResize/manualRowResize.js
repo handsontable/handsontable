@@ -129,10 +129,15 @@ function ManualRowResize() {
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function() {
             if (dblclick >= 2) {
-              setManualSize(currentRow, null); //double click sets auto row size
+              var hookNewSize = Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize, true);
+
+              if (hookNewSize !== void 0) {
+                newSize = hookNewSize;
+              }
+              setManualSize(currentRow, newSize); //double click sets auto row size
               instance.forceFullRender = true;
               instance.view.render(); //updates all
-              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
+              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize, true);
             }
             dblclick = 0;
             autoresizeTimeout = null;
@@ -161,6 +166,8 @@ function ManualRowResize() {
         pressed = false;
 
         if (newSize != startHeight) {
+          Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize);
+
           instance.forceFullRender = true;
           instance.view.render(); //updates all
 
@@ -180,11 +187,8 @@ function ManualRowResize() {
     eventManager.clear();
   };
 
-  this.beforeInit = function() {
-    this.manualRowHeights = [];
-  };
-
   this.init = function(source) {
+    this.manualRowHeights = [];
     var instance = this;
     var manualColumnHeightEnabled = !! (this.getSettings().manualRowResize);
 
@@ -208,19 +212,12 @@ function ManualRowResize() {
         this.manualRowHeights = [];
       }
 
-      if (source === 'afterInit') {
+      if (source === void 0) {
         bindEvents.call(this);
-        if (this.manualRowHeights.length > 0) {
-          this.forceFullRender = true;
-          this.render();
-        }
-      } else {
-        this.forceFullRender = true;
-        this.render();
-
       }
     } else {
       var pluginUsagesIndex = instance.manualRowHeightsPluginUsages ? instance.manualRowHeightsPluginUsages.indexOf('manualRowResize') : -1;
+
       if (pluginUsagesIndex > -1) {
         unbindEvents.call(this);
         this.manualRowHeights = [];
@@ -251,15 +248,12 @@ function ManualRowResize() {
 
 var htManualRowResize = new ManualRowResize();
 
-Handsontable.hooks.add('beforeInit', htManualRowResize.beforeInit);
-Handsontable.hooks.add('afterInit', function () {
-  htManualRowResize.init.call(this, 'afterInit');
-});
-
+Handsontable.hooks.add('init', htManualRowResize.init);
 Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualRowResize.init.call(this, 'afterUpdateSettings');
 });
 
 Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
 
+Handsontable.hooks.register('beforeRowResize');
 Handsontable.hooks.register('afterRowResize');

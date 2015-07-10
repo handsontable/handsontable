@@ -181,13 +181,12 @@ describe('Core_loadData', function () {
 
     handsontable({
       data: arrayOfNestedObjects(),
-      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
+      colWidths: [90, 90, 90],
+      rowHeights: [23, 23, 23],
       cells: cellsSpy
     });
-    //expect(cellsSpy.calls.length).toEqual(3 * (countRows() * countCols()) + 4 * countCols()); // changed for the dynamic column loading feature
-
-    // ugly fix for this test failing, TODO: needs updating (probably has something to do with scrollHandler recognition)
-    expect(cellsSpy.calls.length).toEqual(34);
+    //
+    expect(cellsSpy.calls.length).toEqual(31);
 
   });
 
@@ -198,11 +197,12 @@ describe('Core_loadData', function () {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       rowHeaders: true,
-      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
+      colWidths: [90, 90, 90],
+      rowHeights: [90, 90, 90],
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.length).toEqual(43);
+    expect(cellsSpy.calls.length).toEqual(40);
   });
 
   it('should remove grid rows if new data source has less of them', function () {
@@ -349,7 +349,6 @@ describe('Core_loadData', function () {
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
       splice: hacked_splice
     });
-
     var cars = new CarCollection();
 
     cars.add([
@@ -372,6 +371,7 @@ describe('Core_loadData', function () {
       var args = _.toArray(arguments).slice(2).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
+
       return removed;
     }
 

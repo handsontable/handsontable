@@ -704,10 +704,257 @@ export function cancelAnimationFrame(id) {
   _cancelAnimationFrame.call(window, id);
 }
 
+/**
+ * A specialized version of `.reduce` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
+ * @returns {*} Returns the accumulated value.
+ */
+function arrayReduce(array, iteratee, accumulator, initFromArray) {
+  let index = -1,
+    length = array.length;
+
+  if (initFromArray && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+
+  return accumulator;
+}
+
+/**
+ * A specialized version of `.filter` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+export function arrayFilter(array, predicate) {
+  let index = -1,
+    length = array.length,
+    resIndex = -1,
+    result = [];
+
+  while (++index < length) {
+    let value = array[index];
+
+    if (predicate(value, index, array)) {
+      result[++resIndex] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * A specialized version of `.forEach` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns `array`.
+ */
+export function arrayEach(array, iteratee) {
+  let index = -1,
+    length = array.length;
+
+  while (++index < length) {
+    if (iteratee(array[index], index, array) === false) {
+      break;
+    }
+  }
+
+  return array;
+}
+
+/**
+ * A specialized version of `.forEach` for objects.
+ *
+ * @param {Object} object The object to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Object} Returns `object`.
+ */
+export function objectEach(object, iteratee) {
+  for (let key in object) {
+    if (!object.hasOwnProperty || (object.hasOwnProperty && object.hasOwnProperty(key))) {
+      if (iteratee(object[key], key, object) === false) {
+        break;
+      }
+    }
+  }
+
+  return object;
+}
+
+/**
+ * A specialized version of `.forEach` defined by ranges.
+ *
+ * @param {Number} rangeFrom The number from start iterate.
+ * @param {Number} rangeTo The number where finish iterate.
+ * @param {Function} iteratee The function invoked per iteration.
+ */
+export function rangeEach(rangeFrom, rangeTo, iteratee) {
+  let index = -1;
+
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = rangeFrom;
+  } else {
+    index = rangeFrom - 1;
+  }
+  while (++index <= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
+    }
+  }
+}
+
+/**
+ * Calculate sum value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated sum value.
+ */
+export function arraySum(array) {
+  return arrayReduce(array, (a, b) => (a + b), 0);
+}
+
+/**
+ * Calculate average value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated average value.
+ */
+export function arrayAvg(array) {
+  if (!array.length) {
+    return 0;
+  }
+
+  return arraySum(array) / array.length;
+}
+
+/**
+ * Checks if value is valid percent.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+export function isPercentValue(value) {
+  return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
+}
+
+/**
+ * Calculate value from percent.
+ *
+ * @param {Number} value Base value from percent will be calculated.
+ * @param {String|Number} percent Can be Number or String (eq. `'33%'`).
+ * @returns {Number}
+ */
+export function valueAccordingPercent(value, percent) {
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = parseInt(value * percent / 100);
+
+  return percent;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds).
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @returns {Function}
+ */
+export function throttle(func, wait = 200) {
+  let lastCalled = 0;
+  let result = {
+    lastCallThrottled: true
+  };
+  let lastTimer = null;
+
+  function _throttle() {
+    const args = arguments;
+    let stamp = Date.now();
+    let needCall = false;
+
+    result.lastCallThrottled = true;
+
+    if (!lastCalled) {
+      lastCalled = stamp;
+      needCall = true;
+    }
+    let remaining = wait - (stamp - lastCalled);
+
+    if (needCall) {
+      result.lastCallThrottled = false;
+      func.apply(this, args);
+    } else {
+      if (lastTimer) {
+        clearTimeout(lastTimer);
+      }
+      lastTimer = setTimeout(() => {
+        result.lastCallThrottled = false;
+        func.apply(this, args);
+        lastCalled = 0;
+        lastTimer = void 0;
+      }, remaining);
+    }
+
+    return result;
+  }
+
+  return _throttle;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds) after hits.
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @param {Number} hits
+ * @returns {Function}
+ */
+export function throttleAfterHits(func, wait = 200, hits = 10) {
+  const funcThrottle = throttle(func, wait);
+  let remainHits = hits;
+
+  function _clearHits() {
+    remainHits = hits;
+  }
+  function _throttleAfterHits() {
+    if (remainHits) {
+      remainHits --;
+
+      return func.apply(this, arguments);
+    }
+
+    return funcThrottle.apply(this, arguments);
+  }
+  _throttleAfterHits.clearHits = _clearHits;
+
+  return _throttleAfterHits;
+}
+
 
 window.Handsontable = window.Handsontable || {};
-// support for older versions of Handsontable
 Handsontable.helper = {
+  arrayAvg,
+  arrayEach,
+  arrayFilter,
+  arrayReduce,
+  arraySum,
   cancelAnimationFrame,
   cellMethodLookupFactory,
   columnFactory,
@@ -730,19 +977,25 @@ Handsontable.helper = {
   isObject,
   isObjectEquals,
   isOutsideInput,
+  isPercentValue,
   isPrintableChar,
   isTouchSupported,
   keyCode,
+  objectEach,
   pageX,
   pageY,
   pivot,
   proxy,
   randomString,
+  rangeEach,
   requestAnimationFrame,
   spreadsheetColumnLabel,
   stopPropagation,
   stringify,
+  throttle,
+  throttleAfterHits,
   to2dArray,
   toUpperCaseFirst,
-  translateRowsToColumns
+  translateRowsToColumns,
+  valueAccordingPercent
 };

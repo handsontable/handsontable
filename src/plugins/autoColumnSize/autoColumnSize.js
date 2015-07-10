@@ -1,234 +1,329 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
+import BasePlugin from './../_base.js';
+import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame, isObject,
+        isPercentValue, valueAccordingPercent} from './../../helpers.js';
+import {GhostTable} from './../../utils/ghostTable.js';
 import {registerPlugin} from './../../plugins.js';
+import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
-export {AutoColumnSize};
-
-//registerPlugin('autoColumnSize', AutoColumnSize);
 
 /**
  * @class AutoColumnSize
  * @plugin AutoColumnSize
  */
-function AutoColumnSize() {
-  var plugin = this
-    , sampleCount = 5; //number of samples to take of each value length
+class AutoColumnSize extends BasePlugin {
+  static get CALCULATION_STEP() {
+    return 50;
+  }
+  static get SYNC_CALCULATION_LIMIT() {
+    return 50;
+  }
 
   /**
-   * @private
-   * @function beforeInit
-   * @memberof AutoColumnSize#
+   * @param {Core} hotInstance Handsontable instance.
    */
-  this.beforeInit = function () {
-    var instance = this;
-    instance.autoColumnWidths = [];
-
-    if (instance.getSettings().autoColumnSize !== false) {
-      if (!instance.autoColumnSizeTmp) {
-        instance.autoColumnSizeTmp = {
-          table: null,
-          tableStyle: null,
-          theadTh: null,
-          tbody: null,
-          container: null,
-          containerStyle: null,
-          determineBeforeNextRender: true
-        };
-
-        instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.addHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
-        instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
-
-        /**
-         * {@link Handsontable.AutoColumnSize#determineColumnWidth}
-         *
-         * @function determineColumnWidth
-         * @alias determineColumnWidth
-         * @memberof! Handsontable.Core#
-         */
-        instance.determineColumnWidth = plugin.determineColumnWidth;
-      }
-    } else {
-      if (instance.autoColumnSizeTmp) {
-        instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.removeHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
-        instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
-
-        delete instance.determineColumnWidth;
-
-        plugin.afterDestroy.call(instance);
-      }
-    }
-  };
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * Cached columns widths.
+     *
+     * @type {Array}
+     */
+    this.widths = [];
+    /**
+     * Instance of GhostTable for rows and columns size calculations.
+     *
+     * @type {GhostTable}
+     */
+    this.ghostTable = new GhostTable(this.hot);
+    /**
+     * Instance of SamplesGenerator for generating samples necessary for columns width calculations.
+     *
+     * @type {SamplesGenerator}
+     */
+    this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    /**
+     * @type {Boolean}
+     */
+    this.firstCalculation = true;
+    /**
+     * @type {Boolean}
+     */
+    this.inProgress = false;
+  }
 
   /**
-   * @private
-   * @function determineIfChanged
-   * @memberof AutoColumnSize#
-   * @param {Boolean} [force]
-   */
-  this.determineIfChanged = function (force) {
-    if (force) {
-      htAutoColumnSize.determineColumnsWidth.apply(this, arguments);
-    }
-  };
-
-  /**
-   * Get width column.
+   * Check if the plugin is enabled in the handsontable settings.
    *
-   * @function determineColumnWidth
-   * @memberof AutoColumnSize#
-   * @param {Number} col
-   * @returns {Number}
+   * @returns {Boolean}
    */
-  this.determineColumnWidth = function (col) {
-    var instance = this
-      , tmp = instance.autoColumnSizeTmp;
+  isEnabled() {
+    return this.hot.getSettings().autoColumnSize !== false && !this.hot.getSettings().colWidths;
+  }
 
-    if (!tmp.container) {
-      createTmpContainer.call(tmp, instance);
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
     }
+    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
+    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
+    super.enablePlugin();
+  }
 
-    tmp.container.className = instance.rootElement.className + ' htAutoColumnSize';
-    tmp.table.className = instance.table.className;
-
-    var rows = instance.countRows();
-    var samples = {};
-
-    for (var r = 0; r < rows; r++) {
-      var value = instance.getDataAtCell(r, col);
-
-      if (!Array.isArray(value)) {
-        value = helper.stringify(value);
-      }
-      var len = value.length;
-
-      if (!samples[len]) {
-        samples[len] = {
-          needed: sampleCount,
-          strings: []
-        };
-      }
-      if (samples[len].needed) {
-        samples[len].strings.push({value: value, row: r});
-        samples[len].needed--;
-      }
+  /**
+   * Calculate columns width.
+   *
+   * @param {Number|Object} colRange Column range object.
+   * @param {Number|Object} rowRange Row range object.
+   * @param {Boolean} [force=false] If `true` force calculate width even when value was cached earlier.
+   */
+  calculateColumnsWidth(colRange = {from: 0, to: this.hot.countCols() - 1}, rowRange = {from: 0, to: this.hot.countRows() - 1}, force = false) {
+    if (typeof colRange === 'number') {
+      colRange = {from: colRange, to: colRange};
     }
-
-    if (instance.getColHeader(col) !== null) {
-      instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
+    if (typeof rowRange === 'number') {
+      rowRange = {from: rowRange, to: rowRange};
     }
+    rangeEach(colRange.from, colRange.to, (col) => {
+      if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
+        const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
 
-    dom.empty(tmp.tbody);
+        samples.forEach((sample, col) => {
+          this.ghostTable.addColumn(col, sample);
+        });
+      }
+    });
 
-    for (var i in samples) {
-      if (samples.hasOwnProperty(i)) {
-        for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
-          var row = samples[i].strings[j].row;
+    if (this.ghostTable.columns.length) {
+      this.ghostTable.getWidths((col, width) => {
+        this.widths[col] = width;
+      });
+      this.ghostTable.clean();
+    }
+  }
 
-          var cellProperties = instance.getCellMeta(row, col);
-          cellProperties.col = col;
-          cellProperties.row = row;
+  /**
+   * Calculate all columns width.
+   *
+   * @param {Object|Number} rowRange Row range object.
+   */
+  calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
+    let current = 0;
+    let length = this.hot.countCols() - 1;
+    let timer = null;
 
-          var renderer = instance.getCellRenderer(cellProperties);
+    this.inProgress = true;
 
-          var tr = document.createElement('tr');
-          var td = document.createElement('td');
+    let loop = () => {
+      // When hot was destroyed after calculating finished cancel frame
+      if (!this.hot) {
+        cancelAnimationFrame(timer);
+        this.inProgress = false;
 
-          renderer(instance, td, row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
-          r ++;
-          tr.appendChild(td);
-          tmp.tbody.appendChild(tr);
+        return;
+      }
+      this.calculateColumnsWidth({from: current, to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)}, rowRange);
+      current = current + AutoColumnSize.CALCULATION_STEP + 1;
+
+      if (current < length) {
+        timer = requestAnimationFrame(loop);
+      } else {
+        cancelAnimationFrame(timer);
+        this.inProgress = false;
+
+        // @TODO Should call once per render cycle, currently fired separately in different plugins
+        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        // tmp
+        if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+          this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
         }
       }
+    };
+    // sync
+    if (this.firstCalculation && this.getSyncCalculationLimit()) {
+      this.calculateColumnsWidth({from: 0, to: this.getSyncCalculationLimit()}, rowRange);
+      this.firstCalculation = false;
+      current = this.getSyncCalculationLimit() + 1;
     }
-    var parent = instance.rootElement.parentNode;
-    parent.appendChild(tmp.container);
-    var width = dom.outerWidth(tmp.table);
-    parent.removeChild(tmp.container);
-
-    return width;
-  };
+    // async
+    if (current < length) {
+      loop();
+    } else {
+      this.inProgress = false;
+    }
+  }
 
   /**
-   * @private
-   * @function determineColumnsWidth
-   * @memberof AutoColumnSize#
+   * Recalculate all columns width (overwrite cache values).
    */
-  this.determineColumnsWidth = function () {
-    var instance = this;
-    var settings = this.getSettings();
-
-    if (settings.autoColumnSize || !settings.colWidths) {
-      var cols = this.countCols();
-
-      for (var c = 0; c < cols; c++) {
-        if (!instance._getColWidthFromSettings(c)) {
-          this.autoColumnWidths[c] = plugin.determineColumnWidth.call(instance, c);
-        }
-      }
-    }
-    if (this.view.wt) {
-      this.view.wt.wtOverlays.adjustElementsSize(true);
-    }
-  };
+  recalculateAllColumnsWidth() {
+    this.clearCache();
+    this.calculateAllColumnsWidth();
+  }
 
   /**
-   * @private
-   * @function modifyColWidth
-   * @memberof AutoColumnSize#
-   * @param {Number} width
-   * @param {Number} col
+   * Get value which tells how much columns will be calculated synchronously. Rest columns will be calculated asynchronously.
+   *
    * @returns {Number}
    */
-  this.modifyColWidth = function (width, col) {
-    if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > width) {
-      return this.autoColumnWidths[col];
+  getSyncCalculationLimit() {
+    let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
+    let colsLimit = this.hot.countCols() - 1;
+
+    if (isObject(this.hot.getSettings().autoColumnSize)) {
+      limit = this.hot.getSettings().autoColumnSize.syncLimit;
+
+      if (isPercentValue(limit)) {
+        limit = valueAccordingPercent(colsLimit, limit);
+      } else {
+        // Force to Number
+        limit = limit >> 0;
+      }
+    }
+
+    return Math.min(limit, colsLimit);
+  }
+
+  /**
+   * Get calculated column height.
+   *
+   * @param {Number} col Column index.
+   * @param {Number} [defaultWidth] Default column width. It will be pick up if no calculated width found.
+   * @returns {Number}
+   */
+  getColumnWidth(col, defaultWidth = void 0) {
+    let width = defaultWidth;
+
+    if (this.widths[col] !== void 0 && this.widths[col] > (defaultWidth || 0)) {
+      width = this.widths[col];
     }
 
     return width;
-  };
+  }
 
   /**
-   * @private
-   * @function afterDestroy
-   * @memberof AutoColumnSize#
+   * Get first visible column.
+   *
+   * @returns {Number} Returns column index or -1 if table is not rendered.
    */
-  this.afterDestroy = function () {
-    var instance = this;
+  getFirstVisibleColumn() {
+    const wot = this.hot.view.wt;
 
-    if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {
-      instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
+    if (wot.wtViewport.columnsVisibleCalculator) {
+      return wot.wtTable.getFirstVisibleColumn();
     }
-    instance.autoColumnSizeTmp = null;
-  };
+    if (wot.wtViewport.columnsRenderCalculator) {
+      return wot.wtTable.getFirstRenderedColumn();
+    }
 
-  function createTmpContainer(instance) {
-    var d = document
-      , tmp = this;
+    return -1;
+  }
 
-    tmp.table = d.createElement('table');
-    tmp.theadTh = d.createElement('th');
-    tmp.table.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(tmp.theadTh);
+  /**
+   * Get last visible column.
+   *
+   * @returns {Number} Returns column index or -1 if table is not rendered.
+   */
+  getLastVisibleColumn() {
+    const wot = this.hot.view.wt;
 
-    tmp.tableStyle = tmp.table.style;
-    tmp.tableStyle.tableLayout = 'auto';
-    tmp.tableStyle.width = 'auto';
+    if (wot.wtViewport.columnsVisibleCalculator) {
+      return wot.wtTable.getLastVisibleColumn();
+    }
+    if (wot.wtViewport.columnsRenderCalculator) {
+      return wot.wtTable.getLastRenderedColumn();
+    }
 
-    tmp.tbody = d.createElement('tbody');
-    tmp.table.appendChild(tmp.tbody);
+    return -1;
+  }
 
-    tmp.container = d.createElement('div');
-    tmp.container.className = instance.rootElement.className + ' hidden';
-//      tmp.container.className = instance.rootElement[0].className + ' hidden';
-    tmp.containerStyle = tmp.container.style;
+  /**
+   * Clear cached widths.
+   */
+  clearCache() {
+    this.widths.length = 0;
+  }
 
-    tmp.container.appendChild(tmp.table);
+  /**
+   * Check if all widths were calculated. If not then return `true` (need recalculate).
+   *
+   * @returns {Boolean}
+   */
+  isNeedRecalculate() {
+    return arrayFilter(this.widths, (item) => (item === void 0)).length ? true : false;
+  }
+
+  /**
+   * On before render listener.
+   *
+   * @private
+   */
+  onBeforeRender() {
+    let force = this.hot.renderCall;
+    this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
+
+    if (this.isNeedRecalculate() && !this.inProgress) {
+      this.calculateAllColumnsWidth();
+    }
+  }
+
+  /**
+   * On after load data listener.
+   *
+   * @private
+   */
+  onAfterLoadData() {
+    setTimeout(() => {
+      if (this.hot) {
+        this.recalculateAllColumnsWidth();
+      }
+    }, 0);
+  }
+
+  /**
+   * On before change listener.
+   *
+   * @private
+   * @param {Array} changes
+   */
+  onBeforeChange(changes) {
+    arrayEach(changes, (data) => {
+      this.widths[data[1]] = void 0;
+    });
+  }
+
+  /**
+   * On before column resize listener.
+   *
+   * @param {Number} col
+   * @param {Number} size
+   * @param {Boolean} isDblClick
+   * @returns {Number}
+   */
+  onBeforeColumnResize(col, size, isDblClick) {
+    if (isDblClick) {
+      this.calculateColumnsWidth(void 0, col, true);
+      size = this.getColumnWidth(col);
+    }
+
+    return size;
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    this.ghostTable.clean();
+    super.destroy();
   }
 }
 
-var htAutoColumnSize = new AutoColumnSize();
+export {AutoColumnSize};
 
-Handsontable.hooks.add('beforeInit', htAutoColumnSize.beforeInit);
-Handsontable.hooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
+registerPlugin('autoColumnSize', AutoColumnSize);

@@ -153,6 +153,8 @@ class WalkontableTableRenderer {
         let height = this.wot.wtTable.getRowHeight(sourceRowIndex);
 
         if (height) {
+          // Decrease height. 1 pixel will be "replaced" by 1px border top
+          height--;
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
@@ -169,6 +171,9 @@ class WalkontableTableRenderer {
    * @param {Number} sourceRow Row index
    */
   resetOversizedRow(sourceRow) {
+    if (this.wot.getSetting('externalRowCalculator')) {
+      return;
+    }
     if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
       this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
     }
@@ -178,6 +183,9 @@ class WalkontableTableRenderer {
    * Check if any of the rendered rows is higher than expected, and if so, cache them
    */
   markOversizedRows() {
+    if (this.wot.getSetting('externalRowCalculator')) {
+      return;
+    }
     let rowCount = this.instance.wtTable.TBODY.childNodes.length;
     let expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight;
     let actualTableHeight = dom.innerHeight(this.instance.wtTable.TBODY) - 1;
@@ -207,7 +215,7 @@ class WalkontableTableRenderer {
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
           previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
       }
     }
   }

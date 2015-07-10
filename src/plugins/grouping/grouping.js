@@ -889,6 +889,9 @@ function Grouping(instance) {
       Handsontable.Grouping.initGroups(groupSettings);
     },
     afterGetRowHeader: function (row, TH) {
+      if (!TH.parentNode) {
+        return;
+      }
       var currentRowHidden = false;
       for (var i = 0, levels = hiddenRows.length; i < levels; i++) {
         if (hiddenRows[i] && hiddenRows[i][row] === true) {

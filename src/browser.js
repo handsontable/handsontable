@@ -13,13 +13,8 @@ window.Handsontable = function Handsontable(rootElement, userSettings) {
 Handsontable.version = version;
 Handsontable.buildDate = buildDate;
 
-import './shims/array.filter.js';
-import './shims/array.indexOf.js';
-import './shims/array.isArray.js';
 import './shims/classes.js';
-import './shims/object.keys.js';
-import './shims/string.trim.js';
-import './shims/weakmap.js';
+import 'es6collections';
 
 Handsontable.plugins = {};
 

@@ -144,7 +144,6 @@ describe('Core_getCellMeta', function () {
       }
     });
 
-
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
 

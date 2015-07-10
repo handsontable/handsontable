@@ -20,11 +20,11 @@
   position: relative;
 }
 
-.handsontable.htAutoColumnSize {
+.handsontable.htAutoSize {
   visibility: hidden;
-  left: 0;
+  left: -99000px;
   position: absolute;
-  top: 0;
+  top: -99000px;
 }
 
 .handsontable .wtHider {

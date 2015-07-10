@@ -61,13 +61,14 @@ AutocompleteEditor.prototype.open = function () {
 
   var choicesListHot = this.htEditor.getInstance();
   var that = this;
+  var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
   this.TEXTAREA.style.visibility = 'visible';
   this.focus();
 
   choicesListHot.updateSettings({
-    'colWidths': [dom.outerWidth(this.TEXTAREA) - 2],
-    width: dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2,
+    'colWidths': trimDropdown ? [dom.outerWidth(this.TEXTAREA) - 2] : void 0,
+    width: trimDropdown ? dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
@@ -82,6 +83,10 @@ AutocompleteEditor.prototype.open = function () {
           TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+    },
+    modifyColWidth: function (width, col) {
+      // workaround for <strong> text overlapping the dropdown, not really accurate
+      return trimDropdown ? width : width + 15;
     }
   });
 
@@ -175,9 +180,14 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
 };
 
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
+  var currentDropdownWidth = this.htEditor.getColWidth(0) + dom.getScrollbarWidth() + 2;
+  var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+
   this.htEditor.updateSettings({
-    height: this.getDropdownHeight()
+    height: this.getDropdownHeight(),
+    width: trimDropdown ? void 0 : currentDropdownWidth
   });
+
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
 };
 

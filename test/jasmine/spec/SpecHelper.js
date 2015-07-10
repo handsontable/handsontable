@@ -428,14 +428,8 @@ function rowHeight($elem, row) {
   if (!TD) {
     throw new Error("Cannot find table row of index '" + row + "'");
   }
-  var height = Handsontable.Dom.outerHeight(TD);
-  if(row == 0) {
-    height = height - 2;
-  }
-  else {
-    height = height - 1;
-  }
-  return height;
+
+  return Handsontable.Dom.outerHeight(TD);
 }
 
 /**
@@ -506,5 +500,153 @@ function Model(opts) {
 function createAccessorForProperty(name) {
   return function (obj, value) {
     return obj.attr(name, value);
+  };
+}
+
+function resizeColumn(displayedColumnIndex, width) {
+  var $container = spec().$container;
+  var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
+
+  $th.simulate('mouseover');
+
+  var $resizer = $container.find('.manualColumnResizer');
+  var resizerPosition = $resizer.position();
+
+  $resizer.simulate('mousedown',{
+    clientX: resizerPosition.left
+  });
+
+
+  var delta = width - $th.width() - 2;
+  var newPosition = resizerPosition.left + delta;
+  $resizer.simulate('mousemove',
+    {clientX: newPosition}
+  );
+
+  $resizer.simulate('mouseup');
+}
+
+function resizeRow(displayedRowIndex, height) {
+
+  var $container = spec().$container;
+  var $th = $container.find('tbody tr:eq(' + displayedRowIndex + ') th:eq(0)');
+
+  $th.simulate('mouseover');
+
+  var $resizer = $container.find('.manualRowResizer');
+  var resizerPosition = $resizer.position();
+
+  $resizer.simulate('mousedown',{
+    clientY: resizerPosition.top
+  });
+
+  var delta = height - $th.height() - 2;
+
+  if (delta < 0) {
+    delta = 0;
   }
+
+  $resizer.simulate('mousemove',{
+    clientY: resizerPosition.top + delta
+  });
+
+  $resizer.simulate('mouseup');
+}
+
+function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedRowIndex) {
+  var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first(),
+    $rowHeaders = container.find('tbody tr th'),
+    $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
+    $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
+
+  $secondRowHeader.simulate('mouseover');
+  var $manualRowMover = $mainContainer.find('.manualRowMover');
+
+  if ($manualRowMover.length) {
+    $manualRowMover.simulate('mousedown',{
+      clientY: $manualRowMover[0].getBoundingClientRect().top
+    });
+
+    $manualRowMover.simulate('mousemove',{
+      clientY:$manualRowMover[0].getBoundingClientRect().top - 20
+    });
+
+    $firstRowHeader.simulate('mouseover');
+    $secondRowHeader.simulate('mouseup');
+  }
+}
+
+function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRowIndex) {
+  var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first(),
+    $rowHeaders = container.find('tbody tr th'),
+    $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
+    $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
+
+  $secondRowHeader.simulate('mouseover');
+  var $manualRowMover = $mainContainer.find('.manualRowMover');
+
+  if($manualRowMover.length) {
+    $manualRowMover.simulate('mousedown',{
+      clientY: $manualRowMover[0].getBoundingClientRect().top
+    });
+
+    $manualRowMover.simulate('mousemove',{
+      clientY:$manualRowMover[0].getBoundingClientRect().top + 20
+    });
+
+    $firstRowHeader.simulate('mouseover');
+    $secondRowHeader.simulate('mouseup');
+  }
+}
+
+function moveSecondDisplayedColumnBeforeFirstColumn(container, secondDisplayedColIndex){
+  var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
+  var $colHeaders = container.find('thead tr:eq(0) th');
+  var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
+  var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
+
+  //Enter the second column header
+  $secondColHeader.simulate('mouseover');
+  var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+
+  //Grab the second column
+  $manualColumnMover.simulate('mousedown',{
+    pageX : $manualColumnMover[0].getBoundingClientRect().left
+  });
+
+  //Drag the second column over the first column
+  $manualColumnMover.simulate('mousemove',{
+    pageX : $manualColumnMover[0].getBoundingClientRect().left - 20
+  });
+
+  $firstColHeader.simulate('mouseover');
+
+  //Drop the second column
+  $secondColHeader.simulate('mouseup');
+}
+
+function moveFirstDisplayedColumnAfterSecondColumn(container, firstDisplayedColIndex){
+  var $mainContainer = container.parents(".handsontable").not("[class*=clone]").not("[class*=master]").first();
+  var $colHeaders = container.find('thead tr:eq(0) th');
+  var $firstColHeader = $colHeaders.eq(firstDisplayedColIndex);
+  var $secondColHeader = $colHeaders.eq(firstDisplayedColIndex + 1);
+
+  //Enter the first column header
+  $firstColHeader.simulate('mouseover');
+  var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+
+  //Grab the first column
+  $manualColumnMover.simulate('mousedown',{
+    pageX:$manualColumnMover[0].getBoundingClientRect().left
+  });
+
+  //Drag the first column over the second column
+  $manualColumnMover.simulate('mousemove',{
+    pageX:$manualColumnMover[0].getBoundingClientRect().left + 20
+  });
+
+  $secondColHeader.simulate('mouseover');
+
+  //Drop the first column
+  $firstColHeader.simulate('mouseup');
 }
