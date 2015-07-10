@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.15.1
+ * Handsontable 0.16.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 25 2015 14:04:28 GMT+0200 (CEST)
+ * Date: Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -20,11 +20,11 @@
   position: relative;
 }
 
-.handsontable.htAutoColumnSize {
+.handsontable.htAutoSize {
   visibility: hidden;
-  left: 0;
+  left: -99000px;
   position: absolute;
-  top: 0;
+  top: -99000px;
 }
 
 .handsontable .wtHider {
@@ -1411,6 +1411,24 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
+.is-inrange .pika-button {
+    background: #D5E9F7;
+}
+
+.is-startrange .pika-button {
+    color: #fff;
+    background: #6CB31D;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
+.is-endrange .pika-button {
+    color: #fff;
+    background: #33aaff;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
 .is-disabled .pika-button {
     pointer-events: none;
     cursor: default;
@@ -1419,10 +1437,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 
 .pika-button:hover {
-    color: #fff !important;
-    background: #ff8000 !important;
-    box-shadow: none !important;
-    border-radius: 3px !important;
+    color: #fff;
+    background: #ff8000;
+    box-shadow: none;
+    border-radius: 3px;
 }
 
 /* styling for abbr */
