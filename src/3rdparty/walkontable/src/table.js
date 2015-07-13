@@ -497,11 +497,11 @@ class WalkontableTable {
       width = width[sourceColumn];
     }
 
-    return width;
+    return width || this.wot.wtSettings.settings.defaultColumnWidth;
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    let width = this.getColumnWidth(sourceColumn) || this.wot.wtSettings.settings.defaultColumnWidth;
+    let width = this.getColumnWidth(sourceColumn);
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {

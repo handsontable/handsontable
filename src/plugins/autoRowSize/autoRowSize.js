@@ -8,7 +8,6 @@ import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
 
 /**
- * @class AutoRowSize
  * @plugin AutoRowSize
  */
 class AutoRowSize extends BasePlugin {
@@ -107,15 +106,11 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => {
-          this.ghostTable.addRow(row, sample);
-        });
+        samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
       }
     });
     if (this.ghostTable.rows.length) {
-      this.ghostTable.getHeights((row, height) => {
-        this.heights[row] = height;
-      });
+      this.ghostTable.getHeights((row, height) => this.heights[row] = height);
       this.ghostTable.clean();
     }
   }
@@ -271,9 +266,7 @@ class AutoRowSize extends BasePlugin {
     if (typeof range === 'number') {
       range = {from: range, to: range};
     }
-    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => {
-      this.heights[row] = void 0;
-    });
+    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => this.heights[row] = void 0);
   }
 
   /**
@@ -312,6 +305,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * On before row resize listener.
    *
+   * @private
    * @param {Number} row
    * @param {Number} size
    * @param {Boolean} isDblClick
@@ -328,13 +322,20 @@ class AutoRowSize extends BasePlugin {
 
   /**
    * On after load data listener.
+   *
+   * @private
    */
   onAfterLoadData() {
-    setTimeout(() => {
-      if (this.hot) {
-        this.recalculateAllRowsHeight();
-      }
-    }, 0);
+    if (this.hot.view) {
+      this.recalculateAllRowsHeight();
+    } else {
+      // first load - initialization
+      setTimeout(() => {
+        if (this.hot) {
+          this.recalculateAllRowsHeight();
+        }
+      }, 0);
+    }
   }
 
   /**
@@ -354,7 +355,7 @@ class AutoRowSize extends BasePlugin {
         to: changes[changes.length - 1][0]
       };
     }
-    if (range) {
+    if (range !== null) {
       this.clearCacheByRange(range);
     }
   }

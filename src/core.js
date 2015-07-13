@@ -10,6 +10,7 @@ import {TableView} from './tableView.js';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range.js';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
+import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns.js';
 
 Handsontable.activeGuid = null;
 
@@ -981,6 +982,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     grid.adjustRowsAndCols();
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
     selection.refreshBorders(null, true);
+    instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }
 
@@ -2184,12 +2186,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function(col) {
-    var width = instance._getColWidthFromSettings(col);
+    let width = instance._getColWidthFromSettings(col);
 
-    if (!width) {
-      width = 50;
-    }
     width = Handsontable.hooks.run(instance, 'modifyColWidth', width, col);
+
+    if (width === void 0) {
+      width = WalkontableViewportColumnsCalculator.DEFAULT_WIDTH;
+    }
 
     return width;
   };

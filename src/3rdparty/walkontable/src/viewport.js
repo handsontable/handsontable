@@ -119,10 +119,9 @@ class WalkontableViewport {
    */
   sumColumnWidths(from, length) {
     let sum = 0;
-    let defaultColumnWidth = this.instance.wtSettings.defaultColumnWidth;
 
     while (from < length) {
-      sum += this.wot.wtTable.getColumnWidth(from) || defaultColumnWidth;
+      sum += this.wot.wtTable.getColumnWidth(from);
       from ++;
     }
 

@@ -15,6 +15,7 @@ class WalkontableTableRenderer {
     this.wot = wtTable.instance;
     // legacy support
     this.instance = wtTable.instance;
+
     this.rowFilter = wtTable.rowFilter;
     this.columnFilter = wtTable.columnFilter;
 
