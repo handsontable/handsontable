@@ -242,7 +242,7 @@ describe('manualColumnResize', function () {
     waits(1000);
 
     runs(function() {
-      expect(colWidth(this.$container, 2)).toEqual(26);
+      expect(colWidth(this.$container, 2)).toBeAroundValue(26);
     }.bind(this));
   });
 
