@@ -2351,6 +2351,48 @@ describe('UndoRedo', function () {
 
       });
     });
+    
+    describe("Function data", function () {
+
+      function createObjectData() {
+        return [
+          {name: 'Timothy', surname: "Dalton"},
+          {name: 'Sean', surname: "Connery"},
+          {name: 'Roger', surname: "Moore"}
+        ];
+      }
+      
+      function createFunctionColumns() {
+        return ["name", "surname"].map(function (property) {
+          return {
+            data: function (item, value) {
+              if (typeof value === 'undefined') {
+                return item[property];
+              } else {
+                item[property] = value;
+              }
+            }
+          }
+        });
+      }
+
+      it('should undo single change', function () {
+        handsontable({
+          data: createObjectData(),
+          columns: createFunctionColumns(),
+          afterChange: function () {
+            console.log("Event", arguments);
+          }
+        });
+        var HOT = getInstance();
+        
+        setDataAtCell(0, 0, 'Pearce');
+        expect(getDataAtCell(0, 0)).toBe('Pearce');
+
+        HOT.undo();
+        expect(getDataAtCell(0, 0)).toBe('Timothy');
+      });
+    });
   });
 
   describe("plugin features", function () {

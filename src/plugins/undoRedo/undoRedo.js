@@ -168,7 +168,7 @@ Handsontable.UndoRedo.ChangeAction = function(changes) {
 };
 helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
-  var data = helper.deepClone(this.changes),
+  var data = cloneChanges(this.changes),
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
     emptyColsAtTheEnd = instance.countEmptyCols(true);
 
@@ -197,7 +197,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
 
 };
 Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
-  var data = helper.deepClone(this.changes);
+  var data = cloneChanges(this.changes);
 
   for (var i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
@@ -439,6 +439,20 @@ function removeExposedUndoRedoMethods(instance){
   delete instance.isUndoAvailable;
   delete instance.isRedoAvailable;
   delete instance.clearUndo;
+}
+
+function cloneChanges(changes) {
+  var clone = [];
+  for (var idx = 0; idx < changes.length; idx++) {
+    var change = changes[idx];
+    clone.push([
+      change[0], // row
+      change[1], // property
+      helper.deepClone(change[2]), // oldVal
+      helper.deepClone(change[3])  // newVal
+    ]);
+  }
+  return clone;
 }
 
 Handsontable.hooks.add('afterInit', init);
