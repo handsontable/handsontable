@@ -1,7 +1,7 @@
 
 import * as dom from './../../../dom.js';
 
-let isRenderedColumnHeaders = {};
+let isMarkedOversizedColumn = {};
 
 /**
  * @class WalkontableTableRenderer
@@ -57,8 +57,7 @@ class WalkontableTableRenderer {
       this.adjustAvailableNodes();
       adjusted = true;
 
-      // assign row header classnames
-      this.renderColGroups();
+      // adjust column widths according to user widths settings
       this.renderColumnHeaders();
 
       //Render table rows
@@ -70,6 +69,7 @@ class WalkontableTableRenderer {
       }
       this.adjustColumnHeaderHeights();
       this.adjustColumnWidths(columnsToRender);
+      this.markOversizedColumns();
     }
 
     if (!adjusted) {
@@ -220,6 +220,25 @@ class WalkontableTableRenderer {
   }
 
   /**
+   * Check if any of the rendered columns is wider than expected, and if so, cache them.
+   */
+  markOversizedColumns() {
+    let overlayName = this.wot.getOverlayName();
+
+    if (!this.columnHeaderCount || isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+      return;
+    }
+    let columnCount = this.wtTable.getRenderedColumnsCount();
+
+    for (let i = 0; i < this.columnHeaderCount; i++) {
+      for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        this.markIfOversizedColumnHeader(renderedColumnIndex);
+      }
+    }
+    isMarkedOversizedColumn[overlayName] = true;
+  }
+
+  /**
    *
    */
   adjustColumnHeaderHeights() {
@@ -243,14 +262,12 @@ class WalkontableTableRenderer {
    * @param {Number} col Index of column
    */
   markIfOversizedColumnHeader(col) {
-    let level = this.wot.getSetting('columnHeaders').length;
+    let sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    let level = this.columnHeaderCount;
     let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
-    let sourceColIndex;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
-
-    sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
 
     while (level) {
       level--;
@@ -422,13 +439,8 @@ class WalkontableTableRenderer {
         let sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
 
         this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
-
-        if (!isRenderedColumnHeaders[overlayName] && !this.wtTable.isWorkingOnClone()) {
-          this.markIfOversizedColumnHeader(renderedColumnIndex);
-        }
       }
     }
-    isRenderedColumnHeaders[overlayName] = true;
   }
 
   /**
@@ -444,6 +456,9 @@ class WalkontableTableRenderer {
     while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
       this.COLGROUP.removeChild(this.COLGROUP.lastChild);
       this.wtTable.colgroupChildrenLength--;
+    }
+    if (this.rowHeaderCount) {
+      dom.addClass(this.COLGROUP.childNodes[0], 'rowHeader');
     }
   }
 
@@ -504,19 +519,6 @@ class WalkontableTableRenderer {
     TH.removeAttribute('style');
 
     return this.columnHeaders[row](col, TH, row);
-  }
-
-  /**
-   * Assign the row header classnames to the columns being row headers
-   */
-  renderColGroups() {
-    for (let colIndex = 0; colIndex < this.wtTable.colgroupChildrenLength; colIndex++) {
-      if (colIndex < this.rowHeaderCount) {
-        dom.addClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
-      } else {
-        dom.removeClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
-      }
-    }
   }
 
   /**

@@ -404,19 +404,19 @@ class WalkontableTable {
   }
 
   isColumnBeforeViewport(column) {
-    return (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
   }
 
   isColumnAfterViewport(column) {
-    return (column > this.getLastVisibleColumn());
+    return column > this.getLastVisibleColumn();
   }
 
   isLastRowFullyVisible() {
-    return (this.getLastVisibleRow() === this.getLastRenderedRow());
+    return this.getLastVisibleRow() === this.getLastRenderedRow();
   }
 
   isLastColumnFullyVisible() {
-    return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
+    return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
   getRenderedColumnsCount() {
