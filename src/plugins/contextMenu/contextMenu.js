@@ -29,6 +29,22 @@ function ContextMenu(instance, customOptions) {
     contextMenu.destroy();
   });
 
+  function getValidSelection() {
+    let selected = instance.getSelected();
+
+    if (!selected) {
+      return null;
+    }
+    if (selected[0] < 0) {
+      return null;
+    }
+    if (instance.countRows() >= instance.getSettings().maxRows) {
+      return null;
+    }
+
+    return selected;
+  }
+
   this.defaultOptions = {
     items: [{
       key: 'row_above',
@@ -37,11 +53,14 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.start.row);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-          entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-          columnSelected = entireColumnSelection.join(',') == selected.join(',');
+        let selected = getValidSelection();
 
-        return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        if (!selected) {
+          return true;
+        }
+        let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     }, {
       key: 'row_below',
@@ -50,11 +69,14 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.end.row + 1);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-          entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-          columnSelected = entireColumnSelection.join(',') == selected.join(',');
+        let selected = getValidSelection();
 
-        return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        if (!selected) {
+          return true;
+        }
+        let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     },
       ContextMenu.SEPARATOR, {
@@ -100,10 +122,14 @@ function ContextMenu(instance, customOptions) {
           this.alter("remove_row", selection.start.row, amount);
         },
         disabled: function() {
-          var selected = this.getSelected(),
-            entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-            columnSelected = entireColumnSelection.join(',') == selected.join(',');
-          return (selected[0] < 0 || columnSelected);
+          let selected = getValidSelection();
+
+          if (!selected) {
+            return true;
+          }
+          let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+          return entireColumnSelection.join(',') === selected.join(',');
         }
       }, {
         key: 'remove_col',
@@ -284,13 +310,15 @@ function ContextMenu(instance, customOptions) {
   this.checkSelectionAlignment = function(hot, className) {
     var hasAlignment = false;
 
-    hot.getSelectedRange().forAll(function(r, c) {
-      var metaClassName = hot.getCellMeta(r, c).className;
-      if (metaClassName && metaClassName.indexOf(className) != -1) {
-        hasAlignment = true;
-        return false;
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        var metaClassName = hot.getCellMeta(r, c).className;
+        if (metaClassName && metaClassName.indexOf(className) != -1) {
+          hasAlignment = true;
+          return false;
+        }
+      });
+    }
 
     return hasAlignment;
   };
@@ -336,12 +364,14 @@ function ContextMenu(instance, customOptions) {
   this.checkSelectionReadOnlyConsistency = function(hot) {
     var atLeastOneReadOnly = false;
 
-    hot.getSelectedRange().forAll(function(r, c) {
-      if (hot.getCellMeta(r, c).readOnly) {
-        atLeastOneReadOnly = true;
-        return false; //breaks forAll
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        if (hot.getCellMeta(r, c).readOnly) {
+          atLeastOneReadOnly = true;
+          return false; //breaks forAll
+        }
+      });
+    }
 
     return atLeastOneReadOnly;
   };
@@ -464,10 +494,13 @@ ContextMenu.prototype.performAction = function(event, hot) {
       return;
     }
     var selRange = this.instance.getSelectedRange();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
-    contextMenu.closeAll();
+    if (selRange) {
+      var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+
+      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+      contextMenu.closeAll();
+    }
   }
 };
 
