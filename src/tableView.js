@@ -77,7 +77,7 @@ function TableView(instance) {
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
 
-    if (isMouseDown) {
+    if (isMouseDown || !instance.rootElement) {
       return; // it must have been started in a cell
     }
 
