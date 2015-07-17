@@ -19,6 +19,7 @@ function BaseEditor(instance) {
   this.state = Handsontable.EditorState.VIRGIN;
 
   this._opened = false;
+  this._fullEditMode = false;
   this._closeCallback = null;
 
   this.init();
@@ -202,9 +203,27 @@ BaseEditor.prototype.discardEditor = function(result) {
   } else {
     this.close();
     this._opened = false;
+    this._fullEditMode = false;
     this.state = Handsontable.EditorState.VIRGIN;
     this._fireCallbacks(true);
   }
+};
+
+/**
+ * Switch editor into full edit mode. In this state navigation keys don't close editor. This mode is activated
+ * automatically after hit ENTER or F2 key on the cell or while editing cell press F2 key.
+ */
+BaseEditor.prototype.enableFullEditMode = function() {
+  this._fullEditMode = true;
+};
+
+/**
+ * Checks if editor is in full edit mode.
+ *
+ * @returns {Boolean}
+ */
+BaseEditor.prototype.isInFullEditMode = function() {
+  return this._fullEditMode;
 };
 
 BaseEditor.prototype.isOpened = function() {

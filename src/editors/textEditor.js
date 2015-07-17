@@ -58,11 +58,26 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
   switch (event.keyCode) {
     case keyCodes.ARROW_RIGHT:
+      if (that.isInFullEditMode()) {
+        if (!that.isWaiting()) {
+          event.stopImmediatePropagation();
+        }
+      } else if (dom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
+        event.stopImmediatePropagation();
+      }
+      break;
     case keyCodes.ARROW_LEFT:
+      if (that.isInFullEditMode()) {
+        if (!that.isWaiting()) {
+          event.stopImmediatePropagation();
+        }
+      } else if (dom.getCaretPosition(that.TEXTAREA) !== 0) {
+        event.stopImmediatePropagation();
+      }
+      break;
     case keyCodes.ARROW_UP:
     case keyCodes.ARROW_DOWN:
-
-      if (!that.isWaiting()) {
+      if (that.isInFullEditMode() && !that.isWaiting()) {
         event.stopImmediatePropagation();
       }
       break;

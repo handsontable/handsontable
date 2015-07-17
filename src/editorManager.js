@@ -174,7 +174,11 @@ function EditorManager(instance, priv, selection){
       case keyCodes.F2:
         /* F2 */
         _this.openEditor(null, event);
-        event.preventDefault(); //prevent Opera from opening Go to Page dialog
+
+        if (activeEditor) {
+          activeEditor.enableFullEditMode();
+        }
+        event.preventDefault(); //prevent Opera from opening 'Go to Page dialog'
         break;
 
       case keyCodes.ENTER:
@@ -189,6 +193,10 @@ function EditorManager(instance, priv, selection){
         } else {
           if (instance.getSettings().enterBeginsEditing) {
             _this.openEditor(null, event);
+
+            if (activeEditor) {
+              activeEditor.enableFullEditMode();
+            }
           } else {
             moveSelectionAfterEnter(event.shiftKey);
           }
