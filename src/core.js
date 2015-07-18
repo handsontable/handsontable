@@ -303,8 +303,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     /**
      * Populate cells at position with 2d array
      *
-     * @memberof Core#
-     * @function populateFromArray
+     * @private
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
      * @param {Object} [end] End selection position (only for drag-down mode)
@@ -2358,7 +2357,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty rows. If the optional ending parameter is 1, returns
+   * Returns number of empty rows. If the optional ending parameter is `true`, returns
    * number of empty rows at the bottom of the table.
    *
    * @memberof Core#
@@ -2388,7 +2387,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty columns. If the optional `ending` parameter is `true`, returns number of empty
+   * Returns number of empty columns. If the optional ending parameter is `true`, returns number of empty
    * columns at right hand edge of the table.
    *
    * @memberof Core#
