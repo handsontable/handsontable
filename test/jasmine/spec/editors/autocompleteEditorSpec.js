@@ -395,6 +395,62 @@ describe('AutocompleteEditor', function() {
       });
     });
 
+    it('autocomplete list should be below selected cell when there is space', function() {
+     
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        colWidths: [200],
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: ['aaa','bbb','ccc','ddd','eee','fff']
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = $('.handsontableInputHolder');
+     
+      keyDownUp('enter');
+
+      waits(100);
+      runs(function() {
+        expect(editor.find('.autocompleteEditor').offset().top >= $(hot.getActiveEditor().TD).offset().top+23).toBe(true);
+      });
+      
+    });
+
+    it('autocomplete list should be above selected cell when there is no space (#2483)', function() {
+     
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        colWidths: [200],
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: ['aaa','bbb','ccc','ddd','eee','fff']
+          }
+        ]
+      });
+
+      selectCell(hot.countRows()-1, 0);
+
+      var editor = $('.handsontableInputHolder');
+     
+      keyDownUp('enter');
+
+      waits(100);
+      runs(function() {
+        expect(editor.find('.autocompleteEditor').offset().top < $(hot.getActiveEditor().TD).offset().top).toBe(true);
+      });
+      
+    });
+
+
+
     it("should invoke beginEditing only once after dobleclicking on a cell (#1011)", function() {
       var hot = handsontable({
         columns: [

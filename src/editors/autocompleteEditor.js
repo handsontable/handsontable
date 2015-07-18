@@ -99,11 +99,17 @@ AutocompleteEditor.prototype.open = function () {
 
   that.instance._registerTimeout(setTimeout(function() {
     that.queryChoices(that.TEXTAREA.value);
+    that.htContainer.style.overflow = 'auto'; // small hack to prevent vertical scrollbar causing a horizontal scrollbar
+    if(that.htContainer.getBoundingClientRect().bottom > that.instance.rootElement.getBoundingClientRect().bottom) {
+      that.htContainer.style.top=(-that.instance.getActiveEditor().TD.clientHeight-that.htContainer.clientHeight)+"px";
+    }
   }, 0));
+
 };
 
 AutocompleteEditor.prototype.close = function () {
   HandsontableEditor.prototype.close.apply(this, arguments);
+  this.htContainer.style.top = "";
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;

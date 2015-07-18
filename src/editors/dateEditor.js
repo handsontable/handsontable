@@ -187,6 +187,14 @@ class DateEditor extends TextEditor {
 
     this.datePickerStyle.display = 'block';
     this.$datePicker.show();
+    this.adjustDatePickerPos();
+  }
+
+  adjustDatePickerPos() {
+     if(this.datePicker.getBoundingClientRect().bottom > this.instance.rootElement.getBoundingClientRect().bottom) {
+      this.datePicker.style.top=(parseInt(this.datePicker.style.top)-this.instance.getActiveEditor().TD.clientHeight-
+      this.datePicker.clientHeight)+"px";
+    }
   }
 
   /**

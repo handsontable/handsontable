@@ -333,7 +333,7 @@ describe('DateEditor', function () {
 
   it("should display Pikaday Calendar bottom of the selected cell", function() {
     var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
         columns: [
           {type: 'date'},
           {type: 'date'}
@@ -375,6 +375,7 @@ describe('DateEditor', function () {
       cellOffset,
       datePickerOffset;
 
+    selectCell(29, 6);
     selectCell(20, 6);
     keyDown('enter');
 
@@ -387,6 +388,58 @@ describe('DateEditor', function () {
     } else {
       expect(cellOffset.top + 23 === datePickerOffset.top).toBe(true);
     }
+    expect(cellOffset.left === datePickerOffset.left).toBe(true);
+  });
+
+  it("should display Pikaday Calendar above top of the selected cell (#2652)", function() {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        columns: [
+          {type: 'date'},
+          {type: 'date'}
+        ]
+      }),
+      cellOffset,
+      datePickerOffset;
+
+    selectCell(hot.countRows()-1, 1);
+    keyDown('enter');
+
+    cellOffset = $(hot.getActiveEditor().TD).offset();
+    datePickerOffset = $('.pika-single').offset();
+
+    expect(datePickerOffset.top).toBeAroundValue(cellOffset.top - $('.pika-single').height());
+  });
+
+  it("should display Pikaday Calendar above top of the selected cell when table have scrolls (#2652)", function() {
+    var container = $('#testContainer');
+
+    container[0].style.height = '300px';
+    container[0].style.width = '200px';
+    container[0].style.overflow = 'hidden';
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(30, 10),
+      columns: [
+      {type: 'date'},
+      {type: 'date'},
+      {type: 'date'},
+      {type: 'date'},
+      {type: 'date'},
+      {type: 'date'},
+      {type: 'date'}
+      ]
+    }),
+    cellOffset,
+    datePickerOffset;
+
+    selectCell(hot.countVisibleRows()-1, 6);
+    keyDown('enter');
+
+    cellOffset = $(hot.getActiveEditor().TD).offset();
+    datePickerOffset = $('.pika-single').offset();
+
+    expect(datePickerOffset.top).toBeAroundValue(cellOffset.top - $('.pika-single').height());
     expect(cellOffset.left === datePickerOffset.left).toBe(true);
   });
 });

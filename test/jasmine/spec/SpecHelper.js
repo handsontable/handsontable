@@ -368,6 +368,7 @@ var handsontableMethodFactory = function (method) {
 
 var getInstance = handsontableMethodFactory('getInstance');
 var countRows = handsontableMethodFactory('countRows');
+var countVisibleRows = handsontableMethodFactory('countVisibleRows');
 var countCols = handsontableMethodFactory('countCols');
 var selectCell = handsontableMethodFactory('selectCell');
 var deselectCell = handsontableMethodFactory('deselectCell');
