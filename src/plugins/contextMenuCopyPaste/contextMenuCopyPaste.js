@@ -38,14 +38,14 @@ class ContextMenuCopyPaste extends BasePlugin {
     }
 
     if (typeof ZeroClipboard === 'undefined') {
-      throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
+      console.error('To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.');
     }
     try {
       /* jshint -W031 */
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
     } catch(exception) {
       if ('undefined' == typeof navigator.mimeTypes['application/x-shockwave-flash']) {
-        throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
+        console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
       }
     }
     this.prepareZeroClipboard();

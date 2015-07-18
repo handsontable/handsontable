@@ -125,9 +125,12 @@
 
 .handsontable th:first-child,
 .handsontable td:first-of-type,
-.handsontable thead tr th:nth-child(2),
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-left: 1px solid #CCC;
 }
 

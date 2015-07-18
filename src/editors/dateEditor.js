@@ -3,7 +3,7 @@ import {deepExtend, stopPropagation, isMetaKey} from './../helpers.js';
 import {addClass, outerHeight} from './../dom.js';
 import {getEditor, registerEditor} from './../editors.js';
 import {TextEditor} from './textEditor.js';
-import {eventManager as eventManagerObject} from './../eventManager.js';
+import {EventManager} from './../eventManager.js';
 import moment from 'moment';
 import Pikaday from 'pikaday';
 
@@ -29,7 +29,7 @@ class DateEditor extends TextEditor {
     this.isCellEdited = false;
     this.parentDestroyed = false;
 
-    super.constructor(hotInstance);
+    super(hotInstance);
   }
 
   init() {
@@ -64,7 +64,7 @@ class DateEditor extends TextEditor {
     document.body.appendChild(this.datePicker);
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
-    const eventManager = eventManagerObject(this);
+    const eventManager = new EventManager(this);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table

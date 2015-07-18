@@ -6,7 +6,6 @@ import BasePlugin from './../_base.js';
 import {CommentEditor} from './commentEditor.js';
 
 /**
- * @class Comments
  * @plugin Comments
  *
  * @description

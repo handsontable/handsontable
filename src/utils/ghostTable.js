@@ -343,6 +343,6 @@ class GhostTable {
 
 export {GhostTable};
 
-// temp for tests
+// temp for tests only!
 Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.GhostTable = GhostTable;

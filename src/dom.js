@@ -877,6 +877,12 @@ export function isSafari() {
   return _isSafari;
 }
 
+var _isChrome = (/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor));
+
+export function isChrome() {
+  return _isChrome;
+}
+
 /**
  * Sets overlay position depending on it's type and used browser
  */
@@ -945,6 +951,7 @@ Handsontable.Dom = {
   innerWidth,
   isChildOf,
   isChildOfWebComponentTable,
+  isChrome,
   isIE8,
   isIE9,
   isSafari,

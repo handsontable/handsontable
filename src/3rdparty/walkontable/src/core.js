@@ -1,5 +1,6 @@
 
 import * as dom from './../../../dom.js';
+import {objectEach, toUpperCaseFirst} from './../../../helpers.js';
 import {randomString} from './../../../helpers.js';
 import {WalkontableEvent} from './event.js';
 import {WalkontableOverlays} from './overlays.js';
@@ -40,6 +41,7 @@ class Walkontable {
       this.wtEvent = new WalkontableEvent(this);
       this.selections = this.getSetting('selections');
       this.wtOverlays = new WalkontableOverlays(this);
+      this.exportSettingsAsClassNames();
     }
 
     // find original headers
@@ -175,6 +177,27 @@ class Walkontable {
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
+  }
+
+  /**
+   * Export settings as class names added to the parent element of the table.
+   */
+  exportSettingsAsClassNames() {
+    let toExport = {
+      rowHeaders: ['array'],
+      columnHeaders: ['array']
+    };
+    let allClassNames = [];
+    let newClassNames = [];
+
+    objectEach(toExport, (optionType, key) => {
+      if (optionType.indexOf('array') > -1 && this.getSetting(key).length) {
+        newClassNames.push('ht' + toUpperCaseFirst(key));
+      }
+      allClassNames.push('ht' + toUpperCaseFirst(key));
+    });
+    dom.removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
+    dom.addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
   }
 
   /**

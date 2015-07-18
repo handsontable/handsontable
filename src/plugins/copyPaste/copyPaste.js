@@ -6,9 +6,6 @@ import {registerPlugin} from './../../plugins.js';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
 
-export {CopyPaste};
-
-//registerPlugin('CopyPaste', CopyPastePlugin);
 
 /**
  * @class CopyPaste
@@ -177,3 +174,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterCopyLimit');
+
+export {CopyPastePlugin};
+
+//registerPlugin('CopyPaste', CopyPastePlugin);
