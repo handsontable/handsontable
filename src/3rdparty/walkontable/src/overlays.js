@@ -83,6 +83,7 @@ class WalkontableOverlays {
   registerListeners() {
     this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
     this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
+    this.eventManager.addEventListener(document, 'visibilitychange', () => this.onKeyUp());
 
     this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
