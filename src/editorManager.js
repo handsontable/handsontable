@@ -91,7 +91,7 @@ function EditorManager(instance, priv, selection){
     ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!helper.isMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!helper.isMetaKey(event.keyCode) && !helper.isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor("", event);
 
         return;
