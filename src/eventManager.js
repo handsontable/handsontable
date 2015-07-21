@@ -111,6 +111,9 @@ class EventManager {
    * @since 0.15.0-beta3
    */
   clearEvents() {
+    if (!this.context) {
+      return;
+    }
     let len = this.context.eventListeners.length;
 
     while (len--) {
@@ -127,6 +130,14 @@ class EventManager {
    */
   clear() {
     this.clearEvents();
+  }
+
+  /**
+   * Destroy instance
+   */
+  destroy() {
+    this.clearEvents();
+    this.context = null;
   }
 
   /**
@@ -154,7 +165,7 @@ class EventManager {
     };
     var event;
 
-    if ( document.createEvent ) {
+    if (document.createEvent) {
       event = document.createEvent('MouseEvents');
       event.initMouseEvent(eventName, options.bubbles, options.cancelable,
         options.view, options.detail,

@@ -228,7 +228,7 @@ function WalkontableEvent(instance) {
     clearTimeout(this.dblClickTimeout[0]);
     clearTimeout(this.dblClickTimeout[1]);
 
-    eventManager.clear();
+    eventManager.destroy();
   };
 }
 

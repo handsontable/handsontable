@@ -486,9 +486,6 @@ class Comments extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }

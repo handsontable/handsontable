@@ -587,7 +587,7 @@ TableView.prototype.mainViewIsActive = function() {
 
 TableView.prototype.destroy = function() {
   this.wt.destroy();
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 
 export {TableView};

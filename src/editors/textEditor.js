@@ -341,12 +341,12 @@ TextEditor.prototype.bindEvents = function() {
   });
 
   this.instance.addHook('afterDestroy', function() {
-    editor.eventManager.clear();
+    editor.eventManager.destroy();
   });
 };
 
 TextEditor.prototype.destroy = function() {
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 
 export {TextEditor};
