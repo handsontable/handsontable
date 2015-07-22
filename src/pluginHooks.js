@@ -403,12 +403,11 @@ const REGISTERED_HOOKS = [
    * @description
    * Callback fired before Handsontable instance is initiated.
    *
-   * __Note:__ This can be set only by global Hooks instance.
-   *
    * @event Hooks#beforeInit
    */
 
   "beforeInit",
+
   /**
    * Callback fired before Walkontable instance is initiated.
    *
@@ -492,6 +491,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after Handsontable instance is constructed (via `new` operator).
    *
    * @event Hooks#construct
+   * @since 0.16.1
    */
   "construct",
 
@@ -499,6 +499,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after Handsontable instance is initiated but before table is rendered.
    *
    * @event Hooks#init
+   * @since 0.16.1
    */
   "init",
 

@@ -3,7 +3,11 @@ import * as dom from './dom.js';
 
 
 /**
+ * Event DOM manager for internal use in Handsontable.
+ *
  * @class EventManager
+ * @private
+ * @util
  */
 class EventManager {
   /**

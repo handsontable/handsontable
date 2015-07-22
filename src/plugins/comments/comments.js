@@ -44,9 +44,6 @@ import {CommentEditor} from './commentEditor.js';
  * ```
  */
 class Comments extends BasePlugin {
-  /**
-   * @param {Core} hotInstance Handsontable instance passed in plugin class constructor
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**

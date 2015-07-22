@@ -9,6 +9,37 @@ import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
 /**
  * @plugin AutoRowSize
+ *
+ * @description
+ * This plugin allows to set row height related to the highest cell in row.
+ *
+ * Default value is `undefined` which is the same effect as `false`. Enable this plugin can decrease performance.
+ *
+ * Row height calculations are divided into sync and async part. Each of this part has own advantages and
+ * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
+ * block Browser UI.
+ *
+ * To configure this plugin see {@link Options#autoRowSize}.
+ *
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * var hot = new Handsontable(document.getElementById('example'), {
+ *   date: getData(),
+ *   autoRowSize: true
+ * });
+ * // Access to plugin instance:
+ * var plugin = hot.getPlugin('autoRowSize');
+ *
+ * plugin.getRowHeight(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ...
+ * ```
  */
 class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
@@ -18,9 +49,6 @@ class AutoRowSize extends BasePlugin {
     return 500;
   }
 
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
