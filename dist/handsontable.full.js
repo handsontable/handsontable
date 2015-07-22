@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)
+ * Date: Tue Jul 21 2015 22:39:02 GMT-0500 (CDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.0',
-  buildDate: 'Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)'
+  buildDate: 'Tue Jul 21 2015 22:39:02 GMT-0500 (CDT)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -13885,12 +13885,7 @@ function ManualColumnMove() {
   }
   function refreshHandlePosition(TH, delta) {
     var box = TH.getBoundingClientRect();
-    var handleWidth = 6;
-    if (delta > 0) {
-      handle.style.left = (box.left + box.width - handleWidth) + 'px';
-    } else {
-      handle.style.left = box.left + 'px';
-    }
+    handle.style.left = box.left + 'px';
   }
   function setupGuidePosition() {
     var instance = this;
@@ -13900,11 +13895,11 @@ function ManualColumnMove() {
     guide.style.width = box.width + 'px';
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
     guide.style.top = handle.style.top;
-    guide.style.left = startOffset + 'px';
+    guide.style.left = startOffset + 5 + 'px';
     instance.rootElement.appendChild(guide);
   }
   function refreshGuidePosition(diff) {
-    guide.style.left = startOffset + diff + 'px';
+    guide.style.left = startOffset + diff + 5 + 'px';
   }
   function hideHandleAndGuide() {
     dom.removeClass(handle, 'active');
@@ -13942,7 +13937,7 @@ function ManualColumnMove() {
             var col = instance.view.wt.wtTable.getCoords(th).col;
             if (col >= 0) {
               endCol = col;
-              refreshHandlePosition(e.target, endCol - startCol);
+              refreshHandlePosition(th, endCol - startCol);
             }
           } else {
             setupHandlePosition.call(instance, th);
@@ -26273,5 +26268,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,47,48,49,50,66,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,68,69,70,83,84,85,73,74,75,76,77,78,31,35,32,33,40,34,36,37,38,39])("zeroclipboard")
+},{}]},{},[23,47,49,48,50,66,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,68,69,70,83,84,85,73,74,75,76,77,78,31,35,32,33,40,34,36,37,38,39])("zeroclipboard")
 });
