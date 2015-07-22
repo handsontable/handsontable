@@ -257,6 +257,10 @@ function EditorManager(instance, priv, selection){
       // may be TD or TH
       if (elem.nodeName == "TD") {
         _this.openEditor();
+
+        if (activeEditor) {
+          activeEditor.enableFullEditMode();
+        }
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);

@@ -375,7 +375,6 @@ describe('TextEditor', function () {
   });
 
   it('should open editor after double clicking on a cell', function () {
-
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
@@ -403,9 +402,10 @@ describe('TextEditor', function () {
 
     runs(function () {
       var editor = hot.getActiveEditor();
-      expect(editor.isOpened()).toBe(true);
-    });
 
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+    });
   });
 
   it('should call editor focus() method after opening an editor', function () {

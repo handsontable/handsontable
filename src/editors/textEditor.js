@@ -59,7 +59,8 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   switch (event.keyCode) {
     case keyCodes.ARROW_RIGHT:
       if (that.isInFullEditMode()) {
-        if (!that.isWaiting()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
           event.stopImmediatePropagation();
         }
       } else if (dom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
@@ -68,7 +69,8 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
     case keyCodes.ARROW_LEFT:
       if (that.isInFullEditMode()) {
-        if (!that.isWaiting()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
           event.stopImmediatePropagation();
         }
       } else if (dom.getCaretPosition(that.TEXTAREA) !== 0) {
@@ -77,8 +79,11 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
     case keyCodes.ARROW_UP:
     case keyCodes.ARROW_DOWN:
-      if (that.isInFullEditMode() && !that.isWaiting()) {
-        event.stopImmediatePropagation();
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
       }
       break;
 
@@ -140,7 +145,6 @@ TextEditor.prototype.close = function() {
   if (document.activeElement === this.TEXTAREA) {
     this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
-
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
