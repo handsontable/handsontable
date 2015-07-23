@@ -40,7 +40,8 @@ describe("stretchH option", function () {
     wt.draw();
 
     expect($table.outerWidth()).toBeAroundValue(wt.wtTable.holder.clientWidth);
-    expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
+    // fix differences between Mac and Linux PhantomJS
+    expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([-1, 0, 1]);
   });
 
   it("should stretch all visible columns when stretchH equals 'all' and window is resized", function () {
