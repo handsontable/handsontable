@@ -1,7 +1,12 @@
 
-import * as dom from './../../../dom.js';
-import {objectEach, toUpperCaseFirst} from './../../../helpers.js';
-import {randomString} from './../../../helpers.js';
+import {
+  addClass,
+  fastInnerText,
+  isVisible,
+  removeClass,
+    } from './../../../helpers/dom/element.js';
+import {objectEach} from './../../../helpers/object.js';
+import {toUpperCaseFirst, randomString} from './../../../helpers/string.js';
 import {WalkontableEvent} from './event.js';
 import {WalkontableOverlays} from './overlays.js';
 import {WalkontableScroll} from './scroll.js';
@@ -52,7 +57,7 @@ class Walkontable {
       if (!this.getSetting('columnHeaders').length) {
         this.update('columnHeaders', [
           function(column, TH) {
-            dom.fastInnerText(TH, originalHeaders[column]);
+            fastInnerText(TH, originalHeaders[column]);
           }
         ]);
       }
@@ -72,7 +77,7 @@ class Walkontable {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !dom.isVisible(this.wtTable.TABLE)) {
+    if (!fastDraw && !isVisible(this.wtTable.TABLE)) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
@@ -196,8 +201,8 @@ class Walkontable {
       }
       allClassNames.push('ht' + toUpperCaseFirst(key));
     });
-    dom.removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
-    dom.addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
+    removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
+    addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
   }
 
   /**

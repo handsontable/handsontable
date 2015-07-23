@@ -1,5 +1,13 @@
 
-import * as dom from './../../../dom.js';
+import {
+  getStyle,
+  getTrimmingContainer,
+  hasClass,
+  index,
+  offset,
+  removeClass,
+  removeTextNodes,
+    } from './../../../helpers/dom/element.js';
 import {WalkontableCellCoords} from './cell/coords.js';
 import {WalkontableCellRange} from './cell/range.js';
 import {WalkontableColumnFilter} from './filter/column.js';
@@ -27,7 +35,7 @@ class WalkontableTable {
     this.tableOffset = 0;
     this.holderOffset = 0;
 
-    dom.removeTextNodes(this.TABLE);
+    removeTextNodes(this.TABLE);
 
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
@@ -81,7 +89,7 @@ class WalkontableTable {
     const parent = table.parentNode;
     let spreader;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       spreader = document.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -104,7 +112,7 @@ class WalkontableTable {
     const parent = spreader.parentNode;
     let hider;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       hider = document.createElement('div');
       hider.className = 'wtHider';
 
@@ -127,7 +135,7 @@ class WalkontableTable {
     const parent = hider.parentNode;
     let holder;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       holder = document.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -146,14 +154,14 @@ class WalkontableTable {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = dom.getTrimmingContainer(this.wtRootElement);
+    const trimmingElement = getTrimmingContainer(this.wtRootElement);
 
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
       if (trimmingElement !== window) {
-        this.holder.style.width = dom.getStyle(trimmingElement, 'width');
-        this.holder.style.height = dom.getStyle(trimmingElement, 'height');
+        this.holder.style.width = getStyle(trimmingElement, 'width');
+        this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
       } else {
         this.holder.style.overflow = 'visible';
@@ -174,7 +182,7 @@ class WalkontableTable {
    */
   draw(fastDraw) {
     if (!this.isWorkingOnClone()) {
-      this.holderOffset = dom.offset(this.holder);
+      this.holderOffset = offset(this.holder);
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
     }
 
@@ -182,7 +190,7 @@ class WalkontableTable {
       if (this.isWorkingOnClone()) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       } else {
-        this.tableOffset = dom.offset(this.TABLE);
+        this.tableOffset = offset(this.TABLE);
       }
       let startRow;
 
@@ -242,7 +250,7 @@ class WalkontableTable {
     const nodes = this.TABLE.querySelectorAll('.' + className);
 
     for (let i = 0, len = nodes.length; i < len; i++) {
-      dom.removeClass(nodes[i], className);
+      removeClass(nodes[i], className);
     }
   }
 
@@ -335,7 +343,7 @@ class WalkontableTable {
    */
   getCoords(TD) {
     const TR = TD.parentNode;
-    let row = dom.index(TR);
+    let row = index(TR);
 
     if (TR.parentNode === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);

@@ -1,7 +1,17 @@
 
-import * as dom from './dom.js';
-import * as helper from './helpers.js';
+import {
+  addClass,
+  empty,
+  fastInnerHTML,
+  fastInnerText,
+  getScrollbarWidth,
+  hasClass,
+  isChildOf,
+    } from './helpers/dom/element.js';
+import {enableImmediatePropagation} from './helpers/dom/event.js';
 import {eventManager as eventManagerObject} from './eventManager.js';
+import {isOutsideInput, isInput} from './helpers/dom/element.js';
+import {stopPropagation} from './helpers/dom/event.js';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
 import {Walkontable} from './3rdparty/walkontable/src/core.js';
@@ -27,7 +37,7 @@ function TableView(instance) {
     instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   }
 
-  dom.addClass(instance.rootElement, 'handsontable');
+  addClass(instance.rootElement, 'handsontable');
   //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -67,7 +77,7 @@ function TableView(instance) {
 
     isMouseDown = false;
 
-    if (helper.isOutsideInput(document.activeElement)) {
+    if (isOutsideInput(document.activeElement)) {
       instance.unlisten();
     }
   });
@@ -98,7 +108,7 @@ function TableView(instance) {
         next = next.parentNode;
       }
     } else {
-      var scrollbarWidth = Handsontable.Dom.getScrollbarWidth();
+      var scrollbarWidth = getScrollbarWidth();
 
       if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
         document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
@@ -247,7 +257,7 @@ function TableView(instance) {
 
       isMouseDown = true;
 
-      dom.enableImmediatePropagation(event);
+      enableImmediatePropagation(event);
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
@@ -390,7 +400,7 @@ function TableView(instance) {
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
     //right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      helper.stopPropagation(event);
+      stopPropagation(event);
       //event.stopPropagation();
     }
   });
@@ -398,7 +408,7 @@ function TableView(instance) {
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function(event) {
     //right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      helper.stopPropagation(event);
+      stopPropagation(event);
       //event.stopPropagation();
     }
   });
@@ -415,10 +425,10 @@ function TableView(instance) {
 }
 
 TableView.prototype.isTextSelectionAllowed = function(el) {
-  if (helper.isInput(el)) {
+  if (isInput(el)) {
     return true;
   }
-  if (this.settings.fragmentSelection && dom.isChildOf(el, this.TBODY)) {
+  if (this.settings.fragmentSelection && isChildOf(el, this.TBODY)) {
     return true;
   }
 
@@ -483,8 +493,8 @@ TableView.prototype.appendRowHeader = function(row, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
-    if (!dom.hasClass(container, 'relative')) {
-      dom.empty(TH);
+    if (!hasClass(container, 'relative')) {
+      empty(TH);
       this.appendRowHeader(row, TH);
 
       return;
@@ -514,8 +524,8 @@ TableView.prototype.appendColHeader = function(col, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
-    if (!dom.hasClass(container, 'relative')) {
-      dom.empty(TH);
+    if (!hasClass(container, 'relative')) {
+      empty(TH);
       this.appendRowHeader(col, TH);
 
       return;
@@ -546,12 +556,12 @@ TableView.prototype.appendColHeader = function(col, TH) {
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
   if (index > -1) {
-    dom.fastInnerHTML(element, content(index));
+    fastInnerHTML(element, content(index));
 
   } else {
     // workaround for https://github.com/handsontable/handsontable/issues/1946
-    dom.fastInnerText(element, String.fromCharCode(160));
-    dom.addClass(element, 'cornerHeader');
+    fastInnerText(element, String.fromCharCode(160));
+    addClass(element, 'cornerHeader');
   }
 };
 

@@ -1,5 +1,5 @@
 
-import * as dom from './../../../dom.js';
+import {addClass} from './../../../helpers/dom/element.js';
 import {WalkontableBorder} from './border.js';
 import {WalkontableCellCoords} from './cell/coords.js';
 import {WalkontableCellRange} from './cell/range.js';
@@ -118,7 +118,7 @@ class WalkontableSelection {
     let TD = wotInstance.wtTable.getCell(new WalkontableCellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
-      dom.addClass(TD, className);
+      addClass(TD, className);
     }
   }
 
@@ -149,7 +149,7 @@ class WalkontableSelection {
         TH = wotInstance.wtTable.getColumnHeader(sourceCol);
 
         if (TH && this.settings.highlightColumnClassName) {
-          dom.addClass(TH, this.settings.highlightColumnClassName);
+          addClass(TH, this.settings.highlightColumnClassName);
         }
       }
     }
@@ -161,7 +161,7 @@ class WalkontableSelection {
         TH = wotInstance.wtTable.getRowHeader(sourceRow);
 
         if (TH && this.settings.highlightRowClassName) {
-          dom.addClass(TH, this.settings.highlightRowClassName);
+          addClass(TH, this.settings.highlightRowClassName);
         }
       }
 

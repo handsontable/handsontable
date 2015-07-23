@@ -1,7 +1,7 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
+import {pageX, pageY} from './../../helpers/dom/event.js';
 import {registerPlugin} from './../../plugins.js';
 
 export {ManualColumnResize};
@@ -64,8 +64,8 @@ function ManualColumnResize() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
@@ -77,8 +77,8 @@ function ManualColumnResize() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkColumnHeader = function(element) {
@@ -122,7 +122,7 @@ function ManualColumnResize() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualColumnResizer')) {
+      if (hasClass(e.target, 'manualColumnResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -147,14 +147,14 @@ function ManualColumnResize() {
         }
         dblclick++;
 
-        startX = helper.pageX(e);
+        startX = pageX(e);
         newSize = startWidth;
       }
     });
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        currentWidth = startWidth + (helper.pageX(e) - startX);
+        currentWidth = startWidth + (pageX(e) - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
         refreshHandlePosition();
         refreshGuidePosition();

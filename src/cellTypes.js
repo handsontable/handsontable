@@ -2,7 +2,7 @@
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
-import * as helper from './helpers.js';
+import {isMobileBrowser} from './helpers/browser.js';
 import {getEditorConstructor} from './editors.js';
 import {getRenderer} from './renderers.js';
 
@@ -29,7 +29,7 @@ import {DateValidator} from './validators/dateValidator.js';
 import {NumericValidator} from './validators/numericValidator.js';
 
 
-Handsontable.mobileBrowser = helper.isMobileBrowser();  // check if viewed on a mobile device
+Handsontable.mobileBrowser = isMobileBrowser();
 
 Handsontable.AutocompleteCell = {
   editor: getEditorConstructor('autocomplete'),

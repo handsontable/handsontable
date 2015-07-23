@@ -1635,7 +1635,7 @@ describe('AutocompleteEditor', function() {
       }, 'queryChoices function call', 1000);
 
       runs(function() {
-        keyDownUp(Handsontable.helper.keyCode.ENTER);
+        keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
 
         expect(getDataAtCell(0, 0)).toEqual('foobar');
       });

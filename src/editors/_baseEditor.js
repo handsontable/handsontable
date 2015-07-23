@@ -1,5 +1,5 @@
 
-import * as helper from './../helpers.js';
+import {stringify} from './../helpers/mixed.js';
 import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords.js';
 
 export {BaseEditor};
@@ -113,7 +113,7 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   this.state = Handsontable.EditorState.EDITING;
 
   initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
-  this.setValue(helper.stringify(initialValue));
+  this.setValue(stringify(initialValue));
 
   this.open(event);
   this._opened = true;

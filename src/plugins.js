@@ -2,8 +2,6 @@
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
 
-export {registerPlugin, getPlugin};
-
 const registeredPlugins = new WeakMap();
 
 /**
@@ -60,3 +58,5 @@ function getPlugin(instance, pluginName) {
 
   return registeredPlugins.get(instance)[_pluginName];
 }
+
+export {registerPlugin, getPlugin};
