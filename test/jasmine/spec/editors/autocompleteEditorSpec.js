@@ -2333,7 +2333,8 @@ describe('AutocompleteEditor', function() {
     $editorInput.val("an");
     keyDownUp(65); //a
     keyDownUp(78); //n
-    Handsontable.Dom.setCaretPosition($editorInput[0], 0, 0);
+    // put caret on the end of the text to ensure that editor will be closed after hit left arrow key
+    Handsontable.Dom.setCaretPosition($editorInput[0], 2, 2);
 
     waitsFor(function() {
       return syncSources.calls.length > 0;

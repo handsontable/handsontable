@@ -63,8 +63,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
             (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
           event.stopImmediatePropagation();
         }
-      } else if (dom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
-        event.stopImmediatePropagation();
       }
       break;
     case keyCodes.ARROW_LEFT:
@@ -73,8 +71,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
             (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
           event.stopImmediatePropagation();
         }
-      } else if (dom.getCaretPosition(that.TEXTAREA) !== 0) {
-        event.stopImmediatePropagation();
       }
       break;
     case keyCodes.ARROW_UP:
@@ -126,7 +122,9 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
   }
 
-  that.autoResize.resize(String.fromCharCode(event.keyCode));
+  if ([keyCodes.ARROW_UP, keyCodes.ARROW_RIGHT, keyCodes.ARROW_DOWN, keyCodes.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    that.autoResize.resize(String.fromCharCode(event.keyCode));
+  }
 };
 
 
