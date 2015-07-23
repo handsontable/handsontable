@@ -2347,7 +2347,87 @@ describe('AutocompleteEditor', function() {
     });
   });
 
-  it("shouldn\'t jump to the next cell, after pressing down key in quick edit mode", function() {
+  it("should jump to the next cell, after pressing down key in quick edit mode", function() {
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function(query, process) {
+      process(choices.filter(function(choice) {
+        return choice.indexOf(query) != -1;
+      }));
+    };
+
+    handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          strict: false
+        },
+        {}
+      ]
+    });
+    selectCell(1, 0);
+    keyDownUp('x'); // trigger quick edit mode
+    var $editorInput = $('.handsontableInput');
+    $editorInput.val("an");
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+
+    waitsFor(function() {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function() {
+      keyDownUp('arrow_down');
+
+      expect(getSelected()).toEqual([1, 0, 1, 0]);
+    });
+  });
+
+  it("should jump to the next cell, after pressing down key in quick edit mode when no matching option list found", function() {
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function(query, process) {
+      process(choices.filter(function(choice) {
+        return choice.indexOf(query) != -1;
+      }));
+    };
+
+    handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          strict: false
+        },
+        {}
+      ]
+    });
+    selectCell(1, 0);
+    keyDownUp('x'); // trigger quick edit mode
+    var $editorInput = $('.handsontableInput');
+    $editorInput.val("anananan");
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+
+    waitsFor(function() {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function() {
+      keyDownUp('arrow_down');
+
+      expect(getSelected()).toEqual([2, 0, 2, 0]);
+    });
+  });
+
+  it("shouldn\'t jump to the next cell, after pressing down key in quick edit mode when options list was opened", function() {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.plan = function(query, process) {
