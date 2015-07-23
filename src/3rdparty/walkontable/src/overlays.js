@@ -83,6 +83,7 @@ class WalkontableOverlays {
   registerListeners() {
     this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
     this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
+    this.eventManager.addEventListener(document, 'visibilitychange', () => this.onKeyUp());
 
     this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
@@ -306,8 +307,7 @@ class WalkontableOverlays {
    *
    */
   destroy() {
-    this.eventManager.clear();
-
+    this.eventManager.destroy();
     this.topOverlay.destroy();
     this.leftOverlay.destroy();
 

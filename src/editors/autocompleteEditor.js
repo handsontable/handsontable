@@ -51,9 +51,16 @@ function onBeforeKeyDown(event) {
   }
 }
 
+var lastSelectedCoord = {row: 0, col: 0};
+
+function onAfterSelection(row, col) {
+  lastSelectedCoord = {row, col};
+}
+
 AutocompleteEditor.prototype.prepare = function () {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   HandsontableEditor.prototype.prepare.apply(this, arguments);
+  this.htEditor.addHook('afterSelection', onAfterSelection);
 };
 
 AutocompleteEditor.prototype.open = function () {
@@ -194,6 +201,8 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
   if (!restoreOriginalValue) {
     this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    this.htEditor.removeHook('afterSelection', onAfterSelection);
+    lastSelectedCoord = {row: 0, col: 0};
   }
   HandsontableEditor.prototype.finishEditing.apply(this, arguments);
 };
@@ -285,6 +294,17 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
 
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
+};
+
+AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
+  if (keyCode === helper.keyCode.ARROW_DOWN && lastSelectedCoord.row < this.htEditor.countRows() - 1) {
+    return true;
+  }
+  if (keyCode === helper.keyCode.ARROW_UP && lastSelectedCoord.row > 0) {
+    return true;
+  }
+
+  return false;
 };
 
 export {AutocompleteEditor};

@@ -6,7 +6,6 @@ import BasePlugin from './../_base.js';
 import {CommentEditor} from './commentEditor.js';
 
 /**
- * @class Comments
  * @plugin Comments
  *
  * @description
@@ -487,9 +486,6 @@ class Comments extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }

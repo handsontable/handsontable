@@ -6,9 +6,6 @@ import {registerPlugin} from './../../plugins.js';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
 
-export {CopyPaste};
-
-//registerPlugin('CopyPaste', CopyPastePlugin);
 
 /**
  * @class CopyPaste
@@ -98,9 +95,12 @@ function CopyPastePlugin(instance) {
    * @memberof CopyPaste#
    */
   this.destroy = function() {
-    this.copyPasteInstance.removeCallback(onCut);
-    this.copyPasteInstance.removeCallback(onPaste);
-    this.copyPasteInstance.destroy();
+    if (this.copyPasteInstance) {
+      this.copyPasteInstance.removeCallback(onCut);
+      this.copyPasteInstance.removeCallback(onPaste);
+      this.copyPasteInstance.destroy();
+      this.copyPasteInstance = null;
+    }
     instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
@@ -169,7 +169,7 @@ function init() {
 
   } else if (!pluginEnabled && instance.copyPaste) {
     instance.copyPaste.destroy();
-    delete instance.copyPaste;
+    instance.copyPaste = null;
   }
 }
 
@@ -177,3 +177,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterCopyLimit');
+
+export {CopyPastePlugin};
+
+//registerPlugin('CopyPaste', CopyPastePlugin);

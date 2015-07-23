@@ -140,12 +140,11 @@ module.exports = function (grunt) {
       },
       walkontable: {
         src: [
-          //'dist/walkontable.js',
           'dist/handsontable.js'
         ],
         options: {
           specs: [
-            'src/3rdparty/walkontable/test/jasmine/spec/*.spec.js'
+            'src/3rdparty/walkontable/test/jasmine/spec/**/*.spec.js'
           ],
           styles: [
             'src/3rdparty/walkontable/css/walkontable.css'

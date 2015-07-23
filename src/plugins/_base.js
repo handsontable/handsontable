@@ -105,7 +105,7 @@ class BasePlugin {
    */
   destroy() {
     if (this.eventManager) {
-      this.eventManager.clear();
+      this.eventManager.destroy();
     }
     this.clearHooks();
     delete this.hot;
