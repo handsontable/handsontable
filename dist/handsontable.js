@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.16.0
+ * Handsontable 0.16.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)
+ * Date: Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.16.0',
-  buildDate: 'Fri Jul 10 2015 09:20:29 GMT+0200 (CEST)'
+  version: '0.16.1',
+  buildDate: 'Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1052,6 +1052,7 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47_dom_46_js__,
     $___46__46__47__46__46__47__46__46__47_helpers_46_js__,
+    $___46__46__47__46__46__47__46__46__47_helpers_46_js__,
     $__event_46_js__,
     $__overlays_46_js__,
     $__scroll_46_js__,
@@ -1059,6 +1060,9 @@ var $___46__46__47__46__46__47__46__46__47_dom_46_js__,
     $__table_46_js__,
     $__viewport_46_js__;
 var dom = ($___46__46__47__46__46__47__46__46__47_dom_46_js__ = require("./../../../dom.js"), $___46__46__47__46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_dom_46_js__});
+var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_46_js__ = require("./../../../helpers.js"), $___46__46__47__46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_46_js__}),
+    objectEach = $__0.objectEach,
+    toUpperCaseFirst = $__0.toUpperCaseFirst;
 var randomString = ($___46__46__47__46__46__47__46__46__47_helpers_46_js__ = require("./../../../helpers.js"), $___46__46__47__46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_46_js__}).randomString;
 var WalkontableEvent = ($__event_46_js__ = require("./event.js"), $__event_46_js__ && $__event_46_js__.__esModule && $__event_46_js__ || {default: $__event_46_js__}).WalkontableEvent;
 var WalkontableOverlays = ($__overlays_46_js__ = require("./overlays.js"), $__overlays_46_js__ && $__overlays_46_js__.__esModule && $__overlays_46_js__ || {default: $__overlays_46_js__}).WalkontableOverlays;
@@ -1086,6 +1090,7 @@ var Walkontable = function Walkontable(settings) {
     this.wtEvent = new WalkontableEvent(this);
     this.selections = this.getSetting('selections');
     this.wtOverlays = new WalkontableOverlays(this);
+    this.exportSettingsAsClassNames();
   }
   if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
     for (var c = 0,
@@ -1151,6 +1156,23 @@ var Walkontable = function Walkontable(settings) {
   getOverlayName: function() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
   },
+  exportSettingsAsClassNames: function() {
+    var $__8 = this;
+    var toExport = {
+      rowHeaders: ['array'],
+      columnHeaders: ['array']
+    };
+    var allClassNames = [];
+    var newClassNames = [];
+    objectEach(toExport, (function(optionType, key) {
+      if (optionType.indexOf('array') > -1 && $__8.getSetting(key).length) {
+        newClassNames.push('ht' + toUpperCaseFirst(key));
+      }
+      allClassNames.push('ht' + toUpperCaseFirst(key));
+    }));
+    dom.removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
+    dom.addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
+  },
   getSetting: function(key, param1, param2, param3, param4) {
     return this.wtSettings.getSetting(key, param1, param2, param3, param4);
   },
@@ -1159,9 +1181,7 @@ var Walkontable = function Walkontable(settings) {
   },
   destroy: function() {
     this.wtOverlays.destroy();
-    if (this.wtEvent) {
-      this.wtEvent.destroy();
-    }
+    this.wtEvent.destroy();
   }
 }, {});
 ;
@@ -1302,7 +1322,7 @@ function WalkontableEvent(instance) {
   this.destroy = function() {
     clearTimeout(this.dblClickTimeout[0]);
     clearTimeout(this.dblClickTimeout[1]);
-    eventManager.clear();
+    eventManager.destroy();
   };
 }
 WalkontableEvent.prototype.parentCell = function(elem) {
@@ -1476,7 +1496,7 @@ var $WalkontableOverlay = WalkontableOverlay;
     this.needFullRender = nextCycleRenderFlag;
   },
   destroy: function() {
-    eventManagerObject(this.clone).clear();
+    eventManagerObject(this.clone).destroy();
   }
 }, {
   get CLONE_TOP() {
@@ -1731,8 +1751,12 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     return dom.getScrollLeft(this.mainTableScrollableElement);
   },
   adjustHeaderBordersPosition: function(position) {
-    if (this.wot.getSetting('fixedColumnsLeft') === 0 && this.wot.getSetting('rowHeaders').length > 0) {
-      var masterParent = this.wot.wtTable.holder.parentNode;
+    var masterParent = this.wot.wtTable.holder.parentNode;
+    var rowHeaders = this.wot.getSetting('rowHeaders');
+    var fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    if (fixedColumnsLeft && !rowHeaders.length) {
+      dom.addClass(masterParent, 'innerBorderLeft');
+    } else if (!fixedColumnsLeft && rowHeaders.length) {
       var previousState = dom.hasClass(masterParent, 'innerBorderLeft');
       if (position) {
         dom.addClass(masterParent, 'innerBorderLeft');
@@ -2003,6 +2027,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     this.eventManager.addEventListener(document.documentElement, 'keyup', (function() {
       return $__5.onKeyUp();
     }));
+    this.eventManager.addEventListener(document, 'visibilitychange', (function() {
+      return $__5.onKeyUp();
+    }));
     this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (function(event) {
       return $__5.onTableScroll(event);
     }));
@@ -2160,7 +2187,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
   },
   destroy: function() {
-    this.eventManager.clear();
+    this.eventManager.destroy();
     this.topOverlay.destroy();
     this.leftOverlay.destroy();
     if (this.topLeftCornerOverlay) {
@@ -2776,16 +2803,16 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return (row > this.getLastRenderedRow());
   },
   isColumnBeforeViewport: function(column) {
-    return (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
   },
   isColumnAfterViewport: function(column) {
-    return (column > this.getLastVisibleColumn());
+    return column > this.getLastVisibleColumn();
   },
   isLastRowFullyVisible: function() {
-    return (this.getLastVisibleRow() === this.getLastRenderedRow());
+    return this.getLastVisibleRow() === this.getLastRenderedRow();
   },
   isLastColumnFullyVisible: function() {
-    return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
+    return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   },
   getRenderedColumnsCount: function() {
     if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay) {
@@ -2839,10 +2866,10 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     } else if (typeof width === 'object') {
       width = width[sourceColumn];
     }
-    return width;
+    return width || this.wot.wtSettings.settings.defaultColumnWidth;
   },
   getStretchedColumnWidth: function(sourceColumn) {
-    var width = this.getColumnWidth(sourceColumn) || this.wot.wtSettings.settings.defaultColumnWidth;
+    var width = this.getColumnWidth(sourceColumn);
     var calculator = this.wot.wtViewport.columnsRenderCalculator;
     if (calculator) {
       var stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
@@ -2867,7 +2894,7 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47_dom_46_js__;
 var dom = ($___46__46__47__46__46__47__46__46__47_dom_46_js__ = require("./../../../dom.js"), $___46__46__47__46__46__47__46__46__47_dom_46_js__ && $___46__46__47__46__46__47__46__46__47_dom_46_js__.__esModule && $___46__46__47__46__46__47__46__46__47_dom_46_js__ || {default: $___46__46__47__46__46__47__46__46__47_dom_46_js__});
-var isRenderedColumnHeaders = {};
+var isMarkedOversizedColumn = {};
 var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
   this.wtTable = wtTable;
   this.wot = wtTable.instance;
@@ -2903,16 +2930,15 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (totalColumns > 0) {
       this.adjustAvailableNodes();
       adjusted = true;
-      this.renderColGroups();
       this.renderColumnHeaders();
       this.renderRows(totalRows, rowsToRender, columnsToRender);
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
-      } else {
-        this.adjustColumnHeaderHeights();
       }
+      this.adjustColumnHeaderHeights();
       this.adjustColumnWidths(columnsToRender);
+      this.markOversizedColumns();
     }
     if (!adjusted) {
       this.adjustAvailableNodes();
@@ -3014,6 +3040,19 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
     }
   },
+  markOversizedColumns: function() {
+    var overlayName = this.wot.getOverlayName();
+    if (!this.columnHeaderCount || isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+      return;
+    }
+    var columnCount = this.wtTable.getRenderedColumnsCount();
+    for (var i = 0; i < this.columnHeaderCount; i++) {
+      for (var renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        this.markIfOversizedColumnHeader(renderedColumnIndex);
+      }
+    }
+    isMarkedOversizedColumn[overlayName] = true;
+  },
   adjustColumnHeaderHeights: function() {
     var columnHeaders = this.wot.getSetting('columnHeaders');
     var childs = this.wot.wtTable.THEAD.childNodes;
@@ -3029,13 +3068,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     }
   },
   markIfOversizedColumnHeader: function(col) {
-    var level = this.wot.getSetting('columnHeaders').length;
+    var sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    var level = this.columnHeaderCount;
     var defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
-    var sourceColIndex;
     var previousColHeaderHeight;
     var currentHeader;
     var currentHeaderHeight;
-    sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     while (level) {
       level--;
       previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
@@ -3139,12 +3177,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       for (var renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
         var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
         this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
-        if (!isRenderedColumnHeaders[overlayName] && !this.wtTable.isWorkingOnClone()) {
-          this.markIfOversizedColumnHeader(renderedColumnIndex);
-        }
       }
     }
-    isRenderedColumnHeaders[overlayName] = true;
   },
   adjustColGroups: function() {
     var columnCount = this.wtTable.getRenderedColumnsCount();
@@ -3155,6 +3189,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
       this.COLGROUP.removeChild(this.COLGROUP.lastChild);
       this.wtTable.colgroupChildrenLength--;
+    }
+    if (this.rowHeaderCount) {
+      dom.addClass(this.COLGROUP.childNodes[0], 'rowHeader');
     }
   },
   adjustThead: function() {
@@ -3195,15 +3232,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     TH.className = '';
     TH.removeAttribute('style');
     return this.columnHeaders[row](col, TH, row);
-  },
-  renderColGroups: function() {
-    for (var colIndex = 0; colIndex < this.wtTable.colgroupChildrenLength; colIndex++) {
-      if (colIndex < this.rowHeaderCount) {
-        dom.addClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
-      } else {
-        dom.removeClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
-      }
-    }
   },
   adjustColumns: function(TR, desiredCount) {
     var count = TR.childNodes.length;
@@ -3320,9 +3348,8 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   },
   sumColumnWidths: function(from, length) {
     var sum = 0;
-    var defaultColumnWidth = this.instance.wtSettings.defaultColumnWidth;
     while (from < length) {
-      sum += this.wot.wtTable.getColumnWidth(from) || defaultColumnWidth;
+      sum += this.wot.wtTable.getColumnWidth(from);
       from++;
     }
     return sum;
@@ -3651,7 +3678,8 @@ var $__dom_46_js__,
     $__tableView_46_js__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__,
-    $__3rdparty_47_walkontable_47_src_47_selection_46_js__;
+    $__3rdparty_47_walkontable_47_src_47_selection_46_js__,
+    $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__;
 var dom = ($__dom_46_js__ = require("./dom.js"), $__dom_46_js__ && $__dom_46_js__.__esModule && $__dom_46_js__ || {default: $__dom_46_js__});
 var helper = ($__helpers_46_js__ = require("./helpers.js"), $__helpers_46_js__ && $__helpers_46_js__.__esModule && $__helpers_46_js__ || {default: $__helpers_46_js__});
 var numeral = ($__numeral__ = require("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
@@ -3664,6 +3692,7 @@ var TableView = ($__tableView_46_js__ = require("./tableView.js"), $__tableView_
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ = require("./3rdparty/walkontable/src/cell/coords.js"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ = require("./3rdparty/walkontable/src/cell/range.js"), $__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ && $__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__}).WalkontableCellRange;
 var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection_46_js__ = require("./3rdparty/walkontable/src/selection.js"), $__3rdparty_47_walkontable_47_src_47_selection_46_js__ && $__3rdparty_47_walkontable_47_src_47_selection_46_js__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection_46_js__ || {default: $__3rdparty_47_walkontable_47_src_47_selection_46_js__}).WalkontableSelection;
+var WalkontableViewportColumnsCalculator = ($__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ = require("./3rdparty/walkontable/src/calculator/viewportColumns.js"), $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__.__esModule && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ || {default: $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__}).WalkontableViewportColumnsCalculator;
 Handsontable.activeGuid = null;
 Handsontable.Core = function Core(rootElement, userSettings) {
   var priv,
@@ -4339,6 +4368,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     grid.adjustRowsAndCols();
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
     selection.refreshBorders(null, true);
+    instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }
   this.validateCell = function(value, cellProperties, callback, source) {
@@ -4869,10 +4899,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.getColWidth = function(col) {
     var width = instance._getColWidthFromSettings(col);
-    if (!width) {
-      width = 50;
-    }
     width = Handsontable.hooks.run(instance, 'modifyColWidth', width, col);
+    if (width === void 0) {
+      width = WalkontableViewportColumnsCalculator.DEFAULT_WIDTH;
+    }
     return width;
   };
   this._getRowHeightFromSettings = function(row) {
@@ -5021,15 +5051,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.view.destroy();
     }
     dom.empty(instance.rootElement);
-    eventManager.clear();
+    eventManager.destroy();
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
     for (var i in instance) {
       if (instance.hasOwnProperty(i)) {
         if (typeof instance[i] === "function") {
-          if (i !== "runHooks") {
-            instance[i] = postMortem;
-          }
+          instance[i] = postMortem;
         } else if (i !== "guid") {
           instance[i] = null;
         }
@@ -5205,7 +5233,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/cell/range.js":6,"./3rdparty/walkontable/src/selection.js":18,"./dataMap.js":26,"./dom.js":27,"./editorManager.js":28,"./eventManager.js":41,"./helpers.js":42,"./plugins.js":45,"./renderers.js":71,"./tableView.js":80,"numeral":"numeral"}],26:[function(require,module,exports){
+},{"./3rdparty/walkontable/src/calculator/viewportColumns.js":3,"./3rdparty/walkontable/src/cell/coords.js":5,"./3rdparty/walkontable/src/cell/range.js":6,"./3rdparty/walkontable/src/selection.js":18,"./dataMap.js":26,"./dom.js":27,"./editorManager.js":28,"./eventManager.js":41,"./helpers.js":42,"./plugins.js":45,"./renderers.js":71,"./tableView.js":80,"numeral":"numeral"}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -5679,6 +5707,9 @@ Object.defineProperties(exports, {
     }},
   isSafari: {get: function() {
       return isSafari;
+    }},
+  isChrome: {get: function() {
+      return isChrome;
     }},
   setOverlayPosition: {get: function() {
       return setOverlayPosition;
@@ -6231,6 +6262,10 @@ var _isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(nav
 function isSafari() {
   return _isSafari;
 }
+var _isChrome = (/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor));
+function isChrome() {
+  return _isChrome;
+}
 function setOverlayPosition(overlayElem, left, top) {
   if (_isIE8 || _isIE9) {
     overlayElem.style.top = top;
@@ -6286,6 +6321,7 @@ Handsontable.Dom = {
   innerWidth: innerWidth,
   isChildOf: isChildOf,
   isChildOfWebComponentTable: isChildOfWebComponentTable,
+  isChrome: isChrome,
   isIE8: isIE8,
   isIE9: isIE9,
   isSafari: isSafari,
@@ -6388,7 +6424,7 @@ function EditorManager(instance, priv, selection) {
     }
     ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!helper.isMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!helper.isMetaKey(event.keyCode) && !helper.isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor("", event);
         return;
       }
@@ -6452,6 +6488,9 @@ function EditorManager(instance, priv, selection) {
         break;
       case keyCodes.F2:
         _this.openEditor(null, event);
+        if (activeEditor) {
+          activeEditor.enableFullEditMode();
+        }
         event.preventDefault();
         break;
       case keyCodes.ENTER:
@@ -6463,6 +6502,9 @@ function EditorManager(instance, priv, selection) {
         } else {
           if (instance.getSettings().enterBeginsEditing) {
             _this.openEditor(null, event);
+            if (activeEditor) {
+              activeEditor.enableFullEditMode();
+            }
           } else {
             moveSelectionAfterEnter(event.shiftKey);
           }
@@ -6514,6 +6556,9 @@ function EditorManager(instance, priv, selection) {
     function onDblClick(event, coords, elem) {
       if (elem.nodeName == "TD") {
         _this.openEditor();
+        if (activeEditor) {
+          activeEditor.enableFullEditMode();
+        }
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
@@ -6695,6 +6740,7 @@ function BaseEditor(instance) {
   this.instance = instance;
   this.state = Handsontable.EditorState.VIRGIN;
   this._opened = false;
+  this._fullEditMode = false;
   this._closeCallback = null;
   this.init();
 }
@@ -6835,9 +6881,16 @@ BaseEditor.prototype.discardEditor = function(result) {
   } else {
     this.close();
     this._opened = false;
+    this._fullEditMode = false;
     this.state = Handsontable.EditorState.VIRGIN;
     this._fireCallbacks(true);
   }
+};
+BaseEditor.prototype.enableFullEditMode = function() {
+  this._fullEditMode = true;
+};
+BaseEditor.prototype.isInFullEditMode = function() {
+  return this._fullEditMode;
 };
 BaseEditor.prototype.isOpened = function() {
   return this._opened;
@@ -7075,6 +7128,17 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
+AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
+  var selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
+  var allowed = false;
+  if (keyCode === helper.keyCode.ARROW_DOWN && selected.row < this.htEditor.countRows() - 1) {
+    allowed = true;
+  }
+  if (keyCode === helper.keyCode.ARROW_UP && selected.row > -1) {
+    allowed = true;
+  }
+  return allowed;
+};
 ;
 registerEditor('autocomplete', AutocompleteEditor);
 
@@ -7142,7 +7206,7 @@ var $__2 = ($___46__46__47_editors_46_js__ = require("./../editors.js"), $___46_
     getEditor = $__2.getEditor,
     registerEditor = $__2.registerEditor;
 var TextEditor = ($__textEditor_46_js__ = require("./textEditor.js"), $__textEditor_46_js__ && $__textEditor_46_js__.__esModule && $__textEditor_46_js__ || {default: $__textEditor_46_js__}).TextEditor;
-var eventManagerObject = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).eventManager;
+var EventManager = ($___46__46__47_eventManager_46_js__ = require("./../eventManager.js"), $___46__46__47_eventManager_46_js__ && $___46__46__47_eventManager_46_js__.__esModule && $___46__46__47_eventManager_46_js__ || {default: $___46__46__47_eventManager_46_js__}).EventManager;
 var moment = ($__moment__ = require("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = require("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
 Handsontable.editors = Handsontable.editors || {};
@@ -7154,7 +7218,7 @@ var DateEditor = function DateEditor(hotInstance) {
   this.defaultDateFormat = 'DD/MM/YYYY';
   this.isCellEdited = false;
   this.parentDestroyed = false;
-  $traceurRuntime.superGet(this, $DateEditor.prototype, "constructor").call(this, hotInstance);
+  $traceurRuntime.superConstructor($DateEditor).call(this, hotInstance);
 };
 var $DateEditor = DateEditor;
 ($traceurRuntime.createClass)(DateEditor, {
@@ -7183,7 +7247,7 @@ var $DateEditor = DateEditor;
     addClass(this.datePicker, 'htDatepickerHolder');
     document.body.appendChild(this.datePicker);
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
-    var eventManager = eventManagerObject(this);
+    var eventManager = new EventManager(this);
     eventManager.addEventListener(this.datePicker, 'mousedown', (function(event) {
       return stopPropagation(event);
     }));
@@ -7429,10 +7493,12 @@ var onBeforeKeyDown = function(event) {
     } else {
       innerHOT.selectCell(rowToSelect, 0);
     }
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    editor.instance.listen();
-    editor.TEXTAREA.focus();
+    if (innerHOT.getData().length) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      editor.instance.listen();
+      editor.TEXTAREA.focus();
+    }
   }
 };
 HandsontableEditor.prototype.open = function() {
@@ -7828,6 +7894,19 @@ SelectEditor.prototype.init = function() {
   dom.addClass(this.select, 'htSelectEditor');
   this.select.style.display = 'none';
   this.instance.rootElement.appendChild(this.select);
+  this.registerHooks();
+};
+SelectEditor.prototype.registerHooks = function() {
+  var $__2 = this;
+  this.instance.addHook('afterScrollVertically', (function() {
+    return $__2.refreshDimensions();
+  }));
+  this.instance.addHook('afterColumnResize', (function() {
+    return $__2.refreshDimensions();
+  }));
+  this.instance.addHook('afterRowResize', (function() {
+    return $__2.refreshDimensions();
+  }));
 };
 SelectEditor.prototype.prepare = function() {
   BaseEditor.prototype.prepare.apply(this, arguments);
@@ -7911,12 +7990,40 @@ SelectEditor.prototype.checkEditorSection = function() {
   }
 };
 SelectEditor.prototype.open = function() {
-  var width = dom.outerWidth(this.TD);
-  var height = dom.outerHeight(this.TD);
-  var rootOffset = dom.offset(this.instance.rootElement);
-  var tdOffset = dom.offset(this.TD);
-  var editorSection = this.checkEditorSection();
-  var cssTransformOffset;
+  this._opened = true;
+  this.refreshDimensions();
+  this.select.style.display = '';
+  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+};
+SelectEditor.prototype.close = function() {
+  this._opened = false;
+  this.select.style.display = 'none';
+  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+};
+SelectEditor.prototype.focus = function() {
+  this.select.focus();
+};
+SelectEditor.prototype.refreshDimensions = function() {
+  if (this.state !== Handsontable.EditorState.EDITING) {
+    return;
+  }
+  this.TD = this.getEditedCell();
+  if (!this.TD) {
+    this.close();
+    return;
+  }
+  var width = dom.outerWidth(this.TD) + 1,
+      height = dom.outerHeight(this.TD) + 1,
+      currentOffset = dom.offset(this.TD),
+      containerOffset = dom.offset(this.instance.rootElement),
+      scrollableContainer = dom.getScrollableElement(this.TD),
+      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+      editorSection = this.checkEditorSection(),
+      cssTransformOffset;
+  var settings = this.instance.getSettings();
+  var rowHeadersCount = settings.rowHeaders ? 1 : 0;
+  var colHeadersCount = settings.colHeaders ? 1 : 0;
   switch (editorSection) {
     case 'top':
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
@@ -7928,26 +8035,62 @@ SelectEditor.prototype.open = function() {
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
       break;
   }
+  if (this.instance.getSelected()[0] === 0) {
+    editTop += 1;
+  }
+  if (this.instance.getSelected()[1] === 0) {
+    editLeft += 1;
+  }
   var selectStyle = this.select.style;
   if (cssTransformOffset && cssTransformOffset != -1) {
     selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     dom.resetCssTransform(this.select);
   }
+  var cellComputedStyle = dom.getComputedStyle(this.TD);
+  if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
+    height -= 1;
+  }
+  if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
+    width -= 1;
+  }
   selectStyle.height = height + 'px';
   selectStyle.minWidth = width + 'px';
-  selectStyle.top = tdOffset.top - rootOffset.top + 'px';
-  selectStyle.left = tdOffset.left - rootOffset.left + 'px';
+  selectStyle.top = editTop + 'px';
+  selectStyle.left = editLeft + 'px';
   selectStyle.margin = '0px';
-  selectStyle.display = '';
-  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
-SelectEditor.prototype.close = function() {
-  this.select.style.display = 'none';
-  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-};
-SelectEditor.prototype.focus = function() {
-  this.select.focus();
+SelectEditor.prototype.getEditedCell = function() {
+  var editorSection = this.checkEditorSection(),
+      editedCell;
+  switch (editorSection) {
+    case 'top':
+      editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.select.style.zIndex = 101;
+      break;
+    case 'corner':
+      editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.select.style.zIndex = 103;
+      break;
+    case 'left':
+      editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.select.style.zIndex = 102;
+      break;
+    default:
+      editedCell = this.instance.getCell(this.row, this.col);
+      this.select.style.zIndex = '';
+      break;
+  }
+  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
 ;
 registerEditor('select', SelectEditor);
@@ -8009,11 +8152,25 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
   switch (event.keyCode) {
     case keyCodes.ARROW_RIGHT:
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) || (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
+      }
+      break;
     case keyCodes.ARROW_LEFT:
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) || (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
+      }
+      break;
     case keyCodes.ARROW_UP:
     case keyCodes.ARROW_DOWN:
-      if (!that.isWaiting()) {
-        event.stopImmediatePropagation();
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) || (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
       }
       break;
     case keyCodes.ENTER:
@@ -8048,7 +8205,9 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       event.stopImmediatePropagation();
       break;
   }
-  that.autoResize.resize(String.fromCharCode(event.keyCode));
+  if ([keyCodes.ARROW_UP, keyCodes.ARROW_RIGHT, keyCodes.ARROW_DOWN, keyCodes.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    that.autoResize.resize(String.fromCharCode(event.keyCode));
+  }
 };
 TextEditor.prototype.open = function() {
   this.refreshDimensions();
@@ -8136,6 +8295,7 @@ TextEditor.prototype.refreshDimensions = function() {
   }
   this.TD = this.getEditedCell();
   if (!this.TD) {
+    this.close();
     return;
   }
   var currentOffset = dom.offset(this.TD),
@@ -8160,16 +8320,10 @@ TextEditor.prototype.refreshDimensions = function() {
       cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
       break;
   }
-  if (editTop < 0) {
-    editTop = 0;
-  }
-  if (editLeft < 0) {
-    editLeft = 0;
-  }
-  if (colHeadersCount && this.instance.getSelected()[0] === 0) {
+  if (this.instance.getSelected()[0] === 0) {
     editTop += 1;
   }
-  if (rowHeadersCount && this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelected()[1] === 0) {
     editLeft += 1;
   }
   if (cssTransformOffset && cssTransformOffset != -1) {
@@ -8181,20 +8335,13 @@ TextEditor.prototype.refreshDimensions = function() {
   this.textareaParentStyle.left = editLeft + 'px';
   var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
       cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-  var width = dom.innerWidth(this.TD) - 8,
-      maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10,
-      height = this.TD.scrollHeight + 1,
-      maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2;
-  if (parseInt(this.TD.style.borderTopWidth, 10) > 0) {
-    height -= 1;
-  }
-  if (parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
-    if (rowHeadersCount > 0) {
-      width -= 1;
-    }
-  }
-  this.TEXTAREA.style.fontSize = dom.getComputedStyle(this.TD).fontSize;
-  this.TEXTAREA.style.fontFamily = dom.getComputedStyle(this.TD).fontFamily;
+  var width = dom.innerWidth(this.TD) - 8;
+  var maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9;
+  var height = this.TD.scrollHeight + 1;
+  var maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2, 23);
+  var cellComputedStyle = dom.getComputedStyle(this.TD);
+  this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
+  this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
   this.TEXTAREA.style.backgroundColor = '';
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : dom.getComputedStyle(this.TEXTAREA).backgroundColor;
   this.autoResize.init(this.TEXTAREA, {
@@ -8225,11 +8372,11 @@ TextEditor.prototype.bindEvents = function() {
     editor.focus();
   });
   this.instance.addHook('afterDestroy', function() {
-    editor.eventManager.clear();
+    editor.eventManager.destroy();
   });
 };
 TextEditor.prototype.destroy = function() {
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 ;
 registerEditor('text', TextEditor);
@@ -8317,6 +8464,9 @@ var EventManager = function EventManager() {
     }
   },
   clearEvents: function() {
+    if (!this.context) {
+      return;
+    }
     var len = this.context.eventListeners.length;
     while (len--) {
       var event = this.context.eventListeners[len];
@@ -8327,6 +8477,10 @@ var EventManager = function EventManager() {
   },
   clear: function() {
     this.clearEvents();
+  },
+  destroy: function() {
+    this.clearEvents();
+    this.context = null;
   },
   fireEvent: function(element, eventName) {
     var options = {
@@ -9209,20 +9363,23 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__eventManager_46_js__;
-var REGISTERED_HOOKS = ["afterCellMetaReset", "afterChange", "afterChangesObserved", "afterColumnMove", "afterColumnResize", "afterContextMenuDefaultOptions", "afterContextMenuHide", "afterContextMenuShow", "afterCopyLimit", "afterCreateCol", "afterCreateRow", "afterDeselect", "afterDestroy", "afterDocumentKeyDown", "afterGetCellMeta", "afterGetColHeader", "afterGetRowHeader", "afterInit", "afterIsMultipleSelectionCheck", "afterLoadData", "afterMomentumScroll", "afterOnCellCornerMouseDown", "afterOnCellMouseDown", "afterOnCellMouseOver", "afterRemoveCol", "afterRemoveRow", "afterRender", "afterRenderer", "afterRowMove", "afterRowResize", "afterScrollHorizontally", "afterScrollVertically", "afterSelection", "afterSelectionByProp", "afterSelectionEnd", "afterSelectionEndByProp", "afterSetCellMeta", "afterUpdateSettings", "afterValidate", "beforeAutofill", "beforeCellAlignment", "beforeChange", "beforeChangeRender", "beforeDrawBorders", "beforeGetCellMeta", "beforeInit", "beforeInitWalkontable", "beforeKeyDown", "beforeOnCellMouseDown", "beforeRemoveCol", "beforeRemoveRow", "beforeRender", "beforeSetRangeEnd", "beforeTouchScroll", "beforeValidate", "modifyCol", "modifyColWidth", "modifyRow", "modifyRowHeight", "persistentStateLoad", "persistentStateReset", "persistentStateSave"];
+var $__eventManager_46_js__,
+    $__helpers_46_js__;
+var REGISTERED_HOOKS = ["afterCellMetaReset", "afterChange", "afterChangesObserved", "afterColumnMove", "afterColumnResize", "afterContextMenuDefaultOptions", "afterContextMenuHide", "afterContextMenuShow", "afterCopyLimit", "afterCreateCol", "afterCreateRow", "afterDeselect", "afterDestroy", "afterDocumentKeyDown", "afterGetCellMeta", "afterGetColHeader", "afterGetRowHeader", "afterInit", "afterIsMultipleSelectionCheck", "afterLoadData", "afterMomentumScroll", "afterOnCellCornerMouseDown", "afterOnCellMouseDown", "afterOnCellMouseOver", "afterRemoveCol", "afterRemoveRow", "afterRender", "afterRenderer", "afterRowMove", "afterRowResize", "afterScrollHorizontally", "afterScrollVertically", "afterSelection", "afterSelectionByProp", "afterSelectionEnd", "afterSelectionEndByProp", "afterSetCellMeta", "afterUpdateSettings", "afterValidate", "beforeAutofill", "beforeCellAlignment", "beforeChange", "beforeChangeRender", "beforeDrawBorders", "beforeGetCellMeta", "beforeInit", "beforeInitWalkontable", "beforeKeyDown", "beforeOnCellMouseDown", "beforeRemoveCol", "beforeRemoveRow", "beforeRender", "beforeSetRangeEnd", "beforeTouchScroll", "beforeValidate", "construct", "init", "modifyCol", "modifyColWidth", "modifyRow", "modifyRowHeight", "persistentStateLoad", "persistentStateReset", "persistentStateSave"];
 var EventManager = ($__eventManager_46_js__ = require("./eventManager.js"), $__eventManager_46_js__ && $__eventManager_46_js__.__esModule && $__eventManager_46_js__ || {default: $__eventManager_46_js__}).EventManager;
+var $__1 = ($__helpers_46_js__ = require("./helpers.js"), $__helpers_46_js__ && $__helpers_46_js__.__esModule && $__helpers_46_js__ || {default: $__helpers_46_js__}),
+    arrayEach = $__1.arrayEach,
+    objectEach = $__1.objectEach;
 var Hooks = function Hooks() {
   this.globalBucket = this.createEmptyBucket();
 };
 ($traceurRuntime.createClass)(Hooks, {
   createEmptyBucket: function() {
-    var handler = Object.create(null);
-    for (var i = 0,
-        len = REGISTERED_HOOKS.length; i < len; i++) {
-      handler[REGISTERED_HOOKS[i]] = [];
-    }
-    return handler;
+    var bucket = Object.create(null);
+    arrayEach(REGISTERED_HOOKS, (function(hook) {
+      return (bucket[hook] = []);
+    }));
+    return bucket;
   },
   getBucket: function() {
     var context = arguments[0] !== (void 0) ? arguments[0] : null;
@@ -9236,11 +9393,11 @@ var Hooks = function Hooks() {
   },
   add: function(key, callback) {
     var context = arguments[2] !== (void 0) ? arguments[2] : null;
+    var $__2 = this;
     if (Array.isArray(callback)) {
-      for (var i = 0,
-          len = callback.length; i < len; i++) {
-        this.add(key, callback[i]);
-      }
+      arrayEach(callback, (function(c) {
+        return ($__2.add(key, c, context));
+      }));
     } else {
       var bucket = this.getBucket(context);
       if (typeof bucket[key] === 'undefined') {
@@ -9256,12 +9413,11 @@ var Hooks = function Hooks() {
   },
   once: function(key, callback) {
     var context = arguments[2] !== (void 0) ? arguments[2] : null;
+    var $__2 = this;
     if (Array.isArray(callback)) {
-      for (var i = 0,
-          len = callback.length; i < len; i++) {
-        callback[i].runOnce = true;
-        this.add(key, callback[i], context);
-      }
+      arrayEach(callback, (function(c) {
+        return ($__2.once(key, c, context));
+      }));
     } else {
       callback.runOnce = true;
       this.add(key, callback, context);
@@ -9279,49 +9435,48 @@ var Hooks = function Hooks() {
     return false;
   },
   run: function(context, key, p1, p2, p3, p4, p5, p6) {
+    var $__2 = this;
     {
       var globalHandlers = this.globalBucket[key];
-      var len = globalHandlers ? globalHandlers.length : 0;
-      for (var i = 0; i < len; i++) {
-        if (globalHandlers[i].skip) {
-          continue;
-        }
-        var res = globalHandlers[i].call(context, p1, p2, p3, p4, p5, p6);
-        if (res !== void 0) {
-          p1 = res;
-        }
-        if (globalHandlers[i].runOnce) {
-          this.remove(key, globalHandlers[i]);
-        }
+      if (globalHandlers && globalHandlers.length) {
+        arrayEach(globalHandlers, (function(handler) {
+          if (!handler || handler.skip) {
+            return;
+          }
+          var res = handler.call(context, p1, p2, p3, p4, p5, p6);
+          if (res !== void 0) {
+            p1 = res;
+          }
+          if (handler.runOnce) {
+            $__2.remove(key, handler);
+          }
+        }));
       }
     }
     {
       var localHandlers = this.getBucket(context)[key];
-      var len$__2 = localHandlers ? localHandlers.length : 0;
-      for (var i$__3 = 0; i$__3 < len$__2; i$__3++) {
-        if (localHandlers[i$__3].skip) {
-          continue;
-        }
-        var res$__4 = localHandlers[i$__3].call(context, p1, p2, p3, p4, p5, p6);
-        if (res$__4 !== void 0) {
-          p1 = res$__4;
-        }
-        if (localHandlers[i$__3].runOnce) {
-          this.remove(key, localHandlers[i$__3], context);
-        }
+      if (localHandlers && localHandlers.length) {
+        arrayEach(localHandlers, (function(handler) {
+          if (!handler || handler.skip) {
+            return;
+          }
+          var res = handler.call(context, p1, p2, p3, p4, p5, p6);
+          if (res !== void 0) {
+            p1 = res;
+          }
+          if (handler.runOnce) {
+            $__2.remove(key, handler, context);
+          }
+        }));
       }
     }
     return p1;
   },
   destroy: function() {
     var context = arguments[0] !== (void 0) ? arguments[0] : null;
-    var bucket = this.getBucket(context);
-    for (var key in bucket) {
-      for (var i = 0,
-          len = bucket[key].length; i < len; i++) {
-        this.remove(key, bucket[key], context);
-      }
-    }
+    objectEach(this.getBucket(context), (function(value, key, bucket) {
+      return (bucket[key].length = 0);
+    }));
   },
   register: function(key) {
     if (!this.isRegistered(key)) {
@@ -9341,9 +9496,11 @@ var Hooks = function Hooks() {
   }
 }, {});
 ;
+Handsontable.utils = Handsontable.utils || {};
+Handsontable.utils.Hooks = Hooks;
 
 //# 
-},{"./eventManager.js":41}],45:[function(require,module,exports){
+},{"./eventManager.js":41,"./helpers.js":42}],45:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerPlugin: {get: function() {
@@ -9469,7 +9626,7 @@ var BasePlugin = function BasePlugin(hotInstance) {
   },
   destroy: function() {
     if (this.eventManager) {
-      this.eventManager.clear();
+      this.eventManager.destroy();
     }
     this.clearHooks();
     delete this.hot;
@@ -9490,7 +9647,8 @@ var $___46__46__47__95_base_46_js__,
     $___46__46__47__46__46__47_helpers_46_js__,
     $___46__46__47__46__46__47_utils_47_ghostTable_46_js__,
     $___46__46__47__46__46__47_plugins_46_js__,
-    $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__;
+    $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__,
+    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = require("./../_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var $__1 = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helpers.js"), $___46__46__47__46__46__47_helpers_46_js__ && $___46__46__47__46__46__47_helpers_46_js__.__esModule && $___46__46__47__46__46__47_helpers_46_js__ || {default: $___46__46__47__46__46__47_helpers_46_js__}),
     arrayEach = $__1.arrayEach,
@@ -9505,13 +9663,14 @@ var $__1 = ($___46__46__47__46__46__47_helpers_46_js__ = require("./../../helper
 var GhostTable = ($___46__46__47__46__46__47_utils_47_ghostTable_46_js__ = require("./../../utils/ghostTable.js"), $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_ghostTable_46_js__ || {default: $___46__46__47__46__46__47_utils_47_ghostTable_46_js__}).GhostTable;
 var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
 var SamplesGenerator = ($___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ = require("./../../utils/samplesGenerator.js"), $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__.__esModule && $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__ || {default: $___46__46__47__46__46__47_utils_47_samplesGenerator_46_js__}).SamplesGenerator;
+var WalkontableViewportColumnsCalculator = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ = require("./../../3rdparty/walkontable/src/calculator/viewportColumns.js"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns_46_js__}).WalkontableViewportColumnsCalculator;
 var AutoColumnSize = function AutoColumnSize(hotInstance) {
-  var $__5 = this;
+  var $__6 = this;
   $traceurRuntime.superConstructor($AutoColumnSize).call(this, hotInstance);
   this.widths = [];
   this.ghostTable = new GhostTable(this.hot);
   this.samplesGenerator = new SamplesGenerator((function(row, col) {
-    return $__5.hot.getDataAtCell(row, col);
+    return $__6.hot.getDataAtCell(row, col);
   }));
   this.firstCalculation = true;
   this.inProgress = false;
@@ -9522,24 +9681,24 @@ var $AutoColumnSize = AutoColumnSize;
     return this.hot.getSettings().autoColumnSize !== false && !this.hot.getSettings().colWidths;
   },
   enablePlugin: function() {
-    var $__5 = this;
+    var $__6 = this;
     if (this.enabled) {
       return;
     }
-    this.addHook('beforeRender', (function(force) {
-      return $__5.onBeforeRender(force);
-    }));
-    this.addHook('modifyColWidth', (function(width, col) {
-      return $__5.getColumnWidth(col, width);
+    this.addHook('afterLoadData', (function() {
+      return $__6.onAfterLoadData();
     }));
     this.addHook('beforeChange', (function(changes) {
-      return $__5.onBeforeChange(changes);
-    }));
-    this.addHook('afterLoadData', (function() {
-      return $__5.onAfterLoadData();
+      return $__6.onBeforeChange(changes);
     }));
     this.addHook('beforeColumnResize', (function(col, size, isDblClick) {
-      return $__5.onBeforeColumnResize(col, size, isDblClick);
+      return $__6.onBeforeColumnResize(col, size, isDblClick);
+    }));
+    this.addHook('beforeRender', (function(force) {
+      return $__6.onBeforeRender(force);
+    }));
+    this.addHook('modifyColWidth', (function(width, col) {
+      return $__6.getColumnWidth(col, width);
     }));
     $traceurRuntime.superGet(this, $AutoColumnSize.prototype, "enablePlugin").call(this);
   },
@@ -9553,7 +9712,7 @@ var $AutoColumnSize = AutoColumnSize;
       to: this.hot.countRows() - 1
     };
     var force = arguments[2] !== (void 0) ? arguments[2] : false;
-    var $__5 = this;
+    var $__6 = this;
     if (typeof colRange === 'number') {
       colRange = {
         from: colRange,
@@ -9567,16 +9726,16 @@ var $AutoColumnSize = AutoColumnSize;
       };
     }
     rangeEach(colRange.from, colRange.to, (function(col) {
-      if (force || ($__5.widths[col] === void 0 && !$__5.hot._getColWidthFromSettings(col))) {
-        var samples = $__5.samplesGenerator.generateColumnSamples(col, rowRange);
+      if (force || ($__6.widths[col] === void 0 && !$__6.hot._getColWidthFromSettings(col))) {
+        var samples = $__6.samplesGenerator.generateColumnSamples(col, rowRange);
         samples.forEach((function(sample, col) {
-          $__5.ghostTable.addColumn(col, sample);
+          return $__6.ghostTable.addColumn(col, sample);
         }));
       }
     }));
     if (this.ghostTable.columns.length) {
       this.ghostTable.getWidths((function(col, width) {
-        $__5.widths[col] = width;
+        return $__6.widths[col] = width;
       }));
       this.ghostTable.clean();
     }
@@ -9586,18 +9745,18 @@ var $AutoColumnSize = AutoColumnSize;
       from: 0,
       to: this.hot.countRows() - 1
     };
-    var $__5 = this;
+    var $__6 = this;
     var current = 0;
     var length = this.hot.countCols() - 1;
     var timer = null;
     this.inProgress = true;
     var loop = (function() {
-      if (!$__5.hot) {
+      if (!$__6.hot) {
         cancelAnimationFrame(timer);
-        $__5.inProgress = false;
+        $__6.inProgress = false;
         return;
       }
-      $__5.calculateColumnsWidth({
+      $__6.calculateColumnsWidth({
         from: current,
         to: Math.min(current + $AutoColumnSize.CALCULATION_STEP, length)
       }, rowRange);
@@ -9606,10 +9765,10 @@ var $AutoColumnSize = AutoColumnSize;
         timer = requestAnimationFrame(loop);
       } else {
         cancelAnimationFrame(timer);
-        $__5.inProgress = false;
-        $__5.hot.view.wt.wtOverlays.adjustElementsSize(true);
-        if ($__5.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-          $__5.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+        $__6.inProgress = false;
+        $__6.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        if ($__6.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+          $__6.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
         }
       }
     });
@@ -9646,9 +9805,13 @@ var $AutoColumnSize = AutoColumnSize;
   },
   getColumnWidth: function(col) {
     var defaultWidth = arguments[1];
+    var keepMinimum = arguments[2] !== (void 0) ? arguments[2] : true;
     var width = defaultWidth;
-    if (this.widths[col] !== void 0 && this.widths[col] > (defaultWidth || 0)) {
+    if (width === void 0) {
       width = this.widths[col];
+      if (keepMinimum && typeof width === 'number') {
+        width = Math.max(width, WalkontableViewportColumnsCalculator.DEFAULT_WIDTH);
+      }
     }
     return width;
   },
@@ -9691,23 +9854,27 @@ var $AutoColumnSize = AutoColumnSize;
     }
   },
   onAfterLoadData: function() {
-    var $__5 = this;
-    setTimeout((function() {
-      if ($__5.hot) {
-        $__5.recalculateAllColumnsWidth();
-      }
-    }), 0);
+    var $__6 = this;
+    if (this.hot.view) {
+      this.recalculateAllColumnsWidth();
+    } else {
+      setTimeout((function() {
+        if ($__6.hot) {
+          $__6.recalculateAllColumnsWidth();
+        }
+      }), 0);
+    }
   },
   onBeforeChange: function(changes) {
-    var $__5 = this;
+    var $__6 = this;
     arrayEach(changes, (function(data) {
-      $__5.widths[data[1]] = void 0;
+      return $__6.widths[data[1]] = void 0;
     }));
   },
   onBeforeColumnResize: function(col, size, isDblClick) {
     if (isDblClick) {
-      this.calculateColumnsWidth(void 0, col, true);
-      size = this.getColumnWidth(col);
+      this.calculateColumnsWidth(col, void 0, true);
+      size = this.getColumnWidth(col, void 0, false);
     }
     return size;
   },
@@ -9727,7 +9894,7 @@ var $AutoColumnSize = AutoColumnSize;
 registerPlugin('autoColumnSize', AutoColumnSize);
 
 //# 
-},{"./../../helpers.js":42,"./../../plugins.js":45,"./../../utils/ghostTable.js":81,"./../../utils/samplesGenerator.js":82,"./../_base.js":46}],48:[function(require,module,exports){
+},{"./../../3rdparty/walkontable/src/calculator/viewportColumns.js":3,"./../../helpers.js":42,"./../../plugins.js":45,"./../../utils/ghostTable.js":81,"./../../utils/samplesGenerator.js":82,"./../_base.js":46}],48:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoRowSize: {get: function() {
@@ -9834,13 +10001,13 @@ var $AutoRowSize = AutoRowSize;
       if (force || $__5.heights[row] === void 0) {
         var samples = $__5.samplesGenerator.generateRowSamples(row, colRange);
         samples.forEach((function(sample, row) {
-          $__5.ghostTable.addRow(row, sample);
+          return $__5.ghostTable.addRow(row, sample);
         }));
       }
     }));
     if (this.ghostTable.rows.length) {
       this.ghostTable.getHeights((function(row, height) {
-        $__5.heights[row] = height;
+        return $__5.heights[row] = height;
       }));
       this.ghostTable.clean();
     }
@@ -9948,7 +10115,7 @@ var $AutoRowSize = AutoRowSize;
       };
     }
     rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (function(row) {
-      $__5.heights[row] = void 0;
+      return $__5.heights[row] = void 0;
     }));
   },
   isNeedRecalculate: function() {
@@ -9982,11 +10149,15 @@ var $AutoRowSize = AutoRowSize;
   },
   onAfterLoadData: function() {
     var $__5 = this;
-    setTimeout((function() {
-      if ($__5.hot) {
-        $__5.recalculateAllRowsHeight();
-      }
-    }), 0);
+    if (this.hot.view) {
+      this.recalculateAllRowsHeight();
+    } else {
+      setTimeout((function() {
+        if ($__5.hot) {
+          $__5.recalculateAllRowsHeight();
+        }
+      }), 0);
+    }
   },
   onBeforeChange: function(changes) {
     var range = null;
@@ -9998,7 +10169,7 @@ var $AutoRowSize = AutoRowSize;
         to: changes[changes.length - 1][0]
       };
     }
-    if (range) {
+    if (range !== null) {
       this.clearCacheByRange(range);
     }
   },
@@ -10945,9 +11116,6 @@ var $Comments = Comments;
     });
   },
   destroy: function() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }
@@ -10986,6 +11154,19 @@ function ContextMenu(instance, customOptions) {
   this.instance.addHook('afterDestroy', function() {
     contextMenu.destroy();
   });
+  function getValidSelection() {
+    var selected = instance.getSelected();
+    if (!selected) {
+      return null;
+    }
+    if (selected[0] < 0) {
+      return null;
+    }
+    if (instance.countRows() >= instance.getSettings().maxRows) {
+      return null;
+    }
+    return selected;
+  }
   this.defaultOptions = {items: [{
       key: 'row_above',
       name: 'Insert row above',
@@ -10993,10 +11174,12 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.start.row);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-            entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-            columnSelected = entireColumnSelection.join(',') == selected.join(',');
-        return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        var selected = getValidSelection();
+        if (!selected) {
+          return true;
+        }
+        var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     }, {
       key: 'row_below',
@@ -11005,10 +11188,12 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.end.row + 1);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-            entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-            columnSelected = entireColumnSelection.join(',') == selected.join(',');
-        return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        var selected = getValidSelection();
+        if (!selected) {
+          return true;
+        }
+        var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     }, ContextMenu.SEPARATOR, {
       key: 'col_left',
@@ -11048,10 +11233,12 @@ function ContextMenu(instance, customOptions) {
         this.alter("remove_row", selection.start.row, amount);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-            entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-            columnSelected = entireColumnSelection.join(',') == selected.join(',');
-        return (selected[0] < 0 || columnSelected);
+        var selected = getValidSelection();
+        if (!selected) {
+          return true;
+        }
+        var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     }, {
       key: 'remove_col',
@@ -11209,13 +11396,15 @@ function ContextMenu(instance, customOptions) {
   };
   this.checkSelectionAlignment = function(hot, className) {
     var hasAlignment = false;
-    hot.getSelectedRange().forAll(function(r, c) {
-      var metaClassName = hot.getCellMeta(r, c).className;
-      if (metaClassName && metaClassName.indexOf(className) != -1) {
-        hasAlignment = true;
-        return false;
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        var metaClassName = hot.getCellMeta(r, c).className;
+        if (metaClassName && metaClassName.indexOf(className) != -1) {
+          hasAlignment = true;
+          return false;
+        }
+      });
+    }
     return hasAlignment;
   };
   if (!this.instance.getSettings().allowInsertRow) {
@@ -11251,12 +11440,14 @@ function ContextMenu(instance, customOptions) {
   }
   this.checkSelectionReadOnlyConsistency = function(hot) {
     var atLeastOneReadOnly = false;
-    hot.getSelectedRange().forAll(function(r, c) {
-      if (hot.getCellMeta(r, c).readOnly) {
-        atLeastOneReadOnly = true;
-        return false;
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        if (hot.getCellMeta(r, c).readOnly) {
+          atLeastOneReadOnly = true;
+          return false;
+        }
+      });
+    }
     return atLeastOneReadOnly;
   };
   Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
@@ -11346,9 +11537,11 @@ ContextMenu.prototype.performAction = function(event, hot) {
       return;
     }
     var selRange = this.instance.getSelectedRange();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
-    contextMenu.closeAll();
+    if (selRange) {
+      var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+      contextMenu.closeAll();
+    }
   }
 };
 ContextMenu.prototype.unbindMouseEvents = function() {
@@ -11947,13 +12140,13 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
       this.swfPath = this.hot.getSettings().contextMenuCopyPaste.swfPath;
     }
     if (typeof ZeroClipboard === 'undefined') {
-      throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
+      console.error('To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.');
     }
     try {
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
     } catch (exception) {
       if ('undefined' == typeof navigator.mimeTypes['application/x-shockwave-flash']) {
-        throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
+        console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
       }
     }
     this.prepareZeroClipboard();
@@ -12043,8 +12236,8 @@ registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
 },{"./../../dom.js":27,"./../../eventManager.js":41,"./../../plugins.js":45,"./../_base.js":46,"zeroclipboard":undefined}],55:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
-  CopyPaste: {get: function() {
-      return CopyPaste;
+  CopyPastePlugin: {get: function() {
+      return CopyPastePlugin;
     }},
   __esModule: {value: true}
 });
@@ -12060,7 +12253,6 @@ var SheetClip = ($__SheetClip__ = require("SheetClip"), $__SheetClip__ && $__She
 var registerPlugin = ($___46__46__47__46__46__47_plugins_46_js__ = require("./../../plugins.js"), $___46__46__47__46__46__47_plugins_46_js__ && $___46__46__47__46__46__47_plugins_46_js__.__esModule && $___46__46__47__46__46__47_plugins_46_js__ || {default: $___46__46__47__46__46__47_plugins_46_js__}).registerPlugin;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ = require("./../../3rdparty/walkontable/src/cell/coords.js"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords_46_js__}).WalkontableCellCoords;
 var WalkontableCellRange = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ = require("./../../3rdparty/walkontable/src/cell/range.js"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range_46_js__}).WalkontableCellRange;
-;
 function CopyPastePlugin(instance) {
   var _this = this;
   this.copyPasteInstance = copyPaste();
@@ -12122,9 +12314,12 @@ function CopyPastePlugin(instance) {
     }
   }
   this.destroy = function() {
-    this.copyPasteInstance.removeCallback(onCut);
-    this.copyPasteInstance.removeCallback(onPaste);
-    this.copyPasteInstance.destroy();
+    if (this.copyPasteInstance) {
+      this.copyPasteInstance.removeCallback(onCut);
+      this.copyPasteInstance.removeCallback(onPaste);
+      this.copyPasteInstance.destroy();
+      this.copyPasteInstance = null;
+    }
     instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
   instance.addHook('afterDestroy', helper.proxy(this.destroy, this));
@@ -12156,12 +12351,13 @@ function init() {
     instance.copyPaste = new CopyPastePlugin(instance);
   } else if (!pluginEnabled && instance.copyPaste) {
     instance.copyPaste.destroy();
-    delete instance.copyPaste;
+    instance.copyPaste = null;
   }
 }
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 Handsontable.hooks.register('afterCopyLimit');
+;
 
 //# 
 },{"./../../3rdparty/walkontable/src/cell/coords.js":5,"./../../3rdparty/walkontable/src/cell/range.js":6,"./../../helpers.js":42,"./../../plugins.js":45,"SheetClip":"SheetClip","copyPaste":"copyPaste"}],56:[function(require,module,exports){
@@ -12543,31 +12739,29 @@ DragToScroll.prototype.check = function(x, y) {
 };
 var dragToScroll;
 var instance;
-if (typeof Handsontable !== 'undefined') {
-  var setupListening = function(instance) {
-    instance.dragToScrollListening = false;
-    var scrollHandler = instance.view.wt.wtTable.holder;
-    dragToScroll = new DragToScroll();
-    if (scrollHandler === window) {
-      return;
-    } else {
-      dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
+var setupListening = function(instance) {
+  instance.dragToScrollListening = false;
+  var scrollHandler = instance.view.wt.wtTable.holder;
+  dragToScroll = new DragToScroll();
+  if (scrollHandler === window) {
+    return;
+  } else {
+    dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
+  }
+  dragToScroll.setCallback(function(scrollX, scrollY) {
+    if (scrollX < 0) {
+      scrollHandler.scrollLeft -= 50;
+    } else if (scrollX > 0) {
+      scrollHandler.scrollLeft += 50;
     }
-    dragToScroll.setCallback(function(scrollX, scrollY) {
-      if (scrollX < 0) {
-        scrollHandler.scrollLeft -= 50;
-      } else if (scrollX > 0) {
-        scrollHandler.scrollLeft += 50;
-      }
-      if (scrollY < 0) {
-        scrollHandler.scrollTop -= 20;
-      } else if (scrollY > 0) {
-        scrollHandler.scrollTop += 20;
-      }
-    });
-    instance.dragToScrollListening = true;
-  };
-}
+    if (scrollY < 0) {
+      scrollHandler.scrollTop -= 20;
+    } else if (scrollY > 0) {
+      scrollHandler.scrollTop += 20;
+    }
+  });
+  instance.dragToScrollListening = true;
+};
 Handsontable.hooks.add('afterInit', function() {
   var instance = this;
   var eventManager = eventManagerObject(this);
@@ -15611,6 +15805,7 @@ function destroy() {
 function destroyObserver() {
   var instance = this;
   jsonpatch.unobserve(instance.observedData, instance.observer);
+  delete instance.observedData;
   delete instance.observeChangesActive;
   delete instance.pauseObservingChanges;
   delete instance.resumeObservingChanges;
@@ -16401,7 +16596,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
     };
     eventManager.addEventListener(instance.rootElement, 'mousedown', instance.acArrowListener);
     instance.addHookOnce('afterDestroy', function() {
-      eventManager.clear();
+      eventManager.destroy();
     });
   }
 }
@@ -17127,7 +17322,7 @@ function TableView(instance) {
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
-    if (isMouseDown) {
+    if (isMouseDown || !instance.rootElement) {
       return;
     }
     if (next !== instance.view.wt.wtTable.holder) {
@@ -17500,7 +17695,7 @@ TableView.prototype.mainViewIsActive = function() {
 };
 TableView.prototype.destroy = function() {
   this.wt.destroy();
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 ;
 
@@ -17905,7 +18100,13 @@ Handsontable.DateValidator = function(value, callback) {
 };
 var correctFormat = function correctFormat(value, dateFormat) {
   var date = moment(new Date(value));
-  if (date.format('YYYY').length > 4) {
+  var year = date.format('YYYY');
+  var yearNow = moment().format('YYYY');
+  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
+    if (!value.match(new RegExp(year))) {
+      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
+    }
+  } else if (year.length > 4) {
     date.year((date.year() + '').substr(0, 4));
   }
   return date.format(dateFormat);
@@ -18212,7 +18413,9 @@ CopyPasteClass.prototype.init = function() {
         clipboardContents = event.clipboardData.getData("Text");
         if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
           temp = clipboardContents.split('\n');
-          temp.pop();
+          if (temp[temp.length - 1] === '') {
+            temp.pop();
+          }
           clipboardContents = temp.join('\n');
         }
         this.value = clipboardContents;
@@ -18350,6 +18553,7 @@ CopyPasteClass.prototype.destroy = function() {
       this.elTextarea = null;
     }
     document.documentElement.removeEventListener('keydown', this.onKeyDownRef);
+    this.onKeyDownRef = null;
   }
 };
 CopyPasteClass.prototype.hasBeenDestroyed = function() {
@@ -18677,6 +18881,14 @@ var jsonpatch;
       }
     }
   }
+  function removeMirror(obj) {
+    for (var i = 0,
+        ilen = beforeDict.length; i < ilen; i++) {
+      if (beforeDict[i] === obj) {
+        beforeDict.splice(i, 1);
+      }
+    }
+  }
   function getObserverFromMirror(mirror, callback) {
     for (var j = 0,
         jlen = mirror.observers.length; j < jlen; j++) {
@@ -18690,6 +18902,9 @@ var jsonpatch;
         jlen = mirror.observers.length; j < jlen; j++) {
       if (mirror.observers[j].observer === observer) {
         mirror.observers.splice(j, 1);
+        if (!mirror.observers.length) {
+          removeMirror(mirror);
+        }
         return;
       }
     }
@@ -18837,7 +19052,9 @@ var jsonpatch;
           break;
         }
       }
-      _generate(mirror.value, observer.object, observer.patches, "");
+      if (mirror) {
+        _generate(mirror.value, observer.object, observer.patches, "");
+      }
     }
     var temp = observer.patches;
     if (temp.length > 0) {

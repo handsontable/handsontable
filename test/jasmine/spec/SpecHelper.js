@@ -76,7 +76,7 @@ var getCorrespondingOverlay = function (cell, container) {
 /**
  * Shows context menu
  */
-var contextMenu = function () {
+var contextMenu = function (cell) {
   var hot = spec().$container.data('handsontable');
   var selected = hot.getSelected();
 
@@ -84,10 +84,10 @@ var contextMenu = function () {
     hot.selectCell(0, 0);
     selected = hot.getSelected();
   }
-
-  var cell = getCell(selected[0], selected[1]);
+  if (!cell) {
+    cell = getCell(selected[0], selected[1]);
+  }
   var cellOffset = $(cell).offset();
-
 
   $(cell).simulate('contextmenu',{
     clientX: cellOffset.left,

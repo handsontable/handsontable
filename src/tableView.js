@@ -77,7 +77,7 @@ function TableView(instance) {
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
 
-    if (isMouseDown) {
+    if (isMouseDown || !instance.rootElement) {
       return; // it must have been started in a cell
     }
 
@@ -587,7 +587,7 @@ TableView.prototype.mainViewIsActive = function() {
 
 TableView.prototype.destroy = function() {
   this.wt.destroy();
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 
 export {TableView};

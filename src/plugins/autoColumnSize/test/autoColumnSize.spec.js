@@ -41,7 +41,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
   });
 
   it('should correctly detect column width with columns.title', function () {
@@ -53,7 +53,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
   });
 
   it('should be possible to disable plugin using updateSettings', function () {

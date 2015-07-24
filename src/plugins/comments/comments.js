@@ -6,7 +6,6 @@ import BasePlugin from './../_base.js';
 import {CommentEditor} from './commentEditor.js';
 
 /**
- * @class Comments
  * @plugin Comments
  *
  * @description
@@ -45,9 +44,6 @@ import {CommentEditor} from './commentEditor.js';
  * ```
  */
 class Comments extends BasePlugin {
-  /**
-   * @param {Core} hotInstance Handsontable instance passed in plugin class constructor
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -487,9 +483,6 @@ class Comments extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }

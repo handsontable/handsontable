@@ -62,6 +62,118 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("string");
   });
 
+  it('should render textarea editor in specified size at cell 0, 0 without headers', function () {
+    var hot = handsontable(),
+      editorHeight;
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    });
+  });
+
+  it('should render textarea editor in specified size at cell 0, 0 with headers', function () {
+    var hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true
+      }),
+      editorHeight;
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    });
+  });
+
+  it('should hide whole editor when it is higher then header', function () {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true
+      }),
+      editorHeight;
+
+    setDataAtCell(2, 2, "string\nstring\nstring");
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyUp('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    var mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 150;
+    mainHolder.scrollLeft = 150;
+
+    runs(function () {
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('-78px');
+      expect(hot.getActiveEditor().textareaParentStyle.left).toBe('-1px');
+    });
+  });
+
+  it('should hide editor when quick navigation by click scrollbar was triggered', function () {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true
+      }),
+      editorHeight;
+
+    setDataAtCell(2, 2, "string\nstring\nstring");
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyUp('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    var mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 1000;
+
+    runs(function () {
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('72px');
+      expect(hot.getActiveEditor().textareaParentStyle.left).toBe('149px');
+    });
+  });
+
   it('should render textarea editor in specified height (single line)', function () {
     var hot = handsontable(),
       editorHeight;
@@ -263,7 +375,6 @@ describe('TextEditor', function () {
   });
 
   it('should open editor after double clicking on a cell', function () {
-
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
@@ -291,9 +402,10 @@ describe('TextEditor', function () {
 
     runs(function () {
       var editor = hot.getActiveEditor();
-      expect(editor.isOpened()).toBe(true);
-    });
 
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+    });
   });
 
   it('should call editor focus() method after opening an editor', function () {

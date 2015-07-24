@@ -216,6 +216,36 @@ describe('manualColumnResize', function () {
 
   });
 
+  it("should autosize column after double click (when initial width is not defined)", function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      columns: [{width: 100}, {width: 200}, {}]
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(100);
+    expect(colWidth(this.$container, 1)).toEqual(200);
+    expect(colWidth(this.$container, 2)).toEqual(50);
+
+    resizeColumn(2, 300);
+
+    var $resizer = this.$container.find('.manualColumnResizer');
+    var resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    waits(1000);
+
+    runs(function() {
+      expect(colWidth(this.$container, 2)).toBeAroundValue(26);
+    }.bind(this));
+  });
+
   it("should adjust resize handles position after table size changed", function(){
     var maxed = false;
 

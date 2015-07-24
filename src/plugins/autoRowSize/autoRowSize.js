@@ -8,8 +8,38 @@ import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 
 
 /**
- * @class AutoRowSize
  * @plugin AutoRowSize
+ *
+ * @description
+ * This plugin allows to set row height related to the highest cell in row.
+ *
+ * Default value is `undefined` which is the same effect as `false`. Enable this plugin can decrease performance.
+ *
+ * Row height calculations are divided into sync and async part. Each of this part has own advantages and
+ * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
+ * block Browser UI.
+ *
+ * To configure this plugin see {@link Options#autoRowSize}.
+ *
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * var hot = new Handsontable(document.getElementById('example'), {
+ *   date: getData(),
+ *   autoRowSize: true
+ * });
+ * // Access to plugin instance:
+ * var plugin = hot.getPlugin('autoRowSize');
+ *
+ * plugin.getRowHeight(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ...
+ * ```
  */
 class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
@@ -19,9 +49,6 @@ class AutoRowSize extends BasePlugin {
     return 500;
   }
 
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -107,15 +134,11 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => {
-          this.ghostTable.addRow(row, sample);
-        });
+        samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
       }
     });
     if (this.ghostTable.rows.length) {
-      this.ghostTable.getHeights((row, height) => {
-        this.heights[row] = height;
-      });
+      this.ghostTable.getHeights((row, height) => this.heights[row] = height);
       this.ghostTable.clean();
     }
   }
@@ -271,9 +294,7 @@ class AutoRowSize extends BasePlugin {
     if (typeof range === 'number') {
       range = {from: range, to: range};
     }
-    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => {
-      this.heights[row] = void 0;
-    });
+    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => this.heights[row] = void 0);
   }
 
   /**
@@ -312,6 +333,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * On before row resize listener.
    *
+   * @private
    * @param {Number} row
    * @param {Number} size
    * @param {Boolean} isDblClick
@@ -328,13 +350,20 @@ class AutoRowSize extends BasePlugin {
 
   /**
    * On after load data listener.
+   *
+   * @private
    */
   onAfterLoadData() {
-    setTimeout(() => {
-      if (this.hot) {
-        this.recalculateAllRowsHeight();
-      }
-    }, 0);
+    if (this.hot.view) {
+      this.recalculateAllRowsHeight();
+    } else {
+      // first load - initialization
+      setTimeout(() => {
+        if (this.hot) {
+          this.recalculateAllRowsHeight();
+        }
+      }, 0);
+    }
   }
 
   /**
@@ -354,7 +383,7 @@ class AutoRowSize extends BasePlugin {
         to: changes[changes.length - 1][0]
       };
     }
-    if (range) {
+    if (range !== null) {
       this.clearCacheByRange(range);
     }
   }

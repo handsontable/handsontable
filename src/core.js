@@ -10,6 +10,7 @@ import {TableView} from './tableView.js';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range.js';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
+import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns.js';
 
 Handsontable.activeGuid = null;
 
@@ -302,8 +303,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     /**
      * Populate cells at position with 2d array
      *
-     * @memberof Core#
-     * @function populateFromArray
+     * @private
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
      * @param {Object} [end] End selection position (only for drag-down mode)
@@ -981,6 +981,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     grid.adjustRowsAndCols();
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
     selection.refreshBorders(null, true);
+    instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }
 
@@ -2184,12 +2185,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function(col) {
-    var width = instance._getColWidthFromSettings(col);
+    let width = instance._getColWidthFromSettings(col);
 
-    if (!width) {
-      width = 50;
-    }
     width = Handsontable.hooks.run(instance, 'modifyColWidth', width, col);
+
+    if (width === void 0) {
+      width = WalkontableViewportColumnsCalculator.DEFAULT_WIDTH;
+    }
 
     return width;
   };
@@ -2355,7 +2357,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty rows. If the optional ending parameter is 1, returns
+   * Returns number of empty rows. If the optional ending parameter is `true`, returns
    * number of empty rows at the bottom of the table.
    *
    * @memberof Core#
@@ -2385,7 +2387,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty columns. If the optional `ending` parameter is `true`, returns number of empty
+   * Returns number of empty columns. If the optional ending parameter is `true`, returns number of empty
    * columns at right hand edge of the table.
    *
    * @memberof Core#
@@ -2539,10 +2541,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (instance.view) { //in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
-
-
     dom.empty(instance.rootElement);
-    eventManager.clear();
+    eventManager.destroy();
 
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
@@ -2551,9 +2551,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (instance.hasOwnProperty(i)) {
         //replace instance methods with post mortem
         if (typeof instance[i] === "function") {
-          if (i !== "runHooks") {
-            instance[i] = postMortem;
-          }
+          instance[i] = postMortem;
         }
         //replace instance properties with null (restores memory)
         //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests

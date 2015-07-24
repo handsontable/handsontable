@@ -5,11 +5,41 @@ import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, ca
 import {GhostTable} from './../../utils/ghostTable.js';
 import {registerPlugin} from './../../plugins.js';
 import {SamplesGenerator} from './../../utils/samplesGenerator.js';
-
+import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns.js';
 
 /**
- * @class AutoColumnSize
  * @plugin AutoColumnSize
+ *
+ * @description
+ * This plugin allows to set columns width related to the widest cell in column.
+ *
+ * Default value is `undefined` which is the same effect as `true`. Enable this plugin can decrease performance.
+ *
+ * Column width calculations are divided into sync and async part. Each of this part has own advantages and
+ * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
+ * block Browser UI.
+ *
+ * To configure this plugin see {@link Options#autoColumnSize}.
+ *
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * var hot = new Handsontable(document.getElementById('example'), {
+ *   date: getData(),
+ *   autoColumnSize: true
+ * });
+ * // Access to plugin instance:
+ * var plugin = hot.getPlugin('autoColumnSize');
+ *
+ * plugin.getColumnWidth(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ...
+ * ```
  */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
@@ -19,9 +49,6 @@ class AutoColumnSize extends BasePlugin {
     return 50;
   }
 
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -68,11 +95,11 @@ class AutoColumnSize extends BasePlugin {
     if (this.enabled) {
       return;
     }
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
     super.enablePlugin();
   }
 
@@ -94,16 +121,12 @@ class AutoColumnSize extends BasePlugin {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
 
-        samples.forEach((sample, col) => {
-          this.ghostTable.addColumn(col, sample);
-        });
+        samples.forEach((sample, col) => this.ghostTable.addColumn(col, sample));
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.ghostTable.getWidths((col, width) => {
-        this.widths[col] = width;
-      });
+      this.ghostTable.getWidths((col, width) => this.widths[col] = width);
       this.ghostTable.clean();
     }
   }
@@ -195,13 +218,18 @@ class AutoColumnSize extends BasePlugin {
    *
    * @param {Number} col Column index.
    * @param {Number} [defaultWidth] Default column width. It will be pick up if no calculated width found.
+   * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
    */
-  getColumnWidth(col, defaultWidth = void 0) {
+  getColumnWidth(col, defaultWidth = void 0, keepMinimum = true) {
     let width = defaultWidth;
 
-    if (this.widths[col] !== void 0 && this.widths[col] > (defaultWidth || 0)) {
+    if (width === void 0) {
       width = this.widths[col];
+
+      if (keepMinimum && typeof width === 'number') {
+        width = Math.max(width, WalkontableViewportColumnsCalculator.DEFAULT_WIDTH);
+      }
     }
 
     return width;
@@ -279,11 +307,16 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onAfterLoadData() {
-    setTimeout(() => {
-      if (this.hot) {
-        this.recalculateAllColumnsWidth();
-      }
-    }, 0);
+    if (this.hot.view) {
+      this.recalculateAllColumnsWidth();
+    } else {
+      // first load - initialization
+      setTimeout(() => {
+        if (this.hot) {
+          this.recalculateAllColumnsWidth();
+        }
+      }, 0);
+    }
   }
 
   /**
@@ -293,14 +326,13 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => {
-      this.widths[data[1]] = void 0;
-    });
+    arrayEach(changes, (data) => this.widths[data[1]] = void 0);
   }
 
   /**
    * On before column resize listener.
    *
+   * @private
    * @param {Number} col
    * @param {Number} size
    * @param {Boolean} isDblClick
@@ -308,8 +340,8 @@ class AutoColumnSize extends BasePlugin {
    */
   onBeforeColumnResize(col, size, isDblClick) {
     if (isDblClick) {
-      this.calculateColumnsWidth(void 0, col, true);
-      size = this.getColumnWidth(col);
+      this.calculateColumnsWidth(col, void 0, true);
+      size = this.getColumnWidth(col, void 0, false);
     }
 
     return size;

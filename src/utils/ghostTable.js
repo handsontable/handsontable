@@ -2,7 +2,9 @@
 import {addClass, outerHeight, outerWidth} from './../dom.js';
 import {arrayEach, objectEach, rangeEach, stringify} from './../helpers.js';
 
-
+/**
+ * @private
+ */
 class GhostTable {
   /**
    * @param {Core} hotInstance
@@ -343,6 +345,6 @@ class GhostTable {
 
 export {GhostTable};
 
-// temp for tests
+// temp for tests only!
 Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.GhostTable = GhostTable;

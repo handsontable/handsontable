@@ -137,7 +137,7 @@ class WalkontableOverlay {
    * Destroy overlay instance
    */
   destroy() {
-    eventManagerObject(this.clone).clear();
+    eventManagerObject(this.clone).destroy();
   }
 }
 

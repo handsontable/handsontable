@@ -58,12 +58,28 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
   switch (event.keyCode) {
     case keyCodes.ARROW_RIGHT:
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
+      }
+      break;
     case keyCodes.ARROW_LEFT:
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
+      }
+      break;
     case keyCodes.ARROW_UP:
     case keyCodes.ARROW_DOWN:
-
-      if (!that.isWaiting()) {
-        event.stopImmediatePropagation();
+      if (that.isInFullEditMode()) {
+        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
+            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
+          event.stopImmediatePropagation();
+        }
       }
       break;
 
@@ -106,7 +122,9 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
   }
 
-  that.autoResize.resize(String.fromCharCode(event.keyCode));
+  if ([keyCodes.ARROW_UP, keyCodes.ARROW_RIGHT, keyCodes.ARROW_DOWN, keyCodes.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    that.autoResize.resize(String.fromCharCode(event.keyCode));
+  }
 };
 
 
@@ -125,7 +143,6 @@ TextEditor.prototype.close = function() {
   if (document.activeElement === this.TEXTAREA) {
     this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
-
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
@@ -217,17 +234,14 @@ TextEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;
   }
-
-  ///start prepare textarea position
-  //    this.TD = this.instance.getCell(this.row, this.col);
   this.TD = this.getEditedCell();
 
+  // TD is outside of the viewport.
   if (!this.TD) {
-    //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
+    this.close();
+
     return;
   }
-  //var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-
   var currentOffset = dom.offset(this.TD),
     containerOffset = dom.offset(this.instance.rootElement),
     scrollableContainer = dom.getScrollableElement(this.TD),
@@ -254,18 +268,11 @@ TextEditor.prototype.refreshDimensions = function() {
       break;
   }
 
-  if (editTop < 0) {
-    editTop = 0;
-  }
-  if (editLeft < 0) {
-    editLeft = 0;
-  }
-
-  if (colHeadersCount && this.instance.getSelected()[0] === 0) {
+  if (this.instance.getSelected()[0] === 0) {
     editTop += 1;
   }
 
-  if (rowHeadersCount && this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelected()[1] === 0) {
     editLeft += 1;
   }
 
@@ -275,36 +282,24 @@ TextEditor.prototype.refreshDimensions = function() {
     dom.resetCssTransform(this.textareaParentStyle);
   }
 
-
-
   this.textareaParentStyle.top = editTop + 'px';
   this.textareaParentStyle.left = editLeft + 'px';
-
   ///end prepare textarea position
-
 
   var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
     cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
 
-  var width = dom.innerWidth(this.TD) - 8 //$td.width()
-    ,
-    maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10 //10 is TEXTAREAs padding
+  let width = dom.innerWidth(this.TD) - 8;
+  // 10 is TEXTAREAs padding
+  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9;
+  let height = this.TD.scrollHeight + 1;
+  // 10 is TEXTAREAs border and padding
+  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2, 23);
 
-    ,
-    height = this.TD.scrollHeight + 1,
-    maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2; //10 is TEXTAREAs border and padding
+  const cellComputedStyle = dom.getComputedStyle(this.TD);
 
-  if (parseInt(this.TD.style.borderTopWidth, 10) > 0) {
-    height -= 1;
-  }
-  if (parseInt(this.TD.style.borderLeftWidth, 10) > 0) {
-    if (rowHeadersCount > 0) {
-      width -= 1;
-    }
-  }
-
-  this.TEXTAREA.style.fontSize = dom.getComputedStyle(this.TD).fontSize;
-  this.TEXTAREA.style.fontFamily = dom.getComputedStyle(this.TD).fontFamily;
+  this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
+  this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
 
   this.TEXTAREA.style.backgroundColor = ''; //RESET STYLE
 
@@ -348,12 +343,12 @@ TextEditor.prototype.bindEvents = function() {
   });
 
   this.instance.addHook('afterDestroy', function() {
-    editor.eventManager.clear();
+    editor.eventManager.destroy();
   });
 };
 
 TextEditor.prototype.destroy = function() {
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 
 export {TextEditor};
