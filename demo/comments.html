@@ -7,8 +7,12 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/pikaday/pikaday.css">
+  <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
+  <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -58,7 +62,7 @@
 
       <h2>Comments</h2>
 
-      <p>With option <code>comments: true</code>, you can add and remove cell coments through the context menu.</p>
+      <p>With option <code>comments: true</code>, you can add and remove cell comments through the context menu.</p>
 
       <p>To initialize Handsontable with predefined comments, provide <code>comment</code> cell property:
         <code>{row: 1, col: 1, comment: "Test comment"}</code></p>
@@ -79,23 +83,14 @@
         <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
       </div>
 
-      <script data-jsfiddle="common">
-        function getData() {
-          return [
-            ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
-            ['2008', 10, 11, 12, 13],
-            ['2009', 20, 11, 14, 13],
-            ['2010', 30, 15, 12, 13]
-          ];
-        }
-      </script>
 
       <script data-jsfiddle="example1">
         var container = document.getElementById('example1'),
           hot1;
 
         hot1 = Handsontable(container, {
-          data: getData(),
+          height: 200,
+          data: Handsontable.helper.createSpreadsheetData(50, 50),
           startRows: 5,
           startCols: 5,
           minRows: 5,
@@ -108,13 +103,20 @@
           contextMenu: true,
           comments: true,
           cell: [
-            {row: 1, col: 1, comment: 'Test comment'},
-            {row: 2, col: 2, comment: 'Sample'}
+            {row: 1, col: 1, comment: 'HOT1 Test comment'},
+            {row: 2, col: 2, comment: 'HOT1 Sample'},
+            {row: 12, col: 2, comment: 'HOT1 Another comment'},
+            {row: 2, col: 22, comment: 'HOT1 Super important comment'},
+            {row: 15, col: 15, comment: 'HOT1 15 x 15 position'}
           ]
         });
       </script>
     </div>
   </div>
+
+
+
+
 </div>
 
 <div class="footer-text">

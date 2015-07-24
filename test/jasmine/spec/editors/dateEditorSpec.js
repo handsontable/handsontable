@@ -40,6 +40,51 @@ describe('DateEditor', function () {
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
+  it("should pass date picker config object to Pikday", function () {
+    var onOpenSpy = jasmine.createSpy('open');
+    var onCloseSpy = jasmine.createSpy('close');
+    var hot = handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date',
+          datePickerConfig: {
+            firstDay: 1,
+            field: 'field', // read only - shouldn't overwrite
+            trigger: 'trigger', // read only - shouldn't overwrite
+            container: 'container', // read only - shouldn't overwrite
+            bound: true, // read only - shouldn't overwrite
+            i18n: {
+              previousMonth: 'Poprzedni',
+              nextMonth     : 'Następny',
+              months        : ['January','February','March','April','May','June','July','August','September','October','November','December'],
+              weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+              weekdaysShort : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+            },
+            onOpen: onOpenSpy,
+            onClose: onCloseSpy
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('esc');
+
+    var config = hot.getActiveEditor().$datePicker.config();
+
+    expect(config.field instanceof HTMLElement).toBe(true);
+    expect(config.trigger instanceof HTMLElement).toBe(true);
+    expect(config.container instanceof HTMLElement).toBe(true);
+    expect(config.bound).toBe(false);
+    expect(config.firstDay).toBe(1);
+    expect(config.i18n.previousMonth).toBe('Poprzedni');
+    expect(config.i18n.nextMonth).toBe('Następny');
+    expect(onOpenSpy).toHaveBeenCalled();
+    expect(onCloseSpy).toHaveBeenCalled();
+  });
+
   it("should remove any HTML connected with Pikaday Calendar", function () {
     handsontable({
       data: getDates(),
@@ -252,9 +297,43 @@ describe('DateEditor', function () {
 
   });
 
+  it("should display a calendar based on a current date, even if a date in a wrong format was entered previously", function () {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      columns: [
+        {type: 'date'},
+        {type: 'date', dateFormat: 'YYYY-MM-DD'}
+      ],
+      minSpareRows: 1
+    }),
+      resultDate;
+
+    setDataAtCell(4,1, '15-11-11');
+
+    waits(100);
+    runs(function() {
+
+      selectCell(5,1);
+      keyDown('enter');
+
+      expect($('.pika-single').is(':visible')).toBe(true);
+
+      mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
+    });
+
+    waits(100);
+    runs(function() {
+      resultDate = getDataAtCell(5,1);
+
+      expect(moment(resultDate).year()).toEqual(moment().year());
+      expect(moment(resultDate).month()).toEqual(moment().month());
+    });
+
+  });
+
   it("should display Pikaday Calendar bottom of the selected cell", function() {
     var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 2),
         columns: [
           {type: 'date'},
           {type: 'date'}

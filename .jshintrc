@@ -1,4 +1,5 @@
 {
+  "esnext": true,
   "boss": false,
   "browser": true,
   "camelcase": true,
@@ -28,7 +29,7 @@
   "predef": [],
   "proto": false,
   "shadow": true, // Should be false
-  "sub": true, // Should be false
+  "sub": false,
   "supernew": false,
   "undef": false,
   "unused": false

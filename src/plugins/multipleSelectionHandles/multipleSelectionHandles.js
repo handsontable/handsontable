@@ -1,20 +1,198 @@
-(function (Handsontable) {
-  'use strict';
+import * as dom from './../../dom.js';
+import BasePlugin from './../_base.js';
+import {EventManager} from './../../eventManager.js';
+import {registerPlugin} from './../../plugins.js';
 
-  function MultipleSelectionHandles(instance) {
-    this.instance = instance;
+/**
+ * @private
+ * @class MultipleSelectionHandles
+ * @plugin MultipleSelectionHandles
+ */
+
+class MultipleSelectionHandles extends BasePlugin {
+  /**
+   * @param {Object} hotInstance
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * @type {Array}
+     */
     this.dragged = [];
-
-    this.eventManager = Handsontable.eventManager(instance);
-
-    this.bindTouchEvents();
+    /**
+     * Instance of EventManager.
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = null;
+    /**
+     * @type {null}
+     */
+    this.lastSetCell = null;
   }
 
-  MultipleSelectionHandles.prototype.getCurrentRangeCoords = function (selectedRange, currentTouch, touchStartDirection, currentDirection, draggedHandle) {
-    var topLeftCorner = selectedRange.getTopLeftCorner()
-      , bottomRightCorner = selectedRange.getBottomRightCorner()
-      , bottomLeftCorner = selectedRange.getBottomLeftCorner()
-      , topRightCorner = selectedRange.getTopRightCorner();
+  /**
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return Handsontable.mobileBrowser;
+  }
+
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.registerListeners();
+    super.enablePlugin();
+  }
+
+  /**
+   * Bind the touch events
+   * @private
+   */
+  registerListeners() {
+    var _this = this;
+
+    function removeFromDragged(query) {
+
+      if (_this.dragged.length === 1) {
+        // clear array
+        _this.dragged.splice(0, _this.dragged.length);
+
+        return true;
+      }
+
+      var entryPosition = _this.dragged.indexOf(query);
+
+      if (entryPosition == -1) {
+        return false;
+      } else if (entryPosition === 0) {
+        _this.dragged = _this.dragged.slice(0, 1);
+      } else if (entryPosition == 1) {
+        _this.dragged = _this.dragged.slice(-1);
+      }
+    }
+
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
+      let selectedRange;
+
+      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        selectedRange = _this.hot.getSelectedRange();
+
+        _this.dragged.push("topLeft");
+
+        _this.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
+
+        event.preventDefault();
+        return false;
+
+      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        selectedRange = _this.hot.getSelectedRange();
+
+        _this.dragged.push("bottomRight");
+
+        _this.touchStartRange = {
+          width: selectedRange.getWidth(),
+          height: selectedRange.getHeight(),
+          direction: selectedRange.getDirection()
+        };
+
+        event.preventDefault();
+        return false;
+      }
+    });
+
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
+      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+        removeFromDragged.call(_this, "topLeft");
+
+        _this.touchStartRange = void 0;
+
+        event.preventDefault();
+        return false;
+
+      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+        removeFromDragged.call(_this, "bottomRight");
+
+        _this.touchStartRange = void 0;
+
+        event.preventDefault();
+        return false;
+      }
+    });
+
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function(event) {
+      let scrollTop = dom.getWindowScrollTop(),
+        scrollLeft = dom.getWindowScrollLeft(),
+        endTarget,
+        targetCoords,
+        selectedRange,
+        rangeWidth,
+        rangeHeight,
+        rangeDirection,
+        newRangeCoords;
+
+      if (_this.dragged.length === 0) {
+        return;
+      }
+
+      endTarget = document.elementFromPoint(
+        event.touches[0].screenX - scrollLeft,
+        event.touches[0].screenY - scrollTop);
+
+      if (!endTarget || endTarget === _this.lastSetCell) {
+        return;
+      }
+
+      if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
+        targetCoords = _this.hot.getCoords(endTarget);
+
+        if (targetCoords.col == -1) {
+          targetCoords.col = 0;
+        }
+
+        selectedRange = _this.hot.getSelectedRange();
+        rangeWidth = selectedRange.getWidth();
+        rangeHeight = selectedRange.getHeight();
+        rangeDirection = selectedRange.getDirection();
+
+        if (rangeWidth == 1 && rangeHeight == 1) {
+          _this.hot.selection.setRangeEnd(targetCoords);
+        }
+
+        newRangeCoords = _this.getCurrentRangeCoords(selectedRange, targetCoords, _this.touchStartRange.direction, rangeDirection, _this.dragged[0]);
+
+        if (newRangeCoords.start !== null) {
+          _this.hot.selection.setRangeStart(newRangeCoords.start);
+        }
+
+        _this.hot.selection.setRangeEnd(newRangeCoords.end);
+
+        _this.lastSetCell = endTarget;
+
+      }
+
+      event.preventDefault();
+    });
+  }
+
+  getCurrentRangeCoords(selectedRange, currentTouch, touchStartDirection, currentDirection, draggedHandle) {
+    var topLeftCorner = selectedRange.getTopLeftCorner(),
+      bottomRightCorner = selectedRange.getBottomRightCorner(),
+      bottomLeftCorner = selectedRange.getBottomLeftCorner(),
+      topRightCorner = selectedRange.getTopRightCorner();
 
     var newCoords = {
       start: null,
@@ -59,7 +237,7 @@
                 end: bottomLeftCorner
               };
             } else {
-              newCoords.end  = currentTouch;
+              newCoords.end = currentTouch;
             }
             break;
           case "NW-SE":
@@ -69,7 +247,7 @@
                 end: bottomRightCorner
               };
             } else {
-              newCoords.end  = currentTouch;
+              newCoords.end = currentTouch;
             }
             break;
           case "SE-NW":
@@ -79,7 +257,7 @@
                 end: topLeftCorner
               };
             } else {
-              newCoords.end  = currentTouch;
+              newCoords.end = currentTouch;
             }
             break;
           case "SW-NE":
@@ -89,7 +267,7 @@
                 end: topRightCorner
               };
             } else {
-              newCoords.end  = currentTouch;
+              newCoords.end = currentTouch;
             }
             break;
         }
@@ -164,129 +342,18 @@
     }
 
     return newCoords;
-  };
+  }
 
-  MultipleSelectionHandles.prototype.bindTouchEvents = function () {
-    var that = this;
-    var removeFromDragged = function (query) {
+  /**
+   * Check if user is currently dragging the handle.
+   *
+   * @returns {boolean} Dragging state
+   */
+  isDragged() {
+    return this.dragged.length > 0;
+  }
+}
 
-      if (this.dragged.length == 1) {
-        this.dragged = [];
-        return true;
-      }
+export {MultipleSelectionHandles};
 
-      var entryPosition = this.dragged.indexOf(query);
-
-      if (entryPosition == -1) {
-        return false;
-      } else if (entryPosition === 0) {
-        this.dragged = this.dragged.slice(0, 1);
-      } else if (entryPosition == 1) {
-        this.dragged = this.dragged.slice(-1);
-      }
-    };
-
-    this.eventManager.addEventListener(this.instance.rootElement,'touchstart', function (event) {
-      if(Handsontable.Dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
-        that.dragged.push("topLeft");
-        var selectedRange = that.instance.getSelectedRange();
-        that.touchStartRange = {
-          width: selectedRange.getWidth(),
-          height: selectedRange.getHeight(),
-          direction: selectedRange.getDirection()
-        };
-        event.preventDefault();
-
-        return false;
-      } else if (Handsontable.Dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
-        that.dragged.push("bottomRight");
-        var selectedRange = that.instance.getSelectedRange();
-        that.touchStartRange = {
-          width: selectedRange.getWidth(),
-          height: selectedRange.getHeight(),
-          direction: selectedRange.getDirection()
-        };
-        event.preventDefault();
-
-        return false;
-      }
-    });
-
-    this.eventManager.addEventListener(this.instance.rootElement,'touchend', function (event) {
-      if(Handsontable.Dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
-        removeFromDragged.call(that, "topLeft");
-        that.touchStartRange = void 0;
-        event.preventDefault();
-
-        return false;
-      } else if (Handsontable.Dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
-        removeFromDragged.call(that, "bottomRight");
-        that.touchStartRange = void 0;
-        event.preventDefault();
-
-        return false;
-      }
-    });
-
-    this.eventManager.addEventListener(this.instance.rootElement,'touchmove', function (event) {
-      var scrollTop = Handsontable.Dom.getWindowScrollTop()
-        , scrollLeft = Handsontable.Dom.getWindowScrollLeft();
-
-      if (that.dragged.length > 0) {
-        var endTarget = document.elementFromPoint(
-          event.touches[0].screenX - scrollLeft,
-          event.touches[0].screenY - scrollTop
-        );
-
-        if(!endTarget) {
-          return;
-        }
-
-        if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
-          var targetCoords = that.instance.getCoords(endTarget);
-
-          if(targetCoords.col == -1) {
-            targetCoords.col = 0;
-          }
-
-          var selectedRange = that.instance.getSelectedRange()
-            , rangeWidth = selectedRange.getWidth()
-            , rangeHeight = selectedRange.getHeight()
-            , rangeDirection = selectedRange.getDirection();
-
-          if (rangeWidth == 1 && rangeHeight == 1) {
-            that.instance.selection.setRangeEnd(targetCoords);
-          }
-
-          var newRangeCoords = that.getCurrentRangeCoords(selectedRange, targetCoords, that.touchStartRange.direction, rangeDirection, that.dragged[0]);
-
-          if(newRangeCoords.start != null) {
-            that.instance.selection.setRangeStart(newRangeCoords.start);
-          }
-          that.instance.selection.setRangeEnd(newRangeCoords.end);
-
-        }
-
-        event.preventDefault();
-      }
-    });
-
-  };
-
-  MultipleSelectionHandles.prototype.isDragged = function () {
-    if (this.dragged.length === 0) {
-      return false;
-    } else {
-      return true;
-    }
-  };
-
-  var init = function () {
-    var instance = this;
-
-    Handsontable.plugins.multipleSelectionHandles = new MultipleSelectionHandles(instance);
-  };
-
-  Handsontable.hooks.add('afterInit', init);
-
-})(Handsontable);
+registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);

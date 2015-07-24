@@ -16,7 +16,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelection: function (r, c) {
+      afterSelection: function (r, c) {
         output = [r, c];
       }
     });
@@ -30,7 +30,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add('onSelection', function (r, c) {
+    Handsontable.hooks.add('afterSelection', function (r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -43,7 +43,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelection: function () {
+      afterSelection: function () {
         output = this.rootElement;
       }
     });
@@ -56,7 +56,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable({
-      onSelectionByProp: function () {
+      afterSelectionByProp: function () {
         output = this.rootElement;
       }
     });
@@ -84,10 +84,44 @@ describe('Core_selection', function () {
     handsontable();
     selectCell(0, 0);
 
-//    $("html").triggerHandler('mousedown');
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+  });
+
+  it('should not deselect the currently selected cell after clicking on a scrollbar', function () {
+    var hot = handsontable({
+      outsideClickDeselects: false,
+      minRows: 20,
+      minCols: 2,
+      width: 400,
+      height: 100
+    });
+    selectCell(0, 0);
+
+    var holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect(),
+      verticalScrollbarCoords = {
+        x: holderBoundingBox.left + holderBoundingBox.width - 3,
+        y: holderBoundingBox.top + ( holderBoundingBox.height / 2 )
+      },
+      horizontalScrollbarCoords = {
+        x: holderBoundingBox.left + ( holderBoundingBox.width / 2 ),
+        y: holderBoundingBox.top + holderBoundingBox.height - 3
+      };
+
+    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      clientX: verticalScrollbarCoords.x,
+      clientY: verticalScrollbarCoords.y
+    });
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+
+    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      clientX: horizontalScrollbarCoords.x,
+      clientY: horizontalScrollbarCoords.y
+    });
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
   it('should not deselect currently selected cell', function () {
@@ -96,7 +130,6 @@ describe('Core_selection', function () {
     });
     selectCell(0, 0);
 
-//    $("html").triggerHandler('mousedown');
     $("html").simulate('mousedown');
 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
@@ -300,10 +333,10 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelection: function () {
+      afterSelection: function () {
         tick++;
       },
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tickEnd++;
       }
     });
@@ -319,7 +352,7 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tick++;
       }
     });
@@ -337,7 +370,7 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tick++;
       }
     });
@@ -355,10 +388,10 @@ describe('Core_selection', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
-      onSelection: function () {
+      afterSelection: function () {
         tick++;
       },
-      onSelectionEnd: function () {
+      afterSelectionEnd: function () {
         tickEnd++;
       }
     });
@@ -441,7 +474,7 @@ describe('Core_selection', function () {
       fixedColumnsLeft: 2
     });
 
-    this.$container.find('.ht_clone_corner thead th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
     expect(getSelected()).toEqual([0, 0, 49, 0]);
   });
 
@@ -564,5 +597,130 @@ describe('Core_selection', function () {
 
   });
 
+  it("should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0", function () {
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 2,
+      minSpareRows: 1
+    });
 
+    selectCell(4,0);
+
+    keyDownUp('enter');
+    waits(100);
+    runs(function() {
+      keyDownUp('enter');
+    });
+    waits(100);
+    runs(function () {
+      expect(countRows()).toEqual(6);
+      expect(getSelected()).toEqual([5,0,5,0]);
+    });
+  });
+
+  it("should change selected coords by modifying coords object via `modifyTransformStart` hook", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
+
+    hot.addHook('modifyTransformStart', function(coords) {
+      coords.col += 1;
+      coords.row += 1;
+    });
+    keyDown('arrow_down');
+
+    expect(getSelected()).toEqual([2, 1, 2, 1]);
+  });
+
+  it("should change selected coords by modifying coords object via `modifyTransformEnd` hook", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
+
+    hot.addHook('modifyTransformEnd', function(coords) {
+      coords.col += 2;
+      coords.row += 1;
+    });
+    keyDown('shift+arrow_down');
+
+    expect(getSelected()).toEqual([0, 0, 2, 2]);
+  });
+
+  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', function () {
+    var spy = jasmine.createSpy();
+
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    hot.addHook('afterModifyTransformStart', spy);
+
+    selectCell(2, 0);
+    keyDownUp('arrow_left');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(-1);
+
+    spy.reset();
+    selectCell(2, 4);
+    keyDownUp('arrow_right');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(1);
+
+    spy.reset();
+    selectCell(4, 2);
+    keyDownUp('arrow_down');
+
+    expect(spy.mostRecentCall.args[1]).toBe(1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+
+    spy.reset();
+    selectCell(0, 2);
+    keyDownUp('arrow_up');
+
+    expect(spy.mostRecentCall.args[1]).toBe(-1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+  });
+
+  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', function () {
+    var spy = jasmine.createSpy();
+
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    hot.addHook('afterModifyTransformEnd', spy);
+
+    selectCell(2, 0);
+    keyDownUp('shift+arrow_left');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(-1);
+
+    spy.reset();
+    selectCell(2, 4);
+    keyDownUp('shift+arrow_right');
+
+    expect(spy.mostRecentCall.args[1]).toBe(0);
+    expect(spy.mostRecentCall.args[2]).toBe(1);
+
+    spy.reset();
+    selectCell(4, 2);
+    keyDownUp('shift+arrow_down');
+
+    expect(spy.mostRecentCall.args[1]).toBe(1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+
+    spy.reset();
+    selectCell(0, 2);
+    keyDownUp('shift+arrow_up');
+
+    expect(spy.mostRecentCall.args[1]).toBe(-1);
+    expect(spy.mostRecentCall.args[2]).toBe(0);
+  });
 });

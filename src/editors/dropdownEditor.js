@@ -1,18 +1,22 @@
-(function (Handsontable) {
 
-  var DropdownEditor = Handsontable.editors.AutocompleteEditor.prototype.extend();
+import {getEditor, registerEditor} from './../editors.js';
+import {AutocompleteEditor} from './autocompleteEditor.js';
 
-  DropdownEditor.prototype.prepare = function () {
-    Handsontable.editors.AutocompleteEditor.prototype.prepare.apply(this, arguments);
 
+/**
+ * @private
+ * @editor DropdownEditor
+ * @class DropdownEditor
+ * @dependencies AutocompleteEditor
+ */
+class DropdownEditor extends AutocompleteEditor {
+  prepare(row, col, prop, td, originalValue, cellProperties) {
+    super.prepare(row, col, prop, td, originalValue, cellProperties);
     this.cellProperties.filter = false;
     this.cellProperties.strict = true;
+  }
+}
 
-  };
+export {DropdownEditor};
 
-
-  Handsontable.editors.DropdownEditor = DropdownEditor;
-  Handsontable.editors.registerEditor('dropdown', DropdownEditor);
-
-
-})(Handsontable);
+registerEditor('dropdown', DropdownEditor);

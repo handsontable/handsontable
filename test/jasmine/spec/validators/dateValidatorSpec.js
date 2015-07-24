@@ -220,27 +220,26 @@ describe('dateValidator', function () {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "DD/MM/YY", correctFormat: true},
-          {data: 'name'},
+          {data: 'date', type: 'date', dateFormat: "MM/DD/YYYY", correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '11/23/2013');
+      setDataAtCell(1, 0, '1/10/15');
 
       waitsFor(function () {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
       runs(function () {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '11/23/2013', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date', undefined, undefined);
       });
 
       waits(30);
 
       runs(function () {
-        expect(getDataAtCell(1, 0)).toEqual("23/11/13");
+        expect(getDataAtCell(1, 0)).toEqual("01/10/2015");
       });
     });
 

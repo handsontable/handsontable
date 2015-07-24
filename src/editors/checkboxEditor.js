@@ -1,28 +1,32 @@
-(function(Handsontable){
 
-  //Blank editor, because all the work is done by renderer
-  var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
+import {registerEditor} from './../editors.js';
+import {BaseEditor} from './_baseEditor.js';
+import * as dom from './../dom.js';
 
-  CheckboxEditor.prototype.beginEditing = function () {
-    var checkbox = this.TD.querySelector('input[type="checkbox"]');
 
-    if (checkbox) {
+/**
+ * @private
+ * @editor CheckboxEditor
+ * @class CheckboxEditor
+ */
+class CheckboxEditor extends BaseEditor {
+  beginEditing() {
+    let checkbox = this.TD.querySelector('input[type="checkbox"]');
+
+    if (!dom.hasClass(checkbox, 'htBadValue')) {
       checkbox.click();
     }
+  }
 
-  };
+  finishEditing() {}
+  init() {}
+  open() {}
+  close() {}
+  getValue() {}
+  setValue() {}
+  focus() {}
+}
 
-  CheckboxEditor.prototype.finishEditing = function () {};
+export {CheckboxEditor};
 
-  CheckboxEditor.prototype.init = function () {};
-  CheckboxEditor.prototype.open = function () {};
-  CheckboxEditor.prototype.close = function () {};
-  CheckboxEditor.prototype.getValue = function () {};
-  CheckboxEditor.prototype.setValue = function () {};
-  CheckboxEditor.prototype.focus = function () {};
-
-  Handsontable.editors.CheckboxEditor = CheckboxEditor;
-  Handsontable.editors.registerEditor('checkbox', CheckboxEditor);
-
-})(Handsontable);
-
+registerEditor('checkbox', CheckboxEditor);

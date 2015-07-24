@@ -15,7 +15,7 @@ var process = function (value, callback) {
         found = true; //perfect match
         break;
       }
-      else if (lowercaseVal === source[s].toLowerCase()) {
+      else if (lowercaseVal === Handsontable.helper.stringify(source[s]).toLowerCase()) {
         // changes[i][3] = source[s]; //good match, fix the case << TODO?
         found = true;
         break;
@@ -28,6 +28,9 @@ var process = function (value, callback) {
 
 /**
  * Autocomplete cell validator
+ *
+ * @private
+ * @validator AutocompleteValidator
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */

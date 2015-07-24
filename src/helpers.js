@@ -1,69 +1,65 @@
-Handsontable.helper = {};
+
+import * as dom from './dom.js';
 
 /**
  * Returns true if keyCode represents a printable character
  * @param {Number} keyCode
  * @return {Boolean}
  */
-Handsontable.helper.isPrintableChar = function (keyCode) {
+export function isPrintableChar(keyCode) {
   return ((keyCode == 32) || //space
-    (keyCode >= 48 && keyCode <= 57) || //0-9
-    (keyCode >= 96 && keyCode <= 111) || //numpad
-    (keyCode >= 186 && keyCode <= 192) || //;=,-./`
-    (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
-    keyCode >= 226 || //special chars (229 for Asian chars)
-    (keyCode >= 65 && keyCode <= 90)); //a-z
-};
-
-Handsontable.helper.isMetaKey = function (keyCode) {
-  var keyCodes = Handsontable.helper.keyCode;
+  (keyCode >= 48 && keyCode <= 57) || //0-9
+  (keyCode >= 96 && keyCode <= 111) || //numpad
+  (keyCode >= 186 && keyCode <= 192) || //;=,-./`
+  (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
+  keyCode >= 226 || //special chars (229 for Asian chars)
+  (keyCode >= 65 && keyCode <= 90)); //a-z
+}
+export function isMetaKey(_keyCode) {
   var metaKeys = [
-    keyCodes.ARROW_DOWN,
-    keyCodes.ARROW_UP,
-    keyCodes.ARROW_LEFT,
-    keyCodes.ARROW_RIGHT,
-    keyCodes.HOME,
-    keyCodes.END,
-    keyCodes.DELETE,
-    keyCodes.BACKSPACE,
-    keyCodes.F1,
-    keyCodes.F2,
-    keyCodes.F3,
-    keyCodes.F4,
-    keyCodes.F5,
-    keyCodes.F6,
-    keyCodes.F7,
-    keyCodes.F8,
-    keyCodes.F9,
-    keyCodes.F10,
-    keyCodes.F11,
-    keyCodes.F12,
-    keyCodes.TAB,
-    keyCodes.PAGE_DOWN,
-    keyCodes.PAGE_UP,
-    keyCodes.ENTER,
-    keyCodes.ESCAPE,
-    keyCodes.SHIFT,
-    keyCodes.CAPS_LOCK,
-    keyCodes.ALT
+    keyCode.ARROW_DOWN,
+    keyCode.ARROW_UP,
+    keyCode.ARROW_LEFT,
+    keyCode.ARROW_RIGHT,
+    keyCode.HOME,
+    keyCode.END,
+    keyCode.DELETE,
+    keyCode.BACKSPACE,
+    keyCode.F1,
+    keyCode.F2,
+    keyCode.F3,
+    keyCode.F4,
+    keyCode.F5,
+    keyCode.F6,
+    keyCode.F7,
+    keyCode.F8,
+    keyCode.F9,
+    keyCode.F10,
+    keyCode.F11,
+    keyCode.F12,
+    keyCode.TAB,
+    keyCode.PAGE_DOWN,
+    keyCode.PAGE_UP,
+    keyCode.ENTER,
+    keyCode.ESCAPE,
+    keyCode.SHIFT,
+    keyCode.CAPS_LOCK,
+    keyCode.ALT
   ];
 
-  return metaKeys.indexOf(keyCode) != -1;
-};
+  return metaKeys.indexOf(_keyCode) != -1;
+}
 
-Handsontable.helper.isCtrlKey = function (keyCode) {
-
-  var keys = Handsontable.helper.keyCode;
-
-  return [keys.CONTROL_LEFT, 224, keys.COMMAND_LEFT, keys.COMMAND_RIGHT].indexOf(keyCode) != -1;
-};
+export function isCtrlKey(_keyCode) {
+  return [keyCode.CONTROL_LEFT, 224, keyCode.COMMAND_LEFT, keyCode.COMMAND_RIGHT].indexOf(_keyCode) != -1;
+}
 
 /**
  * Converts a value to string
  * @param value
  * @return {String}
  */
-Handsontable.helper.stringify = function (value) {
+export function stringify(value) {
   switch (typeof value) {
     case 'string':
     case 'number':
@@ -83,14 +79,81 @@ Handsontable.helper.stringify = function (value) {
     default:
       return value.toString();
   }
-};
+}
+
+/**
+ * Convert string to upper case first letter.
+ *
+ * @param {String} string String to convert.
+ * @returns {String}
+ */
+export function toUpperCaseFirst(string) {
+  return string[0].toUpperCase() + string.substr(1);
+}
+
+/**
+ * Compare strings case insensitively.
+ *
+ * @param {...String} strings Strings to compare.
+ * @returns {Boolean}
+ */
+export function equalsIgnoreCase(...strings) {
+  let unique = [];
+  let length = strings.length;
+
+  while (length --) {
+    let string = stringify(strings[length]).toLowerCase();
+
+    if (unique.indexOf(string) === -1) {
+      unique.push(string);
+    }
+  }
+
+  return unique.length === 1;
+}
+
+/**
+ * Generate schema for passed object
+ *
+ * @param {Array|Object} object
+ * @returns {Array|Object}
+ */
+export function duckSchema(object) {
+  var schema;
+
+  if (Array.isArray(object)) {
+    schema = [];
+  } else {
+    schema = {};
+
+    for (var i in object) {
+      if (object.hasOwnProperty(i)) {
+        if (object[i] && typeof object[i] === 'object' && !Array.isArray(object[i])) {
+          schema[i] = duckSchema(object[i]);
+
+        } else if (Array.isArray(object[i])) {
+          if (object[i].length && typeof object[i][0] === 'object' && !Array.isArray(object[i][0])) {
+            schema[i] = [duckSchema(object[i][0])];
+          } else {
+            schema[i] = [];
+          }
+
+        } else {
+          schema[i] = null;
+        }
+      }
+    }
+  }
+
+  return schema;
+}
 
 /**
  * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
  * @param index
  * @returns {String}
  */
-Handsontable.helper.spreadsheetColumnLabel = function (index) {
+export function spreadsheetColumnLabel(index) {
   var dividend = index + 1;
   var columnLabel = '';
   var modulo;
@@ -100,7 +163,7 @@ Handsontable.helper.spreadsheetColumnLabel = function (index) {
     dividend = parseInt((dividend - modulo) / 26, 10);
   }
   return columnLabel;
-};
+}
 
 /**
  * Creates 2D array of Excel-like values "A1", "A2", ...
@@ -108,7 +171,7 @@ Handsontable.helper.spreadsheetColumnLabel = function (index) {
  * @param colCount
  * @returns {Array}
  */
-Handsontable.helper.createSpreadsheetData = function(rowCount, colCount) {
+export function createSpreadsheetData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
@@ -119,14 +182,14 @@ Handsontable.helper.createSpreadsheetData = function(rowCount, colCount) {
   for (i = 0; i < rowCount; i++) {
     var row = [];
     for (j = 0; j < colCount; j++) {
-      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
+      row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
     rows.push(row);
   }
   return rows;
-};
+}
 
-Handsontable.helper.createSpreadsheetObjectData = function(rowCount, colCount) {
+export function createSpreadsheetObjectData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
@@ -137,12 +200,12 @@ Handsontable.helper.createSpreadsheetObjectData = function(rowCount, colCount) {
   for (i = 0; i < rowCount; i++) {
     var row = {};
     for (j = 0; j < colCount; j++) {
-      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1);
+      row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
     }
     rows.push(row);
   }
   return rows;
-};
+}
 
 /**
  * Checks if value of n is a numeric one
@@ -150,22 +213,28 @@ Handsontable.helper.createSpreadsheetObjectData = function(rowCount, colCount) {
  * @param n
  * @returns {boolean}
  */
-Handsontable.helper.isNumeric = function (n) {
-    var t = typeof n;
-    return t == 'number' ? !isNaN(n) && isFinite(n) :
-           t == 'string' ? !n.length ? false :
-           n.length == 1 ? /\d/.test(n) :
-           /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) :
-           t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
-};
+export function isNumeric(n) {
+  var t = typeof n;
+  return t == 'number' ? !isNaN(n) && isFinite(n) :
+    t == 'string' ? !n.length ? false :
+      n.length == 1 ? /\d/.test(n) :
+        /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) :
+      t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
+}
 
 /**
  * Generates a random hex string. Used as namespace for Handsontable instance events.
  * @return {String} - 16 character random string: "92b1bfc74ec4"
  */
-Handsontable.helper.randomString = function () {
-  return walkontableRandomString();
-};
+export function randomString() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+
+  return s4() + s4() + s4() + s4();
+}
 
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
@@ -175,32 +244,33 @@ Handsontable.helper.randomString = function () {
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
  */
-Handsontable.helper.inherit = function (Child, Parent) {
+export function inherit(Child, Parent) {
   Parent.prototype.constructor = Parent;
   Child.prototype = new Parent();
   Child.prototype.constructor = Child;
+
   return Child;
-};
+}
 
 /**
  * Perform shallow extend of a target object with extension's own properties
  * @param {Object} target An object that will receive the new properties
  * @param {Object} extension An object containing additional properties to merge into the target
  */
-Handsontable.helper.extend = function (target, extension) {
+export function extend(target, extension) {
   for (var i in extension) {
     if (extension.hasOwnProperty(i)) {
       target[i] = extension[i];
     }
   }
-};
+}
 
 /**
  * Perform deep extend of a target object with extension's own properties
  * @param {Object} target An object that will receive the new properties
  * @param {Object} extension An object containing additional properties to merge into the target
  */
-Handsontable.helper.deepExtend = function (target, extension) {
+export function deepExtend(target, extension) {
   for (var key in extension) {
     if (extension.hasOwnProperty(key)) {
       if (extension[key] && typeof extension[key] === 'object') {
@@ -212,14 +282,14 @@ Handsontable.helper.deepExtend = function (target, extension) {
             target[key] = {};
           }
         }
-        Handsontable.helper.deepExtend(target[key], extension[key]);
+        deepExtend(target[key], extension[key]);
       }
       else {
         target[key] = extension[key];
       }
     }
   }
-};
+}
 
 /**
  * Perform deep clone of an object
@@ -227,14 +297,14 @@ Handsontable.helper.deepExtend = function (target, extension) {
  * @param {Object} obj An object that will be cloned
  * @return {Object}
  */
-Handsontable.helper.deepClone = function (obj) {
+export function deepClone(obj) {
   if (typeof obj === "object") {
     return JSON.parse(JSON.stringify(obj));
   }
   else {
     return obj;
   }
-};
+}
 
 /**
  * Checks if two objects or arrays are (deep) equal
@@ -243,11 +313,11 @@ Handsontable.helper.deepClone = function (obj) {
  * @param {Object|Array} object2
  * @returns {Boolean}
  */
-Handsontable.helper.isObjectEquals = function(object1, object2) {
+export function isObjectEquals(object1, object2) {
   return JSON.stringify(object1) === JSON.stringify(object2);
-};
+}
 
-Handsontable.helper.getPrototypeOf = function (obj) {
+export function getPrototypeOf(obj) {
   var prototype;
 
   /* jshint ignore:start */
@@ -255,7 +325,7 @@ Handsontable.helper.getPrototypeOf = function (obj) {
     prototype = obj.__proto__;
   } else {
     var oldConstructor,
-        constructor = obj.constructor;
+      constructor = obj.constructor;
 
     if (typeof obj.constructor == "function") {
       oldConstructor = constructor;
@@ -274,7 +344,7 @@ Handsontable.helper.getPrototypeOf = function (obj) {
   /* jshint ignore:end */
 
   return prototype;
-};
+}
 
 /**
  * Factory for columns constructors.
@@ -282,10 +352,10 @@ Handsontable.helper.getPrototypeOf = function (obj) {
  * @param {Array} conflictList
  * @return {Object} ColumnSettings
  */
-Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
+export function columnFactory(GridSettings, conflictList) {
   function ColumnSettings () {}
 
-  Handsontable.helper.inherit(ColumnSettings, GridSettings);
+  inherit(ColumnSettings, GridSettings);
 
   // Clear conflict settings
   for (var i = 0, len = conflictList.length; i < len; i++) {
@@ -293,9 +363,9 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
   }
 
   return ColumnSettings;
-};
+}
 
-Handsontable.helper.translateRowsToColumns = function (input) {
+export function translateRowsToColumns(input) {
   var i
     , ilen
     , j
@@ -313,25 +383,25 @@ Handsontable.helper.translateRowsToColumns = function (input) {
     }
   }
   return output;
-};
+}
 
-Handsontable.helper.to2dArray = function (arr) {
+export function to2dArray(arr) {
   var i = 0
     , ilen = arr.length;
   while (i < ilen) {
     arr[i] = [arr[i]];
     i++;
   }
-};
+}
 
-Handsontable.helper.extendArray = function (arr, extension) {
+export function extendArray(arr, extension) {
   var i = 0
     , ilen = extension.length;
   while (i < ilen) {
     arr.push(extension[i]);
     i++;
   }
-};
+}
 
 /**
  * Determines if the given DOM element is an input field.
@@ -339,11 +409,11 @@ Handsontable.helper.extendArray = function (arr, extension) {
  * @param element - DOM element
  * @returns {boolean}
  */
-Handsontable.helper.isInput = function (element) {
+export function isInput(element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
-  return inputs.indexOf(element.nodeName) > -1;
-};
+  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
+}
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
@@ -351,11 +421,11 @@ Handsontable.helper.isInput = function (element) {
  * @param element - DOM element
  * @returns {boolean}
  */
-Handsontable.helper.isOutsideInput = function (element) {
-  return Handsontable.helper.isInput(element) && element.className.indexOf('handsontableInput') == -1;
-};
+export function isOutsideInput(element) {
+  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+}
 
-Handsontable.helper.keyCode = {
+export var keyCode = {
   MOUSE_LEFT: 1,
   MOUSE_RIGHT: 3,
   MOUSE_MIDDLE: 2,
@@ -406,11 +476,11 @@ Handsontable.helper.keyCode = {
  * @param {*} obj
  * @returns {boolean}
  */
-Handsontable.helper.isObject = function (obj) {
+export function isObject(obj) {
   return Object.prototype.toString.call(obj) == '[object Object]';
-};
+}
 
-Handsontable.helper.pivot = function (arr) {
+export function pivot(arr) {
   var pivotedArr = [];
 
   if(!arr || arr.length === 0 || !arr[0] || arr[0].length === 0){
@@ -431,14 +501,13 @@ Handsontable.helper.pivot = function (arr) {
   }
 
   return pivotedArr;
+}
 
-};
-
-Handsontable.helper.proxy = function (fun, context) {
+export function proxy(fun, context) {
   return function () {
     return fun.apply(context, arguments);
   };
-};
+}
 
 /**
  * Factory that produces a function for searching methods (or any properties) which could be defined directly in
@@ -457,7 +526,7 @@ Handsontable.helper.proxy = function (fun, context) {
  * @param allowUndefined {Boolean} [optional] if false, the search is continued if methodName has not been found in cell "type"
  * @returns {Function}
  */
-Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefined) {
+export function cellMethodLookupFactory(methodName, allowUndefined) {
 
   allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
 
@@ -492,7 +561,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 
       }
 
-      return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
+      return getMethodFromProperties(getPrototypeOf(properties));
 
     })(typeof row == 'number' ? this.getCellMeta(row, col) : row);
 
@@ -503,15 +572,14 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 
     if(typeof type == 'undefined'){
       throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. ' +
-                      'Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+      'Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
     }
 
     return type;
   }
+}
 
-};
-
-Handsontable.helper.isMobileBrowser = function (userAgent) {
+export function isMobileBrowser(userAgent) {
   if(!userAgent) {
     userAgent = navigator.userAgent;
   }
@@ -520,32 +588,32 @@ Handsontable.helper.isMobileBrowser = function (userAgent) {
   // Logic for checking the specific mobile browser
   //
   /* var type = type != void 0 ? type.toLowerCase() : ''
-    , result;
-  switch(type) {
-    case '':
-      result = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-      return result;
-      break;
-    case 'ipad':
-      return navigator.userAgent.indexOf('iPad') > -1;
-      break;
-    case 'android':
-      return navigator.userAgent.indexOf('Android') > -1;
-      break;
-    case 'windows':
-      return navigator.userAgent.indexOf('IEMobile') > -1;
-      break;
-    default:
-      throw new Error('Invalid isMobileBrowser argument');
-      break;
-  } */
-};
+   , result;
+   switch(type) {
+   case '':
+   result = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+   return result;
+   break;
+   case 'ipad':
+   return navigator.userAgent.indexOf('iPad') > -1;
+   break;
+   case 'android':
+   return navigator.userAgent.indexOf('Android') > -1;
+   break;
+   case 'windows':
+   return navigator.userAgent.indexOf('IEMobile') > -1;
+   break;
+   default:
+   throw new Error('Invalid isMobileBrowser argument');
+   break;
+   } */
+}
 
-Handsontable.helper.isTouchSupported = function () {
+export function isTouchSupported() {
   return ('ontouchstart' in window);
-};
+}
 
-Handsontable.helper.stopPropagation = function (event) {
+export function stopPropagation(event) {
   // ie8
   //http://msdn.microsoft.com/en-us/library/ie/ff975462(v=vs.85).aspx
   if (typeof (event.stopPropagation) === 'function') {
@@ -554,27 +622,380 @@ Handsontable.helper.stopPropagation = function (event) {
   else {
     event.cancelBubble = true;
   }
-};
+}
 
-Handsontable.helper.pageX = function (event) {
+export function pageX(event) {
   if (event.pageX) {
     return event.pageX;
   }
 
-  var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
+  var scrollLeft = dom.getWindowScrollLeft();
   var cursorX = event.clientX + scrollLeft;
 
   return cursorX;
-};
+}
 
-Handsontable.helper.pageY = function (event) {
+export function pageY(event) {
   if (event.pageY) {
     return event.pageY;
   }
 
-  var scrollTop = Handsontable.Dom.getWindowScrollTop();
+  var scrollTop = dom.getWindowScrollTop();
   var cursorY = event.clientY + scrollTop;
 
   return cursorY;
-};
+}
 
+export function defineGetter(object, property, value, options) {
+  options.value = value;
+  options.writable = options.writable === false ? false : true;
+  options.enumerable = options.enumerable === false ? false : true;
+  options.configurable = options.configurable === false ? false : true;
+
+  Object.defineProperty(object, property, options);
+}
+
+// https://gist.github.com/paulirish/1579671
+let lastTime = 0;
+let vendors = ['ms', 'moz', 'webkit', 'o'];
+let _requestAnimationFrame = window.requestAnimationFrame;
+let _cancelAnimationFrame = window.cancelAnimationFrame;
+
+for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+}
+
+if (!_requestAnimationFrame) {
+  _requestAnimationFrame = function(callback) {
+    let currTime = new Date().getTime();
+    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    let id = window.setTimeout(function() {
+      callback(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
+
+    return id;
+  };
+}
+
+if (!_cancelAnimationFrame) {
+  _cancelAnimationFrame = function(id) {
+    clearTimeout(id);
+  };
+}
+
+/**
+ * Polyfill for requestAnimationFrame
+ *
+ * @param {Function} callback
+ * @returns {Number}
+ */
+export function requestAnimationFrame(callback) {
+  return _requestAnimationFrame.call(window, callback);
+}
+
+/**
+ * Polyfill for cancelAnimationFrame
+ *
+ * @param {Number} id
+ */
+export function cancelAnimationFrame(id) {
+  _cancelAnimationFrame.call(window, id);
+}
+
+/**
+ * A specialized version of `.reduce` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
+ * @returns {*} Returns the accumulated value.
+ */
+function arrayReduce(array, iteratee, accumulator, initFromArray) {
+  let index = -1,
+    length = array.length;
+
+  if (initFromArray && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+
+  return accumulator;
+}
+
+/**
+ * A specialized version of `.filter` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+export function arrayFilter(array, predicate) {
+  let index = -1,
+    length = array.length,
+    resIndex = -1,
+    result = [];
+
+  while (++index < length) {
+    let value = array[index];
+
+    if (predicate(value, index, array)) {
+      result[++resIndex] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * A specialized version of `.forEach` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns `array`.
+ */
+export function arrayEach(array, iteratee) {
+  let index = -1,
+    length = array.length;
+
+  while (++index < length) {
+    if (iteratee(array[index], index, array) === false) {
+      break;
+    }
+  }
+
+  return array;
+}
+
+/**
+ * A specialized version of `.forEach` for objects.
+ *
+ * @param {Object} object The object to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Object} Returns `object`.
+ */
+export function objectEach(object, iteratee) {
+  for (let key in object) {
+    if (!object.hasOwnProperty || (object.hasOwnProperty && object.hasOwnProperty(key))) {
+      if (iteratee(object[key], key, object) === false) {
+        break;
+      }
+    }
+  }
+
+  return object;
+}
+
+/**
+ * A specialized version of `.forEach` defined by ranges.
+ *
+ * @param {Number} rangeFrom The number from start iterate.
+ * @param {Number} rangeTo The number where finish iterate.
+ * @param {Function} iteratee The function invoked per iteration.
+ */
+export function rangeEach(rangeFrom, rangeTo, iteratee) {
+  let index = -1;
+
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = rangeFrom;
+  } else {
+    index = rangeFrom - 1;
+  }
+  while (++index <= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
+    }
+  }
+}
+
+/**
+ * Calculate sum value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated sum value.
+ */
+export function arraySum(array) {
+  return arrayReduce(array, (a, b) => (a + b), 0);
+}
+
+/**
+ * Calculate average value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated average value.
+ */
+export function arrayAvg(array) {
+  if (!array.length) {
+    return 0;
+  }
+
+  return arraySum(array) / array.length;
+}
+
+/**
+ * Checks if value is valid percent.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+export function isPercentValue(value) {
+  return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
+}
+
+/**
+ * Calculate value from percent.
+ *
+ * @param {Number} value Base value from percent will be calculated.
+ * @param {String|Number} percent Can be Number or String (eq. `'33%'`).
+ * @returns {Number}
+ */
+export function valueAccordingPercent(value, percent) {
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = parseInt(value * percent / 100);
+
+  return percent;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds).
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @returns {Function}
+ */
+export function throttle(func, wait = 200) {
+  let lastCalled = 0;
+  let result = {
+    lastCallThrottled: true
+  };
+  let lastTimer = null;
+
+  function _throttle() {
+    const args = arguments;
+    let stamp = Date.now();
+    let needCall = false;
+
+    result.lastCallThrottled = true;
+
+    if (!lastCalled) {
+      lastCalled = stamp;
+      needCall = true;
+    }
+    let remaining = wait - (stamp - lastCalled);
+
+    if (needCall) {
+      result.lastCallThrottled = false;
+      func.apply(this, args);
+    } else {
+      if (lastTimer) {
+        clearTimeout(lastTimer);
+      }
+      lastTimer = setTimeout(() => {
+        result.lastCallThrottled = false;
+        func.apply(this, args);
+        lastCalled = 0;
+        lastTimer = void 0;
+      }, remaining);
+    }
+
+    return result;
+  }
+
+  return _throttle;
+}
+
+/**
+ * Creates throttle function that invokes `func` only once per `wait` (in miliseconds) after hits.
+ *
+ * @param {Function} func
+ * @param {Number} wait
+ * @param {Number} hits
+ * @returns {Function}
+ */
+export function throttleAfterHits(func, wait = 200, hits = 10) {
+  const funcThrottle = throttle(func, wait);
+  let remainHits = hits;
+
+  function _clearHits() {
+    remainHits = hits;
+  }
+  function _throttleAfterHits() {
+    if (remainHits) {
+      remainHits --;
+
+      return func.apply(this, arguments);
+    }
+
+    return funcThrottle.apply(this, arguments);
+  }
+  _throttleAfterHits.clearHits = _clearHits;
+
+  return _throttleAfterHits;
+}
+
+
+window.Handsontable = window.Handsontable || {};
+Handsontable.helper = {
+  arrayAvg,
+  arrayEach,
+  arrayFilter,
+  arrayReduce,
+  arraySum,
+  cancelAnimationFrame,
+  cellMethodLookupFactory,
+  columnFactory,
+  createSpreadsheetData,
+  createSpreadsheetObjectData,
+  deepClone,
+  deepExtend,
+  defineGetter,
+  duckSchema,
+  equalsIgnoreCase,
+  extend,
+  extendArray,
+  getPrototypeOf,
+  inherit,
+  isCtrlKey,
+  isInput,
+  isMetaKey,
+  isMobileBrowser,
+  isNumeric,
+  isObject,
+  isObjectEquals,
+  isOutsideInput,
+  isPercentValue,
+  isPrintableChar,
+  isTouchSupported,
+  keyCode,
+  objectEach,
+  pageX,
+  pageY,
+  pivot,
+  proxy,
+  randomString,
+  rangeEach,
+  requestAnimationFrame,
+  spreadsheetColumnLabel,
+  stopPropagation,
+  stringify,
+  throttle,
+  throttleAfterHits,
+  to2dArray,
+  toUpperCaseFirst,
+  translateRowsToColumns,
+  valueAccordingPercent
+};

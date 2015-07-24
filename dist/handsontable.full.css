@@ -1,13 +1,12 @@
 /*!
- * Handsontable 0.14.1
+ * Handsontable 0.16.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
- * Copyright (c) 2012-2014 Marcin Warpechowski
- * Copyright (c) 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
+ * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Apr 08 2015 10:00:22 GMT+0200 (CEST)
+ * Date: Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -21,11 +20,11 @@
   position: relative;
 }
 
-.handsontable.htAutoColumnSize {
+.handsontable.htAutoSize {
   visibility: hidden;
-  left: 0;
+  left: -99000px;
   position: absolute;
-  top: 0;
+  top: -99000px;
 }
 
 .handsontable .wtHider {
@@ -125,9 +124,13 @@
 }
 
 .handsontable th:first-child,
-.handsontable td:first-child,
+.handsontable td:first-of-type,
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-left: 1px solid #CCC;
 }
 
@@ -136,11 +139,16 @@
   border-top: 1px solid #CCC;
 }
 
-.handsontable thead tr:last-child th {
-  border-bottom-width: 0;
+.ht_master:not(.innerBorderLeft) ~ .handsontable tbody tr th,
+.ht_master:not(.innerBorderLeft) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child
+{
+  border-right-width: 0;
 }
 
-.handsontable thead tr.lastChild th {
+.ht_master:not(.innerBorderTop) thead tr:last-child th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
@@ -266,9 +274,27 @@
   display: block;
 }
 
+.handsontable .columnSorting {
+  position: relative;
+}
+
 .handsontable .columnSorting:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.handsontable .columnSorting.ascending::after {
+  content: '\25B2';
+  color: #5f5f5f;
+  position: absolute;
+  right: -15px;
+}
+
+.handsontable .columnSorting.descending::after {
+  content: '\25BC';
+  color: #5f5f5f;
+  position: absolute;
+  right: -15px;
 }
 
 /* border line */
@@ -493,10 +519,11 @@ Comment For Cell
   padding: 0 0 5px 0;
 }
 
-.handsontable .handsontable:not(.ht_master) table {
-  -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
-}
+/* removing shadows, TODO: remove the commented code and this comment  */
+/*.handsontable .handsontable:not(.ht_master) table {*/
+  /*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+  /*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+/*}*/
 
 /**
 * Autocomplete Editor
@@ -672,13 +699,14 @@ Cell borders
 }
 
 .htCommentTextArea{
+  -moz-box-shadow: 1px 1px 2px #bbb;
+  -webkit-box-shadow: 1px 1px 2px #bbb;
   background-color: #FFFACD;
+  border: 1px solid #999;
   box-shadow: 1px 1px 2px #bbb;
   font-family: 'Arial';
-  -webkit-box-shadow: 1px 1px 2px #bbb;
-  -moz-box-shadow: 1px 1px 2px #bbb;
-
 }
+
 
 /* Grouping indicators */
 .handsontable colgroup col.rowHeader.htGroupCol {
@@ -916,7 +944,6 @@ thead .htCollapseButton:after {
     opacity: 1;
   }
 }
-
 /*
 
  Handsontable Mobile Text Editor stylesheet
@@ -1132,3 +1159,296 @@ thead .htCollapseButton:after {
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
+/*!
+ * Handsontable ContextMenu
+ */
+
+.htContextMenu {
+  display: none;
+  position: absolute;
+  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
+}
+
+.htContextMenu .ht_clone_top,
+.htContextMenu .ht_clone_left,
+.htContextMenu .ht_clone_corner,
+.htContextMenu .ht_clone_debug {
+  display: none;
+}
+
+.htContextMenu table.htCore {
+  outline: 1px solid #bbb;
+}
+
+.htContextMenu .wtBorder {
+  visibility: hidden;
+}
+
+.htContextMenu table tbody tr td {
+  background: white;
+  border-width: 0;
+  padding: 4px 6px 0px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.htContextMenu table tbody tr td:first-child {
+  border: 0;
+}
+
+.htContextMenu table tbody tr td.htDimmed{
+  font-style: normal;
+  color: #323232;
+}
+
+.htContextMenu table tbody tr td.current,
+.htContextMenu table tbody tr td.zeroclipboard-is-hover {
+  background: rgb(233, 233, 233);
+}
+
+.htContextMenu table tbody tr td.htSeparator {
+  border-top: 1px solid #bbb;
+  height: 0;
+  padding: 0;
+}
+
+.htContextMenu table tbody tr td.htDisabled {
+  color: #999;
+}
+
+.htContextMenu table tbody tr td.htDisabled:hover {
+  background: white;
+  color: #999;
+  cursor: default;
+}
+.htContextMenu table tbody tr td div{
+  padding-left: 10px;
+}
+.htContextMenu table tbody tr td div span.selected{
+  margin-top: -2px;
+  position: absolute;
+  left: 4px;
+}
+@charset "UTF-8";
+
+/*!
+ * Pikaday
+ * Copyright © 2014 David Bushell | BSD & MIT license | http://dbushell.com/
+ */
+
+.pika-single {
+    z-index: 9999;
+    display: block;
+    position: relative;
+    color: #333;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-bottom-color: #bbb;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/*
+clear child float (pika-lendar), using the famous micro clearfix hack
+http://nicolasgallagher.com/micro-clearfix-hack/
+*/
+.pika-single:before,
+.pika-single:after {
+    content: " ";
+    display: table;
+}
+.pika-single:after { clear: both }
+.pika-single { *zoom: 1 }
+
+.pika-single.is-hidden {
+    display: none;
+}
+
+.pika-single.is-bound {
+    position: absolute;
+    box-shadow: 0 5px 15px -5px rgba(0,0,0,.5);
+}
+
+.pika-lendar {
+    float: left;
+    width: 240px;
+    margin: 8px;
+}
+
+.pika-title {
+    position: relative;
+    text-align: center;
+}
+
+.pika-label {
+    display: inline-block;
+    *display: inline;
+    position: relative;
+    z-index: 9999;
+    overflow: hidden;
+    margin: 0;
+    padding: 5px 3px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: bold;
+    background-color: #fff;
+}
+.pika-title select {
+    cursor: pointer;
+    position: absolute;
+    z-index: 9998;
+    margin: 0;
+    left: 0;
+    top: 5px;
+    filter: alpha(opacity=0);
+    opacity: 0;
+}
+
+.pika-prev,
+.pika-next {
+    display: block;
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    border: 0;
+    padding: 0;
+    width: 20px;
+    height: 30px;
+    /* hide text using text-indent trick, using width value (it's enough) */
+    text-indent: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: transparent;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 75% 75%;
+    opacity: .5;
+    *position: absolute;
+    *top: 0;
+}
+
+.pika-prev:hover,
+.pika-next:hover {
+    opacity: 1;
+}
+
+.pika-prev,
+.is-rtl .pika-next {
+    float: left;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAUklEQVR42u3VMQoAIBADQf8Pgj+OD9hG2CtONJB2ymQkKe0HbwAP0xucDiQWARITIDEBEnMgMQ8S8+AqBIl6kKgHiXqQqAeJepBo/z38J/U0uAHlaBkBl9I4GwAAAABJRU5ErkJggg==');
+    *left: 0;
+}
+
+.pika-next,
+.is-rtl .pika-prev {
+    float: right;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAU0lEQVR42u3VOwoAMAgE0dwfAnNjU26bYkBCFGwfiL9VVWoO+BJ4Gf3gtsEKKoFBNTCoCAYVwaAiGNQGMUHMkjGbgjk2mIONuXo0nC8XnCf1JXgArVIZAQh5TKYAAAAASUVORK5CYII=');
+    *right: 0;
+}
+
+.pika-prev.is-disabled,
+.pika-next.is-disabled {
+    cursor: default;
+    opacity: .2;
+}
+
+.pika-select {
+    display: inline-block;
+    *display: inline;
+}
+
+.pika-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 0;
+}
+
+.pika-table th,
+.pika-table td {
+    width: 14.285714285714286%;
+    padding: 0;
+}
+
+.pika-table th {
+    color: #999;
+    font-size: 12px;
+    line-height: 25px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.pika-button {
+    cursor: pointer;
+    display: block;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    outline: none;
+    border: 0;
+    margin: 0;
+    width: 100%;
+    padding: 5px;
+    color: #666;
+    font-size: 12px;
+    line-height: 15px;
+    text-align: right;
+    background: #f5f5f5;
+}
+
+.pika-week {
+    font-size: 11px;
+    color: #999;
+}
+
+.is-today .pika-button {
+    color: #33aaff;
+    font-weight: bold;
+}
+
+.is-selected .pika-button {
+    color: #fff;
+    font-weight: bold;
+    background: #33aaff;
+    box-shadow: inset 0 1px 3px #178fe5;
+    border-radius: 3px;
+}
+
+.is-inrange .pika-button {
+    background: #D5E9F7;
+}
+
+.is-startrange .pika-button {
+    color: #fff;
+    background: #6CB31D;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
+.is-endrange .pika-button {
+    color: #fff;
+    background: #33aaff;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
+.is-disabled .pika-button {
+    pointer-events: none;
+    cursor: default;
+    color: #999;
+    opacity: .3;
+}
+
+.pika-button:hover {
+    color: #fff;
+    background: #ff8000;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
+/* styling for abbr */
+.pika-table abbr {
+    border-bottom: none;
+    cursor: help;
+}
+
