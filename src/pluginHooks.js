@@ -721,42 +721,42 @@ class Hooks {
   run(context, key, p1, p2, p3, p4, p5, p6) {
     {
       const globalHandlers = this.globalBucket[key];
+      let index = -1;
+      let length = globalHandlers ? globalHandlers.length : 0;
 
-      if (globalHandlers && globalHandlers.length) {
-        arrayEach(globalHandlers, (handler) => {
-          if (!handler || handler.skip) {
-            return;
-          }
+      if (length) {
+        // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
+        while (++index < length && globalHandlers[index] && !globalHandlers[index].skip) {
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = handler.call(context, p1, p2, p3, p4, p5, p6);
+          let res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             p1 = res;
           }
-          if (handler.runOnce) {
-            this.remove(key, handler);
+          if (globalHandlers[index].runOnce) {
+            this.remove(key, globalHandlers[index]);
           }
-        });
+        }
       }
     }
     {
       const localHandlers = this.getBucket(context)[key];
+      let index = -1;
+      let length = localHandlers ? localHandlers.length : 0;
 
-      if (localHandlers && localHandlers.length) {
-        arrayEach(localHandlers, (handler) => {
-          if (!handler || handler.skip) {
-            return;
-          }
+      if (length) {
+        // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
+        while (++index < length && localHandlers[index] && !localHandlers[index].skip) {
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = handler.call(context, p1, p2, p3, p4, p5, p6);
+          let res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             p1 = res;
           }
-          if (handler.runOnce) {
-            this.remove(key, handler, context);
+          if (localHandlers[index].runOnce) {
+            this.remove(key, localHandlers[index]);
           }
-        });
+        }
       }
     }
 
