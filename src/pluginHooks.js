@@ -726,14 +726,17 @@ class Hooks {
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length && globalHandlers[index] && !globalHandlers[index].skip) {
+        while (++index < length) {
+          if (!globalHandlers[index] || globalHandlers[index].skip) {
+            continue;
+          }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
           let res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             p1 = res;
           }
-          if (globalHandlers[index].runOnce) {
+          if (globalHandlers[index] && globalHandlers[index].runOnce) {
             this.remove(key, globalHandlers[index]);
           }
         }
@@ -746,15 +749,18 @@ class Hooks {
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length && localHandlers[index] && !localHandlers[index].skip) {
+        while (++index < length) {
+          if (!localHandlers[index] || localHandlers[index].skip) {
+            continue;
+          }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
           let res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             p1 = res;
           }
-          if (localHandlers[index].runOnce) {
-            this.remove(key, localHandlers[index]);
+          if (localHandlers[index] && localHandlers[index].runOnce) {
+            this.remove(key, localHandlers[index], context);
           }
         }
       }
