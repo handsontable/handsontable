@@ -41,5 +41,6 @@
   "scripts": {
     "test": "grunt test -v"
   },
-  "browser": "./src/browser.js"
+  "browser": "./src/browser.js",
+  "license": "MIT"
 }
