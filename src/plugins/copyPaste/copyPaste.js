@@ -95,9 +95,12 @@ function CopyPastePlugin(instance) {
    * @memberof CopyPaste#
    */
   this.destroy = function() {
-    this.copyPasteInstance.removeCallback(onCut);
-    this.copyPasteInstance.removeCallback(onPaste);
-    this.copyPasteInstance.destroy();
+    if (this.copyPasteInstance) {
+      this.copyPasteInstance.removeCallback(onCut);
+      this.copyPasteInstance.removeCallback(onPaste);
+      this.copyPasteInstance.destroy();
+      this.copyPasteInstance = null;
+    }
     instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
@@ -166,7 +169,7 @@ function init() {
 
   } else if (!pluginEnabled && instance.copyPaste) {
     instance.copyPaste.destroy();
-    delete instance.copyPaste;
+    instance.copyPaste = null;
   }
 }
 

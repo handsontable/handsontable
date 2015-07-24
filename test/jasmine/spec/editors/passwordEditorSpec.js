@@ -1,4 +1,4 @@
-describe('passwordEditor', function () {
+describe('PasswordEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {

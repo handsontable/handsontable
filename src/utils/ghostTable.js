@@ -2,7 +2,9 @@
 import {addClass, outerHeight, outerWidth} from './../dom.js';
 import {arrayEach, objectEach, rangeEach, stringify} from './../helpers.js';
 
-
+/**
+ * @private
+ */
 class GhostTable {
   /**
    * @param {Core} hotInstance

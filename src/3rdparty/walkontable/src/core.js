@@ -230,10 +230,7 @@ class Walkontable {
    */
   destroy() {
     this.wtOverlays.destroy();
-
-    if (this.wtEvent) {
-      this.wtEvent.destroy();
-    }
+    this.wtEvent.destroy();
   }
 }
 

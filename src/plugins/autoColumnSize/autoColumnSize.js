@@ -7,9 +7,39 @@ import {registerPlugin} from './../../plugins.js';
 import {SamplesGenerator} from './../../utils/samplesGenerator.js';
 import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns.js';
 
-
 /**
  * @plugin AutoColumnSize
+ *
+ * @description
+ * This plugin allows to set columns width related to the widest cell in column.
+ *
+ * Default value is `undefined` which is the same effect as `true`. Enable this plugin can decrease performance.
+ *
+ * Column width calculations are divided into sync and async part. Each of this part has own advantages and
+ * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
+ * block Browser UI.
+ *
+ * To configure this plugin see {@link Options#autoColumnSize}.
+ *
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * var hot = new Handsontable(document.getElementById('example'), {
+ *   date: getData(),
+ *   autoColumnSize: true
+ * });
+ * // Access to plugin instance:
+ * var plugin = hot.getPlugin('autoColumnSize');
+ *
+ * plugin.getColumnWidth(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ...
+ * ```
  */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
@@ -19,9 +49,6 @@ class AutoColumnSize extends BasePlugin {
     return 50;
   }
 
-  /**
-   * @param {Core} hotInstance Handsontable instance.
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**

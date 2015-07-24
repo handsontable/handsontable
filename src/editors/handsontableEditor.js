@@ -119,12 +119,13 @@ var onBeforeKeyDown = function(event) {
     } else {
       innerHOT.selectCell(rowToSelect, 0);
     }
+    if (innerHOT.getData().length) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    editor.instance.listen();
-    editor.TEXTAREA.focus();
+      editor.instance.listen();
+      editor.TEXTAREA.focus();
+    }
   }
 };
 

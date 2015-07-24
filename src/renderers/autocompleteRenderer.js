@@ -69,8 +69,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 
     //We need to unbind the listener after the table has been destroyed
     instance.addHookOnce('afterDestroy', function () {
-      eventManager.clear();
+      eventManager.destroy();
     });
-
   }
 }
