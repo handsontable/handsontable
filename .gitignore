@@ -5,9 +5,9 @@ _SpecRunner.html
 cars.sqlite
 dev.html
 
-src/3rdparty/walkontable/test/jasmine/SpecRunner.html
-test/jasmine/SpecRunner.html
+#src/3rdparty/walkontable/test/jasmine/SpecRunner.html
+#test/jasmine/SpecRunner.html
 
-dist/*
+#dist/*
 !dist/README.md
 node_modules/
