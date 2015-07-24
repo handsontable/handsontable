@@ -6,10 +6,10 @@ import {
   offset,
   outerHeight,
   outerWidth,
-    } from './../../../helpers/dom/element.js';
-import {EventManager} from './../../../eventManager.js';
-import {WalkontableViewportColumnsCalculator} from './calculator/viewportColumns.js';
-import {WalkontableViewportRowsCalculator} from './calculator/viewportRows.js';
+    } from './../../../helpers/dom/element';
+import {EventManager} from './../../../eventManager';
+import {WalkontableViewportColumnsCalculator} from './calculator/viewportColumns';
+import {WalkontableViewportRowsCalculator} from './calculator/viewportRows';
 
 
 /**

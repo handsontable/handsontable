@@ -1,8 +1,8 @@
 
 import numeral from 'numeral';
-import {addClass} from './../helpers/dom/element.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
-import {isNumeric} from './../helpers/number.js';
+import {addClass} from './../helpers/dom/element';
+import {getRenderer, registerRenderer} from './../renderers';
+import {isNumeric} from './../helpers/number';
 
 /**
  * Numeric cell renderer

@@ -1,11 +1,11 @@
 
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
-import {KEY_CODES, isCtrlKey} from './../../helpers/unicode.js';
-import {proxy} from './../../helpers/function.js';
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
+import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {proxy} from './../../helpers/function';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 
 
 /**

@@ -1,7 +1,7 @@
 
-import {KEY_CODES, isPrintableChar} from './../helpers/unicode.js';
-import {stringify} from './../helpers/mixed.js';
-import {pivot} from './../helpers/array.js';
+import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
+import {stringify} from './../helpers/mixed';
+import {pivot} from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -9,9 +9,9 @@ import {
   getSelectionEndPosition,
   outerWidth,
   setCaretPosition,
-    } from './../helpers/dom/element.js';
-import {getEditorConstructor, registerEditor} from './../editors.js';
-import {HandsontableEditor} from './handsontableEditor.js';
+    } from './../helpers/dom/element';
+import {getEditorConstructor, registerEditor} from './../editors';
+import {HandsontableEditor} from './handsontableEditor';
 
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
 

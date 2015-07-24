@@ -1,7 +1,7 @@
 
-import {registerEditor} from './../editors.js';
-import {BaseEditor} from './_baseEditor.js';
-import {hasClass} from './../helpers/dom/element.js';
+import {registerEditor} from './../editors';
+import {BaseEditor} from './_baseEditor';
+import {hasClass} from './../helpers/dom/element';
 
 
 /**

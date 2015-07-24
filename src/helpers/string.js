@@ -1,5 +1,5 @@
 
-import {stringify} from './mixed.js';
+import {stringify} from './mixed';
 
 /**
  * Convert string to upper case first letter.

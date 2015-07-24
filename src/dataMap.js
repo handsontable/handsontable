@@ -1,10 +1,10 @@
 
 import SheetClip from 'SheetClip';
-import {cellMethodLookupFactory} from './helpers/data.js';
-import {columnFactory} from './helpers/setting.js';
-import {duckSchema, deepExtend} from './helpers/object.js';
-import {extendArray, to2dArray} from './helpers/array.js';
-import {MultiMap} from './multiMap.js';
+import {cellMethodLookupFactory} from './helpers/data';
+import {columnFactory} from './helpers/setting';
+import {duckSchema, deepExtend} from './helpers/object';
+import {extendArray, to2dArray} from './helpers/array';
+import {MultiMap} from './multiMap';
 
 
 /**

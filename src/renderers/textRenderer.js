@@ -1,7 +1,7 @@
 
-import {empty, fastInnerText} from './../helpers/dom/element.js';
-import {stringify} from './../helpers/mixed.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
+import {empty, fastInnerText} from './../helpers/dom/element';
+import {stringify} from './../helpers/mixed';
+import {getRenderer, registerRenderer} from './../renderers';
 
 /**
  * Default text renderer

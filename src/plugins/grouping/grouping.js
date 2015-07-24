@@ -4,8 +4,8 @@ import {
   removeClass,
   hasClass,
   index as elementIndex,
-    } from './../../helpers/dom/element.js';
-import {registerPlugin} from './../../plugins.js';
+    } from './../../helpers/dom/element';
+import {registerPlugin} from './../../plugins';
 
 //export {Grouping};
 

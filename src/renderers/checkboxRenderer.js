@@ -1,11 +1,11 @@
 
-import {empty, addClass, hasClass} from './../helpers/dom/element.js';
-import {enableImmediatePropagation} from './../helpers/dom/event.js';
-import {equalsIgnoreCase} from './../helpers/string.js';
-import {EventManager} from './../eventManager.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
-import {KEY_CODES} from './../helpers/unicode.js';
-import {stopPropagation} from './../helpers/dom/event.js';
+import {empty, addClass, hasClass} from './../helpers/dom/element';
+import {enableImmediatePropagation} from './../helpers/dom/event';
+import {equalsIgnoreCase} from './../helpers/string';
+import {EventManager} from './../eventManager';
+import {getRenderer, registerRenderer} from './../renderers';
+import {KEY_CODES} from './../helpers/unicode';
+import {stopPropagation} from './../helpers/dom/event';
 
 const isListeningKeyDownEvent = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';

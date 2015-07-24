@@ -3,8 +3,8 @@ import {
   closest,
   hasClass,
   isChildOf,
-    } from './../../../helpers/dom/element.js';
-import {eventManager as eventManagerObject} from './../../../eventManager.js';
+    } from './../../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../../eventManager';
 
 
 function WalkontableEvent(instance) {

@@ -1,20 +1,20 @@
 
 import numeral from 'numeral';
-import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element.js';
-import {columnFactory} from './helpers/setting.js';
-import {DataMap} from './dataMap.js';
-import {EditorManager} from './editorManager.js';
-import {eventManager as eventManagerObject} from './eventManager.js';
-import {extend, duckSchema, isObjectEquals} from './helpers/object.js';
-import {getPlugin} from './plugins.js';
-import {getRenderer} from './renderers.js';
-import {randomString} from './helpers/string.js';
-import {TableView} from './tableView.js';
-import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data.js';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range.js';
-import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
-import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns.js';
+import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
+import {columnFactory} from './helpers/setting';
+import {DataMap} from './dataMap';
+import {EditorManager} from './editorManager';
+import {eventManager as eventManagerObject} from './eventManager';
+import {extend, duckSchema, isObjectEquals} from './helpers/object';
+import {getPlugin} from './plugins';
+import {getRenderer} from './renderers';
+import {randomString} from './helpers/string';
+import {TableView} from './tableView';
+import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
+import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range';
+import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
+import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns';
 
 Handsontable.activeGuid = null;
 

@@ -2,8 +2,8 @@
  * Adds appropriate CSS class to table cell, based on cellProperties
  */
 
-import {addClass, removeClass} from './../helpers/dom/element.js';
-import {registerRenderer} from './../renderers.js';
+import {addClass, removeClass} from './../helpers/dom/element';
+import {registerRenderer} from './../renderers';
 
 export {cellDecorator};
 

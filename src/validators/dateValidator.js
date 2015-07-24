@@ -1,6 +1,6 @@
 
 import moment from 'moment';
-import {getEditor} from './../editors.js';
+import {getEditor} from './../editors';
 
 /**
  * Date cell validator

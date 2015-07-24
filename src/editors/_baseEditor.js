@@ -1,6 +1,6 @@
 
-import {stringify} from './../helpers/mixed.js';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords.js';
+import {stringify} from './../helpers/mixed';
+import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
 
 export {BaseEditor};
 

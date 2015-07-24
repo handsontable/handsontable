@@ -1,5 +1,5 @@
 
-import {addClass} from './../../helpers/dom/element.js';
+import {addClass} from './../../helpers/dom/element';
 
 /**
  * Comment editor for Comments plugin.

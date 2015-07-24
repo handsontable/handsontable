@@ -1,5 +1,5 @@
 
-import {WalkontableCellCoords} from './../cell/coords.js';
+import {WalkontableCellCoords} from './../cell/coords';
 
 /**
  * A cell range is a set of exactly two WalkontableCellCoords (that can be the same or different)

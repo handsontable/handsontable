@@ -1,8 +1,8 @@
 
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
-import {WalkontableTable} from './../../3rdparty/walkontable/src/table.js';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
+import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
 
 export {MergeCells};
 

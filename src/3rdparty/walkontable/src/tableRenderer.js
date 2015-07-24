@@ -5,7 +5,7 @@ import {
   getScrollbarWidth,
   hasClass,
   innerHeight,
-    } from './../../../helpers/dom/element.js';
+    } from './../../../helpers/dom/element';
 
 let isMarkedOversizedColumn = {};
 

@@ -6,9 +6,9 @@ import {
   offset,
   outerHeight,
   outerWidth,
-    } from './../../../helpers/dom/element.js';
-import {EventManager} from './../../../eventManager.js';
-import {WalkontableCellCoords} from './cell/coords.js';
+    } from './../../../helpers/dom/element';
+import {EventManager} from './../../../eventManager';
+import {WalkontableCellCoords} from './cell/coords';
 
 
 class WalkontableBorder {

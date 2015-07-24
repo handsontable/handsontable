@@ -1,6 +1,6 @@
 
-import {polymerWrap, closest} from './helpers/dom/element.js';
-import {isWebComponentSupportedNatively} from './helpers/browser.js';
+import {polymerWrap, closest} from './helpers/dom/element';
+import {isWebComponentSupportedNatively} from './helpers/browser';
 
 
 /**

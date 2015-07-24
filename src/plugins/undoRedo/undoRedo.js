@@ -2,7 +2,7 @@
  * Handsontable UndoRedo class
  */
 
-import {inherit, deepClone} from './../../helpers/object.js';
+import {inherit, deepClone} from './../../helpers/object';
 
 /**
  * Handsontable UndoRedo class

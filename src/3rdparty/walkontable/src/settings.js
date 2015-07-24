@@ -1,5 +1,5 @@
 
-import {fastInnerText} from './../../../helpers/dom/element.js';
+import {fastInnerText} from './../../../helpers/dom/element';
 
 
 /**

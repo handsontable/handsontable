@@ -10,10 +10,10 @@ import {
   outerHeight,
   outerWidth,
   resetCssTransform,
-    } from './../helpers/dom/element.js';
-import {KEY_CODES} from './../helpers/unicode.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {BaseEditor} from './_baseEditor.js';
+    } from './../helpers/dom/element';
+import {KEY_CODES} from './../helpers/unicode';
+import {getEditor, registerEditor} from './../editors';
+import {BaseEditor} from './_baseEditor';
 
 var SelectEditor = BaseEditor.prototype.extend();
 

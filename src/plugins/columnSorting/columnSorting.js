@@ -5,10 +5,10 @@ import {
   hasClass,
   index,
   removeClass,
-    } from './../../helpers/dom/element.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import BasePlugin from './../_base.js';
-import {registerPlugin} from './../../plugins.js';
+    } from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import BasePlugin from './../_base';
+import {registerPlugin} from './../../plugins';
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');

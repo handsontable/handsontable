@@ -1,10 +1,10 @@
 
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
-import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode.js';
-import {stopPropagation} from './helpers/dom/event.js';
-import {enableImmediatePropagation} from './helpers/dom/event.js';
-import {getEditor} from './editors.js';
-import {eventManager as eventManagerObject} from './eventManager.js';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
+import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
+import {stopPropagation} from './helpers/dom/event';
+import {enableImmediatePropagation} from './helpers/dom/event';
+import {getEditor} from './editors';
+import {eventManager as eventManagerObject} from './eventManager';
 
 export {EditorManager};
 

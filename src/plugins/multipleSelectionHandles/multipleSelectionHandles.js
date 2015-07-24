@@ -1,8 +1,8 @@
 
-import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element.js';
-import BasePlugin from './../_base.js';
-import {EventManager} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import {EventManager} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
 
 /**
  * @private

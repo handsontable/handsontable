@@ -7,14 +7,14 @@ import {
   getScrollbarWidth,
   hasClass,
   isChildOf,
-    } from './helpers/dom/element.js';
-import {enableImmediatePropagation} from './helpers/dom/event.js';
-import {eventManager as eventManagerObject} from './eventManager.js';
-import {isOutsideInput, isInput} from './helpers/dom/element.js';
-import {stopPropagation} from './helpers/dom/event.js';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
-import {Walkontable} from './3rdparty/walkontable/src/core.js';
+    } from './helpers/dom/element';
+import {enableImmediatePropagation} from './helpers/dom/event';
+import {eventManager as eventManagerObject} from './eventManager';
+import {isOutsideInput, isInput} from './helpers/dom/element';
+import {stopPropagation} from './helpers/dom/event';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
+import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
+import {Walkontable} from './3rdparty/walkontable/src/core';
 
 
 // Support for older Handsontable versions

@@ -2,7 +2,7 @@
  * Utility to register editors and common namespace for keeping reference to all editor classes
  */
 
-import {toUpperCaseFirst} from './helpers/string.js';
+import {toUpperCaseFirst} from './helpers/string';
 
 export {registerEditor, getEditor, hasEditor, getEditorConstructor};
 

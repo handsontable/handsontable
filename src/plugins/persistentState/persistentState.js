@@ -1,5 +1,5 @@
 
-import {registerPlugin} from './../../plugins.js';
+import {registerPlugin} from './../../plugins';
 
 export {HandsontablePersistentState};
 

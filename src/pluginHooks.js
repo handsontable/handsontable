@@ -557,9 +557,9 @@ const REGISTERED_HOOKS = [
   "persistentStateSave"
 ];
 
-import {EventManager} from './eventManager.js';
-import {arrayEach} from './helpers/array.js';
-import {objectEach} from './helpers/object.js';
+import {EventManager} from './eventManager';
+import {arrayEach} from './helpers/array';
+import {objectEach} from './helpers/object';
 
 class Hooks {
   /**

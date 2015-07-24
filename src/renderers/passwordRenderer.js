@@ -1,6 +1,6 @@
 
-import {fastInnerHTML} from './../helpers/dom/element.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
+import {fastInnerHTML} from './../helpers/dom/element';
+import {getRenderer, registerRenderer} from './../renderers';
 
 
 /**

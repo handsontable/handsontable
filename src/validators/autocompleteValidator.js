@@ -1,5 +1,5 @@
 
-import {stringify} from './../helpers/mixed.js';
+import {stringify} from './../helpers/mixed';
 
 /**
  * Autocomplete cell validator.

@@ -1,8 +1,8 @@
 
-import {addClass, hasClass, removeClass} from './../../helpers/dom/element.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {pageX, pageY} from './../../helpers/dom/event.js';
-import {registerPlugin} from './../../plugins.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {pageX, pageY} from './../../helpers/dom/event';
+import {registerPlugin} from './../../plugins';
 
 export {ManualRowResize};
 

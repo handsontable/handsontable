@@ -1,8 +1,8 @@
 
-import {addClass} from './../../../helpers/dom/element.js';
-import {WalkontableBorder} from './border.js';
-import {WalkontableCellCoords} from './cell/coords.js';
-import {WalkontableCellRange} from './cell/range.js';
+import {addClass} from './../../../helpers/dom/element';
+import {WalkontableBorder} from './border';
+import {WalkontableCellCoords} from './cell/coords';
+import {WalkontableCellRange} from './cell/range';
 
 
 /**

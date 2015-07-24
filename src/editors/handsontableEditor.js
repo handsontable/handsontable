@@ -1,9 +1,9 @@
 
-import {KEY_CODES} from './../helpers/unicode.js';
-import {extend} from './../helpers/object.js';
-import {setCaretPosition} from './../helpers/dom/element.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {TextEditor} from './textEditor.js';
+import {KEY_CODES} from './../helpers/unicode';
+import {extend} from './../helpers/object';
+import {setCaretPosition} from './../helpers/dom/element';
+import {getEditor, registerEditor} from './../editors';
+import {TextEditor} from './textEditor';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 

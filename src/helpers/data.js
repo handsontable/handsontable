@@ -1,5 +1,5 @@
 
-import {getPrototypeOf} from './object.js';
+import {getPrototypeOf} from './object';
 
 /**
  * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc

@@ -1,5 +1,5 @@
 
-import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser.js';
+import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser';
 
 /**
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.

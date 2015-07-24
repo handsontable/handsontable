@@ -9,14 +9,14 @@ import {
   offset,
   resetCssTransform,
   setCaretPosition,
-    } from './../helpers/dom/element.js';
+    } from './../helpers/dom/element';
 import autoResize from 'autoResize';
-import {BaseEditor} from './_baseEditor.js';
-import {enableImmediatePropagation} from './../helpers/dom/event.js';
-import {eventManager as eventManagerObject} from './../eventManager.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {KEY_CODES} from './../helpers/unicode.js';
-import {stopPropagation} from './../helpers/dom/event.js';
+import {BaseEditor} from './_baseEditor';
+import {enableImmediatePropagation} from './../helpers/dom/event';
+import {eventManager as eventManagerObject} from './../eventManager';
+import {getEditor, registerEditor} from './../editors';
+import {KEY_CODES} from './../helpers/unicode';
+import {stopPropagation} from './../helpers/dom/event';
 
 var TextEditor = BaseEditor.prototype.extend();
 

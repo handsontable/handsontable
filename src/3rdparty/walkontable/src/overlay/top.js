@@ -8,8 +8,8 @@ import {
   outerHeight,
   removeClass,
   setOverlayPosition,
-    } from './../../../../helpers/dom/element.js';
-import {WalkontableOverlay} from './_base.js';
+    } from './../../../../helpers/dom/element';
+import {WalkontableOverlay} from './_base';
 
 
 /**

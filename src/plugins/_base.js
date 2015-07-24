@@ -1,6 +1,6 @@
 
-import {defineGetter, objectEach} from './../helpers/object.js';
-import {arrayEach} from './../helpers/array.js';
+import {defineGetter, objectEach} from './../helpers/object';
+import {arrayEach} from './../helpers/array';
 
 const privatePool = new WeakMap();
 

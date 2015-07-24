@@ -4,15 +4,15 @@ import {
   fastInnerText,
   isVisible,
   removeClass,
-    } from './../../../helpers/dom/element.js';
-import {objectEach} from './../../../helpers/object.js';
-import {toUpperCaseFirst, randomString} from './../../../helpers/string.js';
-import {WalkontableEvent} from './event.js';
-import {WalkontableOverlays} from './overlays.js';
-import {WalkontableScroll} from './scroll.js';
-import {WalkontableSettings} from './settings.js';
-import {WalkontableTable} from './table.js';
-import {WalkontableViewport} from './viewport.js';
+    } from './../../../helpers/dom/element';
+import {objectEach} from './../../../helpers/object';
+import {toUpperCaseFirst, randomString} from './../../../helpers/string';
+import {WalkontableEvent} from './event';
+import {WalkontableOverlays} from './overlays';
+import {WalkontableScroll} from './scroll';
+import {WalkontableSettings} from './settings';
+import {WalkontableTable} from './table';
+import {WalkontableViewport} from './viewport';
 
 
 /**

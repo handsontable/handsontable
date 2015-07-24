@@ -1,13 +1,13 @@
 
-import BasePlugin from './../_base.js';
-import {arrayEach, arrayFilter} from './../../helpers/array.js';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/dom/element.js';
-import {GhostTable} from './../../utils/ghostTable.js';
-import {isObject, objectEach} from './../../helpers/object.js';
-import {isPercentValue, rangeEach} from './../../helpers/number.js';
-import {registerPlugin} from './../../plugins.js';
-import {SamplesGenerator} from './../../utils/samplesGenerator.js';
-import {valueAccordingPercent} from './../../helpers/string.js';
+import BasePlugin from './../_base';
+import {arrayEach, arrayFilter} from './../../helpers/array';
+import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/dom/element';
+import {GhostTable} from './../../utils/ghostTable';
+import {isObject, objectEach} from './../../helpers/object';
+import {isPercentValue, rangeEach} from './../../helpers/number';
+import {registerPlugin} from './../../plugins';
+import {SamplesGenerator} from './../../utils/samplesGenerator';
+import {valueAccordingPercent} from './../../helpers/string';
 
 
 /**

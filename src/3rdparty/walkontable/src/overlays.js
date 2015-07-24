@@ -4,12 +4,12 @@ import {
   getScrollbarWidth,
   getScrollLeft,
   getScrollTop,
-    } from './../../../helpers/dom/element.js';
-import {EventManager} from './../../../eventManager.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
-import {WalkontableDebugOverlay} from './overlay/debug.js';
-import {WalkontableLeftOverlay} from './overlay/left.js';
-import {WalkontableTopOverlay} from './overlay/top.js';
+    } from './../../../helpers/dom/element';
+import {EventManager} from './../../../eventManager';
+import {WalkontableCornerOverlay} from './overlay/corner';
+import {WalkontableDebugOverlay} from './overlay/debug';
+import {WalkontableLeftOverlay} from './overlay/left';
+import {WalkontableTopOverlay} from './overlay/top';
 
 
 /**

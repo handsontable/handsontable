@@ -1,6 +1,6 @@
 
-import {addClass, removeClass} from './../../helpers/dom/element.js';
-import {registerRenderer, getRenderer} from './../../renderers.js';
+import {addClass, removeClass} from './../../helpers/dom/element';
+import {registerRenderer, getRenderer} from './../../renderers';
 
 /**
  * @private

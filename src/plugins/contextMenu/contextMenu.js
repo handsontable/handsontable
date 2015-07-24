@@ -7,14 +7,14 @@ import {
   getWindowScrollTop,
   hasClass,
   removeClass,
-    } from './../../helpers/dom/element.js';
-import {enableImmediatePropagation} from './../../helpers/dom/event.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {extend, isObject} from './../../helpers/object.js';
-import {KEY_CODES} from './../../helpers/unicode.js';
-import {proxy} from './../../helpers/function.js';
-import {registerPlugin} from './../../plugins.js';
-import {stopPropagation} from './../../helpers/dom/event.js';
+    } from './../../helpers/dom/element';
+import {enableImmediatePropagation} from './../../helpers/dom/event';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {extend, isObject} from './../../helpers/object';
+import {KEY_CODES} from './../../helpers/unicode';
+import {proxy} from './../../helpers/function';
+import {registerPlugin} from './../../plugins';
+import {stopPropagation} from './../../helpers/dom/event';
 
 
 /**

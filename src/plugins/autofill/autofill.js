@@ -1,8 +1,8 @@
 
-import {offset, outerHeight, outerWidth} from './../../helpers/dom/element.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
+import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 
 export {Autofill};
 

@@ -1,6 +1,6 @@
 
-import {addClass} from './../../../../helpers/dom/element.js';
-import {WalkontableOverlay} from './_base.js';
+import {addClass} from './../../../../helpers/dom/element';
+import {WalkontableOverlay} from './_base';
 
 /**
  * A overlay that renders ALL available rows & columns positioned on top of the original Walkontable instance and all other overlays.

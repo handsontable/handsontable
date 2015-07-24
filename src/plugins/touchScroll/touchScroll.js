@@ -1,7 +1,7 @@
 
-import {addClass, removeClass} from './../../helpers/dom/element.js';
-import BasePlugin from './../_base.js';
-import {registerPlugin} from './../../plugins.js';
+import {addClass, removeClass} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import {registerPlugin} from './../../plugins';
 
 
 /**

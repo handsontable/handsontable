@@ -1,5 +1,5 @@
 
-import {inherit} from './object.js';
+import {inherit} from './object';
 
 /**
  * Factory for columns constructors.

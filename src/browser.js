@@ -13,33 +13,33 @@ window.Handsontable = function Handsontable(rootElement, userSettings) {
 Handsontable.version = version;
 Handsontable.buildDate = buildDate;
 
-import './shims/classes.js';
+import './shims/classes';
 import 'es6collections';
 
 Handsontable.plugins = {};
 
-import {Hooks} from './pluginHooks.js';
+import {Hooks} from './pluginHooks';
 
 if (!Handsontable.hooks) {
   Handsontable.hooks = new Hooks();
 }
 
-import './core.js';
-import './renderers/_cellDecorator.js';
-import './cellTypes.js';
-import './../plugins/jqueryHandsontable.js';
+import './core';
+import './renderers/_cellDecorator';
+import './cellTypes';
+import './../plugins/jqueryHandsontable';
 
 // export helpers
-import * as arrayHelpers from './helpers/array.js';
-import * as browserHelpers from './helpers/browser.js';
-import * as dataHelpers from './helpers/data.js';
-import * as functionHelpers from './helpers/function.js';
-import * as mixedHelpers from './helpers/mixed.js';
-import * as numberHelpers from './helpers/number.js';
-import * as objectHelpers from './helpers/object.js';
-import * as settingHelpers from './helpers/setting.js';
-import * as stringHelpers from './helpers/string.js';
-import * as unicodeHelpers from './helpers/unicode.js';
+import * as arrayHelpers from './helpers/array';
+import * as browserHelpers from './helpers/browser';
+import * as dataHelpers from './helpers/data';
+import * as functionHelpers from './helpers/function';
+import * as mixedHelpers from './helpers/mixed';
+import * as numberHelpers from './helpers/number';
+import * as objectHelpers from './helpers/object';
+import * as settingHelpers from './helpers/setting';
+import * as stringHelpers from './helpers/string';
+import * as unicodeHelpers from './helpers/unicode';
 
 const helpers = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers,
   settingHelpers, stringHelpers, unicodeHelpers];
@@ -55,8 +55,8 @@ arrayHelpers.arrayEach(helpers, (helper) => {
 });
 
 // export helpers
-import * as domHelpers from './helpers/dom/element.js';
-import * as domEventHelpers from './helpers/dom/event.js';
+import * as domHelpers from './helpers/dom/element';
+import * as domEventHelpers from './helpers/dom/event';
 
 Handsontable.dom = {};
 Handsontable.Dom = Handsontable.dom; // legacy support

@@ -1,8 +1,8 @@
 
-import {removeClass} from './../../helpers/dom/element.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
-import BasePlugin from './../_base.js';
+import {removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
+import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 
 /**

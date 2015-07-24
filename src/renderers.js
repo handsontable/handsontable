@@ -2,7 +2,7 @@
  * Utility to register renderers and common namespace for keeping reference to all renderers classes
  */
 
-import {toUpperCaseFirst} from './helpers/string.js';
+import {toUpperCaseFirst} from './helpers/string';
 
 var registeredRenderers = {};
 

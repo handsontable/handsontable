@@ -6,12 +6,12 @@ import {
   getWindowScrollTop,
   hasClass,
   offset,
-    } from './../../helpers/dom/element.js';
-import {EventManager} from './../../eventManager.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {registerPlugin, getPlugin} from './../../plugins.js';
-import BasePlugin from './../_base.js';
-import {CommentEditor} from './commentEditor.js';
+    } from './../../helpers/dom/element';
+import {EventManager} from './../../eventManager';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {registerPlugin, getPlugin} from './../../plugins';
+import BasePlugin from './../_base';
+import {CommentEditor} from './commentEditor';
 
 /**
  * @plugin Comments

@@ -1,7 +1,7 @@
 
-import {empty} from './../helpers/dom/element.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {TextEditor} from './textEditor.js';
+import {empty} from './../helpers/dom/element';
+import {getEditor, registerEditor} from './../editors';
+import {TextEditor} from './textEditor';
 
 
 /**

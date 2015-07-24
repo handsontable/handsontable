@@ -7,16 +7,16 @@ import {
   offset,
   removeClass,
   removeTextNodes,
-    } from './../../../helpers/dom/element.js';
-import {WalkontableCellCoords} from './cell/coords.js';
-import {WalkontableCellRange} from './cell/range.js';
-import {WalkontableColumnFilter} from './filter/column.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
-import {WalkontableDebugOverlay} from './overlay/debug.js';
-import {WalkontableLeftOverlay} from './overlay/left.js';
-import {WalkontableRowFilter} from './filter/row.js';
-import {WalkontableTableRenderer} from './tableRenderer.js';
-import {WalkontableTopOverlay} from './overlay/top.js';
+    } from './../../../helpers/dom/element';
+import {WalkontableCellCoords} from './cell/coords';
+import {WalkontableCellRange} from './cell/range';
+import {WalkontableColumnFilter} from './filter/column';
+import {WalkontableCornerOverlay} from './overlay/corner';
+import {WalkontableDebugOverlay} from './overlay/debug';
+import {WalkontableLeftOverlay} from './overlay/left';
+import {WalkontableRowFilter} from './filter/row';
+import {WalkontableTableRenderer} from './tableRenderer';
+import {WalkontableTopOverlay} from './overlay/top';
 
 
 class WalkontableTable {

@@ -1,5 +1,5 @@
 
-import {KEY_CODES} from './../helpers/unicode.js';
+import {KEY_CODES} from './../helpers/unicode';
 import {
   addClass,
   getScrollLeft,
@@ -11,11 +11,11 @@ import {
   outerWidth,
   removeClass,
   setCaretPosition,
-    } from './../helpers/dom/element.js';
-import {enableImmediatePropagation} from './../helpers/dom/event.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {BaseEditor} from './_baseEditor.js';
-import {eventManager as eventManagerObject} from './../eventManager.js';
+    } from './../helpers/dom/element';
+import {enableImmediatePropagation} from './../helpers/dom/event';
+import {getEditor, registerEditor} from './../editors';
+import {BaseEditor} from './_baseEditor';
+import {eventManager as eventManagerObject} from './../eventManager';
 
 var
   MobileTextEditor = BaseEditor.prototype.extend(),

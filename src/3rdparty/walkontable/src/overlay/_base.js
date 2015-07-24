@@ -2,9 +2,9 @@
 import {
   getScrollableElement,
   getTrimmingContainer,
-    } from './../../../../helpers/dom/element.js';
-import {defineGetter} from './../../../../helpers/object.js';
-import {eventManager as eventManagerObject} from './../../../../eventManager.js';
+    } from './../../../../helpers/dom/element';
+import {defineGetter} from './../../../../helpers/object';
+import {eventManager as eventManagerObject} from './../../../../eventManager';
 
 
 /**
