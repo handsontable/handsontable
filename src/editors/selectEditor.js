@@ -1,6 +1,17 @@
 
-import * as dom from './../dom.js';
-import * as helper from './../helpers.js';
+import {
+  addClass,
+  empty,
+  fastInnerHTML,
+  getComputedStyle,
+  getCssTransform,
+  getScrollableElement,
+  offset,
+  outerHeight,
+  outerWidth,
+  resetCssTransform,
+    } from './../helpers/dom/element.js';
+import {KEY_CODES} from './../helpers/unicode.js';
 import {getEditor, registerEditor} from './../editors.js';
 import {BaseEditor} from './_baseEditor.js';
 
@@ -14,7 +25,7 @@ var SelectEditor = BaseEditor.prototype.extend();
  */
 SelectEditor.prototype.init = function() {
   this.select = document.createElement('SELECT');
-  dom.addClass(this.select, 'htSelectEditor');
+  addClass(this.select, 'htSelectEditor');
   this.select.style.display = 'none';
   this.instance.rootElement.appendChild(this.select);
   this.registerHooks();
@@ -38,13 +49,13 @@ SelectEditor.prototype.prepare = function() {
     options = this.prepareOptions(selectOptions);
   }
 
-  dom.empty(this.select);
+  empty(this.select);
 
   for (var option in options) {
     if (options.hasOwnProperty(option)) {
       var optionElement = document.createElement('OPTION');
       optionElement.value = option;
-      dom.fastInnerHTML(optionElement, options[option]);
+      fastInnerHTML(optionElement, options[option]);
       this.select.appendChild(optionElement);
     }
   }
@@ -88,7 +99,7 @@ var onBeforeKeyDown = function(event) {
   }
 
   switch (event.keyCode) {
-    case helper.keyCode.ARROW_UP:
+    case KEY_CODES.ARROW_UP:
       var previousOptionIndex = editor.select.selectedIndex - 1;
       if (previousOptionIndex >= 0) {
         editor.select[previousOptionIndex].selected = true;
@@ -98,7 +109,7 @@ var onBeforeKeyDown = function(event) {
       event.preventDefault();
       break;
 
-    case helper.keyCode.ARROW_DOWN:
+    case KEY_CODES.ARROW_DOWN:
       var nextOptionIndex = editor.select.selectedIndex + 1;
       if (nextOptionIndex <= editor.select.length - 1) {
         editor.select[nextOptionIndex].selected = true;
@@ -155,11 +166,11 @@ SelectEditor.prototype.refreshDimensions = function() {
     return;
   }
   var
-    width = dom.outerWidth(this.TD) + 1,
-    height = dom.outerHeight(this.TD) + 1,
-    currentOffset = dom.offset(this.TD),
-    containerOffset = dom.offset(this.instance.rootElement),
-    scrollableContainer = dom.getScrollableElement(this.TD),
+    width = outerWidth(this.TD) + 1,
+    height = outerHeight(this.TD) + 1,
+    currentOffset = offset(this.TD),
+    containerOffset = offset(this.instance.rootElement),
+    scrollableContainer = getScrollableElement(this.TD),
     editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
     editorSection = this.checkEditorSection(),
@@ -171,13 +182,13 @@ SelectEditor.prototype.refreshDimensions = function() {
 
   switch (editorSection) {
     case 'top':
-      cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+      cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
       break;
     case 'left':
-      cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+      cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       break;
     case 'corner':
-      cssTransformOffset = dom.getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
       break;
   }
   if (this.instance.getSelected()[0] === 0) {
@@ -193,9 +204,9 @@ SelectEditor.prototype.refreshDimensions = function() {
   if (cssTransformOffset && cssTransformOffset != -1) {
     selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
-    dom.resetCssTransform(this.select);
+    resetCssTransform(this.select);
   }
-  const cellComputedStyle = dom.getComputedStyle(this.TD);
+  const cellComputedStyle = getComputedStyle(this.TD);
 
   if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
     height -= 1;

@@ -1,7 +1,7 @@
 
 import {registerEditor} from './../editors.js';
 import {BaseEditor} from './_baseEditor.js';
-import * as dom from './../dom.js';
+import {hasClass} from './../helpers/dom/element.js';
 
 
 /**
@@ -13,7 +13,7 @@ class CheckboxEditor extends BaseEditor {
   beginEditing() {
     let checkbox = this.TD.querySelector('input[type="checkbox"]');
 
-    if (!dom.hasClass(checkbox, 'htBadValue')) {
+    if (!hasClass(checkbox, 'htBadValue')) {
       checkbox.click();
     }
   }

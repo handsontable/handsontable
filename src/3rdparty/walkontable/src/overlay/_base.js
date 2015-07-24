@@ -1,7 +1,10 @@
-import * as dom from './../../../../dom.js';
-import {defineGetter} from './../../../../helpers.js';
+
+import {
+  getScrollableElement,
+  getTrimmingContainer,
+    } from './../../../../helpers/dom/element.js';
+import {defineGetter} from './../../../../helpers/object.js';
 import {eventManager as eventManagerObject} from './../../../../eventManager.js';
-//import {Walkontable} from './../core.js';
 
 
 /**
@@ -70,8 +73,8 @@ class WalkontableOverlay {
     this.spreader = this.wot.wtTable.spreader;
     this.holder = this.wot.wtTable.holder;
     this.wtRootElement = this.wot.wtTable.wtRootElement;
-    this.trimmingContainer = dom.getTrimmingContainer(this.hider.parentNode.parentNode);
-    this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
     this.needFullRender = this.shouldBeRendered();
     this.isElementSizesAdjusted = false;
   }

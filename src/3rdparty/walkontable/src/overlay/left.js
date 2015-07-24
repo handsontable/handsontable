@@ -1,4 +1,14 @@
-import * as dom from './../../../../dom.js';
+
+import {
+  addClass,
+  getScrollbarWidth,
+  getScrollLeft,
+  getWindowScrollTop,
+  hasClass,
+  outerWidth,
+  removeClass,
+  setOverlayPosition,
+    } from './../../../../helpers/dom/element.js';
 import {WalkontableOverlay} from './_base.js';
 
 
@@ -52,7 +62,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
       headerPosition = finalLeft;
       finalLeft = finalLeft + 'px';
 
-      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, finalLeft, finalTop);
 
     } else {
       headerPosition = this.getScrollPosition();
@@ -67,7 +77,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    */
   setScrollPosition(pos) {
     if (this.mainTableScrollableElement === window) {
-      window.scrollTo(pos, dom.getWindowScrollTop());
+      window.scrollTo(pos, getWindowScrollTop());
 
     } else {
       this.mainTableScrollableElement.scrollLeft = pos;
@@ -121,7 +131,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    */
   adjustRootElementSize() {
     let masterHolder = this.wot.wtTable.holder;
-    let scrollbarHeight = masterHolder.clientHeight !== masterHolder.offsetHeight ? dom.getScrollbarWidth() : 0;
+    let scrollbarHeight = masterHolder.clientHeight !== masterHolder.offsetHeight ? getScrollbarWidth() : 0;
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let tableWidth;
@@ -131,7 +141,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     }
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
-    tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
+    tableWidth = outerWidth(this.clone.wtTable.TABLE);
     overlayRootStyle.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
   }
 
@@ -139,7 +149,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * Adjust overlay root childs size
    */
   adjustRootChildsSize() {
-    let scrollbarWidth = dom.getScrollbarWidth();
+    let scrollbarWidth = getScrollbarWidth();
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
@@ -200,7 +210,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let scrollbarCompensation = 0;
 
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
-      scrollbarCompensation = dom.getScrollbarWidth();
+      scrollbarCompensation = getScrollbarWidth();
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
@@ -234,7 +244,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @returns {Number} Main table's vertical scroll position
    */
   getScrollPosition() {
-    return dom.getScrollLeft(this.mainTableScrollableElement);
+    return getScrollLeft(this.mainTableScrollableElement);
   }
 
   /**
@@ -248,15 +258,15 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
 
     if (fixedColumnsLeft && !rowHeaders.length) {
-      dom.addClass(masterParent, 'innerBorderLeft');
+      addClass(masterParent, 'innerBorderLeft');
 
     } else if (!fixedColumnsLeft && rowHeaders.length) {
-      let previousState = dom.hasClass(masterParent, 'innerBorderLeft');
+      let previousState = hasClass(masterParent, 'innerBorderLeft');
 
       if (position) {
-        dom.addClass(masterParent, 'innerBorderLeft');
+        addClass(masterParent, 'innerBorderLeft');
       } else {
-        dom.removeClass(masterParent, 'innerBorderLeft');
+        removeClass(masterParent, 'innerBorderLeft');
       }
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();

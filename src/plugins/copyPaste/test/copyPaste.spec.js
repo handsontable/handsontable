@@ -18,12 +18,14 @@ describe('CopyPaste', function () {
 
     $('.copyPaste')[0].onpaste({clipboardData: {getData: getData}});
 
-    if (Handsontable.Dom.isSafari()) {
+    if (Handsontable.helper.isSafari()) {
       expect($('.copyPaste')[0].value).toEqual('a\nb\n');
       expect(getData).toHaveBeenCalledWith('Text');
-    } else if (Handsontable.Dom.isChrome()) {
+
+    } else if (Handsontable.helper.isChrome()) {
       expect($('.copyPaste')[0].value).toBe('a\nb\n\n');
       expect(getData).toHaveBeenCalledWith('Text');
+
     } else {
       expect($('.copyPaste')[0].value).toBe('');
       expect(getData).not.toHaveBeenCalled();
@@ -46,7 +48,7 @@ describe('CopyPaste', function () {
       var hot = handsontable();
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT); //copyPaste div isn't created until you click CTRL
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT); //copyPaste div isn't created until you click CTRL
 
       expect($('#CopyPasteDiv').length).toEqual(1);
     });
@@ -59,7 +61,7 @@ describe('CopyPaste', function () {
       });
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(0);
     });
@@ -90,7 +92,7 @@ describe('CopyPaste', function () {
       var hot = handsontable();
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(1);
 
@@ -101,7 +103,7 @@ describe('CopyPaste', function () {
       expect($('#CopyPasteDiv').length).toEqual(0);
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(0);
     });
@@ -118,7 +120,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
@@ -133,7 +135,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.COMMAND_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
 
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
@@ -148,7 +150,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.COMMAND_RIGHT);
+      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_RIGHT);
 
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
@@ -163,7 +165,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0, 1, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
     });
@@ -179,7 +181,7 @@ describe('CopyPaste', function () {
 
       selectCell(0, 0);
 
-      $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true});
+      $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true});
       waits(0);
 
       runs(function () {
@@ -202,7 +204,7 @@ describe('CopyPaste', function () {
 //          keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
 //        }));
         $(document).simulate('keydown', {
-          keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
+          keyCode: Handsontable.helper.KEY_CODES.COMMAND_LEFT
         });
       }
 
@@ -228,7 +230,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0, 1, 1);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
     });
@@ -251,7 +253,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(1, 1, 1, 1);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect(copyPasteTextarea.val()).toEqual('2\n');
     });

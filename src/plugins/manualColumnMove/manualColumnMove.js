@@ -1,7 +1,7 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
+import {pageX, pageY} from './../../helpers/dom/event.js';
 import {registerPlugin} from './../../plugins.js';
 
 export {ManualColumnMove};
@@ -68,8 +68,8 @@ function ManualColumnMove() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     var box = currentTH.getBoundingClientRect();
     guide.style.width = box.width + 'px';
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
@@ -83,8 +83,8 @@ function ManualColumnMove() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkColumnHeader = function(element) {
@@ -133,8 +133,8 @@ function ManualColumnMove() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualColumnMover')) {
-        startX = helper.pageX(e);
+      if (hasClass(e.target, 'manualColumnMover')) {
+        startX = pageX(e);
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -145,7 +145,7 @@ function ManualColumnMove() {
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        refreshGuidePosition(helper.pageX(e) - startX);
+        refreshGuidePosition(pageX(e) - startX);
       }
     });
 

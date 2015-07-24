@@ -1,10 +1,7 @@
 
-import * as dom from './../dom.js';
+import {fastInnerHTML} from './../helpers/dom/element.js';
 import {getRenderer, registerRenderer} from './../renderers.js';
 
-export {passwordRenderer};
-
-registerRenderer('password', passwordRenderer);
 
 /**
  * @private
@@ -28,5 +25,9 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {}
 
-  dom.fastInnerHTML(TD, hash);
+  fastInnerHTML(TD, hash);
 }
+
+export {passwordRenderer};
+
+registerRenderer('password', passwordRenderer);

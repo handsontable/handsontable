@@ -1,5 +1,5 @@
 
-import * as dom from './../../dom.js';
+import {removeClass} from './../../helpers/dom/element.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
 import {registerPlugin} from './../../plugins.js';
 import BasePlugin from './../_base.js';
@@ -133,7 +133,7 @@ class ContextMenuCopyPaste extends BasePlugin {
       var element = this.hotContextMenu.rootElement.querySelector('td.current');
 
       if ( element ) {
-        dom.removeClass(element, 'current');
+        removeClass(element, 'current');
       }
     }
     this.outsideClickDeselectsCache = this.hot.getSettings().outsideClickDeselects;
@@ -145,7 +145,7 @@ class ContextMenuCopyPaste extends BasePlugin {
       var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
 
       if ( element ) {
-        dom.removeClass(element, 'zeroclipboard-is-hover');
+        removeClass(element, 'zeroclipboard-is-hover');
       }
     }
     this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;

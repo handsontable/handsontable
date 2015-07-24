@@ -296,7 +296,7 @@ describe('TextEditor', function () {
 
     var editor = $('.handsontableInput');
     expect(isEditorVisible()).toEqual(false);
-    keyDown(Handsontable.helper.keyCode.CAPS_LOCK);
+    keyDown(Handsontable.helper.KEY_CODES.CAPS_LOCK);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -631,12 +631,12 @@ describe('TextEditor', function () {
 
      selectCell(0, 0);
 
-     keyDown(Handsontable.helper.keyCode.BACKSPACE);
+     keyDown(Handsontable.helper.KEY_CODES.BACKSPACE);
 
     expect(getDataAtCell(0, 0)).toEqual('');
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getActiveEditor().getValue()).toEqual('');
@@ -651,12 +651,12 @@ describe('TextEditor', function () {
 
     selectCell(0, 0);
 
-    keyDown(Handsontable.helper.keyCode.DELETE);
+    keyDown(Handsontable.helper.KEY_CODES.DELETE);
 
     expect(getDataAtCell(0, 0)).toEqual('');
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getActiveEditor().getValue()).toEqual('');
@@ -671,7 +671,7 @@ describe('TextEditor', function () {
 
     selectCell(0, 0);
 
-    keyDown(Handsontable.helper.keyCode.ALT);
+    keyDown(Handsontable.helper.KEY_CODES.ALT);
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
@@ -688,26 +688,26 @@ describe('TextEditor', function () {
 
     // corner
     selectCell(1, 1);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     var $inputHolder = $('.handsontableInputHolder');
     expect($(getCell(1,1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1,1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // top
     selectCell(1, 4);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect($(getCell(1,4)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1,4)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // left
     selectCell(4, 1);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect($(getCell(4,1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4,1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
     selectCell(4, 4);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect($(getCell(4,4)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4,4)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -735,7 +735,7 @@ describe('TextEditor', function () {
     var top = $(currentCell).offset().top;
 
     var $inputHolder = $('.handsontableInputHolder');
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -772,7 +772,7 @@ describe('TextEditor', function () {
       var top = $(currentCell).offset().top;
 
       var $inputHolder = $('.handsontableInputHolder');
-      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown(Handsontable.helper.KEY_CODES.ENTER);
       expect(left).toEqual($inputHolder.offset().left + 1);
       expect(top).toEqual($inputHolder.offset().top + 1);
     });
@@ -801,7 +801,7 @@ describe('TextEditor', function () {
     var top = $(currentCell).offset().top;
 
     var $inputHolder = $('.handsontableInputHolder');
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -827,7 +827,7 @@ describe('TextEditor', function () {
     var top = $(currentCell).offset().top;
 
     var $inputHolder = $('.handsontableInputHolder');
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -839,7 +839,7 @@ describe('TextEditor', function () {
     });
 
     selectCell(0,7);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     expect(Handsontable.Dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toBeAroundValue(Handsontable.Dom.outerWidth(hot.getCell(0,7)));
   });
@@ -852,13 +852,13 @@ describe('TextEditor', function () {
     });
 
     selectCell(0,2);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     var regularHeight = Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA);
 
     selectCell(3,2);
-    keyDown(Handsontable.helper.keyCode.ENTER);
-    keyDown(Handsontable.helper.keyCode.ENTER);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     // lame check, needs investigating why sometimes it leaves 2px error
     if(Handsontable.Dom.outerHeight(hot.getActiveEditor().TEXTAREA) == regularHeight) {
@@ -877,9 +877,9 @@ describe('TextEditor', function () {
     });
 
     selectCell(0,2);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
     hot.getActiveEditor().TEXTAREA.value = "       test    of    whitespace      ";
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     expect(getDataAtCell(0,2).length).toEqual(37);
   });
@@ -895,13 +895,13 @@ describe('TextEditor', function () {
     });
 
     selectCell(0, 0);
-    keyDown(Handsontable.helper.keyCode.ENTER);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     var $editorInput = $('.handsontableInput');
 
     Handsontable.Dom.setCaretPosition($editorInput[0], 2);
 
-    $editorInput.simulate('keydown', {altKey: true, keyCode: Handsontable.helper.keyCode.ENTER});
+    $editorInput.simulate('keydown', {altKey: true, keyCode: Handsontable.helper.KEY_CODES.ENTER});
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual("Ma\nserati");
   });

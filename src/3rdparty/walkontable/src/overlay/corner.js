@@ -1,4 +1,9 @@
-import * as dom from './../../../../dom.js';
+
+import {
+  outerHeight,
+  outerWidth,
+  setOverlayPosition,
+    } from './../../../../helpers/dom/element.js';
 import {WalkontableOverlay} from './_base.js';
 
 
@@ -33,8 +38,8 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
       return;
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
-    let tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     if (this.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
@@ -56,7 +61,7 @@ class WalkontableCornerOverlay extends WalkontableOverlay {
       } else {
         finalTop = '0';
       }
-      dom.setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, finalLeft, finalTop);
     }
     overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
     overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';

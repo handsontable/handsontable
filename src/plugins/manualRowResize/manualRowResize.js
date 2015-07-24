@@ -1,7 +1,7 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element.js';
 import {eventManager as eventManagerObject} from './../../eventManager.js';
+import {pageX, pageY} from './../../helpers/dom/event.js';
 import {registerPlugin} from './../../plugins.js';
 
 export {ManualRowResize};
@@ -64,8 +64,8 @@ function ManualRowResize() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
@@ -77,8 +77,8 @@ function ManualRowResize() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkRowHeader = function(element) {
@@ -122,7 +122,7 @@ function ManualRowResize() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualRowResizer')) {
+      if (hasClass(e.target, 'manualRowResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -146,14 +146,14 @@ function ManualRowResize() {
         }
         dblclick++;
 
-        startY = helper.pageY(e);
+        startY = pageY(e);
         newSize = startHeight;
       }
     });
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        currentHeight = startHeight + (helper.pageY(e) - startY);
+        currentHeight = startHeight + (pageY(e) - startY);
         newSize = setManualSize(currentRow, currentHeight);
         refreshHandlePosition();
         refreshGuidePosition();

@@ -1,6 +1,9 @@
 
-import {addClass, outerHeight, outerWidth} from './../dom.js';
-import {arrayEach, objectEach, rangeEach, stringify} from './../helpers.js';
+import {addClass, outerHeight, outerWidth} from './../helpers/dom/element.js';
+import {arrayEach} from './../helpers/array.js';
+import {objectEach} from './../helpers/object.js';
+import {rangeEach} from './../helpers/number.js';
+import {stringify} from './../helpers/mixed.js';
 
 /**
  * @private

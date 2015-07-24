@@ -1,10 +1,13 @@
 
 import BasePlugin from './../_base.js';
-import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame, isObject,
-        isPercentValue, valueAccordingPercent} from './../../helpers.js';
+import {arrayEach, arrayFilter} from './../../helpers/array.js';
+import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/dom/element.js';
 import {GhostTable} from './../../utils/ghostTable.js';
+import {isObject, objectEach} from './../../helpers/object.js';
+import {isPercentValue, rangeEach} from './../../helpers/number.js';
 import {registerPlugin} from './../../plugins.js';
 import {SamplesGenerator} from './../../utils/samplesGenerator.js';
+import {valueAccordingPercent} from './../../helpers/string.js';
 import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns.js';
 
 /**

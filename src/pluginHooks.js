@@ -558,7 +558,8 @@ const REGISTERED_HOOKS = [
 ];
 
 import {EventManager} from './eventManager.js';
-import {arrayEach, objectEach} from './helpers.js';
+import {arrayEach} from './helpers/array.js';
+import {objectEach} from './helpers/object.js';
 
 class Hooks {
   /**

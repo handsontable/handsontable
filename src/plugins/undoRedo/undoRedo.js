@@ -2,7 +2,7 @@
  * Handsontable UndoRedo class
  */
 
-import * as helper from './../../helpers.js';
+import {inherit, deepClone} from './../../helpers/object.js';
 
 /**
  * Handsontable UndoRedo class
@@ -166,9 +166,9 @@ Handsontable.UndoRedo.Action.prototype.redo = function() {};
 Handsontable.UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
 };
-helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
+inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
-  var data = helper.deepClone(this.changes),
+  var data = deepClone(this.changes),
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
     emptyColsAtTheEnd = instance.countEmptyCols(true);
 
@@ -197,7 +197,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
 
 };
 Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
-  var data = helper.deepClone(this.changes);
+  var data = deepClone(this.changes);
 
   for (var i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
@@ -213,7 +213,7 @@ Handsontable.UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
 };
-helper.inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
+inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
   var rowCount = instance.countRows(),
     minSpareRows = instance.getSettings().minSpareRows;
@@ -233,7 +233,7 @@ Handsontable.UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
   this.data = data;
 };
-helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
+inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   var spliceArgs = [this.index, 0];
   Array.prototype.push.apply(spliceArgs, this.data);
@@ -252,7 +252,7 @@ Handsontable.UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
 };
-helper.inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
+inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) {
   instance.addHookOnce('afterRemoveCol', undoneCallback);
   instance.alter('remove_col', this.index, this.amount);
@@ -303,7 +303,7 @@ Handsontable.UndoRedo.RemoveColumnAction = function(index, data, headers) {
   this.amount = this.data[0].length;
   this.headers = headers;
 };
-helper.inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
+inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
   var row, spliceArgs;
   for (var i = 0, len = instance.getData().length; i < len; i++) {
