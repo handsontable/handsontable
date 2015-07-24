@@ -81,7 +81,7 @@ describe('CopyPaste', function () {
         copyPaste: false
       });
 
-      expect(hot.copyPaste).toBeUndefined();
+      expect(hot.copyPaste).toBe(null);
     });
 
     it("should remove copyPaste div if plugin has been disabled using updateSetting", function () {

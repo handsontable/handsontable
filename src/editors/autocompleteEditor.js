@@ -287,6 +287,20 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
 
+AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
+  let selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
+  let allowed = false;
+
+  if (keyCode === helper.keyCode.ARROW_DOWN && selected.row < this.htEditor.countRows() - 1) {
+    allowed = true;
+  }
+  if (keyCode === helper.keyCode.ARROW_UP && selected.row > -1) {
+    allowed = true;
+  }
+
+  return allowed;
+};
+
 export {AutocompleteEditor};
 
 registerEditor('autocomplete', AutocompleteEditor);
