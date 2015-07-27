@@ -40,6 +40,26 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
+  it('should correctly detect row height when table is hidden on init (display: none)', function () {
+    this.$container.css('display', 'none');
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      rowHeaders: true,
+      autoRowSize: true
+    });
+
+    waits(200);
+
+    runs(function() {
+      this.$container.css('display', 'block');
+      hot.render();
+
+      expect(rowHeight(this.$container, 0)).toBeAroundValue(24);
+      expect(rowHeight(this.$container, 1)).toBeAroundValue(43);
+      expect(rowHeight(this.$container, 2)).toBeAroundValue(106);
+    });
+  });
+
   it('should be possible to disable plugin using updateSettings', function () {
     var hot = handsontable({
       data: arrayOfObjects()

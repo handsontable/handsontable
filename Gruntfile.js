@@ -276,6 +276,14 @@ module.exports = function (grunt) {
           devMode: true
         }
       },
+      handsontableCustom: {
+        files: {
+          'dist': 'package.json'
+        },
+        options: {
+          disableUI: false
+        }
+      },
       options: {
         minify: true
       }
@@ -286,6 +294,7 @@ module.exports = function (grunt) {
   grunt.registerTask('default', ['jshint', 'gitinfo', 'build']);
   grunt.registerTask('build', ['hotBuilder:handsontable']);
   grunt.registerTask('build-dev', ['hotBuilder:handsontableDev']);
+  grunt.registerTask('build-custom', ['hotBuilder:handsontableCustom']);
   grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
