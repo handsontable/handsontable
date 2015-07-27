@@ -5,6 +5,7 @@ import {
   getScrollLeft,
   getScrollTop,
     } from './../../../helpers/dom/element';
+import {isKey} from './../../../helpers/unicode';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCornerOverlay} from './overlay/corner';
 import {WalkontableDebugOverlay} from './overlay/debug';
@@ -87,7 +88,7 @@ class WalkontableOverlays {
    * Register all necessary event listeners
    */
   registerListeners() {
-    this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
+    this.eventManager.addEventListener(document.documentElement, 'keydown', (event) => this.onKeyDown(event));
     this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(document, 'visibilitychange', () => this.onKeyUp());
 
@@ -154,8 +155,8 @@ class WalkontableOverlays {
   /**
    * Key down listener
    */
-  onKeyDown() {
-    this.keyPressed = true;
+  onKeyDown(event) {
+    this.keyPressed = isKey(event.keyCode, 'ARROW_UP|ARROW_RIGHT|ARROW_DOWN|ARROW_LEFT');
   }
 
   /**
