@@ -50,6 +50,11 @@ class NestedHeaders extends BasePlugin {
 
   bindHooks() {
     this.hot.addHook('afterGetColumnHeaderRenderers', (array) => this.onAfterGetColumnHeaderRenderers(array));
+    this.hot.addHook('afterInit', () => this.onAfterInit());
+  }
+
+  onAfterInit() {
+    this.columnHeaderLevelCount = this.hot.view.wt.getSetting('columnHeaders').length;
   }
 
   /**
@@ -88,7 +93,7 @@ class NestedHeaders extends BasePlugin {
       dom.addClass(divEl, 'relative');
       let spanEl = document.createElement('SPAN');
       dom.addClass(spanEl, 'colHeader');
-      dom.fastInnerText(spanEl, _this.prepareHeaderValue(_this.settings.colHeaders[headerRow])[index] || '');
+      dom.fastInnerHTML(spanEl, _this.prepareHeaderValue(_this.settings.colHeaders[headerRow])[index] || '');
 
       divEl.appendChild(spanEl);
       TH.appendChild(divEl);
@@ -116,6 +121,55 @@ class NestedHeaders extends BasePlugin {
 
       array.reverse();
     }
+  }
+
+  /**
+   * Convert the physical, low-level column index to the corresponding header-column index from the provided header level
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @returns {Number}
+   */
+  realColumnIndexToNestedIndex(row, col) {
+    let nestedHeadersColspans = this.settings.colspan;
+    let colspanSum = 0;
+    let i = 0;
+
+    while (i < col) {
+      let currentLevel = nestedHeadersColspans[this.columnHeaderLevelCount + row];
+      let colspan = currentLevel ? currentLevel[i] : null;
+      if (colspan > 1) {
+        colspanSum += colspan - 1;
+      }
+
+      if (i + colspanSum >= col) {
+        return i;
+      }
+
+      i++;
+    }
+    return i;
+  }
+
+  /**
+   * Convert header-column index from the provided header level to the the physical, low-level column index
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @returns {Number}
+   */
+  nestedColumnIndexToRealIndex(row, col) {
+    let nestedHeadersColspans = this.settings.colspan;
+    let colspanSum = 0;
+
+    for (let i = 0; i < col; i++) {
+      let currentLevel = nestedHeadersColspans[this.columnHeaderLevelCount + row];
+      if (currentLevel && currentLevel[i] > 1) {
+        colspanSum += currentLevel[i] - 1;
+      }
+    }
+
+    return colspanSum + col;
   }
 
 }
