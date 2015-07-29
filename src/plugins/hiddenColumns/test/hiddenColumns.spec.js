@@ -23,8 +23,8 @@ describe('HiddenColumns', function() {
     });
 
     expect(hot.getColWidth(1)).toBeGreaterThan(0);
-    expect(hot.getColWidth(2)).toEqual(0);
-    expect(hot.getColWidth(4)).toEqual(0);
+    expect(hot.getColWidth(2)).toEqual(0.1);
+    expect(hot.getColWidth(4)).toEqual(0.1);
     expect(hot.getColWidth(5)).toBeGreaterThan(0);
   });
 

@@ -184,7 +184,7 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (this.hiddenColumns[col]) {
-      return 0;
+      return 0.1;
     } else if (this.settings.indicators && (this.hiddenColumns[col + 1] || this.hiddenColumns[col - 1])) {
 
       // add additional space for hidden column indicator
