@@ -358,6 +358,10 @@ class ColumnSorting extends BasePlugin {
   getColHeader(col, TH) {
     let headerLink = TH.querySelector('.colHeader');
 
+    if(!headerLink) {
+      return;
+    }
+
     if (this.hot.getSettings().columnSorting && col >= 0) {
       dom.addClass(headerLink, 'columnSorting');
     }
