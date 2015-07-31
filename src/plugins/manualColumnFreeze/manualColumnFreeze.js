@@ -28,7 +28,7 @@ function ManualColumnFreeze(instance) {
    */
   function addContextMenuEntry(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.ContextMenu.SEPARATOR, {
+      Handsontable.plugins.ContextMenu.SEPARATOR, {
         key: 'freeze_column',
         name: function() {
           var selectedColumn = instance.getSelected()[1];

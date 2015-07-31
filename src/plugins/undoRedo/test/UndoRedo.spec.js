@@ -2387,20 +2387,20 @@ describe('UndoRedo', function () {
           );
 
         // top 3 rows center
-        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+        hot.getPlugin('contextMenu').align.call(hot, topSection, 'horizontal', 'htCenter');
 
         // middle 3 rows unchanged - left
 
         // bottom 3 rows right
-        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+        hot.getPlugin('contextMenu').align.call(hot, bottomSection, 'horizontal', 'htRight');
 
         // left 3 columns - middle
-        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+        hot.getPlugin('contextMenu').align.call(hot, leftSection, 'vertical', 'htMiddle');
 
         //middle 3 columns unchanged - top
 
         // right 3 columns - bottom
-        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+        hot.getPlugin('contextMenu').align.call(hot, rightSection, 'vertical', 'htBottom');
 
         var cellMeta = hot.getCellMeta(0, 0);
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
@@ -2509,20 +2509,20 @@ describe('UndoRedo', function () {
           );
 
         // top 3 rows center
-        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+        hot.getPlugin('contextMenu').align.call(hot, topSection, 'horizontal', 'htCenter');
 
         // middle 3 rows unchanged - left
 
         // bottom 3 rows right
-        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+        hot.getPlugin('contextMenu').align.call(hot, bottomSection, 'horizontal', 'htRight');
 
         // left 3 columns - middle
-        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+        hot.getPlugin('contextMenu').align.call(hot, leftSection, 'vertical', 'htMiddle');
 
         //middle 3 columns unchanged - top
 
         // right 3 columns - bottom
-        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+        hot.getPlugin('contextMenu').align.call(hot, rightSection, 'vertical', 'htBottom');
 
         var cellMeta = hot.getCellMeta(0, 0);
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);

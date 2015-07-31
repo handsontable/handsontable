@@ -168,7 +168,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menus[0]).find("div").filter(function () {
         return $(this).text() === "Freeze this column";
 
       });
@@ -187,7 +187,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menus[0]).find("div").filter(function () {
         return $(this).text() === "Unfreeze this column";
 
       });
@@ -209,7 +209,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menus[0]).find("div").filter(function () {
         if ($(this).text() === "Freeze this column") {
           return true;
         }
@@ -243,7 +243,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menus[0]).find("div").filter(function () {
         return $(this).text() === "Unfreeze this column";
 
       });
@@ -260,7 +260,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      freezeEntry = $(hot.getPlugin('contextMenu').menus[0]).find("div").filter(function () {
         if ($(this).text() === "Unfreeze this column") {
           return true;
         }

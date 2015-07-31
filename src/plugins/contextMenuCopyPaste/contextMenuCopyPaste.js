@@ -92,7 +92,7 @@ class ContextMenuCopyPaste extends BasePlugin {
           this.copyPaste.triggerPaste();
         }
       },
-      Handsontable.ContextMenu.SEPARATOR
+      Handsontable.plugins.ContextMenu.SEPARATOR
     );
   }
 

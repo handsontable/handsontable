@@ -26,9 +26,8 @@ class BasePlugin {
   }
 
   init() {
-    if (this.isEnabled) {
-      this[(this.isEnabled() ? 'enable' : 'disable') + 'Plugin']();
-      this.enabled = this.isEnabled();
+    if (this.isEnabled && this.isEnabled()) {
+      this.enablePlugin();
     }
   }
 

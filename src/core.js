@@ -3583,7 +3583,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turn on [Manual column move](http://handsontable.com/demo/column_move.html), if set to a boolean or define initial
+   * Turn on [Manual column move](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column order, if set to an array of column indexes.
    *
    * @type {Boolean|Array}
@@ -3593,7 +3593,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turn on [Manual column resize](http://handsontable.com/demo/column_resize.html), if set to a boolean or define initial
+   * Turn on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column resized widths, if set to an array of numbers.
    *
    * @type {Boolean|Array}
@@ -3603,7 +3603,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turn on [Manual row move](http://handsontable.com/demo/column_move.html), if set to a boolean or define initial
+   * Turn on [Manual row move](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row order, if set to an array of row indexes.
    *
    * @type {Boolean|Array}
@@ -3614,7 +3614,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turn on [Manual row resize](http://handsontable.com/demo/column_resize.html), if set to a boolean or define initial
+   * Turn on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row resized heights, if set to an array of numbers.
    *
    * @type {Boolean|Array}

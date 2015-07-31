@@ -463,7 +463,7 @@ export function offset(elem) {
 export function getWindowScrollTop() {
   var res = window.scrollY;
 
-  if (res == void 0) { //IE8-11
+  if (res === void 0) { //IE8-11
     res = document.documentElement.scrollTop;
   }
 
@@ -478,7 +478,7 @@ export function getWindowScrollTop() {
 export function getWindowScrollLeft() {
   var res = window.scrollX;
 
-  if (res == void 0) { //IE8-11
+  if (res === void 0) { //IE8-11
     res = document.documentElement.scrollLeft;
   }
 
