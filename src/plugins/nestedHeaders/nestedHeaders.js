@@ -157,16 +157,16 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Get the colspan for the provided coordinates
+   * Get the colspan for the provided coordinates (physical, not 'nested')
    *
    * @param {Number} row
    * @param {Number} col
    * @returns {Number}
    */
   getColspan(row, col) {
-    let currentLevel = this.settings.colspan[this.columnHeaderLevelCount + row];
+    let currentLevel = this.settings.colspan[this.columnHeaderLevelCount + row] || [];
 
-    return currentLevel[col] || 1;
+    return currentLevel[this.realColumnIndexToNestedIndex(row, col)] || 1;
   }
 
   /**
