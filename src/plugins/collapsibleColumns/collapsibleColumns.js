@@ -21,8 +21,6 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.checkDependencies();
-
     this.settings = this.hot.getSettings().collapsibleColumns;
 
     this.hiddenColumnsPlugin = null;
@@ -37,13 +35,15 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {Boolean}
    */
   checkDependencies() {
-    if (!this.hot.nestedHeaders) {
+    let settings = this.hot.getSettings();
+
+    if (!settings.nestedHeaders) {
       console.warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
 
       return false;
     }
 
-    if (!this.hot.hiddenColumns) {
+    if (!settings.hiddenColumns) {
       console.warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
 
       return false;
@@ -60,6 +60,8 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   onAfterInit() {
+    this.checkDependencies();
+
     this.hiddenColumnsPlugin = this.hot.getPlugin('hiddenColumns');
     this.columnHeaderLevelCount = this.hot.view.wt.getSetting('columnHeaders').length;
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
@@ -88,9 +90,6 @@ class CollapsibleColumns extends BasePlugin {
 
     return divEl;
   }
-
-
-
 
   /**
    * Add the indicator to the headers
@@ -178,10 +177,6 @@ class CollapsibleColumns extends BasePlugin {
     }
   }
 
-  isCollapsed(row, col) {
-    return this.collapsedSections[row] && this.collapsedSections[row][col] === true;
-  }
-
   /**
    * Collapse/Expand a section
    *
@@ -195,7 +190,7 @@ class CollapsibleColumns extends BasePlugin {
     let THEAD = TR.parentNode;
     let headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
     let colspanOffset = this.hot.getColspanOffset(coords.col, headerLevel);
-
+    let headerColspan = parseInt(TD.getAttribute('colspan'), 10);
 
     if (currentlyHiddenColumns === true) {
       currentlyHiddenColumns = [];
@@ -208,7 +203,14 @@ class CollapsibleColumns extends BasePlugin {
     switch (action) {
       case 'collapse':
 
-        for (let i = 1, colspan = parseInt(TD.getAttribute('colspan'), 10); i < colspan; i++) {
+        let childHeaders = this.getChildHeaders(coords.row, coords.col, headerColspan);
+        let firstElementColspan = 1;
+
+        if(childHeaders[1]) {
+          firstElementColspan = childHeaders[1] - childHeaders[0];
+        }
+
+        for (let i = firstElementColspan, colspan = headerColspan; i < colspan; i++) {
           let colToHide = coords.col + colspanOffset + i;
 
           if (currentlyHiddenColumns.indexOf(colToHide) === -1) {
@@ -219,7 +221,7 @@ class CollapsibleColumns extends BasePlugin {
         break;
       case 'expand':
 
-        for (let i = 1, colspan = parseInt(TD.getAttribute('colspan'), 10); i < colspan; i++) {
+        for (let i = 1, colspan = headerColspan; i < colspan; i++) {
           let colToHide = coords.col + colspanOffset + i;
           let foundIndex = columnArray.indexOf(colToHide);
 
@@ -237,6 +239,40 @@ class CollapsibleColumns extends BasePlugin {
         columns: columnArray
       }
     });
+  }
+
+  /**
+   * Returns (physical) indexes of headers below the header with provided coordinates
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number} colspan
+   * @returns {Array}
+   */
+  getChildHeaders(row, col, colspan) {
+    let nestedPlugin = this.nestedHeadersPlugin;
+    let colspanSettings = nestedPlugin.settings.colspan;
+    let childColspanLevel = colspanSettings[this.columnHeaderLevelCount + row + 1];
+
+    let realColumnIndex = nestedPlugin.nestedColumnIndexToRealIndex(row, col);
+
+    let childNestedColumnIndex = nestedPlugin.realColumnIndexToNestedIndex(row + 1, realColumnIndex);
+    let childHeaderRange = [];
+
+    for (let i = childNestedColumnIndex; i < childNestedColumnIndex + colspan; i++) {
+
+      if (childColspanLevel && childColspanLevel[i] > 1) {
+        colspan -= childColspanLevel[i];
+      }
+
+      let realChildIndex = nestedPlugin.nestedColumnIndexToRealIndex(row + 1, i);
+
+      if (childHeaderRange.indexOf(realChildIndex) === -1) {
+        childHeaderRange.push(realChildIndex);
+      }
+    }
+
+    return childHeaderRange;
   }
 }
 
