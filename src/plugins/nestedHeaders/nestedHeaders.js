@@ -51,6 +51,39 @@ class NestedHeaders extends BasePlugin {
   bindHooks() {
     this.hot.addHook('afterGetColumnHeaderRenderers', (array) => this.onAfterGetColumnHeaderRenderers(array));
     this.hot.addHook('afterInit', () => this.onAfterInit());
+    this.hot.addHook('afterOnCellMouseOver', (event, coords, TD) => this.onAfterOnCellMouseOver(event, coords, TD));
+  }
+
+  /**
+   * Overwrite the header selections to match the nested headers
+   *
+   * @param {Object} event
+   * @param {Object} coords
+   * @param {HTMLElement} TD
+   */
+  onAfterOnCellMouseOver(event, coords, TD) {
+    if (coords.row < 0 && this.hot.view.isMouseDown()) {
+      let realColumnIndex = this.nestedColumnIndexToRealIndex(coords.row, coords.col);
+      let currentColspan = parseInt(TD.getAttribute('colspan'), 10);
+      let fromCoords = this.hot.view.wt.selections[1].cellRange.from;
+      let toCoords = this.hot.view.wt.selections[1].cellRange.to;
+      let highlightCoords = this.hot.view.wt.selections[1].cellRange.highlight;
+      let rowCount = this.hot.countRows();
+
+      if (currentColspan === '' || !currentColspan) {
+        currentColspan = 1;
+      }
+      currentColspan -= 1;
+
+      if (highlightCoords.col === toCoords.col && (toCoords.col !== fromCoords.col)) {
+        this.hot.selection.setRangeStart(new WalkontableCellCoords(0, toCoords.col + this.getColspan(coords.row, toCoords.col) - 1));
+        this.hot.selection.setRangeEnd(new WalkontableCellCoords(rowCount - 1, this.nestedColumnIndexToRealIndex(coords.row, fromCoords.col)));
+
+      } else {
+        this.hot.selection.setRangeEnd(new WalkontableCellCoords(rowCount - 1, realColumnIndex + currentColspan));
+      }
+
+    }
   }
 
   onAfterInit() {
@@ -121,6 +154,19 @@ class NestedHeaders extends BasePlugin {
 
       array.reverse();
     }
+  }
+
+  /**
+   * Get the colspan for the provided coordinates
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @returns {Number}
+   */
+  getColspan(row, col) {
+    let currentLevel = this.settings.colspan[this.columnHeaderLevelCount + row];
+
+    return currentLevel[col] || 1;
   }
 
   /**
