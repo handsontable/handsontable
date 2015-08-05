@@ -47,14 +47,16 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    this.hideColumns(this.settings.columns);
+    if(this.settings.columns) {
+      this.hideColumns(this.settings.columns);
+    }
   }
 
   onAfterUpdateSettings() {
     this.settings = this.hot.getSettings().hiddenColumns;
     this.hiddenColumns = [];
     
-    if (typeof this.settings !== 'boolean') {
+    if (typeof this.settings !== 'boolean' && this.settings.columns) {
       this.hideColumns(this.settings.columns);
     }
   }

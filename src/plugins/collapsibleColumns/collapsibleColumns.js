@@ -162,17 +162,17 @@ class CollapsibleColumns extends BasePlugin {
 
     if (recursive) {
       let nestedHeadersColspans = this.hot.getSettings().nestedHeaders.colspan;
-      let realColumnIndex = this.nestedHeadersPlugin.nestedColumnIndexToRealIndex(row, col);
+      let reversedIndex = this.columnHeaderLevelCount + row;
+      let childHeaders = this.getChildHeaders(row, col, nestedHeadersColspans[reversedIndex][col]);
 
-      for (let i = realColumnIndex, colspan = parseInt(TH.getAttribute('colspan'), 10); i < realColumnIndex + colspan; i++) {
-        let reversedIndex = this.columnHeaderLevelCount + row + 1;
-        let lowerLevelColumnIndex = this.nestedHeadersPlugin.realColumnIndexToNestedIndex(row + 1, realColumnIndex);
+      for(let i = 1, childrenLength = childHeaders.length; i < childrenLength; i++) {
+        let nestedIndex = this.nestedHeadersPlugin.realColumnIndexToNestedIndex(row + 1, childHeaders[i]);
 
-        if (nestedHeadersColspans[reversedIndex] && nestedHeadersColspans[reversedIndex][lowerLevelColumnIndex] > 1) {
-          let nextTH = this.hot.view.wt.wtTable.THEAD.childNodes[reversedIndex].childNodes[lowerLevelColumnIndex];
+          if (nestedHeadersColspans[reversedIndex + 1] && nestedHeadersColspans[reversedIndex + 1][nestedIndex] > 1) {
+            let nextTH = this.hot.view.wt.wtTable.THEAD.childNodes[reversedIndex + 1].childNodes[nestedIndex];
 
-          this.markSectionAs(state, row + 1, lowerLevelColumnIndex, nextTH, true);
-        }
+            this.markSectionAs(state, row + 1, nestedIndex, nextTH, true);
+          }
       }
     }
   }
@@ -192,7 +192,7 @@ class CollapsibleColumns extends BasePlugin {
     let colspanOffset = this.hot.getColspanOffset(coords.col, headerLevel);
     let headerColspan = parseInt(TD.getAttribute('colspan'), 10);
 
-    if (currentlyHiddenColumns === true) {
+    if (currentlyHiddenColumns === true || currentlyHiddenColumns.columns === void 0) {
       currentlyHiddenColumns = [];
     } else {
       currentlyHiddenColumns = currentlyHiddenColumns.columns;
@@ -234,10 +234,15 @@ class CollapsibleColumns extends BasePlugin {
     }
 
 
+    let previousHiddenColumnsSetting = this.hot.getSettings().hiddenColumns;
+    if(previousHiddenColumnsSetting === true) {
+      previousHiddenColumnsSetting = {};
+    }
+    previousHiddenColumnsSetting.columns = columnArray;
     this.hot.updateSettings({
-      hiddenColumns: {
-        columns: columnArray
-      }
+      hiddenColumns: previousHiddenColumnsSetting,
+      manualColumnResize: this.hot.manualColumnWidths,
+      manualColumnMove: this.hot.manualColumnPositions
     });
   }
 
