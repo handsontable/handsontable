@@ -910,6 +910,10 @@ thead .htCollapseButton:after {
   width: 0px !important;
 }
 
+.handsontable table tr th.lightRightBorder {
+  border-right: 1px solid #E6E6E6;
+}
+
 .handsontable tr.hidden,
 .handsontable tr.hidden td,
 .handsontable tr.hidden th {

@@ -2298,9 +2298,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getColspanOffset = function(col, level) {
     var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
     var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
     var colspanSum = 0;
 
-    for (var i = 0; i < col; i++) {
+    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
       if (TR.childNodes[i].hasAttribute('colspan')) {
         colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
       }
@@ -2311,10 +2312,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   this.getHeaderColspan = function(col, level) {
     var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
     var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var offsettedColIndex = rowHeadersCount + col;
 
-    if(TR.childNodes[col].hasAttribute('colspan')) {
-      return parseInt(TR.childNodes[col].getAttribute('colspan'), 10);
+    if(TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
+      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
     }
     return 0;
   };

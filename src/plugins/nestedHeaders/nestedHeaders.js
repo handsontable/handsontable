@@ -116,8 +116,29 @@ class NestedHeaders extends BasePlugin {
     return function(index, TH) {
       let colspan = _this.settings.colspan && _this.settings.colspan[headerRow] ? _this.settings.colspan[headerRow][index] : 1;
 
+      _this.columnHeaderLevelCount = _this.hot.view.wt.getSetting('columnHeaders').length;
+
+      let realColumnIndex = _this.nestedColumnIndexToRealIndex(headerRow - _this.columnHeaderLevelCount, index);
+
+      let overlays = _this.hot.view.wt.wtOverlays;
+      let leftOverlayTable = overlays.leftOverlay ? overlays.leftOverlay.clone.wtTable.TABLE : null;
+      let topLeftCornerOverlay = overlays.topLeftCornerOverlay ? overlays.topLeftCornerOverlay.clone.wtTable.TABLE : null;
+      let isChildOfLeftOverlay = dom.isChildOf(TH, leftOverlayTable);
+      let isChildOfTopLeftCornerOverlay = dom.isChildOf(TH, topLeftCornerOverlay);
+      let fixedColumnsLeft = _this.hot.getSettings().fixedColumnsLeft;
+      let isOnTheOverlappingOverlay = (colspan > 1 && realColumnIndex < fixedColumnsLeft && realColumnIndex + colspan >= fixedColumnsLeft &&
+        (isChildOfTopLeftCornerOverlay || isChildOfLeftOverlay));
+
+
+      TH.removeAttribute('colspan');
+
       if (colspan && colspan > 1) {
-        TH.setAttribute('colspan', colspan);
+
+        if (!isOnTheOverlappingOverlay) {
+            TH.setAttribute('colspan', colspan);
+        } else {
+            TH.setAttribute('colspan', fixedColumnsLeft - realColumnIndex);
+        }
       }
 
       dom.empty(TH);
@@ -128,8 +149,17 @@ class NestedHeaders extends BasePlugin {
       dom.addClass(spanEl, 'colHeader');
       dom.fastInnerHTML(spanEl, _this.prepareHeaderValue(_this.settings.colHeaders[headerRow])[index] || '');
 
-      divEl.appendChild(spanEl);
+      // do not add the labels to 'oversized headers' overlapping the fixedColumnsLeft
+      if(!(colspan > 1 && realColumnIndex < fixedColumnsLeft && realColumnIndex + colspan >= fixedColumnsLeft &&
+        (!isChildOfTopLeftCornerOverlay && !isChildOfLeftOverlay))) {
+        divEl.appendChild(spanEl);
+      }
+
       TH.appendChild(divEl);
+
+      if(isOnTheOverlappingOverlay) {
+        dom.addClass(TH, 'lightRightBorder');
+      }
 
       Handsontable.hooks.run(_this.hot, 'afterGetColHeader', index, TH);
     };
@@ -205,7 +235,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {Number}
    */
   nestedColumnIndexToRealIndex(row, col) {
-    let nestedHeadersColspans = this.settings.colspan;
+    let nestedHeadersColspans = this.settings.colspan || [];
     let colspanSum = 0;
 
     for (let i = 0; i < col; i++) {
