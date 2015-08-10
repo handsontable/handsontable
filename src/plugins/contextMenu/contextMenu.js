@@ -606,6 +606,13 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
   } else {
     dom.fastInnerHTML(wrapper, value);
   }
+    
+  if (itemHasClassname(item)) {
+    var classNames = item.className.split(' ');
+    for (var i = 0; i < classNames.length; i++) {
+      Handsontable.Dom.addClass(wrapper, classNames[i]);
+    }
+  }
 
   if (itemIsDisabled(item)) {
     dom.addClass(TD, 'htDisabled');
@@ -636,6 +643,10 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
 
   function isSubMenu(item) {
     return item.hasOwnProperty('submenu');
+  }
+    
+  function itemHasClassname(item) {
+    return item.hasOwnProperty('className');
   }
 
   function itemIsSeparator(item) {

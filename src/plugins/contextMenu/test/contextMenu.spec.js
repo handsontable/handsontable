@@ -1425,6 +1425,83 @@ describe('ContextMenu', function () {
       expect(customItem.callback.calls[0].args[0]).toEqual('customItemKey');
 
     });
+      
+    it("should allow className settings in items", function () {
+      var customItem1 = {
+        name: 'Custom item 1',
+        className: 'sample-class',
+        callback: function () {}
+      };
+        
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            'customItem1' : customItem1 
+          }
+        },
+        height: 100
+      });
+        
+      contextMenu();
+        
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(0) div').hasClass('sample-class')).toBe(true);
+    });
+      
+    it("should allow multiple classNames in a single item", function () {
+      var customItem1 = {
+        name: 'Custom item 1',
+        className: 'sample-class another-class',
+        callback: function () {}
+      };
+        
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            'customItem1' : customItem1 
+          }
+        },
+        height: 100
+      });
+        
+      contextMenu();
+        
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(0) div').hasClass('sample-class')).toBe(true);
+      expect($menu.find('tbody td:eq(0) div').hasClass('another-class')).toBe(true);
+    });
+      
+    it("should allow classNames for some items only", function () {
+      var customItem1 = {
+        name: 'Custom item 1',
+        className: 'sample-class',
+        callback: function () {}
+      };
+        
+      var customItem2 = {
+        name: 'Custom item 2',
+        callback: function () {}
+      };
+        
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            'customItem1' : customItem1,
+            'customItem2' : customItem2
+          }
+        },
+        height: 100
+      });
+        
+      contextMenu();
+        
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(0) div').hasClass('sample-class')).toBe(true);
+      expect($menu.find('tbody td:eq(1) div').hasClass('sample-class')).toBe(false);
+    });
 
   });
 
