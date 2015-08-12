@@ -323,6 +323,10 @@
   border-left: 1px solid #CCC;
 }
 
+.handsontable thead th.hiddenHeader {
+  display: none;
+}
+
 /* border line */
 
 .handsontable .wtBorder {
@@ -894,13 +898,14 @@ thead .htCollapseButton:after {
 
 .collapsibleIndicator {
   position: absolute;
-  top: 5px;
+  top: 50%;
+  transform: translate(0% ,-50%);
   right: 5px;
   border: 1px solid #A6A6A6;
   line-height: 10px;
   color: #222;
   border-radius: 10px;
-  font-size: 9px;
+  font-size: 10px;
   width: 10px;
   height: 10px;
   cursor: pointer;

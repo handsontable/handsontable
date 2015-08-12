@@ -267,10 +267,9 @@ function TableView(instance) {
           if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
               headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              colspanOffset = instance.getColspanOffset(coords.col, headerLevel);
               headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
 
-              instance.selectCell(0, coords.col + colspanOffset, instance.countRows() - 1, coords.col + colspanOffset + Math.max(0, headerColspan - 1));
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
               instance.selection.setSelectedHeaders(false, true);
             }
             if (coords.col < 0) {

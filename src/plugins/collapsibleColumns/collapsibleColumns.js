@@ -120,13 +120,13 @@ class CollapsibleColumns extends BasePlugin {
           this.collapsedSections[coords.row] = [];
         }
 
-        this.markSectionAs('collapsed', coords.row, coords.col, TD, true);
+        this.markSectionAs('collapsed', coords.row, coords.col, true);
 
         this.toggleCollapsedSection(coords, TD, 'collapse');
 
       } else if (dom.hasClass(event.target, 'collapsed')) {
 
-        this.markSectionAs('expanded', coords.row, coords.col, TD, true);
+        this.markSectionAs('expanded', coords.row, coords.col, true);
 
         this.toggleCollapsedSection(coords, TD, 'expand');
       }
@@ -144,7 +144,7 @@ class CollapsibleColumns extends BasePlugin {
    * @param {HTMLElement} TH
    * @param {Boolean} recursive
    */
-  markSectionAs(state, row, col, TH, recursive) {
+  markSectionAs(state, row, col, recursive) {
     if (!this.collapsedSections[row]) {
       this.collapsedSections[row] = [];
     }
@@ -161,18 +161,17 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     if (recursive) {
-      let nestedHeadersColspans = this.hot.getSettings().nestedHeaders.colspan;
-      let reversedIndex = this.columnHeaderLevelCount + row;
-      let childHeaders = this.getChildHeaders(row, col, nestedHeadersColspans[reversedIndex][col]);
+      let nestedHeadersColspans = this.nestedHeadersPlugin.colspanArray;
+      let level = this.nestedHeadersPlugin.rowCoordsToLevel(row);
+      let childHeaders = this.nestedHeadersPlugin.getChildHeaders(row, col);
+      let childColspanLevel = nestedHeadersColspans[level + 1];
 
-      for(let i = 1, childrenLength = childHeaders.length; i < childrenLength; i++) {
-        let nestedIndex = this.nestedHeadersPlugin.realColumnIndexToNestedIndex(row + 1, childHeaders[i]);
+      for (let i = 1, childrenLength = childHeaders.length; i < childrenLength; i++) {
 
-          if (nestedHeadersColspans[reversedIndex + 1] && nestedHeadersColspans[reversedIndex + 1][nestedIndex] > 1) {
-            let nextTH = this.hot.view.wt.wtTable.THEAD.childNodes[reversedIndex + 1].childNodes[nestedIndex];
+        if (childColspanLevel && childColspanLevel[childHeaders[i]].colspan > 1) {
+          this.markSectionAs(state, row + 1, childHeaders[i], true);
 
-            this.markSectionAs(state, row + 1, nestedIndex, nextTH, true);
-          }
+        }
       }
     }
   }
@@ -185,100 +184,36 @@ class CollapsibleColumns extends BasePlugin {
    * @param {String} action
    */
   toggleCollapsedSection(coords, TD, action) {
-    let currentlyHiddenColumns = this.hiddenColumnsPlugin.settings;
-    let TR = TD.parentNode;
-    let THEAD = TR.parentNode;
-    let headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-    let colspanOffset = this.hot.getColspanOffset(coords.col, headerLevel);
-    let headerColspan = parseInt(TD.getAttribute('colspan'), 10);
+    let hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
+    let colspanArray = this.nestedHeadersPlugin.colspanArray;
+    let level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
+    let currentHeaderColspan = colspanArray[level][coords.col].colspan;
+    let childHeaders = this.nestedHeadersPlugin.getChildHeaders(coords.row, coords.col);
+    let childColspanLevel = colspanArray[level + 1];
+    let firstChildColspan = childColspanLevel ? childColspanLevel[childHeaders[0]].colspan || 1 : 1;
 
-    if (currentlyHiddenColumns === true || currentlyHiddenColumns.columns === void 0) {
-      currentlyHiddenColumns = [];
-    } else {
-      currentlyHiddenColumns = currentlyHiddenColumns.columns;
-    }
+    for (let i = firstChildColspan; i < currentHeaderColspan; i++) {
+      let colToHide = coords.col + i;
 
-    let columnArray = helpers.deepClone(currentlyHiddenColumns);
 
-    switch (action) {
-      case 'collapse':
-
-        let childHeaders = this.getChildHeaders(coords.row, coords.col, headerColspan);
-        let firstElementColspan = 1;
-
-        if(childHeaders[1]) {
-          firstElementColspan = childHeaders[1] - childHeaders[0];
-        }
-
-        for (let i = firstElementColspan, colspan = headerColspan; i < colspan; i++) {
-          let colToHide = coords.col + colspanOffset + i;
-
-          if (currentlyHiddenColumns.indexOf(colToHide) === -1) {
-            columnArray.push(colToHide);
+      switch (action) {
+        case 'collapse':
+          if (!hiddenColumns[colToHide]) {
+            hiddenColumns[colToHide] = true;
           }
-        }
-
-        break;
-      case 'expand':
-
-        for (let i = 1, colspan = headerColspan; i < colspan; i++) {
-          let colToHide = coords.col + colspanOffset + i;
-          let foundIndex = columnArray.indexOf(colToHide);
-
-          if (foundIndex > -1) {
-            columnArray.splice(foundIndex, 1);
+          break;
+        case 'expand':
+          if (hiddenColumns[colToHide]) {
+            hiddenColumns[colToHide] = void 0;
           }
-        }
-
-        break;
-    }
-
-
-    let previousHiddenColumnsSetting = this.hot.getSettings().hiddenColumns;
-    if(previousHiddenColumnsSetting === true) {
-      previousHiddenColumnsSetting = {};
-    }
-    previousHiddenColumnsSetting.columns = columnArray;
-    this.hot.updateSettings({
-      hiddenColumns: previousHiddenColumnsSetting,
-      manualColumnResize: this.hot.manualColumnWidths,
-      manualColumnMove: this.hot.manualColumnPositions
-    });
-  }
-
-  /**
-   * Returns (physical) indexes of headers below the header with provided coordinates
-   *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number} colspan
-   * @returns {Array}
-   */
-  getChildHeaders(row, col, colspan) {
-    let nestedPlugin = this.nestedHeadersPlugin;
-    let colspanSettings = nestedPlugin.settings.colspan;
-    let childColspanLevel = colspanSettings[this.columnHeaderLevelCount + row + 1];
-
-    let realColumnIndex = nestedPlugin.nestedColumnIndexToRealIndex(row, col);
-
-    let childNestedColumnIndex = nestedPlugin.realColumnIndexToNestedIndex(row + 1, realColumnIndex);
-    let childHeaderRange = [];
-
-    for (let i = childNestedColumnIndex; i < childNestedColumnIndex + colspan; i++) {
-
-      if (childColspanLevel && childColspanLevel[i] > 1) {
-        colspan -= childColspanLevel[i];
-      }
-
-      let realChildIndex = nestedPlugin.nestedColumnIndexToRealIndex(row + 1, i);
-
-      if (childHeaderRange.indexOf(realChildIndex) === -1) {
-        childHeaderRange.push(realChildIndex);
+          break;
       }
     }
 
-    return childHeaderRange;
+    this.hot.render();
   }
+
+
 }
 
 export {CollapsibleColumns};

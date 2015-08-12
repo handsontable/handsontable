@@ -38,8 +38,6 @@ class HiddenColumns extends BasePlugin {
     this.hot.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.hot.addHook('modifyCopyableColumnRange', (ranges) => this.onModifyCopyableColumnRange(ranges));
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
-
-    this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
   }
 
   onBeforeInit() {
@@ -48,15 +46,6 @@ class HiddenColumns extends BasePlugin {
     }
 
     if(this.settings.columns) {
-      this.hideColumns(this.settings.columns);
-    }
-  }
-
-  onAfterUpdateSettings() {
-    this.settings = this.hot.getSettings().hiddenColumns;
-    this.hiddenColumns = [];
-    
-    if (typeof this.settings !== 'boolean' && this.settings.columns) {
       this.hideColumns(this.settings.columns);
     }
   }
@@ -105,6 +94,7 @@ class HiddenColumns extends BasePlugin {
 
       } else if (isHidden(i - 1)) {
         newStart = i;
+
       }
 
       if (!isHidden(i) && i === range.endCol) {
@@ -133,6 +123,7 @@ class HiddenColumns extends BasePlugin {
     if (this.hiddenColumns[col - 1]) {
       dom.addClass(TH, 'afterHiddenColumn');
     }
+
     if (this.hiddenColumns[col + 1]) {
       dom.addClass(TH, 'beforeHiddenColumn');
     }
@@ -181,7 +172,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   onModifyColWidth(width, col) {
-    if (typeof this.settings === 'boolean') {
+    if (typeof this.settings === 'boolean' && this.hiddenColumns.length === 0) {
       return;
     }
 
