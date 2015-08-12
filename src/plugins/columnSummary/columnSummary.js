@@ -1,4 +1,5 @@
 import BasePlugin from './../_base.js';
+import * as helper from './../../helpers.js';
 import {registerPlugin, getPlugin} from './../../plugins.js';
 
 /**
@@ -32,6 +33,76 @@ class ColumnSummary extends BasePlugin {
   bindHooks() {
     this.hot.addHook('afterInit', () => this.onAfterInit());
     this.hot.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
+    this.hot.addHook('afterCreateRow', (index, num, auto) => this.resetSetupAfterStructureAlteration('insert_row', index, num, auto));
+    this.hot.addHook('afterCreateCol', (index, num, auto) => this.resetSetupAfterStructureAlteration('insert_col', index, num, auto));
+    this.hot.addHook('afterRemoveRow', (index, num, auto) => this.resetSetupAfterStructureAlteration('remove_row', index, num, auto));
+    this.hot.addHook('afterRemoveCol', (index, num, auto) => this.resetSetupAfterStructureAlteration('remove_col', index, num, auto));
+  }
+
+  /**
+   * afterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
+   * after changing the table structure.
+   *
+   * @param action {String}
+   * @param index {Number}
+   * @param number {Number}
+   * @param createdAutomatically {Boolean}
+   */
+  resetSetupAfterStructureAlteration(action, index, number, createdAutomatically) {
+    if(createdAutomatically) {
+      return;
+    }
+
+    let type = action.indexOf('row') > -1 ? 'row' : 'col';
+
+    var oldEndpoints = helper.deepClone(this.endpoints);
+    for (let i in oldEndpoints) {
+      if (oldEndpoints.hasOwnProperty(i)) {
+
+        if (type === 'row' && oldEndpoints[i].destinationRow >= index) {
+          if (action === 'insert_row') {
+            oldEndpoints[i].alterRowOffset = number;
+          } else if (action === 'remove_row') {
+            oldEndpoints[i].alterRowOffset = (-1) * number;
+          }
+        }
+
+        if (type === 'col' && oldEndpoints[i].destinationColumn >= index) {
+          if (action === 'insert_col') {
+            oldEndpoints[i].alterColumnOffset = number;
+          } else if (action === 'remove_col') {
+            oldEndpoints[i].alterColumnOffset = (-1) * number;
+          }
+        }
+      }
+    }
+
+    this.endpoints = [];
+    this.resetAllEndpoints(oldEndpoints);
+    this.parseSettings();
+
+    for (let i in this.endpoints) {
+      if (this.endpoints.hasOwnProperty(i)) {
+
+        if (type === 'row' && this.endpoints[i].destinationRow >= index) {
+          if (action === 'insert_row') {
+            this.endpoints[i].alterRowOffset = number;
+          } else if (action === 'remove_row') {
+            this.endpoints[i].alterRowOffset = (-1) * number;
+          }
+        }
+
+        if (type === 'col' && this.endpoints[i].destinationColumn >= index) {
+          if (action === 'insert_col') {
+            this.endpoints[i].alterColumnOffset = number;
+          } else if (action === 'remove_col') {
+            this.endpoints[i].alterColumnOffset = (-1) * number;
+          }
+        }
+      }
+    }
+
+    this.refreshAllEndpoints(true);
   }
 
   /**
@@ -40,8 +111,8 @@ class ColumnSummary extends BasePlugin {
    * @private
    */
   onAfterInit() {
-      this.parseSettings(this.settings);
-      this.refreshAllEndpoints(true);
+    this.parseSettings(this.settings);
+    this.refreshAllEndpoints(true);
   }
 
   /**
@@ -101,7 +172,7 @@ class ColumnSummary extends BasePlugin {
 
     if (settings[name] !== void 0) {
       if (name === 'destinationRow' && endpoint.reversedRowCoords) {
-        endpoint[name] = this.hot.countRows() + this.hot.getSettings().minSpareRows - settings[name] - 1;
+        endpoint[name] = this.hot.countRows() - settings[name] - 1;
 
       } else {
         endpoint[name] = settings[name];
@@ -146,6 +217,21 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
+   * Reset (removes) the endpoints from the table.
+   *
+   * @param endpoints {Array}
+   */
+  resetAllEndpoints(endpoints) {
+    if (!endpoints) {
+      endpoints = this.endpoints;
+    }
+
+    for (let i = 0; i < endpoints.length; i++) {
+      this.resetEndpointValue(endpoints[i]);
+    }
+  }
+
+  /**
    * Calculate and refresh all defined endpoints
    *
    * @param {Boolean} init True if initial call
@@ -170,7 +256,7 @@ class ColumnSummary extends BasePlugin {
     for (let i = 0, changesCount = changes.length; i < changesCount; i++) {
 
       // if nothing changed, dont update anything
-      if((changes[i][2] || '') + '' === changes[i][3] + '') {
+      if ((changes[i][2] || '') + '' === changes[i][3] + '') {
         continue;
       }
 
@@ -199,14 +285,34 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
+   * Reset the endpoint value.
+   *
+   * @param endpoint {Object}
+   */
+  resetEndpointValue(endpoint) {
+    let alterRowOffset = endpoint.alterRowOffset || 0;
+    let alterColOffset = endpoint.alterColumnOffset || 0;
+
+    this.hot.setCellMeta(endpoint.destinationRow, endpoint.destinationColumn, 'readOnly', false);
+    this.hot.setCellMeta(endpoint.destinationRow, endpoint.destinationColumn, 'className', '');
+    this.hot.setDataAtCell(endpoint.destinationRow + alterRowOffset, endpoint.destinationColumn + alterColOffset, '', 'columnSummary');
+  }
+
+  /**
    * Set the endpoint value
    *
    * @param {Object} endpoint
    */
   setEndpointValue(endpoint, source) {
+    let alterRowOffset = endpoint.alterRowOffset || 0;
+    let alterColumnOffset = endpoint.alterColumnOffset || 0;
+
+    let rowOffset = Math.max(-alterRowOffset, 0);
+    let colOffset = Math.max(-alterColumnOffset, 0);
+
     if (source === 'init') {
-      this.hot.setCellMeta(endpoint.destinationRow, endpoint.destinationColumn, 'readOnly', endpoint.readOnly);
-      this.hot.setCellMeta(endpoint.destinationRow, endpoint.destinationColumn, 'className', 'columnSummaryResult');
+      this.hot.setCellMeta(endpoint.destinationRow + rowOffset, endpoint.destinationColumn + colOffset, 'readOnly', endpoint.readOnly);
+      this.hot.setCellMeta(endpoint.destinationRow + rowOffset, endpoint.destinationColumn + colOffset, 'className', 'columnSummaryResult');
     }
 
     if (endpoint.roundFloat && !isNaN(endpoint.result)) {
@@ -214,6 +320,9 @@ class ColumnSummary extends BasePlugin {
     }
 
     this.hot.setDataAtCell(endpoint.destinationRow, endpoint.destinationColumn, endpoint.result, 'columnSummary');
+
+    endpoint.alterRowOffset = void 0;
+    endpoint.alterColOffset = void 0;
   }
 
   /**
