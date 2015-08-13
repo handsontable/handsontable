@@ -53,7 +53,7 @@ function ManualRowMove() {
     currentTH = TH;
 
     var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
-    if (row >= 0) { //if not row header
+    if (row >= 0 && this.disabledRows.indexOf(row) === -1) { //if not row header
       currentRow = row;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.top;
@@ -127,8 +127,14 @@ function ManualRowMove() {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
-            endRow = instance.view.wt.wtTable.getCoords(th).row;
-            refreshHandlePosition(th, endRow - startRow);
+            var currentRow = instance.view.wt.wtTable.getCoords(th).row;
+              if (instance.disabledRows.indexOf(currentRow) === -1 ||
+                  currentRow == startRow ||
+                  currentRow < startRow && instance.disabledRows.indexOf(currentRow - 1) === -1 ||
+                  currentRow > startRow && instance.disabledRows.indexOf(currentRow + 1) === -1) {
+                  refreshHandlePosition(th, currentRow - startRow);
+                  endRow = currentRow;
+              }
           } else {
             setupHandlePosition.call(instance, th);
           }
@@ -199,6 +205,10 @@ function ManualRowMove() {
 
     if (manualRowMoveEnabled) {
       var initialManualRowPositions = instance.getSettings().manualRowMove;
+      this.disabledRows = instance.getSettings().manualRowMoveDisable;
+      if (!Array.isArray(this.disabledRows)) {
+        this.disabledRows = [];
+      }
       var loadedManualRowPostions = loadManualRowPositions.call(instance);
 
       // update plugin usages count for manualColumnPositions

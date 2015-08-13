@@ -46,7 +46,7 @@ function ManualColumnMove() {
     currentTH = TH;
 
     var col = this.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
-    if (col >= 0) { //if not row header
+    if (col >= 0 && this.disabledColumns.indexOf(col) === -1) { //if not column header
       currentCol = col;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.left;
@@ -121,9 +121,14 @@ function ManualColumnMove() {
         if (th) {
           if (pressed) {
             var col = instance.view.wt.wtTable.getCoords(th).col;
-            if (col >= 0) { //not TH above row header
-              endCol = col;
-              refreshHandlePosition(e.target, endCol - startCol);
+            if (col >= 0) { //not TH in front of header
+				if (instance.disabledColumns.indexOf(col) === -1 ||
+                  col == startCol ||
+                  col < startCol && instance.disabledColumns.indexOf(col - 1) === -1 ||
+                  col > startCol && instance.disabledColumns.indexOf(col + 1) === -1) {
+                  endCol = col;
+                  refreshHandlePosition(e.target, endCol - startCol);
+              }
             }
           } else {
             setupHandlePosition.call(instance, th);
@@ -197,6 +202,10 @@ function ManualColumnMove() {
 
     if (manualColMoveEnabled) {
       var initialManualColumnPositions = this.getSettings().manualColumnMove;
+      this.disabledColumns = instance.getSettings().manualColumnMoveDisable;
+      if (!Array.isArray(this.disabledColumns)) {
+        this.disabledColumns = [];
+      }
 
       var loadedManualColumnPositions = loadManualColumnPositions.call(instance);
 
