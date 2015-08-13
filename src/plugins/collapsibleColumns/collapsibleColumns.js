@@ -22,11 +22,29 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     this.settings = this.hot.getSettings().collapsibleColumns;
+    this.buttonEnabledList = {};
+    if (typeof this.settings !== 'boolean') {
+      this.parseSettings();
+    }
 
     this.hiddenColumnsPlugin = null;
     this.collapsedSections = {};
 
     this.bindHooks();
+  }
+
+  parseSettings() {
+    for (var i in this.settings) {
+      if (this.settings.hasOwnProperty(i)) {
+        let currentEl = this.settings[i];
+
+        if (!this.buttonEnabledList[currentEl.row]) {
+          this.buttonEnabledList[currentEl.row] = [];
+        }
+
+        this.buttonEnabledList[currentEl.row][currentEl.col] = currentEl.collapsible;
+      }
+    }
   }
 
   /**
@@ -75,8 +93,15 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {HTMLElement}
    */
   generateIndicator(col, TH) {
+    let TR = TH.parentNode;
+    let THEAD = TR.parentNode;
+    let row = (-1) * THEAD.childNodes.length + Array.prototype.indexOf.call(THEAD.childNodes, TR);
+
+    if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][col])) {
+      return null;
+    }
+
     let divEl = document.createElement('DIV');
-    let row = (-1) * TH.parentNode.parentNode.childNodes.length + Array.prototype.indexOf.call(TH.parentNode.parentNode.childNodes, TH.parentNode);
 
     dom.addClass(divEl, 'collapsibleIndicator');
 
@@ -99,7 +124,11 @@ class CollapsibleColumns extends BasePlugin {
    */
   onAfterGetColHeader(col, TH) {
     if (TH.hasAttribute('colspan') && TH.getAttribute('colspan') > 1) {
-      TH.querySelector('div:first-child').appendChild(this.generateIndicator(col, TH));
+      let button = this.generateIndicator(col, TH);
+      if (button !== null) {
+        TH.querySelector('div:first-child').appendChild(button);
+
+      }
     }
   }
 
