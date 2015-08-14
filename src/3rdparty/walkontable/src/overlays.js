@@ -1,12 +1,17 @@
-import * as dom from './../../../dom.js';
-import {EventManager} from './../../../eventManager.js';
+
+import {
+  getScrollableElement,
+  getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
+    } from './../../../helpers/dom/element';
+import {EventManager} from './../../../eventManager';
 import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
 import {WalkontableBottomLeftCornerOverlay} from './overlay/bottomLeftCorner.js';
-import {WalkontableDebugOverlay} from './overlay/debug.js';
-import {WalkontableLeftOverlay} from './overlay/left.js';
-import {WalkontableTopOverlay} from './overlay/top.js';
+import {WalkontableDebugOverlay} from './overlay/debug';
+import {WalkontableLeftOverlay} from './overlay/left';
+import {WalkontableTopOverlay} from './overlay/top';
 import {WalkontableBottomOverlay} from './overlay/bottom.js';
-
 
 /**
  * @class WalkontableOverlays
@@ -22,10 +27,10 @@ class WalkontableOverlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.wot.update('scrollbarWidth', dom.getScrollbarWidth());
-    this.wot.update('scrollbarHeight', dom.getScrollbarWidth());
+    this.wot.update('scrollbarWidth', getScrollbarWidth());
+    this.wot.update('scrollbarHeight', getScrollbarWidth());
 
-    this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
     this.topOverlay = new WalkontableTopOverlay(this.wot);
     this.bottomOverlay = new WalkontableBottomOverlay(this.wot);
@@ -95,6 +100,7 @@ class WalkontableOverlays {
   registerListeners() {
     this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
     this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
+    this.eventManager.addEventListener(document, 'visibilitychange', () => this.onKeyUp());
 
     this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
@@ -121,13 +127,13 @@ class WalkontableOverlays {
         let deltaY = event.wheelDeltaY || event.deltaY;
         let deltaX = event.wheelDeltaX || event.deltaX;
 
-        if (this.topOverlay.clone.wtTable.holder.contains(event.target)) {
+        if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
 
-        } else if (this.bottomOverlay.clone.wtTable.holder.contains(event.target)) {
+        } else if (this.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
 
-        } else if (this.leftOverlay.clone.wtTable.holder.contains(event.target)) {
+        } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
         }
 
@@ -258,7 +264,7 @@ class WalkontableOverlays {
     }
 
     if (target === master) {
-      tempScrollValue = dom.getScrollLeft(target);
+      tempScrollValue = getScrollLeft(target);
 
       // if scrolling the master table - populate the scroll values to both top and left overlays
       if (this.overlayScrollPositions.master.left !== tempScrollValue) {
@@ -273,7 +279,7 @@ class WalkontableOverlays {
           bottomOverlay.scrollLeft = tempScrollValue;
         }
       }
-      tempScrollValue = dom.getScrollTop(target);
+      tempScrollValue = getScrollTop(target);
 
       if (this.overlayScrollPositions.master.top !== tempScrollValue) {
         this.overlayScrollPositions.master.top = tempScrollValue;
@@ -285,7 +291,7 @@ class WalkontableOverlays {
       }
 
     } else if (target === bottomOverlay) {
-      tempScrollValue = dom.getScrollLeft(target);
+      tempScrollValue = getScrollLeft(target);
 
       // if scrolling the bottom overlay - populate the horizontal scroll to the master table
       if (this.overlayScrollPositions.bottom.left !== tempScrollValue) {
@@ -302,7 +308,7 @@ class WalkontableOverlays {
       }
 
     } else if (target === topOverlay) {
-      tempScrollValue = dom.getScrollLeft(target);
+      tempScrollValue = getScrollLeft(target);
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
       if (this.overlayScrollPositions.top.left !== tempScrollValue) {
@@ -319,7 +325,7 @@ class WalkontableOverlays {
       }
 
     } else if (target === leftOverlay) {
-      tempScrollValue = dom.getScrollTop(target);
+      tempScrollValue = getScrollTop(target);
 
       // if scrolling the left overlay - populate the vertical scroll to the master table
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
@@ -359,8 +365,7 @@ class WalkontableOverlays {
    *
    */
   destroy() {
-    this.eventManager.clear();
-
+    this.eventManager.destroy();
     this.topOverlay.destroy();
     this.bottomOverlay.destroy();
     this.leftOverlay.destroy();
@@ -414,8 +419,10 @@ class WalkontableOverlays {
 
   /**
    * Adjust overlays elements size and master table size
+   *
+   * @param {Boolean} [force=false]
    */
-  adjustElementsSize() {
+  adjustElementsSize(force = false) {
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
     let headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
@@ -425,9 +432,9 @@ class WalkontableOverlays {
     hiderStyle.width = (headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)) + 'px';
     hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
 
-    this.topOverlay.adjustElementsSize();
-    this.leftOverlay.adjustElementsSize();
-    this.bottomOverlay.adjustElementsSize();
+    this.topOverlay.adjustElementsSize(force);
+    this.leftOverlay.adjustElementsSize(force);
+    this.bottomOverlay.adjustElementsSize(force);
   }
 
   /**

@@ -1,4 +1,9 @@
-import * as dom from './../../../../dom.js';
+import {
+  getScrollbarWidth,
+  outerHeight,
+  outerWidth,
+  setOverlayPosition
+} from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base.js';
 
 
@@ -28,7 +33,7 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
    *
    */
   repositionOverlay() {
-    let scrollbarWidth = dom.getScrollbarWidth();
+    let scrollbarWidth = getScrollbarWidth();
     let cloneRoot = this.clone.wtTable.holder.parentNode;
 
     cloneRoot.style.top = '';
@@ -44,8 +49,8 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
       return;
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let tableHeight = dom.outerHeight(this.clone.wtTable.TABLE);
-    let tableWidth = dom.outerWidth(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRoot.style.top = '';
 
@@ -71,7 +76,7 @@ class WalkontableBottomLeftCornerOverlay extends WalkontableOverlay {
       finalBottom = finalBottom + 'px';
       finalLeft = finalLeft + 'px';
 
-      dom.setOverlayPosition(overlayRoot, finalLeft, null, finalBottom);
+      setOverlayPosition(overlayRoot, finalLeft, null, finalBottom);
 
     } else {
       this.repositionOverlay();

@@ -1,8 +1,8 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {pageX, pageY} from './../../helpers/dom/event';
+import {registerPlugin} from './../../plugins';
 
 export {ManualColumnResize};
 
@@ -17,9 +17,9 @@ export {ManualColumnResize};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
- * @class ManualColumnResize
  * @private
- * @plugin
+ * @class ManualColumnResize
+ * @plugin ManualColumnResize
  */
 function ManualColumnResize() {
   var currentTH, currentCol, currentWidth, instance, newSize, startX, startWidth, startOffset, handle = document.createElement('DIV'),
@@ -64,8 +64,8 @@ function ManualColumnResize() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
@@ -77,8 +77,8 @@ function ManualColumnResize() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkColumnHeader = function(element) {
@@ -122,18 +122,23 @@ function ManualColumnResize() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualColumnResizer')) {
+      if (hasClass(e.target, 'manualColumnResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
 
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function() {
             if (dblclick >= 2) {
-              newSize = instance.determineColumnWidth.call(instance, currentCol);
+              var hookNewSize = Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize, true);
+
+              if (hookNewSize !== void 0) {
+                newSize = hookNewSize;
+              }
               setManualSize(currentCol, newSize);
               instance.forceFullRender = true;
               instance.view.render(); //updates all
-              Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
+              instance.view.wt.wtOverlays.adjustElementsSize(true);
+              Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize, true);
             }
             dblclick = 0;
             autoresizeTimeout = null;
@@ -142,14 +147,14 @@ function ManualColumnResize() {
         }
         dblclick++;
 
-        startX = helper.pageX(e);
+        startX = pageX(e);
         newSize = startWidth;
       }
     });
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        currentWidth = startWidth + (helper.pageX(e) - startX);
+        currentWidth = startWidth + (pageX(e) - startX);
         newSize = setManualSize(currentCol, currentWidth); //save col width
         refreshHandlePosition();
         refreshGuidePosition();
@@ -162,9 +167,10 @@ function ManualColumnResize() {
         pressed = false;
 
         if (newSize != startWidth) {
+          Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize);
           instance.forceFullRender = true;
           instance.view.render(); //updates all
-          instance.view.wt.wtOverlays.adjustElementsSize();
+          instance.view.wt.wtOverlays.adjustElementsSize(true);
 
           saveManualColumnWidths.call(instance);
 
@@ -182,11 +188,9 @@ function ManualColumnResize() {
     eventManager.clear();
   };
 
-  this.beforeInit = function() {
-    this.manualColumnWidths = [];
-  };
-
   this.init = function(source) {
+    this.manualColumnWidths = [];
+
     var instance = this;
     var manualColumnWidthEnabled = !! (this.getSettings().manualColumnResize);
 
@@ -209,15 +213,12 @@ function ManualColumnResize() {
         this.manualColumnWidths = [];
       }
 
-      if (source == 'afterInit') {
+      if (!source) {
         bindEvents.call(this);
-        if (this.manualColumnWidths.length > 0) {
-          this.forceFullRender = true;
-          this.render();
-        }
       }
     } else {
       var pluginUsagesIndex = instance.manualColumnWidthsPluginUsages ? instance.manualColumnWidthsPluginUsages.indexOf('manualColumnResize') : -1;
+
       if (pluginUsagesIndex > -1) {
         unbindEvents.call(this);
         this.manualColumnWidths = [];
@@ -251,13 +252,11 @@ function ManualColumnResize() {
 }
 var htManualColumnResize = new ManualColumnResize();
 
-Handsontable.hooks.add('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.hooks.add('afterInit', function () {
-  htManualColumnResize.init.call(this, 'afterInit');
-});
+Handsontable.hooks.add('init', htManualColumnResize.init);
 Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualColumnResize.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 
 Handsontable.hooks.register('afterColumnResize');
+Handsontable.hooks.register('beforeColumnResize');

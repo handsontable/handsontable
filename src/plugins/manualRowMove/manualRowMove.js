@@ -1,8 +1,8 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {pageX, pageY} from './../../helpers/dom/event';
+import {registerPlugin} from './../../plugins';
 
 export {ManualRowMove};
 
@@ -17,9 +17,9 @@ export {ManualRowMove};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
- * @class ManualRowMove
  * @private
- * @plugin
+ * @class ManualRowMove
+ * @plugin ManualRowMove
  */
 function ManualRowMove() {
 
@@ -75,8 +75,8 @@ function ManualRowMove() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     var box = currentTH.getBoundingClientRect();
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
     guide.style.height = box.height + 'px';
@@ -90,8 +90,8 @@ function ManualRowMove() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkRowHeader = function(element) {
@@ -137,8 +137,8 @@ function ManualRowMove() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualRowMover')) {
-        startY = helper.pageY(e);
+      if (hasClass(e.target, 'manualRowMover')) {
+        startY = pageY(e);
         setupGuidePosition.call(instance);
         pressed = instance;
 
@@ -149,7 +149,7 @@ function ManualRowMove() {
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        refreshGuidePosition(helper.pageY(e) - startY);
+        refreshGuidePosition(pageY(e) - startY);
       }
     });
 
@@ -160,6 +160,8 @@ function ManualRowMove() {
 
         createPositionData(instance.manualRowPositions, instance.countRows());
         instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
+
+        Handsontable.hooks.run(instance, 'beforeRowMove', startRow, endRow);
 
         instance.forceFullRender = true;
         instance.view.render(); //updates all
@@ -257,4 +259,5 @@ Handsontable.hooks.add('afterUpdateSettings', function () {
 });
 
 Handsontable.hooks.add('modifyRow', htManualRowMove.modifyRow);
+Handsontable.hooks.register('beforeRowMove');
 Handsontable.hooks.register('afterRowMove');

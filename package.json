@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "0.15.0-beta6",
+  "version": "0.16.1",
   "keywords": [
     "data",
     "grid",
@@ -33,7 +33,7 @@
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-gitinfo": "~0.1.6",
-    "grunt-hot-builder": "~0.1.4",
+    "hot-builder": "^0.2.3",
     "grunt-saucelabs": "~8.3.3",
     "load-grunt-tasks": "^3.0.0",
     "time-grunt": "~1.0.0"
@@ -41,5 +41,6 @@
   "scripts": {
     "test": "grunt test -v"
   },
-  "browser": "./src/browser.js"
+  "browser": "./src/browser.js",
+  "license": "MIT"
 }

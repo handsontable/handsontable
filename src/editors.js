@@ -2,7 +2,7 @@
  * Utility to register editors and common namespace for keeping reference to all editor classes
  */
 
-import * as helper from './helpers.js';
+import {toUpperCaseFirst} from './helpers/string';
 
 export {registerEditor, getEditor, hasEditor, getEditorConstructor};
 
@@ -42,8 +42,9 @@ function RegisteredEditor(editorClass) {
 function registerEditor(editorName, editorClass) {
   var editor = new RegisteredEditor(editorClass);
 
-  if (typeof editorName === "string") {
+  if (typeof editorName === 'string') {
     registeredEditorNames[editorName] = editor;
+    Handsontable.editors[toUpperCaseFirst(editorName) + 'Editor'] = editorClass;
   }
   registeredEditorClasses.set(editorClass, editor);
 }

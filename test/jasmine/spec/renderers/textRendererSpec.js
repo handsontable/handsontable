@@ -63,6 +63,8 @@ describe('TextRenderer', function () {
     TD.className = "someClass";
     Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true, readOnlyCellClassName: 'htDimmed'});
     expect(TD.className).toEqual('someClass htDimmed');
+
+    instance.destroy();
   });
 
   it('should render a multiline string', function () {

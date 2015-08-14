@@ -1,10 +1,20 @@
 
-import * as dom from './dom.js';
-import * as helper from './helpers.js';
-import {eventManager as eventManagerObject} from './eventManager.js';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableSelection} from './3rdparty/walkontable/src/selection.js';
-import {Walkontable} from './3rdparty/walkontable/src/core.js';
+import {
+  addClass,
+  empty,
+  fastInnerHTML,
+  fastInnerText,
+  getScrollbarWidth,
+  hasClass,
+  isChildOf,
+    } from './helpers/dom/element';
+import {enableImmediatePropagation} from './helpers/dom/event';
+import {eventManager as eventManagerObject} from './eventManager';
+import {isOutsideInput, isInput} from './helpers/dom/element';
+import {stopPropagation} from './helpers/dom/event';
+import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
+import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
+import {Walkontable} from './3rdparty/walkontable/src/core';
 
 
 // Support for older Handsontable versions
@@ -27,7 +37,7 @@ function TableView(instance) {
     instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   }
 
-  dom.addClass(instance.rootElement, 'handsontable');
+  addClass(instance.rootElement, 'handsontable');
   //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -67,15 +77,17 @@ function TableView(instance) {
 
     isMouseDown = false;
 
-    if (helper.isOutsideInput(document.activeElement)) {
+    if (isOutsideInput(document.activeElement)) {
       instance.unlisten();
     }
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
     var next = event.target;
+    var eventX = event.x || event.clientX;
+    var eventY = event.y || event.clientY;
 
-    if (isMouseDown) {
+    if (isMouseDown || !instance.rootElement) {
       return; // it must have been started in a cell
     }
 
@@ -96,10 +108,10 @@ function TableView(instance) {
         next = next.parentNode;
       }
     } else {
-      var scrollbarWidth = Handsontable.Dom.getScrollbarWidth();
+      var scrollbarWidth = getScrollbarWidth();
 
-      if (document.elementFromPoint(event.x + scrollbarWidth, event.y) !== instance.view.wt.wtTable.holder ||
-        document.elementFromPoint(event.x, event.y + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
+      if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
+        document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
         return;
       }
     }
@@ -187,6 +199,7 @@ function TableView(instance) {
     debug: function() {
       return that.settings.debug;
     },
+    externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
@@ -250,7 +263,7 @@ function TableView(instance) {
 
       isMouseDown = true;
 
-      dom.enableImmediatePropagation(event);
+      enableImmediatePropagation(event);
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
@@ -344,16 +357,42 @@ function TableView(instance) {
       instance.runHooks('afterMomentumScroll');
     },
     viewportRowCalculatorOverride: function(calc) {
-      if (that.settings.viewportRowRenderingOffset) {
-        calc.startRow = Math.max(calc.startRow - that.settings.viewportRowRenderingOffset, 0);
-        calc.endRow = Math.min(calc.endRow + that.settings.viewportRowRenderingOffset, instance.countRows() - 1);
+      let rows = instance.countRows();
+      let viewportOffset = that.settings.viewportRowRenderingOffset;
+
+      if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+        calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+      }
+      if (viewportOffset === 'auto') {
+        let center = calc.startRow + calc.endRow - calc.startRow;
+        let offset = Math.ceil(center / rows * 12);
+
+        calc.startRow = Math.max(calc.startRow - offset, 0);
+        calc.endRow = Math.min(calc.endRow + offset, rows - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
     viewportColumnCalculatorOverride: function(calc) {
-      if (that.settings.viewportColumnRenderingOffset) {
-        calc.startColumn = Math.max(calc.startColumn - that.settings.viewportColumnRenderingOffset, 0);
-        calc.endColumn = Math.min(calc.endColumn + that.settings.viewportColumnRenderingOffset, instance.countCols() - 1);
+      let cols = instance.countCols();
+      let viewportOffset = that.settings.viewportColumnRenderingOffset;
+
+      if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
+        viewportOffset = 10;
+      }
+      if (typeof viewportOffset === 'number') {
+        calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+        calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+      }
+      if (viewportOffset === 'auto') {
+        let center = calc.startColumn + calc.endColumn - calc.startColumn;
+        let offset = Math.ceil(center / cols * 12);
+
+        calc.startRow = Math.max(calc.startColumn - offset, 0);
+        calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     }
@@ -367,7 +406,7 @@ function TableView(instance) {
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
     //right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      helper.stopPropagation(event);
+      stopPropagation(event);
       //event.stopPropagation();
     }
   });
@@ -375,7 +414,7 @@ function TableView(instance) {
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function(event) {
     //right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      helper.stopPropagation(event);
+      stopPropagation(event);
       //event.stopPropagation();
     }
   });
@@ -392,10 +431,10 @@ function TableView(instance) {
 }
 
 TableView.prototype.isTextSelectionAllowed = function(el) {
-  if (helper.isInput(el)) {
+  if (isInput(el)) {
     return true;
   }
-  if (this.settings.fragmentSelection && dom.isChildOf(el, this.TBODY)) {
+  if (this.settings.fragmentSelection && isChildOf(el, this.TBODY)) {
     return true;
   }
 
@@ -425,6 +464,7 @@ TableView.prototype.onDraw = function(force) {
 TableView.prototype.render = function() {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.renderCall = false;
 };
 
 /**
@@ -459,8 +499,8 @@ TableView.prototype.appendRowHeader = function(row, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
-    if (!dom.hasClass(container, 'relative')) {
-      dom.empty(TH);
+    if (!hasClass(container, 'relative')) {
+      empty(TH);
       this.appendRowHeader(row, TH);
 
       return;
@@ -490,8 +530,8 @@ TableView.prototype.appendColHeader = function(col, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
-    if (!dom.hasClass(container, 'relative')) {
-      dom.empty(TH);
+    if (!hasClass(container, 'relative')) {
+      empty(TH);
       this.appendRowHeader(col, TH);
 
       return;
@@ -522,12 +562,12 @@ TableView.prototype.appendColHeader = function(col, TH) {
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
   if (index > -1) {
-    dom.fastInnerHTML(element, content(index));
+    fastInnerHTML(element, content(index));
 
   } else {
     // workaround for https://github.com/handsontable/handsontable/issues/1946
-    dom.fastInnerText(element, String.fromCharCode(160));
-    dom.addClass(element, 'cornerHeader');
+    fastInnerText(element, String.fromCharCode(160));
+    addClass(element, 'cornerHeader');
   }
 };
 
@@ -563,7 +603,7 @@ TableView.prototype.mainViewIsActive = function() {
 
 TableView.prototype.destroy = function() {
   this.wt.destroy();
-  this.eventManager.clear();
+  this.eventManager.destroy();
 };
 
 export {TableView};

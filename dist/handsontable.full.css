@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.15.0-beta6
+ * Handsontable 0.16.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jun 05 2015 09:18:04 GMT+0200 (CEST)
+ * Date: Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -20,11 +20,11 @@
   position: relative;
 }
 
-.handsontable.htAutoColumnSize {
+.handsontable.htAutoSize {
   visibility: hidden;
-  left: 0;
+  left: -99000px;
   position: absolute;
-  top: 0;
+  top: -99000px;
 }
 
 .handsontable .wtHider {
@@ -125,9 +125,12 @@
 
 .handsontable th:first-child,
 .handsontable td:first-of-type,
-.handsontable thead tr th:nth-child(2),
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-left: 1px solid #CCC;
 }
 
@@ -1411,6 +1414,24 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
+.is-inrange .pika-button {
+    background: #D5E9F7;
+}
+
+.is-startrange .pika-button {
+    color: #fff;
+    background: #6CB31D;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
+.is-endrange .pika-button {
+    color: #fff;
+    background: #33aaff;
+    box-shadow: none;
+    border-radius: 3px;
+}
+
 .is-disabled .pika-button {
     pointer-events: none;
     cursor: default;
@@ -1419,10 +1440,10 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 }
 
 .pika-button:hover {
-    color: #fff !important;
-    background: #ff8000 !important;
-    box-shadow: none !important;
-    border-radius: 3px !important;
+    color: #fff;
+    background: #ff8000;
+    box-shadow: none;
+    border-radius: 3px;
 }
 
 /* styling for abbr */

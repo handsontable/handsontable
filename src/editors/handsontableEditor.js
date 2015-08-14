@@ -1,22 +1,16 @@
-/**
- * This is inception. Using Handsontable as Handsontable editor
- */
 
-import * as helper from './../helpers.js';
-import * as dom from './../dom.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {TextEditor} from './textEditor.js';
+import {KEY_CODES} from './../helpers/unicode';
+import {extend} from './../helpers/object';
+import {setCaretPosition} from './../helpers/dom/element';
+import {getEditor, registerEditor} from './../editors';
+import {TextEditor} from './textEditor';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 
-export {HandsontableEditor};
-
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.HandsontableEditor = HandsontableEditor;
 
 /**
  * @private
- * @editor
+ * @editor HandsontableEditor
  * @class HandsontableEditor
  * @dependencies TextEditor
  */
@@ -28,7 +22,10 @@ HandsontableEditor.prototype.createElements = function() {
   this.TEXTAREA_PARENT.appendChild(DIV);
 
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV);
+  this.htEditor = new Handsontable(DIV, {
+    autoColumnSize: false,
+    autoRowSize: false
+  });
 
   this.assignHooks();
 };
@@ -46,6 +43,8 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     minCols: 0,
     className: 'listbox',
     copyPaste: false,
+    autoColumnSize: false,
+    autoRowSize: false,
     cells: function() {
       return {
         readOnly: true
@@ -62,7 +61,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   };
 
   if (this.cellProperties.handsontable) {
-    helper.extend(options, cellProperties.handsontable);
+    extend(options, cellProperties.handsontable);
   }
   if (this.htEditor) {
     this.htEditor.destroy();
@@ -97,7 +96,7 @@ var onBeforeKeyDown = function(event) {
 
   var rowToSelect;
 
-  if (event.keyCode == helper.keyCode.ARROW_DOWN) {
+  if (event.keyCode == KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelected()) {
       rowToSelect = 0;
     } else {
@@ -105,7 +104,7 @@ var onBeforeKeyDown = function(event) {
       var lastRow = innerHOT.countRows() - 1;
       rowToSelect = Math.min(lastRow, selectedRow + 1);
     }
-  } else if (event.keyCode == helper.keyCode.ARROW_UP) {
+  } else if (event.keyCode == KEY_CODES.ARROW_UP) {
     if (innerHOT.getSelected()) {
       var selectedRow = innerHOT.getSelected()[0];
       rowToSelect = selectedRow - 1;
@@ -118,12 +117,13 @@ var onBeforeKeyDown = function(event) {
     } else {
       innerHOT.selectCell(rowToSelect, 0);
     }
+    if (innerHOT.getData().length) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    editor.instance.listen();
-    editor.TEXTAREA.focus();
+      editor.instance.listen();
+      editor.TEXTAREA.focus();
+    }
   }
 };
 
@@ -143,7 +143,7 @@ HandsontableEditor.prototype.open = function() {
     this.TEXTAREA.style.visibility = 'visible';
   }
 
-  dom.setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
+  setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
 };
 
@@ -199,5 +199,7 @@ HandsontableEditor.prototype.assignHooks = function() {
     }
   });
 };
+
+export {HandsontableEditor};
 
 registerEditor('handsontable', HandsontableEditor);

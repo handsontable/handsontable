@@ -236,7 +236,10 @@ var $table
       wt.draw();
 
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([5, 0, 12, 1]);
+      expect(wt.getViewport()[0]).toBeAroundValue(5);
+      expect(wt.getViewport()[1]).toBeAroundValue(0);
+      expect(wt.getViewport()[2]).toBeAroundValue(12);
+      expect(wt.getViewport()[3]).toBeAroundValue(1);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {

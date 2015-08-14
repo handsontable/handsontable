@@ -1,5 +1,5 @@
 
-import {registerPlugin} from './../../plugins.js';
+import {registerPlugin} from './../../plugins';
 
 export {HandsontablePersistentState};
 
@@ -59,9 +59,9 @@ function Storage(prefix) {
 }
 
 /**
- * @class PersistentState
  * @private
- * @plugin
+ * @class PersistentState
+ * @plugin PersistentState
  */
 function HandsontablePersistentState() {
   var plugin = this;

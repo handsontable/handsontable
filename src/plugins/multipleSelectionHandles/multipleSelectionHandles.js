@@ -1,12 +1,13 @@
-import * as dom from './../../dom.js';
-import BasePlugin from './../_base.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+
+import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import {EventManager} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
 
 /**
- * @class MultipleSelectionHandles
  * @private
- * @plugin
+ * @class MultipleSelectionHandles
+ * @plugin MultipleSelectionHandles
  */
 
 class MultipleSelectionHandles extends BasePlugin {
@@ -15,28 +16,50 @@ class MultipleSelectionHandles extends BasePlugin {
    */
   constructor(hotInstance) {
     super(hotInstance);
-
+    /**
+     * @type {Array}
+     */
     this.dragged = [];
-    this.eventManager = eventManagerObject(this.hot);
-    this.bindTouchEvents();
-
-    this.hot.addHook('afterInit', () => this.init());
+    /**
+     * Instance of EventManager.
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = null;
+    /**
+     * @type {null}
+     */
+    this.lastSetCell = null;
   }
 
   /**
-   * Initial settings
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
    */
-  init() {
-    this.lastSetCell = null;
-    Handsontable.plugins.multipleSelectionHandles = new MultipleSelectionHandles(this.hot);
+  isEnabled() {
+    return Handsontable.mobileBrowser;
   }
 
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.registerListeners();
+    super.enablePlugin();
+  }
 
   /**
    * Bind the touch events
    * @private
    */
-  bindTouchEvents() {
+  registerListeners() {
     var _this = this;
 
     function removeFromDragged(query) {
@@ -62,7 +85,7 @@ class MultipleSelectionHandles extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
       let selectedRange;
 
-      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
         selectedRange = _this.hot.getSelectedRange();
 
         _this.dragged.push("topLeft");
@@ -76,7 +99,7 @@ class MultipleSelectionHandles extends BasePlugin {
         event.preventDefault();
         return false;
 
-      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
         selectedRange = _this.hot.getSelectedRange();
 
         _this.dragged.push("bottomRight");
@@ -93,7 +116,7 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
-      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
         removeFromDragged.call(_this, "topLeft");
 
         _this.touchStartRange = void 0;
@@ -101,7 +124,7 @@ class MultipleSelectionHandles extends BasePlugin {
         event.preventDefault();
         return false;
 
-      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
         removeFromDragged.call(_this, "bottomRight");
 
         _this.touchStartRange = void 0;
@@ -112,8 +135,8 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function(event) {
-      let scrollTop = dom.getWindowScrollTop(),
-        scrollLeft = dom.getWindowScrollLeft(),
+      let scrollTop = getWindowScrollTop(),
+        scrollLeft = getWindowScrollLeft(),
         endTarget,
         targetCoords,
         selectedRange,
@@ -323,16 +346,15 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * Check if user is currently dragging the handle
-   * @private
+   * Check if user is currently dragging the handle.
+   *
    * @returns {boolean} Dragging state
    */
   isDragged() {
     return this.dragged.length > 0;
   }
-
 }
 
-export default MultipleSelectionHandles;
+export {MultipleSelectionHandles};
 
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);

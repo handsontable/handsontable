@@ -1,6 +1,6 @@
 
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
 
 export {DragToScroll};
 
@@ -11,10 +11,9 @@ Handsontable.plugins.DragToScroll = DragToScroll;
 /**
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of visible viewport
  *
- * @class DragToScroll
  * @private
- * @plugin
- * @constructor
+ * @class DragToScroll
+ * @plugin DragToScroll
  */
 function DragToScroll() {
   this.boundaries = null;
@@ -68,38 +67,36 @@ DragToScroll.prototype.check = function (x, y) {
 var dragToScroll;
 var instance;
 
-if (typeof Handsontable !== 'undefined') {
-  var setupListening = function (instance) {
-    instance.dragToScrollListening = false;
-    var scrollHandler = instance.view.wt.wtTable.holder; //native scroll
-    dragToScroll = new DragToScroll();
-    if (scrollHandler === window) {
-      //not much we can do currently
-      return;
+var setupListening = function (instance) {
+  instance.dragToScrollListening = false;
+  var scrollHandler = instance.view.wt.wtTable.holder; //native scroll
+  dragToScroll = new DragToScroll();
+  if (scrollHandler === window) {
+    //not much we can do currently
+    return;
+  }
+  else {
+    dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
+  }
+
+  dragToScroll.setCallback(function (scrollX, scrollY) {
+    if (scrollX < 0) {
+      scrollHandler.scrollLeft -= 50;
     }
-    else {
-      dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
+    else if (scrollX > 0) {
+      scrollHandler.scrollLeft += 50;
     }
 
-    dragToScroll.setCallback(function (scrollX, scrollY) {
-      if (scrollX < 0) {
-        scrollHandler.scrollLeft -= 50;
-      }
-      else if (scrollX > 0) {
-        scrollHandler.scrollLeft += 50;
-      }
+    if (scrollY < 0) {
+      scrollHandler.scrollTop -= 20;
+    }
+    else if (scrollY > 0) {
+      scrollHandler.scrollTop += 20;
+    }
+  });
 
-      if (scrollY < 0) {
-        scrollHandler.scrollTop -= 20;
-      }
-      else if (scrollY > 0) {
-        scrollHandler.scrollTop += 20;
-      }
-    });
-
-    instance.dragToScrollListening = true;
-  };
-}
+  instance.dragToScrollListening = true;
+};
 
 Handsontable.hooks.add('afterInit', function () {
   var instance = this;

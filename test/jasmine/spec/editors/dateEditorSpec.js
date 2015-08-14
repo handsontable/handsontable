@@ -40,6 +40,51 @@ describe('DateEditor', function () {
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
+  it("should pass date picker config object to Pikday", function () {
+    var onOpenSpy = jasmine.createSpy('open');
+    var onCloseSpy = jasmine.createSpy('close');
+    var hot = handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date',
+          datePickerConfig: {
+            firstDay: 1,
+            field: 'field', // read only - shouldn't overwrite
+            trigger: 'trigger', // read only - shouldn't overwrite
+            container: 'container', // read only - shouldn't overwrite
+            bound: true, // read only - shouldn't overwrite
+            i18n: {
+              previousMonth: 'Poprzedni',
+              nextMonth     : 'Następny',
+              months        : ['January','February','March','April','May','June','July','August','September','October','November','December'],
+              weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+              weekdaysShort : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+            },
+            onOpen: onOpenSpy,
+            onClose: onCloseSpy
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('esc');
+
+    var config = hot.getActiveEditor().$datePicker.config();
+
+    expect(config.field instanceof HTMLElement).toBe(true);
+    expect(config.trigger instanceof HTMLElement).toBe(true);
+    expect(config.container instanceof HTMLElement).toBe(true);
+    expect(config.bound).toBe(false);
+    expect(config.firstDay).toBe(1);
+    expect(config.i18n.previousMonth).toBe('Poprzedni');
+    expect(config.i18n.nextMonth).toBe('Następny');
+    expect(onOpenSpy).toHaveBeenCalled();
+    expect(onCloseSpy).toHaveBeenCalled();
+  });
+
   it("should remove any HTML connected with Pikaday Calendar", function () {
     handsontable({
       data: getDates(),
@@ -240,7 +285,7 @@ describe('DateEditor', function () {
 
     expect(editor.getValue()).toEqual('foo');
 
-    keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+    keyDownUp(Handsontable.helper.KEY_CODES.ESCAPE); //cancel editing
 
     editor.finishEditing();
 

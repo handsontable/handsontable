@@ -137,6 +137,37 @@ describe('NumericEditor', function () {
 
   });
 
+  it("should convert string in format 'XX.XX' to a float when passing float without leading zero", function() {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+
+    document.activeElement.value = '.74';
+
+    onAfterValidate.reset();
+    destroyEditor();
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getDataAtCell(2, 0)).toEqual(parseFloat(0.74));
+    });
+
+  });
+
   it("should convert string in format 'XX,XX' (with comma as separator) to a float with the same value if the numeric locale specifies comma as the precision delimiter (language=de)", function() {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 

@@ -179,7 +179,7 @@ describe('FixedRowsBottom', function() {
           var editedCell = getCell(49, 5, true);
           var editedCellOffset = $(editedCell).offset();
           selectCell(49, 5);
-          keyDownUp(Handsontable.helper.keyCode.ENTER);
+          keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
           var textarea = $('.handsontableInputHolder').find('textarea').eq(0);
           var textareaOffset = textarea.offset();
 
@@ -198,11 +198,11 @@ describe('FixedRowsBottom', function() {
           selectCell(49, 5);
           expect(getDataAtCell(49, 5)).toEqual('F50');
 
-          keyDownUp(Handsontable.helper.keyCode.ENTER);
+          keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
 
           var editorHolder = $('.handsontableInputHolder');
           editorHolder.find('textarea').eq(0).val(':x');
-          keyDownUp(Handsontable.helper.keyCode.ENTER);
+          keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
           expect(getDataAtCell(49, 5)).toEqual(':x');
         });
       });

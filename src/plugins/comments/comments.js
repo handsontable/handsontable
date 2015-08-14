@@ -1,18 +1,24 @@
-import * as dom from './../../dom.js';
-import {EventManager} from './../../eventManager.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {registerPlugin, getPlugin} from './../../plugins.js';
-import BasePlugin from './../_base.js';
-import {CommentEditor} from './commentEditor.js';
+
+import {
+  addClass,
+  closest,
+  getWindowScrollLeft,
+  getWindowScrollTop,
+  hasClass,
+  offset,
+    } from './../../helpers/dom/element';
+import {EventManager} from './../../eventManager';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {registerPlugin, getPlugin} from './../../plugins';
+import BasePlugin from './../_base';
+import {CommentEditor} from './commentEditor';
 
 /**
- * @class Comments
- * @plugin
+ * @plugin Comments
  *
  * @description
  * With option `comments: true`, you can manage cell comments programmatically or through the context menu.
- * To initialize Handsontable with predefined comments, provide comment cell
- * property: `{row: 1, col: 1, comment: "Test comment"}`
+ * To initialize Handsontable with predefined comments, provide comment cell property: `{row: 1, col: 1, comment: "Test comment"}`
  *
  * @example
  *
@@ -46,21 +52,14 @@ import {CommentEditor} from './commentEditor.js';
  * ```
  */
 class Comments extends BasePlugin {
-  /**
-   * @param {Handsontable} hotInstance
-   */
   constructor(hotInstance) {
     super(hotInstance);
-
-    if (!this.hot.getSettings().comments) {
-      return;
-    }
     /**
      * Instance of {@link CommentEditor}
      *
      * @type {CommentEditor}
      */
-    this.editor = new CommentEditor();
+    this.editor = null;
 
     /**
      * Instance of {@link EventManager}
@@ -68,7 +67,7 @@ class Comments extends BasePlugin {
      * @private
      * @type {EventManager}
      */
-    this.eventManager = new EventManager(this);
+    this.eventManager = null;
 
     /**
      * Current cell range
@@ -94,13 +93,37 @@ class Comments extends BasePlugin {
      * @type {*}
      */
     this.timer = null;
+  }
 
-    this.hot.addHook('afterInit', () => this.registerListeners());
-    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
-    this.hot.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
-    this.hot.addHook('afterScrollVertically', () => this.refreshEditorPosition());
-    this.hot.addHook('afterColumnResize', () => this.refreshEditorPosition());
-    this.hot.addHook('afterRowResize', () => this.refreshEditorPosition());
+  /**
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return this.hot.getSettings().comments;
+  }
+
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    if (!this.editor) {
+      this.editor = new CommentEditor();
+    }
+    if (!this.eventManager) {
+      this.eventManager = new EventManager(this);
+    }
+    this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
+    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterScrollVertically', () => this.refreshEditorPosition());
+    this.addHook('afterColumnResize', () => this.refreshEditorPosition());
+    this.addHook('afterRowResize', () => this.refreshEditorPosition());
+    this.registerListeners();
+    super.enablePlugin();
   }
 
   /**
@@ -140,7 +163,7 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   targetIsCellWithComment(event) {
-    return dom.hasClass(event.target, 'htCommentCell') && dom.closest(event.target, [this.hot.rootElement]) ? true : false;
+    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
   }
 
   /**
@@ -256,10 +279,10 @@ class Comments extends BasePlugin {
       return;
     }
     let TD = this.hot.view.wt.wtTable.getCell(this.range.from);
-    let offset = dom.offset(TD);
+    let cellOffset = offset(TD);
     let lastColWidth = this.hot.getColWidth(this.range.from.col);
-    let cellTopOffset = offset.top;
-    let cellLeftOffset = offset.left;
+    let cellTopOffset = cellOffset.top;
+    let cellLeftOffset = cellOffset.left;
     let verticalCompensation = 0;
     let horizontalCompensation = 0;
 
@@ -276,10 +299,10 @@ class Comments extends BasePlugin {
 
     let rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
     let holderPos = {
-      left: rect.left + dom.getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + dom.getWindowScrollLeft() - 15,
-      top: rect.top + dom.getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + dom.getWindowScrollTop()
+      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
+      right: rect.right + getWindowScrollLeft() - 15,
+      top: rect.top + getWindowScrollTop() + verticalCompensation,
+      bottom: rect.bottom + getWindowScrollTop()
     };
 
     if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
@@ -368,7 +391,7 @@ class Comments extends BasePlugin {
    */
   onAfterRenderer(TD, cellProperties) {
     if (cellProperties.comment) {
-      dom.addClass(TD, cellProperties.commentedCellClassName);
+      addClass(TD, cellProperties.commentedCellClassName);
     }
   }
 
@@ -468,9 +491,6 @@ class Comments extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }

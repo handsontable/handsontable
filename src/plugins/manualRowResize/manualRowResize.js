@@ -1,8 +1,8 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {pageX, pageY} from './../../helpers/dom/event';
+import {registerPlugin} from './../../plugins';
 
 export {ManualRowResize};
 
@@ -17,9 +17,9 @@ export {ManualRowResize};
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
- * @class ManualRowResize
  * @private
- * @plugin
+ * @class ManualRowResize
+ * @plugin ManualRowResize
  */
 function ManualRowResize() {
 
@@ -64,8 +64,8 @@ function ManualRowResize() {
 
   function setupGuidePosition() {
     var instance = this;
-    dom.addClass(handle, 'active');
-    dom.addClass(guide, 'active');
+    addClass(handle, 'active');
+    addClass(guide, 'active');
     guide.style.top = handle.style.top;
     guide.style.left = handle.style.left;
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
@@ -77,8 +77,8 @@ function ManualRowResize() {
   }
 
   function hideHandleAndGuide() {
-    dom.removeClass(handle, 'active');
-    dom.removeClass(guide, 'active');
+    removeClass(handle, 'active');
+    removeClass(guide, 'active');
   }
 
   var checkRowHeader = function(element) {
@@ -122,17 +122,22 @@ function ManualRowResize() {
     });
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (dom.hasClass(e.target, 'manualRowResizer')) {
+      if (hasClass(e.target, 'manualRowResizer')) {
         setupGuidePosition.call(instance);
         pressed = instance;
 
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function() {
             if (dblclick >= 2) {
-              setManualSize(currentRow, null); //double click sets auto row size
+              var hookNewSize = Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize, true);
+
+              if (hookNewSize !== void 0) {
+                newSize = hookNewSize;
+              }
+              setManualSize(currentRow, newSize); //double click sets auto row size
               instance.forceFullRender = true;
               instance.view.render(); //updates all
-              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
+              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize, true);
             }
             dblclick = 0;
             autoresizeTimeout = null;
@@ -141,14 +146,14 @@ function ManualRowResize() {
         }
         dblclick++;
 
-        startY = helper.pageY(e);
+        startY = pageY(e);
         newSize = startHeight;
       }
     });
 
     eventManager.addEventListener(window, 'mousemove', function(e) {
       if (pressed) {
-        currentHeight = startHeight + (helper.pageY(e) - startY);
+        currentHeight = startHeight + (pageY(e) - startY);
         newSize = setManualSize(currentRow, currentHeight);
         refreshHandlePosition();
         refreshGuidePosition();
@@ -161,6 +166,8 @@ function ManualRowResize() {
         pressed = false;
 
         if (newSize != startHeight) {
+          Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize);
+
           instance.forceFullRender = true;
           instance.view.render(); //updates all
 
@@ -180,11 +187,8 @@ function ManualRowResize() {
     eventManager.clear();
   };
 
-  this.beforeInit = function() {
-    this.manualRowHeights = [];
-  };
-
   this.init = function(source) {
+    this.manualRowHeights = [];
     var instance = this;
     var manualColumnHeightEnabled = !! (this.getSettings().manualRowResize);
 
@@ -208,19 +212,12 @@ function ManualRowResize() {
         this.manualRowHeights = [];
       }
 
-      if (source === 'afterInit') {
+      if (source === void 0) {
         bindEvents.call(this);
-        if (this.manualRowHeights.length > 0) {
-          this.forceFullRender = true;
-          this.render();
-        }
-      } else {
-        this.forceFullRender = true;
-        this.render();
-
       }
     } else {
       var pluginUsagesIndex = instance.manualRowHeightsPluginUsages ? instance.manualRowHeightsPluginUsages.indexOf('manualRowResize') : -1;
+
       if (pluginUsagesIndex > -1) {
         unbindEvents.call(this);
         this.manualRowHeights = [];
@@ -251,15 +248,12 @@ function ManualRowResize() {
 
 var htManualRowResize = new ManualRowResize();
 
-Handsontable.hooks.add('beforeInit', htManualRowResize.beforeInit);
-Handsontable.hooks.add('afterInit', function () {
-  htManualRowResize.init.call(this, 'afterInit');
-});
-
+Handsontable.hooks.add('init', htManualRowResize.init);
 Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualRowResize.init.call(this, 'afterUpdateSettings');
 });
 
 Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
 
+Handsontable.hooks.register('beforeRowResize');
 Handsontable.hooks.register('afterRowResize');

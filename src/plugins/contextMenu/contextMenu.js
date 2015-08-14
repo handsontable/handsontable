@@ -1,17 +1,26 @@
 
-import * as helper from './../../helpers.js';
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+import {
+  addClass,
+  empty,
+  fastInnerHTML,
+  getWindowScrollLeft,
+  getWindowScrollTop,
+  hasClass,
+  removeClass,
+    } from './../../helpers/dom/element';
+import {enableImmediatePropagation} from './../../helpers/dom/event';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {extend, isObject} from './../../helpers/object';
+import {KEY_CODES} from './../../helpers/unicode';
+import {proxy} from './../../helpers/function';
+import {registerPlugin} from './../../plugins';
+import {stopPropagation} from './../../helpers/dom/event';
 
-export {ContextMenu};
-
-//registerPlugin('contextMenu', ContextMenu);
 
 /**
- * @class ContextMenu
  * @private
- * @plugin
+ * @class ContextMenu
+ * @plugin ContextMenu
  */
 function ContextMenu(instance, customOptions) {
   this.instance = instance;
@@ -29,6 +38,22 @@ function ContextMenu(instance, customOptions) {
     contextMenu.destroy();
   });
 
+  function getValidSelection() {
+    let selected = instance.getSelected();
+
+    if (!selected) {
+      return null;
+    }
+    if (selected[0] < 0) {
+      return null;
+    }
+    if (instance.countRows() >= instance.getSettings().maxRows) {
+      return null;
+    }
+
+    return selected;
+  }
+
   this.defaultOptions = {
     items: [{
       key: 'row_above',
@@ -37,11 +62,14 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.start.row);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-          entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-          columnSelected = entireColumnSelection.join(',') == selected.join(',');
+        let selected = getValidSelection();
 
-        return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        if (!selected) {
+          return true;
+        }
+        let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     }, {
       key: 'row_below',
@@ -50,11 +78,14 @@ function ContextMenu(instance, customOptions) {
         this.alter("insert_row", selection.end.row + 1);
       },
       disabled: function() {
-        var selected = this.getSelected(),
-          entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-          columnSelected = entireColumnSelection.join(',') == selected.join(',');
+        let selected = getValidSelection();
 
-        return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+        if (!selected) {
+          return true;
+        }
+        let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+        return entireColumnSelection.join(',') === selected.join(',');
       }
     },
       ContextMenu.SEPARATOR, {
@@ -100,10 +131,14 @@ function ContextMenu(instance, customOptions) {
           this.alter("remove_row", selection.start.row, amount);
         },
         disabled: function() {
-          var selected = this.getSelected(),
-            entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]],
-            columnSelected = entireColumnSelection.join(',') == selected.join(',');
-          return (selected[0] < 0 || columnSelected);
+          let selected = getValidSelection();
+
+          if (!selected) {
+            return true;
+          }
+          let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
+
+          return entireColumnSelection.join(',') === selected.join(',');
         }
       }, {
         key: 'remove_col',
@@ -273,7 +308,7 @@ function ContextMenu(instance, customOptions) {
 
   contextMenu.options = {};
 
-  helper.extend(contextMenu.options, this.options);
+  extend(contextMenu.options, this.options);
 
   this.bindMouseEvents();
 
@@ -284,13 +319,15 @@ function ContextMenu(instance, customOptions) {
   this.checkSelectionAlignment = function(hot, className) {
     var hasAlignment = false;
 
-    hot.getSelectedRange().forAll(function(r, c) {
-      var metaClassName = hot.getCellMeta(r, c).className;
-      if (metaClassName && metaClassName.indexOf(className) != -1) {
-        hasAlignment = true;
-        return false;
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        var metaClassName = hot.getCellMeta(r, c).className;
+        if (metaClassName && metaClassName.indexOf(className) != -1) {
+          hasAlignment = true;
+          return false;
+        }
+      });
+    }
 
     return hasAlignment;
   };
@@ -336,12 +373,14 @@ function ContextMenu(instance, customOptions) {
   this.checkSelectionReadOnlyConsistency = function(hot) {
     var atLeastOneReadOnly = false;
 
-    hot.getSelectedRange().forAll(function(r, c) {
-      if (hot.getCellMeta(r, c).readOnly) {
-        atLeastOneReadOnly = true;
-        return false; //breaks forAll
-      }
-    });
+    if (hot.getSelectedRange()) {
+      hot.getSelectedRange().forAll(function(r, c) {
+        if (hot.getCellMeta(r, c).readOnly) {
+          atLeastOneReadOnly = true;
+          return false; //breaks forAll
+        }
+      });
+    }
 
     return atLeastOneReadOnly;
   };
@@ -372,10 +411,10 @@ ContextMenu.prototype.createMenu = function(menuName, row) {
 
   if (!menu) {
     menu = document.createElement('DIV');
-    dom.addClass(menu, 'htContextMenu');
+    addClass(menu, 'htContextMenu');
 
     if (menuName) {
-      dom.addClass(menu, menuName);
+      addClass(menu, menuName);
     }
     document.getElementsByTagName('body')[0].appendChild(menu);
   }
@@ -408,10 +447,10 @@ ContextMenu.prototype.bindMouseEvents = function() {
     this.closeAll();
 
     event.preventDefault();
-    helper.stopPropagation(event);
+    stopPropagation(event);
 
     if (!(showRowHeaders || showColHeaders)) {
-      if (!isValidElement(element) && !(dom.hasClass(element, 'current') && dom.hasClass(element, 'wtBorder'))) {
+      if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {
         return;
       }
     } else if (showRowHeaders && showColHeaders) {
@@ -427,12 +466,12 @@ ContextMenu.prototype.bindMouseEvents = function() {
 
     this.show(menu, items);
     this.setMenuPosition(event, menu);
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', helper.proxy(ContextMenu.prototype.closeAll, this));
+    this.eventManager.addEventListener(document.documentElement, 'mousedown', proxy(ContextMenu.prototype.closeAll, this));
   }
   /* jshint ignore:end */
   var eventManager = eventManagerObject(this.instance);
 
-  eventManager.addEventListener(this.instance.rootElement, 'contextmenu', helper.proxy(contextMenuOpenListener, this));
+  eventManager.addEventListener(this.instance.rootElement, 'contextmenu', proxy(contextMenuOpenListener, this));
 };
 
 ContextMenu.prototype.bindTableEvents = function() {
@@ -464,10 +503,13 @@ ContextMenu.prototype.performAction = function(event, hot) {
       return;
     }
     var selRange = this.instance.getSelectedRange();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
-    contextMenu.closeAll();
+    if (selRange) {
+      var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+
+      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+      contextMenu.closeAll();
+    }
   }
 };
 
@@ -487,11 +529,12 @@ ContextMenu.prototype.show = function(menu, items) {
     data: items,
     colHeaders: false,
     colWidths: [200],
+    autoRowSize: false,
     readOnly: true,
     copyPaste: false,
     columns: [{
       data: 'name',
-      renderer: helper.proxy(this.renderer, this)
+      renderer: proxy(this.renderer, this)
     }],
     renderAllRows: true,
     beforeKeyDown: function(event) {
@@ -564,17 +607,17 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
     value = value.call(this.instance);
   }
 
-  dom.empty(TD);
+  empty(TD);
   TD.appendChild(wrapper);
 
   if (itemIsSeparator(item)) {
-    dom.addClass(TD, 'htSeparator');
+    addClass(TD, 'htSeparator');
   } else {
-    dom.fastInnerHTML(wrapper, value);
+    fastInnerHTML(wrapper, value);
   }
 
   if (itemIsDisabled(item)) {
-    dom.addClass(TD, 'htDisabled');
+    addClass(TD, 'htDisabled');
 
     this.eventManager.addEventListener(wrapper, 'mouseenter', function() {
       instance.deselectCell();
@@ -582,7 +625,7 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
 
   } else {
     if (isSubMenu(item)) {
-      dom.addClass(TD, 'htSubmenu');
+      addClass(TD, 'htSubmenu');
 
 
       this.eventManager.addEventListener(wrapper, 'mouseenter', function() {
@@ -590,8 +633,8 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
       });
 
     } else {
-      dom.removeClass(TD, 'htSubmenu');
-      dom.removeClass(TD, 'htDisabled');
+      removeClass(TD, 'htSubmenu');
+      removeClass(TD, 'htDisabled');
 
       this.eventManager.addEventListener(wrapper, 'mouseenter', function() {
         instance.selectCell(row, col);
@@ -642,26 +685,26 @@ ContextMenu.prototype.onCellMouseOver = function(event, coords, TD, hot) {
 
 ContextMenu.prototype.onBeforeKeyDown = function(event, instance) {
 
-  dom.enableImmediatePropagation(event);
+  enableImmediatePropagation(event);
   var contextMenu = this;
 
   var selection = instance.getSelected();
 
   switch (event.keyCode) {
 
-    case helper.keyCode.ESCAPE:
+    case KEY_CODES.ESCAPE:
       contextMenu.closeAll();
       event.preventDefault();
       event.stopImmediatePropagation();
       break;
 
-    case helper.keyCode.ENTER:
+    case KEY_CODES.ENTER:
       if (selection) {
         contextMenu.performAction(event, instance);
       }
       break;
 
-    case helper.keyCode.ARROW_DOWN:
+    case KEY_CODES.ARROW_DOWN:
 
       if (!selection) {
 
@@ -678,7 +721,7 @@ ContextMenu.prototype.onBeforeKeyDown = function(event, instance) {
 
       break;
 
-    case helper.keyCode.ARROW_UP:
+    case KEY_CODES.ARROW_UP:
       if (!selection) {
 
         selectLastCell(instance, contextMenu);
@@ -693,7 +736,7 @@ ContextMenu.prototype.onBeforeKeyDown = function(event, instance) {
       event.stopImmediatePropagation();
 
       break;
-    case helper.keyCode.ARROW_RIGHT:
+    case KEY_CODES.ARROW_RIGHT:
       if (selection) {
         var row = selection[0];
         var cell = instance.getCell(selection[0], 0);
@@ -707,7 +750,7 @@ ContextMenu.prototype.onBeforeKeyDown = function(event, instance) {
 
       break;
 
-    case helper.keyCode.ARROW_LEFT:
+    case KEY_CODES.ARROW_LEFT:
       if (selection) {
 
         if (instance.rootElement.className.indexOf('htContextSubMenu_') != -1) {
@@ -821,7 +864,7 @@ ContextMenu.prototype.getItems = function(items) {
     if (typeof rawItem == 'string') {
       this.name = rawItem;
     } else {
-      helper.extend(this, rawItem);
+      extend(this, rawItem);
     }
   }
 
@@ -849,7 +892,7 @@ ContextMenu.prototype.getItems = function(items) {
         }
         item = new ContextMenuItem(item);
         if (typeof items[key] === 'object') {
-          helper.extend(item, items[key]);
+          extend(item, items[key]);
         }
         if (!item.key) {
           item.key = key;
@@ -863,8 +906,8 @@ ContextMenu.prototype.getItems = function(items) {
 };
 
 ContextMenu.prototype.setSubMenuPosition = function(coords, menu) {
-  var scrollTop = dom.getWindowScrollTop();
-  var scrollLeft = dom.getWindowScrollLeft();
+  var scrollTop = getWindowScrollTop();
+  var scrollLeft = getWindowScrollLeft();
 
   var cursor = {
     top: scrollTop + coords.top,
@@ -897,8 +940,8 @@ ContextMenu.prototype.setSubMenuPosition = function(coords, menu) {
 ContextMenu.prototype.setMenuPosition = function(event, menu) {
   // for ie8
   // http://msdn.microsoft.com/en-us/library/ie/ff974655(v=vs.85).aspx
-  var scrollTop = dom.getWindowScrollTop();
-  var scrollLeft = dom.getWindowScrollLeft();
+  var scrollTop = getWindowScrollTop();
+  var scrollLeft = getWindowScrollLeft();
   var cursorY = event.pageY || (event.clientY + scrollTop);
   var cursorX = event.pageX || (event.clientX + scrollLeft);
 
@@ -982,15 +1025,15 @@ ContextMenu.utils.normalizeSelection = function(selRange) {
 };
 
 ContextMenu.utils.isSeparator = function(cell) {
-  return dom.hasClass(cell, 'htSeparator');
+  return hasClass(cell, 'htSeparator');
 };
 
 ContextMenu.utils.hasSubMenu = function(cell) {
-  return dom.hasClass(cell, 'htSubmenu');
+  return hasClass(cell, 'htSubmenu');
 };
 
 ContextMenu.utils.isDisabled = function(cell) {
-  return dom.hasClass(cell, 'htDisabled');
+  return hasClass(cell, 'htDisabled');
 };
 
 ContextMenu.prototype.enable = function() {
@@ -1171,7 +1214,7 @@ function init() {
   var instance = this;
   /* jshint ignore:end */
   var contextMenuSetting = instance.getSettings().contextMenu;
-  var customOptions = helper.isObject(contextMenuSetting) ? contextMenuSetting : {};
+  var customOptions = isObject(contextMenuSetting) ? contextMenuSetting : {};
 
   if (contextMenuSetting) {
     if (!instance.contextMenu) {
@@ -1194,3 +1237,6 @@ Handsontable.hooks.register('afterContextMenuHide');
 
 Handsontable.ContextMenu = ContextMenu;
 
+export {ContextMenu};
+
+//registerPlugin('contextMenu', ContextMenu);

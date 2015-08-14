@@ -1,5 +1,5 @@
 import BasePlugin from './../_base.js';
-import * as helper from './../../helpers.js';
+import {deepClone} from './../../helpers/object';
 import {registerPlugin, getPlugin} from './../../plugins.js';
 
 /**
@@ -18,10 +18,10 @@ class ColumnSummary extends BasePlugin {
     this.settings = null;
     this.currentEndpoint = null;
 
-    this.init();
+    this.initPlugin();
   }
 
-  init() {
+  initPlugin() {
     this.settings = this.hot.getSettings().columnSummary;
 
     this.bindHooks();
@@ -55,7 +55,7 @@ class ColumnSummary extends BasePlugin {
 
     let type = action.indexOf('row') > -1 ? 'row' : 'col';
 
-    var oldEndpoints = helper.deepClone(this.endpoints);
+    var oldEndpoints = deepClone(this.endpoints);
     for (let i in oldEndpoints) {
       if (oldEndpoints.hasOwnProperty(i)) {
 
