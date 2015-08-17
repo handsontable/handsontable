@@ -1,4 +1,3 @@
-
 import {
   addClass,
   empty,
@@ -252,6 +251,12 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
+      var colspanOffset;
+      var TR = TD.parentNode;
+      var THEAD = TR.parentNode;
+      var headerLevel;
+      var headerColspan;
+
       instance.listen();
       that.activeWt = wt;
 
@@ -272,7 +277,10 @@ function TableView(instance) {
         } else {
           if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
+              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
+
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
               instance.selection.setSelectedHeaders(false, true);
             }
             if (coords.col < 0) {

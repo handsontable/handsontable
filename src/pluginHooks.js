@@ -542,6 +542,14 @@ const REGISTERED_HOOKS = [
   "modifyRowHeight",
 
   /**
+   *
+   * @event Hooks#modifyCopyableColumnRange
+   * @since
+   * @param {String} copyableData
+   */
+  "modifyCopyableColumnRange",
+
+  /**
    * @event Hooks#persistentStateLoad
    */
   "persistentStateLoad",

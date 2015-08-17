@@ -242,7 +242,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
+          emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -327,7 +327,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var repeatCol
         , repeatRow
         , cmax
-        , rmax;
+        , rmax
+        , baseEnd = {
+          row: end !== null ? end.row : null,
+          col: end !== null ? end.col : null
+        };
 
       // insert data with specified pasteMode method
       switch (method) {
@@ -402,9 +406,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             }
             current.col = start.col;
             clen = input[r] ? input[r].length : 0;
+
+            if (end !== null) {
+              end.col = baseEnd.col;
+            }
+
             for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
+              }
+
+              if ((source === 'paste' || source === 'autofill') && instance.getCellMeta(current.row, current.col).skipColumnOnPaste) {
+                current.col++;
+                clen++;
+                if(end !== null) {
+                  end.col++;
+                }
               }
 
               if (!instance.getCellMeta(current.row, current.col).readOnly) {
@@ -2294,6 +2311,44 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
 
+  this.getColspanOffset = function(col, level) {
+    var colspanSum = 0;
+
+    if(instance.colspanArray) {
+      for (var i = 0; i < col; i++) {
+        colspanSum += instance.colspanArray[level][i] - 1 || 0;
+      }
+
+      return colspanSum;
+    }
+
+    var colspanSum = 0;
+
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
+
+    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
+      if (TR.childNodes[i].hasAttribute('colspan')) {
+        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
+      }
+    }
+
+    return colspanSum;
+  };
+
+  this.getHeaderColspan = function(col, level) {
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
+
+    if(TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
+      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
+    }
+    return 0;
+  };
+
   /**
    * Get index of first visible row.
    *
@@ -3457,6 +3512,15 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * Skips the column on paste and pastes the data on the next column to the right
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  skipColumnOnPaste: false,
+
+  /**
+   * @description
    * Setting to true enables the search plugin (see [demo](http://handsontable.com/demo/search.html)).
    *
    * @type {Boolean}
@@ -3675,6 +3739,15 @@ DefaultSettings.prototype = {
    * ```
    */
   groups: void 0,
+
+  /**
+   * Configuration of the plugin, allowing the user to show/hide certain columns
+   *
+   * @type {Object}
+   * @default undefined
+   * @since
+   */
+  hiddenColumns: void 0,
 
   /**
    * A usually small function or regular expression that validates the input.
