@@ -627,6 +627,10 @@ describe('Core_selection', function () {
       minSpareRows: 1
     });
 
+    if(!hot.view.wt.wtOverlays.bottomOverlay.clone) {
+      return;
+    }
+
     selectCell(4,0);
 
     keyDownUp('enter');
