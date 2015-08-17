@@ -101,17 +101,32 @@ function Autofill(instance) {
     // dragged outside bottom
     if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom &&
       event.clientX <= tableRight) {
-      _this.instance.mouseDragOutside = true;
+      _this.instance.mouseDragOutsideBottom = true;
       _this.addingStarted = true;
-
     } else {
-      _this.instance.mouseDragOutside = false;
+      _this.instance.mouseDragOutsideBottom = false;
     }
 
-    if (_this.instance.mouseDragOutside) {
+    // dragged outside tableRight
+    if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY <= tableBottom &&
+      event.clientX > tableRight) {
+      _this.instance.mouseDragOutsideRight = true;
+      _this.addingStarted = true;
+    } else {
+      _this.instance.mouseDragOutsideRight = false;
+    }
+
+    if (_this.instance.mouseDragOutsideBottom) {
       setTimeout(function () {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
+      }, 200);
+    }
+
+    if (_this.instance.mouseDragOutsideRight) {
+      setTimeout(function () {
+        _this.addingStarted = false;
+        _this.instance.alter('insert_col', _this.instance.countCols());
       }, 200);
     }
   }
