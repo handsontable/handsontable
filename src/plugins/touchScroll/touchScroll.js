@@ -38,14 +38,16 @@ class TouchScroll extends BasePlugin {
 
       _this.scrollbars = [];
       _this.scrollbars.push(wtOverlays.topOverlay);
-      _this.scrollbars.push(wtOverlays.bottomOverlay);
+      if(wtOverlays.bottomOverlay.clone) {
+        _this.scrollbars.push(wtOverlays.bottomOverlay);
+      }
       _this.scrollbars.push(wtOverlays.leftOverlay);
 
       if (wtOverlays.topLeftCornerOverlay) {
         _this.scrollbars.push(wtOverlays.topLeftCornerOverlay);
       }
 
-      if (wtOverlays.bottomLeftCornerOverlay) {
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
         _this.scrollbars.push(wtOverlays.bottomLeftCornerOverlay);
       }
 
@@ -63,7 +65,7 @@ class TouchScroll extends BasePlugin {
       if (wtOverlays.topLeftCornerOverlay) {
         _this.clones.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
       }
-      if (wtOverlays.bottomLeftCornerOverlay) {
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
         _this.clones.push(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
       }
     });

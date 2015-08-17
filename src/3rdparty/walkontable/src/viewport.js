@@ -300,7 +300,7 @@ class WalkontableViewport {
       height -= fixedRowsHeight;
     }
 
-    if (fixedRowsBottom) {
+    if (fixedRowsBottom && this.wot.wtOverlays.bottomOverlay.clone) {
       fixedRowsHeight = this.wot.wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       height -= fixedRowsHeight;

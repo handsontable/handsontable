@@ -112,13 +112,18 @@ class Walkontable {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+      if(this.wtOverlays.bottomLeftCornerOverlay.clone) {
+        return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+      }
 
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
+      if(this.wtOverlays.bottomOverlay.clone) {
+        return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
+      }
+
     }
 
     return this.wtTable.getCell(coords);
@@ -190,6 +195,22 @@ class Walkontable {
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
+  }
+
+  isBottomOverlay(instance) {
+    if(typeof WalkontableBottomOverlay !== 'undefined') {
+      return instance instanceof WalkontableBottomOverlay;
+    }
+
+    return false;
+  }
+
+  isBottomLeftCornerOverlay(instance) {
+    if(typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
+      return instance instanceof WalkontableBottomLeftCornerOverlay;
+    }
+
+    return false;
   }
 
   /**

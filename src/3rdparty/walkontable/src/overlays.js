@@ -7,11 +7,9 @@ import {
     } from './../../../helpers/dom/element';
 import {EventManager} from './../../../eventManager';
 import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
-import {WalkontableBottomLeftCornerOverlay} from './overlay/bottomLeftCorner.js';
 import {WalkontableDebugOverlay} from './overlay/debug';
 import {WalkontableLeftOverlay} from './overlay/left';
 import {WalkontableTopOverlay} from './overlay/top';
-import {WalkontableBottomOverlay} from './overlay/bottom.js';
 
 /**
  * @class WalkontableOverlays
@@ -33,15 +31,26 @@ class WalkontableOverlays {
     this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
     this.topOverlay = new WalkontableTopOverlay(this.wot);
-    this.bottomOverlay = new WalkontableBottomOverlay(this.wot);
+    if(typeof WalkontableBottomOverlay !== 'undefined') {
+      this.bottomOverlay = new WalkontableBottomOverlay(this.wot);
+    } else {
+      this.bottomOverlay = {
+        needFullRender: false
+      };
+    }
+
     this.leftOverlay = new WalkontableLeftOverlay(this.wot);
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       this.topLeftCornerOverlay = new WalkontableTopLeftCornerOverlay(this.wot);
     }
 
-    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
       this.bottomLeftCornerOverlay = new WalkontableBottomLeftCornerOverlay(this.wot);
+    } else {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false
+      };
     }
 
     if (this.wot.getSetting('debug')) {
@@ -130,7 +139,7 @@ class WalkontableOverlays {
         if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
 
-        } else if (this.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if (this.bottomOverlay.clone && this.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
 
         } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
@@ -194,7 +203,7 @@ class WalkontableOverlays {
    */
   translateMouseWheelToScroll(event) {
     let topOverlay = this.topOverlay.clone.wtTable.holder;
-    let bottomOverlay = this.bottomOverlay.clone.wtTable.holder;
+    let bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     let leftOverlay = this.leftOverlay.clone.wtTable.holder;
     let eventMockup = {type: 'wheel'};
     let tempElem = event.target;
@@ -367,14 +376,16 @@ class WalkontableOverlays {
   destroy() {
     this.eventManager.destroy();
     this.topOverlay.destroy();
-    this.bottomOverlay.destroy();
+    if(this.bottomOverlay.clone) {
+      this.bottomOverlay.destroy();
+    }
     this.leftOverlay.destroy();
 
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.destroy();
     }
 
-    if (this.bottomLeftCornerOverlay) {
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.destroy();
     }
 
@@ -400,7 +411,10 @@ class WalkontableOverlays {
       }
     }
 
-    this.bottomOverlay.refresh(fastDraw);
+    if(this.bottomOverlay.clone) {
+      this.bottomOverlay.refresh(fastDraw);
+    }
+
     this.leftOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
 
@@ -408,7 +422,7 @@ class WalkontableOverlays {
       this.topLeftCornerOverlay.refresh(fastDraw);
     }
 
-    if (this.bottomLeftCornerOverlay) {
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.refresh(fastDraw);
     }
 
@@ -434,7 +448,10 @@ class WalkontableOverlays {
 
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
-    this.bottomOverlay.adjustElementsSize(force);
+    if(this.bottomOverlay.clone) {
+      this.bottomOverlay.adjustElementsSize(force);
+    }
+
   }
 
   /**
@@ -445,7 +462,11 @@ class WalkontableOverlays {
       this.adjustElementsSize();
     }
     this.topOverlay.applyToDOM();
-    this.bottomOverlay.applyToDOM();
+
+    if(this.bottomOverlay.clone) {
+      this.bottomOverlay.applyToDOM();
+    }
+
     this.leftOverlay.applyToDOM();
   }
 }

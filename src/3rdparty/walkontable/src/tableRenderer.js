@@ -60,8 +60,8 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
-    if (this.wot.cloneOverlay instanceof WalkontableBottomOverlay ||
-      this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+    if (this.wot.isBottomOverlay(this.wot.cloneOverlay) ||
+      this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
@@ -116,7 +116,7 @@ class WalkontableTableRenderer {
       }
 
       this.wot.getSetting('onDraw', true);
-    } else if (this.wot.cloneOverlay instanceof WalkontableBottomOverlay) {
+    } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay)) {
       let masterOverlay = this.wot.cloneOverlay.instance;
 
       this.wot.cloneOverlay.markOversizedFixedBottomRows();
@@ -163,7 +163,7 @@ class WalkontableTableRenderer {
 
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
 
-      if (!isWorkingOnClone || this.wot.cloneOverlay instanceof WalkontableBottomOverlay) {
+      if (!isWorkingOnClone || this.wot.isBottomOverlay(this.wot.cloneOverlay)) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }

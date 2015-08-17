@@ -329,7 +329,7 @@ class WalkontableBorder {
 
     if (this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
       ilen = this.wot.getSetting('fixedRowsTop');
-    } else if (this.wot.cloneOverlay instanceof WalkontableBottomOverlay || this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+    } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay) || this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
       ilen = this.wot.getSetting('fixedRowsBottom');
     } else {
       ilen = this.wot.wtTable.getRenderedRowsCount();

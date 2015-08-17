@@ -16,7 +16,6 @@ import {WalkontableLeftOverlay} from './overlay/left';
 import {WalkontableRowFilter} from './filter/row';
 import {WalkontableTableRenderer} from './tableRenderer';
 import {WalkontableTopOverlay} from './overlay/top';
-import {WalkontableBottomOverlay} from './overlay/bottom.js';
 
 
 class WalkontableTable {
@@ -200,8 +199,8 @@ class WalkontableTable {
         this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
         this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
         startRow = 0;
-      } else if (this.wot.cloneOverlay instanceof WalkontableBottomOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+      } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay) ||
+        this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
         startRow = totalRows - this.wot.getSetting('fixedRowsBottom');
       } else {
         startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
@@ -211,7 +210,7 @@ class WalkontableTable {
       if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
         this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
         this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+        this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
         startColumn = 0;
       } else {
         startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
@@ -235,14 +234,17 @@ class WalkontableTable {
 
     if (!this.isWorkingOnClone()) {
       this.wot.wtOverlays.topOverlay.resetFixedPosition();
-      this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      if(this.wot.wtOverlays.bottomOverlay.clone) {
+        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      }
+
       this.wot.wtOverlays.leftOverlay.resetFixedPosition();
 
       if (this.wot.wtOverlays.topLeftCornerOverlay) {
         this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
       }
 
-      if (this.instance.wtOverlays.bottomLeftCornerOverlay) {
+      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
         this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
     }
@@ -443,7 +445,7 @@ class WalkontableTable {
       return this.wot.getSetting('totalColumns');
 
     } else if (this.wot.cloneOverlay instanceof WalkontableLeftOverlay || this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay ||
-      this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+      this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
       return this.wot.getSetting('fixedColumnsLeft');
 
     } else {
@@ -458,8 +460,8 @@ class WalkontableTable {
     } else if (this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
       this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
       return this.wot.getSetting('fixedRowsTop');
-    } else if (this.wot.cloneOverlay instanceof  WalkontableBottomOverlay ||
-      this.wot.cloneOverlay instanceof WalkontableBottomLeftCornerOverlay) {
+    } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay) ||
+      this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
       return this.instance.getSetting('fixedRowsBottom');
     }
 
