@@ -31,15 +31,15 @@ describe('ContextMenu', function () {
         offsetHeight: 9
       };
 
-      expect(cursor.isFitsAbove(fakeElement)).toBe(true);
+      expect(cursor.fitsAbove(fakeElement)).toBe(true);
 
       fakeElement.offsetHeight = 10;
 
-      expect(cursor.isFitsAbove(fakeElement)).toBe(true);
+      expect(cursor.fitsAbove(fakeElement)).toBe(true);
 
       fakeElement.offsetHeight = 11;
 
-      expect(cursor.isFitsAbove(fakeElement)).toBe(false);
+      expect(cursor.fitsAbove(fakeElement)).toBe(false);
     });
 
     it('should returns boolean value related to if element fits below the cursor', function() {
@@ -55,15 +55,15 @@ describe('ContextMenu', function () {
       };
       var viewportHeight = 100;
 
-      expect(cursor.isFitsBelow(fakeElement, viewportHeight)).toBe(true);
+      expect(cursor.fitsBelow(fakeElement, viewportHeight)).toBe(true);
 
       fakeElement.offsetHeight = 90;
 
-      expect(cursor.isFitsBelow(fakeElement, viewportHeight)).toBe(true);
+      expect(cursor.fitsBelow(fakeElement, viewportHeight)).toBe(true);
 
       fakeElement.offsetHeight = 91;
 
-      expect(cursor.isFitsBelow(fakeElement, viewportHeight)).toBe(false);
+      expect(cursor.fitsBelow(fakeElement, viewportHeight)).toBe(false);
     });
 
     it('should returns boolean value related to if element fits on the right of the cursor', function() {
@@ -79,15 +79,15 @@ describe('ContextMenu', function () {
       };
       var viewportWidth = 100;
 
-      expect(cursor.isFitsOnRight(fakeElement, viewportWidth)).toBe(true);
+      expect(cursor.fitsOnRight(fakeElement, viewportWidth)).toBe(true);
 
       fakeElement.offsetWidth = 50;
 
-      expect(cursor.isFitsOnRight(fakeElement, viewportWidth)).toBe(true);
+      expect(cursor.fitsOnRight(fakeElement, viewportWidth)).toBe(true);
 
       fakeElement.offsetWidth = 51;
 
-      expect(cursor.isFitsOnRight(fakeElement, viewportWidth)).toBe(false);
+      expect(cursor.fitsOnRight(fakeElement, viewportWidth)).toBe(false);
     });
 
     it('should returns boolean value related to if element fits on the left of the cursor', function() {
@@ -102,15 +102,15 @@ describe('ContextMenu', function () {
         offsetWidth: 9
       };
 
-      expect(cursor.isFitsOnLeft(fakeElement)).toBe(true);
+      expect(cursor.fitsOnLeft(fakeElement)).toBe(true);
 
       fakeElement.offsetWidth = 50;
 
-      expect(cursor.isFitsOnLeft(fakeElement)).toBe(true);
+      expect(cursor.fitsOnLeft(fakeElement)).toBe(true);
 
       fakeElement.offsetWidth = 51;
 
-      expect(cursor.isFitsOnLeft(fakeElement)).toBe(false);
+      expect(cursor.fitsOnLeft(fakeElement)).toBe(false);
     });
   });
 });

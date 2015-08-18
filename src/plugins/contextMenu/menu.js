@@ -204,16 +204,16 @@ class Menu {
   setPosition(coords) {
     const cursor = new Cursor(coords);
 
-    if (cursor.isFitsBelow(this.container)) {
+    if (cursor.fitsBelow(this.container)) {
       this.setPositionBelowCursor(cursor);
 
-    } else if (cursor.isFitsAbove(this.container)) {
+    } else if (cursor.fitsAbove(this.container)) {
       this.setPositionAboveCursor(cursor);
 
     } else {
       this.setPositionBelowCursor(cursor);
     }
-    if (cursor.isFitsOnRight(this.container)) {
+    if (cursor.fitsOnRight(this.container)) {
       this.setPositionOnRightOfCursor(cursor);
     } else {
       this.setPositionOnLeftOfCursor(cursor);

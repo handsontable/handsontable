@@ -67,7 +67,7 @@ class Cursor {
    * @param {HTMLElement} element
    * @returns {Boolean}
    */
-  isFitsAbove(element) {
+  fitsAbove(element) {
     return this.topRelative >= element.offsetHeight;
   }
 
@@ -78,7 +78,7 @@ class Cursor {
    * @param {Number} [viewportHeight]
    * @returns {Boolean}
    */
-  isFitsBelow(element, viewportHeight = window.innerHeight) {
+  fitsBelow(element, viewportHeight = window.innerHeight) {
     return this.topRelative + element.offsetHeight <= viewportHeight;
   }
 
@@ -89,7 +89,7 @@ class Cursor {
    * @param {Number} [viewportWidth]
    * @returns {Boolean}
    */
-  isFitsOnRight(element, viewportWidth = window.innerWidth) {
+  fitsOnRight(element, viewportWidth = window.innerWidth) {
     return this.leftRelative + element.offsetWidth <= viewportWidth;
   }
 
@@ -99,7 +99,7 @@ class Cursor {
    * @param {HTMLElement} element
    * @returns {Boolean}
    */
-  isFitsOnLeft(element) {
+  fitsOnLeft(element) {
     return this.leftRelative >= element.offsetWidth;
   }
 }
