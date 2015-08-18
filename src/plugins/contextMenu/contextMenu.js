@@ -1,6 +1,7 @@
 
 import BasePlugin from './../_base';
 import {arrayEach} from './../../helpers/array';
+import {objectEach} from './../../helpers/object';
 import {CommandExecutor} from './commandExecutor';
 import {EventManager} from './../../eventManager';
 import {hasClass} from './../../helpers/dom/element';
@@ -21,7 +22,6 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot);
     this.commandExecutor = new CommandExecutor(this.hot);
     this.menu = null;
-    this.menuItems = null;
   }
 
   /**
@@ -40,25 +40,22 @@ class ContextMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.menuItems = this.itemsFactory.getVisibleItems(this.hot.getSettings().contextMenu);
+    let predefinedItems = {
+      items: this.itemsFactory.getVisibleItems(this.hot.getSettings().contextMenu)
+    };
     this.registerEvents();
+    this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    this.hot.runHooks('afterContextMenuDefaultOptions', {
-      items: this.menuItems
-    });
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
+    let menuItems = this.itemsFactory.getVisibleItems(this.hot.getSettings().contextMenu);
+
     this.menu = new Menu(this.hot);
-    this.menu.setMenuItems(this.menuItems);
+    this.menu.setMenuItems(menuItems);
     this.hot.addHook('menuExecuteCommand', (...params) => this.executeCommand.apply(this, params));
     super.enablePlugin();
 
-    const origItems = this.itemsFactory.getItems();
-
-    // Register commands added by user or by plugins
-    arrayEach(this.menuItems, (command) => {
-      if (origItems.indexOf(command) === -1 && command.name !== SEPARATOR) {
-        this.commandExecutor.registerCommand(command.key, command);
-      }
-    });
+    // Register all commands. Predefined and added by user or by plugins
+    arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
   }
 
   /**
@@ -109,12 +106,30 @@ class ContextMenu extends BasePlugin {
       return;
     }
     this.menu.close();
-    this.hot.listen();
     this.hot.runHooks('afterContextMenuHide', this.hot);
   }
 
   /**
    * Execute context menu command.
+   *
+   * You can execute all predefined commands:
+   *  * row_above - Insert row above
+   *  * row_below - Insert row below
+   *  * col_left - Insert column on the left
+   *  * col_right - Insert column on the right
+   *  * remove_row - Remove row
+   *  * remove_col - Remove column
+   *  * undo - Undo last action
+   *  * redo - Redo last action
+   *  * make_read_only - Make cell read only
+   *  * alignment:left - Alignment to the left
+   *  * alignment:top - Alignment to the top
+   *  * alignment:right - Alignment to the right
+   *  * alignment:bottom - Alignment to the bottom
+   *  * alignment:middle - Alignment to the middle
+   *  * alignment:center - Alignment to the center (justify)
+   *
+   * Or you can execute command registered in settings where `key` is your command name.
    *
    * @param {String} commandName
    * @param {*} params

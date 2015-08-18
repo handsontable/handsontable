@@ -37,6 +37,39 @@ class ItemsFactory {
   constructor(hotInstance) {
     this.hot = hotInstance;
     this.predefinedItems = predefinedItems();
+    this.defaultOrderPattern = ItemsFactory.DEFAULT_PATTERN;
+  }
+
+  /**
+   * Set predefined items.
+   *
+   * @param {Array} predefinedItems
+   */
+  setPredefinedItems(predefinedItems) {
+    let items = {};
+
+    this.defaultOrderPattern.length = 0;
+
+    objectEach(predefinedItems, (value, key) => {
+      let menuItemKey = '';
+
+      if (value.name === SEPARATOR) {
+        items[SEPARATOR] = value;
+        menuItemKey = SEPARATOR;
+
+      // Menu item added as a property to array
+      } else if (isNaN(parseInt(key, 10))) {
+        value.key = value.key === void 0 ? key : value.key;
+        items[key] = value;
+        menuItemKey = value.key;
+
+      } else {
+        items[value.key] = value;
+        menuItemKey = value.key;
+      }
+      this.defaultOrderPattern.push(menuItemKey);
+    });
+    this.predefinedItems = items;
   }
 
   /**
@@ -46,7 +79,7 @@ class ItemsFactory {
    * @returns {Array}
    */
   getVisibleItems(pattern = null) {
-    var visibleItems = {};
+    let visibleItems = {};
 
     objectEach(this.predefinedItems, (value, key) => {
       if (!value.hidden || value.hidden && !value.hidden.apply(this.hot)) {
@@ -54,7 +87,7 @@ class ItemsFactory {
       }
     });
 
-    return getItems(pattern, visibleItems);
+    return getItems(pattern, this.defaultOrderPattern, visibleItems);
   }
 
   /**
@@ -64,18 +97,18 @@ class ItemsFactory {
    * @returns {Array}
    */
   getItems(pattern = null) {
-    return getItems(pattern, this.predefinedItems);
+    return getItems(pattern, this.defaultOrderPattern, this.predefinedItems);
   }
 }
 
-function getItems(pattern = null, items = {}) {
+function getItems(pattern = null, defaultPattern = ItemsFactory.DEFAULT_PATTERN, items = {}) {
   let result = [];
 
   if (pattern && pattern.items) {
     pattern = pattern.items;
 
   } else if (!Array.isArray(pattern)) {
-    pattern = ItemsFactory.DEFAULT_PATTERN;
+    pattern = defaultPattern;
   }
   if (isObject(pattern)) {
     objectEach(pattern, (value, key) => {
@@ -86,6 +119,9 @@ function getItems(pattern = null, items = {}) {
       }
       if (isObject(value)) {
         extend(item, value);
+
+      } else if (typeof item === 'string') {
+        item = {name: item};
       }
       if (item.key === void 0) {
         item.key = key;

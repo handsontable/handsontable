@@ -1341,7 +1341,6 @@ describe('ContextMenu', function () {
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
 
       expect(countCols()).toEqual(4);
-
     });
 
     it("should fire item callback after item has been clicked", function () {

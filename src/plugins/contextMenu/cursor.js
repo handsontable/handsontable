@@ -18,7 +18,7 @@ class Cursor {
     this.type = this.getSourceType(object);
 
     /* jshint -W020 */
-    if (this.type === 'client_rect' || this.type === 'literal') {
+    if (this.type === 'literal') {
       top = object.top;
       left = object.left;
       cellHeight = object.height;
@@ -54,10 +54,7 @@ class Cursor {
   getSourceType(object) {
     let type = 'literal';
 
-    if (object instanceof ClientRect) {
-      type = 'client_rect';
-
-    } else if (object instanceof Event) {
+    if (object instanceof Event) {
       type = 'event';
     }
 

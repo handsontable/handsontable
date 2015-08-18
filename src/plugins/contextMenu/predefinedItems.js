@@ -1,5 +1,5 @@
 
-import {objectEach} from './../../helpers/object';
+import {objectEach, clone} from './../../helpers/object';
 import {align, getAlignmentClasses, getValidSelection, checkSelectionConsistency, markLabelAsSelected} from './utils';
 
 export const ROW_ABOVE = 'row_above';
@@ -22,7 +22,7 @@ export const SEPARATOR = '---------';
 export function predefinedItems() {
   const items = {};
 
-  objectEach(_predefinedItems, (value, key) => items[key] = value);
+  objectEach(_predefinedItems, (value, key) => items[key] = clone(value));
 
   return items;
 }

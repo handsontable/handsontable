@@ -1,5 +1,4 @@
 
-import {predefinedItems} from './predefinedItems';
 import {arrayEach} from './../../helpers/array';
 
 /**
@@ -8,7 +7,7 @@ import {arrayEach} from './../../helpers/array';
 class CommandExecutor {
   constructor(hotInstance) {
     this.hot = hotInstance;
-    this.commands = predefinedItems();
+    this.commands = {};
   }
 
   /**
@@ -30,6 +29,7 @@ class CommandExecutor {
   execute(commandName, ...params) {
     let commandSplit = commandName.split(':');
     commandName = commandSplit[0];
+
     let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
     let command = this.commands[commandName];
 

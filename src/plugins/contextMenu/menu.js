@@ -108,6 +108,7 @@ class Menu {
       this.releaseMainTableCallbacks();
       this.hotMenu.destroy();
       this.hotMenu = null;
+      this.hot.listen();
     }
   }
 
@@ -229,7 +230,7 @@ class Menu {
 
     /* jshint -W020 */
     if (this.isSubMenu()) {
-      top = cursor.top + cursor.cellHeight - this.container.offsetHeight;
+      top = window.scrollY + cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
     }
     this.container.style.top = top + 'px';
   }
@@ -240,7 +241,13 @@ class Menu {
    * @param {Cursor} cursor
    */
   setPositionBelowCursor(cursor) {
-    this.container.style.top = cursor.top + 'px';
+    let top = cursor.top - 1;
+
+    /* jshint -W020 */
+    if (this.isSubMenu()) {
+      top = cursor.top + window.scrollY - 1;
+    }
+    this.container.style.top = top + 'px';
   }
 
   /**
@@ -252,7 +259,7 @@ class Menu {
     let left;
 
     if (this.isSubMenu()) {
-      left = 1 + cursor.left + cursor.cellWidth;
+      left = window.scrollX + 1 + cursor.left + cursor.cellWidth;
     } else {
       left = 1 + cursor.left;
     }

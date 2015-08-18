@@ -68,18 +68,18 @@ export function prepareHorizontalAlignClass(className, alignment) {
 }
 
 export function getAlignmentClasses(range, callback) {
-  const classesArray = {};
+  const classes = {};
 
   for (let row = range.from.row; row <= range.to.row; row++) {
     for (let col = range.from.col; col <= range.to.col; col++) {
-      if (!classesArray[row]) {
-        classesArray[row] = [];
+      if (!classes[row]) {
+        classes[row] = [];
       }
-      classesArray[row][col] = callback(row, col);
+      classes[row][col] = callback(row, col);
     }
   }
 
-  return classesArray;
+  return classes;
 }
 
 export function align(range, type, alignment, cellDescriptor) {
