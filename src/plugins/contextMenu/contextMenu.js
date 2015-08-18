@@ -601,6 +601,8 @@ ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value) {
   dom.empty(TD);
   TD.appendChild(wrapper);
 
+  Handsontable.Dom.addClass(wrapper, item.key);
+
   if (itemIsSeparator(item)) {
     dom.addClass(TD, 'htSeparator');
   } else {
