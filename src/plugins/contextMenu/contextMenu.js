@@ -113,21 +113,21 @@ class ContextMenu extends BasePlugin {
    * Execute context menu command.
    *
    * You can execute all predefined commands:
-   *  * row_above - Insert row above
-   *  * row_below - Insert row below
-   *  * col_left - Insert column on the left
-   *  * col_right - Insert column on the right
-   *  * remove_row - Remove row
-   *  * remove_col - Remove column
-   *  * undo - Undo last action
-   *  * redo - Redo last action
-   *  * make_read_only - Make cell read only
-   *  * alignment:left - Alignment to the left
-   *  * alignment:top - Alignment to the top
-   *  * alignment:right - Alignment to the right
-   *  * alignment:bottom - Alignment to the bottom
-   *  * alignment:middle - Alignment to the middle
-   *  * alignment:center - Alignment to the center (justify)
+   *  * `'row_above'` - Insert row above
+   *  * `'row_below'` - Insert row below
+   *  * `'col_left'` - Insert column on the left
+   *  * `'col_right'` - Insert column on the right
+   *  * `'remove_row'` - Remove row
+   *  * `'remove_col'` - Remove column
+   *  * `'undo'` - Undo last action
+   *  * `'redo'` - Redo last action
+   *  * `'make_read_only'` - Make cell read only
+   *  * `'alignment:left'` - Alignment to the left
+   *  * `'alignment:top'` - Alignment to the top
+   *  * `'alignment:right'` - Alignment to the right
+   *  * `'alignment:bottom'` - Alignment to the bottom
+   *  * `'alignment:middle'` - Alignment to the middle
+   *  * `'alignment:center'` - Alignment to the center (justify)
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
