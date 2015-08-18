@@ -313,7 +313,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
+  defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR);
 
   defaultOptions.items.push({
     key: 'mergeCells',

@@ -412,8 +412,13 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
+    const selected = this.hot.getSelectedRange();
+
+    if (!selected) {
+      return false;
+    }
     let hasComment = false;
-    let cell = this.hot.getSelectedRange().from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.hot.getCellMeta(cell.row, cell.col).comment) {
       hasComment = true;
@@ -463,7 +468,7 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.ContextMenu.SEPARATOR,
+      Handsontable.plugins.ContextMenu.SEPARATOR,
       {
         key: 'commentsAddEdit',
         name: () => {
@@ -471,7 +476,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: function () {
-          return false;
+          return this.getSelected() ? false: true;
         }
       },
       {
