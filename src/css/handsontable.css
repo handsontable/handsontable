@@ -912,6 +912,10 @@ thead .htCollapseButton:after {
   width: 10px;
   height: 10px;
   cursor: pointer;
+  -webkit-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  -moz-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  background: #eee;
 }
 
 .handsontable col.hidden {

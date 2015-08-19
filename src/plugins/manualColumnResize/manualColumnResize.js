@@ -113,7 +113,8 @@ function ManualColumnResize() {
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
       if (checkColumnHeader(e.target)) {
         var th = getTHFromTargetElement(e.target);
-        if (th) {
+        var colspan = th.getAttribute('colspan');
+        if (th && (colspan === null || colspan === 1)) {
           if (!pressed) {
             setupHandlePosition.call(instance, th);
           }
