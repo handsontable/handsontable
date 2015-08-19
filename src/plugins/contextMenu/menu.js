@@ -3,12 +3,14 @@ import {
   addClass,
   empty,
   fastInnerHTML,
+  getComputedStyle,
+  getScrollbarWidth,
   getWindowScrollLeft,
   getWindowScrollTop,
   hasClass,
   removeClass,
     } from './../../helpers/dom/element';
-import {enableImmediatePropagation, stopPropagation, pageX, pageY} from './../../helpers/dom/event';
+import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach} from './../../helpers/object';
 import {arrayEach} from './../../helpers/array';
@@ -17,19 +19,19 @@ import {Cursor} from './cursor';
 import {KEY_CODES} from './../../helpers/unicode';
 import {isSeparator, isDisabled, hasSubMenu, normalizeSelection} from './utils';
 
-const CONTAINER_CLASS_NAME = 'htContextMenu';
 
 /**
  *
  */
 class Menu {
-  constructor(hotInstance, parentMenu = null, menuName = null) {
+  constructor(hotInstance, options = {parent: null, name: null, className: 'htMenu'}) {
     this.hot = hotInstance;
+    this.options = options;
     this.eventManager = new EventManager(this);
-    this.container = this.createContainer(menuName);
+    this.container = this.createContainer(this.options.name);
     this.hotMenu = null;
     this.hotSubMenus = {};
-    this.parentMenu = parentMenu || null;
+    this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this._afterScrollCallback = null;
 
@@ -127,7 +129,11 @@ class Menu {
       return false;
     }
     let dataItem = this.hotMenu.getData()[row];
-    let subMenu = new Menu(this.hot, this, dataItem.name);
+    let subMenu = new Menu(this.hot, {
+      parent: this,
+      name: dataItem.name,
+      className: this.options.className
+    });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -183,17 +189,14 @@ class Menu {
    * @param {Event} event
    */
   executeCommand(event) {
-    if (!this.isOpened()) {
+    if (!this.isOpened() || !this.hotMenu.getSelected()) {
       return;
     }
     const selectedItem = this.hotMenu.getData()[this.hotMenu.getSelected()[0]];
     const selRange = this.hot.getSelectedRange();
+    const normalizedSelection = selRange ? normalizeSelection(selRange) : {};
 
-    if (selRange) {
-      let normalizedSelection = normalizeSelection(selRange);
-
-      this.hot.runHooks('menuExecuteCommand', selectedItem.key, normalizedSelection, event);
-    }
+    this.hot.runHooks('menuExecuteCommand', this.parentMenu || this, selectedItem.key, normalizedSelection, event);
   }
 
   /**
@@ -272,7 +275,7 @@ class Menu {
    * @param {Cursor} cursor
    */
   setPositionOnLeftOfCursor(cursor) {
-    this.container.style.left = (cursor.left - this.container.offsetWidth) + 'px';
+    this.container.style.left = (cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4) + 'px';
   }
 
   /**
@@ -396,18 +399,18 @@ class Menu {
   createContainer(name = null) {
     if (name) {
       name = name.replace(/ /g, '_');
-      name = 'htContextSubMenu_' + name;
+      name = this.options.className + 'Sub_' + name;
     }
     let container;
 
     if (name) {
-      container = document.querySelector('.' + CONTAINER_CLASS_NAME + '.' + name);
+      container = document.querySelector('.' + this.options.className + '.' + name);
     } else {
-      container = document.querySelector('.' + CONTAINER_CLASS_NAME);
+      container = document.querySelector('.' + this.options.className);
     }
     if (!container) {
       container = document.createElement('div');
-      addClass(container, CONTAINER_CLASS_NAME);
+      addClass(container, this.options.className);
 
       if (name) {
         addClass(container, name);
@@ -439,8 +442,6 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    enableImmediatePropagation(event);
-
     let selection = this.hotMenu.getSelected();
     let stopEvent = false;
 

@@ -19,14 +19,14 @@ class Cursor {
 
     /* jshint -W020 */
     if (this.type === 'literal') {
-      top = object.top;
-      left = object.left;
+      top = parseInt(object.top, 10);
+      left = parseInt(object.left, 10);
       cellHeight = object.height;
       cellWidth = object.width;
 
     } else if (this.type === 'event') {
-      top = pageY(object);
-      left = pageX(object);
+      top = parseInt(pageY(object), 10);
+      left = parseInt(pageX(object), 10);
       cellHeight = object.target.clientHeight;
       cellWidth = object.target.clientWidth;
     }
@@ -90,7 +90,7 @@ class Cursor {
    * @returns {Boolean}
    */
   fitsOnRight(element, viewportWidth = window.innerWidth) {
-    return this.leftRelative + element.offsetWidth <= viewportWidth;
+    return this.leftRelative + this.cellWidth + element.offsetWidth <= viewportWidth;
   }
 
   /**

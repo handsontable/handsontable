@@ -100,6 +100,25 @@ var closeContextMenu = function () {
 //  $(document).trigger('mousedown');
 };
 
+
+/**
+ * Shows dropdown menu
+ */
+var dropdownMenu = function (columnIndex) {
+  var hot = spec().$container.data('handsontable');
+  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  var button = th.querySelector('.changeType');
+
+  if (button) {
+    $(button).simulate('mousedown');
+    $(button).simulate('click');
+  }
+};
+
+var closeDropdownMenu = function () {
+  $(document).simulate('mousedown');
+};
+
 /**
  * Returns a function that triggers a mouse event
  * @param {String} type Event type

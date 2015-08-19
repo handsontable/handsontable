@@ -8,19 +8,53 @@ import {hasClass} from './../../helpers/dom/element';
 import {ItemsFactory} from './itemsFactory';
 import {Menu} from './menu';
 import {registerPlugin} from './../../plugins';
-import {SEPARATOR} from './predefinedItems';
 import {stopPropagation} from './../../helpers/dom/event';
+import {
+  ROW_ABOVE,
+  ROW_BELOW,
+  COLUMN_LEFT,
+  COLUMN_RIGHT,
+  REMOVE_ROW,
+  REMOVE_COLUMN,
+  UNDO,
+  REDO,
+  READ_ONLY,
+  ALIGNMENT,
+  SEPARATOR,
+  predefinedItems
+    } from './predefinedItems';
 
 
 /**
  * @plugin ContextMenu
  */
 class ContextMenu extends BasePlugin {
+  /**
+   * Default menu items order when `contextMenu` is enabled by `true`.
+   *
+   * @returns {Array}
+   */
+  static get DEFAULT_ITEMS() {
+    return [
+      ROW_ABOVE, ROW_BELOW,
+      SEPARATOR,
+      COLUMN_LEFT, COLUMN_RIGHT,
+      SEPARATOR,
+      REMOVE_ROW, REMOVE_COLUMN,
+      SEPARATOR,
+      UNDO, REDO,
+      SEPARATOR,
+      READ_ONLY,
+      SEPARATOR,
+      ALIGNMENT
+    ];
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     this.eventManager = new EventManager(this);
-    this.itemsFactory = new ItemsFactory(this.hot);
     this.commandExecutor = new CommandExecutor(this.hot);
+    this.itemsFactory = null;
     this.menu = null;
   }
 
@@ -40,18 +74,28 @@ class ContextMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
+    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+
+    const settings = this.hot.getSettings().contextMenu;
     let predefinedItems = {
-      items: this.itemsFactory.getVisibleItems(this.hot.getSettings().contextMenu)
+      items: this.itemsFactory.getVisibleItems(settings)
     };
     this.registerEvents();
     this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
     this.itemsFactory.setPredefinedItems(predefinedItems.items);
-    let menuItems = this.itemsFactory.getVisibleItems(this.hot.getSettings().contextMenu);
+    let menuItems = this.itemsFactory.getVisibleItems(settings);
 
-    this.menu = new Menu(this.hot);
+    this.menu = new Menu(this.hot, {className: 'htContextMenu'});
     this.menu.setMenuItems(menuItems);
-    this.hot.addHook('menuExecuteCommand', (...params) => this.executeCommand.apply(this, params));
+    this.addHook('menuExecuteCommand', (menu, ...params) => {
+      if (menu === this.menu) {
+        this.executeCommand.apply(this, params);
+      }
+    });
+    if (typeof settings.callback === 'function') {
+      this.commandExecutor.setCommonCallback(settings.callback);
+    }
     super.enablePlugin();
 
     // Register all commands. Predefined and added by user or by plugins
@@ -117,6 +161,7 @@ class ContextMenu extends BasePlugin {
    *  * `'row_below'` - Insert row below
    *  * `'col_left'` - Insert column on the left
    *  * `'col_right'` - Insert column on the right
+   *  * `'clear_column'` - Clear selected column
    *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column
    *  * `'undo'` - Undo last action

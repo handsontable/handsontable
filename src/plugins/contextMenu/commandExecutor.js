@@ -8,6 +8,7 @@ class CommandExecutor {
   constructor(hotInstance) {
     this.hot = hotInstance;
     this.commands = {};
+    this.commonCallback = null;
   }
 
   /**
@@ -18,6 +19,15 @@ class CommandExecutor {
    */
   registerCommand(name, commandDescriptor) {
     this.commands[name] = commandDescriptor;
+  }
+
+  /**
+   * Set common callback which will be trigger on every executed command.
+   *
+   * @param {Function} callback
+   */
+  setCommonCallback(callback) {
+    this.commonCallback = callback;
   }
 
   /**
@@ -53,8 +63,8 @@ class CommandExecutor {
     if (typeof command.callback === 'function') {
       callbacks.push(command.callback);
     }
-    if (typeof this.hot.getSettings().contextMenu.callback === 'function') {
-      callbacks.push(this.hot.getSettings().contextMenu.callback);
+    if (typeof this.commonCallback === 'function') {
+      callbacks.push(this.commonCallback);
     }
     params.unshift(commandSplit.join(':'));
     arrayEach(callbacks, (callback) => callback.apply(this.hot, params));

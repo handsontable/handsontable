@@ -69,8 +69,8 @@ describe('ContextMenu', function () {
     it('should returns boolean value related to if element fits on the right of the cursor', function() {
       var coords = {
         top: 10,
-        left: 50,
-        width: 100,
+        left: 20,
+        width: 30,
         height: 200
       };
       var cursor = new Handsontable.plugins.utils.Cursor(coords);

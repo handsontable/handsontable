@@ -1,11 +1,13 @@
 
 import {objectEach, clone} from './../../helpers/object';
+import {rangeEach} from './../../helpers/number';
 import {align, getAlignmentClasses, getValidSelection, checkSelectionConsistency, markLabelAsSelected} from './utils';
 
 export const ROW_ABOVE = 'row_above';
 export const ROW_BELOW = 'row_below';
 export const COLUMN_LEFT = 'col_left';
 export const COLUMN_RIGHT = 'col_right';
+export const CLEAR_COLUMN = 'clear_column';
 export const REMOVE_ROW = 'remove_row';
 export const REMOVE_COLUMN = 'remove_col';
 export const UNDO = 'undo';
@@ -13,6 +15,10 @@ export const REDO = 'redo';
 export const READ_ONLY = 'make_read_only';
 export const ALIGNMENT = 'alignment';
 export const SEPARATOR = '---------';
+export const ITEMS = [
+  ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY,
+  ALIGNMENT, SEPARATOR
+];
 
 /**
  * Gets new object with all predefined menu items.
@@ -120,6 +126,27 @@ const _predefinedItems = {
     },
     hidden: function() {
       return !this.getSettings().allowInsertColumn;
+    }
+  },
+  [CLEAR_COLUMN]: {
+    key: CLEAR_COLUMN,
+    name: 'Clear column',
+
+    callback: function(key, selection) {
+      let column = selection.start.col;
+
+      rangeEach(Math.max(selection.start.row, selection.end.row), (row) => this.setDataAtCell(row, column, ''));
+    },
+    disabled: function() {
+      let selected = getValidSelection(this);
+
+      if (!selected) {
+        return true;
+      }
+      let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+      let rowSelected = entireRowSelection.join(',') == selected.join(',');
+
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
     }
   },
   [REMOVE_ROW]: {

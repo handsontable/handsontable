@@ -223,7 +223,7 @@ describe('ContextMenu', function () {
       expect(item.text()).toBe('Alignment');
       expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
       expect(contextSubMenu.length).toEqual(1);
     });
@@ -243,7 +243,7 @@ describe('ContextMenu', function () {
 
       expect(item.hasClass('htSubmenu')).toBe(false);
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
       expect(contextSubMenu.length).toEqual(0);
     });
@@ -805,7 +805,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
       button.simulate('mousedown'); //Text left
 
@@ -825,7 +825,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
 
@@ -846,7 +846,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
       button.simulate('mousedown'); //Text right
@@ -866,7 +866,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
       button.simulate('mousedown'); //Text justify
@@ -887,7 +887,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
       button.simulate('mousedown'); //Text top
@@ -908,7 +908,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
       button.simulate('mousedown'); //Text middle
@@ -928,7 +928,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextSubMenu_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
       var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
       button.simulate('mousedown'); //Text bottom
       deselectCell();

@@ -2,7 +2,6 @@
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
 import {stopPropagation} from './helpers/dom/event';
-import {enableImmediatePropagation} from './helpers/dom/event';
 import {getEditor} from './editors';
 import {eventManager as eventManagerObject} from './eventManager';
 
@@ -77,8 +76,6 @@ function EditorManager(instance, priv, selection){
     if (destroyed) {
       return;
     }
-    enableImmediatePropagation(event);
-
     if (event.isImmediatePropagationStopped()) {
       return;
     }
