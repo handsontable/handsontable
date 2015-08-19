@@ -25,10 +25,6 @@ describe('CopyPaste', function () {
     } else if (Handsontable.helper.isChrome()) {
       expect($('.copyPaste')[0].value).toBe('a\nb\n\n');
       expect(getData).toHaveBeenCalledWith('Text');
-
-    } else {
-      expect($('.copyPaste')[0].value).toBe('');
-      expect(getData).not.toHaveBeenCalled();
     }
   });
 

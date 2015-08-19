@@ -12,7 +12,6 @@ import {
   removeClass,
   setCaretPosition,
     } from './../helpers/dom/element';
-import {enableImmediatePropagation} from './../helpers/dom/event';
 import {getEditor, registerEditor} from './../editors';
 import {BaseEditor} from './_baseEditor';
 import {eventManager as eventManagerObject} from './../eventManager';
@@ -107,8 +106,6 @@ MobileTextEditor.prototype.createElements = function() {
 MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
   var instance = this;
   var that = instance.getActiveEditor();
-
-  enableImmediatePropagation(event);
 
   if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
     return;

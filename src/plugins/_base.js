@@ -20,6 +20,7 @@ class BasePlugin {
     });
     privatePool.set(this, {hooks: {}});
     this.enabled = false;
+    this.initialized = false;
 
     this.hot.addHook('afterUpdateSettings', () => this.onUpdateSettings());
     this.hot.addHook('beforeInit', () => this.init());
@@ -29,6 +30,7 @@ class BasePlugin {
     if (this.isEnabled && this.isEnabled()) {
       this.enablePlugin();
     }
+    this.initialized = true;
   }
 
   /**

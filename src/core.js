@@ -581,7 +581,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if ((disableVisualSelection === false ||
           Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
-        selection.isMultiple()) {
+          selection.isMultiple()) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }

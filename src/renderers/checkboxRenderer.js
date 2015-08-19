@@ -1,6 +1,5 @@
 
 import {empty, addClass, hasClass} from './../helpers/dom/element';
-import {enableImmediatePropagation} from './../helpers/dom/event';
 import {equalsIgnoreCase} from './../helpers/string';
 import {EventManager} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
@@ -81,7 +80,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       KEY_CODES.DELETE,
       KEY_CODES.BACKSPACE
     ];
-    enableImmediatePropagation(event);
 
     if (allowedKeys.indexOf(event.keyCode) !== -1 && !event.isImmediatePropagationStopped()) {
       eachSelectedCheckboxCell(function() {

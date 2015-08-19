@@ -2,42 +2,17 @@
 import {objectEach, isObject, extend} from './../../helpers/object';
 import {arrayEach} from './../../helpers/array';
 import {
-  ROW_ABOVE,
-  ROW_BELOW,
-  COLUMN_LEFT,
-  COLUMN_RIGHT,
-  REMOVE_ROW,
-  REMOVE_COLUMN,
-  UNDO,
-  REDO,
-  READ_ONLY,
-  ALIGNMENT,
   SEPARATOR,
+  ITEMS,
   predefinedItems
     } from './predefinedItems';
 
 
 class ItemsFactory {
-  static get DEFAULT_PATTERN() {
-    return [
-      ROW_ABOVE, ROW_BELOW,
-      SEPARATOR,
-      COLUMN_LEFT, COLUMN_RIGHT,
-      SEPARATOR,
-      REMOVE_ROW, REMOVE_COLUMN,
-      SEPARATOR,
-      UNDO, REDO,
-      SEPARATOR,
-      READ_ONLY,
-      SEPARATOR,
-      ALIGNMENT
-    ];
-  }
-
-  constructor(hotInstance) {
+  constructor(hotInstance, orderPattern = null) {
     this.hot = hotInstance;
     this.predefinedItems = predefinedItems();
-    this.defaultOrderPattern = ItemsFactory.DEFAULT_PATTERN;
+    this.defaultOrderPattern = orderPattern;
   }
 
   /**
@@ -101,7 +76,7 @@ class ItemsFactory {
   }
 }
 
-function getItems(pattern = null, defaultPattern = ItemsFactory.DEFAULT_PATTERN, items = {}) {
+function getItems(pattern = null, defaultPattern = [], items = {}) {
   let result = [];
 
   if (pattern && pattern.items) {
@@ -133,7 +108,7 @@ function getItems(pattern = null, defaultPattern = ItemsFactory.DEFAULT_PATTERN,
       let item = items[name];
 
       // Item deleted from settings `allowInsertRow: false` etc.
-      if (!item && ItemsFactory.DEFAULT_PATTERN.indexOf(name) >= 0) {
+      if (!item && ITEMS.indexOf(name) >= 0) {
         return;
       }
       if (!item) {

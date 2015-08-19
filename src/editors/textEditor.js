@@ -12,7 +12,6 @@ import {
     } from './../helpers/dom/element';
 import autoResize from 'autoResize';
 import {BaseEditor} from './_baseEditor';
-import {enableImmediatePropagation} from './../helpers/dom/event';
 import {eventManager as eventManagerObject} from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {KEY_CODES} from './../helpers/unicode';
@@ -54,7 +53,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-  enableImmediatePropagation(event);
 
   // Process only events that have been fired in the editor
   if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
