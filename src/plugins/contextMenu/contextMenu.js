@@ -161,6 +161,7 @@ class ContextMenu extends BasePlugin {
    *  * `'row_below'` - Insert row below
    *  * `'col_left'` - Insert column on the left
    *  * `'col_right'` - Insert column on the right
+   *  * `'clear_column'` - Clear selected column
    *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column
    *  * `'undo'` - Undo last action
