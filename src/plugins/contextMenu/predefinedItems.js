@@ -224,7 +224,6 @@ const _predefinedItems = {
   [READ_ONLY]: {
     key: READ_ONLY,
     name: function() {
-      const contextMenu = this.getPlugin('contextMenu');
       let label = 'Read only';
       let atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
 
@@ -235,18 +234,24 @@ const _predefinedItems = {
       return label;
     },
     callback: function() {
-      const contextMenu = this.getPlugin('contextMenu');
-      let atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
+      let range = this.getSelectedRange();
+      let atLeastOneReadOnly = checkSelectionConsistency(range, (row, col) => this.getCellMeta(row, col).readOnly);
 
-      this.getSelectedRange().forAll((row, col) => {
+      range.forAll((row, col) => {
         this.getCellMeta(row, col).readOnly = atLeastOneReadOnly ? false : true;
       });
       this.render();
+    },
+    disabled: function() {
+      return this.getSelectedRange() ? false : true;
     }
   },
   [ALIGNMENT]: {
     key: ALIGNMENT,
     name: 'Alignment',
+    disabled: function() {
+      return this.getSelectedRange() ? false : true;
+    },
     submenu: {
       items: [
         {
