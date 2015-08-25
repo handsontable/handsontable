@@ -1,21 +1,17 @@
 
-export function enableImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function () {
-      this.isImmediatePropagationEnabled = false;
-      this.cancelBubble = true;
-    };
-    event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function () {
-      return !this.isImmediatePropagationEnabled;
-    };
-  }
+export function stopImmediatePropagation(event) {
+  event.isImmediatePropagationEnabled = false;
+  event.cancelBubble = true;
+}
+
+export function isImmediatePropagationStopped(event) {
+  return event.isImmediatePropagationEnabled === false;
 }
 
 export function stopPropagation(event) {
   // ie8
   //http://msdn.microsoft.com/en-us/library/ie/ff975462(v=vs.85).aspx
-  if (typeof (event.stopPropagation) === 'function') {
+  if (typeof event.stopPropagation === 'function') {
     event.stopPropagation();
   }
   else {

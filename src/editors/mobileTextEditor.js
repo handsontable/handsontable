@@ -1,5 +1,6 @@
 
 import {KEY_CODES} from './../helpers/unicode';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 import {
   addClass,
   getScrollLeft,
@@ -107,7 +108,7 @@ MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
   var instance = this;
   var that = instance.getActiveEditor();
 
-  if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
+  if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {
     return;
   }
 
@@ -117,7 +118,7 @@ MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
       event.preventDefault(); //don't add newline to field
       break;
     case KEY_CODES.BACKSPACE:
-      event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
+      stopImmediatePropagation(event); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
   }
 };

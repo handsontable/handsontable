@@ -7,10 +7,11 @@ import {
   getScrollbarWidth,
   hasClass,
   isChildOf,
+  isInput,
+  isOutsideInput,
     } from './helpers/dom/element';
 import {eventManager as eventManagerObject} from './eventManager';
-import {isOutsideInput, isInput} from './helpers/dom/element';
-import {stopPropagation} from './helpers/dom/event';
+import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
 import {Walkontable} from './3rdparty/walkontable/src/core';
@@ -258,8 +259,7 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (!event.isImmediatePropagationStopped()) {
-
+      if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
           //do nothing
         } else if (event.shiftKey) {

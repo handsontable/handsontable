@@ -10,7 +10,7 @@ import {
   hasClass,
   removeClass,
     } from './../../helpers/dom/element';
-import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
+import {stopPropagation, stopImmediatePropagation, pageX, pageY} from './../../helpers/dom/event';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach} from './../../helpers/object';
 import {arrayEach} from './../../helpers/array';
@@ -501,7 +501,7 @@ class Menu {
     }
     if (stopEvent) {
       event.preventDefault();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 
