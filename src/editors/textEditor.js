@@ -15,7 +15,7 @@ import {BaseEditor} from './_baseEditor';
 import {eventManager as eventManagerObject} from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {KEY_CODES} from './../helpers/unicode';
-import {stopPropagation} from './../helpers/dom/event';
+import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
 var TextEditor = BaseEditor.prototype.extend();
 
@@ -55,13 +55,13 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   // Process only events that have been fired in the editor
-  if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
+  if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {
     return;
   }
 
   if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
     // when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-    event.stopImmediatePropagation();
+    stopImmediatePropagation(event);
     return;
   }
 
@@ -70,7 +70,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       if (that.isInFullEditMode()) {
         if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
             (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          event.stopImmediatePropagation();
+          stopImmediatePropagation(event);
         }
       }
       break;
@@ -78,7 +78,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       if (that.isInFullEditMode()) {
         if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
             (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          event.stopImmediatePropagation();
+          stopImmediatePropagation(event);
         }
       }
       break;
@@ -87,7 +87,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       if (that.isInFullEditMode()) {
         if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
             (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          event.stopImmediatePropagation();
+          stopImmediatePropagation(event);
         }
       }
       break;
@@ -109,7 +109,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
         } else {
           that.beginEditing(that.originalValue + '\n');
         }
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
       }
       event.preventDefault(); //don't add newline to field
       break;
@@ -119,7 +119,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
     case KEY_CODES.C:
     case KEY_CODES.V:
       if (ctrlDown) {
-        event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+        stopImmediatePropagation(event); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
       }
       break;
 
@@ -127,7 +127,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
     case KEY_CODES.DELETE:
     case KEY_CODES.HOME:
     case KEY_CODES.END:
-      event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
+      stopImmediatePropagation(event); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
   }
 

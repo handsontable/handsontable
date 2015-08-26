@@ -4,7 +4,7 @@ import {equalsIgnoreCase} from './../helpers/string';
 import {EventManager} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
 import {KEY_CODES} from './../helpers/unicode';
-import {stopPropagation} from './../helpers/dom/event';
+import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
 const isListeningKeyDownEvent = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
@@ -81,9 +81,9 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       KEY_CODES.BACKSPACE
     ];
 
-    if (allowedKeys.indexOf(event.keyCode) !== -1 && !event.isImmediatePropagationStopped()) {
+    if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(function() {
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
         event.preventDefault();
       });
     }

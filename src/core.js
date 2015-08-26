@@ -5,7 +5,7 @@ import {columnFactory} from './helpers/setting';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {extend, duckSchema, isObjectEquals} from './helpers/object';
+import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
@@ -3559,10 +3559,25 @@ DefaultSettings.prototype = {
    *
    * See [demo/contextmenu.html](http://handsontable.com/demo/contextmenu.html) for examples.
    *
-   * @type {Boolean|Array}
+   * @type {Boolean|Array|Object}
    * @default undefined
    */
   contextMenu: void 0,
+
+  /**
+   * @description
+   * Defines if the dropdown menu in headers should be enabled. Dropdown menu allows to put custom or predefined actions
+   * which can intreact with selected column.
+   * Possible values: `true` (to enable basic options), `false` (to disable completely)
+   * or array of any available strings: `["row_above", "row_below", "col_left", "col_right",
+   * "remove_row", "remove_col", "undo", "redo", "clear_column", "sep1", "sep2", "sep3"]`.
+   *
+   * See [demo/dropdownmenu.html](http://handsontable.com/demo/dropdownmenu.html) for examples.
+   *
+   * @type {Boolean|Array|Object}
+   * @default undefined
+   */
+  dropdownMenu: void 0,
 
   /**
    * If `true`, undo/redo functionality is enabled.

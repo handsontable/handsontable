@@ -3,6 +3,7 @@
  */
 
 import {inherit, deepClone} from './../../helpers/object';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 
 /**
  * Handsontable UndoRedo class
@@ -365,11 +366,11 @@ function onBeforeKeyDown(event) {
   if (ctrlDown) {
     if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
       instance.undoRedo.redo();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
     else if (event.keyCode === 90) { //CTRL + Z
       instance.undoRedo.undo();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 }

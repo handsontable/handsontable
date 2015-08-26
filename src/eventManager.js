@@ -1,6 +1,5 @@
 
 import {polymerWrap, closest} from './helpers/dom/element';
-import {enableImmediatePropagation} from './helpers/dom/event';
 import {isWebComponentSupportedNatively} from './helpers/browser';
 
 
@@ -207,8 +206,6 @@ function extendEvent(context, event) {
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
-
-  enableImmediatePropagation(event);
 
   if (!Handsontable.eventManager.isHotTableEnv) {
     return event;

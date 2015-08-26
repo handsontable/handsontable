@@ -5,6 +5,7 @@ import {
   hasClass,
   index as elementIndex,
     } from './../../helpers/dom/element';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 
 //export {Grouping};
@@ -1237,8 +1238,7 @@ function Grouping(instance) {
         }
 
         instance.render();
-
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
       }
     },
     /**

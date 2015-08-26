@@ -2,6 +2,7 @@
 import {KEY_CODES} from './../helpers/unicode';
 import {extend} from './../helpers/object';
 import {setCaretPosition} from './../helpers/dom/element';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 import {getEditor, registerEditor} from './../editors';
 import {TextEditor} from './textEditor';
 
@@ -74,22 +75,9 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
 };
 
 var onBeforeKeyDown = function(event) {
-
-  if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function() {
-      this.isImmediatePropagationEnabled = false;
-      this.cancelBubble = true;
-    };
-    event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function() {
-      return !this.isImmediatePropagationEnabled;
-    };
-  }
-
-  if (event.isImmediatePropagationStopped()) {
+  if (isImmediatePropagationStopped(event)) {
     return;
   }
-
   var editor = this.getActiveEditor();
 
   var innerHOT = editor.htEditor.getInstance(); //Handsontable.tmpHandsontable(editor.htContainer, 'getInstance');
@@ -119,7 +107,7 @@ var onBeforeKeyDown = function(event) {
     }
     if (innerHOT.getData().length) {
       event.preventDefault();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
 
       editor.instance.listen();
       editor.TEXTAREA.focus();

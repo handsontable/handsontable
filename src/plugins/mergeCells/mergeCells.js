@@ -1,5 +1,6 @@
 
 import {registerPlugin} from './../../plugins';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
@@ -303,7 +304,7 @@ var onBeforeKeyDown = function(event) {
     if (event.keyCode === 77) { //CTRL + M
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       this.render();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 };
