@@ -50,6 +50,10 @@ var getLeftClone = function () {
   return spec().$container.find('.ht_clone_left');
 };
 
+var getCornerClone = function () {
+  return spec().$container.find('.ht_clone_corner');
+};
+
 //Rename me to countTD
 var countCells = function () {
   return getHtCore().find('tbody td').length;
