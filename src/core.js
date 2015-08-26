@@ -3078,7 +3078,7 @@ DefaultSettings.prototype = {
   customBorders: false,
 
   /**
-   * Minimum number of rows. At least that many of rows will be created during initialization.
+   * Minimum number of rows. At least that amount of rows will be created during initialization.
    *
    * @type {Number}
    * @default 0
@@ -3730,6 +3730,14 @@ DefaultSettings.prototype = {
    */
   sortIndicator: false,
   manualColumnFreeze: void 0,
+
+  /**
+   * @description
+   * Defines whether Handsontable should trim the whitespace at the begging and the end of the cell contents
+   *
+   * @type {Boolean}
+   * @default true
+   */
   trimWhitespace: true,
   settings: void 0,
   source: void 0,
