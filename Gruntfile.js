@@ -119,10 +119,6 @@ module.exports = function (grunt) {
           vendor: [
             'demo/js/jquery.min.js',
             'lib/numeral/numeral.js',
-            'lib/autoResize/autoResize.js',
-            'lib/copyPaste/copyPaste.js',
-            'lib/SheetClip/SheetClip.js',
-            'lib/jsonpatch/json-patch-duplex.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',
@@ -152,10 +148,6 @@ module.exports = function (grunt) {
           vendor: [
             'demo/js/jquery.min.js',
             'lib/numeral/numeral.js',
-            'lib/autoResize/autoResize.js',
-            'lib/copyPaste/copyPaste.js',
-            'lib/SheetClip/SheetClip.js',
-            'lib/jsonpatch/json-patch-duplex.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',

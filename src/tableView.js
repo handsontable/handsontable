@@ -41,7 +41,11 @@ function TableView(instance) {
   //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
-  table.className = 'htCore';
+  addClass(table, 'htCore');
+
+  if (instance.getSettings().tableClassName) {
+    addClass(table, instance.getSettings().tableClassName);
+  }
   this.THEAD = document.createElement('THEAD');
   table.appendChild(this.THEAD);
   this.TBODY = document.createElement('TBODY');

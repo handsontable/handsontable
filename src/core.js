@@ -3317,6 +3317,23 @@ DefaultSettings.prototype = {
   currentColClassName: void 0,
 
   /**
+   * Class name for all handsontable container element.
+   *
+   * @type {String|Array}
+   * @default undefined
+   */
+  className: void 0,
+
+  /**
+   * Class name for all tables inside container element.
+   *
+   * @since 0.16.2
+   * @type {String|Array}
+   * @default undefined
+   */
+  tableClassName: void 0,
+
+  /**
    * @description
    * [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `"none"`, `"last"`, `"all"`.
    *
@@ -3760,7 +3777,6 @@ DefaultSettings.prototype = {
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
   format: void 0,
-  className: void 0,
 
   /**
    * Enables or disables autoColumnSize plugin. Default value is `undefined` which is the same effect as `true`.
