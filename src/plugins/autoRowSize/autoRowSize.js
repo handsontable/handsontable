@@ -1,7 +1,7 @@
 
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/dom/element';
+import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {isPercentValue, rangeEach} from './../../helpers/number';
@@ -201,8 +201,10 @@ class AutoRowSize extends BasePlugin {
    * Recalculate all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
-    this.clearCache();
-    this.calculateAllRowsHeight();
+    if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
+      this.clearCache();
+      this.calculateAllRowsHeight();
+    }
   }
 
   /**
