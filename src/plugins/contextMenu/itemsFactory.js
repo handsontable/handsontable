@@ -5,9 +5,15 @@ import {
   SEPARATOR,
   ITEMS,
   predefinedItems
-    } from './predefinedItems';
+} from './predefinedItems';
 
 
+/**
+ * Predefined items class factory for menu items.
+ *
+ * @class ItemsFactory
+ * @plugin ContextMenu
+ */
 class ItemsFactory {
   constructor(hotInstance, orderPattern = null) {
     this.hot = hotInstance;
@@ -32,7 +38,7 @@ class ItemsFactory {
         items[SEPARATOR] = value;
         menuItemKey = SEPARATOR;
 
-      // Menu item added as a property to array
+        // Menu item added as a property to array
       } else if (isNaN(parseInt(key, 10))) {
         value.key = value.key === void 0 ? key : value.key;
         items[key] = value;
@@ -50,7 +56,8 @@ class ItemsFactory {
   /**
    * Get only visible menu items based on pattern.
    *
-   * @param {Array|Object|Boolean} pattern
+   * @param {Array|Object|Boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
+   *                                       pattern will be used.
    * @returns {Array}
    */
   getVisibleItems(pattern = null) {
@@ -68,7 +75,8 @@ class ItemsFactory {
   /**
    * Get all menu items based on pattern.
    *
-   * @param {Array|Object|Boolean} pattern
+   * @param {Array|Object|Boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
+   *                                       pattern will be used.
    * @returns {Array}
    */
   getItems(pattern = null) {

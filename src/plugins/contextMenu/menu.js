@@ -9,7 +9,7 @@ import {
   getWindowScrollTop,
   hasClass,
   removeClass,
-    } from './../../helpers/dom/element';
+} from './../../helpers/dom/element';
 import {stopPropagation, stopImmediatePropagation, pageX, pageY} from './../../helpers/dom/event';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach} from './../../helpers/object';
@@ -21,7 +21,8 @@ import {isSeparator, isDisabled, hasSubMenu, normalizeSelection} from './utils';
 
 
 /**
- *
+ * @class Menu
+ * @plugin ContextMenu
  */
 class Menu {
   constructor(hotInstance, options = {parent: null, name: null, className: 'htMenu'}) {
@@ -39,7 +40,9 @@ class Menu {
   }
 
   /**
-   * Register event listeners
+   * Register event listeners.
+   *
+   * @private
    */
   registerEvents() {
     this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.close());
@@ -49,7 +52,7 @@ class Menu {
   /**
    * Set array of objects which defines menu items.
    *
-   * @param {Array} menuItems
+   * @param {Array} menuItems Menu items to display.
    */
   setMenuItems(menuItems) {
     this.menuItems = menuItems;
@@ -96,7 +99,7 @@ class Menu {
   /**
    * Close menu.
    *
-   * @param {Boolean} [closeParent=false]
+   * @param {Boolean} [closeParent=false] if `true` try to close parent menu if exists.
    */
   close(closeParent = false) {
     if (!this.isOpened()) {
@@ -145,7 +148,7 @@ class Menu {
   /**
    * Close sub menu at row index.
    *
-   * @param {Number} row
+   * @param {Number} row Row index.
    */
   closeSubMenu(row) {
     let dataItem = this.hotMenu.getData()[row];
@@ -177,7 +180,7 @@ class Menu {
   /**
    * Checks if menu was opened.
    *
-   * @returns {Boolean}
+   * @returns {Boolean} Returns `true` if menu was opened.
    */
   isOpened() {
     return this.hotMenu !== null;
@@ -202,7 +205,7 @@ class Menu {
   /**
    * Set menu position based on dom event or based on literal object.
    *
-   * @param {Event|Object} coords
+   * @param {Event|Object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
     const cursor = new Cursor(coords);
@@ -393,6 +396,7 @@ class Menu {
   /**
    * Create container/wrapper for handsontable.
    *
+   * @private
    * @param {String} [name] Class name
    * @returns {HTMLElement}
    */
@@ -421,12 +425,18 @@ class Menu {
     return container;
   }
 
+  /**
+   * @private
+   */
   blockMainTableCallbacks() {
     this._afterScrollCallback = function() {};
     this.hot.addHook('afterScrollVertically', this._afterScrollCallback);
     this.hot.addHook('afterScrollHorizontally', this._afterScrollCallback);
   }
 
+  /**
+   * @private
+   */
   releaseMainTableCallbacks() {
     if (this._afterScrollCallback) {
       this.hot.removeHook('afterScrollVertically', this._afterScrollCallback);

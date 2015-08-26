@@ -3327,7 +3327,7 @@ DefaultSettings.prototype = {
   /**
    * Class name for all tables inside container element.
    *
-   * @since 0.16.2
+   * @since 0.17.0
    * @type {String|Array}
    * @default undefined
    */

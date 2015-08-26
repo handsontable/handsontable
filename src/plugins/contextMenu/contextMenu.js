@@ -22,7 +22,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
   predefinedItems
-    } from './predefinedItems';
+} from './predefinedItems';
 
 
 /**
@@ -52,9 +52,29 @@ class ContextMenu extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @type EventManager
+     */
     this.eventManager = new EventManager(this);
+    /**
+     * Instance of {@link CommandExecutor}.
+     *
+     * @type CommandExecutor
+     */
     this.commandExecutor = new CommandExecutor(this.hot);
+    /**
+     * Instance of {@link ItemsFactory}.
+     *
+     * @type ItemsFactory
+     */
     this.itemsFactory = null;
+    /**
+     * Instance of {@link Menu}.
+     *
+     * @type Menu
+     */
     this.menu = null;
   }
 

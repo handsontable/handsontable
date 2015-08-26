@@ -3,8 +3,10 @@ import {getWindowScrollLeft, getWindowScrollTop,} from './../../helpers/dom/elem
 import {pageX, pageY} from './../../helpers/dom/event';
 
 /**
+ * Helper class for checking if element will fit at the desired side of cursor.
+ *
  * @class Cursor
- * @private
+ * @plugin ContextMenu
  */
 class Cursor {
   constructor(object) {
@@ -48,8 +50,8 @@ class Cursor {
   /**
    * Get source type name.
    *
-   * @param {*} object
-   * @returns {String}
+   * @param {*} object Event or Object with coordinates.
+   * @returns {String} Returns one of this values: `'literal'`, `'event'`.
    */
   getSourceType(object) {
     let type = 'literal';
@@ -64,7 +66,7 @@ class Cursor {
   /**
    * Checks if element can be placed above the cursor.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element Element to check if it's size will fit above the cursor.
    * @returns {Boolean}
    */
   fitsAbove(element) {
@@ -74,7 +76,7 @@ class Cursor {
   /**
    * Checks if element can be placed below the cursor.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element Element to check if it's size will fit below the cursor.
    * @param {Number} [viewportHeight]
    * @returns {Boolean}
    */
@@ -85,7 +87,7 @@ class Cursor {
   /**
    * Checks if element can be placed on the right of the cursor.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element Element to check if it's size will fit on the right of the cursor.
    * @param {Number} [viewportWidth]
    * @returns {Boolean}
    */
@@ -96,7 +98,7 @@ class Cursor {
   /**
    * Checks if element can be placed on the left on the cursor.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element Element to check if it's size will fit on the left of the cursor.
    * @returns {Boolean}
    */
   fitsOnLeft(element) {

@@ -13,7 +13,9 @@ class BasePlugin {
    */
   constructor(hotInstance) {
     /**
-     * @type {Core} hot Handsontable instance.
+     * Handsontable instance.
+     *
+     * @type {Core}
      */
     defineGetter(this, 'hot', hotInstance, {
       writable: false

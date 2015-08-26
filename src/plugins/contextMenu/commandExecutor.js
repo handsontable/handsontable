@@ -2,7 +2,10 @@
 import {arrayEach} from './../../helpers/array';
 
 /**
+ * Command executor for ContextMenu.
+ *
  * @class CommandExecutor
+ * @plugin ContextMenu
  */
 class CommandExecutor {
   constructor(hotInstance) {
@@ -14,8 +17,9 @@ class CommandExecutor {
   /**
    * Register command.
    *
-   * @param {String} name
-   * @param {Object} commandDescriptor
+   * @param {String} name Command name.
+   * @param {Object} commandDescriptor Command descriptor object with properties like `key` (command id),
+   *                                   `callback` (task to execute), `name` (command name), `disabled` (command availability).
    */
   registerCommand(name, commandDescriptor) {
     this.commands[name] = commandDescriptor;
@@ -24,7 +28,7 @@ class CommandExecutor {
   /**
    * Set common callback which will be trigger on every executed command.
    *
-   * @param {Function} callback
+   * @param {Function} callback Function which will be fired on every command execute.
    */
   setCommonCallback(callback) {
     this.commonCallback = callback;
@@ -33,8 +37,8 @@ class CommandExecutor {
   /**
    * Execute command by its name.
    *
-   * @param {String} commandName
-   * @param {*} params
+   * @param {String} commandName Command id.
+   * @param {*} params Arguments passed to command task.
    */
   execute(commandName, ...params) {
     let commandSplit = commandName.split(':');
