@@ -12,5 +12,4 @@ Package.onUse(function(api) {
   
   api.addFiles('dist/handsontable.full.js', 'client');
   api.addFiles('dist/handsontable.full.css', 'client');
-  api.export('Handsontable','client');
 });
