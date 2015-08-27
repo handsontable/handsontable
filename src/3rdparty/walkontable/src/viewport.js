@@ -27,6 +27,7 @@ class WalkontableViewport {
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
+    this.isMarkedOversizedColumn = {};
     this.clientHeight = 0;
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
@@ -321,7 +322,7 @@ class WalkontableViewport {
 
     this.columnHeaderHeight = NaN;
 
-    pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+    pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
 
     if (pos < 0) {
       pos = 0;
