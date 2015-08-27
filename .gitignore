@@ -1,7 +1,9 @@
-node_modules
+.DS_Store
+.grunt
 .idea
 _SpecRunner.html
-.grunt
-.DS_Store
 cars.sqlite
 dev.html
+
+!dist/README.md
+node_modules/

@@ -7,8 +7,12 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.full.css">
-  <script data-jsfiddle="common" src="../dist/handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/pikaday/pikaday.css">
+  <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
+  <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -141,21 +145,22 @@
       <p>You can limit options available in the context menu using contextMenu option as an array of strings:</p>
 
       <ul>
-        <li>row_above</li>
-        <li>row_below</li>
-        <li>hsep1</li>
-        <li>col_left</li>
-        <li>col_right</li>
-        <li>hsep2</li>
-        <li>remove_row</li>
-        <li>remove_col</li>
-        <li>hsep3</li>
-        <li>undo</li>
-        <li>redo</li>
-        <li>make_read_only</li>
-        <li>alignment</li>
-        <li>borders (only with <a href="custom_borders.html">Custom Borders</a> turned on)</li>
-        <li>commentsAddEdit, commentsRemove (only with <a href="comments.html">Comments</a> turned on)</li>
+        <li><b>row_above</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>row_below</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>hsep1</b></li>
+        <li><b>col_left</b> (designed for both menus)</li>
+        <li><b>col_right</b> (designed for both menus)</li>
+        <li><b>hsep2</b></li>
+        <li><b>remove_row</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>remove_col</b> (designed for both menus)</li>
+        <li><b>hsep3</b></li>
+        <li><b>undo</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>redo</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>make_read_only</b> (designed for both menus)</li>
+        <li><b>alignment</b>  (designed for both menus)</li>
+        <li><b>clear_column</b> (designed for <a href="dropdownmenu.html">Dropdown Menu</a>)</li>
+        <li><b>borders</b> (only with <a href="custom_borders.html">Custom Borders</a> turned on)</li>
+        <li><b>commentsAddEdit</b>, <b>commentsRemove</b> (only with <a href="comments.html">Comments</a> turned on)</li>
       </ul>
 
       <div id="example2"></div>
@@ -247,7 +252,7 @@
               "row_above": {
                 disabled: function () {
                   //if first row, disable this option
-                  return (hot3.getSelected()[0]===0)
+                  return (hot3.getSelected() && hot3.getSelected()[0]===0)
                 }
               },
               "row_below": {},
@@ -256,7 +261,7 @@
                 name: 'Remove this row, ok?',
                 disabled: function () {
                   //if first row, disable this option
-                  return  (hot3.getSelected()[0] === 0)
+                  return  (hot3.getSelected() && hot3.getSelected()[0] === 0)
                 }
               },
               "hsep2": "---------",

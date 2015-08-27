@@ -1,12 +1,11 @@
 
-import * as helper from './helpers.js';
-import {MultiMap} from './multiMap.js';
 import SheetClip from 'SheetClip';
+import {cellMethodLookupFactory} from './helpers/data';
+import {columnFactory} from './helpers/setting';
+import {duckSchema, deepExtend} from './helpers/object';
+import {extendArray, to2dArray} from './helpers/array';
+import {MultiMap} from './multiMap';
 
-export {DataMap};
-
-// Support for older hot versions
-Handsontable.DataMap = DataMap;
 
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
@@ -43,7 +42,7 @@ DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
  * @returns {Object|Array}
  */
 DataMap.prototype.recursiveDuckSchema = function(object) {
-  return Handsontable.helper.duckSchema(object);
+  return duckSchema(object);
 };
 
 /**
@@ -184,7 +183,7 @@ DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
 
     } else {
       row = {};
-      helper.deepExtend(row, this.getSchema());
+      deepExtend(row, this.getSchema());
     }
 
     if (index === this.instance.countRows()) {
@@ -233,7 +232,7 @@ DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
 
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
-    constructor = helper.columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
+    constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       for (var r = 0; r < rlen; r++) {
         if (typeof data[r] === 'undefined') {
@@ -354,13 +353,13 @@ DataMap.prototype.spliceCol = function (col, index, amount/*, elements...*/) {
   var removed = colData.slice(index, index + amount);
   var after = colData.slice(index + amount);
 
-  helper.extendArray(elements, after);
+  extendArray(elements, after);
   var i = 0;
   while (i < amount) {
     elements.push(null); //add null in place of removed elements
     i++;
   }
-  helper.to2dArray(elements);
+  to2dArray(elements);
   this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
 
   return removed;
@@ -381,7 +380,7 @@ DataMap.prototype.spliceRow = function (row, index, amount/*, elements...*/) {
   var removed = rowData.slice(index, index + amount);
   var after = rowData.slice(index + amount);
 
-  helper.extendArray(elements, after);
+  extendArray(elements, after);
   var i = 0;
   while (i < amount) {
     elements.push(null); //add null in place of removed elements
@@ -436,7 +435,7 @@ DataMap.prototype.get = function (row, prop) {
   }
 };
 
-var copyableLookup = helper.cellMethodLookupFactory('copyable', false);
+var copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /**
  * Returns single value from the data array (intended for clipboard copy to an external application).
@@ -581,3 +580,8 @@ DataMap.prototype.getText = function (start, end) {
 DataMap.prototype.getCopyableText = function (start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
+
+export {DataMap};
+
+// Support for older hot versions
+Handsontable.DataMap = DataMap;

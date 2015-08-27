@@ -1,9 +1,14 @@
 
-import * as dom from './dom.js';
+import {polymerWrap, closest} from './helpers/dom/element';
+import {isWebComponentSupportedNatively} from './helpers/browser';
 
 
 /**
+ * Event DOM manager for internal use in Handsontable.
+ *
  * @class EventManager
+ * @private
+ * @util
  */
 class EventManager {
   /**
@@ -111,6 +116,9 @@ class EventManager {
    * @since 0.15.0-beta3
    */
   clearEvents() {
+    if (!this.context) {
+      return;
+    }
     let len = this.context.eventListeners.length;
 
     while (len--) {
@@ -127,6 +135,14 @@ class EventManager {
    */
   clear() {
     this.clearEvents();
+  }
+
+  /**
+   * Destroy instance
+   */
+  destroy() {
+    this.clearEvents();
+    this.context = null;
   }
 
   /**
@@ -154,7 +170,7 @@ class EventManager {
     };
     var event;
 
-    if ( document.createEvent ) {
+    if (document.createEvent) {
       event = document.createEvent('MouseEvents');
       event.initMouseEvent(eventName, options.bubbles, options.cancelable,
         options.view, options.detail,
@@ -194,7 +210,7 @@ function extendEvent(context, event) {
   if (!Handsontable.eventManager.isHotTableEnv) {
     return event;
   }
-  event = dom.polymerWrap(event);
+  event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 
   while (len --) {
@@ -215,7 +231,7 @@ function extendEvent(context, event) {
   }
   event.isTargetWebComponent = true;
 
-  if (dom.isWebComponentSupportedNatively()) {
+  if (isWebComponentSupportedNatively()) {
     event.realTarget = event.srcElement || event.toElement;
 
   } else if (context instanceof Handsontable.Core || context instanceof Walkontable) {
@@ -227,7 +243,7 @@ function extendEvent(context, event) {
       // .wtHider
       fromElement = context.wtTable.TABLE.parentNode.parentNode;
     }
-    realTarget = dom.closest(event.target, [componentName], fromElement);
+    realTarget = closest(event.target, [componentName], fromElement);
 
     if (realTarget) {
       event.realTarget = fromElement.querySelector(componentName) || event.target;
@@ -238,7 +254,7 @@ function extendEvent(context, event) {
 
   Object.defineProperty(event, 'target', {
     get: function() {
-      return dom.polymerWrap(target);
+      return polymerWrap(target);
     },
     enumerable: true,
     configurable: true

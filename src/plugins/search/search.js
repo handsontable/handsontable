@@ -1,6 +1,6 @@
 
-import * as dom from './../../dom.js';
-import {registerRenderer, getRenderer} from './../../renderers.js';
+import {addClass, removeClass} from './../../helpers/dom/element';
+import {registerRenderer, getRenderer} from './../../renderers';
 
 /**
  * @private
@@ -111,9 +111,9 @@ Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value
       cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
 
   if (cellProperties.isSearchResult) {
-    dom.addClass(TD, searchResultClass);
+    addClass(TD, searchResultClass);
   } else {
-    dom.removeClass(TD, searchResultClass);
+    removeClass(TD, searchResultClass);
   }
 };
 

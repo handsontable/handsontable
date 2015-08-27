@@ -1,5 +1,5 @@
 
-import * as dom from './../../../dom.js';
+import {fastInnerText} from './../../../helpers/dom/element';
 
 
 /**
@@ -43,7 +43,7 @@ class WalkontableSettings {
       cellRenderer: (row, column, TD) => {
         let cellData = this.getSetting('data', row, column);
 
-        dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
+        fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
       },
       // columnWidth: 50,
       columnWidth: function(col) {

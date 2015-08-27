@@ -1,8 +1,17 @@
 
-import * as helper from './../helpers.js';
-import * as dom from './../dom.js';
-import {getEditorConstructor, registerEditor} from './../editors.js';
-import {HandsontableEditor} from './handsontableEditor.js';
+import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
+import {stringify} from './../helpers/mixed';
+import {pivot} from './../helpers/array';
+import {
+  addClass,
+  getCaretPosition,
+  getScrollbarWidth,
+  getSelectionEndPosition,
+  outerWidth,
+  setCaretPosition,
+    } from './../helpers/dom/element';
+import {getEditorConstructor, registerEditor} from './../editors';
+import {HandsontableEditor} from './handsontableEditor';
 
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
 
@@ -22,22 +31,21 @@ AutocompleteEditor.prototype.init = function() {
 AutocompleteEditor.prototype.createElements = function() {
   HandsontableEditor.prototype.createElements.apply(this, arguments);
 
-  dom.addClass(this.htContainer, 'autocompleteEditor');
-  dom.addClass(this.htContainer, window.navigator.platform.indexOf('Mac') !== -1 ? 'htMacScroll' : '');
+  addClass(this.htContainer, 'autocompleteEditor');
+  addClass(this.htContainer, window.navigator.platform.indexOf('Mac') !== -1 ? 'htMacScroll' : '');
 };
 
 var skipOne = false;
 function onBeforeKeyDown(event) {
   skipOne = false;
   var editor = this.getActiveEditor();
-  var keyCodes = helper.keyCode;
 
-  if (helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE ||
-      event.keyCode === keyCodes.DELETE || event.keyCode === keyCodes.INSERT) {
+  if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
+      event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
     var timeOffset = 0;
 
     // on ctl+c / cmd+c don't update suggestion list
-    if (event.keyCode === keyCodes.C && (event.ctrlKey || event.metaKey)) {
+    if (event.keyCode === KEY_CODES.C && (event.ctrlKey || event.metaKey)) {
       return;
     }
     if (!editor.isOpened()) {
@@ -67,13 +75,13 @@ AutocompleteEditor.prototype.open = function () {
   this.focus();
 
   choicesListHot.updateSettings({
-    'colWidths': trimDropdown ? [dom.outerWidth(this.TEXTAREA) - 2] : void 0,
-    width: trimDropdown ? dom.outerWidth(this.TEXTAREA) + dom.getScrollbarWidth() + 2 : void 0,
+    'colWidths': trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+    width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
         match,
-		    value = Handsontable.helper.stringify(value);
+		    value = stringify(value);
 
       if (value) {
         indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
@@ -91,7 +99,7 @@ AutocompleteEditor.prototype.open = function () {
   });
 
   // Add additional space for autocomplete holder
-  this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = dom.getScrollbarWidth() + 2 + 'px';
+  this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = getScrollbarWidth() + 2 + 'px';
 
   if (skipOne) {
     skipOne = false;
@@ -146,8 +154,8 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
 };
 
 AutocompleteEditor.prototype.updateChoicesList = function(choices) {
-  var pos = dom.getCaretPosition(this.TEXTAREA),
-    endPos = dom.getSelectionEndPosition(this.TEXTAREA);
+  var pos = getCaretPosition(this.TEXTAREA),
+    endPos = getSelectionEndPosition(this.TEXTAREA);
 
   var orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   var highlightIndex;
@@ -166,7 +174,7 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   /* jshint ignore:end */
 
   this.choices = choices;
-  this.htEditor.loadData(helper.pivot([choices]));
+  this.htEditor.loadData(pivot([choices]));
 
   this.updateDropdownHeight();
 
@@ -176,11 +184,11 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
 
   this.instance.listen();
   this.TEXTAREA.focus();
-  dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
 };
 
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
-  var currentDropdownWidth = this.htEditor.getColWidth(0) + dom.getScrollbarWidth() + 2;
+  var currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
   var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
   this.htEditor.updateSettings({
@@ -228,7 +236,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   }
 
   for (i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-    currentItem = Handsontable.helper.stringify(choices[i]);
+    currentItem = stringify(choices[i]);
 
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);
@@ -285,6 +293,20 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
 
   return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
+};
+
+AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
+  let selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
+  let allowed = false;
+
+  if (keyCode === KEY_CODES.ARROW_DOWN && selected.row < this.htEditor.countRows() - 1) {
+    allowed = true;
+  }
+  if (keyCode === KEY_CODES.ARROW_UP && selected.row > -1) {
+    allowed = true;
+  }
+
+  return allowed;
 };
 
 export {AutocompleteEditor};

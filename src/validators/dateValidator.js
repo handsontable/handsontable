@@ -1,6 +1,6 @@
 
 import moment from 'moment';
-import {getEditor} from './../editors.js';
+import {getEditor} from './../editors';
 
 /**
  * Date cell validator
@@ -52,9 +52,17 @@ Handsontable.DateValidator = function(value, callback) {
  */
 let correctFormat = function correctFormat(value, dateFormat) {
   let date = moment(new Date(value));
+  let year = date.format('YYYY');
+  let yearNow = moment().format('YYYY');
 
-  // Ugly fix for moment bug which can not format 5-digits year using YYYY
-  if (date.format('YYYY').length > 4) {
+  // Firefox and IE counting 2-digits year from 1900 rest from current age.
+  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
+    if (!value.match(new RegExp(year))) {
+      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
+    }
+
+  } else if (year.length > 4) {
+    // Ugly fix for moment bug which can not format 5-digits year using YYYY
     date.year((date.year() + '').substr(0, 4));
   }
 

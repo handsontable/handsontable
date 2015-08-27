@@ -370,30 +370,30 @@ function ajax(url, method, params, callback) {
         link[i].href = link[i].href.replace(/demo\//, "");
         if (link[i].href === window.location.href) {
           link[i].className = 'current';
-          expandOne(menu, link[i], true);
+          //expandOne(menu, link[i], true);
         }
       }
     }
 
     function bindMenuEvents(menu) {
-      collapseAll(menu, true);
-      Handsontable.Dom.addEvent(menu, 'click', function (ev) {
-        var element = ev.target || ev.srcElement;
-
-        if (element.nodeName == "H3") {
-          if (element.parentNode.className.indexOf('current') != -1) {
-            collapseAll(menu);
-          }
-          else {
-            expandOne(menu, element.parentNode.querySelector("ul"));
-          }
-        }
-      });
+      //collapseAll(menu, true);
+      //Handsontable.Dom.addEvent(menu, 'click', function (ev) {
+      //  var element = ev.target || ev.srcElement;
+      //
+      //  if (element.nodeName == "H3") {
+      //    if (element.parentNode.className.indexOf('current') != -1) {
+      //      collapseAll(menu);
+      //    }
+      //    else {
+      //      expandOne(menu, element.parentNode.querySelector("ul"));
+      //    }
+      //  }
+      //});
     }
 
     var menu = document.querySelector("#global-menu");
     if (menu) {
-      bindMenuEvents(menu)
+      bindMenuEvents(menu);
     }
     else {
       ajax("../index.html", 'GET', '', onMenuLoad);

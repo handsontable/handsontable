@@ -1,6 +1,6 @@
 
-import {getEditor, registerEditor} from './../editors.js';
-import {AutocompleteEditor} from './autocompleteEditor.js';
+import {getEditor, registerEditor} from './../editors';
+import {AutocompleteEditor} from './autocompleteEditor';
 
 
 /**

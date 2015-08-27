@@ -41,7 +41,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
   });
 
   it('should correctly detect column width with columns.title', function () {
@@ -53,7 +53,26 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(57);
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
+  });
+
+  // https://github.com/handsontable/handsontable/issues/2684
+  it('should correctly detect column width when table is hidden on init (display: none)', function () {
+    this.$container.css('display', 'none');
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colHeaders: ['Identifier', 'First Name']
+    });
+
+    waits(200);
+
+    runs(function() {
+      this.$container.css('display', 'block');
+      hot.render();
+
+      expect(colWidth(this.$container, 0)).toBeAroundValue(56);
+    });
   });
 
   it('should be possible to disable plugin using updateSettings', function () {

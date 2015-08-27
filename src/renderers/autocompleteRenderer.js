@@ -1,10 +1,8 @@
 
-import * as dom from './../dom.js';
-import {eventManager as eventManagerObject} from './../eventManager.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords.js';
-
-export {autocompleteRenderer};
+import {addClass, hasClass} from './../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../eventManager';
+import {getRenderer, registerRenderer} from './../renderers';
+import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
 
 var clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';
@@ -20,8 +18,6 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER){
   dom.empty(TD);
   TD.appendChild(WRAPPER);
 };
-
-registerRenderer('autocomplete', autocompleteRenderer);
 
 /**
  * Autocomplete renderer
@@ -44,7 +40,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 
   TD.appendChild(ARROW);
-  dom.addClass(TD, 'htAutocomplete');
+  addClass(TD, 'htAutocomplete');
 
 
   if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
@@ -60,7 +56,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 
     //not very elegant but easy and fast
     instance.acArrowListener = function (event) {
-      if (dom.hasClass(event.target, 'htAutocompleteArrow')) {
+      if (hasClass(event.target, 'htAutocompleteArrow')) {
         instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
       }
     };
@@ -69,8 +65,11 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 
     //We need to unbind the listener after the table has been destroyed
     instance.addHookOnce('afterDestroy', function () {
-      eventManager.clear();
+      eventManager.destroy();
     });
-
   }
 }
+
+export {autocompleteRenderer};
+
+registerRenderer('autocomplete', autocompleteRenderer);

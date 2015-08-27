@@ -14,7 +14,6 @@
   var $getOwnPropertyNames = $Object.getOwnPropertyNames;
   var $keys = $Object.keys;
   var $hasOwnProperty = $Object.prototype.hasOwnProperty;
-  var $toString = $Object.prototype.toString;
   var $preventExtensions = Object.preventExtensions;
   var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
@@ -258,36 +257,18 @@
 })(window);
 (function() {
   'use strict';
-  var path;
-  function relativeRequire(callerPath, requiredPath) {
-    path = path || typeof require !== 'undefined' && require('path');
-    function isDirectory(path) {
-      return path.slice(-1) === '/';
-    }
-    function isAbsolute(path) {
-      return path[0] === '/';
-    }
-    function isRelative(path) {
-      return path[0] === '.';
-    }
-    if (isDirectory(requiredPath) || isAbsolute(requiredPath))
-      return;
-    return isRelative(requiredPath) ? require(path.resolve(path.dirname(callerPath), requiredPath)) : require(requiredPath);
-  }
-  $traceurRuntime.require = relativeRequire;
-})();
-(function() {
-  'use strict';
+  var $toProperty = $traceurRuntime.toProperty;
+
   function spread() {
     var rv = [],
       j = 0,
       iterResult;
     for (var i = 0; i < arguments.length; i++) {
       var valueToSpread = $traceurRuntime.checkObjectCoercible(arguments[i]);
-      if (typeof valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)] !== 'function') {
+      if (typeof valueToSpread[$toProperty(Symbol.iterator)] !== 'function') {
         throw new TypeError('Cannot spread non-iterable object.');
       }
-      var iter = valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)]();
+      var iter = valueToSpread[$toProperty(Symbol.iterator)]();
       while (!(iterResult = iter.next()).done) {
         rv[j++] = iterResult.value;
       }
@@ -304,8 +285,8 @@
   var $defineProperties = $traceurRuntime.defineProperties;
   var $defineProperty = $traceurRuntime.defineProperty;
   var $getOwnPropertyDescriptor = $traceurRuntime.getOwnPropertyDescriptor;
-  var $getOwnPropertyNames = $traceurRuntime.getOwnPropertyNames;
   var $getPrototypeOf = Object.getPrototypeOf;
+  var $toProperty = $traceurRuntime.toProperty;
   var $__0 = Object,
     getOwnPropertyNames = $__0.getOwnPropertyNames,
     getOwnPropertySymbols = $__0.getOwnPropertySymbols;
@@ -352,7 +333,7 @@
     var symbols = getOwnPropertySymbols(object);
     for (var i = 0; i < symbols.length; i++) {
       var symbol = symbols[i];
-      descriptors[$traceurRuntime.toProperty(symbol)] = $getOwnPropertyDescriptor(object, $traceurRuntime.toProperty(symbol));
+      descriptors[$toProperty(symbol)] = $getOwnPropertyDescriptor(object, $toProperty(symbol));
     }
     return descriptors;
   }

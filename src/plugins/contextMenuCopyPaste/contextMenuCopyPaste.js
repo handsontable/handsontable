@@ -1,12 +1,11 @@
 
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
-import BasePlugin from './../_base.js';
+import {removeClass} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
+import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 
 /**
- * @class ContextMenuCopyPaste
  * @plugin ContextMenuCopyPaste
  * @dependencies ContextMenu zeroclipboard
  */
@@ -38,14 +37,14 @@ class ContextMenuCopyPaste extends BasePlugin {
     }
 
     if (typeof ZeroClipboard === 'undefined') {
-      throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
+      console.error('To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.');
     }
     try {
       /* jshint -W031 */
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
     } catch(exception) {
       if ('undefined' == typeof navigator.mimeTypes['application/x-shockwave-flash']) {
-        throw new Error("To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.");
+        console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
       }
     }
     this.prepareZeroClipboard();
@@ -92,7 +91,7 @@ class ContextMenuCopyPaste extends BasePlugin {
           this.copyPaste.triggerPaste();
         }
       },
-      Handsontable.ContextMenu.SEPARATOR
+      Handsontable.plugins.ContextMenu.SEPARATOR
     );
   }
 
@@ -133,7 +132,7 @@ class ContextMenuCopyPaste extends BasePlugin {
       var element = this.hotContextMenu.rootElement.querySelector('td.current');
 
       if ( element ) {
-        dom.removeClass(element, 'current');
+        removeClass(element, 'current');
       }
     }
     this.outsideClickDeselectsCache = this.hot.getSettings().outsideClickDeselects;
@@ -145,7 +144,7 @@ class ContextMenuCopyPaste extends BasePlugin {
       var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
 
       if ( element ) {
-        dom.removeClass(element, 'zeroclipboard-is-hover');
+        removeClass(element, 'zeroclipboard-is-hover');
       }
     }
     this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;

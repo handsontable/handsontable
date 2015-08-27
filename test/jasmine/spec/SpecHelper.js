@@ -50,6 +50,10 @@ var getLeftClone = function () {
   return spec().$container.find('.ht_clone_left');
 };
 
+var getCornerClone = function () {
+  return spec().$container.find('.ht_clone_corner');
+};
+
 //Rename me to countTD
 var countCells = function () {
   return getHtCore().find('tbody td').length;
@@ -76,7 +80,7 @@ var getCorrespondingOverlay = function (cell, container) {
 /**
  * Shows context menu
  */
-var contextMenu = function () {
+var contextMenu = function (cell) {
   var hot = spec().$container.data('handsontable');
   var selected = hot.getSelected();
 
@@ -84,10 +88,10 @@ var contextMenu = function () {
     hot.selectCell(0, 0);
     selected = hot.getSelected();
   }
-
-  var cell = getCell(selected[0], selected[1]);
+  if (!cell) {
+    cell = getCell(selected[0], selected[1]);
+  }
   var cellOffset = $(cell).offset();
-
 
   $(cell).simulate('contextmenu',{
     clientX: cellOffset.left,
@@ -98,6 +102,25 @@ var contextMenu = function () {
 var closeContextMenu = function () {
   $(document).simulate('mousedown');
 //  $(document).trigger('mousedown');
+};
+
+
+/**
+ * Shows dropdown menu
+ */
+var dropdownMenu = function (columnIndex) {
+  var hot = spec().$container.data('handsontable');
+  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  var button = th.querySelector('.changeType');
+
+  if (button) {
+    $(button).simulate('mousedown');
+    $(button).simulate('click');
+  }
+};
+
+var closeDropdownMenu = function () {
+  $(document).simulate('mousedown');
 };
 
 /**

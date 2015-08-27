@@ -1,10 +1,7 @@
 
-import * as dom from './../dom.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
+import {fastInnerHTML} from './../helpers/dom/element';
+import {getRenderer, registerRenderer} from './../renderers';
 
-export {htmlRenderer};
-
-registerRenderer('html', htmlRenderer);
 
 /**
  * @private
@@ -19,5 +16,9 @@ registerRenderer('html', htmlRenderer);
  */
 function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('base').apply(this, arguments);
-  dom.fastInnerHTML(TD, value);
+  fastInnerHTML(TD, value);
 }
+
+export {htmlRenderer};
+
+registerRenderer('html', htmlRenderer);

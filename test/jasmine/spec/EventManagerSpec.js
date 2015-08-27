@@ -1,4 +1,4 @@
-describe('Handsontable.eventManager', function () {
+describe('EventManager', function () {
   it('should add/remove/clear event for multiple instances', function () {
     var instance = {
       subinstance: {}
@@ -86,6 +86,30 @@ describe('Handsontable.eventManager', function () {
 
     expect(test.calls.length).toEqual(1);
     expect(test1.calls.length).toEqual(2);
+  });
+
+  it('should destroy instance', function () {
+    var instance = {};
+    var em = Handsontable.eventManager(instance);
+
+    var test = jasmine.createSpy('test');
+    var test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(window, 'click', test);
+    em.addEventListener(window, 'click', test1);
+    em.addEventListener(window, 'click', test1);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(test1.calls.length).toEqual(2);
+
+    em.destroy(window);
+    em.fireEvent(window, 'click');
+
+    expect(test.calls.length).toEqual(1);
+    expect(test1.calls.length).toEqual(2);
+    expect(em.context).toBe(null);
+    expect(instance.eventListeners.length).toBe(0);
   });
 
   it('should fire event', function () {

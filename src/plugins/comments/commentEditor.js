@@ -1,4 +1,5 @@
-import * as dom from './../../dom.js';
+
+import {addClass} from './../../helpers/dom/element';
 
 /**
  * Comment editor for Comments plugin.
@@ -110,14 +111,14 @@ class CommentEditor {
 
     if (!container) {
       container = document.createElement('div');
-      dom.addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
+      addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
       document.body.appendChild(container);
     }
     editor = document.createElement('div');
-    dom.addClass(editor, CommentEditor.CLASS_EDITOR);
+    addClass(editor, CommentEditor.CLASS_EDITOR);
 
     textArea = document.createElement('textarea');
-    dom.addClass(textArea, CommentEditor.CLASS_INPUT);
+    addClass(textArea, CommentEditor.CLASS_INPUT);
 
     editor.appendChild(textArea);
     container.appendChild(editor);

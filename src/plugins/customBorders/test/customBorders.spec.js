@@ -139,7 +139,7 @@ describe('CustomBorders', function () {
 //    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var contextSubMenu = $('.htContextMenuSub_' + item.text());
     var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
 
 //    button.trigger('mousedown');
@@ -173,7 +173,7 @@ describe('CustomBorders', function () {
 //    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var contextSubMenu = $('.htContextMenuSub_' + item.text());
     var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
 //    button.trigger('mousedown');
@@ -206,7 +206,7 @@ describe('CustomBorders', function () {
 //    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var contextSubMenu = $('.htContextMenuSub_' + item.text());
     var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
 //    button.trigger('mousedown');
@@ -240,7 +240,7 @@ describe('CustomBorders', function () {
 //    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var contextSubMenu = $('.htContextMenuSub_' + item.text());
     var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
 //    button.trigger('mousedown');
@@ -277,7 +277,7 @@ describe('CustomBorders', function () {
 //    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var contextSubMenu = $('.htContextMenuSub_' + item.text());
     var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
 //    button.trigger('mousedown');

@@ -1,0 +1,287 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset='utf-8'>
+  <title>Dropdown Menu - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/pikaday/pikaday.css">
+  <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
+  <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Context Menu">
+  <meta property="og:description"
+        content="This page shows how to use and configure right-click context menu with Handsontable">
+  <meta property="og:url" content="http://handsontable.com/demo/contextmenu.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/contextmenu.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+<div class="wrapper-row">
+<div id="global-menu-clone">
+  <h1><a href="../index.html">Handsontable</a></h1>
+
+</div>
+
+<div id="container">
+<div class="columnLayout">
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h2>Dropdown Menu</h2>
+
+      <p>This page shows how to use and configure dropdown menu with Handsontable:</p>
+
+      <ul>
+        <li><a href="#default">dropdown menu with default options</a></li>
+        <li><a href="#specific">dropdown menu with specific options</a></li>
+        <li><a href="#custom">dropdown menu with fully custom configuration</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example1">
+      <a name="default"></a>
+
+      <h2>Dropdown Menu with default options</h2>
+
+      <p>Tu run the basic configuration of the Dropdown Menu, just set the dropdownMenu option to true.</p>
+
+      <div id="example1"></div>
+      <p>
+        <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+      </div>
+
+      <script data-jsfiddle="common">
+        function getData() {
+          return [
+            ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+            ['2008', 10, 11, 12, 13],
+            ['2009', 20, 11, 14, 13],
+            ['2010', 30, 15, 12, 13]
+          ];
+        }
+      </script>
+
+      <script data-jsfiddle="example1">
+        var example1 = document.getElementById('example1'),
+          settings1,
+          hot1;
+
+        settings1 = {
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          minRows: 5,
+          minCols: 5,
+          maxRows: 10,
+          maxCols: 10,
+          rowHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
+          minSpareRows: 1,
+          dropdownMenu: true
+        };
+        hot1 = new Handsontable(example1, settings1);
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example2">
+      <a name="specific"></a>
+
+      <h2>Dropdown Menu with specific options</h2>
+
+      <p>You can limit options available in the dropdown menu using dropdownMenu option as an array of strings.</p>
+      <p>
+        List of commands below are common for context menu and for dropdown menu.
+      </p>
+
+      <ul>
+        <li><b>row_above</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>row_below</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>hsep1</b></li>
+        <li><b>col_left</b> (designed for both menus)</li>
+        <li><b>col_right</b> (designed for both menus)</li>
+        <li><b>hsep2</b></li>
+        <li><b>remove_row</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>remove_col</b> (designed for both menus)</li>
+        <li><b>hsep3</b></li>
+        <li><b>undo</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>redo</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
+        <li><b>make_read_only</b> (designed for both menus)</li>
+        <li><b>alignment</b>  (designed for both menus)</li>
+        <li><b>clear_column</b> (designed for <a href="dropdownmenu.html">Dropdown Menu</a>)</li>
+        <li><b>borders</b> (only with <a href="custom_borders.html">Custom Borders</a> turned on)</li>
+        <li><b>commentsAddEdit</b>, <b>commentsRemove</b> (only with <a href="comments.html">Comments</a> turned on)</li>
+      </ul>
+
+      <div id="example2"></div>
+
+      <p>
+        <button name="dump" data-dump="#example2" data-instance="hot2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+      </div>
+
+      <script data-jsfiddle="example2">
+        var example2 = document.getElementById('example2');
+        var settings2 = {
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          rowHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
+          minSpareRows: 1,
+          dropdownMenu: ['col_left', 'col_right']
+        };
+        var hot2 = new Handsontable(example2, settings2);
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example3">
+      <a name="custom"></a>
+
+      <h2>Dropdown Menu with with fully custom configuration</h2>
+
+      <p>For greatest configurability, you use dropdownMenu option as a configuration object as described in <a
+          href="http://medialize.github.com/jQuery-contextMenu/docs.html">jQuery contextMenu documentation</a>.</p>
+
+      <p>This example shows how to set <strong>custom text</strong>, how to <strong>disable</strong>
+        "Remove row" and "Insert row above" for the first row and how to add your <strong>own option</strong>.</p>
+
+      <div id="example3"></div>
+
+      <p>
+        <button name="dump" data-dump="#example3" data-instance="hot3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
+      </div>
+
+      <script data-jsfiddle="example3">
+        var example3 = document.getElementById('example3');
+        var settings3 = {
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          rowHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
+          minSpareRows: 1
+        };
+
+        var hot3 = new Handsontable(example3, settings3);
+
+        hot3.updateSettings({
+          dropdownMenu: {
+            callback: function (key, options) {
+              if (key === 'about') {
+                setTimeout(function () {
+                  // timeout is used to make sure the menu collapsed before alert is shown
+                  alert("This is a dropdown menu with default and custom options mixed");
+                }, 100);
+              }
+            },
+            items: {
+              "col_left": {
+                disabled: function () {
+                  // if first column, disable this option
+                  return this.getSelected() && this.getSelected()[1] === 0;
+                }
+              },
+              "col_right": {},
+              "hsep1": "---------",
+              "remove_col": {
+                name: 'Remove this column, ok?',
+                disabled: function () {
+                  // if first column, disable this option
+                  return this.getSelected() && this.getSelected()[1] === 0
+                }
+              },
+              "hsep2": "---------",
+              "about": {name: 'About this menu'}
+            }
+          }
+        })
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="footer-text">
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>

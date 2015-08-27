@@ -1,14 +1,22 @@
 
-import * as dom from './../../../dom.js';
-import {WalkontableCellCoords} from './cell/coords.js';
-import {WalkontableCellRange} from './cell/range.js';
-import {WalkontableColumnFilter} from './filter/column.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
-import {WalkontableDebugOverlay} from './overlay/debug.js';
-import {WalkontableLeftOverlay} from './overlay/left.js';
-import {WalkontableRowFilter} from './filter/row.js';
-import {WalkontableTableRenderer} from './tableRenderer.js';
-import {WalkontableTopOverlay} from './overlay/top.js';
+import {
+  getStyle,
+  getTrimmingContainer,
+  hasClass,
+  index,
+  offset,
+  removeClass,
+  removeTextNodes,
+    } from './../../../helpers/dom/element';
+import {WalkontableCellCoords} from './cell/coords';
+import {WalkontableCellRange} from './cell/range';
+import {WalkontableColumnFilter} from './filter/column';
+import {WalkontableCornerOverlay} from './overlay/corner';
+import {WalkontableDebugOverlay} from './overlay/debug';
+import {WalkontableLeftOverlay} from './overlay/left';
+import {WalkontableRowFilter} from './filter/row';
+import {WalkontableTableRenderer} from './tableRenderer';
+import {WalkontableTopOverlay} from './overlay/top';
 
 
 class WalkontableTable {
@@ -27,7 +35,7 @@ class WalkontableTable {
     this.tableOffset = 0;
     this.holderOffset = 0;
 
-    dom.removeTextNodes(this.TABLE);
+    removeTextNodes(this.TABLE);
 
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
@@ -81,7 +89,7 @@ class WalkontableTable {
     const parent = table.parentNode;
     let spreader;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       spreader = document.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -104,7 +112,7 @@ class WalkontableTable {
     const parent = spreader.parentNode;
     let hider;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       hider = document.createElement('div');
       hider.className = 'wtHider';
 
@@ -127,7 +135,7 @@ class WalkontableTable {
     const parent = hider.parentNode;
     let holder;
 
-    if (!parent || parent.nodeType !== 1 || !dom.hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       holder = document.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -146,14 +154,14 @@ class WalkontableTable {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = dom.getTrimmingContainer(this.wtRootElement);
+    const trimmingElement = getTrimmingContainer(this.wtRootElement);
 
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
       if (trimmingElement !== window) {
-        this.holder.style.width = dom.getStyle(trimmingElement, 'width');
-        this.holder.style.height = dom.getStyle(trimmingElement, 'height');
+        this.holder.style.width = getStyle(trimmingElement, 'width');
+        this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
       } else {
         this.holder.style.overflow = 'visible';
@@ -174,7 +182,7 @@ class WalkontableTable {
    */
   draw(fastDraw) {
     if (!this.isWorkingOnClone()) {
-      this.holderOffset = dom.offset(this.holder);
+      this.holderOffset = offset(this.holder);
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
     }
 
@@ -182,7 +190,7 @@ class WalkontableTable {
       if (this.isWorkingOnClone()) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       } else {
-        this.tableOffset = dom.offset(this.TABLE);
+        this.tableOffset = offset(this.TABLE);
       }
       let startRow;
 
@@ -242,7 +250,7 @@ class WalkontableTable {
     const nodes = this.TABLE.querySelectorAll('.' + className);
 
     for (let i = 0, len = nodes.length; i < len; i++) {
-      dom.removeClass(nodes[i], className);
+      removeClass(nodes[i], className);
     }
   }
 
@@ -335,7 +343,7 @@ class WalkontableTable {
    */
   getCoords(TD) {
     const TR = TD.parentNode;
-    let row = dom.index(TR);
+    let row = index(TR);
 
     if (TR.parentNode === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
@@ -404,19 +412,19 @@ class WalkontableTable {
   }
 
   isColumnBeforeViewport(column) {
-    return (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
   }
 
   isColumnAfterViewport(column) {
-    return (column > this.getLastVisibleColumn());
+    return column > this.getLastVisibleColumn();
   }
 
   isLastRowFullyVisible() {
-    return (this.getLastVisibleRow() === this.getLastRenderedRow());
+    return this.getLastVisibleRow() === this.getLastRenderedRow();
   }
 
   isLastColumnFullyVisible() {
-    return (this.getLastVisibleColumn() === this.getLastRenderedColumn);
+    return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
   getRenderedColumnsCount() {
@@ -497,11 +505,11 @@ class WalkontableTable {
       width = width[sourceColumn];
     }
 
-    return width;
+    return width || this.wot.wtSettings.settings.defaultColumnWidth;
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    let width = this.getColumnWidth(sourceColumn) || this.wot.wtSettings.settings.defaultColumnWidth;
+    let width = this.getColumnWidth(sourceColumn);
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {

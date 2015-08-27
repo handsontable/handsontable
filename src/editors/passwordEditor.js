@@ -1,7 +1,7 @@
 
-import * as dom from './../dom.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {TextEditor} from './textEditor.js';
+import {empty} from './../helpers/dom/element';
+import {getEditor, registerEditor} from './../editors';
+import {TextEditor} from './textEditor';
 
 
 /**
@@ -21,7 +21,7 @@ class PasswordEditor extends TextEditor {
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
-    dom.empty(this.TEXTAREA_PARENT);
+    empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

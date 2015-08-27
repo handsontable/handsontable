@@ -2365,42 +2365,25 @@ describe('UndoRedo', function () {
           rowHeights: [50, 50, 50, 50, 50, 50, 50, 50, 50]
         });
 
-        var topSection = new WalkontableCellRange(
-            new WalkontableCellCoords(2, 8),
-            new WalkontableCellCoords(0, 0),
-            new WalkontableCellCoords(2, 8)
-          ),
-          bottomSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 8),
-            new WalkontableCellCoords(6, 0),
-            new WalkontableCellCoords(8, 8)
-          ),
-          leftSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 2),
-            new WalkontableCellCoords(0, 0),
-            new WalkontableCellCoords(8, 2)
-          ),
-          rightSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 8),
-            new WalkontableCellCoords(0, 6),
-            new WalkontableCellCoords(8, 8)
-          );
-
         // top 3 rows center
-        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+        selectCell(0, 0, 2, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:center');
 
         // middle 3 rows unchanged - left
 
         // bottom 3 rows right
-        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+        selectCell(6, 0, 8, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:right');
 
         // left 3 columns - middle
-        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+        selectCell(0, 0, 8, 2);
+        hot.getPlugin('contextMenu').executeCommand('alignment:middle');
 
         //middle 3 columns unchanged - top
 
         // right 3 columns - bottom
-        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+        selectCell(0, 6, 8, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         var cellMeta = hot.getCellMeta(0, 0);
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
@@ -2487,42 +2470,25 @@ describe('UndoRedo', function () {
           rowHeights: [50, 50, 50, 50, 50, 50, 50, 50, 50]
         });
 
-        var topSection = new WalkontableCellRange(
-            new WalkontableCellCoords(2, 8),
-            new WalkontableCellCoords(0, 0),
-            new WalkontableCellCoords(2, 8)
-          ),
-          bottomSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 8),
-            new WalkontableCellCoords(6, 0),
-            new WalkontableCellCoords(8, 8)
-          ),
-          leftSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 2),
-            new WalkontableCellCoords(0, 0),
-            new WalkontableCellCoords(8, 2)
-          ),
-          rightSection = new WalkontableCellRange(
-            new WalkontableCellCoords(8, 8),
-            new WalkontableCellCoords(0, 6),
-            new WalkontableCellCoords(8, 8)
-          );
-
         // top 3 rows center
-        hot.contextMenu.align.call(hot, topSection, 'horizontal', 'htCenter');
+        selectCell(0, 0, 2, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:center');
 
         // middle 3 rows unchanged - left
 
         // bottom 3 rows right
-        hot.contextMenu.align.call(hot, bottomSection, 'horizontal', 'htRight');
+        selectCell(6, 0, 8, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:right');
 
         // left 3 columns - middle
-        hot.contextMenu.align.call(hot, leftSection, 'vertical', 'htMiddle');
+        selectCell(0, 0, 8, 2);
+        hot.getPlugin('contextMenu').executeCommand('alignment:middle');
 
         //middle 3 columns unchanged - top
 
         // right 3 columns - bottom
-        hot.contextMenu.align.call(hot, rightSection, 'vertical', 'htBottom');
+        selectCell(0, 6, 8, 8);
+        hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         var cellMeta = hot.getCellMeta(0, 0);
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);

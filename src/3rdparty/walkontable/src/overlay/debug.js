@@ -1,6 +1,6 @@
 
-import * as dom from './../../../../dom.js';
-import {WalkontableOverlay} from './_base.js';
+import {addClass} from './../../../../helpers/dom/element';
+import {WalkontableOverlay} from './_base';
 
 /**
  * A overlay that renders ALL available rows & columns positioned on top of the original Walkontable instance and all other overlays.
@@ -19,7 +19,7 @@ class WalkontableDebugOverlay extends WalkontableOverlay {
     this.clone.wtTable.holder.style.opacity = 0.4;
     this.clone.wtTable.holder.style.textShadow = '0 0 2px #ff0000';
 
-    dom.addClass(this.clone.wtTable.holder.parentNode, 'wtDebugVisible');
+    addClass(this.clone.wtTable.holder.parentNode, 'wtDebugVisible');
   }
 }
 

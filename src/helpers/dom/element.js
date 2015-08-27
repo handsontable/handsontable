@@ -1,22 +1,5 @@
-/**
- * DOM helper optimized for maximum performance
- * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
- * @type {Object}
- */
 
-
-export function enableImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function () {
-      this.isImmediatePropagationEnabled = false;
-      this.cancelBubble = true;
-    };
-    event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function () {
-      return !this.isImmediatePropagationEnabled;
-    };
-  }
-}
+import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser';
 
 /**
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
@@ -45,14 +28,17 @@ export function closest(element, nodes, until) {
 }
 
 /**
- * Goes up the DOM tree and checks if element is child of another element
+ * Goes up the DOM tree and checks if element is child of another element.
+ *
  * @param child Child element
- * @param {Object|string} parent Parent element OR selector of the parent element. If classname provided, function returns true for the first occurance of element with that class.
- * @returns {boolean}
+ * @param {Object|String} parent Parent element OR selector of the parent element.
+ *                               If string provided, function returns `true` for the first occurance of element with that class.
+ * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
   var node = child.parentNode;
   var queriedParents = [];
+
   if (typeof parent === "string") {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
   } else {
@@ -127,35 +113,28 @@ export function polymerUnwrap(element) {
 }
 
 /**
- * Checks if browser is support web components natively
- *
- * @returns {Boolean}
- */
-export function isWebComponentSupportedNatively() {
-  var test = document.createElement('div');
-
-  return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
-}
-
-/**
  * Counts index of element within its parent
  * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true for Walkotnable
  * Otherwise would need to check for nodeType or use previousElementSibling
+ *
  * @see http://jsperf.com/sibling-index/10
- * @param {Element} elem
+ * @param {Element} element
  * @return {Number}
  */
-export function index(elem) {
+export function index(element) {
   var i = 0;
-  if (elem.previousSibling) {
+
+  if (element.previousSibling) {
     /* jshint ignore:start */
-    while (elem = elem.previousSibling) {
+    while (element = element.previousSibling) {
       ++i;
     }
     /* jshint ignore:end */
   }
+
   return i;
 }
+
 
 var classListSupport = document.documentElement.classList ? true : false;
 var _hasClass, _addClass, _removeClass;
@@ -309,14 +288,14 @@ export function removeClass(element, className) {
   return _removeClass(element, className);
 }
 
-export function removeTextNodes(elem, parent) {
-  if (elem.nodeType === 3) {
-    parent.removeChild(elem); //bye text nodes!
+export function removeTextNodes(element, parent) {
+  if (element.nodeType === 3) {
+    parent.removeChild(element); //bye text nodes!
   }
-  else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(elem.nodeName) > -1) {
-    var childs = elem.childNodes;
+  else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
+    var childs = element.childNodes;
     for (var i = childs.length - 1; i >= 0; i--) {
-      removeTextNodes(childs[i], elem);
+      removeTextNodes(childs[i], element);
     }
   }
 }
@@ -326,6 +305,7 @@ export function removeTextNodes(elem, parent) {
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method
+ *
  * @param element
  * @returns {void}
  */
@@ -476,59 +456,68 @@ export function offset(elem) {
 }
 
 /**
- * Returns the document's scrollTop property
+ * Returns the document's scrollTop property.
+ *
  * @returns {Number}
  */
 export function getWindowScrollTop() {
   var res = window.scrollY;
-  if (res == void 0) { //IE8-11
+
+  if (res === void 0) { //IE8-11
     res = document.documentElement.scrollTop;
   }
+
   return res;
 }
 
 /**
- * Returns the document's scrollLeft property
+ * Returns the document's scrollLeft property.
+ *
  * @returns {Number}
  */
 export function getWindowScrollLeft() {
   var res = window.scrollX;
-  if (res == void 0) { //IE8-11
+
+  if (res === void 0) { //IE8-11
     res = document.documentElement.scrollLeft;
   }
+
   return res;
 }
 
 /**
- * Returns the provided element's scrollTop property
- * @param elem
+ * Returns the provided element's scrollTop property.
+ *
+ * @param element
  * @returns {Number}
  */
-export function getScrollTop(elem) {
-  if (elem === window) {
-    return getWindowScrollTop(elem);
+export function getScrollTop(element) {
+  if (element === window) {
+    return getWindowScrollTop();
   }
   else {
-    return elem.scrollTop;
+    return element.scrollTop;
   }
 }
 
 /**
- * Returns the provided element's scrollLeft property
- * @param elem
+ * Returns the provided element's scrollLeft property.
+ *
+ * @param element
  * @returns {Number}
  */
-export function getScrollLeft(elem) {
-  if (elem === window) {
-    return getWindowScrollLeft(elem);
+export function getScrollLeft(element) {
+  if (element === window) {
+    return getWindowScrollLeft();
   }
   else {
-    return elem.scrollLeft;
+    return element.scrollLeft;
   }
 }
 
 /**
- * Returns a DOM element responsible for scrolling of the provided element
+ * Returns a DOM element responsible for scrolling of the provided element.
+ *
  * @param {HTMLElement} element
  * @returns {HTMLElement} Element's scrollable parent
  */
@@ -574,17 +563,21 @@ export function getScrollableElement(element) {
 }
 
 /**
- * Returns a DOM element responsible for trimming the provided element
+ * Returns a DOM element responsible for trimming the provided element.
+ *
  * @param {HTMLElement} base Base element
  * @returns {HTMLElement} Base element's trimming parent
  */
 export function getTrimmingContainer(base) {
   var el = base.parentNode;
+
   while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
+
     } else if (window.getComputedStyle) {
       var computedStyle = window.getComputedStyle(el);
+
       if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
         return el;
       }
@@ -592,19 +585,22 @@ export function getTrimmingContainer(base) {
 
     el = el.parentNode;
   }
+
   return window;
 }
 
 /**
- * Returns a style property for the provided element. (Be it an inline or external style)
- * @param {HTMLElement} elem
+ * Returns a style property for the provided element. (Be it an inline or external style).
+ *
+ * @param {HTMLElement} element
  * @param {string} prop Wanted property
  * @returns {string} Element's style property
  */
-export function getStyle(elem, prop) {
-  if (!elem) {
+export function getStyle(element, prop) {
+  if (!element) {
     return;
-  } else if (elem === window) {
+
+  } else if (element === window) {
     if (prop === 'width') {
       return window.innerWidth + 'px';
     } else if (prop === 'height') {
@@ -613,12 +609,13 @@ export function getStyle(elem, prop) {
     return;
   }
 
-  var styleProp = elem.style[prop],
+  var styleProp = element.style[prop],
     computedStyle;
   if (styleProp !== "" && styleProp !== void 0) {
     return styleProp;
+
   } else {
-    computedStyle = getComputedStyle(elem);
+    computedStyle = getComputedStyle(element);
     if (computedStyle[prop] !== "" && computedStyle[prop] !== void 0) {
       return computedStyle[prop];
     }
@@ -627,21 +624,23 @@ export function getStyle(elem, prop) {
 }
 
 /**
- * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet)
- * @param elem
+ * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
+ *
+ * @param element
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
-export function getComputedStyle(elem) {
-  return elem.currentStyle || document.defaultView.getComputedStyle(elem);
+export function getComputedStyle(element) {
+  return element.currentStyle || document.defaultView.getComputedStyle(element);
 }
 
 /**
- * Returns the element's outer width
- * @param elem
+ * Returns the element's outer width.
+ *
+ * @param element
  * @returns {number} Element's outer width
  */
-export function outerWidth(elem) {
-  return elem.offsetWidth;
+export function outerWidth(element) {
+  return element.offsetWidth;
 }
 
 /**
@@ -666,21 +665,23 @@ export function outerHeight(elem) {
 }
 
 /**
- * Returns the element's inner height
- * @param elem
+ * Returns the element's inner height.
+ *
+ * @param element
  * @returns {number} Element's inner height
  */
-export function innerHeight(elem) {
-  return elem.clientHeight || elem.innerHeight;
+export function innerHeight(element) {
+  return element.clientHeight || element.innerHeight;
 }
 
 /**
- * Returns the element's inner width
- * @param elem
+ * Returns the element's inner width.
+ *
+ * @param element
  * @returns {number} Element's inner width
  */
-export function innerWidth(elem) {
-  return elem.clientWidth || elem.innerWidth;
+export function innerWidth(element) {
+  return element.clientWidth || element.innerWidth;
 }
 
 export function addEvent(element, event, callback) {
@@ -697,38 +698,6 @@ export function removeEvent(element, event, callback) {
   } else {
     element.detachEvent('on' + event, callback);
   }
-}
-
-
-var _hasCaptionProblem;
-
-function detectCaptionProblem() {
-  var TABLE = document.createElement('TABLE');
-  TABLE.style.borderSpacing = 0;
-  TABLE.style.borderWidth = 0;
-  TABLE.style.padding = 0;
-  var TBODY = document.createElement('TBODY');
-  TABLE.appendChild(TBODY);
-  TBODY.appendChild(document.createElement('TR'));
-  TBODY.firstChild.appendChild(document.createElement('TD'));
-  TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
-
-  var CAPTION = document.createElement('CAPTION');
-  CAPTION.innerHTML = 'c<br>c<br>c<br>c';
-  CAPTION.style.padding = 0;
-  CAPTION.style.margin = 0;
-  TABLE.insertBefore(CAPTION, TBODY);
-
-  document.body.appendChild(TABLE);
-  _hasCaptionProblem = (TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight); //boolean
-  document.body.removeChild(TABLE);
-}
-
-export function hasCaptionProblem() {
-  if (_hasCaptionProblem === void 0) {
-    detectCaptionProblem();
-  }
-  return _hasCaptionProblem;
 }
 
 /**
@@ -783,33 +752,34 @@ export function getSelectionEndPosition(el) {
 }
 
 /**
- * Sets caret position in text input
+ * Sets caret position in text input.
+ *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Element} el
+ * @param {Element} element
  * @param {Number} pos
  * @param {Number} endPos
  */
-export function setCaretPosition(el, pos, endPos) {
+export function setCaretPosition(element, pos, endPos) {
   if (endPos === void 0) {
     endPos = pos;
   }
-  if (el.setSelectionRange) {
-    el.focus();
+  if (element.setSelectionRange) {
+    element.focus();
 
     try {
-      el.setSelectionRange(pos, endPos);
+      element.setSelectionRange(pos, endPos);
     }
     catch(err) {
-      var elementParent = el.parentNode;
+      var elementParent = element.parentNode;
       var parentDisplayValue = elementParent.style.display;
       elementParent.style.display = 'block';
-      el.setSelectionRange(pos, endPos);
+      element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
 
   }
-  else if (el.createTextRange) { //IE8
-    var range = el.createTextRange();
+  else if (element.createTextRange) { //IE8
+    var range = element.createTextRange();
     range.collapse(true);
     range.moveEnd('character', endPos);
     range.moveStart('character', pos);
@@ -849,42 +819,27 @@ function walkontableCalculateScrollbarWidth() {
 }
 
 /**
- * Returns the computed width of the native browser scroll bar
+ * Returns the computed width of the native browser scroll bar.
+ *
  * @return {Number} width
  */
 export function getScrollbarWidth() {
   if (cachedScrollbarWidth === void 0) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
   }
+
   return cachedScrollbarWidth;
 }
 
-var _isIE8 = !(document.createTextNode('test').textContent);
-
-export function isIE8() {
-  return isIE8;
-}
-
-var _isIE9 = !!(document.documentMode);
-
-export function isIE9() {
-  return _isIE9;
-}
-
-var _isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
-
-export function isSafari() {
-  return _isSafari;
-}
 
 /**
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {
-  if (_isIE8 || _isIE9) {
+  if (isIE8() || isIE9()) {
     overlayElem.style.top = top;
     overlayElem.style.left = left;
-  } else if (_isSafari) {
+  } else if (isSafari()) {
     /* jshint sub:true */
     overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
   } else {
@@ -892,14 +847,14 @@ export function setOverlayPosition(overlayElem, left, top) {
   }
 }
 
-export function getCssTransform(elem) {
+export function getCssTransform(element) {
   var transform;
 
   /* jshint sub:true */
-  if (elem.style['transform'] && (transform = elem.style['transform']) !== '') {
+  if (element.style['transform'] && (transform = element.style['transform']) !== '') {
     return ['transform', transform];
 
-  } else if (elem.style['-webkit-transform'] && (transform = elem.style['-webkit-transform']) !== '') {
+  } else if (element.style['-webkit-transform'] && (transform = element.style['-webkit-transform']) !== '') {
 
     return ['-webkit-transform', transform];
   }
@@ -907,58 +862,83 @@ export function getCssTransform(elem) {
   return -1;
 }
 
-export function resetCssTransform(elem) {
+export function resetCssTransform(element) {
   /* jshint sub:true */
-  if (elem['transform'] && elem['transform'] !== '') {
-    elem['transform'] = '';
-  } else if (elem['-webkit-transform'] && elem['-webkit-transform'] !== '') {
-    elem['-webkit-transform'] = '';
+  if (element['transform'] && element['transform'] !== '') {
+    element['transform'] = '';
+  } else if (element['-webkit-transform'] && element['-webkit-transform'] !== '') {
+    element['-webkit-transform'] = '';
   }
 }
 
-window.Handsontable = window.Handsontable || {};
-Handsontable.Dom = {
-  addClass,
-  addEvent,
-  closest,
-  empty,
-  enableImmediatePropagation,
-  fastInnerHTML,
-  fastInnerText,
-  getCaretPosition,
-  getComputedStyle,
-  getCssTransform,
-  getScrollableElement,
-  getScrollbarWidth,
-  getScrollLeft,
-  getScrollTop,
-  getStyle,
-  getSelectionEndPosition,
-  getTrimmingContainer,
-  getWindowScrollLeft,
-  getWindowScrollTop,
-  hasCaptionProblem,
-  hasClass,
-  HTML_CHARACTERS,
-  index,
-  innerHeight,
-  innerWidth,
-  isChildOf,
-  isChildOfWebComponentTable,
-  isIE8,
-  isIE9,
-  isSafari,
-  isVisible,
-  isWebComponentSupportedNatively,
-  offset,
-  outerHeight,
-  outerWidth,
-  polymerUnwrap,
-  polymerWrap,
-  removeClass,
-  removeEvent,
-  removeTextNodes,
-  resetCssTransform,
-  setCaretPosition,
-  setOverlayPosition
-};
+/**
+ * Determines if the given DOM element is an input field.
+ * Notice: By 'input' we mean input, textarea and select nodes
+ * @param element - DOM element
+ * @returns {boolean}
+ */
+export function isInput(element) {
+  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+
+  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
+}
+
+/**
+ * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
+ * Notice: By 'input' we mean input, textarea and select nodes
+ * @param element - DOM element
+ * @returns {boolean}
+ */
+export function isOutsideInput(element) {
+  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+}
+
+
+// https://gist.github.com/paulirish/1579671
+let lastTime = 0;
+let vendors = ['ms', 'moz', 'webkit', 'o'];
+let _requestAnimationFrame = window.requestAnimationFrame;
+let _cancelAnimationFrame = window.cancelAnimationFrame;
+
+for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+}
+
+if (!_requestAnimationFrame) {
+  _requestAnimationFrame = function(callback) {
+    let currTime = new Date().getTime();
+    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    let id = window.setTimeout(function() {
+      callback(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
+
+    return id;
+  };
+}
+
+if (!_cancelAnimationFrame) {
+  _cancelAnimationFrame = function(id) {
+    clearTimeout(id);
+  };
+}
+
+/**
+ * Polyfill for requestAnimationFrame
+ *
+ * @param {Function} callback
+ * @returns {Number}
+ */
+export function requestAnimationFrame(callback) {
+  return _requestAnimationFrame.call(window, callback);
+}
+
+/**
+ * Polyfill for cancelAnimationFrame
+ *
+ * @param {Number} id
+ */
+export function cancelAnimationFrame(id) {
+  _cancelAnimationFrame.call(window, id);
+}

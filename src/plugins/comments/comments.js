@@ -1,12 +1,19 @@
-import * as dom from './../../dom.js';
-import {EventManager} from './../../eventManager.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {registerPlugin, getPlugin} from './../../plugins.js';
-import BasePlugin from './../_base.js';
-import {CommentEditor} from './commentEditor.js';
+
+import {
+  addClass,
+  closest,
+  getWindowScrollLeft,
+  getWindowScrollTop,
+  hasClass,
+  offset,
+    } from './../../helpers/dom/element';
+import {EventManager} from './../../eventManager';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {registerPlugin, getPlugin} from './../../plugins';
+import BasePlugin from './../_base';
+import {CommentEditor} from './commentEditor';
 
 /**
- * @class Comments
  * @plugin Comments
  *
  * @description
@@ -45,9 +52,6 @@ import {CommentEditor} from './commentEditor.js';
  * ```
  */
 class Comments extends BasePlugin {
-  /**
-   * @param {Core} hotInstance Handsontable instance passed in plugin class constructor
-   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -159,7 +163,7 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   targetIsCellWithComment(event) {
-    return dom.hasClass(event.target, 'htCommentCell') && dom.closest(event.target, [this.hot.rootElement]) ? true : false;
+    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
   }
 
   /**
@@ -275,10 +279,10 @@ class Comments extends BasePlugin {
       return;
     }
     let TD = this.hot.view.wt.wtTable.getCell(this.range.from);
-    let offset = dom.offset(TD);
+    let cellOffset = offset(TD);
     let lastColWidth = this.hot.getColWidth(this.range.from.col);
-    let cellTopOffset = offset.top;
-    let cellLeftOffset = offset.left;
+    let cellTopOffset = cellOffset.top;
+    let cellLeftOffset = cellOffset.left;
     let verticalCompensation = 0;
     let horizontalCompensation = 0;
 
@@ -295,10 +299,10 @@ class Comments extends BasePlugin {
 
     let rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
     let holderPos = {
-      left: rect.left + dom.getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + dom.getWindowScrollLeft() - 15,
-      top: rect.top + dom.getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + dom.getWindowScrollTop()
+      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
+      right: rect.right + getWindowScrollLeft() - 15,
+      top: rect.top + getWindowScrollTop() + verticalCompensation,
+      bottom: rect.bottom + getWindowScrollTop()
     };
 
     if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
@@ -387,7 +391,7 @@ class Comments extends BasePlugin {
    */
   onAfterRenderer(TD, cellProperties) {
     if (cellProperties.comment) {
-      dom.addClass(TD, cellProperties.commentedCellClassName);
+      addClass(TD, cellProperties.commentedCellClassName);
     }
   }
 
@@ -408,8 +412,13 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
+    const selected = this.hot.getSelectedRange();
+
+    if (!selected) {
+      return false;
+    }
     let hasComment = false;
-    let cell = this.hot.getSelectedRange().from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.hot.getCellMeta(cell.row, cell.col).comment) {
       hasComment = true;
@@ -459,7 +468,7 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.ContextMenu.SEPARATOR,
+      Handsontable.plugins.ContextMenu.SEPARATOR,
       {
         key: 'commentsAddEdit',
         name: () => {
@@ -467,7 +476,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: function () {
-          return false;
+          return this.getSelected() ? false: true;
         }
       },
       {
@@ -487,9 +496,6 @@ class Comments extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.eventManager) {
-      this.eventManager.clear();
-    }
     if (this.editor) {
       this.editor.destroy();
     }

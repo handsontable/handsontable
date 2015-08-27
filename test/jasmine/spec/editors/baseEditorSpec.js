@@ -23,7 +23,7 @@ describe('BaseEditor', function () {
       expect(getDataAtCell(1,1)).toEqual("B2");
       expect(getDataAtCell(2,2)).toEqual("C3");
 
-      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown(Handsontable.helper.KEY_CODES.ENTER);
       keyDown('ctrl+enter');
 
       expect(getDataAtCell(1,1)).toEqual("B2");
@@ -38,7 +38,7 @@ describe('BaseEditor', function () {
       expect(getDataAtCell(1,2)).toEqual("C2");
       expect(getDataAtCell(2,1)).toEqual("B3");
 
-      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown(Handsontable.helper.KEY_CODES.ENTER);
       keyDown('ctrl+enter');
 
       expect(getDataAtCell(1,1)).toEqual("C2");
@@ -50,7 +50,7 @@ describe('BaseEditor', function () {
       selectCell(2, 2, 1, 1);
       expect(getDataAtCell(2,2)).toEqual("C3");
 
-      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown(Handsontable.helper.KEY_CODES.ENTER);
       keyDown('ctrl+enter');
 
       expect(getDataAtCell(1,1)).toEqual("C3");
@@ -62,7 +62,7 @@ describe('BaseEditor', function () {
       selectCell(2, 1, 1, 2);
       expect(getDataAtCell(2,1)).toEqual("B3");
 
-      keyDown(Handsontable.helper.keyCode.ENTER);
+      keyDown(Handsontable.helper.KEY_CODES.ENTER);
       keyDown('ctrl+enter');
 
       expect(getDataAtCell(1,1)).toEqual("B3");
@@ -73,7 +73,7 @@ describe('BaseEditor', function () {
     });
   });
 
-  it("should exported every editor into Handsontable.editor object", function() {
+  it("should exported all editors into Handsontable.editors object", function() {
     expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.editors.CheckboxEditor).toBeDefined();

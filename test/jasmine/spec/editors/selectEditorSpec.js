@@ -1,4 +1,4 @@
-describe('selectEditor', function () {
+describe('SelectEditor', function () {
 
   var id = 'testContainer';
 
@@ -14,7 +14,6 @@ describe('selectEditor', function () {
   });
 
   it("should display select", function () {
-
      handsontable({
        columns: [
          {
@@ -31,12 +30,39 @@ describe('selectEditor', function () {
     expect(editor.is('select')).toBe(true);
     expect(editor.is(':visible')).toBe(false);
 
-
     keyDown('enter');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+  });
 
+  it("should display and correctly reposition select editor while scrolling", function () {
+     var hot = handsontable({
+       width: 200,
+       height: 200,
+       data: Handsontable.helper.createSpreadsheetData(100, 100),
+       columns: [
+         {
+           editor: 'select'
+         }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
+       ]
+     });
+    var mainHolder = hot.view.wt.wtTable.holder;
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyUp('enter');
+
+    mainHolder.scrollTop = 10;
+    mainHolder.scrollLeft = 20;
+    var editor = $('.htSelectEditor');
+
+    waits(200);
+
+    runs(function() {
+      expect(editor.css('top')).toEqual('-10px');
+      expect(editor.css('left')).toEqual('-20px');
+    });
   });
 
   it("should populate select with given options (array)", function () {
@@ -198,8 +224,6 @@ describe('selectEditor', function () {
 
     keyDown('enter');
 
-
-
     selectCell(1, 0);
     keyDown('enter');
 
@@ -250,9 +274,5 @@ describe('selectEditor', function () {
 
     expect(event).toBeDefined();
     expect(event.isDefaultPrevented()).toBe(false);
-
-
-
   });
-
 });

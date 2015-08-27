@@ -1,5 +1,5 @@
 
-import {registerPlugin} from './../../plugins.js';
+import {registerPlugin} from './../../plugins';
 import jsonpatch from 'jsonpatch';
 
 export {ObserveChanges};
@@ -158,6 +158,7 @@ function destroyObserver() {
   var instance = this;
 
   jsonpatch.unobserve(instance.observedData, instance.observer);
+  delete instance.observedData;
   delete instance.observeChangesActive;
   delete instance.pauseObservingChanges;
   delete instance.resumeObservingChanges;

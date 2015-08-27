@@ -1,9 +1,16 @@
-import * as dom from './../../../dom.js';
-import {EventManager} from './../../../eventManager.js';
-import {WalkontableCornerOverlay} from './overlay/corner.js';
-import {WalkontableDebugOverlay} from './overlay/debug.js';
-import {WalkontableLeftOverlay} from './overlay/left.js';
-import {WalkontableTopOverlay} from './overlay/top.js';
+
+import {
+  getScrollableElement,
+  getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
+    } from './../../../helpers/dom/element';
+import {isKey} from './../../../helpers/unicode';
+import {EventManager} from './../../../eventManager';
+import {WalkontableCornerOverlay} from './overlay/corner';
+import {WalkontableDebugOverlay} from './overlay/debug';
+import {WalkontableLeftOverlay} from './overlay/left';
+import {WalkontableTopOverlay} from './overlay/top';
 
 
 /**
@@ -20,10 +27,10 @@ class WalkontableOverlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.wot.update('scrollbarWidth', dom.getScrollbarWidth());
-    this.wot.update('scrollbarHeight', dom.getScrollbarWidth());
+    this.wot.update('scrollbarWidth', getScrollbarWidth());
+    this.wot.update('scrollbarHeight', getScrollbarWidth());
 
-    this.mainTableScrollableElement = dom.getScrollableElement(this.wot.wtTable.TABLE);
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
     this.topOverlay = new WalkontableTopOverlay(this.wot);
     this.leftOverlay = new WalkontableLeftOverlay(this.wot);
@@ -81,8 +88,9 @@ class WalkontableOverlays {
    * Register all necessary event listeners
    */
   registerListeners() {
-    this.eventManager.addEventListener(document.documentElement, 'keydown', () => this.onKeyDown());
+    this.eventManager.addEventListener(document.documentElement, 'keydown', (event) => this.onKeyDown(event));
     this.eventManager.addEventListener(document.documentElement, 'keyup', () => this.onKeyUp());
+    this.eventManager.addEventListener(document, 'visibilitychange', () => this.onKeyUp());
 
     this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (event) => this.onTableScroll(event));
 
@@ -147,8 +155,8 @@ class WalkontableOverlays {
   /**
    * Key down listener
    */
-  onKeyDown() {
-    this.keyPressed = true;
+  onKeyDown(event) {
+    this.keyPressed = isKey(event.keyCode, 'ARROW_UP|ARROW_RIGHT|ARROW_DOWN|ARROW_LEFT');
   }
 
   /**
@@ -226,7 +234,7 @@ class WalkontableOverlays {
     }
 
     if (target === master) {
-      tempScrollValue = dom.getScrollLeft(target);
+      tempScrollValue = getScrollLeft(target);
 
       // if scrolling the master table - populate the scroll values to both top and left overlays
       if (this.overlayScrollPositions.master.left !== tempScrollValue) {
@@ -237,7 +245,7 @@ class WalkontableOverlays {
           topOverlay.scrollLeft = tempScrollValue;
         }
       }
-      tempScrollValue = dom.getScrollTop(target);
+      tempScrollValue = getScrollTop(target);
 
       if (this.overlayScrollPositions.master.top !== tempScrollValue) {
         this.overlayScrollPositions.master.top = tempScrollValue;
@@ -249,7 +257,7 @@ class WalkontableOverlays {
       }
 
     } else if (target === topOverlay) {
-      tempScrollValue = dom.getScrollLeft(target);
+      tempScrollValue = getScrollLeft(target);
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
       if (this.overlayScrollPositions.top.left !== tempScrollValue) {
@@ -266,7 +274,7 @@ class WalkontableOverlays {
       }
 
     } else if (target === leftOverlay) {
-      tempScrollValue = dom.getScrollTop(target);
+      tempScrollValue = getScrollTop(target);
 
       // if scrolling the left overlay - populate the vertical scroll to the master table
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
@@ -306,8 +314,7 @@ class WalkontableOverlays {
    *
    */
   destroy() {
-    this.eventManager.clear();
-
+    this.eventManager.destroy();
     this.topOverlay.destroy();
     this.leftOverlay.destroy();
 
