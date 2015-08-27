@@ -62,7 +62,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Add the manualColumnFreeze context menu entries
    *
-   * * @private
+   * @private
    * @param {Object} defaultOptions
    */
   addContextMenuEntry(defaultOptions) {
