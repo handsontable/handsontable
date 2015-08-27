@@ -5,17 +5,23 @@ export {ManualColumnFreeze};
 /**
  * This plugin allows to manually "freeze" and "unfreeze" a column using the Context Menu
  *
- * @class ManualColumnFreeze
  * @plugin ManualColumnFreeze
  */
 class ManualColumnFreeze extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
+  }
 
-    if(this.isEnabled()) {
-      this.bindHooks();
+  enablePlugin() {
+    if(this.enabled === true) {
+      return;
     }
+
+    this.addHook('modifyCol', (col) => this.onModifyCol(col));
+    this.addHook('afterContextMenuDefaultOptions', (defaultOptions) => this.addContextMenuEntry(defaultOptions));
+
+    super.enablePlugin();
   }
 
   isEnabled() {
@@ -35,14 +41,10 @@ class ManualColumnFreeze extends BasePlugin {
     this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
   }
 
-  bindHooks() {
-    this.addHook('modifyCol', (col) => this.onModifyCol(col));
-    this.addHook('afterContextMenuDefaultOptions', (defaultOptions) => this.addContextMenuEntry(defaultOptions));
-  }
-
   /**
    * 'modiftyCol' callback, prevent doubling the column translation
    *
+   * @private
    * @param {Number} col
    */
   onModifyCol(col) {
@@ -60,6 +62,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Add the manualColumnFreeze context menu entries
    *
+   * * @private
    * @param {Object} defaultOptions
    */
   addContextMenuEntry(defaultOptions) {
