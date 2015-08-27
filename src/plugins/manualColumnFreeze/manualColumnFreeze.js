@@ -1,6 +1,5 @@
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
-export {ManualColumnFreeze};
 
 /**
  * This plugin allows to manually "freeze" and "unfreeze" a column using the Context Menu
@@ -14,7 +13,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   enablePlugin() {
-    if(this.enabled === true) {
+    if (this.enabled) {
       return;
     }
 
@@ -52,6 +51,7 @@ class ManualColumnFreeze extends BasePlugin {
     if (this.hot.manualColumnPositionsPluginUsages.length > 1) {
       return col;
     }
+
     return this.getModifiedColumnIndex(col);
   }
 
@@ -73,6 +73,7 @@ class ManualColumnFreeze extends BasePlugin {
         key: 'freeze_column',
         name: function() {
           let selectedColumn = _this.hot.getSelected()[1];
+
           if (selectedColumn > _this.fixedColumnsCount - 1) {
             return 'Freeze this column';
           } else {
@@ -81,10 +82,12 @@ class ManualColumnFreeze extends BasePlugin {
         },
         disabled: function() {
           let selection = _this.hot.getSelected();
+
           return selection[1] !== selection[3];
         },
         callback: function() {
           let selectedColumn = _this.hot.getSelected()[1];
+
           if (selectedColumn > _this.fixedColumnsCount - 1) {
             _this.freezeColumn(selectedColumn);
           } else {
@@ -105,6 +108,7 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     let modifiedColumn = this.getModifiedColumnIndex(col) || col;
+
     this.checkPositionData(modifiedColumn);
     this.modifyColumnOrder(modifiedColumn, col, null, 'freeze');
 
@@ -125,8 +129,8 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     let returnCol = this.getBestColumnReturnPosition(col);
-
     let modifiedColumn = this.getModifiedColumnIndex(col) || col;
+
     this.checkPositionData(modifiedColumn);
     this.modifyColumnOrder(modifiedColumn, col, returnCol, 'unfreeze');
     this.removeFixedColumn();
@@ -142,6 +146,7 @@ class ManualColumnFreeze extends BasePlugin {
     this.hot.updateSettings({
       fixedColumnsLeft: this.fixedColumnsCount + 1
     });
+
     this.fixedColumnsCount++;
   }
 
@@ -152,6 +157,7 @@ class ManualColumnFreeze extends BasePlugin {
     this.hot.updateSettings({
       fixedColumnsLeft: this.fixedColumnsCount - 1
     });
+
     this.fixedColumnsCount--;
   }
 
@@ -214,16 +220,20 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} col
    */
   getBestColumnReturnPosition(col) {
-    let i = this.fixedColumnsCount,
-      j = this.getModifiedColumnIndex(i),
-      initialCol = this.getModifiedColumnIndex(col);
+    let i = this.fixedColumnsCount;
+    let j = this.getModifiedColumnIndex(i);
+    let initialCol = this.getModifiedColumnIndex(col);
+
     while (j < initialCol) {
       i++;
       j = this.getModifiedColumnIndex(i);
     }
+
     return i - 1;
   }
 
 }
+
+export {ManualColumnFreeze};
 
 registerPlugin('manualColumnFreeze', ManualColumnFreeze);
