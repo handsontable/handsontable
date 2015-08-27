@@ -27,6 +27,7 @@ class WalkontableViewport {
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
+    this.isMarkedOversizedColumn = {};
     this.clientHeight = 0;
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
