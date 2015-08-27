@@ -1,7 +1,10 @@
-import * as dom from './../dom.js';
-import * as helper from './../helpers.js';
-import {EventManager} from './../eventManager.js';
-import {getRenderer, registerRenderer} from './../renderers.js';
+
+import {empty, addClass, hasClass} from './../helpers/dom/element';
+import {equalsIgnoreCase} from './../helpers/string';
+import {EventManager} from './../eventManager';
+import {getRenderer, registerRenderer} from './../renderers';
+import {KEY_CODES} from './../helpers/unicode';
+import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
 const isListeningKeyDownEvent = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
@@ -29,22 +32,22 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (typeof cellProperties.uncheckedTemplate === 'undefined') {
     cellProperties.uncheckedTemplate = false;
   }
-  dom.empty(TD); // TODO identify under what circumstances this line can be removed
+  empty(TD); // TODO identify under what circumstances this line can be removed
 
-  if (value === cellProperties.checkedTemplate || helper.equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
+  if (value === cellProperties.checkedTemplate || equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
     input.checked = true;
     TD.appendChild(input);
   }
-  else if (value === cellProperties.uncheckedTemplate || helper.equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
+  else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     TD.appendChild(input);
   }
   else if (value === null) { // default value
-    dom.addClass(input, 'noValue');
+    addClass(input, 'noValue');
     TD.appendChild(input);
   }
   else {
     input.style.display = 'none';
-    dom.addClass(input, BAD_VALUE_CLASS);
+    addClass(input, BAD_VALUE_CLASS);
     TD.appendChild(input);
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
@@ -72,23 +75,22 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    */
   function onBeforeKeyDown(event) {
     const allowedKeys = [
-      helper.keyCode.SPACE,
-      helper.keyCode.ENTER,
-      helper.keyCode.DELETE,
-      helper.keyCode.BACKSPACE
+      KEY_CODES.SPACE,
+      KEY_CODES.ENTER,
+      KEY_CODES.DELETE,
+      KEY_CODES.BACKSPACE
     ];
-    dom.enableImmediatePropagation(event);
 
-    if (allowedKeys.indexOf(event.keyCode) !== -1 && !event.isImmediatePropagationStopped()) {
+    if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(function() {
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
         event.preventDefault();
       });
     }
-    if (event.keyCode == helper.keyCode.SPACE || event.keyCode == helper.keyCode.ENTER) {
+    if (event.keyCode == KEY_CODES.SPACE || event.keyCode == KEY_CODES.ENTER) {
       toggleSelected();
     }
-    if (event.keyCode == helper.keyCode.DELETE || event.keyCode == helper.keyCode.BACKSPACE) {
+    if (event.keyCode == KEY_CODES.DELETE || event.keyCode == KEY_CODES.BACKSPACE) {
       toggleSelected(false);
     }
   }
@@ -103,7 +105,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     eachSelectedCheckboxCell(function(checkboxes) {
       for (let i = 0, len = checkboxes.length; i < len; i++) {
         // Block changing checked property on toggle keys (SPACE and ENTER)
-        if (dom.hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+        if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
           return;
         }
         toggleCheckbox(checkboxes[i], checked);
@@ -174,7 +176,4 @@ function createInput() {
 
 function preventDefault(event) {
   event.preventDefault();
-}
-function stopPropagation(event) {
-  helper.stopPropagation(event);
 }

@@ -1,7 +1,15 @@
 
-import * as dom from './../../../dom.js';
-import {EventManager} from './../../../eventManager.js';
-import {WalkontableCellCoords} from './cell/coords.js';
+import {
+  getComputedStyle,
+  getTrimmingContainer,
+  innerWidth,
+  offset,
+  outerHeight,
+  outerWidth,
+    } from './../../../helpers/dom/element';
+import {stopImmediatePropagation} from './../../../helpers/dom/event';
+import {EventManager} from './../../../eventManager';
+import {WalkontableCellCoords} from './cell/coords';
 
 
 class WalkontableBorder {
@@ -85,7 +93,7 @@ class WalkontableBorder {
       return;
     }
     event.preventDefault();
-    event.stopImmediatePropagation();
+    stopImmediatePropagation(event);
 
     let _this = this;
     let bounds = this.getBoundingClientRect();
@@ -368,18 +376,18 @@ class WalkontableBorder {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
-    fromOffset = dom.offset(fromTD);
-    toOffset = isMultiple ? dom.offset(toTD) : fromOffset;
-    containerOffset = dom.offset(this.wot.wtTable.TABLE);
+    fromOffset = offset(fromTD);
+    toOffset = isMultiple ? offset(toTD) : fromOffset;
+    containerOffset = offset(this.wot.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + dom.outerHeight(toTD) - minTop;
+    height = toOffset.top + outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + dom.outerWidth(toTD) - minLeft;
+    width = toOffset.left + outerWidth(toTD) - minLeft;
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
-    let style = dom.getComputedStyle(fromTD);
+    let style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -422,8 +430,8 @@ class WalkontableBorder {
       this.cornerStyle.display = 'block';
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        let trimmingContainer = dom.getTrimmingContainer(this.wot.wtTable.TABLE);
-        let cornerOverlappingContainer = toTD.offsetLeft + dom.outerWidth(toTD) >= dom.innerWidth(trimmingContainer);
+        let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+        let cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";

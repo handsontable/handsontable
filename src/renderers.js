@@ -2,9 +2,7 @@
  * Utility to register renderers and common namespace for keeping reference to all renderers classes
  */
 
-import * as helper from './helpers.js';
-
-export {registerRenderer, getRenderer, hasRenderer};
+import {toUpperCaseFirst} from './helpers/string';
 
 var registeredRenderers = {};
 
@@ -23,7 +21,7 @@ function registerRenderer(rendererName, rendererFunction) {
 
   registeredRenderers[rendererName] = rendererFunction;
 
-  registerName = helper.toUpperCaseFirst(rendererName) + 'Renderer';
+  registerName = toUpperCaseFirst(rendererName) + 'Renderer';
   // support for older versions of Handsontable
   Handsontable.renderers[registerName] = rendererFunction;
   Handsontable[registerName] = rendererFunction;
@@ -56,3 +54,5 @@ function getRenderer(rendererName) {
 function hasRenderer(rendererName) {
   return rendererName in registeredRenderers;
 }
+
+export {registerRenderer, getRenderer, hasRenderer};

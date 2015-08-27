@@ -1,7 +1,11 @@
 
-import * as dom from './../../../dom.js';
-
-let isMarkedOversizedColumn = {};
+import {
+  addClass,
+  empty,
+  getScrollbarWidth,
+  hasClass,
+  innerHeight,
+    } from './../../../helpers/dom/element';
 
 /**
  * @class WalkontableTableRenderer
@@ -187,7 +191,7 @@ class WalkontableTableRenderer {
     }
     let rowCount = this.instance.wtTable.TBODY.childNodes.length;
     let expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight;
-    let actualTableHeight = dom.innerHeight(this.instance.wtTable.TBODY) - 1;
+    let actualTableHeight = innerHeight(this.instance.wtTable.TBODY) - 1;
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
@@ -207,9 +211,9 @@ class WalkontableTableRenderer {
       rowHeader = currentTr.querySelector('th');
 
       if (rowHeader) {
-        rowInnerHeight = dom.innerHeight(rowHeader);
+        rowInnerHeight = innerHeight(rowHeader);
       } else {
-        rowInnerHeight = dom.innerHeight(currentTr) - 1;
+        rowInnerHeight = innerHeight(currentTr) - 1;
       }
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
@@ -225,7 +229,7 @@ class WalkontableTableRenderer {
   markOversizedColumns() {
     let overlayName = this.wot.getOverlayName();
 
-    if (!this.columnHeaderCount || isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     let columnCount = this.wtTable.getRenderedColumnsCount();
@@ -235,7 +239,7 @@ class WalkontableTableRenderer {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
   }
 
   /**
@@ -279,7 +283,7 @@ class WalkontableTableRenderer {
         continue;
       }
       //currentHeaderHeight = defaultRowHeight;
-      currentHeaderHeight = dom.innerHeight(currentHeader);
+      currentHeaderHeight = innerHeight(currentHeader);
 
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
@@ -309,7 +313,7 @@ class WalkontableTableRenderer {
       if (TD.nodeName == 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
-      if (!dom.hasClass(TD, 'hide')) {
+      if (!hasClass(TD, 'hide')) {
         TD.className = '';
       }
       TD.removeAttribute('style');
@@ -328,7 +332,7 @@ class WalkontableTableRenderer {
     let mainHolder = sourceInstance.wtTable.holder;
 
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
-      scrollbarCompensation = dom.getScrollbarWidth();
+      scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
@@ -458,7 +462,7 @@ class WalkontableTableRenderer {
       this.wtTable.colgroupChildrenLength--;
     }
     if (this.rowHeaderCount) {
-      dom.addClass(this.COLGROUP.childNodes[0], 'rowHeader');
+      addClass(this.COLGROUP.childNodes[0], 'rowHeader');
     }
   }
 
@@ -496,7 +500,7 @@ class WalkontableTableRenderer {
         }
       }
     } else if (TR) {
-      dom.empty(TR);
+      empty(TR);
     }
   }
 

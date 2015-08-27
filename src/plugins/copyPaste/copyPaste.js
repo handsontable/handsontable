@@ -1,10 +1,12 @@
 
-import * as helper from './../../helpers.js';
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
+import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
+import {proxy} from './../../helpers/function';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 
 
 /**
@@ -73,18 +75,18 @@ function CopyPastePlugin(instance) {
     if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
       return;
     }
-    if (helper.isCtrlKey(event.keyCode)) {
+    if (isCtrlKey(event.keyCode)) {
       // when CTRL is pressed, prepare selectable text in textarea
       _this.setCopyableText();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
 
       return;
     }
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (event.keyCode == helper.keyCode.A && ctrlDown) {
-      instance._registerTimeout(setTimeout(helper.proxy(_this.setCopyableText, _this), 0));
+    if (event.keyCode == KEY_CODES.A && ctrlDown) {
+      instance._registerTimeout(setTimeout(proxy(_this.setCopyableText, _this), 0));
     }
   }
 
@@ -104,19 +106,19 @@ function CopyPastePlugin(instance) {
     instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
-  instance.addHook('afterDestroy', helper.proxy(this.destroy, this));
+  instance.addHook('afterDestroy', proxy(this.destroy, this));
 
   /**
    * @function triggerPaste
    * @memberof CopyPaste#
    */
-  this.triggerPaste = helper.proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
+  this.triggerPaste = proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
 
   /**
    * @function triggerCut
    * @memberof CopyPaste#
    */
-  this.triggerCut = helper.proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
+  this.triggerCut = proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
 
   /**
    * Prepares copyable text in the invisible textarea.

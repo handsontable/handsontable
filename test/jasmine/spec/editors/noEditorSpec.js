@@ -91,7 +91,7 @@ describe('noEditor', function () {
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDown(Handsontable.helper.keyCode.CAPS_LOCK);
+    keyDown(Handsontable.helper.KEY_CODES.CAPS_LOCK);
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -166,7 +166,7 @@ describe('noEditor', function () {
     expect(getDataAtCell(0, 0)).toEqual('A1');
 
     selectCell(0, 0);
-    keyDown(Handsontable.helper.keyCode.ALT);
+    keyDown(Handsontable.helper.KEY_CODES.ALT);
 
     expect(isEditorVisible()).toBe(false);
   });

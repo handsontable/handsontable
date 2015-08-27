@@ -1,7 +1,7 @@
 
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
-import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection.js';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
+import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection';
 
 //registerPlugin('customBorders', CustomBorders);
 
@@ -410,14 +410,15 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
+  defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR);
 
   defaultOptions.items.push({
     key: 'borders',
     name: 'Borders',
     submenu: {
-      items: {
-        top: {
+      items: [
+        {
+          key: 'borders:top',
           name: function () {
             var label = "Top";
             var hasBorder = checkSelectionBorders(this, 'top');
@@ -433,7 +434,8 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
           },
           disabled: false
         },
-        right: {
+        {
+          key: 'borders:right',
           name: function () {
             var label = 'Right';
             var hasBorder = checkSelectionBorders(this, 'right');
@@ -448,7 +450,8 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
           },
           disabled: false
         },
-        bottom: {
+        {
+          key: 'borders:bottom',
           name: function () {
             var label = 'Bottom';
             var hasBorder = checkSelectionBorders(this, 'bottom');
@@ -463,7 +466,8 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
           },
           disabled: false
         },
-        left: {
+        {
+          key: 'borders:left',
           name: function () {
             var label = 'Left';
             var hasBorder = checkSelectionBorders(this, 'left');
@@ -479,16 +483,17 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
           },
           disabled: false
         },
-        remove: {
+        {
+          key: 'borders:no_borders',
           name: 'Remove border(s)',
-          callback: function () {
+            callback: function () {
             prepareBorder.call(this, this.getSelectedRange(), 'noBorders');
           },
           disabled: function () {
             return !checkSelectionBorders(this);
           }
         }
-      }
+      ]
     }
   });
 };

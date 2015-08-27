@@ -1,8 +1,9 @@
 
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range.js';
-import {WalkontableTable} from './../../3rdparty/walkontable/src/table.js';
+import {registerPlugin} from './../../plugins';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
+import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
 
 export {MergeCells};
 
@@ -303,7 +304,7 @@ var onBeforeKeyDown = function(event) {
     if (event.keyCode === 77) { //CTRL + M
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       this.render();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 };
@@ -313,7 +314,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
+  defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR);
 
   defaultOptions.items.push({
     key: 'mergeCells',

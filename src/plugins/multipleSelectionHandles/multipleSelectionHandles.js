@@ -1,7 +1,8 @@
-import * as dom from './../../dom.js';
-import BasePlugin from './../_base.js';
-import {EventManager} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
+
+import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import {EventManager} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
 
 /**
  * @private
@@ -84,7 +85,7 @@ class MultipleSelectionHandles extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
       let selectedRange;
 
-      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
         selectedRange = _this.hot.getSelectedRange();
 
         _this.dragged.push("topLeft");
@@ -98,7 +99,7 @@ class MultipleSelectionHandles extends BasePlugin {
         event.preventDefault();
         return false;
 
-      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
         selectedRange = _this.hot.getSelectedRange();
 
         _this.dragged.push("bottomRight");
@@ -115,7 +116,7 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
-      if (dom.hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
         removeFromDragged.call(_this, "topLeft");
 
         _this.touchStartRange = void 0;
@@ -123,7 +124,7 @@ class MultipleSelectionHandles extends BasePlugin {
         event.preventDefault();
         return false;
 
-      } else if (dom.hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
         removeFromDragged.call(_this, "bottomRight");
 
         _this.touchStartRange = void 0;
@@ -134,8 +135,8 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function(event) {
-      let scrollTop = dom.getWindowScrollTop(),
-        scrollLeft = dom.getWindowScrollLeft(),
+      let scrollTop = getWindowScrollTop(),
+        scrollLeft = getWindowScrollLeft(),
         endTarget,
         targetCoords,
         selectedRange,

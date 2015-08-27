@@ -1,6 +1,7 @@
-import * as dom from './../../dom.js';
-import BasePlugin from './../_base.js';
-import {registerPlugin} from './../../plugins.js';
+
+import {addClass, removeClass} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import {registerPlugin} from './../../plugins';
 
 
 /**
@@ -14,7 +15,7 @@ class TouchScroll extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
-    this.hot.addHook('afterInit', () => this.init());
+    this.hot.addHook('afterInit', () => this.afterInit());
     this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.scrollbars = [];
     this.clones = [];
@@ -23,7 +24,7 @@ class TouchScroll extends BasePlugin {
   /**
    * Initialize plugin
    */
-  init() {
+  afterInit() {
     this.registerEvents();
     this.onAfterUpdateSettings();
   }
@@ -71,7 +72,7 @@ class TouchScroll extends BasePlugin {
     Handsontable.freezeOverlays = true;
 
     for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      dom.addClass(this.clones[i], 'hide-tween');
+      addClass(this.clones[i], 'hide-tween');
     }
   }
 
@@ -83,16 +84,16 @@ class TouchScroll extends BasePlugin {
     var _that = this;
 
     for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      dom.removeClass(this.clones[i], 'hide-tween');
+      removeClass(this.clones[i], 'hide-tween');
     }
 
     for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      dom.addClass(this.clones[i], 'show-tween');
+      addClass(this.clones[i], 'show-tween');
     }
 
     setTimeout(function() {
       for (let i = 0, cloneCount = _that.clones.length; i < cloneCount; i++) {
-        dom.removeClass(_that.clones[i], 'show-tween');
+        removeClass(_that.clones[i], 'show-tween');
       }
     }, 400);
 

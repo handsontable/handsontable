@@ -285,7 +285,7 @@ describe('DateEditor', function () {
 
     expect(editor.getValue()).toEqual('foo');
 
-    keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+    keyDownUp(Handsontable.helper.KEY_CODES.ESCAPE); //cancel editing
 
     editor.finishEditing();
 

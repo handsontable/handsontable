@@ -1,7 +1,8 @@
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import {registerPlugin} from './../../plugins.js';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords.js';
+
+import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import {registerPlugin} from './../../plugins';
+import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 
 export {Autofill};
 
@@ -93,10 +94,10 @@ function Autofill(instance) {
     if (!_this.instance.autofill) {
       return false;
     }
-    tableBottom = dom.offset(_this.instance.table).top - (window.pageYOffset ||
-      document.documentElement.scrollTop) + dom.outerHeight(_this.instance.table);
-    tableRight = dom.offset(_this.instance.table).left - (window.pageXOffset ||
-      document.documentElement.scrollLeft) + dom.outerWidth(_this.instance.table);
+    tableBottom = offset(_this.instance.table).top - (window.pageYOffset ||
+      document.documentElement.scrollTop) + outerHeight(_this.instance.table);
+    tableRight = offset(_this.instance.table).left - (window.pageXOffset ||
+      document.documentElement.scrollLeft) + outerWidth(_this.instance.table);
 
     // dragged outside bottom
     if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom &&

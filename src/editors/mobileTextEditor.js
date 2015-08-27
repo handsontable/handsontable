@@ -1,9 +1,21 @@
 
-import * as helper from './../helpers.js';
-import * as dom from './../dom.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {BaseEditor} from './_baseEditor.js';
-import {eventManager as eventManagerObject} from './../eventManager.js';
+import {KEY_CODES} from './../helpers/unicode';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import {
+  addClass,
+  getScrollLeft,
+  getScrollTop,
+  hasClass,
+  isChildOf,
+  offset,
+  outerHeight,
+  outerWidth,
+  removeClass,
+  setCaretPosition,
+    } from './../helpers/dom/element';
+import {getEditor, registerEditor} from './../editors';
+import {BaseEditor} from './_baseEditor';
+import {eventManager as eventManagerObject} from './../eventManager';
 
 var
   MobileTextEditor = BaseEditor.prototype.extend(),
@@ -78,7 +90,7 @@ MobileTextEditor.prototype.createElements = function() {
   this.positionControls.className = "positionControls";
 
   this.TEXTAREA = document.createElement('TEXTAREA');
-  dom.addClass(this.TEXTAREA, 'handsontableInput');
+  addClass(this.TEXTAREA, 'handsontableInput');
 
   this.inputPane.appendChild(this.TEXTAREA);
 
@@ -96,21 +108,17 @@ MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
   var instance = this;
   var that = instance.getActiveEditor();
 
-  dom.enableImmediatePropagation(event);
-
-  if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()) {
+  if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {
     return;
   }
 
-  var keyCodes = helper.keyCode;
-
   switch (event.keyCode) {
-    case keyCodes.ENTER:
+    case KEY_CODES.ENTER:
       that.close();
       event.preventDefault(); //don't add newline to field
       break;
-    case keyCodes.BACKSPACE:
-      event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
+    case KEY_CODES.BACKSPACE:
+      stopImmediatePropagation(event); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
   }
 };
@@ -118,22 +126,22 @@ MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
 MobileTextEditor.prototype.open = function() {
   this.instance.addHook('beforeKeyDown', this.onBeforeKeyDown);
 
-  dom.addClass(this.editorContainer, 'active');
-  dom.removeClass(this.cellPointer, 'hidden');
+  addClass(this.editorContainer, 'active');
+  removeClass(this.cellPointer, 'hidden');
 
   this.updateEditorPosition();
 };
 
 MobileTextEditor.prototype.focus = function() {
   this.TEXTAREA.focus();
-  dom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
 MobileTextEditor.prototype.close = function() {
   this.TEXTAREA.blur();
   this.instance.removeHook('beforeKeyDown', this.onBeforeKeyDown);
 
-  dom.removeClass(this.editorContainer, 'active');
+  removeClass(this.editorContainer, 'active');
 };
 
 MobileTextEditor.prototype.scrollToView = function() {
@@ -142,8 +150,8 @@ MobileTextEditor.prototype.scrollToView = function() {
 };
 
 MobileTextEditor.prototype.hideCellPointer = function() {
-  if (!dom.hasClass(this.cellPointer, 'hidden')) {
-    dom.addClass(this.cellPointer, 'hidden');
+  if (!hasClass(this.cellPointer, 'hidden')) {
+    addClass(this.cellPointer, 'hidden');
   }
 };
 
@@ -162,30 +170,30 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
     //cache sizes
     if (!domDimensionsCache.cellPointer) {
       domDimensionsCache.cellPointer = {
-        height: dom.outerHeight(this.cellPointer),
-        width: dom.outerWidth(this.cellPointer)
+        height: outerHeight(this.cellPointer),
+        width: outerWidth(this.cellPointer)
       };
     }
     if (!domDimensionsCache.editorContainer) {
       domDimensionsCache.editorContainer = {
-        width: dom.outerWidth(this.editorContainer)
+        width: outerWidth(this.editorContainer)
       };
     }
 
     if (selectedCell !== undefined) {
       var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay
-          .trimmingContainer == window ? 0 : dom.getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
+          .trimmingContainer == window ? 0 : getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
       var scrollTop = this.instance.view.wt.wtOverlays.topOverlay
-          .trimmingContainer == window ? 0 : dom.getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
+          .trimmingContainer == window ? 0 : getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
 
-      var selectedCellOffset = dom.offset(selectedCell),
-        selectedCellWidth = dom.outerWidth(selectedCell),
+      var selectedCellOffset = offset(selectedCell),
+        selectedCellWidth = outerWidth(selectedCell),
         currentScrollPosition = {
           x: scrollLeft,
           y: scrollTop
         };
 
-      this.editorContainer.style.top = parseInt(selectedCellOffset.top + dom.outerHeight(selectedCell) -
+      this.editorContainer.style.top = parseInt(selectedCellOffset.top + outerHeight(selectedCell) -
           currentScrollPosition.y + domDimensionsCache.cellPointer.height, 10) + "px";
       this.editorContainer.style.left = parseInt((window.innerWidth / 2) - (domDimensionsCache.editorContainer.width / 2), 10) + "px";
 
@@ -198,7 +206,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
       }
 
       this.cellPointer.style.left = parseInt(selectedCellOffset.left - (domDimensionsCache.cellPointer.width / 2) -
-        dom.offset(this.editorContainer).left + (selectedCellWidth / 2) - currentScrollPosition.x, 10) + "px";
+        offset(this.editorContainer).left + (selectedCellWidth / 2) - currentScrollPosition.x, 10) + "px";
     }
   }
 };
@@ -209,7 +217,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
 //MobileTextEditor.prototype.updateEditorDimensions = function () {
 //  if(!this.beginningWindowWidth) {
 //    this.beginningWindowWidth = window.innerWidth;
-//    this.beginningEditorWidth = Handsontable.Dom.outerWidth(this.editorContainer);
+//    this.beginningEditorWidth = Handsontable.outerWidth(this.editorContainer);
 //    this.scaleRatio = this.beginningEditorWidth / this.beginningWindowWidth;
 //
 //    this.editorContainer.style.width = this.beginningEditorWidth + "px";
@@ -305,7 +313,7 @@ MobileTextEditor.prototype.bindEvents = function() {
   });
 
   this.eventManager.addEventListener(document.body, "touchend", function(event) {
-    if (!dom.isChildOf(event.target, that.editorContainer) && !dom.isChildOf(event.target, that.instance.rootElement)) {
+    if (!isChildOf(event.target, that.editorContainer) && !isChildOf(event.target, that.instance.rootElement)) {
       that.close();
     }
   });

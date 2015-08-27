@@ -1,9 +1,11 @@
 
-import {deepExtend, stopPropagation, isMetaKey} from './../helpers.js';
-import {addClass, outerHeight} from './../dom.js';
-import {getEditor, registerEditor} from './../editors.js';
-import {TextEditor} from './textEditor.js';
-import {EventManager} from './../eventManager.js';
+import {addClass, outerHeight} from './../helpers/dom/element';
+import {deepExtend} from './../helpers/object';
+import {EventManager} from './../eventManager';
+import {getEditor, registerEditor} from './../editors';
+import {isMetaKey} from './../helpers/unicode';
+import {stopPropagation} from './../helpers/dom/event';
+import {TextEditor} from './textEditor';
 import moment from 'moment';
 import Pikaday from 'pikaday';
 

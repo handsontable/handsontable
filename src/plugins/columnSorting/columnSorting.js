@@ -1,7 +1,14 @@
-import * as dom from './../../dom.js';
-import {eventManager as eventManagerObject} from './../../eventManager.js';
-import BasePlugin from './../_base.js';
-import {registerPlugin} from './../../plugins.js';
+
+import {
+  addClass,
+  closest,
+  hasClass,
+  index,
+  removeClass,
+    } from './../../helpers/dom/element';
+import {eventManager as eventManagerObject} from './../../eventManager';
+import BasePlugin from './../_base';
+import {registerPlugin} from './../../plugins';
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');
@@ -190,7 +197,7 @@ class ColumnSorting extends BasePlugin {
 
     this.bindedSortEvent = true;
     eventManager.addEventListener(this.hot.rootElement, 'click', function(e) {
-      if (dom.hasClass(e.target, 'columnSorting')) {
+      if (hasClass(e.target, 'columnSorting')) {
         let col = getColumn(e.target);
 
         if (col !== this.lastSortedColumn) {
@@ -220,8 +227,8 @@ class ColumnSorting extends BasePlugin {
     }
 
     function getColumn(target) {
-      let TH = dom.closest(target, 'TH');
-      return dom.index(TH) - countRowHeaders();
+      let TH = closest(target, 'TH');
+      return index(TH) - countRowHeaders();
     }
   }
 
@@ -375,18 +382,18 @@ class ColumnSorting extends BasePlugin {
     let headerLink = TH.querySelector('.colHeader');
 
     if (this.hot.getSettings().columnSorting && col >= 0) {
-      dom.addClass(headerLink, 'columnSorting');
+      addClass(headerLink, 'columnSorting');
     }
-    dom.removeClass(headerLink, 'descending');
-    dom.removeClass(headerLink, 'ascending');
+    removeClass(headerLink, 'descending');
+    removeClass(headerLink, 'ascending');
 
     if (this.sortIndicators[col]) {
       if (col === this.hot.sortColumn) {
         if (this.sortOrderClass === 'ascending') {
-          dom.addClass(headerLink, 'ascending');
+          addClass(headerLink, 'ascending');
 
         } else if (this.sortOrderClass === 'descending') {
-          dom.addClass(headerLink, 'descending');
+          addClass(headerLink, 'descending');
         }
       }
     }

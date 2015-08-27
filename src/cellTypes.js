@@ -2,34 +2,34 @@
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
-import * as helper from './helpers.js';
-import {getEditorConstructor} from './editors.js';
-import {getRenderer} from './renderers.js';
+import {isMobileBrowser} from './helpers/browser';
+import {getEditorConstructor} from './editors';
+import {getRenderer} from './renderers';
 
-import {AutocompleteEditor} from './editors/autocompleteEditor.js';
-import {CheckboxEditor} from './editors/checkboxEditor.js';
-import {DateEditor} from './editors/dateEditor.js';
-import {DropdownEditor} from './editors/dropdownEditor.js';
-import {HandsontableEditor} from './editors/handsontableEditor.js';
-import {MobileTextEditor} from './editors/mobileTextEditor.js';
-import {NumericEditor} from './editors/numericEditor.js';
-import {PasswordEditor} from './editors/passwordEditor.js';
-import {SelectEditor} from './editors/selectEditor.js';
-import {TextEditor} from './editors/textEditor.js';
+import {AutocompleteEditor} from './editors/autocompleteEditor';
+import {CheckboxEditor} from './editors/checkboxEditor';
+import {DateEditor} from './editors/dateEditor';
+import {DropdownEditor} from './editors/dropdownEditor';
+import {HandsontableEditor} from './editors/handsontableEditor';
+import {MobileTextEditor} from './editors/mobileTextEditor';
+import {NumericEditor} from './editors/numericEditor';
+import {PasswordEditor} from './editors/passwordEditor';
+import {SelectEditor} from './editors/selectEditor';
+import {TextEditor} from './editors/textEditor';
 
-import {AutocompleteRenderer} from './renderers/autocompleteRenderer.js';
-import {CheckboxRenderer} from './renderers/checkboxRenderer.js';
-import {HtmlRenderer} from './renderers/htmlRenderer.js';
-import {NumericRenderer} from './renderers/numericRenderer.js';
-import {PasswordRenderer} from './renderers/passwordRenderer.js';
-import {TextRenderer} from './renderers/textRenderer.js';
+import {AutocompleteRenderer} from './renderers/autocompleteRenderer';
+import {CheckboxRenderer} from './renderers/checkboxRenderer';
+import {HtmlRenderer} from './renderers/htmlRenderer';
+import {NumericRenderer} from './renderers/numericRenderer';
+import {PasswordRenderer} from './renderers/passwordRenderer';
+import {TextRenderer} from './renderers/textRenderer';
 
-import {AutocompleteValidator} from './validators/autocompleteValidator.js';
-import {DateValidator} from './validators/dateValidator.js';
-import {NumericValidator} from './validators/numericValidator.js';
+import {AutocompleteValidator} from './validators/autocompleteValidator';
+import {DateValidator} from './validators/dateValidator';
+import {NumericValidator} from './validators/numericValidator';
 
 
-Handsontable.mobileBrowser = helper.isMobileBrowser();  // check if viewed on a mobile device
+Handsontable.mobileBrowser = isMobileBrowser();
 
 Handsontable.AutocompleteCell = {
   editor: getEditorConstructor('autocomplete'),

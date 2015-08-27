@@ -1,10 +1,13 @@
 
-import BasePlugin from './../_base.js';
-import {arrayEach, arrayFilter, objectEach, rangeEach, requestAnimationFrame, cancelAnimationFrame, isObject,
-        isPercentValue, valueAccordingPercent} from './../../helpers.js';
-import {GhostTable} from './../../utils/ghostTable.js';
-import {registerPlugin} from './../../plugins.js';
-import {SamplesGenerator} from './../../utils/samplesGenerator.js';
+import BasePlugin from './../_base';
+import {arrayEach, arrayFilter} from './../../helpers/array';
+import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
+import {GhostTable} from './../../utils/ghostTable';
+import {isObject, objectEach} from './../../helpers/object';
+import {isPercentValue, rangeEach} from './../../helpers/number';
+import {registerPlugin} from './../../plugins';
+import {SamplesGenerator} from './../../utils/samplesGenerator';
+import {valueAccordingPercent} from './../../helpers/string';
 
 
 /**
@@ -198,8 +201,10 @@ class AutoRowSize extends BasePlugin {
    * Recalculate all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
-    this.clearCache();
-    this.calculateAllRowsHeight();
+    if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
+      this.clearCache();
+      this.calculateAllRowsHeight();
+    }
   }
 
   /**
