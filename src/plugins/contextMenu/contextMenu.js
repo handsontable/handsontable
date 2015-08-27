@@ -101,25 +101,28 @@ class ContextMenu extends BasePlugin {
       items: this.itemsFactory.getVisibleItems(settings)
     };
     this.registerEvents();
-    this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    this.itemsFactory.setPredefinedItems(predefinedItems.items);
-    let menuItems = this.itemsFactory.getVisibleItems(settings);
+    this.callOnPluginsReady(() => {
+      this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    this.menu = new Menu(this.hot, {className: 'htContextMenu'});
-    this.menu.setMenuItems(menuItems);
-    this.addHook('menuExecuteCommand', (menu, ...params) => {
-      if (menu === this.menu) {
-        this.executeCommand.apply(this, params);
+      this.itemsFactory.setPredefinedItems(predefinedItems.items);
+      let menuItems = this.itemsFactory.getVisibleItems(settings);
+
+      this.menu = new Menu(this.hot, {className: 'htContextMenu'});
+      this.menu.setMenuItems(menuItems);
+      this.addHook('menuExecuteCommand', (menu, ...params) => {
+        if (menu === this.menu) {
+          this.executeCommand.apply(this, params);
+        }
+      });
+      if (typeof settings.callback === 'function') {
+        this.commandExecutor.setCommonCallback(settings.callback);
       }
-    });
-    if (typeof settings.callback === 'function') {
-      this.commandExecutor.setCommonCallback(settings.callback);
-    }
-    super.enablePlugin();
+      super.enablePlugin();
 
-    // Register all commands. Predefined and added by user or by plugins
-    arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      // Register all commands. Predefined and added by user or by plugins
+      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+    });
   }
 
   /**

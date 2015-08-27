@@ -15,7 +15,7 @@ class TouchScroll extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
-    this.hot.addHook('afterInit', () => this.init());
+    this.hot.addHook('afterInit', () => this.afterInit());
     this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.scrollbars = [];
     this.clones = [];
@@ -24,7 +24,7 @@ class TouchScroll extends BasePlugin {
   /**
    * Initialize plugin
    */
-  init() {
+  afterInit() {
     this.registerEvents();
     this.onAfterUpdateSettings();
   }
