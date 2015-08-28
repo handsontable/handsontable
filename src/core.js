@@ -3774,9 +3774,50 @@ DefaultSettings.prototype = {
   settings: void 0,
   source: void 0,
   title: void 0,
+
+  /**
+   * Data template for `'checkbox'` type when checkbox is checked.
+   *
+   * Option desired for cell which `'checkbox'` type.
+   *
+   * @type {Boolean|String}
+   * @default true
+   */
   checkedTemplate: void 0,
+
+  /**
+   * Data template for `'checkbox'` type when checkbox is unchecked.
+   *
+   * Option desired for cell which `'checkbox'` type.
+   *
+   * @type {Boolean|String}
+   * @default false
+   */
   uncheckedTemplate: void 0,
+
+  /**
+   * Display format. See http://numeric.com.
+   *
+   * Option desired for cell which `'numeric'` type.
+   */
   format: void 0,
+
+  /**
+   * Language display format. See http://numeric.com.
+   *
+   * Option desired for cell which `'numeric'` type.
+   *
+   * @type {String}
+   * @default 'en'
+   */
+  language: void 0,
+
+  /**
+   * Data source for cell with `'select'` type.
+   *
+   * @type {Array}
+   */
+  selectOptions: void 0,
 
   /**
    * Enables or disables autoColumnSize plugin. Default value is `undefined` which is the same effect as `true`.
@@ -3834,6 +3875,44 @@ DefaultSettings.prototype = {
    * @type {Object|Boolean}
    * @default {syncLimit: 1000}
    */
-  autoRowSize: void 0
+  autoRowSize: void 0,
+
+  /**
+   * Date validation format.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {String}
+   * @default 'DD/MM/YYYY'
+   */
+  dateFormat: void 0,
+
+  /**
+   * If `true` then dates will be automatically formatted to match the desired format.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  correctFormat: false,
+
+  /**
+   * Definition of default value which will fill empty cells.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {String}
+   */
+  defaultDate: void 0,
+
+  /**
+   * If typed `true` value entered into cell must match to the autocomplete source. Otherwise cell will be invalid.
+   *
+   * Option desired for cell which `'autocomplete'` type.
+   *
+   * @type {Boolean}
+   */
+  strict: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;
