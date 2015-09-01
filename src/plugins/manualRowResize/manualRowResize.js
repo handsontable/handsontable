@@ -45,7 +45,7 @@ class ManualRowResize extends BasePlugin {
   enablePlugin() {
     super.enablePlugin();
 
-    if(!this.enabled) {
+    if (!this.enabled) {
       return;
     }
 
