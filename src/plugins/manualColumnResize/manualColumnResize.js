@@ -43,8 +43,6 @@ class ManualColumnResize extends BasePlugin {
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
-    super.enablePlugin();
-
     if (!this.enabled) {
       return;
     }
@@ -55,6 +53,8 @@ class ManualColumnResize extends BasePlugin {
 
     Handsontable.hooks.register('beforeColumnResize');
     Handsontable.hooks.register('afterColumnResize');
+
+    super.enablePlugin();
   }
 
   /**
