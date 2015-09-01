@@ -45,6 +45,10 @@ class ManualRowResize extends BasePlugin {
   enablePlugin() {
     super.enablePlugin();
 
+    if(!this.enabled) {
+      return;
+    }
+
     this.addHook('init', () => this.onInit());
     this.addHook('afterUpdateSettings', () => this.onInit('afterUpdateSettings'));
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
