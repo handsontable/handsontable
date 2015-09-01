@@ -43,7 +43,7 @@ class ManualColumnResize extends BasePlugin {
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
-    if (!this.enabled) {
+    if (this.enabled) {
       return;
     }
 
