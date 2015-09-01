@@ -1,4 +1,3 @@
-
 import {
   getStyle,
   getTrimmingContainer,
@@ -7,7 +6,8 @@ import {
   offset,
   removeClass,
   removeTextNodes,
-    } from './../../../helpers/dom/element';
+  overlayContainsElement
+} from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 import {WalkontableColumnFilter} from './filter/column';
@@ -195,8 +195,8 @@ class WalkontableTable {
       let startRow;
 
       if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
+        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
         startRow = 0;
       } else {
         startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
@@ -204,8 +204,8 @@ class WalkontableTable {
       let startColumn;
 
       if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
+        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
         startColumn = 0;
       } else {
         startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
@@ -344,14 +344,27 @@ class WalkontableTable {
   getCoords(TD) {
     const TR = TD.parentNode;
     let row = index(TR);
+    let col = TD.cellIndex;
 
-    if (TR.parentNode === this.THEAD) {
-      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+    if (overlayContainsElement(WalkontableTopOverlay.CLONE_CORNER, TD) || overlayContainsElement(WalkontableTopOverlay.CLONE_TOP, TD)) {
+      if (TR.parentNode === this.THEAD) {
+        row -= 1;
+      }
     } else {
-      row = this.rowFilter.renderedToSource(row);
+      if (TR.parentNode === this.THEAD) {
+        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+      } else {
+        row = this.rowFilter.renderedToSource(row);
+      }
     }
 
-    return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
+    if (overlayContainsElement(WalkontableOverlay.CLONE_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
+      col -= 1;
+    } else {
+      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
+
+    return new WalkontableCellCoords(row, col);
   }
 
   getTrForRow(row) {

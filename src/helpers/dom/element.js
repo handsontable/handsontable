@@ -135,6 +135,17 @@ export function index(element) {
   return i;
 }
 
+/**
+ * Check if the provided overlay contains the provided element
+ *
+ * @param {String} overlay
+ * @param {HTMLElement} element
+ * @returns {boolean}
+ */
+export function overlayContainsElement(overlayType, element) {
+  let overlayElement = document.querySelector('.ht_clone_' + overlayType);
+  return overlayElement ? overlayElement.contains(element) : null;
+}
 
 var classListSupport = document.documentElement.classList ? true : false;
 var _hasClass, _addClass, _removeClass;
