@@ -33,14 +33,10 @@ class ManualColumnResize extends BasePlugin {
     this.pressed = null;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
-    this.hot.manualColumnWidths = [];
-  }
+    this.manualColumnWidths = [];
 
-  init() {
-    super.init();
-
-    this.handle.className = 'manualColumnResizer';
-    this.guide.className = 'manualColumnResizerGuide';
+    addClass(this.handle, 'manualColumnResizer');
+    addClass(this.guide, 'manualColumnResizerGuide');
   }
 
   /**
@@ -52,7 +48,6 @@ class ManualColumnResize extends BasePlugin {
     this.addHook('init', () => this.onInit());
     this.addHook('afterUpdateSettings', () => this.onInit('afterUpdateSettings'));
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('afterDestroy', () => this.unbindEvents());
 
     Handsontable.hooks.register('beforeColumnResize');
     Handsontable.hooks.register('afterColumnResize');
@@ -71,7 +66,7 @@ class ManualColumnResize extends BasePlugin {
    * Save the current sizes using the persistentState plugin
    */
   saveManualColumnWidths() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.hot.manualColumnWidths);
+    this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.manualColumnWidths);
   }
 
   /**
@@ -83,6 +78,7 @@ class ManualColumnResize extends BasePlugin {
     let storedState = {};
 
     this.hot.runHooks('persistentStateLoad', 'manualColumnWidths', storedState);
+
     return storedState.value;
   }
 
@@ -157,6 +153,7 @@ class ManualColumnResize extends BasePlugin {
         return this.checkIfColumnHeader(element);
       }
     }
+
     return false;
   }
 
@@ -174,17 +171,19 @@ class ManualColumnResize extends BasePlugin {
         return this.getTHFromTargetElement(element.parentNode);
       }
     }
+
     return null;
   }
 
   /**
    * 'mouseover' event callback - set the handle position
    *
+   * @private
    * @param {MouseEvent} e
    */
-  onMouseOver(e) {
-    if (this.checkIfColumnHeader(e.target)) {
-      let th = this.getTHFromTargetElement(e.target);
+  onMouseOver(event) {
+    if (this.checkIfColumnHeader(event.target)) {
+      let th = this.getTHFromTargetElement(event.target);
 
       if (th) {
         if (!this.pressed) {
@@ -220,10 +219,11 @@ class ManualColumnResize extends BasePlugin {
   /**
    * 'mousedown' event callback
    *
+   * @private
    * @param {MouseEvent} e
    */
-  onMouseDown(e) {
-    if (hasClass(e.target, 'manualColumnResizer')) {
+  onMouseDown(event) {
+    if (hasClass(event.target, 'manualColumnResizer')) {
       this.setupGuidePosition();
       this.pressed = this.hot;
 
@@ -234,7 +234,7 @@ class ManualColumnResize extends BasePlugin {
       }
       this.dblclick++;
 
-      this.startX = pageX(e);
+      this.startX = pageX(event);
       this.newSize = this.startWidth;
     }
   }
@@ -242,11 +242,12 @@ class ManualColumnResize extends BasePlugin {
   /**
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width
    *
+   * @private
    * @param {MouseEvent} e
    */
-  onMouseMove(e) {
+  onMouseMove(event) {
     if (this.pressed) {
-      this.currentWidth = this.startWidth + (pageX(e) - this.startX);
+      this.currentWidth = this.startWidth + (pageX(event) - this.startX);
       this.newSize = this.setManualSize(this.currentCol, this.currentWidth);
       this.refreshHandlePosition();
       this.refreshGuidePosition();
@@ -256,9 +257,10 @@ class ManualColumnResize extends BasePlugin {
   /**
    * 'mouseup' event callback - apply the column resizing
    *
+   * @private
    * @param {MouseEvent} e
    */
-  onMouseUp(e) {
+  onMouseUp(event) {
     if (this.pressed) {
       this.hideHandleAndGuide();
       this.pressed = false;
@@ -281,6 +283,8 @@ class ManualColumnResize extends BasePlugin {
 
   /**
    * Bind the mouse events
+   *
+   * @private
    */
   bindEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (e) => this.onMouseOver(e));
@@ -290,30 +294,23 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Unbind the mouse events
-   */
-  unbindEvents() {
-    this.eventManager.clear();
-  }
-
-  /**
    * Initialize the plugin after Handsontable init or updateSettings
    *
    * @param {String} source
    */
   onInit(source) {
-    this.hot.manualColumnWidths = [];
+    this.manualColumnWidths = [];
 
     if (this.enabled) {
       let initialColumnWidths = this.hot.getSettings().manualColumnResize;
       let loadedManualColumnWidths = this.loadManualColumnWidths();
 
       if (typeof loadedManualColumnWidths != 'undefined') {
-        this.hot.manualColumnWidths = loadedManualColumnWidths;
+        this.manualColumnWidths = loadedManualColumnWidths;
       } else if (Array.isArray(initialColumnWidths)) {
-        this.hot.manualColumnWidths = initialColumnWidths;
+        this.manualColumnWidths = initialColumnWidths;
       } else {
-        this.hot.manualColumnWidths = [];
+        this.manualColumnWidths = [];
       }
 
       if (source === void 0) {
@@ -338,7 +335,7 @@ class ManualColumnResize extends BasePlugin {
      */
     col = this.hot.runHooks('modifyCol', col);
 
-    this.hot.manualColumnWidths[col] = width;
+    this.manualColumnWidths[col] = width;
 
     return width;
   }
@@ -354,8 +351,8 @@ class ManualColumnResize extends BasePlugin {
     if (this.enabled) {
       col = this.hot.runHooks('modifyCol', col);
 
-      if (this.hot.getSettings().manualColumnResize && this.hot.manualColumnWidths[col]) {
-        return this.hot.manualColumnWidths[col];
+      if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
+        return this.manualColumnWidths[col];
       }
     }
 
