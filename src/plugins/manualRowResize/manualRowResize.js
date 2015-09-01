@@ -81,6 +81,7 @@ class ManualRowResize extends BasePlugin {
    */
   loadManualRowHeights() {
     let storedState = {};
+
     this.hot.runHooks('persistentStateLoad', 'manualRowHeights', storedState);
     return storedState.value;
   }
@@ -96,6 +97,7 @@ class ManualRowResize extends BasePlugin {
 
     if (row >= 0) { //if not col header
       let box = this.currentTH.getBoundingClientRect();
+
       this.currentRow = row;
       this.startOffset = box.top - 6;
       this.startHeight = parseInt(box.height, 10);
@@ -305,7 +307,6 @@ class ManualRowResize extends BasePlugin {
     if (this.enabled) {
       let initialRowHeights = this.hot.getSettings().manualRowResize;
       let loadedManualRowHeights = this.loadManualRowHeights();
-
 
       if (typeof loadedManualRowHeights != 'undefined') {
         this.hot.manualRowHeights = loadedManualRowHeights;

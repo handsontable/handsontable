@@ -81,6 +81,7 @@ class ManualColumnResize extends BasePlugin {
    */
   loadManualColumnWidths() {
     let storedState = {};
+
     this.hot.runHooks('persistentStateLoad', 'manualColumnWidths', storedState);
     return storedState.value;
   }
@@ -96,6 +97,7 @@ class ManualColumnResize extends BasePlugin {
 
     if (col >= 0) { //if not col header
       let box = this.currentTH.getBoundingClientRect();
+
       this.currentCol = col;
       this.startOffset = box.left - 6;
       this.startWidth = parseInt(box.width, 10);
@@ -306,7 +308,6 @@ class ManualColumnResize extends BasePlugin {
       let initialColumnWidths = this.hot.getSettings().manualColumnResize;
       let loadedManualColumnWidths = this.loadManualColumnWidths();
 
-
       if (typeof loadedManualColumnWidths != 'undefined') {
         this.hot.manualColumnWidths = loadedManualColumnWidths;
       } else if (Array.isArray(initialColumnWidths)) {
@@ -330,11 +331,13 @@ class ManualColumnResize extends BasePlugin {
    */
   setManualSize(col, width) {
     width = Math.max(width, 20);
+
     /**
      *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
      *  in data source. For instance, this order can be modified by manualColumnMove plugin.
      */
     col = this.hot.runHooks('modifyCol', col);
+
     this.hot.manualColumnWidths[col] = width;
 
     return width;
