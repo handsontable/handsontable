@@ -78,6 +78,7 @@ class ManualRowResize extends BasePlugin {
     let storedState = {};
 
     this.hot.runHooks('persistentStateLoad', 'manualRowHeights', storedState);
+
     return storedState.value;
   }
 
@@ -152,6 +153,7 @@ class ManualRowResize extends BasePlugin {
         return this.checkIfRowHeader(element);
       }
     }
+
     return false;
   }
 
@@ -169,6 +171,7 @@ class ManualRowResize extends BasePlugin {
         return this.getTHFromTargetElement(element.parentNode);
       }
     }
+
     return null;
   }
 
