@@ -189,7 +189,7 @@ class AutoColumnSize extends BasePlugin {
    * Recalculate all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
