@@ -498,8 +498,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
 
     /**
-     * @param {Number} rows
-     * @param {Number} cols
+     * @param {Boolean} rows
+     * @param {Boolean} cols
      */
     setSelectedHeaders: function(rows, cols) {
       instance.selection.selectedHeader.rows = rows;
@@ -553,12 +553,23 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange === null) {
         return;
       }
+
       var disableVisualSelection;
+      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
+      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
+      var newRangeCoords = {
+        row: null,
+        col: null
+      };
 
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
       instance.selection.begin();
-      priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+
+      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
+      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
+
+      priv.selRange.to = new WalkontableCellCoords(newRangeCoords.row, newRangeCoords.col);
 
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
