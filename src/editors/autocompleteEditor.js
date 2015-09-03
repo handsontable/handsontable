@@ -1,4 +1,3 @@
-
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
 import {pivot} from './../helpers/array';
@@ -9,7 +8,7 @@ import {
   getSelectionEndPosition,
   outerWidth,
   setCaretPosition,
-    } from './../helpers/dom/element';
+} from './../helpers/dom/element';
 import {getEditorConstructor, registerEditor} from './../editors';
 import {HandsontableEditor} from './handsontableEditor';
 
@@ -41,7 +40,7 @@ function onBeforeKeyDown(event) {
   var editor = this.getActiveEditor();
 
   if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
-      event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
+    event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
     var timeOffset = 0;
 
     // on ctl+c / cmd+c don't update suggestion list
@@ -52,19 +51,19 @@ function onBeforeKeyDown(event) {
       timeOffset += 10;
     }
 
-    editor.instance._registerTimeout(setTimeout(function () {
+    editor.instance._registerTimeout(setTimeout(function() {
       editor.queryChoices(editor.TEXTAREA.value);
       skipOne = true;
     }, timeOffset));
   }
 }
 
-AutocompleteEditor.prototype.prepare = function () {
+AutocompleteEditor.prototype.prepare = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   HandsontableEditor.prototype.prepare.apply(this, arguments);
 };
 
-AutocompleteEditor.prototype.open = function () {
+AutocompleteEditor.prototype.open = function() {
   HandsontableEditor.prototype.open.apply(this, arguments);
 
   var choicesListHot = this.htEditor.getInstance();
@@ -81,7 +80,7 @@ AutocompleteEditor.prototype.open = function () {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
         match,
-		    value = stringify(value);
+        value = stringify(value);
 
       if (value) {
         indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
@@ -92,8 +91,15 @@ AutocompleteEditor.prototype.open = function () {
         }
       }
     },
-    modifyColWidth: function (width, col) {
+    autoColumnSize: true,
+    modifyColWidth: function(width, col) {
       // workaround for <strong> text overlapping the dropdown, not really accurate
+      let autoWidths = this.getPlugin('autoColumnSize').widths;
+
+      if(autoWidths[col]) {
+        width = autoWidths[col];
+      }
+
       return trimDropdown ? width : width + 15;
     }
   });
@@ -110,7 +116,7 @@ AutocompleteEditor.prototype.open = function () {
   }, 0));
 };
 
-AutocompleteEditor.prototype.close = function () {
+AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
