@@ -313,7 +313,7 @@ function TableView(instance) {
         if (isMouseDown) {
           // multi select columns
           if (coords.row < 0) {
-            if(instance.selection.selectedHeader.cols) {
+            if (instance.selection.selectedHeader.cols) {
               instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
               instance.selection.setSelectedHeaders(false, true);
 
@@ -325,7 +325,7 @@ function TableView(instance) {
 
           // multi select rows
           if (coords.col < 0) {
-            if(instance.selection.selectedHeader.rows) {
+            if (instance.selection.selectedHeader.rows) {
               instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
               instance.selection.setSelectedHeaders(true, false);
 
