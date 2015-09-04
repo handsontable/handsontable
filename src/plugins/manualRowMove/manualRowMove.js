@@ -216,7 +216,7 @@ function ManualRowMove() {
         this.manualRowPositions = [];
       }
 
-      if (source === 'afterInit') {
+      if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
         bindEvents.call(this);
         if (this.manualRowPositions.length > 0) {
           instance.forceFullRender = true;

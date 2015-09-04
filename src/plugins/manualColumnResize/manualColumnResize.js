@@ -66,6 +66,12 @@ class ManualColumnResize extends BasePlugin {
     return this.hot.getSettings().manualColumnResize;
   }
 
+  onUpdateSettings() {
+    super.onUpdateSettings();
+
+    this.onInit('afterUpdateSettings');
+  }
+
   /**
    * Save the current sizes using the persistentState plugin
    */
@@ -317,7 +323,7 @@ class ManualColumnResize extends BasePlugin {
         this.manualColumnWidths = [];
       }
 
-      if (source === void 0) {
+      if (source === void 0 || source === 'afterUpdateSettings' && this.eventManager.context.eventListeners.length === 0) {
         this.bindEvents();
       }
     }

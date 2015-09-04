@@ -266,6 +266,11 @@ class ColumnSorting extends BasePlugin {
       if (b[1] === null || b[1] === "") {
         return -1;
       }
+      if (isNaN(a[1]) && !isNaN(b[1])) {
+        return sortOrder ? 1 : -1;
+      } else if (!isNaN(a[1]) && isNaN(b[1])) {
+        return sortOrder ? -1 : 1;
+      }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
       }

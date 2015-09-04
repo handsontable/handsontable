@@ -57,6 +57,12 @@ class ManualRowResize extends BasePlugin {
     super.enablePlugin();
   }
 
+  onUpdateSettings() {
+    super.onUpdateSettings();
+
+    this.onInit('afterUpdateSettings');
+  }
+
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
@@ -319,7 +325,7 @@ class ManualRowResize extends BasePlugin {
         this.manualRowHeights = [];
       }
 
-      if (source === void 0) {
+      if (source === void 0 || source === 'afterUpdateSettings' && this.eventManager.context.eventListeners.length === 0) {
         this.bindEvents();
       }
     }

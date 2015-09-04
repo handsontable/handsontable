@@ -24,6 +24,25 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
+  it("should be enabled after specifying it in updateSettings config", function () {
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      rowHeaders: true
+    });
+
+    updateSettings({manualRowResize: true});
+
+    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
+
+    expect($('.manualRowResizer').size()).toBeGreaterThan(0);
+  });
+
   it("should change the default row height with updateSettings", function () {
     handsontable({
       manualRowResize: true
