@@ -47,14 +47,39 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.addHook('init', () => this.onInit());
-    this.addHook('afterUpdateSettings', () => this.onInit('afterUpdateSettings'));
+    this.manualColumnWidths = [];
+    let initialColumnWidth = this.hot.getSettings().manualColumnResize;
+    let loadedManualColumnWidths = this.loadManualColumnWidths();
+
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
+
+    if (typeof loadedManualColumnWidths != 'undefined') {
+      this.manualColumnWidths = loadedManualColumnWidths;
+    } else if (Array.isArray(initialColumnWidth)) {
+      this.manualColumnWidths = initialColumnWidth;
+    } else {
+      this.manualColumnWidths = [];
+    }
 
     Handsontable.hooks.register('beforeColumnResize');
     Handsontable.hooks.register('afterColumnResize');
 
+    this.bindEvents();
+
     super.enablePlugin();
+  }
+
+  /**
+   * Update the plugin settings
+   */
+  updatePlugin() {
+    let initialColumnWidth = this.hot.getSettings().manualColumnResize;
+
+    if (Array.isArray(initialColumnWidth)) {
+      this.manualColumnWidths = initialColumnWidth;
+    } else {
+      this.manualColumnWidths = [];
+    }
   }
 
   /**
@@ -64,12 +89,6 @@ class ManualColumnResize extends BasePlugin {
    */
   isEnabled() {
     return this.hot.getSettings().manualColumnResize;
-  }
-
-  onUpdateSettings() {
-    super.onUpdateSettings();
-
-    this.onInit('afterUpdateSettings');
   }
 
   /**
@@ -301,32 +320,6 @@ class ManualColumnResize extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
     this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
     this.eventManager.addEventListener(window, 'mouseup', (e) => this.onMouseUp(e));
-  }
-
-  /**
-   * Initialize the plugin after Handsontable init or updateSettings
-   *
-   * @param {String} source
-   */
-  onInit(source) {
-    this.manualColumnWidths = [];
-
-    if (this.enabled) {
-      let initialColumnWidths = this.hot.getSettings().manualColumnResize;
-      let loadedManualColumnWidths = this.loadManualColumnWidths();
-
-      if (typeof loadedManualColumnWidths != 'undefined') {
-        this.manualColumnWidths = loadedManualColumnWidths;
-      } else if (Array.isArray(initialColumnWidths)) {
-        this.manualColumnWidths = initialColumnWidths;
-      } else {
-        this.manualColumnWidths = [];
-      }
-
-      if (source === void 0 || source === 'afterUpdateSettings' && this.eventManager.context.eventListeners.length === 0) {
-        this.bindEvents();
-      }
-    }
   }
 
   /**
