@@ -1,4 +1,3 @@
-
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
 import {getRegistredPluginNames, getPluginName} from './../plugins';
@@ -146,7 +145,7 @@ class BasePlugin {
       }
       if (this.enabled && this.isEnabled()) {
 
-        if(this.updatePlugin) {
+        if (this.updatePlugin) {
           this.updatePlugin();
         }
 
