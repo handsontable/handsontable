@@ -847,6 +847,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     return {
       validatorsInQueue: 0,
+      valid: true,
       addValidatorToQueue: function() {
         this.validatorsInQueue++;
         resolved = false;
@@ -855,13 +856,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty: function() {
+      onQueueEmpty: function(valid) {
       },
       checkIfQueueIsEmpty: function() {
         /* jshint ignore:start */
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
-          this.onQueueEmpty();
+          this.onQueueEmpty(this.valid);
         }
         /* jshint ignore:end */
       }
@@ -2018,6 +2019,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
    *
+   * If one of cells is invalid callback will be fired with `'valid'` arguments as `false` otherwise `true`.
+   *
    * @memberof Core#
    * @function validateCells
    * @param {Function} callback
@@ -2032,7 +2035,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var j = instance.countCols() - 1;
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function() {
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
+          if (typeof result !== 'boolean') {
+            throw new Error("Validation error: result is not boolean");
+          }
+          if (result === false) {
+            waitingForValidator.valid = false;
+          }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
         j--;
