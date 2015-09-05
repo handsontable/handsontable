@@ -435,6 +435,52 @@ describe('Core_validate', function () {
     });
   });
 
+  it('should call callback with first argument as `true` if all cells are valid', function () {
+    var onValidate = jasmine.createSpy('onValidate');
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function(value, callback) {
+        callback(true);
+      },
+      afterValidate: onAfterValidate
+    });
+
+    hot.validateCells(onValidate);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onValidate).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('should call callback with first argument as `false` if one of cells is invalid', function () {
+    var onValidate = jasmine.createSpy('onValidate');
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function(value, callback) {
+        callback(false);
+      },
+      afterValidate: onAfterValidate
+    });
+
+    hot.validateCells(onValidate);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onValidate).toHaveBeenCalledWith(false);
+    });
+  });
+
   it('should not allow for changes where data is invalid (multiple changes, async)', function () {
     var validatedChanges;
 

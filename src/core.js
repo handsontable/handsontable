@@ -2019,6 +2019,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
    *
+   * If one of cells is invalid callback will be fired with `'valid'` arguments as `false` otherwise `true`.
+   *
    * @memberof Core#
    * @function validateCells
    * @param {Function} callback
