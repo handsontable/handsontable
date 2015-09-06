@@ -297,8 +297,8 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
 AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
-
-  return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
+  var _visibleRows = this.cellProperties.visibleRows;
+  return this.choices.length >= _visibleRows ? _visibleRows * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
