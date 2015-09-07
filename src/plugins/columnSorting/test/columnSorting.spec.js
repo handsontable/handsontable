@@ -1030,7 +1030,7 @@ describe('ColumnSorting', function() {
   });
 
 
-  it('should return original data source at specyfied row after sorted', function() {
+  it('should return original data source at specified row after sorted', function() {
     var hot = handsontable({
       data: [
         [1, "Ted", "Right"],
@@ -1062,7 +1062,7 @@ describe('ColumnSorting', function() {
 
   });
 
-  it('should return original data source at specyfied col after sorted', function() {
+  it('should return original data source at specified col after sorted', function() {
     var hot = handsontable({
       data: [
         [1, "Ted", "Right"],
@@ -1144,6 +1144,27 @@ describe('ColumnSorting', function() {
     this.sortByColumn(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(["Ted", "Sid", "Jane", "", "", null]);
+
+  });
+
+  it("should push numeric values before non-numeric values, when sorting ascending using the default sorting function", function() {
+    var hot = handsontable({
+      data: [
+        [1, "Ted", 123],
+        [2, "", "Some"],
+        [3, "", 321],
+        [4, "Sid", "String"],
+        [5, "Jane", 46]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(2);
+    expect(getDataAtCol(2)).toEqual([46, 123, 321, "Some", "String"]);
+
+    this.sortByColumn(2);
+    expect(getDataAtCol(2)).toEqual(["String", "Some", 321, 123, 46]);
 
   });
 

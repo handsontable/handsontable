@@ -47,14 +47,40 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.addHook('init', () => this.onInit());
-    this.addHook('afterUpdateSettings', () => this.onInit('afterUpdateSettings'));
+    this.manualRowHeights = [];
+
+    let initialRowHeights = this.hot.getSettings().manualRowResize;
+    let loadedManualRowHeights = this.loadManualRowHeights();
+
+    if (typeof loadedManualRowHeights != 'undefined') {
+      this.manualRowHeights = loadedManualRowHeights;
+    } else if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+    } else {
+      this.manualRowHeights = [];
+    }
+
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
     Handsontable.hooks.register('beforeRowResize');
     Handsontable.hooks.register('afterRowResize');
 
+    this.bindEvents();
+
     super.enablePlugin();
+  }
+
+  /**
+   * Update the plugin settings
+   */
+  updatePlugin() {
+    let initialRowHeights = this.hot.getSettings().manualRowResize;
+
+    if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+    } else {
+      this.manualRowHeights = [];
+    }
   }
 
   /**
@@ -297,32 +323,6 @@ class ManualRowResize extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
     this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
     this.eventManager.addEventListener(window, 'mouseup', (e) => this.onMouseUp(e));
-  }
-
-  /**
-   * Initialize the plugin after Handsontable init or updateSettings
-   *
-   * @param {String} source
-   */
-  onInit(source) {
-    this.manualRowHeights = [];
-
-    if (this.enabled) {
-      let initialRowHeights = this.hot.getSettings().manualRowResize;
-      let loadedManualRowHeights = this.loadManualRowHeights();
-
-      if (typeof loadedManualRowHeights != 'undefined') {
-        this.manualRowHeights = loadedManualRowHeights;
-      } else if (Array.isArray(initialRowHeights)) {
-        this.manualRowHeights = initialRowHeights;
-      } else {
-        this.manualRowHeights = [];
-      }
-
-      if (source === void 0) {
-        this.bindEvents();
-      }
-    }
   }
 
   /**
