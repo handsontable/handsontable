@@ -331,6 +331,32 @@ var afterInit = function() {
   }
 };
 
+var afterUpdateSettings = function() {
+  var instance = this;
+  var mergeCellsSetting = instance.getSettings().mergeCells;
+
+  if (mergeCellsSetting) {
+    if (!instance.mergeCells) {
+      instance.mergeCells = new MergeCells(mergeCellsSetting);
+
+    } else {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+
+      if (Array.isArray(mergeCellsSetting)) {
+        for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+          instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+        }
+      }
+    }
+
+  } else {
+    // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
+    if (instance.mergeCells) {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+    }
+  }
+};
+
 var onBeforeKeyDown = function(event) {
   if (!this.mergeCells) {
     return;
@@ -596,6 +622,7 @@ function onAfterRemoveRow(row, count) {
 
 Handsontable.hooks.add('beforeInit', beforeInit);
 Handsontable.hooks.add('afterInit', afterInit);
+Handsontable.hooks.add('afterUpdateSettings', afterUpdateSettings);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));

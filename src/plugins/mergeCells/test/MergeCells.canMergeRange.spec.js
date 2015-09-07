@@ -72,6 +72,76 @@ describe("handsontable.MergeCells", function() {
     });
   });
 
+  describe("mergeCells updateSettings", function() {
+    it("should allow to overwrite the initial settings using the updateSettings method", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe('2');
+      expect(TD.getAttribute('colspan')).toBe('2');
+
+      updateSettings({
+        mergeCells: [
+          {row: 2, col: 2, rowspan: 2, colspan: 2}
+        ]
+      });
+
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe(null);
+      expect(TD.getAttribute('colspan')).toBe(null);
+
+      TD = getCell(2,2);
+
+      expect(TD.getAttribute('rowspan')).toBe('2');
+      expect(TD.getAttribute('colspan')).toBe('2');
+    });
+
+    it("should allow resetting the merged cells by changing it to 'true'", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe('2');
+      expect(TD.getAttribute('colspan')).toBe('2');
+
+      updateSettings({
+        mergeCells: true
+      });
+
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe(null);
+      expect(TD.getAttribute('colspan')).toBe(null);
+    });
+
+    it("should allow resetting and turning off the mergeCells plugin by changing mergeCells to 'false'", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe('2');
+      expect(TD.getAttribute('colspan')).toBe('2');
+
+      updateSettings({
+        mergeCells: false
+      });
+
+      var TD = hot.rootElement.querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe(null);
+      expect(TD.getAttribute('colspan')).toBe(null);
+    });
+
+  });
+
   describe("mergeCells copy", function() {
     it("should not copy text of cells that are merged into another cell", function() {
       var hot = handsontable({
