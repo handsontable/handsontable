@@ -17,6 +17,17 @@ class DropdownEditor extends AutocompleteEditor {
   }
 }
 
+Handsontable.hooks.add('beforeValidate', function() {
+  let cellMeta = this.getCellMeta(arguments[1], arguments[2]);
+
+  if(cellMeta.editor === Handsontable.editors.DropdownEditor) {
+    if(cellMeta.strict === void 0) {
+      cellMeta.filter = false;
+      cellMeta.strict = true;
+    }
+  }
+});
+
 export {DropdownEditor};
 
 registerEditor('dropdown', DropdownEditor);
