@@ -181,12 +181,11 @@ class ManualColumnResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfColumnHeader(element) {
-    if (element.tagName != 'BODY') {
+    if (element != this.hot.rootElement) {
       if (element.parentNode.tagName == 'THEAD') {
         return true;
       } else {
-        element = element.parentNode;
-        return this.checkIfColumnHeader(element);
+        return this.checkIfColumnHeader(element.parentNode);
       }
     }
 
