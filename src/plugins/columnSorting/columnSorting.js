@@ -228,7 +228,7 @@ class ColumnSorting extends BasePlugin {
 
     function getColumn(target) {
       let TH = closest(target, 'TH');
-      return index(TH) - countRowHeaders();
+      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
     }
   }
 
