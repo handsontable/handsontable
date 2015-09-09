@@ -553,7 +553,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange === null) {
         return;
       }
-      var disableVisualSelection;
+      var disableVisualSelection,
+        isHeaderSelected = false;
 
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
@@ -598,7 +599,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, "afterSelectionByProp",
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
-      if (scrollToCell !== false && instance.view.mainViewIsActive()) {
+      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1) ||
+        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1)) {
+        isHeaderSelected = true;
+      }
+
+      if (scrollToCell !== false && !isHeaderSelected) {
         if (priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
