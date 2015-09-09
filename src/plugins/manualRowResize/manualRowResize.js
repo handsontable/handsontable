@@ -5,13 +5,13 @@ import {pageX, pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 
 /**
- * HandsontableManualRowResize
+ * ManualRowResize Plugin.
  *
  * Has 2 UI components:
- * - handle - the draggable element that sets the desired height of the row
- * - guide - the helper guide that shows the desired height as a horizontal guide
+ * - handle - the draggable element that sets the desired height of the row.
+ * - guide - the helper guide that shows the desired height as a horizontal guide.
  *
- * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+ * Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
  * @plugin ManualRowResize
  */
@@ -71,7 +71,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Update the plugin settings
+   * Update the plugin settings based on handsontable settings.
    */
   updatePlugin() {
     let initialRowHeights = this.hot.getSettings().manualRowResize;
@@ -93,14 +93,14 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Save the current sizes using the persistentState plugin
+   * Save the current sizes using the persistentState plugin.
    */
   saveManualRowHeights() {
     this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
   }
 
   /**
-   * Load the previously saved sizes using the persistentState plugin
+   * Load the previously saved sizes using the persistentState plugin.
    *
    * @returns {Array}
    */
@@ -113,9 +113,9 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Set the resize handle position
+   * Set the resize handle position.
    *
-   * @param {HTMLElement} TH
+   * @param {HTMLCellElement} TH
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
@@ -134,14 +134,14 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Refresh the resize handle position
+   * Refresh the resize handle position.
    */
   refreshHandlePosition() {
     this.handle.style.top = this.startOffset + this.currentHeight + 'px';
   }
 
   /**
-   * Set the resize guide position
+   * Set the resize guide position.
    */
   setupGuidePosition() {
     addClass(this.handle, 'active');
@@ -154,14 +154,14 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Refresh the resize guide position
+   * Refresh the resize guide position.
    */
   refreshGuidePosition() {
     this.guide.style.top = this.handle.style.top;
   }
 
   /**
-   * Hide both the resize handle and resize guide
+   * Hide both the resize handle and resize guide.
    */
   hideHandleAndGuide() {
     removeClass(this.handle, 'active');
@@ -169,7 +169,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if provided element is considered a row header
+   * Check if provided element is considered a row header.
    *
    * @param {HTMLElement} element
    * @returns {Boolean}
@@ -188,7 +188,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Get the TH element from the provided element
+   * Get the TH element from the provided element.
    *
    * @param {HTMLElement} element
    * @returns {HTMLElement}
@@ -206,10 +206,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * 'mouseover' event callback - set the handle position
+   * 'mouseover' event callback - set the handle position.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseOver(event) {
     if (this.checkIfRowHeader(event.target)) {
@@ -224,7 +224,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Auto-size row after doubleclick - callback
+   * Auto-size row after doubleclick - callback.
    *
    * @private
    */
@@ -249,10 +249,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * 'mousedown' event callback
+   * 'mousedown' event callback.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
@@ -272,10 +272,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height
+   * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseMove(event) {
     if (this.pressed) {
@@ -287,10 +287,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * 'mouseup' event callback - apply the row resizing
+   * 'mouseup' event callback - apply the row resizing.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseUp(event) {
     if (this.pressed) {
@@ -314,7 +314,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Bind the mouse events
+   * Bind the mouse events.
    *
    * @private
    */
@@ -326,9 +326,9 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Cache the current row height
+   * Cache the current row height.
    *
-   * @param {Number} row
+   * @param {Number} row Row index.
    * @param {Number} height
    * @returns {Number}
    */
@@ -340,10 +340,11 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Modify the provided row height, based on the plugin settings
+   * Modify the provided row height, based on the plugin settings.
    *
+   * @private
    * @param {Number} height
-   * @param {Number} row
+   * @param {Number} row Row index.
    * @returns {Number}
    */
   onModifyRowHeight(height, row) {
