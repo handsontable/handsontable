@@ -159,13 +159,13 @@ class WalkontableTable {
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
-      if (trimmingElement !== window) {
+      if (trimmingElement === window) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
         this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
-      } else {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
       }
     }
   }

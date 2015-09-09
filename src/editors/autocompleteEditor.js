@@ -64,7 +64,10 @@ AutocompleteEditor.prototype.prepare = function() {
 };
 
 AutocompleteEditor.prototype.open = function() {
+  // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
+  this.TEXTAREA_PARENT.style.overflow = 'auto';
   HandsontableEditor.prototype.open.apply(this, arguments);
+  this.TEXTAREA_PARENT.style.overflow = '';
 
   var choicesListHot = this.htEditor.getInstance();
   var that = this;
@@ -74,7 +77,7 @@ AutocompleteEditor.prototype.open = function() {
   this.focus();
 
   choicesListHot.updateSettings({
-    'colWidths': trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+    colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
@@ -96,7 +99,7 @@ AutocompleteEditor.prototype.open = function() {
       // workaround for <strong> text overlapping the dropdown, not really accurate
       let autoWidths = this.getPlugin('autoColumnSize').widths;
 
-      if(autoWidths[col]) {
+      if (autoWidths[col]) {
         width = autoWidths[col];
       }
 

@@ -555,7 +555,7 @@ Comment For Cell
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-width: 0;
+  border-color: transparent;
 }
 
 .handsontable.listbox th,

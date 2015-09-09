@@ -548,6 +548,7 @@ export function getScrollableElement(element) {
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+
     } else if (window.getComputedStyle) {
       computedStyle = window.getComputedStyle(el);
       computedOverflow = computedStyle.getPropertyValue('overflow');
@@ -560,11 +561,11 @@ export function getScrollableElement(element) {
     }
 
     if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
     if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
     el = el.parentNode;
