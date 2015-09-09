@@ -50,9 +50,11 @@ const _predefinedItems = {
       if (!selected) {
         return true;
       }
-      let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
 
-      return entireColumnSelection.join(',') === selected.join(',');
+      let rowCount = this.countRows();
+      let entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
+
+      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertRow;
@@ -71,9 +73,11 @@ const _predefinedItems = {
       if (!selected) {
         return true;
       }
-      let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
 
-      return entireColumnSelection.join(',') === selected.join(',');
+      let rowCount = this.countRows();
+      let entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
+
+      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertRow;

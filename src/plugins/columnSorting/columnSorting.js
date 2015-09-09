@@ -228,7 +228,7 @@ class ColumnSorting extends BasePlugin {
 
     function getColumn(target) {
       let TH = closest(target, 'TH');
-      return index(TH) - countRowHeaders();
+      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
     }
   }
 
@@ -265,6 +265,11 @@ class ColumnSorting extends BasePlugin {
       }
       if (b[1] === null || b[1] === "") {
         return -1;
+      }
+      if (isNaN(a[1]) && !isNaN(b[1])) {
+        return sortOrder ? 1 : -1;
+      } else if (!isNaN(a[1]) && isNaN(b[1])) {
+        return sortOrder ? -1 : 1;
       }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
