@@ -13,26 +13,31 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this handsontable instance.
-   */
-  enablePlugin() {
-    if (this.enabled) {
-      return;
-    }
-
-    this.addHook('modifyCol', (col) => this.onModifyCol(col));
-    this.addHook('afterContextMenuDefaultOptions', (defaultOptions) => this.addContextMenuEntry(defaultOptions));
-
-    super.enablePlugin();
-  }
-
-  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().manualColumnFreeze;
+  }
+
+  /**
+   * Enable plugin for this handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('modifyCol', (col) => this.onModifyCol(col));
+    this.addHook('afterContextMenuDefaultOptions', (defaultOptions) => this.addContextMenuEntry(defaultOptions));
+    super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   init() {

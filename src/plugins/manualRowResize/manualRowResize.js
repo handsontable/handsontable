@@ -40,6 +40,15 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return this.hot.getSettings().manualRowResize;
+  }
+
+  /**
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
@@ -84,12 +93,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
-   *
-   * @returns {Boolean}
+   * Disable plugin for this Handsontable instance.
    */
-  isEnabled() {
-    return this.hot.getSettings().manualRowResize;
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**

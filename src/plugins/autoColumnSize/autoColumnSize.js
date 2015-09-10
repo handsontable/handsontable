@@ -110,6 +110,13 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+  }
+
+  /**
    * Calculate columns width.
    *
    * @param {Number|Object} colRange Column range object.

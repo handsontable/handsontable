@@ -40,6 +40,15 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return this.hot.getSettings().manualColumnResize;
+  }
+
+  /**
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
@@ -83,12 +92,10 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
-   *
-   * @returns {Boolean}
+   * Disable plugin for this Handsontable instance.
    */
-  isEnabled() {
-    return this.hot.getSettings().manualColumnResize;
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**
