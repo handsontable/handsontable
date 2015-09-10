@@ -301,6 +301,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
   var _visibleRows = this.cellProperties.visibleRows;
+
   return this.choices.length >= _visibleRows ? _visibleRows * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
 
