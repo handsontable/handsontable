@@ -331,7 +331,7 @@ class WalkontableOverlays {
    * @param {Boolean} [fastDraw=false]
    */
   refresh(fastDraw = false) {
-    if (this.topOverlay.isElementSizesAdjusted && this.leftOverlay.isElementSizesAdjusted) {
+    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
       let container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
       let width = container.clientWidth;
       let height = container.clientHeight;
@@ -376,7 +376,7 @@ class WalkontableOverlays {
    *
    */
   applyToDOM() {
-    if (!this.topOverlay.isElementSizesAdjusted || !this.leftOverlay.isElementSizesAdjusted) {
+    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     this.topOverlay.applyToDOM();

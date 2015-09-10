@@ -1,4 +1,3 @@
-
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
 import {pivot} from './../helpers/array';
@@ -9,7 +8,7 @@ import {
   getSelectionEndPosition,
   outerWidth,
   setCaretPosition,
-    } from './../helpers/dom/element';
+} from './../helpers/dom/element';
 import {getEditorConstructor, registerEditor} from './../editors';
 import {HandsontableEditor} from './handsontableEditor';
 
@@ -41,7 +40,7 @@ function onBeforeKeyDown(event) {
   var editor = this.getActiveEditor();
 
   if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
-      event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
+    event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
     var timeOffset = 0;
 
     // on ctl+c / cmd+c don't update suggestion list
@@ -52,20 +51,25 @@ function onBeforeKeyDown(event) {
       timeOffset += 10;
     }
 
-    editor.instance._registerTimeout(setTimeout(function () {
-      editor.queryChoices(editor.TEXTAREA.value);
-      skipOne = true;
-    }, timeOffset));
+    if (editor.htEditor) {
+      editor.instance._registerTimeout(setTimeout(function() {
+        editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
+      }, timeOffset));
+    }
   }
 }
 
-AutocompleteEditor.prototype.prepare = function () {
+AutocompleteEditor.prototype.prepare = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   HandsontableEditor.prototype.prepare.apply(this, arguments);
 };
 
-AutocompleteEditor.prototype.open = function () {
+AutocompleteEditor.prototype.open = function() {
+  // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
+  this.TEXTAREA_PARENT.style.overflow = 'auto';
   HandsontableEditor.prototype.open.apply(this, arguments);
+  this.TEXTAREA_PARENT.style.overflow = '';
 
   var choicesListHot = this.htEditor.getInstance();
   var that = this;
@@ -75,13 +79,13 @@ AutocompleteEditor.prototype.open = function () {
   this.focus();
 
   choicesListHot.updateSettings({
-    'colWidths': trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+    colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
         indexOfMatch,
         match,
-		    value = stringify(value);
+        value = stringify(value);
 
       if (value) {
         indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
@@ -92,8 +96,15 @@ AutocompleteEditor.prototype.open = function () {
         }
       }
     },
-    modifyColWidth: function (width, col) {
+    autoColumnSize: true,
+    modifyColWidth: function(width, col) {
       // workaround for <strong> text overlapping the dropdown, not really accurate
+      let autoWidths = this.getPlugin('autoColumnSize').widths;
+
+      if (autoWidths[col]) {
+        width = autoWidths[col];
+      }
+
       return trimDropdown ? width : width + 15;
     }
   });
@@ -110,7 +121,7 @@ AutocompleteEditor.prototype.open = function () {
   }, 0));
 };
 
-AutocompleteEditor.prototype.close = function () {
+AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
@@ -291,8 +302,9 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
 AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
+  var _visibleRows = this.cellProperties.visibleRows;
 
-  return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
+  return this.choices.length >= _visibleRows ? _visibleRows * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {

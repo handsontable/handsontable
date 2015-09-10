@@ -244,6 +244,52 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
+  });
+
+  it('should sort date columns along with empty and null values', function() {
+
+    var hot = handsontable({
+      data: [
+        ["Mercedes", "A 160", "01/14/2006", 6999.9999],
+        ["Citroen", "C4 Coupe", "12/01/2008", 8330],
+        ["Citroen", "C4 Coupe null", null, 8330],
+        ["Citroen", "C4 Coupe empty", "", 8330],
+        ["Audi", "A4 Avant", "11/19/2011", 33900],
+        ["Opel", "Astra", "02/02/2004", 7000],
+        ["BMW", "320i Coupe", "07/24/2011", 30500]
+      ],
+      columns: [
+        {},
+        {},
+        {
+          type: 'date',
+          dateFormat: 'mm/dd/yy'
+        },
+        {
+          type: 'numeric'
+        }
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
+
+    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
+
+    expect(htCore.find('tbody tr:eq(7) td:eq(2)').text()).toEqual("");
+    expect(htCore.find('tbody tr:eq(8) td:eq(2)').text()).toEqual("");
+
+    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
+
+    expect(htCore.find('tbody tr:eq(7) td:eq(2)').text()).toEqual("");
+    expect(htCore.find('tbody tr:eq(8) td:eq(2)').text()).toEqual("");
 
   });
 
@@ -984,7 +1030,7 @@ describe('ColumnSorting', function() {
   });
 
 
-  it('should return original data source at specyfied row after sorted', function() {
+  it('should return original data source at specified row after sorted', function() {
     var hot = handsontable({
       data: [
         [1, "Ted", "Right"],
@@ -1016,7 +1062,7 @@ describe('ColumnSorting', function() {
 
   });
 
-  it('should return original data source at specyfied col after sorted', function() {
+  it('should return original data source at specified col after sorted', function() {
     var hot = handsontable({
       data: [
         [1, "Ted", "Right"],
@@ -1098,6 +1144,27 @@ describe('ColumnSorting', function() {
     this.sortByColumn(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(["Ted", "Sid", "Jane", "", "", null]);
+
+  });
+
+  it("should push numeric values before non-numeric values, when sorting ascending using the default sorting function", function() {
+    var hot = handsontable({
+      data: [
+        [1, "Ted", 123],
+        [2, "", "Some"],
+        [3, "", 321],
+        [4, "Sid", "String"],
+        [5, "Jane", 46]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(2);
+    expect(getDataAtCol(2)).toEqual([46, 123, 321, "Some", "String"]);
+
+    this.sortByColumn(2);
+    expect(getDataAtCol(2)).toEqual(["String", "Some", 321, 123, 46]);
 
   });
 

@@ -14,7 +14,8 @@ describe('Core_count', function () {
     it('should return number of visible rows', function () {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        height: 100
+        height: 100,
+        width: 600
       });
       expect(instance.countVisibleRows()).toEqual(4);
     });

@@ -237,7 +237,7 @@ function extendEvent(context, event) {
   } else if (context instanceof Handsontable.Core || context instanceof Walkontable) {
     // Polymer doesn't support `event.target` property properly we must emulate it ourselves
     if (context instanceof Handsontable.Core) {
-      fromElement = context.view.wt.wtTable.TABLE;
+      fromElement = context.view ? context.view.wt.wtTable.TABLE : null;
 
     } else if (context instanceof Walkontable) {
       // .wtHider

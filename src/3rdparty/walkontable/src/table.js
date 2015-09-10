@@ -1,4 +1,3 @@
-
 import {
   getStyle,
   getTrimmingContainer,
@@ -7,7 +6,8 @@ import {
   offset,
   removeClass,
   removeTextNodes,
-    } from './../../../helpers/dom/element';
+  overlayContainsElement
+} from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 import {WalkontableColumnFilter} from './filter/column';
@@ -159,13 +159,13 @@ class WalkontableTable {
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
-      if (trimmingElement !== window) {
+      if (trimmingElement === window) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
         this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
-      } else {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
       }
     }
   }
@@ -195,8 +195,8 @@ class WalkontableTable {
       let startRow;
 
       if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
+        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
         startRow = 0;
       } else {
         startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
@@ -204,8 +204,8 @@ class WalkontableTable {
       let startColumn;
 
       if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
-          this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+        this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
+        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
         startColumn = 0;
       } else {
         startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
@@ -350,8 +350,9 @@ class WalkontableTable {
     } else {
       row = this.rowFilter.renderedToSource(row);
     }
+    let col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
 
-    return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
+    return new WalkontableCellCoords(row, col);
   }
 
   getTrForRow(row) {

@@ -275,6 +275,7 @@ class WalkontableViewport {
     let height;
     let pos;
     let fixedRowsTop;
+    let scrollbarHeight;
 
     this.rowHeaderWidth = NaN;
 
@@ -296,6 +297,12 @@ class WalkontableViewport {
       height -= fixedRowsHeight;
     }
 
+    if (this.wot.wtTable.holder.clientHeight !== this.wot.wtTable.holder.offsetHeight) {
+      scrollbarHeight = getScrollbarWidth();
+    } else {
+      scrollbarHeight = 0;
+    }
+
     return new WalkontableViewportRowsCalculator(
       height,
       pos,
@@ -304,7 +311,8 @@ class WalkontableViewport {
         return this.wot.wtTable.getRowHeight(sourceRow);
       },
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
-      visible
+      visible,
+      scrollbarHeight
     );
   }
 

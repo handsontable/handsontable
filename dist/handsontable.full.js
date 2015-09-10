@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.17.0
+ * Handsontable 0.18.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 27 2015 11:51:28 GMT+0200 (CEST)
+ * Date: Thu Sep 10 2015 14:56:37 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.17.0',
-  buildDate: 'Thu Aug 27 2015 11:51:28 GMT+0200 (CEST)'
+  version: '0.18.0',
+  buildDate: 'Thu Sep 10 2015 14:56:37 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -662,14 +662,15 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var privatePool = new WeakMap();
-var WalkontableViewportRowsCalculator = function WalkontableViewportRowsCalculator(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible) {
+var WalkontableViewportRowsCalculator = function WalkontableViewportRowsCalculator(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible, horizontalScrollbarHeight) {
   privatePool.set(this, {
     viewportHeight: viewportHeight,
     scrollOffset: scrollOffset,
     totalRows: totalRows,
     rowHeightFn: rowHeightFn,
     overrideFn: overrideFn,
-    onlyFullyVisible: onlyFullyVisible
+    onlyFullyVisible: onlyFullyVisible,
+    horizontalScrollbarHeight: horizontalScrollbarHeight
   });
   this.count = 0;
   this.startRow = null;
@@ -689,6 +690,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
     var scrollOffset = priv.scrollOffset;
     var totalRows = priv.totalRows;
     var viewportHeight = priv.viewportHeight;
+    var horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
     for (var i = 0; i < totalRows; i++) {
       var rowHeight = rowHeightFn(i);
       if (rowHeight === undefined) {
@@ -697,7 +699,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startRow = i;
       }
-      if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight) {
+      if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
         if (this.startRow === null) {
           this.startRow = i;
         }
@@ -708,7 +710,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
       if (!onlyFullyVisible) {
         this.endRow = i;
       }
-      if (sum >= scrollOffset + viewportHeight) {
+      if (sum >= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
         needReverse = false;
         break;
       }
@@ -717,10 +719,10 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
       this.startRow = this.endRow;
       while (this.startRow > 0) {
         var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
-        if (viewportSum <= viewportHeight || !onlyFullyVisible) {
+        if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
           this.startRow--;
         }
-        if (viewportSum >= viewportHeight) {
+        if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
           break;
         }
       }
@@ -1476,7 +1478,7 @@ var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
   this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
   this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
   this.needFullRender = this.shouldBeRendered();
-  this.isElementSizesAdjusted = false;
+  this.areElementSizesAdjusted = false;
 };
 var $WalkontableOverlay = WalkontableOverlay;
 ($traceurRuntime.createClass)(WalkontableOverlay, {
@@ -1675,6 +1677,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
       headerPosition = this.getScrollPosition();
     }
     this.adjustHeaderBordersPosition(headerPosition);
+    this.adjustElementsSize();
   },
   setScrollPosition: function(pos) {
     if (this.mainTableScrollableElement === window) {
@@ -1701,7 +1704,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
       this.adjustRootElementSize();
       this.adjustRootChildsSize();
       if (!force) {
-        this.isElementSizesAdjusted = true;
+        this.areElementSizesAdjusted = true;
       }
     }
   },
@@ -1729,7 +1732,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
   },
   applyToDOM: function() {
     var total = this.wot.getSetting('totalColumns');
-    if (!this.isElementSizesAdjusted) {
+    if (!this.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
@@ -1856,6 +1859,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       headerPosition = this.getScrollPosition();
     }
     this.adjustHeaderBordersPosition(headerPosition);
+    this.adjustElementsSize();
   },
   setScrollPosition: function(pos) {
     if (this.mainTableScrollableElement === window) {
@@ -1882,7 +1886,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       this.adjustRootElementSize();
       this.adjustRootChildsSize();
       if (!force) {
-        this.isElementSizesAdjusted = true;
+        this.areElementSizesAdjusted = true;
       }
     }
   },
@@ -1910,7 +1914,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
   },
   applyToDOM: function() {
     var total = this.wot.getSetting('totalRows');
-    if (!this.isElementSizesAdjusted) {
+    if (!this.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
@@ -2242,7 +2246,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   refresh: function() {
     var fastDraw = arguments[0] !== (void 0) ? arguments[0] : false;
-    if (this.topOverlay.isElementSizesAdjusted && this.leftOverlay.isElementSizesAdjusted) {
+    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
       var container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
       var width = container.clientWidth;
       var height = container.clientHeight;
@@ -2274,7 +2278,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     this.leftOverlay.adjustElementsSize(force);
   },
   applyToDOM: function() {
-    if (!this.topOverlay.isElementSizesAdjusted || !this.leftOverlay.isElementSizesAdjusted) {
+    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     this.topOverlay.applyToDOM();
@@ -2585,7 +2589,8 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     index = $__0.index,
     offset = $__0.offset,
     removeClass = $__0.removeClass,
-    removeTextNodes = $__0.removeTextNodes;
+    removeTextNodes = $__0.removeTextNodes,
+    overlayContainsElement = $__0.overlayContainsElement;
 var WalkontableCellCoords = ($__cell_47_coords__ = require("cell/coords"), $__cell_47_coords__ && $__cell_47_coords__.__esModule && $__cell_47_coords__ || {default: $__cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__cell_47_range__ = require("cell/range"), $__cell_47_range__ && $__cell_47_range__.__esModule && $__cell_47_range__ || {default: $__cell_47_range__}).WalkontableCellRange;
 var WalkontableColumnFilter = ($__filter_47_column__ = require("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
@@ -2686,13 +2691,13 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     var trimmingElement = getTrimmingContainer(this.wtRootElement);
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
-      if (trimmingElement !== window) {
+      if (trimmingElement === window) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
         this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
-      } else {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
       }
     }
   },
@@ -2813,7 +2818,8 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     } else {
       row = this.rowFilter.renderedToSource(row);
     }
-    return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
+    var col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
+    return new WalkontableCellCoords(row, col);
   },
   getTrForRow: function(row) {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -3499,6 +3505,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     var height;
     var pos;
     var fixedRowsTop;
+    var scrollbarHeight;
     this.rowHeaderWidth = NaN;
     if (this.wot.wtSettings.settings.renderAllRows) {
       height = Infinity;
@@ -3515,9 +3522,14 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
     }
+    if (this.wot.wtTable.holder.clientHeight !== this.wot.wtTable.holder.offsetHeight) {
+      scrollbarHeight = getScrollbarWidth();
+    } else {
+      scrollbarHeight = 0;
+    }
     return new WalkontableViewportRowsCalculator(height, pos, this.wot.getSetting('totalRows'), (function(sourceRow) {
       return $__4.wot.wtTable.getRowHeight(sourceRow);
-    }), visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride, visible);
+    }), visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride, visible, scrollbarHeight);
   },
   createColumnsCalculator: function() {
     var visible = arguments[0] !== (void 0) ? arguments[0] : false;
@@ -4180,10 +4192,20 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange === null) {
         return;
       }
-      var disableVisualSelection;
+      var disableVisualSelection,
+          isHeaderSelected = false,
+          areCoordsPositive = true;
+      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
+      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
+      var newRangeCoords = {
+        row: null,
+        col: null
+      };
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
       instance.selection.begin();
-      priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
+      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
+      priv.selRange.to = new WalkontableCellCoords(newRangeCoords.row, newRangeCoords.col);
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
@@ -4207,7 +4229,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       Handsontable.hooks.run(instance, "afterSelection", priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
       Handsontable.hooks.run(instance, "afterSelectionByProp", priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
-      if (scrollToCell !== false && instance.view.mainViewIsActive()) {
+      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) || (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+        isHeaderSelected = true;
+      }
+      if (coords.row < 0 || coords.col < 0) {
+        areCoordsPositive = false;
+      }
+      if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
         if (priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
@@ -4383,6 +4411,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var resolved = false;
     return {
       validatorsInQueue: 0,
+      valid: true,
       addValidatorToQueue: function() {
         this.validatorsInQueue++;
         resolved = false;
@@ -4391,11 +4420,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty: function() {},
+      onQueueEmpty: function(valid) {},
       checkIfQueueIsEmpty: function() {
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
-          this.onQueueEmpty();
+          this.onQueueEmpty(this.valid);
         }
       }
     };
@@ -4929,7 +4958,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var j = instance.countCols() - 1;
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function() {
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
+          if (typeof result !== 'boolean') {
+            throw new Error("Validation error: result is not boolean");
+          }
+          if (result === false) {
+            waitingForValidator.valid = false;
+          }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
         j--;
@@ -5322,6 +5357,8 @@ DefaultSettings.prototype = {
   copyable: true,
   editor: void 0,
   autoComplete: void 0,
+  visibleRows: 10,
+  trimDropdown: true,
   debug: false,
   wordWrap: true,
   noWordWrapClassName: 'htNoWrap',
@@ -5348,8 +5385,14 @@ DefaultSettings.prototype = {
   checkedTemplate: void 0,
   uncheckedTemplate: void 0,
   format: void 0,
+  language: void 0,
+  selectOptions: void 0,
   autoColumnSize: void 0,
-  autoRowSize: void 0
+  autoRowSize: void 0,
+  dateFormat: void 0,
+  correctFormat: false,
+  defaultDate: void 0,
+  strict: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -6332,10 +6375,12 @@ function onBeforeKeyDown(event) {
     if (!editor.isOpened()) {
       timeOffset += 10;
     }
-    editor.instance._registerTimeout(setTimeout(function() {
-      editor.queryChoices(editor.TEXTAREA.value);
-      skipOne = true;
-    }, timeOffset));
+    if (editor.htEditor) {
+      editor.instance._registerTimeout(setTimeout(function() {
+        editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
+      }, timeOffset));
+    }
   }
 }
 AutocompleteEditor.prototype.prepare = function() {
@@ -6343,14 +6388,16 @@ AutocompleteEditor.prototype.prepare = function() {
   HandsontableEditor.prototype.prepare.apply(this, arguments);
 };
 AutocompleteEditor.prototype.open = function() {
+  this.TEXTAREA_PARENT.style.overflow = 'auto';
   HandsontableEditor.prototype.open.apply(this, arguments);
+  this.TEXTAREA_PARENT.style.overflow = '';
   var choicesListHot = this.htEditor.getInstance();
   var that = this;
   var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
   this.TEXTAREA.style.visibility = 'visible';
   this.focus();
   choicesListHot.updateSettings({
-    'colWidths': trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+    colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer: function(TD, row, col, prop, value) {
       var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true,
@@ -6365,7 +6412,12 @@ AutocompleteEditor.prototype.open = function() {
         }
       }
     },
+    autoColumnSize: true,
     modifyColWidth: function(width, col) {
+      var autoWidths = this.getPlugin('autoColumnSize').widths;
+      if (autoWidths[col]) {
+        width = autoWidths[col];
+      }
       return trimDropdown ? width : width + 15;
     }
   });
@@ -6516,7 +6568,8 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 };
 AutocompleteEditor.prototype.getDropdownHeight = function() {
   var firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
-  return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
+  var _visibleRows = this.cellProperties.visibleRows;
+  return this.choices.length >= _visibleRows ? _visibleRows * firstRowHeight : this.choices.length * firstRowHeight + 8;
 };
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   var selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
@@ -6780,6 +6833,15 @@ var $DropdownEditor = DropdownEditor;
     this.cellProperties.filter = false;
     this.cellProperties.strict = true;
   }}, {}, AutocompleteEditor);
+Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
+  var cellMeta = this.getCellMeta(row, col);
+  if (cellMeta.editor === Handsontable.editors.DropdownEditor) {
+    if (cellMeta.strict === void 0) {
+      cellMeta.filter = false;
+      cellMeta.strict = true;
+    }
+  }
+});
 ;
 registerEditor('dropdown', DropdownEditor);
 
@@ -6815,10 +6877,6 @@ HandsontableEditor.prototype.createElements = function() {
   DIV.className = 'handsontableEditor';
   this.TEXTAREA_PARENT.appendChild(DIV);
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV, {
-    autoColumnSize: false,
-    autoRowSize: false
-  });
   this.assignHooks();
 };
 HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties) {
@@ -6833,9 +6891,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     copyPaste: false,
     autoColumnSize: false,
     autoRowSize: false,
-    cells: function() {
-      return {readOnly: true};
-    },
+    readOnly: true,
     fillHandle: false,
     afterOnCellMouseDown: function() {
       var value = this.getValue();
@@ -6848,10 +6904,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   if (this.cellProperties.handsontable) {
     extend(options, cellProperties.handsontable);
   }
-  if (this.htEditor) {
-    this.htEditor.destroy();
-  }
-  this.htEditor = new Handsontable(this.htContainer, options);
+  this.htOptions = options;
 };
 var onBeforeKeyDown = function(event) {
   if (isImmediatePropagationStopped(event)) {
@@ -6891,7 +6944,10 @@ var onBeforeKeyDown = function(event) {
 HandsontableEditor.prototype.open = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   TextEditor.prototype.open.apply(this, arguments);
-  this.htEditor.render();
+  if (this.htEditor) {
+    this.htEditor.destroy();
+  }
+  this.htEditor = new Handsontable(this.htContainer, this.htOptions);
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
     this.TEXTAREA.style.visibility = 'hidden';
@@ -6918,10 +6974,10 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
   TextEditor.prototype.beginEditing.apply(this, arguments);
 };
 HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
-  if (this.htEditor.isListening()) {
+  if (this.htEditor && this.htEditor.isListening()) {
     this.instance.listen();
   }
-  if (this.htEditor.getSelected()) {
+  if (this.htEditor && this.htEditor.getSelected()) {
     var value = this.htEditor.getInstance().getValue();
     if (value !== void 0) {
       this.setValue(value);
@@ -7963,7 +8019,7 @@ function extendEvent(context, event) {
     event.realTarget = event.srcElement || event.toElement;
   } else if (context instanceof Handsontable.Core || context instanceof Walkontable) {
     if (context instanceof Handsontable.Core) {
-      fromElement = context.view.wt.wtTable.TABLE;
+      fromElement = context.view ? context.view.wt.wtTable.TABLE : null;
     } else if (context instanceof Walkontable) {
       fromElement = context.wtTable.TABLE.parentNode.parentNode;
     }
@@ -8319,6 +8375,9 @@ Object.defineProperties(exports, {
   index: {get: function() {
       return index;
     }},
+  overlayContainsElement: {get: function() {
+      return overlayContainsElement;
+    }},
   hasClass: {get: function() {
       return hasClass;
     }},
@@ -8498,6 +8557,10 @@ function index(element) {
     }
   }
   return i;
+}
+function overlayContainsElement(overlayType, element) {
+  var overlayElement = document.querySelector('.ht_clone_' + overlayType);
+  return overlayElement ? overlayElement.contains(element) : null;
 }
 var classListSupport = document.documentElement.classList ? true : false;
 var _hasClass,
@@ -9860,8 +9923,14 @@ var BasePlugin = function BasePlugin(hotInstance) {
       if (!this.enabled && this.isEnabled()) {
         this.enablePlugin();
       }
+      if (this.enabled && this.isEnabled()) {
+        if (this.updatePlugin) {
+          this.updatePlugin();
+        }
+      }
     }
   },
+  updatePlugin: function() {},
   destroy: function() {
     if (this.eventManager) {
       this.eventManager.destroy();
@@ -9904,11 +9973,11 @@ var $__4 = ($___46__46__47__46__46__47_helpers_47_object__ = require("helpers/ob
     isObject = $__4.isObject,
     objectEach = $__4.objectEach;
 var $__5 = ($___46__46__47__46__46__47_helpers_47_number__ = require("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}),
-    isPercentValue = $__5.isPercentValue,
+    valueAccordingPercent = $__5.valueAccordingPercent,
     rangeEach = $__5.rangeEach;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var SamplesGenerator = ($___46__46__47__46__46__47_utils_47_samplesGenerator__ = require("utils/samplesGenerator"), $___46__46__47__46__46__47_utils_47_samplesGenerator__ && $___46__46__47__46__46__47_utils_47_samplesGenerator__.__esModule && $___46__46__47__46__46__47_utils_47_samplesGenerator__ || {default: $___46__46__47__46__46__47_utils_47_samplesGenerator__}).SamplesGenerator;
-var valueAccordingPercent = ($___46__46__47__46__46__47_helpers_47_string__ = require("helpers/string"), $___46__46__47__46__46__47_helpers_47_string__ && $___46__46__47__46__46__47_helpers_47_string__.__esModule && $___46__46__47__46__46__47_helpers_47_string__ || {default: $___46__46__47__46__46__47_helpers_47_string__}).valueAccordingPercent;
+var isPercentValue = ($___46__46__47__46__46__47_helpers_47_string__ = require("helpers/string"), $___46__46__47__46__46__47_helpers_47_string__ && $___46__46__47__46__46__47_helpers_47_string__.__esModule && $___46__46__47__46__46__47_helpers_47_string__ || {default: $___46__46__47__46__46__47_helpers_47_string__}).isPercentValue;
 var WalkontableViewportColumnsCalculator = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ = require("3rdparty/walkontable/src/calculator/viewportColumns"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__}).WalkontableViewportColumnsCalculator;
 var AutoColumnSize = function AutoColumnSize(hotInstance) {
   var $__10 = this;
@@ -9920,6 +9989,9 @@ var AutoColumnSize = function AutoColumnSize(hotInstance) {
   }));
   this.firstCalculation = true;
   this.inProgress = false;
+  this.addHook('beforeColumnResize', (function(col, size, isDblClick) {
+    return $__10.onBeforeColumnResize(col, size, isDblClick);
+  }));
 };
 var $AutoColumnSize = AutoColumnSize;
 ($traceurRuntime.createClass)(AutoColumnSize, {
@@ -9937,9 +10009,6 @@ var $AutoColumnSize = AutoColumnSize;
     this.addHook('beforeChange', (function(changes) {
       return $__10.onBeforeChange(changes);
     }));
-    this.addHook('beforeColumnResize', (function(col, size, isDblClick) {
-      return $__10.onBeforeColumnResize(col, size, isDblClick);
-    }));
     this.addHook('beforeRender', (function(force) {
       return $__10.onBeforeRender(force);
     }));
@@ -9947,6 +10016,9 @@ var $AutoColumnSize = AutoColumnSize;
       return $__10.getColumnWidth(col, width);
     }));
     $traceurRuntime.superGet(this, $AutoColumnSize.prototype, "enablePlugin").call(this);
+  },
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $AutoColumnSize.prototype, "disablePlugin").call(this);
   },
   calculateColumnsWidth: function() {
     var colRange = arguments[0] !== (void 0) ? arguments[0] : {
@@ -10033,7 +10105,7 @@ var $AutoColumnSize = AutoColumnSize;
     }
   },
   recalculateAllColumnsWidth: function() {
-    if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
@@ -10172,11 +10244,11 @@ var $__4 = ($___46__46__47__46__46__47_helpers_47_object__ = require("helpers/ob
     isObject = $__4.isObject,
     objectEach = $__4.objectEach;
 var $__5 = ($___46__46__47__46__46__47_helpers_47_number__ = require("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}),
-    isPercentValue = $__5.isPercentValue,
+    valueAccordingPercent = $__5.valueAccordingPercent,
     rangeEach = $__5.rangeEach;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var SamplesGenerator = ($___46__46__47__46__46__47_utils_47_samplesGenerator__ = require("utils/samplesGenerator"), $___46__46__47__46__46__47_utils_47_samplesGenerator__ && $___46__46__47__46__46__47_utils_47_samplesGenerator__.__esModule && $___46__46__47__46__46__47_utils_47_samplesGenerator__ || {default: $___46__46__47__46__46__47_utils_47_samplesGenerator__}).SamplesGenerator;
-var valueAccordingPercent = ($___46__46__47__46__46__47_helpers_47_string__ = require("helpers/string"), $___46__46__47__46__46__47_helpers_47_string__ && $___46__46__47__46__46__47_helpers_47_string__.__esModule && $___46__46__47__46__46__47_helpers_47_string__ || {default: $___46__46__47__46__46__47_helpers_47_string__}).valueAccordingPercent;
+var isPercentValue = ($___46__46__47__46__46__47_helpers_47_string__ = require("helpers/string"), $___46__46__47__46__46__47_helpers_47_string__ && $___46__46__47__46__46__47_helpers_47_string__.__esModule && $___46__46__47__46__46__47_helpers_47_string__ || {default: $___46__46__47__46__46__47_helpers_47_string__}).isPercentValue;
 var AutoRowSize = function AutoRowSize(hotInstance) {
   var $__9 = this;
   $traceurRuntime.superConstructor($AutoRowSize).call(this, hotInstance);
@@ -10187,6 +10259,9 @@ var AutoRowSize = function AutoRowSize(hotInstance) {
   }));
   this.firstCalculation = true;
   this.inProgress = false;
+  this.addHook('beforeRowResize', (function(row, size, isDblClick) {
+    return $__9.onBeforeRowResize(row, size, isDblClick);
+  }));
 };
 var $AutoRowSize = AutoRowSize;
 ($traceurRuntime.createClass)(AutoRowSize, {
@@ -10218,9 +10293,6 @@ var $AutoRowSize = AutoRowSize;
     }));
     this.addHook('beforeRowMove', (function(rowStart, rowEnd) {
       return $__9.onBeforeRowMove(rowStart, rowEnd);
-    }));
-    this.addHook('beforeRowResize', (function(row, size, isDblClick) {
-      return $__9.onBeforeRowResize(row, size, isDblClick);
     }));
     this.addHook('modifyRowHeight', (function(height, row) {
       return $__9.getRowHeight(row, height);
@@ -10608,10 +10680,10 @@ Autofill.prototype.apply = function() {
       deltas,
       selRange;
   this.handle.isDragged = 0;
-  drag = this.instance.view.wt.selections.fill.getCorners();
-  if (!drag) {
+  if (this.instance.view.wt.selections.fill.isEmpty()) {
     return;
   }
+  drag = this.instance.view.wt.selections.fill.getCorners();
   this.instance.view.wt.selections.fill.clear();
   if (this.instance.selection.isMultiple()) {
     select = this.instance.view.wt.selections.area.getCorners();
@@ -10873,7 +10945,7 @@ var $ColumnSorting = ColumnSorting;
     }
     function getColumn(target) {
       var TH = closest(target, 'TH');
-      return index(TH) - countRowHeaders();
+      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
     }
   },
   enableObserveChangesPlugin: function() {
@@ -10899,6 +10971,11 @@ var $ColumnSorting = ColumnSorting;
       if (b[1] === null || b[1] === "") {
         return -1;
       }
+      if (isNaN(a[1]) && !isNaN(b[1])) {
+        return sortOrder ? 1 : -1;
+      } else if (!isNaN(a[1]) && isNaN(b[1])) {
+        return sortOrder ? -1 : 1;
+      }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
       }
@@ -10913,10 +10990,10 @@ var $ColumnSorting = ColumnSorting;
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null) {
+      if (a[1] === null || a[1] === '') {
         return 1;
       }
-      if (b[1] === null) {
+      if (b[1] === null || b[1] === '') {
         return -1;
       }
       var aDate = new Date(a[1]);
@@ -11183,6 +11260,9 @@ var $Comments = Comments;
     }));
     this.registerListeners();
     $traceurRuntime.superGet(this, $Comments.prototype, "enablePlugin").call(this);
+  },
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $Comments.prototype, "disablePlugin").call(this);
   },
   registerListeners: function() {
     var $__6 = this;
@@ -12349,8 +12429,9 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       if (!selected) {
         return true;
       }
-      var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
-      return entireColumnSelection.join(',') === selected.join(',');
+      var rowCount = this.countRows();
+      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
+      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertRow;
@@ -12371,8 +12452,9 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       if (!selected) {
         return true;
       }
-      var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
-      return entireColumnSelection.join(',') === selected.join(',');
+      var rowCount = this.countRows();
+      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
+      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertRow;
@@ -14734,6 +14816,9 @@ var ManualColumnFreeze = function ManualColumnFreeze(hotInstance) {
 };
 var $ManualColumnFreeze = ManualColumnFreeze;
 ($traceurRuntime.createClass)(ManualColumnFreeze, {
+  isEnabled: function() {
+    return !!this.hot.getSettings().manualColumnFreeze;
+  },
   enablePlugin: function() {
     var $__2 = this;
     if (this.enabled) {
@@ -14747,8 +14832,8 @@ var $ManualColumnFreeze = ManualColumnFreeze;
     }));
     $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "enablePlugin").call(this);
   },
-  isEnabled: function() {
-    return !!this.hot.getSettings().manualColumnFreeze;
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "disablePlugin").call(this);
   },
   init: function() {
     $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "init").call(this);
@@ -14759,14 +14844,14 @@ var $ManualColumnFreeze = ManualColumnFreeze;
     }
     this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
   },
-  onModifyCol: function(col) {
+  onModifyCol: function(column) {
     if (this.hot.manualColumnPositionsPluginUsages.length > 1) {
-      return col;
+      return column;
     }
-    return this.getModifiedColumnIndex(col);
+    return this.getModifiedColumnIndex(column);
   },
-  getModifiedColumnIndex: function(col) {
-    return this.hot.manualColumnPositions[col];
+  getModifiedColumnIndex: function(column) {
+    return this.hot.manualColumnPositions[column];
   },
   addContextMenuEntry: function(defaultOptions) {
     var _this = this;
@@ -14794,25 +14879,25 @@ var $ManualColumnFreeze = ManualColumnFreeze;
       }
     });
   },
-  freezeColumn: function(col) {
-    if (col <= this.fixedColumnsCount - 1) {
+  freezeColumn: function(column) {
+    if (column <= this.fixedColumnsCount - 1) {
       return;
     }
-    var modifiedColumn = this.getModifiedColumnIndex(col) || col;
+    var modifiedColumn = this.getModifiedColumnIndex(column) || column;
     this.checkPositionData(modifiedColumn);
-    this.modifyColumnOrder(modifiedColumn, col, null, 'freeze');
+    this.modifyColumnOrder(modifiedColumn, column, null, 'freeze');
     this.addFixedColumn();
     this.hot.view.wt.wtOverlays.leftOverlay.refresh();
     this.hot.view.wt.wtOverlays.adjustElementsSize();
   },
-  unfreezeColumn: function(col) {
-    if (col > this.fixedColumnsCount - 1) {
+  unfreezeColumn: function(column) {
+    if (column > this.fixedColumnsCount - 1) {
       return;
     }
-    var returnCol = this.getBestColumnReturnPosition(col);
-    var modifiedColumn = this.getModifiedColumnIndex(col) || col;
+    var returnCol = this.getBestColumnReturnPosition(column);
+    var modifiedColumn = this.getModifiedColumnIndex(column) || column;
     this.checkPositionData(modifiedColumn);
-    this.modifyColumnOrder(modifiedColumn, col, returnCol, 'unfreeze');
+    this.modifyColumnOrder(modifiedColumn, column, returnCol, 'unfreeze');
     this.removeFixedColumn();
     this.hot.view.wt.wtOverlays.leftOverlay.refresh();
     this.hot.view.wt.wtOverlays.adjustElementsSize();
@@ -14825,41 +14910,41 @@ var $ManualColumnFreeze = ManualColumnFreeze;
     this.hot.updateSettings({fixedColumnsLeft: this.fixedColumnsCount - 1});
     this.fixedColumnsCount--;
   },
-  checkPositionData: function(col) {
+  checkPositionData: function(column) {
     if (!this.hot.manualColumnPositions || this.hot.manualColumnPositions.length === 0) {
       if (!this.hot.manualColumnPositions) {
         this.hot.manualColumnPositions = [];
       }
     }
-    if (col) {
-      if (!this.hot.manualColumnPositions[col]) {
-        this.createPositionData(col + 1);
+    if (column) {
+      if (!this.hot.manualColumnPositions[column]) {
+        this.createPositionData(column + 1);
       }
     } else {
       this.createPositionData(this.hot.countCols());
     }
   },
-  createPositionData: function(len) {
-    if (this.hot.manualColumnPositions.length < len) {
-      for (var i = this.hot.manualColumnPositions.length; i < len; i++) {
+  createPositionData: function(length) {
+    if (this.hot.manualColumnPositions.length < length) {
+      for (var i = this.hot.manualColumnPositions.length; i < length; i++) {
         this.hot.manualColumnPositions[i] = i;
       }
     }
   },
-  modifyColumnOrder: function(col, actualCol, returnCol, action) {
-    if (returnCol == null) {
-      returnCol = col;
+  modifyColumnOrder: function(column, actualColumn, returnColumn, action) {
+    if (returnColumn == null) {
+      returnColumn = column;
     }
     if (action === 'freeze') {
-      this.hot.manualColumnPositions.splice(this.fixedColumnsCount, 0, this.hot.manualColumnPositions.splice(actualCol, 1)[0]);
+      this.hot.manualColumnPositions.splice(this.fixedColumnsCount, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
     } else if (action === 'unfreeze') {
-      this.hot.manualColumnPositions.splice(returnCol, 0, this.hot.manualColumnPositions.splice(actualCol, 1)[0]);
+      this.hot.manualColumnPositions.splice(returnColumn, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
     }
   },
-  getBestColumnReturnPosition: function(col) {
+  getBestColumnReturnPosition: function(column) {
     var i = this.fixedColumnsCount;
     var j = this.getModifiedColumnIndex(i);
-    var initialCol = this.getModifiedColumnIndex(col);
+    var initialCol = this.getModifiedColumnIndex(column);
     while (j < initialCol) {
       i++;
       j = this.getModifiedColumnIndex(i);
@@ -15052,7 +15137,7 @@ function ManualColumnMove() {
       } else {
         this.manualColumnPositions = [];
       }
-      if (source == 'afterInit') {
+      if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
         if (typeof instance.manualColumnPositionsPluginUsages != 'undefined') {
           instance.manualColumnPositionsPluginUsages.push('manualColumnMove');
         } else {
@@ -15147,223 +15232,239 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+var $___46__46__47__95_base_46_js__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_helpers_47_dom_47_event__,
     $___46__46__47__46__46__47_plugins__;
-var $__0 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__0.addClass,
-    hasClass = $__0.hasClass,
-    removeClass = $__0.removeClass;
+var BasePlugin = ($___46__46__47__95_base_46_js__ = require("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
+var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__1.addClass,
+    hasClass = $__1.hasClass,
+    removeClass = $__1.removeClass;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = require("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__2.pageX,
-    pageY = $__2.pageY;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
+    pageX = $__3.pageX,
+    pageY = $__3.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-;
-function ManualColumnResize() {
-  var currentTH,
-      currentCol,
-      currentWidth,
-      instance,
-      newSize,
-      startX,
-      startWidth,
-      startOffset,
-      handle = document.createElement('DIV'),
-      guide = document.createElement('DIV'),
-      eventManager = eventManagerObject(this);
-  handle.className = 'manualColumnResizer';
-  guide.className = 'manualColumnResizerGuide';
-  var saveManualColumnWidths = function() {
-    var instance = this;
-    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnWidths', instance.manualColumnWidths);
-  };
-  var loadManualColumnWidths = function() {
-    var instance = this;
-    var storedState = {};
-    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnWidths', storedState);
-    return storedState.value;
-  };
-  function setupHandlePosition(TH) {
-    instance = this;
-    currentTH = TH;
-    var col = this.view.wt.wtTable.getCoords(TH).col;
-    if (col >= 0) {
-      currentCol = col;
-      var box = currentTH.getBoundingClientRect();
-      startOffset = box.left - 6;
-      startWidth = parseInt(box.width, 10);
-      handle.style.top = box.top + 'px';
-      handle.style.left = startOffset + startWidth + 'px';
-      instance.rootElement.appendChild(handle);
+var ManualColumnResize = function ManualColumnResize(hotInstance) {
+  $traceurRuntime.superConstructor($ManualColumnResize).call(this, hotInstance);
+  this.currentTH = null;
+  this.currentCol = null;
+  this.currentWidth = null;
+  this.newSize = null;
+  this.startY = null;
+  this.startWidth = null;
+  this.startOffset = null;
+  this.handle = document.createElement('DIV');
+  this.guide = document.createElement('DIV');
+  this.eventManager = eventManagerObject(this);
+  this.pressed = null;
+  this.dblclick = 0;
+  this.autoresizeTimeout = null;
+  this.manualColumnWidths = [];
+  addClass(this.handle, 'manualColumnResizer');
+  addClass(this.guide, 'manualColumnResizerGuide');
+};
+var $ManualColumnResize = ManualColumnResize;
+($traceurRuntime.createClass)(ManualColumnResize, {
+  isEnabled: function() {
+    return this.hot.getSettings().manualColumnResize;
+  },
+  enablePlugin: function() {
+    var $__5 = this;
+    if (this.enabled) {
+      return;
     }
-  }
-  function refreshHandlePosition() {
-    handle.style.left = startOffset + currentWidth + 'px';
-  }
-  function setupGuidePosition() {
-    var instance = this;
-    addClass(handle, 'active');
-    addClass(guide, 'active');
-    guide.style.top = handle.style.top;
-    guide.style.left = handle.style.left;
-    guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
-    instance.rootElement.appendChild(guide);
-  }
-  function refreshGuidePosition() {
-    guide.style.left = handle.style.left;
-  }
-  function hideHandleAndGuide() {
-    removeClass(handle, 'active');
-    removeClass(guide, 'active');
-  }
-  var checkColumnHeader = function(element) {
+    this.manualColumnWidths = [];
+    var initialColumnWidth = this.hot.getSettings().manualColumnResize;
+    var loadedManualColumnWidths = this.loadManualColumnWidths();
+    this.addHook('modifyColWidth', (function(width, col) {
+      return $__5.onModifyColWidth(width, col);
+    }));
+    if (typeof loadedManualColumnWidths != 'undefined') {
+      this.manualColumnWidths = loadedManualColumnWidths;
+    } else if (Array.isArray(initialColumnWidth)) {
+      this.manualColumnWidths = initialColumnWidth;
+    } else {
+      this.manualColumnWidths = [];
+    }
+    Handsontable.hooks.register('beforeColumnResize');
+    Handsontable.hooks.register('afterColumnResize');
+    this.bindEvents();
+    $traceurRuntime.superGet(this, $ManualColumnResize.prototype, "enablePlugin").call(this);
+  },
+  updatePlugin: function() {
+    var initialColumnWidth = this.hot.getSettings().manualColumnResize;
+    if (Array.isArray(initialColumnWidth)) {
+      this.manualColumnWidths = initialColumnWidth;
+    } else {
+      this.manualColumnWidths = [];
+    }
+  },
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $ManualColumnResize.prototype, "disablePlugin").call(this);
+  },
+  saveManualColumnWidths: function() {
+    this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.manualColumnWidths);
+  },
+  loadManualColumnWidths: function() {
+    var storedState = {};
+    this.hot.runHooks('persistentStateLoad', 'manualColumnWidths', storedState);
+    return storedState.value;
+  },
+  setupHandlePosition: function(TH) {
+    this.currentTH = TH;
+    var col = this.hot.view.wt.wtTable.getCoords(TH).col;
+    if (col >= 0) {
+      var box = this.currentTH.getBoundingClientRect();
+      this.currentCol = col;
+      this.startOffset = box.left - 6;
+      this.startWidth = parseInt(box.width, 10);
+      this.handle.style.top = box.top + 'px';
+      this.handle.style.left = this.startOffset + this.startWidth + 'px';
+      this.hot.rootElement.appendChild(this.handle);
+    }
+  },
+  refreshHandlePosition: function() {
+    this.handle.style.left = this.startOffset + this.currentWidth + 'px';
+  },
+  setupGuidePosition: function() {
+    addClass(this.handle, 'active');
+    addClass(this.guide, 'active');
+    this.guide.style.top = this.handle.style.top;
+    this.guide.style.left = this.handle.style.left;
+    this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
+    this.hot.rootElement.appendChild(this.guide);
+  },
+  refreshGuidePosition: function() {
+    this.guide.style.left = this.handle.style.left;
+  },
+  hideHandleAndGuide: function() {
+    removeClass(this.handle, 'active');
+    removeClass(this.guide, 'active');
+  },
+  checkIfColumnHeader: function(element) {
     if (element.tagName != 'BODY') {
       if (element.parentNode.tagName == 'THEAD') {
         return true;
       } else {
         element = element.parentNode;
-        return checkColumnHeader(element);
+        return this.checkIfColumnHeader(element);
       }
     }
     return false;
-  };
-  var getTHFromTargetElement = function(element) {
+  },
+  getTHFromTargetElement: function(element) {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
       } else {
-        return getTHFromTargetElement(element.parentNode);
+        return this.getTHFromTargetElement(element.parentNode);
       }
     }
     return null;
-  };
-  var bindEvents = function() {
-    var instance = this;
-    var pressed;
-    var dblclick = 0;
-    var autoresizeTimeout = null;
-    eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkColumnHeader(e.target)) {
-        var th = getTHFromTargetElement(e.target);
-        if (th) {
-          if (!pressed) {
-            setupHandlePosition.call(instance, th);
-          }
+  },
+  onMouseOver: function(event) {
+    if (this.checkIfColumnHeader(event.target)) {
+      var th = this.getTHFromTargetElement(event.target);
+      if (th) {
+        if (!this.pressed) {
+          this.setupHandlePosition(th);
         }
-      }
-    });
-    eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (hasClass(e.target, 'manualColumnResizer')) {
-        setupGuidePosition.call(instance);
-        pressed = instance;
-        if (autoresizeTimeout == null) {
-          autoresizeTimeout = setTimeout(function() {
-            if (dblclick >= 2) {
-              var hookNewSize = Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize, true);
-              if (hookNewSize !== void 0) {
-                newSize = hookNewSize;
-              }
-              setManualSize(currentCol, newSize);
-              instance.forceFullRender = true;
-              instance.view.render();
-              instance.view.wt.wtOverlays.adjustElementsSize(true);
-              Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize, true);
-            }
-            dblclick = 0;
-            autoresizeTimeout = null;
-          }, 500);
-          instance._registerTimeout(autoresizeTimeout);
-        }
-        dblclick++;
-        startX = pageX(e);
-        newSize = startWidth;
-      }
-    });
-    eventManager.addEventListener(window, 'mousemove', function(e) {
-      if (pressed) {
-        currentWidth = startWidth + (pageX(e) - startX);
-        newSize = setManualSize(currentCol, currentWidth);
-        refreshHandlePosition();
-        refreshGuidePosition();
-      }
-    });
-    eventManager.addEventListener(window, 'mouseup', function() {
-      if (pressed) {
-        hideHandleAndGuide();
-        pressed = false;
-        if (newSize != startWidth) {
-          Handsontable.hooks.run(instance, 'beforeColumnResize', currentCol, newSize);
-          instance.forceFullRender = true;
-          instance.view.render();
-          instance.view.wt.wtOverlays.adjustElementsSize(true);
-          saveManualColumnWidths.call(instance);
-          Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
-        }
-        setupHandlePosition.call(instance, currentTH);
-      }
-    });
-    instance.addHook('afterDestroy', unbindEvents);
-  };
-  var unbindEvents = function() {
-    eventManager.clear();
-  };
-  this.init = function(source) {
-    this.manualColumnWidths = [];
-    var instance = this;
-    var manualColumnWidthEnabled = !!(this.getSettings().manualColumnResize);
-    if (manualColumnWidthEnabled) {
-      var initialColumnWidths = this.getSettings().manualColumnResize;
-      var loadedManualColumnWidths = loadManualColumnWidths.call(instance);
-      if (typeof instance.manualColumnWidthsPluginUsages != 'undefined') {
-        instance.manualColumnWidthsPluginUsages.push('manualColumnResize');
-      } else {
-        instance.manualColumnWidthsPluginUsages = ['manualColumnResize'];
-      }
-      if (typeof loadedManualColumnWidths != 'undefined') {
-        this.manualColumnWidths = loadedManualColumnWidths;
-      } else if (Array.isArray(initialColumnWidths)) {
-        this.manualColumnWidths = initialColumnWidths;
-      } else {
-        this.manualColumnWidths = [];
-      }
-      if (!source) {
-        bindEvents.call(this);
-      }
-    } else {
-      var pluginUsagesIndex = instance.manualColumnWidthsPluginUsages ? instance.manualColumnWidthsPluginUsages.indexOf('manualColumnResize') : -1;
-      if (pluginUsagesIndex > -1) {
-        unbindEvents.call(this);
-        this.manualColumnWidths = [];
       }
     }
-  };
-  var setManualSize = function(col, width) {
+  },
+  afterMouseDownTimeout: function() {
+    if (this.dblclick >= 2) {
+      var hookNewSize = this.hot.runHooks('beforeColumnResize', this.currentCol, this.newSize, true);
+      if (hookNewSize !== void 0) {
+        this.newSize = hookNewSize;
+      }
+      this.setManualSize(this.currentCol, this.newSize);
+      this.hot.forceFullRender = true;
+      this.hot.view.render();
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.runHooks('afterColumnResize', this.currentCol, this.newSize, true);
+    }
+    this.dblclick = 0;
+    this.autoresizeTimeout = null;
+  },
+  onMouseDown: function(event) {
+    var $__5 = this;
+    if (hasClass(event.target, 'manualColumnResizer')) {
+      this.setupGuidePosition();
+      this.pressed = this.hot;
+      if (this.autoresizeTimeout === null) {
+        this.autoresizeTimeout = setTimeout((function() {
+          return $__5.afterMouseDownTimeout();
+        }), 500);
+        this.hot._registerTimeout(this.autoresizeTimeout);
+      }
+      this.dblclick++;
+      this.startX = pageX(event);
+      this.newSize = this.startWidth;
+    }
+  },
+  onMouseMove: function(event) {
+    if (this.pressed) {
+      this.currentWidth = this.startWidth + (pageX(event) - this.startX);
+      this.newSize = this.setManualSize(this.currentCol, this.currentWidth);
+      this.refreshHandlePosition();
+      this.refreshGuidePosition();
+    }
+  },
+  onMouseUp: function(event) {
+    if (this.pressed) {
+      this.hideHandleAndGuide();
+      this.pressed = false;
+      if (this.newSize != this.startWidth) {
+        this.hot.runHooks('beforeColumnResize', this.currentCol, this.newSize);
+        this.hot.forceFullRender = true;
+        this.hot.view.render();
+        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.saveManualColumnWidths();
+        this.hot.runHooks('afterColumnResize', this.currentCol, this.newSize);
+      }
+      this.setupHandlePosition(this.currentTH);
+    }
+  },
+  bindEvents: function() {
+    var $__5 = this;
+    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(e) {
+      return $__5.onMouseOver(e);
+    }));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(e) {
+      return $__5.onMouseDown(e);
+    }));
+    this.eventManager.addEventListener(window, 'mousemove', (function(e) {
+      return $__5.onMouseMove(e);
+    }));
+    this.eventManager.addEventListener(window, 'mouseup', (function(e) {
+      return $__5.onMouseUp(e);
+    }));
+  },
+  setManualSize: function(column, width) {
     width = Math.max(width, 20);
-    col = Handsontable.hooks.run(instance, 'modifyCol', col);
-    instance.manualColumnWidths[col] = width;
+    column = this.hot.runHooks('modifyCol', column);
+    this.manualColumnWidths[column] = width;
     return width;
-  };
-  this.modifyColWidth = function(width, col) {
-    col = this.runHooks('modifyCol', col);
-    if (this.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
-      return this.manualColumnWidths[col];
+  },
+  onModifyColWidth: function(width, column) {
+    if (this.enabled) {
+      column = this.hot.runHooks('modifyCol', column);
+      if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[column]) {
+        return this.manualColumnWidths[column];
+      }
     }
     return width;
-  };
-}
-var htManualColumnResize = new ManualColumnResize();
-Handsontable.hooks.add('init', htManualColumnResize.init);
-Handsontable.hooks.add('afterUpdateSettings', function() {
-  htManualColumnResize.init.call(this, 'afterUpdateSettings');
-});
-Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
-Handsontable.hooks.register('afterColumnResize');
-Handsontable.hooks.register('beforeColumnResize');
+  }
+}, {}, BasePlugin);
+;
+registerPlugin('manualColumnResize', ManualColumnResize);
 
 //# 
-},{"eventManager":40,"helpers/dom/element":44,"helpers/dom/event":45,"plugins":55}],78:[function(require,module,exports){
+},{"_base.js":56,"eventManager":40,"helpers/dom/element":44,"helpers/dom/event":45,"plugins":55}],78:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowMove: {get: function() {
@@ -15545,7 +15646,7 @@ function ManualRowMove() {
       } else {
         this.manualRowPositions = [];
       }
-      if (source === 'afterInit') {
+      if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
         bindEvents.call(this);
         if (this.manualRowPositions.length > 0) {
           instance.forceFullRender = true;
@@ -15593,223 +15694,241 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+var $___46__46__47__95_base_46_js__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_helpers_47_dom_47_event__,
     $___46__46__47__46__46__47_plugins__;
-var $__0 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__0.addClass,
-    hasClass = $__0.hasClass,
-    removeClass = $__0.removeClass;
+var BasePlugin = ($___46__46__47__95_base_46_js__ = require("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
+var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__1.addClass,
+    hasClass = $__1.hasClass,
+    removeClass = $__1.removeClass;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = require("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__2.pageX,
-    pageY = $__2.pageY;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
+    pageX = $__3.pageX,
+    pageY = $__3.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-;
-function ManualRowResize() {
-  var currentTH,
-      currentRow,
-      currentHeight,
-      instance,
-      newSize,
-      startY,
-      startHeight,
-      startOffset,
-      handle = document.createElement('DIV'),
-      guide = document.createElement('DIV'),
-      eventManager = eventManagerObject(this);
-  handle.className = 'manualRowResizer';
-  guide.className = 'manualRowResizerGuide';
-  var saveManualRowHeights = function() {
-    var instance = this;
-    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowHeights', instance.manualRowHeights);
-  };
-  var loadManualRowHeights = function() {
-    var instance = this,
-        storedState = {};
-    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowHeights', storedState);
-    return storedState.value;
-  };
-  function setupHandlePosition(TH) {
-    instance = this;
-    currentTH = TH;
-    var row = this.view.wt.wtTable.getCoords(TH).row;
-    if (row >= 0) {
-      currentRow = row;
-      var box = currentTH.getBoundingClientRect();
-      startOffset = box.top - 6;
-      startHeight = parseInt(box.height, 10);
-      handle.style.left = box.left + 'px';
-      handle.style.top = startOffset + startHeight + 'px';
-      instance.rootElement.appendChild(handle);
+var ManualRowResize = function ManualRowResize(hotInstance) {
+  $traceurRuntime.superConstructor($ManualRowResize).call(this, hotInstance);
+  this.currentTH = null;
+  this.currentRow = null;
+  this.currentHeight = null;
+  this.newSize = null;
+  this.startY = null;
+  this.startHeight = null;
+  this.startOffset = null;
+  this.handle = document.createElement('DIV');
+  this.guide = document.createElement('DIV');
+  this.eventManager = eventManagerObject(this);
+  this.pressed = null;
+  this.dblclick = 0;
+  this.autoresizeTimeout = null;
+  this.manualRowHeights = [];
+  addClass(this.handle, 'manualRowResizer');
+  addClass(this.guide, 'manualRowResizerGuide');
+};
+var $ManualRowResize = ManualRowResize;
+($traceurRuntime.createClass)(ManualRowResize, {
+  isEnabled: function() {
+    return this.hot.getSettings().manualRowResize;
+  },
+  enablePlugin: function() {
+    var $__5 = this;
+    if (this.enabled) {
+      return;
     }
-  }
-  function refreshHandlePosition() {
-    handle.style.top = startOffset + currentHeight + 'px';
-  }
-  function setupGuidePosition() {
-    var instance = this;
-    addClass(handle, 'active');
-    addClass(guide, 'active');
-    guide.style.top = handle.style.top;
-    guide.style.left = handle.style.left;
-    guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
-    instance.rootElement.appendChild(guide);
-  }
-  function refreshGuidePosition() {
-    guide.style.top = handle.style.top;
-  }
-  function hideHandleAndGuide() {
-    removeClass(handle, 'active');
-    removeClass(guide, 'active');
-  }
-  var checkRowHeader = function(element) {
+    this.manualRowHeights = [];
+    var initialRowHeights = this.hot.getSettings().manualRowResize;
+    var loadedManualRowHeights = this.loadManualRowHeights();
+    if (typeof loadedManualRowHeights != 'undefined') {
+      this.manualRowHeights = loadedManualRowHeights;
+    } else if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+    } else {
+      this.manualRowHeights = [];
+    }
+    this.addHook('modifyRowHeight', (function(height, row) {
+      return $__5.onModifyRowHeight(height, row);
+    }));
+    Handsontable.hooks.register('beforeRowResize');
+    Handsontable.hooks.register('afterRowResize');
+    this.bindEvents();
+    $traceurRuntime.superGet(this, $ManualRowResize.prototype, "enablePlugin").call(this);
+  },
+  updatePlugin: function() {
+    var initialRowHeights = this.hot.getSettings().manualRowResize;
+    if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+    } else {
+      this.manualRowHeights = [];
+    }
+  },
+  disablePlugin: function() {
+    $traceurRuntime.superGet(this, $ManualRowResize.prototype, "disablePlugin").call(this);
+  },
+  saveManualRowHeights: function() {
+    this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
+  },
+  loadManualRowHeights: function() {
+    var storedState = {};
+    this.hot.runHooks('persistentStateLoad', 'manualRowHeights', storedState);
+    return storedState.value;
+  },
+  setupHandlePosition: function(TH) {
+    this.currentTH = TH;
+    var row = this.hot.view.wt.wtTable.getCoords(TH).row;
+    if (row >= 0) {
+      var box = this.currentTH.getBoundingClientRect();
+      this.currentRow = row;
+      this.startOffset = box.top - 6;
+      this.startHeight = parseInt(box.height, 10);
+      this.handle.style.left = box.left + 'px';
+      this.handle.style.top = this.startOffset + this.startHeight + 'px';
+      this.hot.rootElement.appendChild(this.handle);
+    }
+  },
+  refreshHandlePosition: function() {
+    this.handle.style.top = this.startOffset + this.currentHeight + 'px';
+  },
+  setupGuidePosition: function() {
+    addClass(this.handle, 'active');
+    addClass(this.guide, 'active');
+    this.guide.style.top = this.handle.style.top;
+    this.guide.style.left = this.handle.style.left;
+    this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.hot.rootElement.appendChild(this.guide);
+  },
+  refreshGuidePosition: function() {
+    this.guide.style.top = this.handle.style.top;
+  },
+  hideHandleAndGuide: function() {
+    removeClass(this.handle, 'active');
+    removeClass(this.guide, 'active');
+  },
+  checkIfRowHeader: function(element) {
     if (element.tagName != 'BODY') {
       if (element.parentNode.tagName == 'TBODY') {
         return true;
       } else {
         element = element.parentNode;
-        return checkRowHeader(element);
+        return this.checkIfRowHeader(element);
       }
     }
     return false;
-  };
-  var getTHFromTargetElement = function(element) {
+  },
+  getTHFromTargetElement: function(element) {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
       } else {
-        return getTHFromTargetElement(element.parentNode);
+        return this.getTHFromTargetElement(element.parentNode);
       }
     }
     return null;
-  };
-  var bindEvents = function() {
-    var instance = this;
-    var pressed;
-    var dblclick = 0;
-    var autoresizeTimeout = null;
-    eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkRowHeader(e.target)) {
-        var th = getTHFromTargetElement(e.target);
-        if (th) {
-          if (!pressed) {
-            setupHandlePosition.call(instance, th);
-          }
+  },
+  onMouseOver: function(event) {
+    if (this.checkIfRowHeader(event.target)) {
+      var th = this.getTHFromTargetElement(event.target);
+      if (th) {
+        if (!this.pressed) {
+          this.setupHandlePosition(th);
         }
-      }
-    });
-    eventManager.addEventListener(instance.rootElement, 'mousedown', function(e) {
-      if (hasClass(e.target, 'manualRowResizer')) {
-        setupGuidePosition.call(instance);
-        pressed = instance;
-        if (autoresizeTimeout == null) {
-          autoresizeTimeout = setTimeout(function() {
-            if (dblclick >= 2) {
-              var hookNewSize = Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize, true);
-              if (hookNewSize !== void 0) {
-                newSize = hookNewSize;
-              }
-              setManualSize(currentRow, newSize);
-              instance.forceFullRender = true;
-              instance.view.render();
-              Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize, true);
-            }
-            dblclick = 0;
-            autoresizeTimeout = null;
-          }, 500);
-          instance._registerTimeout(autoresizeTimeout);
-        }
-        dblclick++;
-        startY = pageY(e);
-        newSize = startHeight;
-      }
-    });
-    eventManager.addEventListener(window, 'mousemove', function(e) {
-      if (pressed) {
-        currentHeight = startHeight + (pageY(e) - startY);
-        newSize = setManualSize(currentRow, currentHeight);
-        refreshHandlePosition();
-        refreshGuidePosition();
-      }
-    });
-    eventManager.addEventListener(window, 'mouseup', function(e) {
-      if (pressed) {
-        hideHandleAndGuide();
-        pressed = false;
-        if (newSize != startHeight) {
-          Handsontable.hooks.run(instance, 'beforeRowResize', currentRow, newSize);
-          instance.forceFullRender = true;
-          instance.view.render();
-          saveManualRowHeights.call(instance);
-          Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
-        }
-        setupHandlePosition.call(instance, currentTH);
-      }
-    });
-    instance.addHook('afterDestroy', unbindEvents);
-  };
-  var unbindEvents = function() {
-    eventManager.clear();
-  };
-  this.init = function(source) {
-    this.manualRowHeights = [];
-    var instance = this;
-    var manualColumnHeightEnabled = !!(this.getSettings().manualRowResize);
-    if (manualColumnHeightEnabled) {
-      var initialRowHeights = this.getSettings().manualRowResize;
-      var loadedManualRowHeights = loadManualRowHeights.call(instance);
-      if (typeof instance.manualRowHeightsPluginUsages != 'undefined') {
-        instance.manualRowHeightsPluginUsages.push('manualRowResize');
-      } else {
-        instance.manualRowHeightsPluginUsages = ['manualRowResize'];
-      }
-      if (typeof loadedManualRowHeights != 'undefined') {
-        this.manualRowHeights = loadedManualRowHeights;
-      } else if (Array.isArray(initialRowHeights)) {
-        this.manualRowHeights = initialRowHeights;
-      } else {
-        this.manualRowHeights = [];
-      }
-      if (source === void 0) {
-        bindEvents.call(this);
-      }
-    } else {
-      var pluginUsagesIndex = instance.manualRowHeightsPluginUsages ? instance.manualRowHeightsPluginUsages.indexOf('manualRowResize') : -1;
-      if (pluginUsagesIndex > -1) {
-        unbindEvents.call(this);
-        this.manualRowHeights = [];
-        instance.manualRowHeightsPluginUsages[pluginUsagesIndex] = void 0;
       }
     }
-  };
-  var setManualSize = function(row, height) {
-    row = Handsontable.hooks.run(instance, 'modifyRow', row);
-    instance.manualRowHeights[row] = height;
+  },
+  afterMouseDownTimeout: function() {
+    if (this.dblclick >= 2) {
+      var hookNewSize = this.hot.runHooks('beforeRowResize', this.currentRow, this.newSize, true);
+      if (hookNewSize !== void 0) {
+        this.newSize = hookNewSize;
+      }
+      this.setManualSize(this.currentRow, this.newSize);
+      this.hot.forceFullRender = true;
+      this.hot.view.render();
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.runHooks('afterRowResize', this.currentRow, this.newSize, true);
+    }
+    this.dblclick = 0;
+    this.autoresizeTimeout = null;
+  },
+  onMouseDown: function(event) {
+    var $__5 = this;
+    if (hasClass(event.target, 'manualRowResizer')) {
+      this.setupGuidePosition();
+      this.pressed = this.hot;
+      if (this.autoresizeTimeout == null) {
+        this.autoresizeTimeout = setTimeout((function() {
+          return $__5.afterMouseDownTimeout();
+        }), 500);
+        this.hot._registerTimeout(this.autoresizeTimeout);
+      }
+      this.dblclick++;
+      this.startY = pageY(event);
+      this.newSize = this.startHeight;
+    }
+  },
+  onMouseMove: function(event) {
+    if (this.pressed) {
+      this.currentHeight = this.startHeight + (pageY(event) - this.startY);
+      this.newSize = this.setManualSize(this.currentRow, this.currentHeight);
+      this.refreshHandlePosition();
+      this.refreshGuidePosition();
+    }
+  },
+  onMouseUp: function(event) {
+    if (this.pressed) {
+      this.hideHandleAndGuide();
+      this.pressed = false;
+      if (this.newSize != this.startHeight) {
+        this.hot.runHooks('beforeRowResize', this.currentRow, this.newSize);
+        this.hot.forceFullRender = true;
+        this.hot.view.render();
+        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.saveManualRowHeights();
+        this.hot.runHooks('afterRowResize', this.currentRow, this.newSize);
+      }
+      this.setupHandlePosition(this.currentTH);
+    }
+  },
+  bindEvents: function() {
+    var $__5 = this;
+    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(e) {
+      return $__5.onMouseOver(e);
+    }));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(e) {
+      return $__5.onMouseDown(e);
+    }));
+    this.eventManager.addEventListener(window, 'mousemove', (function(e) {
+      return $__5.onMouseMove(e);
+    }));
+    this.eventManager.addEventListener(window, 'mouseup', (function(e) {
+      return $__5.onMouseUp(e);
+    }));
+  },
+  setManualSize: function(row, height) {
+    row = this.hot.runHooks('modifyRow', row);
+    this.manualRowHeights[row] = height;
     return height;
-  };
-  this.modifyRowHeight = function(height, row) {
-    if (this.getSettings().manualRowResize) {
-      row = this.runHooks('modifyRow', row);
-      if (this.manualRowHeights[row] !== void 0) {
-        return this.manualRowHeights[row];
+  },
+  onModifyRowHeight: function(height, row) {
+    if (this.enabled) {
+      var autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
+      var autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
+      row = this.hot.runHooks('modifyRow', row);
+      var manualRowHeight = this.manualRowHeights[row];
+      if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
+        return manualRowHeight;
       }
     }
     return height;
-  };
-}
-var htManualRowResize = new ManualRowResize();
-Handsontable.hooks.add('init', htManualRowResize.init);
-Handsontable.hooks.add('afterUpdateSettings', function() {
-  htManualRowResize.init.call(this, 'afterUpdateSettings');
-});
-Handsontable.hooks.add('modifyRowHeight', htManualRowResize.modifyRowHeight);
-Handsontable.hooks.register('beforeRowResize');
-Handsontable.hooks.register('afterRowResize');
+  }
+}, {}, BasePlugin);
+;
+registerPlugin('manualRowResize', ManualRowResize);
 
 //# 
-},{"eventManager":40,"helpers/dom/element":44,"helpers/dom/event":45,"plugins":55}],80:[function(require,module,exports){
+},{"_base.js":56,"eventManager":40,"helpers/dom/element":44,"helpers/dom/event":45,"plugins":55}],80:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MergeCells: {get: function() {
@@ -16034,6 +16153,35 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
     delta.col = newDelta.col;
   }
 };
+MergeCells.prototype.shiftCollection = function(direction, index, count) {
+  var shiftVector = [0, 0];
+  switch (direction) {
+    case 'right':
+      shiftVector[0] += 1;
+      break;
+    case 'left':
+      shiftVector[0] -= 1;
+      break;
+    case 'down':
+      shiftVector[1] += 1;
+      break;
+    case 'up':
+      shiftVector[1] -= 1;
+      break;
+  }
+  for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
+    var currentMerge = this.mergedCellInfoCollection[i];
+    if (direction === 'right' || direction === 'left') {
+      if (index <= currentMerge.col) {
+        currentMerge.col += shiftVector[0];
+      }
+    } else {
+      if (index <= currentMerge.row) {
+        currentMerge.row += shiftVector[1];
+      }
+    }
+  }
+};
 var beforeInit = function() {
   var instance = this;
   var mergeCellsSetting = instance.getSettings().mergeCells;
@@ -16055,6 +16203,27 @@ var afterInit = function() {
       }
       return WalkontableTable.prototype.getCell.call(this, coords);
     };
+  }
+};
+var afterUpdateSettings = function() {
+  var instance = this;
+  var mergeCellsSetting = instance.getSettings().mergeCells;
+  if (mergeCellsSetting) {
+    if (!instance.mergeCells) {
+      instance.mergeCells = new MergeCells(mergeCellsSetting);
+    } else {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+      if (Array.isArray(mergeCellsSetting)) {
+        for (var i = 0,
+            ilen = mergeCellsSetting.length; i < ilen; i++) {
+          instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+        }
+      }
+    }
+  } else {
+    if (instance.mergeCells) {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+    }
   }
 };
 var onBeforeKeyDown = function(event) {
@@ -16255,8 +16424,29 @@ function afterAutofillApplyValues(select, drag) {
     select[3] = info.col + info.colspan - 1;
   }
 }
+function onAfterCreateCol(col, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('right', col, count);
+  }
+}
+function onAfterRemoveCol(col, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('left', col, count);
+  }
+}
+function onAfterCreateRow(row, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('down', row, count);
+  }
+}
+function onAfterRemoveRow(row, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('up', row, count);
+  }
+}
 Handsontable.hooks.add('beforeInit', beforeInit);
 Handsontable.hooks.add('afterInit', afterInit);
+Handsontable.hooks.add('afterUpdateSettings', afterUpdateSettings);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
@@ -16269,6 +16459,10 @@ Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
 Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
+Handsontable.hooks.add('afterCreateCol', onAfterCreateCol);
+Handsontable.hooks.add('afterRemoveCol', onAfterRemoveCol);
+Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
+Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 Handsontable.MergeCells = MergeCells;
 
 //# 
@@ -18364,6 +18558,7 @@ function TableView(instance) {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
             instance.selection.setRangeStart(coords);
+            instance.selection.setSelectedHeaders(false, false);
           }
         }
         Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
@@ -18379,12 +18574,20 @@ function TableView(instance) {
       } else {
         if (isMouseDown) {
           if (coords.row < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-            instance.selection.setSelectedHeaders(false, true);
+            if (instance.selection.selectedHeader.cols) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+              instance.selection.setSelectedHeaders(false, true);
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
           }
           if (coords.col < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-            instance.selection.setSelectedHeaders(true, false);
+            if (instance.selection.selectedHeader.rows) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+              instance.selection.setSelectedHeaders(true, false);
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
           }
         }
       }

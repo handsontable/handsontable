@@ -4,10 +4,10 @@ import {arrayEach, arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
-import {isPercentValue, rangeEach} from './../../helpers/number';
+import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
 import {SamplesGenerator} from './../../utils/samplesGenerator';
-import {valueAccordingPercent} from './../../helpers/string';
+import {isPercentValue} from './../../helpers/string';
 
 
 /**
@@ -80,6 +80,9 @@ class AutoRowSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+
+    // moved to constructor to allow auto-sizing the rows when the plugin is disabled
+    this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
   }
 
   /**
@@ -105,7 +108,6 @@ class AutoRowSize extends BasePlugin {
     this.addHook('beforeColumnSort', () => this.clearCache());
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
-    this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     super.enablePlugin();
   }
