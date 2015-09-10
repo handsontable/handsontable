@@ -285,6 +285,8 @@ function TableView(instance) {
             coords.col = coords.col < 0 ? 0 : coords.col;
 
             instance.selection.setRangeStart(coords);
+
+            instance.selection.setSelectedHeaders(false, false);
           }
         }
 
@@ -311,14 +313,25 @@ function TableView(instance) {
         if (isMouseDown) {
           // multi select columns
           if (coords.row < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-            instance.selection.setSelectedHeaders(false, true);
+            if (instance.selection.selectedHeader.cols) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+              instance.selection.setSelectedHeaders(false, true);
+
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
+
           }
 
           // multi select rows
           if (coords.col < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-            instance.selection.setSelectedHeaders(true, false);
+            if (instance.selection.selectedHeader.rows) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+              instance.selection.setSelectedHeaders(true, false);
+
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
           }
         }
       }
