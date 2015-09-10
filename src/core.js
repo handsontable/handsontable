@@ -3572,11 +3572,23 @@ DefaultSettings.prototype = {
   autoComplete: void 0,
 
   /**
-   * Controll number of choices for autocomplete cells. After exceeding it scrollbar for dropdown list of choices will be visible.
-     @type {Number}
-     @default 10
+   * Control number of choices for autocomplete (or dropdown) cells. After exceeding it scrollbar for dropdown list of choices will be visible.
+   *
+   * @since 0.18.0
+   * @type {Number}
+   * @default 10
    */
   visibleRows : 10,
+
+  /**
+   * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
+   * according to its content.
+   *
+   * @since 0.17.0
+   * @type {Boolean}
+   * @default true
+   */
+  trimDropdown : true,
 
   /**
    * Setting to true enables the debug mode, currently used to test the correctness of the row and column
