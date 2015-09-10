@@ -3572,6 +3572,13 @@ DefaultSettings.prototype = {
   autoComplete: void 0,
 
   /**
+   * Controll number of choices for autocomplete cells. After exceeding it scrollbar for dropdown list of choices will be visible.
+     @type {Number}
+     @default 10
+   */
+  visibleRows : 10,
+
+  /**
    * Setting to true enables the debug mode, currently used to test the correctness of the row and column
    * header fixed positioning on a layer above the master table.
    *

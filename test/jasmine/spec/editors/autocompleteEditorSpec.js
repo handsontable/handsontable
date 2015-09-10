@@ -311,8 +311,9 @@ describe('AutocompleteEditor', function() {
       }, 'Source function call', 1000);
 
       runs(function() {
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width());
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(188);
+        // -2 for transparent borders
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width() - 2);
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
       });
     });
 
