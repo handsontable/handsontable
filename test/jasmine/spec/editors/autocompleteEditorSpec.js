@@ -311,8 +311,43 @@ describe('AutocompleteEditor', function() {
       }, 'Source function call', 1000);
 
       runs(function() {
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width());
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(188);
+        // -2 for transparent borders
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width() - 2);
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
+      });
+    });
+
+    it('autocomplete list should have the suggestion table dimensions, when trimDropdown option is set to false', function() {
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function(query, process) {
+        process(["long text", "even longer text", "extremely long text in the suggestion list", "short text", "text", "another", "yellow", "black"]);
+      };
+
+      var hot = handsontable({
+        colWidths: [200],
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ],
+        trimDropdown: false
+      });
+
+
+      selectCell(0, 0);
+      var editor = $('.handsontableInputHolder');
+
+      syncSources.reset();
+      keyDownUp('enter');
+
+      waitsFor(function() {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function() {
+        expect(editor.find('.autocompleteEditor .htCore td').eq(0).width()).toBeGreaterThan(editor.find('.handsontableInput').width());
       });
     });
 

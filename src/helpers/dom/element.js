@@ -135,6 +135,17 @@ export function index(element) {
   return i;
 }
 
+/**
+ * Check if the provided overlay contains the provided element
+ *
+ * @param {String} overlay
+ * @param {HTMLElement} element
+ * @returns {boolean}
+ */
+export function overlayContainsElement(overlayType, element) {
+  let overlayElement = document.querySelector('.ht_clone_' + overlayType);
+  return overlayElement ? overlayElement.contains(element) : null;
+}
 
 var classListSupport = document.documentElement.classList ? true : false;
 var _hasClass, _addClass, _removeClass;
@@ -537,6 +548,7 @@ export function getScrollableElement(element) {
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+
     } else if (window.getComputedStyle) {
       computedStyle = window.getComputedStyle(el);
       computedOverflow = computedStyle.getPropertyValue('overflow');
@@ -549,11 +561,11 @@ export function getScrollableElement(element) {
     }
 
     if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
     if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
     el = el.parentNode;

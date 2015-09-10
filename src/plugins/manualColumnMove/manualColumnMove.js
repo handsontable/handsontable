@@ -208,7 +208,7 @@ function ManualColumnMove() {
         this.manualColumnPositions = [];
       }
 
-      if (source == 'afterInit') {
+      if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
 
         // update plugin usages count for manualColumnPositions
         if (typeof instance.manualColumnPositionsPluginUsages != 'undefined') {

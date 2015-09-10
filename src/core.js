@@ -498,8 +498,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
 
     /**
-     * @param {Number} rows
-     * @param {Number} cols
+     * @param {Boolean} rows
+     * @param {Boolean} cols
      */
     setSelectedHeaders: function(rows, cols) {
       instance.selection.selectedHeader.rows = rows;
@@ -553,12 +553,25 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.selRange === null) {
         return;
       }
-      var disableVisualSelection;
+      var disableVisualSelection,
+        isHeaderSelected = false,
+        areCoordsPositive = true;
+
+      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
+      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
+      var newRangeCoords = {
+        row: null,
+        col: null
+      };
 
       //trigger handlers
       Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
       instance.selection.begin();
-      priv.selRange.to = new WalkontableCellCoords(coords.row, coords.col);
+
+      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
+      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
+
+      priv.selRange.to = new WalkontableCellCoords(newRangeCoords.row, newRangeCoords.col);
 
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
@@ -598,7 +611,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, "afterSelectionByProp",
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
-      if (scrollToCell !== false && instance.view.mainViewIsActive()) {
+      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
+          (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+        isHeaderSelected = true;
+      }
+
+      if (coords.row < 0 || coords.col < 0) {
+        areCoordsPositive = false;
+      }
+
+      if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
         if (priv.selRange.from && !selection.isMultiple()) {
           instance.view.scrollViewport(priv.selRange.from);
         } else {
@@ -847,6 +869,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     return {
       validatorsInQueue: 0,
+      valid: true,
       addValidatorToQueue: function() {
         this.validatorsInQueue++;
         resolved = false;
@@ -855,13 +878,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty: function() {
+      onQueueEmpty: function(valid) {
       },
       checkIfQueueIsEmpty: function() {
         /* jshint ignore:start */
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
-          this.onQueueEmpty();
+          this.onQueueEmpty(this.valid);
         }
         /* jshint ignore:end */
       }
@@ -2018,6 +2041,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
    *
+   * If one of cells is invalid callback will be fired with `'valid'` arguments as `false` otherwise `true`.
+   *
    * @memberof Core#
    * @function validateCells
    * @param {Function} callback
@@ -2032,7 +2057,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var j = instance.countCols() - 1;
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function() {
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
+          if (typeof result !== 'boolean') {
+            throw new Error("Validation error: result is not boolean");
+          }
+          if (result === false) {
+            waitingForValidator.valid = false;
+          }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
         j--;
@@ -3541,6 +3572,25 @@ DefaultSettings.prototype = {
   autoComplete: void 0,
 
   /**
+   * Control number of choices for autocomplete (or dropdown) cells. After exceeding it scrollbar for dropdown list of choices will be visible.
+   *
+   * @since 0.18.0
+   * @type {Number}
+   * @default 10
+   */
+  visibleRows : 10,
+
+  /**
+   * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
+   * according to its content.
+   *
+   * @since 0.17.0
+   * @type {Boolean}
+   * @default true
+   */
+  trimDropdown : true,
+
+  /**
    * Setting to true enables the debug mode, currently used to test the correctness of the row and column
    * header fixed positioning on a layer above the master table.
    *
@@ -3774,9 +3824,50 @@ DefaultSettings.prototype = {
   settings: void 0,
   source: void 0,
   title: void 0,
+
+  /**
+   * Data template for `'checkbox'` type when checkbox is checked.
+   *
+   * Option desired for cell which `'checkbox'` type.
+   *
+   * @type {Boolean|String}
+   * @default true
+   */
   checkedTemplate: void 0,
+
+  /**
+   * Data template for `'checkbox'` type when checkbox is unchecked.
+   *
+   * Option desired for cell which `'checkbox'` type.
+   *
+   * @type {Boolean|String}
+   * @default false
+   */
   uncheckedTemplate: void 0,
+
+  /**
+   * Display format. See http://numeric.com.
+   *
+   * Option desired for cell which `'numeric'` type.
+   */
   format: void 0,
+
+  /**
+   * Language display format. See http://numeric.com.
+   *
+   * Option desired for cell which `'numeric'` type.
+   *
+   * @type {String}
+   * @default 'en'
+   */
+  language: void 0,
+
+  /**
+   * Data source for cell with `'select'` type.
+   *
+   * @type {Array}
+   */
+  selectOptions: void 0,
 
   /**
    * Enables or disables autoColumnSize plugin. Default value is `undefined` which is the same effect as `true`.
@@ -3834,6 +3925,44 @@ DefaultSettings.prototype = {
    * @type {Object|Boolean}
    * @default {syncLimit: 1000}
    */
-  autoRowSize: void 0
+  autoRowSize: void 0,
+
+  /**
+   * Date validation format.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {String}
+   * @default 'DD/MM/YYYY'
+   */
+  dateFormat: void 0,
+
+  /**
+   * If `true` then dates will be automatically formatted to match the desired format.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  correctFormat: false,
+
+  /**
+   * Definition of default value which will fill empty cells.
+   *
+   * Option desired for cell which `'date'` type.
+   *
+   * @type {String}
+   */
+  defaultDate: void 0,
+
+  /**
+   * If typed `true` value entered into cell must match to the autocomplete source. Otherwise cell will be invalid.
+   *
+   * Option desired for cell which `'autocomplete'` type.
+   *
+   * @type {Boolean}
+   */
+  strict: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;
