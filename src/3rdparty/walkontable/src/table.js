@@ -344,25 +344,13 @@ class WalkontableTable {
   getCoords(TD) {
     const TR = TD.parentNode;
     let row = index(TR);
-    let col = TD.cellIndex;
 
-    if (overlayContainsElement(WalkontableTopOverlay.CLONE_CORNER, TD) || overlayContainsElement(WalkontableTopOverlay.CLONE_TOP, TD)) {
-      if (TR.parentNode === this.THEAD) {
-        row -= 1;
-      }
+    if (TR.parentNode === this.THEAD) {
+      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
     } else {
-      if (TR.parentNode === this.THEAD) {
-        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-      } else {
-        row = this.rowFilter.renderedToSource(row);
-      }
+      row = this.rowFilter.renderedToSource(row);
     }
-
-    if (overlayContainsElement(WalkontableOverlay.CLONE_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
-      col -= 1;
-    } else {
-      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
-    }
+    let col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
 
     return new WalkontableCellCoords(row, col);
   }
