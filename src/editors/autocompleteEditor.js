@@ -51,10 +51,12 @@ function onBeforeKeyDown(event) {
       timeOffset += 10;
     }
 
-    editor.instance._registerTimeout(setTimeout(function() {
-      editor.queryChoices(editor.TEXTAREA.value);
-      skipOne = true;
-    }, timeOffset));
+    if (editor.htEditor) {
+      editor.instance._registerTimeout(setTimeout(function() {
+        editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
+      }, timeOffset));
+    }
   }
 }
 

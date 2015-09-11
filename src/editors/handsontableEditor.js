@@ -23,11 +23,6 @@ HandsontableEditor.prototype.createElements = function() {
   this.TEXTAREA_PARENT.appendChild(DIV);
 
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV, {
-    autoColumnSize: false,
-    autoRowSize: false
-  });
-
   this.assignHooks();
 };
 
