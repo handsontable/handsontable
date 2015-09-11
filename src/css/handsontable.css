@@ -633,28 +633,6 @@ Cell borders
   font-family: 'Arial';
 }
 
-
-/* Grouping indicators */
-.handsontable colgroup col.rowHeader.htGroupCol {
-  width: 25px !important;
-}
-.handsontable colgroup col.rowHeader.htGroupColClosest {
-  width: 30px !important;
-}
-
-.handsontable .htGroupIndicatorContainer {
-  background: #fff;
-  border: 0;
-  padding-bottom: 0;
-  vertical-align: bottom;
-  position: relative;
-}
-
-.handsontable thead .htGroupIndicatorContainer {
-  vertical-align: top;
-  border-bottom: 0;
-}
-
 .handsontable tbody tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
 }
@@ -667,33 +645,6 @@ Cell borders
 
 .ht_clone_corner thead tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
-}
-
-.htVerticalGroup {
-  height: 100%;
-}
-
-.htHorizontalGroup {
-  width: 100%;
-  height: 100%;
-}
-
-.htVerticalGroup:not(.htCollapseButton):after {
-  content: "";
-  height: 100%;
-  width: 1px;
-  display: block;
-  background: #ccc;
-  margin-left: 5px;
-}
-
-.htHorizontalGroup:not(.htCollapseButton):after {
-  content: "";
-  width: 100%;
-  height: 1px;
-  display: block;
-  background: #ccc;
-  margin-top: 20%;
 }
 
 .htCollapseButton {
@@ -735,37 +686,6 @@ thead .htCollapseButton:after {
   width: 700%;
   right: 10px;
   top: 4px;
-}
-
-.handsontable tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  width: 5px;
-  position: relative;
-  top: 50%;
-}
-
-.handsontable thead tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  height: 5px;
-  width: 50%;
-  position: relative;
-  top: 0;
-  left: 50%;
-}
-
-.handsontable .htGroupLevelTrigger {
-  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  width: 15px;
-  height: 15px;
-  margin: 4px auto;
-  padding: 0;
-  line-height: 15px;
-  cursor: pointer;
 }
 
 .handsontable tr th .htExpandButton {

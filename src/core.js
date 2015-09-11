@@ -3734,31 +3734,6 @@ DefaultSettings.prototype = {
   viewportColumnRenderingOffset: 'auto',
 
   /**
-   * @description
-   * If `true`, enables Grouping plugin, which enables applying expandable row and column groups.
-   * To initialize Handsontable with predefined groups, provide row or column group start and end coordinates in form of an array.
-   *
-   * See [Grouping](http://handsontable.com/demo/grouping.html) demo for examples.
-   *
-   * @type {Boolean|Array}
-   * @default undefined
-   * @since 0.11.4
-   * @example
-   * ```js
-   * ...
-   * // as boolean
-   * groups: true,
-   * ...
-   *
-   * ...
-   * // as array
-   * groups: [{cols: [0, 2]}, {cols: [5, 15], rows: [0, 5]}],
-   * ...
-   * ```
-   */
-  groups: void 0,
-
-  /**
    * A usually small function or regular expression that validates the input.
    * After you determine if the input is valid, execute `callback(true)` or `callback(false)` to proceed with the execution.
    * In function, `this` binds to cellProperties.
