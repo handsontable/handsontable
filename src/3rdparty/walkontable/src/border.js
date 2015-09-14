@@ -10,6 +10,7 @@ import {
     } from './../../../helpers/dom/element';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
+import {WalkontableOverlay} from './overlay/_base.js';
 
 
 class WalkontableBorder {
@@ -327,9 +328,12 @@ class WalkontableBorder {
       cornerOverlappingContainer,
       ilen;
 
-    if (this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableTopLeftCornerOverlay) {
+
+    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
+      WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsTop');
-    } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay) || this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+      WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsBottom');
     } else {
       ilen = this.wot.wtTable.getRenderedRowsCount();

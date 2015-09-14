@@ -6,6 +6,7 @@ import {
 import {defineGetter} from './../../../../helpers/object';
 import {eventManager as eventManagerObject} from './../../../../eventManager';
 
+const registeredOverlays = {};
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -70,6 +71,44 @@ class WalkontableOverlay {
       WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER,
       WalkontableOverlay.CLONE_DEBUG
     ];
+  }
+
+  /**
+   * Register overlay class.
+   *
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @param {WalkontableOverlay} overlayClass Overlay class extended from base overlay class {@link WalkontableOverlay}
+   */
+  static registerOverlay(type, overlayClass) {
+    if (WalkontableOverlay.CLONE_TYPES.indexOf(type) === -1) {
+      throw new Error(`Unsupported overlay (${type}).`);
+    }
+    registeredOverlays[type] = overlayClass;
+  }
+
+  /**
+   * Create new instance of overlay type
+   *
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @param {Walkontable} wot Walkontable instance
+   */
+  static createOverlay(type, wot) {
+    return new registeredOverlays[type](wot);
+  }
+
+  /**
+   * Checks if overlay object (`overlay`) is instance of overlay type (`type`)
+   *
+   * @param {WalkontableOverlay} overlay Overlay object
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @returns {Boolean}
+   */
+  static isOverlayTypeOf(overlay, type) {
+    if(!overlay || !registeredOverlays[type]) {
+      return false;
+    }
+
+    return overlay instanceof registeredOverlays[type];
   }
 
   /**
