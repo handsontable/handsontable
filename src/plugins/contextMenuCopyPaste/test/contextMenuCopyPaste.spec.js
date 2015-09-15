@@ -6,7 +6,13 @@ describe("ContextMenuCopyPaste", function () {
   }
 
   beforeEach(function () {
-    $('head').append('<script src="../../demo/js/ZeroClipboard.js"></script>');
+
+    try {
+      $('head').append('<script src="../../demo/js/ZeroClipboard.js"></script>');
+    } catch (err) {
+      $('head').append('<script src="../../../../node_modules/hot-builder/node_modules/handsontable/demo/js/ZeroClipboard.js"></script>');
+    }
+    
 
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     var wrapper = $('<div></div>').css({
