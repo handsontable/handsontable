@@ -33,6 +33,18 @@ export function predefinedItems() {
   return items;
 }
 
+/**
+ * Add new predefined menu item to the collection.
+ *
+ * @param {String} key Menu command id.
+ * @param {Object} item Object command descriptor.
+ */
+export function addItem(key, item) {
+  if (ITEMS.indexOf(key) === -1) {
+    _predefinedItems[key] = item;
+  }
+}
+
 const _predefinedItems = {
   [SEPARATOR]: {
     name: SEPARATOR

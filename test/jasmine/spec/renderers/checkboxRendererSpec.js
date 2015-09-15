@@ -474,4 +474,96 @@ describe('CheckboxRenderer', function () {
 
     expect(afterChangeCallback.calls.length).toEqual(0);
   });
+
+  it("should add label on the beginning of a checkbox element", function () {
+    handsontable({
+      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {position: 'before', property: 'label'}}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
+  });
+
+  it("should add label on the end of a checkbox element", function () {
+    handsontable({
+      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
+
+  it("shouldn\'t add label when value is incorrect (#bad-value)", function () {
+    handsontable({
+      data: [{checked: 1, label: 'myLabel'}, {checked: 0, label: 'myLabel'}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
+      ]
+    });
+
+    expect(getCell(0, 0).querySelector('label')).toBe(null);
+  });
+
+  it("by default should add label on the end of a checkbox element", function () {
+    handsontable({
+      data: [{checked: true, label: {test: 'Baz'}}, {checked: false, label: {test: 'Baz'}}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {property: 'label.test'}}
+      ]
+    });
+
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('Baz');
+  });
+
+  it("should add label with text filled from `value` label setting (passed as string)", function () {
+    handsontable({
+      data: [{checked: true}, {checked: false}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {value: 'myLabel'}}
+      ]
+    });
+
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
+
+  it("should add label with text filled from `value` label setting (passed as function)", function () {
+    var labelFunction = jasmine.createSpy();
+
+    labelFunction.andReturn('myLabel');
+    handsontable({
+      autoRowSize: false,
+      autoColumnSize: false,
+      data: [{checked: true}, {checked: false}],
+      columns: [
+        {type: 'checkbox', data: 'checked', label: {value: labelFunction}}
+      ]
+    });
+
+    expect(labelFunction.calls.length).toBe(2);
+    expect(labelFunction.calls[0].args).toEqual([0, 0, 'checked', true]);
+    expect(labelFunction.calls[1].args).toEqual([1, 0, 'checked', false]);
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
 });

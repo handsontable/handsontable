@@ -65,8 +65,9 @@
   cursor: default;
 }
 
-.htContextMenu table tbody tr td div {
-  padding-left: 10px;
+.htContextMenu table tbody tr td .htItemWrapper {
+  margin-left: 10px;
+  margin-right: 6px;
 }
 
 .htContextMenu table tbody tr td div span.selected {

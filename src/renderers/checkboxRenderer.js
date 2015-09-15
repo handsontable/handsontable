@@ -24,7 +24,9 @@ const BAD_VALUE_CLASS = 'htBadValue';
  */
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const eventManager = new EventManager(instance);
-  const input = createInput();
+  let input = createInput();
+  const labelOptions = cellProperties.label;
+  let badValue = false;
 
   if (typeof cellProperties.checkedTemplate === 'undefined') {
     cellProperties.checkedTemplate = true;
@@ -36,19 +38,39 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   if (value === cellProperties.checkedTemplate || equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
     input.checked = true;
-    TD.appendChild(input);
   }
   else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
-    TD.appendChild(input);
+    input.checked = false;
   }
   else if (value === null) { // default value
     addClass(input, 'noValue');
-    TD.appendChild(input);
   }
   else {
     input.style.display = 'none';
     addClass(input, BAD_VALUE_CLASS);
-    TD.appendChild(input);
+    badValue = true;
+  }
+  if (!badValue && labelOptions) {
+    let labelText = '';
+
+    if (labelOptions.value) {
+      labelText = typeof labelOptions.value === 'function' ? labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
+
+    } else if (labelOptions.property) {
+      labelText = instance.getDataAtRowProp(row, labelOptions.property);
+    }
+    const label = createLabel(labelText);
+
+    if (labelOptions.position === 'before') {
+      label.appendChild(input);
+    } else {
+      label.insertBefore(input, label.firstChild);
+    }
+    input = label;
+  }
+  TD.appendChild(input);
+
+  if (badValue) {
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
 
@@ -165,13 +187,27 @@ registerRenderer('checkbox', checkboxRenderer);
  * @returns {Node}
  */
 function createInput() {
-  let input = document.createElement('INPUT');
+  let input = document.createElement('input');
 
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
   input.setAttribute('autocomplete', 'off');
 
   return input.cloneNode(false);
+}
+
+/**
+ * Create label element.
+ *
+ * @returns {Node}
+ */
+function createLabel(text) {
+  let label = document.createElement('label');
+
+  label.className = 'htCheckboxRendererLabel';
+  label.appendChild(document.createTextNode(text));
+
+  return label.cloneNode(true);
 }
 
 function preventDefault(event) {

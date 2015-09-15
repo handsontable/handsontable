@@ -113,7 +113,6 @@ class BasePlugin {
    */
   callOnPluginsReady(callback) {
     if (this.isPluginsReady) {
-      this.pluginsInitializedCallbacks.length = 0;
       callback();
     } else {
       this.pluginsInitializedCallbacks.push(callback);
@@ -127,6 +126,7 @@ class BasePlugin {
    */
   onAfterPluginsInitialized() {
     arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }
 

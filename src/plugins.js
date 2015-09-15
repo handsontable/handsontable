@@ -7,6 +7,8 @@ import {toUpperCaseFirst} from './helpers/string';
 
 const registeredPlugins = new WeakMap();
 
+Handsontable.plugins = Handsontable.plugins || {};
+
 /**
  * Registers plugin under given name
  *
@@ -16,8 +18,10 @@ const registeredPlugins = new WeakMap();
 function registerPlugin(pluginName, PluginClass) {
   pluginName = toUpperCaseFirst(pluginName);
 
+  Handsontable.plugins[pluginName] = PluginClass;
+
   Handsontable.hooks.add('construct', function () {
-    var holder;
+    let holder;
 
     if (!registeredPlugins.has(this)) {
       registeredPlugins.set(this, {});
@@ -29,16 +33,10 @@ function registerPlugin(pluginName, PluginClass) {
     }
   });
   Handsontable.hooks.add('afterDestroy', function () {
-    var i, pluginsHolder;
-
     if (registeredPlugins.has(this)) {
-      pluginsHolder = registeredPlugins.get(this);
+      let pluginsHolder = registeredPlugins.get(this);
 
-      for (i in pluginsHolder) {
-        if (pluginsHolder.hasOwnProperty(i)) {
-          pluginsHolder[i].destroy();
-        }
-      }
+      objectEach(pluginsHolder, (plugin) => plugin.destroy());
       registeredPlugins.delete(this);
     }
   });

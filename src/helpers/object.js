@@ -1,4 +1,6 @@
 
+import {arrayEach} from './array';
+
 /**
  * Generate schema for passed object.
  *
@@ -59,6 +61,8 @@ export function extend(target, extension) {
   objectEach(extension, function(value, key) {
     target[key] = value;
   });
+
+  return target;
 }
 
 /**
@@ -112,6 +116,58 @@ export function clone(object) {
   objectEach(object, (value, key) => result[key] = value);
 
   return result;
+}
+
+/**
+ * Extend the Base object (usually prototype) of the functionality the `mixins` objects.
+ *
+ * @param {Object} Base Base object which will be extended.
+ * @param {Object} mixins The object of the functionality will be "copied".
+ * @returns {Object}
+ */
+export function mixin(Base, ...mixins) {
+  arrayEach(mixins, (mixin) => {
+    objectEach(mixin, (value, key) => {
+      if (typeof value === 'function') {
+        Base.prototype[key] = value;
+
+      } else {
+        let getter = function _getter(propertyName, initialValue) {
+          propertyName = '_' + propertyName;
+
+          let initValue = (value) => {
+            if (Array.isArray(value) || isObject(value)) {
+              value = deepClone(value);
+            }
+
+            return value;
+          };
+
+          return function() {
+            if (this[propertyName] === void 0) {
+              this[propertyName] = initValue(initialValue);
+            }
+
+            return this[propertyName];
+          }
+        };
+        let setter = function _setter(propertyName) {
+          propertyName = '_' + propertyName;
+
+          return function(value) {
+            this[propertyName] = value;
+          }
+        };
+        Object.defineProperty(Base.prototype, key, {
+          get: getter(key, value),
+          set: setter(key),
+          configurable: true,
+        });
+      }
+    });
+  });
+
+  return Base;
 }
 
 /**
