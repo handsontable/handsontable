@@ -1,4 +1,6 @@
 
+import {arrayEach} from './array';
+
 export const KEY_CODES = {
   MOUSE_LEFT: 1,
   MOUSE_RIGHT: 3,
@@ -104,5 +106,25 @@ export function isMetaKey(keyCode) {
  * @returns {Boolean}
  */
 export function isCtrlKey(keyCode) {
-  return [KEY_CODES.CONTROL_LEFT, 224, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT].indexOf(keyCode) != -1;
+  return [KEY_CODES.CONTROL_LEFT, 224, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT].indexOf(keyCode) !== -1;
+}
+
+/**
+ * @param {Number} keyCode
+ * @param {String} baseCode
+ * @returns {Boolean}
+ */
+export function isKey(keyCode, baseCode) {
+  let keys = baseCode.split('|');
+  let result = false;
+
+  arrayEach(keys, function(key) {
+    if (keyCode === KEY_CODES[key]) {
+      result = true;
+
+      return false;
+    }
+  });
+
+  return result;
 }

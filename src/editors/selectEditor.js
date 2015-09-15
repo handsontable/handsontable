@@ -11,6 +11,7 @@ import {
   outerWidth,
   resetCssTransform,
     } from './../helpers/dom/element';
+import {stopImmediatePropagation} from './../helpers/dom/event';
 import {KEY_CODES} from './../helpers/unicode';
 import {getEditor, registerEditor} from './../editors';
 import {BaseEditor} from './_baseEditor';
@@ -88,16 +89,6 @@ var onBeforeKeyDown = function(event) {
   var instance = this;
   var editor = instance.getActiveEditor();
 
-  if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function() {
-      this.isImmediatePropagationEnabled = false;
-    };
-    event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function() {
-      return !this.isImmediatePropagationEnabled;
-    };
-  }
-
   switch (event.keyCode) {
     case KEY_CODES.ARROW_UP:
       var previousOptionIndex = editor.select.selectedIndex - 1;
@@ -105,7 +96,7 @@ var onBeforeKeyDown = function(event) {
         editor.select[previousOptionIndex].selected = true;
       }
 
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
       event.preventDefault();
       break;
 
@@ -115,7 +106,7 @@ var onBeforeKeyDown = function(event) {
         editor.select[nextOptionIndex].selected = true;
       }
 
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
       event.preventDefault();
       break;
   }

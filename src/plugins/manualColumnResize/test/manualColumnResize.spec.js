@@ -22,6 +22,25 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(180);
   });
 
+  it("should be enabled after specifying it in updateSettings config", function () {
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true
+    });
+
+    updateSettings({manualColumnResize: true});
+
+    this.$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
+
+    expect($('.manualColumnResizer').size()).toBeGreaterThan(0);
+  });
+
   it("should change the default column widths with updateSettings", function () {
     handsontable({
       manualColumnResize: true

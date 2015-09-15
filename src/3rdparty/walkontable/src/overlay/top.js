@@ -68,6 +68,8 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       headerPosition = this.getScrollPosition();
     }
     this.adjustHeaderBordersPosition(headerPosition);
+
+    this.adjustElementsSize();
   }
 
   /**
@@ -121,7 +123,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       this.adjustRootChildrenSize();
 
       if (!force) {
-        this.isElementSizesAdjusted = true;
+        this.areElementSizesAdjusted = true;
       }
     }
   }
@@ -166,7 +168,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   applyToDOM() {
     let total = this.wot.getSetting('totalRows');
 
-    if (!this.isElementSizesAdjusted) {
+    if (!this.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {

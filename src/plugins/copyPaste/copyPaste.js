@@ -2,6 +2,7 @@
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
@@ -77,7 +78,7 @@ function CopyPastePlugin(instance) {
     if (isCtrlKey(event.keyCode)) {
       // when CTRL is pressed, prepare selectable text in textarea
       _this.setCopyableText();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
 
       return;
     }

@@ -6,7 +6,6 @@ import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 
 /**
- * @class ContextMenuCopyPaste
  * @plugin ContextMenuCopyPaste
  * @dependencies ContextMenu zeroclipboard
  */
@@ -92,7 +91,7 @@ class ContextMenuCopyPaste extends BasePlugin {
           this.copyPaste.triggerPaste();
         }
       },
-      Handsontable.ContextMenu.SEPARATOR
+      Handsontable.plugins.ContextMenu.SEPARATOR
     );
   }
 

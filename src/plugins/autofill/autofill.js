@@ -211,11 +211,11 @@ Autofill.prototype.apply = function () {
   var drag, select, start, end, _data, direction, deltas, selRange;
 
   this.handle.isDragged = 0;
-  drag = this.instance.view.wt.selections.fill.getCorners();
 
-  if (!drag) {
+  if (this.instance.view.wt.selections.fill.isEmpty()) {
     return;
   }
+  drag = this.instance.view.wt.selections.fill.getCorners();
   this.instance.view.wt.selections.fill.clear();
 
   if (this.instance.selection.isMultiple()) {

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
-  <title>Context Menu - Handsontable</title>
+  <title>Dropdown Menu - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -58,14 +58,14 @@
 <div class="rowLayout">
   <div class="descLayout">
     <div class="pad">
-      <h2>Context Menu</h2>
+      <h2>Dropdown Menu</h2>
 
-      <p>This page shows how to use and configure right-click context menu with Handsontable:</p>
+      <p>This page shows how to use and configure dropdown menu with Handsontable:</p>
 
       <ul>
-        <li><a href="#default">context menu with default options</a></li>
-        <li><a href="#specific">context menu with specific options</a></li>
-        <li><a href="#custom">context menu with fully custom configuration</a></li>
+        <li><a href="#default">dropdown menu with default options</a></li>
+        <li><a href="#specific">dropdown menu with specific options</a></li>
+        <li><a href="#custom">dropdown menu with fully custom configuration</a></li>
       </ul>
     </div>
   </div>
@@ -76,16 +76,11 @@
     <div class="pad" data-jsfiddle="example1">
       <a name="default"></a>
 
-      <h2>Context Menu with default options</h2>
+      <h2>Dropdown Menu with default options</h2>
 
-      <p>Tu run the basic configuration of the Context Menu, just set the contextMenu option to true.</p>
-
-      <p>From version 0.11, context menu also works for row and column headers. When the context menu for the row
-        header is opened, the column options are disabled. Likewise, when the context menu for the column header is opened,
-        the row options are disabled</p>
+      <p>Tu run the basic configuration of the Dropdown Menu, just set the dropdownMenu option to true.</p>
 
       <div id="example1"></div>
-
       <p>
         <button name="dump" data-dump="#example1" data-instance="hot1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
           data to console
@@ -125,9 +120,9 @@
           maxRows: 10,
           maxCols: 10,
           rowHeaders: true,
-          colHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
           minSpareRows: 1,
-          contextMenu: true
+          dropdownMenu: true
         };
         hot1 = new Handsontable(example1, settings1);
       </script>
@@ -140,9 +135,12 @@
     <div class="pad" data-jsfiddle="example2">
       <a name="specific"></a>
 
-      <h2>Context Menu with specific options</h2>
+      <h2>Dropdown Menu with specific options</h2>
 
-      <p>You can limit options available in the context menu using contextMenu option as an array of strings:</p>
+      <p>You can limit options available in the dropdown menu using dropdownMenu option as an array of strings.</p>
+      <p>
+        List of commands below are common for context menu and for dropdown menu.
+      </p>
 
       <ul>
         <li><b>row_above</b> (designed for <a href="contextmenu.html">Context Menu</a>)</li>
@@ -186,9 +184,9 @@
           startRows: 5,
           startCols: 5,
           rowHeaders: true,
-          colHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
           minSpareRows: 1,
-          contextMenu: ['row_above', 'row_below', 'remove_row']
+          dropdownMenu: ['col_left', 'col_right']
         };
         var hot2 = new Handsontable(example2, settings2);
       </script>
@@ -201,9 +199,9 @@
     <div class="pad" data-jsfiddle="example3">
       <a name="custom"></a>
 
-      <h2>Context Menu with with fully custom configuration</h2>
+      <h2>Dropdown Menu with with fully custom configuration</h2>
 
-      <p>For greatest configurability, you use contextMenu option as a configuration object as described in <a
+      <p>For greatest configurability, you use dropdownMenu option as a configuration object as described in <a
           href="http://medialize.github.com/jQuery-contextMenu/docs.html">jQuery contextMenu documentation</a>.</p>
 
       <p>This example shows how to set <strong>custom text</strong>, how to <strong>disable</strong>
@@ -232,36 +230,36 @@
           startRows: 5,
           startCols: 5,
           rowHeaders: true,
-          colHeaders: true,
+          colHeaders: true, // If you use `dropdownMenu` option you must enable colHeaders
           minSpareRows: 1
         };
 
-        var hot3 = new Handsontable(example3,settings3);
+        var hot3 = new Handsontable(example3, settings3);
 
         hot3.updateSettings({
-          contextMenu: {
+          dropdownMenu: {
             callback: function (key, options) {
               if (key === 'about') {
                 setTimeout(function () {
-                  //timeout is used to make sure the menu collapsed before alert is shown
-                  alert("This is a context menu with default and custom options mixed");
+                  // timeout is used to make sure the menu collapsed before alert is shown
+                  alert("This is a dropdown menu with default and custom options mixed");
                 }, 100);
               }
             },
             items: {
-              "row_above": {
+              "col_left": {
                 disabled: function () {
-                  //if first row, disable this option
-                  return (hot3.getSelected() && hot3.getSelected()[0]===0)
+                  // if first column, disable this option
+                  return this.getSelected() && this.getSelected()[1] === 0;
                 }
               },
-              "row_below": {},
+              "col_right": {},
               "hsep1": "---------",
-              "remove_row": {
-                name: 'Remove this row, ok?',
+              "remove_col": {
+                name: 'Remove this column, ok?',
                 disabled: function () {
-                  //if first row, disable this option
-                  return  (hot3.getSelected() && hot3.getSelected()[0] === 0)
+                  // if first column, disable this option
+                  return this.getSelected() && this.getSelected()[1] === 0
                 }
               },
               "hsep2": "---------",

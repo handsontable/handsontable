@@ -7,8 +7,6 @@ import {
   innerHeight,
     } from './../../../helpers/dom/element';
 
-let isMarkedOversizedColumn = {};
-
 /**
  * @class WalkontableTableRenderer
  */
@@ -248,7 +246,7 @@ class WalkontableTableRenderer {
   markOversizedColumns() {
     let overlayName = this.wot.getOverlayName();
 
-    if (!this.columnHeaderCount || isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     let columnCount = this.wtTable.getRenderedColumnsCount();
@@ -258,7 +256,7 @@ class WalkontableTableRenderer {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
   }
 
   /**

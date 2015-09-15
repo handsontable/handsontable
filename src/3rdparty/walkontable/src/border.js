@@ -8,6 +8,7 @@ import {
   innerHeight,
   outerWidth,
     } from './../../../helpers/dom/element';
+import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableOverlay} from './overlay/_base.js';
@@ -94,7 +95,7 @@ class WalkontableBorder {
       return;
     }
     event.preventDefault();
-    event.stopImmediatePropagation();
+    stopImmediatePropagation(event);
 
     let _this = this;
     let bounds = this.getBoundingClientRect();

@@ -1,5 +1,5 @@
-
 import {registerPlugin} from './../../plugins';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
@@ -12,16 +12,16 @@ function CellInfoCollection() {
 
   var collection = [];
 
-  collection.getInfo = function (row, col) {
+  collection.getInfo = function(row, col) {
     for (var i = 0, ilen = this.length; i < ilen; i++) {
       if (this[i].row <= row && this[i].row + this[i].rowspan - 1 >= row &&
-          this[i].col <= col && this[i].col + this[i].colspan - 1 >= col) {
+        this[i].col <= col && this[i].col + this[i].colspan - 1 >= col) {
         return this[i];
       }
     }
   };
 
-  collection.setInfo = function (info) {
+  collection.setInfo = function(info) {
     for (var i = 0, ilen = this.length; i < ilen; i++) {
       if (this[i].row === info.row && this[i].col === info.col) {
         this[i] = info;
@@ -31,7 +31,7 @@ function CellInfoCollection() {
     this.push(info);
   };
 
-  collection.removeInfo = function (row, col) {
+  collection.removeInfo = function(row, col) {
     for (var i = 0, ilen = this.length; i < ilen; i++) {
       if (this[i].row === row && this[i].col === col) {
         this.splice(i, 1);
@@ -154,7 +154,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       this.lastDesiredCoords = new WalkontableCellCoords(null, null);
     }
     var currentPosition = new WalkontableCellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col),
-      // if current position's parent is a merged range, returns it
+    // if current position's parent is a merged range, returns it
       mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col),
       currentRangeContainsMerge; // if current range contains a merged range
 
@@ -192,7 +192,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
     }
 
     var nextPosition = new WalkontableCellCoords(currentSelectedRange.highlight.row + newDelta.row,
-          currentSelectedRange.highlight.col + newDelta.col),
+        currentSelectedRange.highlight.col + newDelta.col),
       nextParentIsMerged = this.mergedCellInfoCollection.getInfo(nextPosition.row, nextPosition.col);
 
     if (nextParentIsMerged) { // skipping the invisible cells in the merge range
@@ -235,7 +235,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
         withinColspan = sameColspan(currentMerge, nextPosition);
 
       if (currentSelectedRange.includesRange(mergedRange) && (mergedRange.includes(nextPosition) ||
-          withinRowspan || withinColspan)) { // if next step overlaps a merged range, jump past it
+        withinRowspan || withinColspan)) { // if next step overlaps a merged range, jump past it
         if (withinRowspan) {
           if (newDelta.row < 0) {
             newDelta.row -= currentMerge.rowspan - 1;
@@ -260,6 +260,45 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
   if (newDelta.col !== 0) {
     delta.col = newDelta.col;
   }
+};
+
+MergeCells.prototype.shiftCollection = function(direction, index, count) {
+  var shiftVector = [0, 0];
+
+  switch (direction) {
+    case 'right':
+      shiftVector[0] += 1;
+
+      break;
+    case 'left':
+      shiftVector[0] -= 1;
+
+      break;
+    case 'down':
+      shiftVector[1] += 1;
+
+      break;
+    case 'up':
+      shiftVector[1] -= 1;
+
+      break;
+  }
+
+  for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
+    var currentMerge = this.mergedCellInfoCollection[i];
+
+    if (direction === 'right' || direction === 'left') {
+      if (index <= currentMerge.col) {
+        currentMerge.col += shiftVector[0];
+      }
+    } else {
+      if (index <= currentMerge.row) {
+        currentMerge.row += shiftVector[1];
+      }
+    }
+
+  }
+
 };
 
 var beforeInit = function() {
@@ -292,6 +331,32 @@ var afterInit = function() {
   }
 };
 
+var afterUpdateSettings = function() {
+  var instance = this;
+  var mergeCellsSetting = instance.getSettings().mergeCells;
+
+  if (mergeCellsSetting) {
+    if (!instance.mergeCells) {
+      instance.mergeCells = new MergeCells(mergeCellsSetting);
+
+    } else {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+
+      if (Array.isArray(mergeCellsSetting)) {
+        for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+          instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+        }
+      }
+    }
+
+  } else {
+    // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
+    if (instance.mergeCells) {
+      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+    }
+  }
+};
+
 var onBeforeKeyDown = function(event) {
   if (!this.mergeCells) {
     return;
@@ -303,7 +368,7 @@ var onBeforeKeyDown = function(event) {
     if (event.keyCode === 77) { //CTRL + M
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       this.render();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 };
@@ -313,7 +378,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
+  defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR);
 
   defaultOptions.items.push({
     key: 'mergeCells',
@@ -505,9 +570,9 @@ var isMultipleSelection = function(isMultiple) {
 
     for (var group in mergedCells) {
       if (selectionRange.highlight.row == mergedCells[group].row &&
-          selectionRange.highlight.col == mergedCells[group].col &&
-          selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+        selectionRange.highlight.col == mergedCells[group].col &&
+        selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+        selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
         return false;
       }
     }
@@ -531,8 +596,33 @@ function afterAutofillApplyValues(select, drag) {
   }
 }
 
+function onAfterCreateCol(col, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('right', col, count);
+  }
+}
+
+function onAfterRemoveCol(col, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('left', col, count);
+  }
+}
+
+function onAfterCreateRow(row, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('down', row, count);
+  }
+}
+
+function onAfterRemoveRow(row, count) {
+  if (this.mergeCells) {
+    this.mergeCells.shiftCollection('up', row, count);
+  }
+}
+
 Handsontable.hooks.add('beforeInit', beforeInit);
 Handsontable.hooks.add('afterInit', afterInit);
+Handsontable.hooks.add('afterUpdateSettings', afterUpdateSettings);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
@@ -545,6 +635,10 @@ Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
 Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
+Handsontable.hooks.add('afterCreateCol', onAfterCreateCol);
+Handsontable.hooks.add('afterRemoveCol', onAfterRemoveCol);
+Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
+Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 
 Handsontable.MergeCells = MergeCells;
 

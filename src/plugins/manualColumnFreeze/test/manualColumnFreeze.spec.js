@@ -20,10 +20,12 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 2
       });
 
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
-      hot.manualColumnFreeze.helpers.addFixedColumn();
+      plugin.addFixedColumn();
       expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
-      hot.manualColumnFreeze.helpers.addFixedColumn();
+      plugin.addFixedColumn();
       expect(hot.getSettings().fixedColumnsLeft).toEqual(4);
     });
   });
@@ -36,10 +38,12 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 4
       });
 
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
       expect(hot.getSettings().fixedColumnsLeft).toEqual(4);
-      hot.manualColumnFreeze.helpers.removeFixedColumn();
+      plugin.removeFixedColumn();
       expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
-      hot.manualColumnFreeze.helpers.removeFixedColumn();
+      plugin.removeFixedColumn();
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
     });
   });
@@ -52,18 +56,20 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 2
       });
 
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
       expect(typeof hot.manualColumnPositions).toEqual("object");
       expect(hot.manualColumnPositions.length).toEqual(0);
 
-      hot.manualColumnFreeze.helpers.checkPositionData();
+      plugin.checkPositionData();
       expect(hot.manualColumnPositions.length).toEqual(10);
 
       hot.manualColumnPositions = void 0;
-      hot.manualColumnFreeze.helpers.checkPositionData();
+      plugin.checkPositionData();
       expect(hot.manualColumnPositions.length).toEqual(10);
 
       hot.manualColumnPositions = [];
-      hot.manualColumnFreeze.helpers.checkPositionData(5);
+      plugin.checkPositionData(5);
       expect(hot.manualColumnPositions.length).toEqual(6);
 
       for (var i = 0; i < 6; i++) {
@@ -81,17 +87,19 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 2
       });
 
-      hot.manualColumnFreeze.helpers.checkPositionData(5);
+      var plugin = hot.getPlugin('manualColumnFreeze');
 
-      hot.manualColumnFreeze.helpers.modifyColumnOrder(4, 4, null, 'freeze');
+      plugin.checkPositionData(5);
+
+      plugin.modifyColumnOrder(4, 4, null, 'freeze');
       expect(hot.manualColumnPositions[2]).toEqual(4);
       expect(hot.manualColumnPositions[4]).toEqual(3);
 
-      hot.manualColumnFreeze.helpers.modifyColumnOrder(4, 2, null, 'unfreeze');
+      plugin.modifyColumnOrder(4, 2, null, 'unfreeze');
       expect(hot.manualColumnPositions[2]).toEqual(2);
       expect(hot.manualColumnPositions[4]).toEqual(4);
 
-      hot.manualColumnFreeze.helpers.modifyColumnOrder(1, 1, 3, 'unfreeze');
+      plugin.modifyColumnOrder(1, 1, 3, 'unfreeze');
       expect(hot.manualColumnPositions[1]).toEqual(2);
       expect(hot.manualColumnPositions[3]).toEqual(1);
 
@@ -106,19 +114,21 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 2
       });
 
-      hot.manualColumnFreeze.helpers.checkPositionData(5);
-      hot.manualColumnFreeze.helpers.modifyColumnOrder(4, 4, null, 'freeze');
-      hot.manualColumnFreeze.helpers.addFixedColumn();
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
+      plugin.checkPositionData(5);
+      plugin.modifyColumnOrder(4, 4, null, 'freeze');
+      plugin.addFixedColumn();
       // here manualColumnPositions looks like [0, 1, 4, 2, 3, 5] with 3 fixed columns
 
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(2)).toEqual(4);
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(1)).toEqual(2);
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(0)).toEqual(2);
+      expect(plugin.getBestColumnReturnPosition(2)).toEqual(4);
+      expect(plugin.getBestColumnReturnPosition(1)).toEqual(2);
+      expect(plugin.getBestColumnReturnPosition(0)).toEqual(2);
 
-      hot.manualColumnFreeze.helpers.addFixedColumn();
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(2)).toEqual(4);
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(1)).toEqual(3);
-      expect(hot.manualColumnFreeze.helpers.getBestColumnReturnPosition(0)).toEqual(3);
+      plugin.addFixedColumn();
+      expect(plugin.getBestColumnReturnPosition(2)).toEqual(4);
+      expect(plugin.getBestColumnReturnPosition(1)).toEqual(3);
+      expect(plugin.getBestColumnReturnPosition(0)).toEqual(3);
     });
   });
 
@@ -130,7 +140,9 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 2
       });
 
-      hot.manualColumnFreeze.freezeColumn(5);
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
+      plugin.freezeColumn(5);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
       expect(hot.manualColumnPositions[2]).toEqual(5);
@@ -147,7 +159,9 @@ describe("ManualColumnFreeze plugin:", function () {
         fixedColumnsLeft: 3
       });
 
-      hot.manualColumnFreeze.unfreezeColumn(0);
+      var plugin = hot.getPlugin('manualColumnFreeze');
+
+      plugin.unfreezeColumn(0);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(hot.manualColumnPositions[0]).toEqual(1);
@@ -168,7 +182,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
         return $(this).text() === "Freeze this column";
 
       });
@@ -187,7 +201,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
         return $(this).text() === "Unfreeze this column";
 
       });
@@ -209,7 +223,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
         if ($(this).text() === "Freeze this column") {
           return true;
         }
@@ -243,7 +257,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
         return $(this).text() === "Unfreeze this column";
 
       });
@@ -260,7 +274,7 @@ describe("ManualColumnFreeze plugin:", function () {
       selectCell(1, 1);
       contextMenu();
 
-      freezeEntry = $(hot.contextMenu.menus[0]).find("div").filter(function () {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
         if ($(this).text() === "Unfreeze this column") {
           return true;
         }

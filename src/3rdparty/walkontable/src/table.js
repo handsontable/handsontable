@@ -6,6 +6,7 @@ import {
   offset,
   removeClass,
   removeTextNodes,
+  overlayContainsElement
 } from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
@@ -154,13 +155,13 @@ class WalkontableTable {
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
-      if (trimmingElement !== window) {
+      if (trimmingElement === window) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
         this.holder.style.height = getStyle(trimmingElement, 'height');
         this.holder.style.overflow = '';
-      } else {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
       }
     }
   }
@@ -360,8 +361,9 @@ class WalkontableTable {
     } else {
       row = this.rowFilter.renderedToSource(row);
     }
+    let col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
 
-    return new WalkontableCellCoords(row, this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex));
+    return new WalkontableCellCoords(row, col);
   }
 
   getTrForRow(row) {

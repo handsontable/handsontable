@@ -3,6 +3,7 @@
  */
 
 import {inherit, deepClone} from './../../helpers/object';
+import {stopImmediatePropagation} from './../../helpers/dom/event';
 
 /**
  * Handsontable UndoRedo class
@@ -269,10 +270,9 @@ Handsontable.UndoRedo.CellAlignmentAction = function(stateBefore, range, type, a
   this.alignment = alignment;
 };
 Handsontable.UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.contextMenu) {
+  if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-
   for (var row = this.range.from.row; row <= this.range.to.row; row++) {
     for (var col = this.range.from.col; col <= this.range.to.col; col++) {
       instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
@@ -283,15 +283,11 @@ Handsontable.UndoRedo.CellAlignmentAction.prototype.undo = function(instance, un
   instance.render();
 };
 Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.contextMenu) {
+  if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
-      instance.contextMenu.align.call(instance, this.range, this.type, this.alignment);
-    }
-  }
+  instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
+  instance.getPlugin('contextMenu').executeCommand('alignment:' + this.alignment.replace('ht', '').toLowerCase());
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -370,11 +366,11 @@ function onBeforeKeyDown(event) {
   if (ctrlDown) {
     if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
       instance.undoRedo.redo();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
     else if (event.keyCode === 90) { //CTRL + Z
       instance.undoRedo.undo();
-      event.stopImmediatePropagation();
+      stopImmediatePropagation(event);
     }
   }
 }

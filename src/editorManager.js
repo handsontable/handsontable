@@ -1,8 +1,7 @@
 
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
-import {stopPropagation} from './helpers/dom/event';
-import {enableImmediatePropagation} from './helpers/dom/event';
+import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {getEditor} from './editors';
 import {eventManager as eventManagerObject} from './eventManager';
 
@@ -77,9 +76,7 @@ function EditorManager(instance, priv, selection){
     if (destroyed) {
       return;
     }
-    enableImmediatePropagation(event);
-
-    if (event.isImmediatePropagationStopped()) {
+    if (isImmediatePropagationStopped(event)) {
       return;
     }
     priv.lastKeyCode = event.keyCode;
@@ -202,7 +199,7 @@ function EditorManager(instance, priv, selection){
           }
         }
         event.preventDefault(); //don't add newline to field
-        event.stopImmediatePropagation(); //required by HandsontableEditor
+        stopImmediatePropagation(event); //required by HandsontableEditor
         break;
 
       case KEY_CODES.ESCAPE:
