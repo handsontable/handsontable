@@ -460,8 +460,8 @@ class WalkontableTable {
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
       WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       return this.wot.getSetting('fixedRowsTop');
-    } else if (this.wot.isBottomOverlay(this.wot.cloneOverlay) ||
-      this.wot.isBottomLeftCornerOverlay(this.wot.cloneOverlay)) {
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.instance.getSetting('fixedRowsBottom');
     }
 

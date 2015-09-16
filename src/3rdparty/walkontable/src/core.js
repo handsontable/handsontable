@@ -206,22 +206,6 @@ class Walkontable {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
   }
 
-  isBottomOverlay(instance) {
-    if(typeof WalkontableBottomOverlay !== 'undefined') {
-      return instance instanceof WalkontableBottomOverlay;
-    }
-
-    return false;
-  }
-
-  isBottomLeftCornerOverlay(instance) {
-    if(typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
-      return instance instanceof WalkontableBottomLeftCornerOverlay;
-    }
-
-    return false;
-  }
-
   /**
    * Export settings as class names added to the parent element of the table.
    */

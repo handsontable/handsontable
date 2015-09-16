@@ -104,7 +104,7 @@ class WalkontableOverlay {
    * @returns {Boolean}
    */
   static isOverlayTypeOf(overlay, type) {
-    if(!overlay || !registeredOverlays[type]) {
+    if (!overlay || !registeredOverlays[type]) {
       return false;
     }
 
