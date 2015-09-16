@@ -427,7 +427,7 @@
             document.body.appendChild(menu);
 
             event.preventDefault();
-            event.stopImmediatePropagation();
+            Handsontable.dom.stopImmediatePropagation(event);
 
             changeTypeMenu = document.querySelectorAll('.changeTypeMenu');
 

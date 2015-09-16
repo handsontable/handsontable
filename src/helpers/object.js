@@ -1,6 +1,6 @@
 
 /**
- * Generate schema for passed object
+ * Generate schema for passed object.
  *
  * @param {Array|Object} object
  * @returns {Array|Object}
@@ -13,23 +13,21 @@ export function duckSchema(object) {
   } else {
     schema = {};
 
-    for (var i in object) {
-      if (object.hasOwnProperty(i)) {
-        if (object[i] && typeof object[i] === 'object' && !Array.isArray(object[i])) {
-          schema[i] = duckSchema(object[i]);
+    objectEach(object, function(value, key) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        schema[key] = duckSchema(value);
 
-        } else if (Array.isArray(object[i])) {
-          if (object[i].length && typeof object[i][0] === 'object' && !Array.isArray(object[i][0])) {
-            schema[i] = [duckSchema(object[i][0])];
-          } else {
-            schema[i] = [];
-          }
-
+      } else if (Array.isArray(value)) {
+        if (value.length && typeof value[0] === 'object' && !Array.isArray(value[0])) {
+          schema[key] = [duckSchema(value[0])];
         } else {
-          schema[i] = null;
+          schema[key] = [];
         }
+
+      } else {
+        schema[key] = null;
       }
-    }
+    });
   }
 
   return schema;
@@ -39,6 +37,7 @@ export function duckSchema(object) {
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
  * Described in ticket: https://github.com/handsontable/handsontable/pull/516
+ *
  * @param  {Object} Child  child class
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
@@ -57,11 +56,9 @@ export function inherit(Child, Parent) {
  * @param {Object} extension An object containing additional properties to merge into the target
  */
 export function extend(target, extension) {
-  for (var i in extension) {
-    if (extension.hasOwnProperty(i)) {
-      target[i] = extension[i];
-    }
-  }
+  objectEach(extension, function(value, key) {
+    target[key] = value;
+  });
 }
 
 /**
@@ -70,29 +67,28 @@ export function extend(target, extension) {
  * @param {Object} extension An object containing additional properties to merge into the target
  */
 export function deepExtend(target, extension) {
-  for (var key in extension) {
-    if (extension.hasOwnProperty(key)) {
-      if (extension[key] && typeof extension[key] === 'object') {
-        if (!target[key]) {
-          if (Array.isArray(extension[key])) {
-            target[key] = [];
-          }
-          else {
-            target[key] = {};
-          }
+  objectEach(extension, function(value, key) {
+    if (extension[key] && typeof extension[key] === 'object') {
+      if (!target[key]) {
+        if (Array.isArray(extension[key])) {
+          target[key] = [];
         }
-        deepExtend(target[key], extension[key]);
+        else {
+          target[key] = {};
+        }
       }
-      else {
-        target[key] = extension[key];
-      }
+      deepExtend(target[key], extension[key]);
+
+    } else {
+      target[key] = extension[key];
     }
-  }
+  });
 }
 
 /**
- * Perform deep clone of an object
- * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc
+ * Perform deep clone of an object.
+ * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
+ *
  * @param {Object} obj An object that will be cloned
  * @return {Object}
  */
@@ -100,9 +96,22 @@ export function deepClone(obj) {
   if (typeof obj === "object") {
     return JSON.parse(JSON.stringify(obj));
   }
-  else {
-    return obj;
-  }
+
+  return obj;
+}
+
+/**
+ * Shallow clone object.
+ *
+ * @param {Object} object
+ * @returns {Object}
+ */
+export function clone(object) {
+  let result = {};
+
+  objectEach(object, (value, key) => result[key] = value);
+
+  return result;
 }
 
 /**

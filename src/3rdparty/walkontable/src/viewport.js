@@ -27,6 +27,7 @@ class WalkontableViewport {
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
+    this.isMarkedOversizedColumn = {};
     this.clientHeight = 0;
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
@@ -274,6 +275,7 @@ class WalkontableViewport {
     let height;
     let pos;
     let fixedRowsTop;
+    let scrollbarHeight;
 
     this.rowHeaderWidth = NaN;
 
@@ -295,6 +297,12 @@ class WalkontableViewport {
       height -= fixedRowsHeight;
     }
 
+    if (this.wot.wtTable.holder.clientHeight !== this.wot.wtTable.holder.offsetHeight) {
+      scrollbarHeight = getScrollbarWidth();
+    } else {
+      scrollbarHeight = 0;
+    }
+
     return new WalkontableViewportRowsCalculator(
       height,
       pos,
@@ -303,7 +311,8 @@ class WalkontableViewport {
         return this.wot.wtTable.getRowHeight(sourceRow);
       },
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
-      visible
+      visible,
+      scrollbarHeight
     );
   }
 
@@ -321,7 +330,7 @@ class WalkontableViewport {
 
     this.columnHeaderHeight = NaN;
 
-    pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+    pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
 
     if (pos < 0) {
       pos = 0;

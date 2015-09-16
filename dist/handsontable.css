@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.16.1
+ * Handsontable 0.18.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)
+ * Date: Thu Sep 10 2015 14:56:37 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -555,7 +555,7 @@ Comment For Cell
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-width: 0;
+  border-color: transparent;
 }
 
 .handsontable.listbox th,
@@ -579,20 +579,6 @@ Comment For Cell
   background: #eee;
 }
 
-.htContextMenu {
-  display: none;
-  position: absolute;
-  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
-  overflow: hidden;
-}
-
-.htContextMenu .ht_clone_top,
-.htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
-.htContextMenu .ht_clone_debug {
-  display: none;
-}
-
 .ht_clone_top {
   z-index: 101;
 }
@@ -609,66 +595,6 @@ Comment For Cell
   z-index: 103;
 }
 
-.htContextMenu table.htCore {
-  border: 1px solid #bbb;
-}
-
-.htContextMenu .wtBorder {
-  visibility: hidden;
-}
-
-.htContextMenu table tbody tr td {
-  background: white;
-  border-width: 0;
-  padding: 4px 6px 0px 6px;
-  cursor: pointer;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.htContextMenu table tbody tr td:first-child {
-  border: 0;
-}
-
-.htContextMenu table tbody tr td.htDimmed{
-  font-style: normal;
-  color: #323232;
-}
-
-.htContextMenu table tbody tr td.current,
-.htContextMenu table tbody tr td.zeroclipboard-is-hover {
-  background: rgb(233, 233, 233);
-}
-
-.htContextMenu table tbody tr td.htSeparator {
-  border-top: 1px solid #bbb;
-  height: 0;
-  padding: 0;
-}
-
-.htContextMenu table tbody tr td.htDisabled {
-  color: #999;
-}
-
-.htContextMenu table tbody tr td.htDisabled:hover {
-  background: white;
-  color: #999;
-  cursor: default;
-}
-.htContextMenu table tbody tr td div{
-  padding-left: 10px;
-}
-.htContextMenu table tbody tr td div span.selected{
-  margin-top: -2px;
-  position: absolute;
-  left: 4px;
-}
-
-.htContextMenu .ht_master .wtHolder {
-  overflow: hidden;
-}
-
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
@@ -681,19 +607,19 @@ Cell borders
   /*box-sizing: border-box !important;*/
   border-width: 1px;
 }
-.htBordered.htTopBorderSolid{
+.htBordered.htTopBorderSolid {
   border-top-style: solid;
   border-top-color: #000;
 }
-.htBordered.htRightBorderSolid{
+.htBordered.htRightBorderSolid {
   border-right-style: solid;
   border-right-color: #000;
 }
-.htBordered.htBottomBorderSolid{
+.htBordered.htBottomBorderSolid {
   border-bottom-style: solid;
   border-bottom-color: #000;
 }
-.htBordered.htLeftBorderSolid{
+.htBordered.htLeftBorderSolid {
   border-left-style: solid;
   border-left-color: #000;
 }
@@ -718,15 +644,15 @@ Cell borders
 
 .handsontable .htGroupIndicatorContainer {
   background: #fff;
-  border: 0px;
-  padding-bottom: 0px;
+  border: 0;
+  padding-bottom: 0;
   vertical-align: bottom;
   position: relative;
 }
 
 .handsontable thead .htGroupIndicatorContainer {
   vertical-align: top;
-  border-bottom: 0px;
+  border-bottom: 0;
 }
 
 .handsontable tbody tr th:nth-last-child(2) {
@@ -827,7 +753,7 @@ thead .htCollapseButton:after {
   height: 5px;
   width: 50%;
   position: relative;
-  top: 0px;
+  top: 0;
   left: 50%;
 }
 
@@ -837,7 +763,7 @@ thead .htCollapseButton:after {
   width: 15px;
   height: 15px;
   margin: 4px auto;
-  padding: 0px;
+  padding: 0;
   line-height: 15px;
   cursor: pointer;
 }
@@ -853,7 +779,7 @@ thead .htCollapseButton:after {
   -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  top: 0px;
+  top: 0;
   display: none;
 }
 
@@ -867,7 +793,7 @@ thead .htCollapseButton:after {
 }
 
 .handsontable col.hidden {
-  width: 0px !important;
+  width: 0 !important;
 }
 
 .handsontable tr.hidden,
@@ -1166,7 +1092,7 @@ thead .htCollapseButton:after {
 .htContextMenu {
   display: none;
   position: absolute;
-  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
+  z-index: 1060; /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
 }
 
 .htContextMenu .ht_clone_top,
@@ -1177,7 +1103,9 @@ thead .htCollapseButton:after {
 }
 
 .htContextMenu table.htCore {
-  outline: 1px solid #bbb;
+  border: 1px solid #bbb;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
 }
 
 .htContextMenu .wtBorder {
@@ -1187,7 +1115,7 @@ thead .htCollapseButton:after {
 .htContextMenu table tbody tr td {
   background: white;
   border-width: 0;
-  padding: 4px 6px 0px 6px;
+  padding: 4px 6px 0 6px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
@@ -1198,14 +1126,14 @@ thead .htCollapseButton:after {
   border: 0;
 }
 
-.htContextMenu table tbody tr td.htDimmed{
+.htContextMenu table tbody tr td.htDimmed {
   font-style: normal;
   color: #323232;
 }
 
 .htContextMenu table tbody tr td.current,
 .htContextMenu table tbody tr td.zeroclipboard-is-hover {
-  background: rgb(233, 233, 233);
+  background: #e9e9e9;
 }
 
 .htContextMenu table tbody tr td.htSeparator {
@@ -1219,15 +1147,21 @@ thead .htCollapseButton:after {
 }
 
 .htContextMenu table tbody tr td.htDisabled:hover {
-  background: white;
+  background: #fff;
   color: #999;
   cursor: default;
 }
-.htContextMenu table tbody tr td div{
+
+.htContextMenu table tbody tr td div {
   padding-left: 10px;
 }
-.htContextMenu table tbody tr td div span.selected{
+
+.htContextMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
   left: 4px;
+}
+
+.htContextMenu .ht_master .wtHolder {
+  overflow: hidden;
 }

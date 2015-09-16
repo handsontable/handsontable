@@ -1,13 +1,13 @@
 
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/dom/element';
+import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
-import {isPercentValue, rangeEach} from './../../helpers/number';
+import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
 import {SamplesGenerator} from './../../utils/samplesGenerator';
-import {valueAccordingPercent} from './../../helpers/string';
+import {isPercentValue} from './../../helpers/string';
 import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns';
 
 /**
@@ -80,6 +80,9 @@ class AutoColumnSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+
+    // moved to constructor to allow auto-sizing the columns when the plugin is disabled
+    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
   }
 
   /**
@@ -100,10 +103,17 @@ class AutoColumnSize extends BasePlugin {
     }
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
-    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
+
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**
@@ -189,8 +199,10 @@ class AutoColumnSize extends BasePlugin {
    * Recalculate all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    this.clearCache();
-    this.calculateAllColumnsWidth();
+    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
+      this.clearCache();
+      this.calculateAllColumnsWidth();
+    }
   }
 
   /**

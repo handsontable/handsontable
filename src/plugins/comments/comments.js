@@ -60,7 +60,6 @@ class Comments extends BasePlugin {
      * @type {CommentEditor}
      */
     this.editor = null;
-
     /**
      * Instance of {@link EventManager}
      *
@@ -68,26 +67,22 @@ class Comments extends BasePlugin {
      * @type {EventManager}
      */
     this.eventManager = null;
-
     /**
      * Current cell range
      *
      * @type {Object}
      */
     this.range = {};
-
     /**
      * @private
      * @type {Boolean}
      */
     this.mouseDown = false;
-
     /**
      * @private
      * @type {Boolean}
      */
     this.contextMenuEvent = false;
-
     /**
      * @private
      * @type {*}
@@ -124,6 +119,13 @@ class Comments extends BasePlugin {
     this.addHook('afterRowResize', () => this.refreshEditorPosition());
     this.registerListeners();
     super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**
@@ -412,8 +414,13 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
+    const selected = this.hot.getSelectedRange();
+
+    if (!selected) {
+      return false;
+    }
     let hasComment = false;
-    let cell = this.hot.getSelectedRange().from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.hot.getCellMeta(cell.row, cell.col).comment) {
       hasComment = true;
@@ -463,7 +470,7 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.ContextMenu.SEPARATOR,
+      Handsontable.plugins.ContextMenu.SEPARATOR,
       {
         key: 'commentsAddEdit',
         name: () => {
@@ -471,7 +478,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: function () {
-          return false;
+          return this.getSelected() ? false: true;
         }
       },
       {

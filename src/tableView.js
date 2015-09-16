@@ -6,11 +6,11 @@ import {
   getScrollbarWidth,
   hasClass,
   isChildOf,
+  isInput,
+  isOutsideInput,
     } from './helpers/dom/element';
-import {enableImmediatePropagation} from './helpers/dom/event';
 import {eventManager as eventManagerObject} from './eventManager';
-import {isOutsideInput, isInput} from './helpers/dom/element';
-import {stopPropagation} from './helpers/dom/event';
+import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
 import {Walkontable} from './3rdparty/walkontable/src/core';
@@ -40,7 +40,11 @@ function TableView(instance) {
   //  instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
-  table.className = 'htCore';
+  addClass(table, 'htCore');
+
+  if (instance.getSettings().tableClassName) {
+    addClass(table, instance.getSettings().tableClassName);
+  }
   this.THEAD = document.createElement('THEAD');
   table.appendChild(this.THEAD);
   this.TBODY = document.createElement('TBODY');
@@ -262,12 +266,9 @@ function TableView(instance) {
 
       isMouseDown = true;
 
-      enableImmediatePropagation(event);
-
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (!event.isImmediatePropagationStopped()) {
-
+      if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
           //do nothing
         } else if (event.shiftKey) {
@@ -292,6 +293,8 @@ function TableView(instance) {
             coords.col = coords.col < 0 ? 0 : coords.col;
 
             instance.selection.setRangeStart(coords);
+
+            instance.selection.setSelectedHeaders(false, false);
           }
         }
 
@@ -318,14 +321,25 @@ function TableView(instance) {
         if (isMouseDown) {
           // multi select columns
           if (coords.row < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-            instance.selection.setSelectedHeaders(false, true);
+            if (instance.selection.selectedHeader.cols) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+              instance.selection.setSelectedHeaders(false, true);
+
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
+
           }
 
           // multi select rows
           if (coords.col < 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-            instance.selection.setSelectedHeaders(true, false);
+            if (instance.selection.selectedHeader.rows) {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+              instance.selection.setSelectedHeaders(true, false);
+
+            } else {
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+            }
           }
         }
       }
@@ -507,14 +521,14 @@ TableView.prototype.appendRowHeader = function(row, TH) {
 
       return;
     }
-    this.updateCellHeader(container.firstChild, row, this.instance.getRowHeader);
+    this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
 
   } else {
     let div = document.createElement('div');
     let span = document.createElement('span');
 
     div.className = 'relative';
-    span.className = 'colHeader';
+    span.className = 'rowHeader';
     this.updateCellHeader(span, row, this.instance.getRowHeader);
 
     div.appendChild(span);
@@ -538,7 +552,7 @@ TableView.prototype.appendColHeader = function(col, TH) {
 
       return;
     }
-    this.updateCellHeader(container.firstChild, col, this.instance.getColHeader);
+    this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
 
   } else {
     var div = document.createElement('div');

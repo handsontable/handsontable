@@ -1,58 +1,55 @@
 # Handsontable [![Build Status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](https://travis-ci.org/handsontable/handsontable)
 
-Handsontable is a minimalist approach to Excel-like table editor (data grid) for HTML & JavaScript. 
+Handsontable is a data grid component with an Excel-like appearance. Built in JavaScript, it integrates with any data source and comes with [features](http://docs.handsontable.com/0.17.0/tutorial-features.html) like data validation, sorting, grouping, data binding or column ordering. Actively supported by the Handsoncode team and the GitHub community.
 
-Runs in IE 10+, Firefox, Chrome, Safari and Opera.
+Check out the demos at http://handsontable.com/examples.html or fork the example on
+[JSFiddle](http://jsfiddle.net/js_ziggle/hU6Kz/3228/) to see Handsontable in action.
 
-See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/js_ziggle/hU6Kz/3228/).
+- - -
 
-## Usage
+### Quick start
 
-First, include all the dependencies. All the files that you need are in the `dist\` directory:
+1. A recommended way to install Handsontable is through [Bower](http://bower.io/search/?q=handsontable) package manager using the following command:
 
-```html
-<script src="dist/handsontable.full.js"></script>
-<link rel="stylesheet" media="screen" href="dist/handsontable.full.css">
-```
+  `bower install handsontable --save`
 
-Then, create a new `Handsontable` object, passing a reference to an empty div as a first argument. After that, load some data if you wish:
+  Alternatively, you can [download it in a ZIP file](https://github.com/handsontable/handsontable/archive/master.zip).
 
-```html
-<div id="hot"></div>
-<script>
-  var data = [
-    ["", "Kia", "Nissan", "Toyota", "Honda"],
-    ["2008", 10, 11, 12, 13],
-    ["2009", 20, 11, 14, 13],
-    ["2010", 30, 15, 12, 13]
-  ];
-  
-  var container = document.getElementById('hot');
-  var hot = new Handsontable(container,
-    {
-      data: data,
-      minSpareRows: 1,
-      colHeaders: true,
-      contextMenu: true
-    });
-</script>
-```
+2. After Handsontable is downloaded, embed the code into your project. All the files that you need are in the `dist\` directory:
 
-## API Reference
+  ```html
+  <script src="dist/handsontable.full.js"></script>
+  <link rel="stylesheet" media="screen" href="dist/handsontable.full.css">
+  ```
 
-Check out the new wiki pages: [Options](https://github.com/handsontable/handsontable/wiki/Options), [Methods](https://github.com/handsontable/handsontable/wiki/Methods) and [Events](https://github.com/handsontable/handsontable/wiki/Events)
+3. Then, create a new `Handsontable` object, passing a reference to an empty div as a first argument. After that, load some data if you wish:
 
-## Changelog
+  ```html
+  <div id="example"></div>
 
-To see the list of recent changes, see [Releases](https://github.com/handsontable/handsontable/releases).
+  <script>
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+    
+   var container = document.getElementById('example');
+    var hot = new Handsontable(container,
+     {
+       data: data
+      });
+  </script>
+  ```
 
-## Questions
+### API Reference
 
-Please use the :new: [Handsontable Google Group](https://groups.google.com/forum/?fromgroups=#!forum/handsontable) for posting general **Questions**.
+- [Core methods](http://docs.handsontable.com/0.17.0/Core.html)
+- [Options](http://docs.handsontable.com/0.17.0/Options.html)
+- [Hooks](http://docs.handsontable.com/0.17.0/Hooks.html)
 
-Make sure the question was not answered before in [FAQ](https://github.com/handsontable/handsontable/wiki/FAQ) or [GitHub Issues](https://github.com/handsontable/handsontable/issues)
-
-## Reporting bugs and feature requests
+### Troubleshooting
 
 Please follow this guidelines when reporting bugs and feature requests:
 
@@ -63,14 +60,22 @@ Please follow this guidelines when reporting bugs and feature requests:
 
 Thanks for understanding!
 
-## Contributing
+### Compatibility
+
+Handsontable is compatible with IE 9+, Firefox, Chrome, Safari and Opera.
+
+### Want to help?
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Contact
+### Changelog
 
-You can contact us at hello@handsontable.com.
+To see the list of recent changes, see [Releases section](https://github.com/handsontable/handsontable/releases).
 
-## License
+### License
 
 The MIT License (see the [LICENSE](https://github.com/handsontable/handsontable/blob/master/LICENSE) file for the full text)
+
+### Contact
+
+You can contact us at hello@handsontable.com.
