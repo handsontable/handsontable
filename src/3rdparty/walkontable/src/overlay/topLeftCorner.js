@@ -71,3 +71,5 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
 export {WalkontableTopLeftCornerOverlay};
 
 window.WalkontableTopLeftCornerOverlay = WalkontableTopLeftCornerOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, WalkontableTopLeftCornerOverlay);

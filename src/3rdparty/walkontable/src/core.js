@@ -1,10 +1,9 @@
-
 import {
-  addClass,
-  fastInnerText,
-  isVisible,
-  removeClass,
-    } from './../../../helpers/dom/element';
+    addClass,
+    fastInnerText,
+    isVisible,
+    removeClass,
+} from './../../../helpers/dom/element';
 import {objectEach} from './../../../helpers/object';
 import {toUpperCaseFirst, randomString} from './../../../helpers/string';
 import {WalkontableEvent} from './event';
@@ -18,11 +17,6 @@ import {WalkontableTopOverlay} from './overlay/top.js';
 import {WalkontableLeftOverlay} from './overlay/left.js';
 import {WalkontableDebugOverlay} from './overlay/debug.js';
 import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
-
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP, WalkontableTopOverlay);
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, WalkontableTopLeftCornerOverlay);
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_DEBUG, WalkontableDebugOverlay);
 
 /**
  * @class Walkontable
@@ -121,7 +115,7 @@ class Walkontable {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if(this.wtOverlays.bottomLeftCornerOverlay.clone) {
+      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
 
@@ -129,7 +123,7 @@ class Walkontable {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row >= totalRows - fixedRowsBottom) {
-      if(this.wtOverlays.bottomOverlay.clone) {
+      if (this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
 

@@ -280,3 +280,5 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 export {WalkontableLeftOverlay};
 
 window.WalkontableLeftOverlay = WalkontableLeftOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);

@@ -1,15 +1,14 @@
-
 import {
-  addClass,
-  getCaretPosition,
-  getComputedStyle,
-  getCssTransform,
-  getScrollableElement,
-  innerWidth,
-  offset,
-  resetCssTransform,
-  setCaretPosition,
-    } from './../helpers/dom/element';
+    addClass,
+    getCaretPosition,
+    getComputedStyle,
+    getCssTransform,
+    getScrollableElement,
+    innerWidth,
+    offset,
+    resetCssTransform,
+    setCaretPosition,
+} from './../helpers/dom/element';
 import autoResize from 'autoResize';
 import {BaseEditor} from './_baseEditor';
 import {eventManager as eventManagerObject} from './../eventManager';
@@ -48,8 +47,8 @@ TextEditor.prototype.setValue = function(newValue) {
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
   var instance = this,
-    that = instance.getActiveEditor(),
-    ctrlDown;
+      that = instance.getActiveEditor(),
+      ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -98,7 +97,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
           var caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
+              value = that.getValue();
 
           var newValue = value.slice(0, caretPosition) + '\n' + value.slice(caretPosition);
 
@@ -137,7 +136,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 };
 
 
-
 TextEditor.prototype.open = function() {
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
@@ -147,7 +145,7 @@ TextEditor.prototype.open = function() {
 TextEditor.prototype.close = function(tdOutside) {
   this.textareaParentStyle.display = 'none';
 
-    this.autoResize.unObserve();
+  this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
     this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
@@ -192,7 +190,7 @@ TextEditor.prototype.createElements = function() {
 
 TextEditor.prototype.getEditedCell = function() {
   var editorSection = this.checkEditorSection(),
-    editedCell;
+      editedCell;
 
   switch (editorSection) {
     case 'top':
@@ -253,18 +251,18 @@ TextEditor.prototype.refreshDimensions = function() {
     return;
   }
   var currentOffset = offset(this.TD),
-    containerOffset = offset(this.instance.rootElement),
-    scrollableContainer = getScrollableElement(this.TD),
-    totalRowsCount = this.instance.countRows(),
-    editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
-    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+      containerOffset = offset(this.instance.rootElement),
+      scrollableContainer = getScrollableElement(this.TD),
+      totalRowsCount = this.instance.countRows(),
+      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
-    settings = this.instance.getSettings(),
-    rowHeadersCount = settings.rowHeaders ? 1 : 0,
-    colHeadersCount = settings.colHeaders ? 1 : 0,
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+      settings = this.instance.getSettings(),
+      rowHeadersCount = settings.rowHeaders ? 1 : 0,
+      colHeadersCount = settings.colHeaders ? 1 : 0,
+      editorSection = this.checkEditorSection(),
+      backgroundColor = this.TD.style.backgroundColor,
+      cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
@@ -286,7 +284,7 @@ TextEditor.prototype.refreshDimensions = function() {
   }
 
   if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-    (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
 
     editTop += 1;
   }
@@ -306,7 +304,7 @@ TextEditor.prototype.refreshDimensions = function() {
   ///end prepare textarea position
 
   var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
-    cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
 
   let width = innerWidth(this.TD) - 8;
   // 10 is TEXTAREAs padding

@@ -290,3 +290,5 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 export {WalkontableTopOverlay};
 
 window.WalkontableTopOverlay = WalkontableTopOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP, WalkontableTopOverlay);

@@ -1,10 +1,9 @@
-
 import {
-  getScrollableElement,
-  getScrollbarWidth,
-  getScrollLeft,
-  getScrollTop,
-    } from './../../../helpers/dom/element';
+    getScrollableElement,
+    getScrollbarWidth,
+    getScrollLeft,
+    getScrollTop,
+} from './../../../helpers/dom/element';
 import {isKey} from './../../../helpers/unicode';
 import {EventManager} from './../../../eventManager';
 
@@ -28,7 +27,8 @@ class WalkontableOverlays {
     this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
     this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
-    if(typeof WalkontableBottomOverlay !== 'undefined') {
+
+    if (typeof WalkontableBottomOverlay !== 'undefined') {
       this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
     } else {
       this.bottomOverlay = {
@@ -166,8 +166,7 @@ class WalkontableOverlays {
     }
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    if (this.keyPressed && this.mainTableScrollableElement !== window &&
-        !event.target.contains(this.mainTableScrollableElement)) {
+    if (this.keyPressed && this.mainTableScrollableElement !== window && !event.target.contains(this.mainTableScrollableElement)) {
       return;
     }
     if (event.type === 'scroll') {
@@ -373,7 +372,8 @@ class WalkontableOverlays {
   destroy() {
     this.eventManager.destroy();
     this.topOverlay.destroy();
-    if(this.bottomOverlay.clone) {
+
+    if (this.bottomOverlay.clone) {
       this.bottomOverlay.destroy();
     }
     this.leftOverlay.destroy();
@@ -408,7 +408,7 @@ class WalkontableOverlays {
       }
     }
 
-    if(this.bottomOverlay.clone) {
+    if (this.bottomOverlay.clone) {
       this.bottomOverlay.refresh(fastDraw);
     }
 
@@ -445,7 +445,8 @@ class WalkontableOverlays {
 
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
-    if(this.bottomOverlay.clone) {
+    
+    if (this.bottomOverlay.clone) {
       this.bottomOverlay.adjustElementsSize(force);
     }
 
@@ -460,7 +461,7 @@ class WalkontableOverlays {
     }
     this.topOverlay.applyToDOM();
 
-    if(this.bottomOverlay.clone) {
+    if (this.bottomOverlay.clone) {
       this.bottomOverlay.applyToDOM();
     }
 

@@ -1,4 +1,3 @@
-
 import {addClass, removeClass} from './../../helpers/dom/element';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -38,7 +37,8 @@ class TouchScroll extends BasePlugin {
 
       _this.scrollbars = [];
       _this.scrollbars.push(wtOverlays.topOverlay);
-      if(wtOverlays.bottomOverlay.clone) {
+
+      if (wtOverlays.bottomOverlay.clone) {
         _this.scrollbars.push(wtOverlays.bottomOverlay);
       }
       _this.scrollbars.push(wtOverlays.leftOverlay);

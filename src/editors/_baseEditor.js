@@ -236,22 +236,25 @@ BaseEditor.prototype.isWaiting = function() {
 
 BaseEditor.prototype.checkEditorSection = function() {
   var totalRows = this.instance.countRows();
+  var section = '';
 
   if (this.row < this.instance.getSettings().fixedRowsTop) {
     if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'top-left-corner';
+      section = 'top-left-corner';
     } else {
-      return 'top';
+      section = 'top';
     }
   } else if (this.instance.getSettings().fixedRowsBottom && this.row >= totalRows - this.instance.getSettings().fixedRowsBottom) {
     if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'bottom-left-corner';
+      section = 'bottom-left-corner';
     } else {
-      return 'bottom';
+      section = 'bottom';
     }
   } else {
     if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'left';
+      section = 'left';
     }
   }
+
+  return section;
 };

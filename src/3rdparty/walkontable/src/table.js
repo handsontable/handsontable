@@ -1,12 +1,12 @@
 import {
-  getStyle,
-  getTrimmingContainer,
-  hasClass,
-  index,
-  offset,
-  removeClass,
-  removeTextNodes,
-  overlayContainsElement
+    getStyle,
+    getTrimmingContainer,
+    hasClass,
+    index,
+    offset,
+    removeClass,
+    removeTextNodes,
+    overlayContainsElement
 } from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
@@ -197,7 +197,7 @@ class WalkontableTable {
           WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
       } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-                 WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+          WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = totalRows - this.wot.getSetting('fixedRowsBottom');
       } else {
         startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
@@ -232,6 +232,7 @@ class WalkontableTable {
 
     if (!this.isWorkingOnClone()) {
       this.wot.wtOverlays.topOverlay.resetFixedPosition();
+
       if (this.wot.wtOverlays.bottomOverlay.clone) {
         this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
       }
@@ -444,8 +445,8 @@ class WalkontableTable {
       return this.wot.getSetting('totalColumns');
 
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) ||
-                WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
-                WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.wot.getSetting('fixedColumnsLeft');
 
     } else {
@@ -458,8 +459,9 @@ class WalkontableTable {
       return this.wot.getSetting('totalRows');
 
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-      WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       return this.wot.getSetting('fixedRowsTop');
+
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
         WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.instance.getSetting('fixedRowsBottom');

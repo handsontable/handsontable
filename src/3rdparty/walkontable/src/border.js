@@ -1,13 +1,12 @@
-
 import {
-  getComputedStyle,
-  getTrimmingContainer,
-  innerWidth,
-  offset,
-  outerHeight,
-  innerHeight,
-  outerWidth,
-    } from './../../../helpers/dom/element';
+    getComputedStyle,
+    getTrimmingContainer,
+    innerWidth,
+    offset,
+    outerHeight,
+    innerHeight,
+    outerWidth,
+} from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
@@ -115,12 +114,14 @@ class WalkontableBorder {
         return true;
       }
     }
+
     function handler(event) {
       if (isOutside(event)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         _this.style.display = 'block';
       }
     }
+
     this.eventManager.addEventListener(document.body, 'mousemove', handler);
   }
 
@@ -310,31 +311,31 @@ class WalkontableBorder {
       return;
     }
     var isMultiple,
-      fromTD,
-      toTD,
-      fromOffset,
-      toOffset,
-      containerOffset,
-      top,
-      minTop,
-      left,
-      minLeft,
-      height,
-      width,
-      fromRow,
-      fromColumn,
-      toRow,
-      toColumn,
-      trimmingContainer,
-      cornerOverlappingContainer,
-      ilen;
+        fromTD,
+        toTD,
+        fromOffset,
+        toOffset,
+        containerOffset,
+        top,
+        minTop,
+        left,
+        minLeft,
+        height,
+        width,
+        fromRow,
+        fromColumn,
+        toRow,
+        toColumn,
+        trimmingContainer,
+        cornerOverlappingContainer,
+        ilen;
 
 
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-      WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsTop');
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-      WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+               WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsBottom');
     } else {
       ilen = this.wot.wtTable.getRenderedRowsCount();
@@ -439,6 +440,7 @@ class WalkontableBorder {
       this.cornerStyle.display = 'block';
 
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
 
