@@ -49,7 +49,6 @@ class Menu {
    */
   registerEvents() {
     this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
-    this.eventManager.addEventListener(this.container, 'mousedown', (event) => this.executeCommand(event));
   }
 
   /**
@@ -173,7 +172,6 @@ class Menu {
    */
   closeAllSubMenus() {
     arrayEach(this.hotMenu.getData(), (value, row) => this.closeSubMenu(row));
-    this.hotMenu.listen();
   }
 
   /**
@@ -423,12 +421,21 @@ class Menu {
 
     } else if (isSubMenu(item)) {
       addClass(TD, 'htSubmenu');
-      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
 
+      if (item.disableSelection) {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell);
+      } else {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
+      }
     } else {
       removeClass(TD, 'htSubmenu');
       removeClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
+
+      if (item.disableSelection) {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell);
+      } else {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
+      }
     }
   }
 
@@ -542,8 +549,12 @@ class Menu {
         break;
 
       case KEY_CODES.ARROW_LEFT:
-        if (selection && this.parentMenu) {
-          this.parentMenu.closeAllSubMenus();
+        if (selection && this.isSubMenu()) {
+          this.close();
+
+          if (this.parentMenu) {
+            this.parentMenu.hotMenu.listen();
+          }
           stopEvent = true;
         }
         break;
@@ -580,6 +591,9 @@ class Menu {
   onDocumentMouseDown(event) {
     if (!this.isOpened()) {
       return;
+    }
+    if (this.container && isChildOf(event.target, this.container)) {
+      this.executeCommand(event);
     }
     // Automatically close menu when clicked element is not belongs to menu or submenu
     if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
