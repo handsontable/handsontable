@@ -20,6 +20,10 @@ export function isDisabled(cell) {
   return hasClass(cell, 'htDisabled');
 }
 
+export function isSelectionDisabled(cell) {
+  return hasClass(cell, 'htSelectionDisabled');
+}
+
 export function getValidSelection(hot) {
   let selected = hot.getSelected();
 

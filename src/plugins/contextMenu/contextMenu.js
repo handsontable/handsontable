@@ -1,12 +1,12 @@
 
 import BasePlugin from './../_base';
 import {arrayEach} from './../../helpers/array';
-import {objectEach} from './../../helpers/object';
 import {CommandExecutor} from './commandExecutor';
 import {EventManager} from './../../eventManager';
 import {hasClass} from './../../helpers/dom/element';
 import {ItemsFactory} from './itemsFactory';
 import {Menu} from './menu';
+import {objectEach, mixin} from './../../helpers/object';
 import {registerPlugin} from './../../plugins';
 import {stopPropagation} from './../../helpers/dom/event';
 import {
@@ -22,7 +22,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
   predefinedItems
-} from './predefinedItems';
+    } from './predefinedItems';
 
 
 /**
@@ -55,25 +55,25 @@ class ContextMenu extends BasePlugin {
     /**
      * Instance of {@link EventManager}.
      *
-     * @type EventManager
+     * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Instance of {@link CommandExecutor}.
      *
-     * @type CommandExecutor
+     * @type {CommandExecutor}
      */
     this.commandExecutor = new CommandExecutor(this.hot);
     /**
      * Instance of {@link ItemsFactory}.
      *
-     * @type ItemsFactory
+     * @type {ItemsFactory}
      */
     this.itemsFactory = null;
     /**
      * Instance of {@link Menu}.
      *
-     * @type Menu
+     * @type {Menu}
      */
     this.menu = null;
   }
@@ -102,6 +102,11 @@ class ContextMenu extends BasePlugin {
     };
     this.registerEvents();
 
+    if (typeof settings.callback === 'function') {
+      this.commandExecutor.setCommonCallback(settings.callback);
+    }
+    super.enablePlugin();
+
     this.callOnPluginsReady(() => {
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
@@ -110,15 +115,10 @@ class ContextMenu extends BasePlugin {
 
       this.menu = new Menu(this.hot, {className: 'htContextMenu'});
       this.menu.setMenuItems(menuItems);
-      this.addHook('menuExecuteCommand', (menu, ...params) => {
-        if (menu === this.menu) {
-          this.executeCommand.apply(this, params);
-        }
-      });
-      if (typeof settings.callback === 'function') {
-        this.commandExecutor.setCommonCallback(settings.callback);
-      }
-      super.enablePlugin();
+
+      this.menu.addLocalHook('afterOpen', () => this.hot.runHooks('afterContextMenuShow', this));
+      this.menu.addLocalHook('afterClose', () => this.hot.runHooks('afterContextMenuHide', this));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
@@ -162,7 +162,6 @@ class ContextMenu extends BasePlugin {
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
     Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
-    this.hot.runHooks('afterContextMenuShow', this.menu.hotMenu);
   }
 
   /**
@@ -173,7 +172,6 @@ class ContextMenu extends BasePlugin {
       return;
     }
     this.menu.close();
-    this.hot.runHooks('afterContextMenuHide', this.hot);
   }
 
   /**
@@ -268,6 +266,3 @@ Handsontable.hooks.register('afterContextMenuExecute');
 export {ContextMenu};
 
 registerPlugin('contextMenu', ContextMenu);
-
-Handsontable.plugins = Handsontable.plugins || {};
-Handsontable.plugins.ContextMenu = ContextMenu;

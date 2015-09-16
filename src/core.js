@@ -9,6 +9,7 @@ import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
+import {rangeEach} from './helpers/number';
 import {TableView} from './tableView';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
@@ -1847,6 +1848,60 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
 
     return data[0];
+  };
+
+  /**
+   * @description
+   * Returns a data type defined in Handsontable settings under `type` key ([type](http://docs.handsontable.com/Options.html#type)).
+   * If in selected range of cells are cells with different types it returns `'mixed'`.
+   *
+   * @since 0.18.1
+   * @param {Number} rowFrom From row index.
+   * @param {Number} columnFrom To row index.
+   * @param {Number} rowTo From column index.
+   * @param {Number} columnTo To column index.
+   * @returns {String} Returns cells type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
+   */
+  this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
+    let previousType = null;
+    let currentType = null;
+
+    if (rowFrom === void 0) {
+      rowFrom = 0;
+      rowTo = this.countRows();
+      columnFrom = 0;
+      columnTo = this.countCols();
+    }
+    if (rowTo === void 0) {
+      rowTo = rowFrom;
+    }
+    if (columnTo === void 0) {
+      columnTo = columnFrom;
+    }
+    let type = 'mixed';
+
+    rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (row) => {
+      let isTypeEqual = true;
+
+      rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (column) => {
+        let cellType = this.getCellMeta(row, column);
+
+        currentType = cellType.type;
+
+        if (previousType) {
+          isTypeEqual = previousType === currentType;
+        } else {
+          previousType = currentType;
+        }
+
+        return isTypeEqual;
+      });
+      type = isTypeEqual ? currentType : 'mixed';
+
+      return isTypeEqual;
+    });
+
+    return type;
   };
 
   /**
@@ -3821,6 +3876,27 @@ DefaultSettings.prototype = {
   uncheckedTemplate: void 0,
 
   /**
+   * @description
+   * Object which describes if renderer should create checkbox element with label element as a parent. Option desired for
+   * cell which [checkbox](http://docs.handsontable.com/demo-checkbox.html) type.
+   *
+   * By default [checkbox](http://docs.handsontable.com/demo-checkbox.html) renderer is rendered without a label.
+   *
+   * Possible object properties:
+   *  * `property` - String which describes from what data object property will be used as a label.
+   * text (eg. `label: {property: 'name.last'}`). This option works only if data was passed as array of objects.
+   *  * `position` - String which describes where to place label text (before or after checkbox element).
+   * Valid value is: `'before'` or '`after`'. Default is `'after'`.
+   *  * `value` - String or Function which will be used as label text.
+   *
+   *
+   * @since 0.19.0
+   * @type {Object}
+   * @default undefined
+   */
+  label: void 0,
+
+  /**
    * Display format. See http://numeric.com.
    *
    * Option desired for cell which `'numeric'` type.
@@ -3828,9 +3904,8 @@ DefaultSettings.prototype = {
   format: void 0,
 
   /**
-   * Language display format. See http://numeric.com.
-   *
-   * Option desired for cell which `'numeric'` type.
+   * @description
+   * Language display format. See [numericjs](http://numeric.com). Option desired for cell which [numeric](http://docs.handsontable.com/demo-numeric.html) type.
    *
    * @type {String}
    * @default 'en'
@@ -3838,7 +3913,8 @@ DefaultSettings.prototype = {
   language: void 0,
 
   /**
-   * Data source for cell with `'select'` type.
+   * @description
+   * Data source for cell with [select](http://docs.handsontable.com/demo-select.html) type.
    *
    * @type {Array}
    */

@@ -410,6 +410,7 @@ var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
 var getDataAtCol = handsontableMethodFactory('getDataAtCol');
+var getDataType = handsontableMethodFactory('getDataType');
 var getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 var getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 var getRowHeader = handsontableMethodFactory('getRowHeader');

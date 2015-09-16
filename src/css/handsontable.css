@@ -446,6 +446,11 @@ CheckboxRenderer
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
+.handsontable .htCheckboxRendererLabel {
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
 
 /*
 NumericRenderer
