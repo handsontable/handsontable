@@ -15,7 +15,7 @@ import {arrayEach} from './../../helpers/array';
 import {Cursor} from './cursor';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach, mixin} from './../../helpers/object';
-import {isSeparator, isDisabled, hasSubMenu, normalizeSelection} from './utils';
+import {isSeparator, isDisabled, isSelectionDisabled, hasSubMenu, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import {localHooks} from './../../pluginHooks';
 import {SEPARATOR, predefinedItems} from './predefinedItems';
@@ -317,9 +317,9 @@ class Menu {
    * Select first cell in opened menu.
    */
   selectFirstCell() {
-    let firstCell = this.hotMenu.getCell(0, 0);
+    let cell = this.hotMenu.getCell(0, 0);
 
-    if (isSeparator(firstCell) || isDisabled(firstCell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(0, 0);
     } else {
       this.hotMenu.selectCell(0, 0);
@@ -331,9 +331,9 @@ class Menu {
    */
   selectLastCell() {
     let lastRow = this.hotMenu.countRows() - 1;
-    let lastCell = this.hotMenu.getCell(lastRow, 0);
+    let cell = this.hotMenu.getCell(lastRow, 0);
 
-    if (isSeparator(lastCell) || isDisabled(lastCell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(lastRow, 0);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
@@ -348,12 +348,12 @@ class Menu {
    */
   selectNextCell(row, col) {
     let nextRow = row + 1;
-    let nextCell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
+    let cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
 
-    if (!nextCell) {
+    if (!cell) {
       return;
     }
-    if (isSeparator(nextCell) || isDisabled(nextCell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(nextRow, col);
     } else {
       this.hotMenu.selectCell(nextRow, col);
@@ -368,12 +368,12 @@ class Menu {
    */
   selectPrevCell(row, col) {
     let prevRow = row - 1;
-    let prevCell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
+    let cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
 
-    if (!prevCell) {
+    if (!cell) {
       return;
     }
-    if (isSeparator(prevCell) || isDisabled(prevCell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(prevRow, col);
     } else {
       this.hotMenu.selectCell(prevRow, col);
@@ -398,6 +398,9 @@ class Menu {
     let itemIsDisabled = (item) => {
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
     };
+    let itemIsSelectionDisabled = (item) => {
+      return item.disableSelection;
+    };
     if (typeof value === 'function') {
       value = value.call(this.hot);
     }
@@ -417,13 +420,17 @@ class Menu {
     }
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell);
+      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
+
+    } else if (itemIsSelectionDisabled(item)) {
+      addClass(TD, 'htSelectionDisabled');
+      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
 
     } else if (isSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
-      if (item.disableSelection) {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell);
+      if (itemIsSelectionDisabled(item)) {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
       } else {
         this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
       }
@@ -431,8 +438,8 @@ class Menu {
       removeClass(TD, 'htSubmenu');
       removeClass(TD, 'htDisabled');
 
-      if (item.disableSelection) {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell);
+      if (itemIsSelectionDisabled(item)) {
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
       } else {
         this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
       }

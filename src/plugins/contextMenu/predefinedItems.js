@@ -151,7 +151,7 @@ const _predefinedItems = {
     callback: function(key, selection) {
       let column = selection.start.col;
 
-      rangeEach(Math.max(selection.start.row, selection.end.row), (row) => this.setDataAtCell(row, column, ''));
+      this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column);
     },
     disabled: function() {
       let selected = getValidSelection(this);
