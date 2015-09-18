@@ -390,7 +390,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let pushData = true;
           let cellMeta;
 
-          function getInputValue(row, col = null) {
+          let getInputValue = function getInputValue(row, col = null) {
             let rowValue = input[row % input.length];
 
             if (col !== null) {
@@ -398,7 +398,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             }
 
             return rowValue;
-          }
+          };
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
