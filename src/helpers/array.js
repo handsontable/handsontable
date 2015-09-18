@@ -139,3 +139,13 @@ export function arrayAvg(array) {
 
   return arraySum(array) / array.length;
 }
+
+/**
+ * Flatten multidimensional array.
+ *
+ * @param {Array} array Array of Arrays
+ * @returns {Array}
+ */
+export function arrayFlatten(array) {
+  return arrayReduce(array, (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value) : value), []);
+}

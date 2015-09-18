@@ -6,6 +6,7 @@ import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
 import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
+import {arrayFlatten} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
@@ -398,38 +399,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               col: 1
             };
           }
-
+          let skippedRow = 0;
 
           for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
               break;
             }
+            let physicalRow = r - skippedRow;
+
             current.col = start.col;
-            clen = input[r] ? input[r].length : 0;
+            clen = input[physicalRow] ? input[physicalRow].length : 0;
 
             if (end !== null) {
               end.col = baseEnd.col;
+            }
+            let cellMeta = instance.getCellMeta(current.row, current.col);
+
+            if ((source === 'paste' || source === 'autofill') && cellMeta.skipRowOnPaste) {
+              skippedRow++;
+              current.row++;
+              rlen++;
+
+              if (end !== null) {
+                end.row++;
+              }
+              continue;
             }
 
             for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
+              let cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if ((source === 'paste' || source === 'autofill') && instance.getCellMeta(current.row, current.col).skipColumnOnPaste) {
+              if ((source === 'paste' || source === 'autofill') && cellMeta.skipColumnOnPaste) {
                 current.col++;
                 clen++;
-                if(end !== null) {
+
+                if (end !== null) {
                   end.col++;
                 }
               }
 
               if (!instance.getCellMeta(current.row, current.col).readOnly) {
                 var result,
-                  value = input[r][c],
+                  value = input[physicalRow][c],
                   orgValue = instance.getDataAtCell(current.row, current.col),
                   index = {
-                    row: r,
+                    row: physicalRow,
                     col: c
                   },
                   valueSchema,
@@ -487,7 +504,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             current.row++;
             iterators.col = 1;
 
-            if (end && r === rlen - 1) {
+            if (end && physicalRow === rlen - 1) {
               r = -1;
 
               if (['down', 'right'].indexOf(direction) !== -1) {
@@ -1427,16 +1444,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * {@link DataMap#getCopyableText}
    *
    * @memberof Core#
-   * @function getCopyableData
+   * @function getCopyableText
    * @since 0.11
    * @param {Number} startRow From row
    * @param {Number} startCol From col
    * @param {Number} endRow To row
    * @param {Number} endCol To col
-   * @returns {Array|Object}
+   * @returns {String}
    */
-  this.getCopyableData = function(startRow, startCol, endRow, endCol) {
+  this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
+  };
+
+  /**
+   * Get copyable value at specyfied row and column index ({@link DataMap#getCopyable}).
+   *
+   * @memberof Core#
+   * @function getCopyableData
+   * @since 0.19.0
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {*}
+   */
+  this.getCopyableData = function(row, column) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
@@ -1926,6 +1957,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     priv.cellSettings[row][col][key] = val;
     Handsontable.hooks.run(instance, 'afterSetCellMeta', row, col, key, val);
+  };
+
+  /**
+   * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
+   *
+   * @since 0.19.0
+   * @returns {Array} Returns Array of ColumnSettings object.
+   */
+  this.getCellsMeta = function() {
+    return arrayFlatten(priv.cellSettings);
   };
 
   /**

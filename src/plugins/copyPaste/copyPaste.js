@@ -1,6 +1,8 @@
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {arrayEach} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
@@ -154,67 +156,63 @@ function CopyPastePlugin(instance) {
     var endCol = bottomRight.col;
     var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
     var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
+    var copyableRanges = [];
 
-    var copyableColumnRanges = [];
-    copyableColumnRanges.push({
+    copyableRanges.push({
       startRow: startRow,
       startCol: startCol,
       endRow: finalEndRow,
       endCol: finalEndCol
     });
 
-    copyableColumnRanges = Handsontable.hooks.run(instance, "modifyCopyableColumnRange", copyableColumnRanges);
+    copyableRanges = Handsontable.hooks.run(instance, 'modifyCopyableRange', copyableRanges);
 
-    var copyableData = this.getRangedCopyableData(copyableColumnRanges);
+    var copyableData = this.getRangedCopyableData(copyableRanges);
 
     instance.copyPaste.copyPasteInstance.copyable(copyableData);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+      Handsontable.hooks.run(instance, 'afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
     }
   };
 
+  /**
+   * Create copyable text releated to range objects.
+   *
+   * @since 0.19.0
+   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @returns {String} Returns string which will be copied into clipboard.
+   */
   this.getRangedCopyableData = function(ranges) {
-    var partial = [];
+    let dataSet = [];
+    let copyableRows = [];
+    let copyableColumns = [];
 
-    for (var i = 0, rangesCount = ranges.length; i < rangesCount; i++) {
-      partial.push(instance.getCopyableData(ranges[i].startRow, ranges[i].startCol, ranges[i].endRow, ranges[i].endCol));
-    }
-
-    if (rangesCount === 1) {
-      return partial[0];
-    } else {
-      return this.mergeCopyableColumnRanges(partial);
-    }
-  };
-
-  this.mergeCopyableColumnRanges = function(partialData) {
-    var mergedData = '';
-    var splitRows = [];
-    var tempArray;
-
-    for (var i = 0, partialCount = partialData.length; i < partialCount; i++) {
-      tempArray = partialData[i].split('\n');
-      tempArray.pop();
-
-      splitRows.push(tempArray);
-    }
-
-    for (var i = 0, rowCount = splitRows[0].length; i < rowCount; i++) {
-      for (var j = 0, splitCount = splitRows.length; j < splitCount; j++) {
-        mergedData += splitRows[j][i];
-
-        if(j !== splitCount -1) {
-          mergedData += '\t';
+    // Count all copyable rows and columns
+    arrayEach(ranges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
         }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+    // Concat all rows and columns data defined in ranges into one copyable string
+    arrayEach(copyableRows, (row) => {
+      let rowSet = [];
 
-      }
-      if (i !== rowCount - 1) {
-        mergedData += '\n';
-      }
-    }
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(instance.getCopyableData(row, column));
+      });
 
-    return mergedData;
+      dataSet.push(rowSet);
+    });
+
+    return SheetClip.stringify(dataSet);
   };
 }
 
