@@ -52,7 +52,7 @@ export function pivot(arr) {
  * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
  * @returns {*} Returns the accumulated value.
  */
-function arrayReduce(array, iteratee, accumulator, initFromArray) {
+export function arrayReduce(array, iteratee, accumulator, initFromArray) {
   let index = -1,
     length = array.length;
 

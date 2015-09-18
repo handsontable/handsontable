@@ -381,141 +381,107 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           current.row = start.row;
           current.col = start.col;
 
-          var iterators = {row: 0, col: 0}, // number of packages
-            selected = { // selected range
-              row: (end && start) ? (end.row - start.row + 1) : 1,
-              col: (end && start) ? (end.col - start.col + 1) : 1
-            },
-            pushData = true;
-
-          if (['up', 'left'].indexOf(direction) !== -1) {
-            iterators = {
-              row: Math.ceil(selected.row / rlen) || 1,
-              col: Math.ceil(selected.col / input[0].length) || 1
-            };
-          } else if (['down', 'right'].indexOf(direction) !== -1) {
-            iterators = {
-              row: 1,
-              col: 1
-            };
-          }
+          let selected = { // selected range
+            row: (end && start) ? (end.row - start.row + 1) : 1,
+            col: (end && start) ? (end.col - start.col + 1) : 1
+          };
           let skippedRow = 0;
+          let skippedColumn = 0;
+          let pushData = true;
+          let cellMeta;
 
-          for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
+          function getInputValue(row, col = null) {
+            let rowValue = input[row % input.length];
+
+            if (col !== null) {
+              return rowValue[col % rowValue.length];
+            }
+
+            return rowValue;
+          }
+          let rowInputLength = input.length;
+          let rowSelectionLength = end ? end.row - start.row + 1 : 0;
+
+          for (r = 0, rlen = Math.max(rowInputLength, rowSelectionLength); r < rlen; r++) {
+            if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
+                (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
+                (current.row >= priv.settings.maxRows)) {
               break;
             }
-            let physicalRow = r - skippedRow;
+            let logicalRow = r - skippedRow;
+            let colInputLength = getInputValue(logicalRow).length;
+            let colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             current.col = start.col;
-            clen = input[physicalRow] ? input[physicalRow].length : 0;
-
-            if (end !== null) {
-              end.col = baseEnd.col;
-            }
-            let cellMeta = instance.getCellMeta(current.row, current.col);
+            cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'paste' || source === 'autofill') && cellMeta.skipRowOnPaste) {
               skippedRow++;
               current.row++;
               rlen++;
-
-              if (end !== null) {
-                end.row++;
-              }
               continue;
             }
+            skippedColumn = 0;
 
-            for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
+            for (c = 0, clen = Math.max(colInputLength, colSelectionLength); c < clen; c++) {
+              if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
+                  (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
+                  (current.col >= priv.settings.maxCols)) {
                 break;
               }
-              let cellMeta = instance.getCellMeta(current.row, current.col);
+              cellMeta = instance.getCellMeta(current.row, current.col);
 
               if ((source === 'paste' || source === 'autofill') && cellMeta.skipColumnOnPaste) {
+                skippedColumn++;
                 current.col++;
                 clen++;
+                continue;
+              }
+              let logicalColumn = c - skippedColumn;
 
-                if (end !== null) {
-                  end.col++;
+              if (cellMeta.readOnly) {
+                current.col++;
+              }
+              let value = getInputValue(logicalRow, logicalColumn);
+              let orgValue = instance.getDataAtCell(current.row, current.col);
+              let index = {
+                row: logicalRow,
+                col: logicalColumn
+              };
+
+              if (source === 'autofill') {
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+
+                if (result) {
+                  value = typeof(result.value) !== 'undefined' ? result.value : value;
                 }
               }
-
-              if (!instance.getCellMeta(current.row, current.col).readOnly) {
-                var result,
-                  value = input[physicalRow][c],
-                  orgValue = instance.getDataAtCell(current.row, current.col),
-                  index = {
-                    row: physicalRow,
-                    col: c
-                  },
-                  valueSchema,
-                  orgValueSchema;
-
-                if (source === 'autofill') {
-                  result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
-
-                  if (result) {
-                    iterators = typeof(result.iterators) !== 'undefined' ? result.iterators : iterators;
-                    value = typeof(result.value) !== 'undefined' ? result.value : value;
-                  }
-                }
-                if (value !== null && typeof value === 'object') {
-                  if (orgValue === null || typeof orgValue !== 'object') {
-                    pushData = false;
-
-                  } else {
-                    orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                    valueSchema = duckSchema(value[0] || value);
-
-                    /* jshint -W073 */
-                    if (isObjectEquals(orgValueSchema, valueSchema)) {
-                      value = deepClone(value);
-                    } else {
-                      pushData = false;
-                    }
-                  }
-
-                } else if (orgValue !== null && typeof orgValue === 'object') {
+              if (value !== null && typeof value === 'object') {
+                if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;
-                }
-                if (pushData) {
-                  setData.push([current.row, current.col, value]);
-                }
-                pushData = true;
-              }
 
-              current.col++;
+                } else {
+                  let orgValueSchema = duckSchema(orgValue[0] || orgValue);
+                  let valueSchema = duckSchema(value[0] || value);
 
-              if (end && c === clen - 1) {
-                c = -1;
-
-                if (['down', 'right'].indexOf(direction) !== -1) {
-                  iterators.col++;
-                } else if (['up', 'left'].indexOf(direction) !== -1) {
-                  if (iterators.col > 1) {
-                    iterators.col--;
+                  /* jshint -W073 */
+                  if (isObjectEquals(orgValueSchema, valueSchema)) {
+                    value = deepClone(value);
+                  } else {
+                    pushData = false;
                   }
                 }
 
+              } else if (orgValue !== null && typeof orgValue === 'object') {
+                pushData = false;
               }
+              if (pushData) {
+                setData.push([current.row, current.col, value]);
+              }
+              pushData = true;
+              current.col++;
             }
-
             current.row++;
-            iterators.col = 1;
-
-            if (end && physicalRow === rlen - 1) {
-              r = -1;
-
-              if (['down', 'right'].indexOf(direction) !== -1) {
-                iterators.row++;
-              } else if (['up', 'left'].indexOf(direction) !== -1) {
-                if (iterators.row > 1) {
-                  iterators.row--;
-                }
-              }
-
-            }
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;

@@ -61,23 +61,28 @@ function CopyPastePlugin(instance) {
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
       Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
-    instance.addHookOnce('afterChange', function(changes, source) {
-      var skippedColumns = 0;
+    let isSelRowAreaCoverInputValue = coordsFrom.row - coordsTo.row >= inputArray.length - 1;
+    let isSelColAreaCoverInputValue = coordsFrom.col - coordsTo.col >= inputArray[0].length - 1;
 
-      if(changes !== null) {
-        var currentCol = changes[0][1];
+    instance.addHookOnce('afterChange', (changes, source) => {
+      let changesLength = changes ? changes.length : 0;
 
-        for(var i = 0, chlen = changes.length; i < chlen; i++) {
-          if(changes[i][1] === changes[0][1] + i + skippedColumns || changes[i][1] === changes[0][1]) {
-            currentCol++;
-          } else {
-            skippedColumns++;
+      if (changesLength) {
+        let offset = {row: 0, col: 0};
+
+        arrayEach(changes, (change, index) => {
+          let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
+
+          if (nextChange) {
+            if (!isSelRowAreaCoverInputValue) {
+              offset.row = offset.row + Math.max(nextChange[0] - change[0] - 1, 0);
+            }
+            if (!isSelColAreaCoverInputValue) {
+              offset.col = offset.col + Math.max(nextChange[1] - change[1] - 1, 0);
+            }
           }
-        }
-      }
-
-      if (changes && changes.length) {
-        this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col + skippedColumns);
+        });
+        instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
       }
     });
 
