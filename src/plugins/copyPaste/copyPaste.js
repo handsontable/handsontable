@@ -61,14 +61,15 @@ function CopyPastePlugin(instance) {
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
       Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
-    let isSelRowAreaCoverInputValue = coordsFrom.row - coordsTo.row >= inputArray.length - 1;
-    let isSelColAreaCoverInputValue = coordsFrom.col - coordsTo.col >= inputArray[0].length - 1;
+    let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
+    let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
     instance.addHookOnce('afterChange', (changes, source) => {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
         let offset = {row: 0, col: 0};
+        let highestColumnIndex = -1;
 
         arrayEach(changes, (change, index) => {
           let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
@@ -77,7 +78,8 @@ function CopyPastePlugin(instance) {
             if (!isSelRowAreaCoverInputValue) {
               offset.row = offset.row + Math.max(nextChange[0] - change[0] - 1, 0);
             }
-            if (!isSelColAreaCoverInputValue) {
+            if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
+              highestColumnIndex = change[1];
               offset.col = offset.col + Math.max(nextChange[1] - change[1] - 1, 0);
             }
           }
