@@ -23,16 +23,29 @@ export function isNumeric(n) {
  */
 export function rangeEach(rangeFrom, rangeTo, iteratee) {
   let index = -1;
+  let _rangeTo = rangeTo;
+  let _rangeFrom = 0;
 
   if (typeof rangeTo === 'function') {
     iteratee = rangeTo;
-    rangeTo = rangeFrom;
+    _rangeTo = rangeFrom;
   } else {
     index = rangeFrom - 1;
   }
-  while (++index <= rangeTo) {
-    if (iteratee(index) === false) {
-      break;
+  if (rangeFrom <= _rangeTo) {
+    while (++index <= _rangeTo) {
+      if (iteratee(index) === false) {
+        break;
+      }
+    }
+  } else {
+    index = rangeFrom + 1;
+    //_rangeTo
+
+    while (--index >= rangeTo) {
+      if (iteratee(index) === false) {
+        break;
+      }
     }
   }
 }
