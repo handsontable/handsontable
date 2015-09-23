@@ -220,7 +220,12 @@ class ManualColumnResize extends BasePlugin {
   onMouseOver(event) {
     if (this.checkIfColumnHeader(event.target)) {
       let th = this.getTHFromTargetElement(event.target);
-	    let colspan = th.getAttribute('colspan');
+
+      if (!th) {
+        return;
+      }
+
+      let colspan = th.getAttribute('colspan');
 
       if (th && (colspan === null || colspan === 1)) {
         if (!this.pressed) {

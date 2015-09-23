@@ -268,6 +268,8 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
+      instance.selection.setSelectedHeaders(false, false);
+
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
           //do nothing
@@ -281,8 +283,8 @@ function TableView(instance) {
               headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
               headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
 
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
               instance.selection.setSelectedHeaders(false, true);
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
             }
             if (coords.col < 0) {
               instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);

@@ -20,8 +20,9 @@ export function isNumeric(n) {
  * @param {Number} rangeFrom The number from start iterate.
  * @param {Number} rangeTo The number where finish iterate.
  * @param {Function} iteratee The function invoked per iteration.
+ * @param {Boolean} onlyForward Only go from rangeFrom to rangeTo, never the other way around
  */
-export function rangeEach(rangeFrom, rangeTo, iteratee) {
+export function rangeEach(rangeFrom, rangeTo, iteratee, onlyForward) {
   let index = -1;
   let _rangeTo = rangeTo;
   let _rangeFrom = 0;
@@ -32,7 +33,7 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
   } else {
     index = rangeFrom - 1;
   }
-  if (rangeFrom <= _rangeTo) {
+  if (onlyForward || rangeFrom <= _rangeTo) {
     while (++index <= _rangeTo) {
       if (iteratee(index) === false) {
         break;
