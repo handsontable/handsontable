@@ -4,23 +4,17 @@ import jsonpatch from 'jsonpatch';
 
 export {ObserveChanges};
 
-//registerPlugin('observeChanges', ObserveChanges);
-
 /**
  * @private
- * @class ObserveChanges
  * @plugin ObserveChanges
  * @dependencies jsonpatch
  */
-function ObserveChanges() {
-
-}
+function ObserveChanges() {}
 
 Handsontable.hooks.add('afterLoadData', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterChangesObserved');
-
 
 function init() {
   var instance = this;
@@ -70,7 +64,6 @@ function runHookForOperation(rawPatches) {
     var patch = patches[i];
     var parsedPath = parsePath(patch.path);
 
-
     switch (patch.op) {
       case 'add':
         if (isNaN(parsedPath.col)) {
@@ -114,7 +107,7 @@ function runHookForOperation(rawPatches) {
       var parsedPath = parsePath(patch.path);
 
       if (['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)) {
-        if (newOrRemovedColumns.indexOf(parsedPath.col) != -1) {
+        if (newOrRemovedColumns.indexOf(parsedPath.col) != -1) { // jscs:ignore disallowNotOperatorsInConditionals
           return false;
         } else {
           newOrRemovedColumns.push(parsedPath.col);

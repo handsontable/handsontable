@@ -10,7 +10,7 @@ import {
   hasClass,
   isChildOf,
   removeClass,
-    } from './../../helpers/dom/element';
+} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {Cursor} from './cursor';
 import {EventManager} from './../../eventManager';
@@ -20,7 +20,6 @@ import {KEY_CODES} from './../../helpers/unicode';
 import {localHooks} from './../../pluginHooks';
 import {SEPARATOR, predefinedItems} from './predefinedItems';
 import {stopPropagation, stopImmediatePropagation, pageX, pageY} from './../../helpers/dom/event';
-
 
 /**
  * @class Menu

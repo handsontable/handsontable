@@ -6,10 +6,8 @@ import {registerPlugin} from './../../plugins';
 
 /**
  * @private
- * @class MultipleSelectionHandles
  * @plugin MultipleSelectionHandles
  */
-
 class MultipleSelectionHandles extends BasePlugin {
   /**
    * @param {Object} hotInstance
@@ -85,10 +83,10 @@ class MultipleSelectionHandles extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
       let selectedRange;
 
-      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
+      if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
         selectedRange = _this.hot.getSelectedRange();
 
-        _this.dragged.push("topLeft");
+        _this.dragged.push('topLeft');
 
         _this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -99,10 +97,10 @@ class MultipleSelectionHandles extends BasePlugin {
         event.preventDefault();
         return false;
 
-      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
+      } else if (hasClass(event.target, 'bottomRightSelectionHandle-HitArea')) {
         selectedRange = _this.hot.getSelectedRange();
 
-        _this.dragged.push("bottomRight");
+        _this.dragged.push('bottomRight');
 
         _this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -116,16 +114,16 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
-      if (hasClass(event.target, "topLeftSelectionHandle-HitArea")) {
-        removeFromDragged.call(_this, "topLeft");
+      if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
+        removeFromDragged.call(_this, 'topLeft');
 
         _this.touchStartRange = void 0;
 
         event.preventDefault();
         return false;
 
-      } else if (hasClass(event.target, "bottomRightSelectionHandle-HitArea")) {
-        removeFromDragged.call(_this, "bottomRight");
+      } else if (hasClass(event.target, 'bottomRightSelectionHandle-HitArea')) {
+        removeFromDragged.call(_this, 'bottomRight');
 
         _this.touchStartRange = void 0;
 
@@ -157,7 +155,7 @@ class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      if (endTarget.nodeName == "TD" || endTarget.nodeName == "TH") {
+      if (endTarget.nodeName == 'TD' || endTarget.nodeName == 'TH') {
         targetCoords = _this.hot.getCoords(endTarget);
 
         if (targetCoords.col == -1) {
@@ -201,11 +199,11 @@ class MultipleSelectionHandles extends BasePlugin {
     };
 
     switch (touchStartDirection) {
-      case "NE-SW":
+      case 'NE-SW':
         switch (currentDirection) {
-          case "NE-SW":
-          case "NW-SE":
-            if (draggedHandle == "topLeft") {
+          case 'NE-SW':
+          case 'NW-SE':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: new WalkontableCellCoords(currentTouch.row, selectedRange.highlight.col),
                 end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
@@ -217,22 +215,22 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
-          case "SE-NW":
-            if (draggedHandle == "bottomRight") {
+          case 'SE-NW':
+            if (draggedHandle == 'bottomRight') {
               newCoords = {
                 start: new WalkontableCellCoords(bottomRightCorner.row, currentTouch.col),
                 end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
               };
             }
             break;
-          //case "SW-NE":
+          //case 'SW-NE':
           //  break;
         }
         break;
-      case "NW-SE":
+      case 'NW-SE':
         switch (currentDirection) {
-          case "NE-SW":
-            if (draggedHandle == "topLeft") {
+          case 'NE-SW':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: currentTouch,
                 end: bottomLeftCorner
@@ -241,8 +239,8 @@ class MultipleSelectionHandles extends BasePlugin {
               newCoords.end = currentTouch;
             }
             break;
-          case "NW-SE":
-            if (draggedHandle == "topLeft") {
+          case 'NW-SE':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: currentTouch,
                 end: bottomRightCorner
@@ -251,8 +249,8 @@ class MultipleSelectionHandles extends BasePlugin {
               newCoords.end = currentTouch;
             }
             break;
-          case "SE-NW":
-            if (draggedHandle == "topLeft") {
+          case 'SE-NW':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: currentTouch,
                 end: topLeftCorner
@@ -261,8 +259,8 @@ class MultipleSelectionHandles extends BasePlugin {
               newCoords.end = currentTouch;
             }
             break;
-          case "SW-NE":
-            if (draggedHandle == "topLeft") {
+          case 'SW-NE':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: currentTouch,
                 end: topRightCorner
@@ -273,10 +271,10 @@ class MultipleSelectionHandles extends BasePlugin {
             break;
         }
         break;
-      case "SW-NE":
+      case 'SW-NE':
         switch (currentDirection) {
-          case "NW-SE":
-            if (draggedHandle == "bottomRight") {
+          case 'NW-SE':
+            if (draggedHandle == 'bottomRight') {
               newCoords = {
                 start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
                 end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
@@ -288,11 +286,11 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
-          //case "NE-SW":
+          //case 'NE-SW':
           //
           //  break;
-          case "SW-NE":
-            if (draggedHandle == "topLeft") {
+          case 'SW-NE':
+            if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
                 end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
@@ -304,13 +302,13 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
-          case "SE-NW":
-            if (draggedHandle == "bottomRight") {
+          case 'SE-NW':
+            if (draggedHandle == 'bottomRight') {
               newCoords = {
                 start: new WalkontableCellCoords(currentTouch.row, topRightCorner.col),
                 end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
               };
-            } else if (draggedHandle == "topLeft") {
+            } else if (draggedHandle == 'topLeft') {
               newCoords = {
                 start: bottomLeftCorner,
                 end: currentTouch
@@ -319,17 +317,17 @@ class MultipleSelectionHandles extends BasePlugin {
             break;
         }
         break;
-      case "SE-NW":
+      case 'SE-NW':
         switch (currentDirection) {
-          case "NW-SE":
-          case "NE-SW":
-          case "SW-NE":
-            if (draggedHandle == "topLeft") {
+          case 'NW-SE':
+          case 'NE-SW':
+          case 'SW-NE':
+            if (draggedHandle == 'topLeft') {
               newCoords.end = currentTouch;
             }
             break;
-          case "SE-NW":
-            if (draggedHandle == "topLeft") {
+          case 'SE-NW':
+            if (draggedHandle == 'topLeft') {
               newCoords.end = currentTouch;
             } else {
               newCoords = {

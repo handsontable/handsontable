@@ -2,10 +2,9 @@
 import {
   outerHeight,
   outerWidth,
-  setOverlayPosition,
-    } from './../../../../helpers/dom/element';
+  setOverlayPosition
+} from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
-
 
 /**
  * @class WalkontableCornerOverlay

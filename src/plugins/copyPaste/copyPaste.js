@@ -8,7 +8,6 @@ import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 
-
 /**
  * @class CopyPaste
  * @plugin CopyPaste
@@ -144,7 +143,7 @@ function CopyPastePlugin(instance) {
     instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+      Handsontable.hooks.run(instance, 'afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
     }
   };
 }
@@ -181,5 +180,3 @@ Handsontable.hooks.add('afterUpdateSettings', init);
 Handsontable.hooks.register('afterCopyLimit');
 
 export {CopyPastePlugin};
-
-//registerPlugin('CopyPaste', CopyPastePlugin);

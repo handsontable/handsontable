@@ -10,14 +10,13 @@ import {
   outerHeight,
   outerWidth,
   resetCssTransform,
-    } from './../helpers/dom/element';
+} from './../helpers/dom/element';
 import {stopImmediatePropagation} from './../helpers/dom/event';
 import {KEY_CODES} from './../helpers/unicode';
 import {getEditor, registerEditor} from './../editors';
 import {BaseEditor} from './_baseEditor';
 
 var SelectEditor = BaseEditor.prototype.extend();
-
 
 /**
  * @private

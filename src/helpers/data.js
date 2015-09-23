@@ -10,6 +10,7 @@ export function spreadsheetColumnLabel(index) {
   var dividend = index + 1;
   var columnLabel = '';
   var modulo;
+
   while (dividend > 0) {
     modulo = (dividend - 1) % 26;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
@@ -28,17 +29,17 @@ export function createSpreadsheetData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
-  var rows = []
-    , i
-    , j;
+  var rows = [], i, j;
 
   for (i = 0; i < rowCount; i++) {
     var row = [];
+
     for (j = 0; j < colCount; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
     rows.push(row);
   }
+
   return rows;
 }
 
@@ -46,27 +47,22 @@ export function createSpreadsheetObjectData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
-  var rows = []
-    , i
-    , j;
+  var rows = [], i, j;
 
   for (i = 0; i < rowCount; i++) {
     var row = {};
+
     for (j = 0; j < colCount; j++) {
       row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
     }
     rows.push(row);
   }
+
   return rows;
 }
 
 export function translateRowsToColumns(input) {
-  var i
-    , ilen
-    , j
-    , jlen
-    , output = []
-    , olen = 0;
+  var i, ilen, j, jlen, output = [], olen = 0;
 
   for (i = 0, ilen = input.length; i < ilen; i++) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
@@ -77,6 +73,7 @@ export function translateRowsToColumns(input) {
       output[j].push(input[i][j]);
     }
   }
+
   return output;
 }
 
@@ -101,27 +98,21 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
   allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
 
-  return function cellMethodLookup (row, col) {
-
+  return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
 
-      if (!properties){
+      if (!properties) {
+        return; // method not found
 
-        return;                       //method not found
-
-      }
-      else if (properties.hasOwnProperty(methodName) && properties[methodName] !== void 0) { //check if it is own and is not empty
-
+      } else if (properties.hasOwnProperty(methodName) && properties[methodName] !== void 0) { //check if it is own and is not empty
         return properties[methodName];  //method defined directly
 
       } else if (properties.hasOwnProperty('type') && properties.type) { //check if it is own and is not empty
-
         var type;
 
-        if(typeof properties.type != 'string' ){
+        if (typeof properties.type != 'string') {
           throw new Error('Cell type must be a string ');
         }
-
         type = translateTypeNameToObject(properties.type);
 
         if (type.hasOwnProperty(methodName)) {
@@ -129,19 +120,17 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         } else if (allowUndefined) {
           return; //method does not defined in type (eg. validator), returns undefined
         }
-
       }
 
       return getMethodFromProperties(getPrototypeOf(properties));
 
     })(typeof row == 'number' ? this.getCellMeta(row, col) : row);
-
   };
 
   function translateTypeNameToObject(typeName) {
     var type = Handsontable.cellTypes[typeName];
 
-    if(typeof type == 'undefined'){
+    if (typeof type == 'undefined') {
       throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. ' +
         'Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
     }

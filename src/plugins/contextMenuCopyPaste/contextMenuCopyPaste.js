@@ -61,7 +61,7 @@ class ContextMenuCopyPaste extends BasePlugin {
     try {
       /* jshint -W031 */
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
-    } catch(exception) {
+    } catch (exception) {
       if (typeof navigator.mimeTypes['application/x-shockwave-flash'] == 'undefined') {
         console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
       }
@@ -74,6 +74,7 @@ class ContextMenuCopyPaste extends BasePlugin {
     this.hot.addHook('afterContextMenuShow', () => this.onAfterContextMenuShow());
     this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.registerEvents();
+    super.enablePlugin();
   }
 
   /**
@@ -108,14 +109,14 @@ class ContextMenuCopyPaste extends BasePlugin {
    * @private
    * @param {Object} defaultOptions
    */
-  onAfterContextMenuDefaultOptions (defaultOptions) {
+  onAfterContextMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.unshift({
         key: 'copy',
         name: 'Copy'
       }, {
         key: 'paste',
         name: 'Paste',
-        callback: function () {
+        callback: function() {
           this.copyPaste.triggerPaste();
         }
       },

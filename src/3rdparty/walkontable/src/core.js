@@ -4,7 +4,7 @@ import {
   fastInnerText,
   isVisible,
   removeClass,
-    } from './../../../helpers/dom/element';
+} from './../../../helpers/dom/element';
 import {objectEach} from './../../../helpers/object';
 import {toUpperCaseFirst, randomString} from './../../../helpers/string';
 import {WalkontableEvent} from './event';
@@ -13,7 +13,6 @@ import {WalkontableScroll} from './scroll';
 import {WalkontableSettings} from './settings';
 import {WalkontableTable} from './table';
 import {WalkontableViewport} from './viewport';
-
 
 /**
  * @class Walkontable

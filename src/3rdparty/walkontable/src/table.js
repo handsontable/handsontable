@@ -18,7 +18,9 @@ import {WalkontableRowFilter} from './filter/row';
 import {WalkontableTableRenderer} from './tableRenderer';
 import {WalkontableTopOverlay} from './overlay/top';
 
-
+/**
+ *
+ */
 class WalkontableTable {
   /**
    * @param {Walkontable} wotInstance
@@ -26,6 +28,7 @@ class WalkontableTable {
    */
   constructor(wotInstance, table) {
     this.wot = wotInstance;
+
     // legacy support
     this.instance = this.wot;
     this.TABLE = table;
@@ -186,7 +189,15 @@ class WalkontableTable {
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
     }
 
-    if (!fastDraw) {
+    if (fastDraw) {
+      if (!this.isWorkingOnClone()) {
+        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+        this.wot.wtViewport.createVisibleCalculators();
+      }
+      if (this.wot.wtOverlays) {
+        this.wot.wtOverlays.refresh(true);
+      }
+    } else {
       if (this.isWorkingOnClone()) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       } else {
@@ -215,15 +226,6 @@ class WalkontableTable {
       this._doDraw(); //creates calculator after draw
 
       this.alignOverlaysWithTrimmingContainer();
-
-    } else {
-      if (!this.isWorkingOnClone()) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        this.wot.wtViewport.createVisibleCalculators();
-      }
-      if (this.wot.wtOverlays) {
-        this.wot.wtOverlays.refresh(true);
-      }
     }
     this.refreshSelections(fastDraw);
 
@@ -524,7 +526,6 @@ class WalkontableTable {
     return width;
   }
 }
-
 
 export {WalkontableTable};
 

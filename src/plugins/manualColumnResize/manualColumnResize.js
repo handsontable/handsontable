@@ -125,9 +125,9 @@ class ManualColumnResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let col = this.hot.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
+    let col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns WalkontableCellCoords
 
-    if (col >= 0) { //if not col header
+    if (col >= 0) { // if not col header
       let box = this.currentTH.getBoundingClientRect();
 
       this.currentCol = col;
@@ -242,10 +242,10 @@ class ManualColumnResize extends BasePlugin {
         this.newSize = hookNewSize;
       }
 
-      this.setManualSize(this.currentCol, this.newSize); //double click sets auto row size
+      this.setManualSize(this.currentCol, this.newSize); // double click sets auto row size
 
       this.hot.forceFullRender = true;
-      this.hot.view.render(); //updates all
+      this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
       this.hot.runHooks('afterColumnResize', this.currentCol, this.newSize, true);
@@ -307,7 +307,7 @@ class ManualColumnResize extends BasePlugin {
         this.hot.runHooks('beforeColumnResize', this.currentCol, this.newSize);
 
         this.hot.forceFullRender = true;
-        this.hot.view.render(); //updates all
+        this.hot.view.render(); // updates all
         this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
         this.saveManualColumnWidths();
@@ -371,7 +371,6 @@ class ManualColumnResize extends BasePlugin {
 
     return width;
   }
-
 }
 
 export {ManualColumnResize};

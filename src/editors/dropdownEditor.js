@@ -1,7 +1,6 @@
 import {getEditor, registerEditor} from './../editors';
 import {AutocompleteEditor} from './autocompleteEditor';
 
-
 /**
  * @private
  * @editor DropdownEditor

@@ -9,9 +9,9 @@ import {stringify} from './../helpers/mixed';
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-Handsontable.AutocompleteValidator = function (value, callback) {
+Handsontable.AutocompleteValidator = function(value, callback) {
   if (this.strict && this.source) {
-    if ( typeof this.source === 'function' ) {
+    if (typeof this.source === 'function') {
       this.source(value, process(value, callback));
     } else {
       process(value, callback)(this.source);
@@ -31,14 +31,15 @@ function process(value, callback) {
   var originalVal  = value;
   var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
 
-  return function (source) {
+  return function(source) {
     var found = false;
+
     for (var s = 0, slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
         found = true; //perfect match
         break;
-      }
-      else if (lowercaseVal === stringify(source[s]).toLowerCase()) {
+
+      } else if (lowercaseVal === stringify(source[s]).toLowerCase()) {
         // changes[i][3] = source[s]; //good match, fix the case << TODO?
         found = true;
         break;

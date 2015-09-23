@@ -22,8 +22,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
   predefinedItems
-    } from './predefinedItems';
-
+} from './predefinedItems';
 
 /**
  * @plugin ContextMenu
@@ -46,7 +45,7 @@ class ContextMenu extends BasePlugin {
       SEPARATOR,
       READ_ONLY,
       SEPARATOR,
-      ALIGNMENT
+      ALIGNMENT,
     ];
   }
 
@@ -256,7 +255,6 @@ class ContextMenu extends BasePlugin {
 ContextMenu.SEPARATOR = {
   name: SEPARATOR
 };
-
 
 Handsontable.hooks.register('afterContextMenuDefaultOptions');
 Handsontable.hooks.register('afterContextMenuShow');

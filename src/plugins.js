@@ -20,7 +20,7 @@ function registerPlugin(pluginName, PluginClass) {
 
   Handsontable.plugins[pluginName] = PluginClass;
 
-  Handsontable.hooks.add('construct', function () {
+  Handsontable.hooks.add('construct', function() {
     let holder;
 
     if (!registeredPlugins.has(this)) {
@@ -32,7 +32,7 @@ function registerPlugin(pluginName, PluginClass) {
       holder[pluginName] = new PluginClass(this);
     }
   });
-  Handsontable.hooks.add('afterDestroy', function () {
+  Handsontable.hooks.add('afterDestroy', function() {
     if (registeredPlugins.has(this)) {
       let pluginsHolder = registeredPlugins.get(this);
 

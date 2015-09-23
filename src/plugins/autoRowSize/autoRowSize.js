@@ -9,7 +9,6 @@ import {registerPlugin} from './../../plugins';
 import {SamplesGenerator} from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
 
-
 /**
  * @plugin AutoRowSize
  *
@@ -308,7 +307,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-     return arrayFilter(this.heights, (item) => (item === void 0)).length ? true : false;
+    return arrayFilter(this.heights, (item) => (item === void 0)).length ? true : false;
   }
 
   /**
@@ -387,7 +386,7 @@ class AutoRowSize extends BasePlugin {
     } else if (changes.length > 1) {
       range = {
         from: changes[0][0],
-        to: changes[changes.length - 1][0]
+        to: changes[changes.length - 1][0],
       };
     }
     if (range !== null) {
