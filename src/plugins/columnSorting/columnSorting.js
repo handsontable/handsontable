@@ -1,10 +1,9 @@
-
 import {
-  addClass,
-  closest,
-  hasClass,
-  index,
-  removeClass,
+    addClass,
+    closest,
+    hasClass,
+    index,
+    removeClass,
 } from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
@@ -192,7 +191,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
     let eventManager = eventManagerObject(this.hot),
-      _this = this;
+        _this = this;
 
     this.bindedSortEvent = true;
     eventManager.addEventListener(this.hot.rootElement, 'click', function(e) {
@@ -235,11 +234,11 @@ class ColumnSorting extends BasePlugin {
     let _this = this;
 
     this.hot._registerTimeout(
-      setTimeout(function() {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
+        setTimeout(function() {
+          _this.hot.updateSettings({
+            observeChanges: true
+          });
+        }, 0));
   }
 
   /**
@@ -317,7 +316,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     let colMeta,
-      sortFunction;
+        sortFunction;
 
     this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
@@ -389,7 +388,7 @@ class ColumnSorting extends BasePlugin {
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel = headerLevel - TRs.length;
 
-    if(!headerLink) {
+    if (!headerLink) {
       return;
     }
 

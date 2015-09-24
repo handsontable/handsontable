@@ -547,7 +547,7 @@ const REGISTERED_HOOKS = [
    * @since
    * @param {String} copyableData
    */
-  "modifyCopyableColumnRange",
+  'modifyCopyableColumnRange',
 
   /**
    * @event Hooks#persistentStateLoad

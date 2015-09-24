@@ -248,7 +248,6 @@ function init() {
   }
 }
 
-
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
