@@ -51,7 +51,7 @@ var getLeftClone = function () {
 };
 
 var getCornerClone = function () {
-  return spec().$container.find('.ht_clone_corner');
+  return spec().$container.find('.ht_clone_top_left_corner');
 };
 
 //Rename me to countTD
@@ -476,6 +476,30 @@ function getRenderedValue(trIndex, tdIndex) {
  */
 function getRenderedContent(trIndex, tdIndex) {
   return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children()
+}
+
+/**
+ * Create numerical data values for the table
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+function createNumericData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push((i + 1));
+    }
+    rows.push(row);
+  }
+  return rows;
 }
 
 /**

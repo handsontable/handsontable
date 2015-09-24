@@ -1,15 +1,14 @@
-
 import {
-  addClass,
-  getCaretPosition,
-  getComputedStyle,
-  getCssTransform,
-  getScrollableElement,
-  innerWidth,
-  offset,
-  resetCssTransform,
-  setCaretPosition,
-    } from './../helpers/dom/element';
+    addClass,
+    getCaretPosition,
+    getComputedStyle,
+    getCssTransform,
+    getScrollableElement,
+    innerWidth,
+    offset,
+    resetCssTransform,
+    setCaretPosition,
+} from './../helpers/dom/element';
 import autoResize from 'autoResize';
 import {BaseEditor} from './_baseEditor';
 import {eventManager as eventManagerObject} from './../eventManager';
@@ -47,8 +46,8 @@ TextEditor.prototype.setValue = function(newValue) {
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
   var instance = this,
-    that = instance.getActiveEditor(),
-    ctrlDown;
+      that = instance.getActiveEditor(),
+      ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -97,7 +96,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
           var caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
+              value = that.getValue();
 
           var newValue = value.slice(0, caretPosition) + '\n' + value.slice(caretPosition);
 
@@ -135,13 +134,14 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
 };
 
+
 TextEditor.prototype.open = function() {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function() {
+TextEditor.prototype.close = function(tdOutside) {
   this.textareaParentStyle.display = 'none';
 
   this.autoResize.unObserve();
@@ -186,23 +186,10 @@ TextEditor.prototype.createElements = function() {
   }, 0));
 };
 
-TextEditor.prototype.checkEditorSection = function() {
-  if (this.row < this.instance.getSettings().fixedRowsTop) {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'corner';
-    } else {
-      return 'top';
-    }
-  } else {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      return 'left';
-    }
-  }
-};
 
 TextEditor.prototype.getEditedCell = function() {
   var editorSection = this.checkEditorSection(),
-    editedCell;
+      editedCell;
 
   switch (editorSection) {
     case 'top':
@@ -212,8 +199,15 @@ TextEditor.prototype.getEditedCell = function() {
       });
       this.textareaParentStyle.zIndex = 101;
       break;
-    case 'corner':
+    case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.textareaParentStyle.zIndex = 103;
+      break;
+    case 'bottom-left-corner':
+      editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
@@ -221,6 +215,13 @@ TextEditor.prototype.getEditedCell = function() {
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        row: this.row,
+        col: this.col
+      });
+      this.textareaParentStyle.zIndex = 102;
+      break;
+    case 'bottom':
+      editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
@@ -243,22 +244,23 @@ TextEditor.prototype.refreshDimensions = function() {
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close();
+    this.close(true);
 
     return;
   }
   var currentOffset = offset(this.TD),
-    containerOffset = offset(this.instance.rootElement),
-    scrollableContainer = getScrollableElement(this.TD),
-    editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
-    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+      containerOffset = offset(this.instance.rootElement),
+      scrollableContainer = getScrollableElement(this.TD),
+      totalRowsCount = this.instance.countRows(),
+      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
-    settings = this.instance.getSettings(),
-    rowHeadersCount = settings.rowHeaders ? 1 : 0,
-    colHeadersCount = settings.colHeaders ? 1 : 0,
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+      settings = this.instance.getSettings(),
+      rowHeadersCount = settings.rowHeaders ? 1 : 0,
+      colHeadersCount = settings.colHeaders ? 1 : 0,
+      editorSection = this.checkEditorSection(),
+      backgroundColor = this.TD.style.backgroundColor,
+      cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
@@ -268,12 +270,20 @@ TextEditor.prototype.refreshDimensions = function() {
     case 'left':
       cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       break;
-    case 'corner':
+    case 'top-left-corner':
       cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      break;
+    case 'bottom-left-corner':
+      cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      break;
+    case 'bottom':
+      cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       break;
   }
 
-  if (this.instance.getSelected()[0] === 0) {
+  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
+      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+
     editTop += 1;
   }
 
@@ -292,7 +302,7 @@ TextEditor.prototype.refreshDimensions = function() {
   // end prepare textarea position
 
   var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
-    cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
 
   let width = innerWidth(this.TD) - 8;
   // 10 is TEXTAREAs padding

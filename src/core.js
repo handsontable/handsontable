@@ -154,9 +154,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
 
+          var totalRows = instance.countRows();
           var fixedRowsTop = instance.getSettings().fixedRowsTop;
           if (fixedRowsTop >= index + 1) {
             instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
+          }
+
+          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+          if (fixedRowsBottom && totalRows - fixedRowsBottom <= index + 1) {
+            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom - index); //TODO: not sure if right
           }
 
           grid.adjustRowsAndCols();
@@ -665,19 +671,21 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      */
     transformStart: function(rowDelta, colDelta, force, keepEditorOpened) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta),
-          rowTransformDir = 0,
-          colTransformDir = 0,
-          totalRows,
-          totalCols,
-          coords;
+        rowTransformDir = 0,
+        colTransformDir = 0,
+        totalRows,
+        totalCols,
+        coords,
+        fixedRowsBottom;
 
       instance.runHooks('modifyTransformStart', delta);
       totalRows = instance.countRows();
       totalCols = instance.countCols();
+      fixedRowsBottom = instance.getSettings().fixedRowsBottom;
 
       /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
-        if (force && priv.settings.minSpareRows > 0) {
+        if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
           instance.alter('insert_row', totalRows);
           totalRows = instance.countRows();
 
@@ -3297,6 +3305,14 @@ DefaultSettings.prototype = {
    * @default 0
    */
   fixedRowsTop: 0,
+
+  /**
+   * Allows to specify the number of rows fixed (aka freezed) on the bottom of the table.
+   *
+   * @type {Number}
+   * @default 0
+   */
+  fixedRowsBottom: 0,
 
   /**
    * Allows to specify the number of columns fixed (aka freezed) on the left side of the table.

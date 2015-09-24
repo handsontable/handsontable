@@ -119,7 +119,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   adjustElementsSize(force = false) {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
-      this.adjustRootChildsSize();
+      this.adjustRootChildrenSize();
 
       if (!force) {
         this.areElementSizesAdjusted = true;
@@ -149,7 +149,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   /**
    * Adjust overlay root childs size
    */
-  adjustRootChildsSize() {
+  adjustRootChildrenSize() {
     let scrollbarWidth = getScrollbarWidth();
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
@@ -279,3 +279,5 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 export {WalkontableLeftOverlay};
 
 window.WalkontableLeftOverlay = WalkontableLeftOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);

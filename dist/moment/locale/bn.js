@@ -45,8 +45,8 @@
             LTS : 'A h:mm:ss সময়',
             L : 'DD/MM/YYYY',
             LL : 'D MMMM YYYY',
-            LLL : 'D MMMM YYYY, A h:mm সময়',
-            LLLL : 'dddd, D MMMM YYYY, A h:mm সময়'
+            LLL : 'D MMMM YYYY, LT',
+            LLLL : 'dddd, D MMMM YYYY, LT'
         },
         calendar : {
             sameDay : '[আজ] LT',
@@ -81,7 +81,7 @@
                 return symbolMap[match];
             });
         },
-        meridiemParse: /রাত|সকাল|দুপুর|বিকেল|রাত/,
+        meridiemParse: /রাত|শকাল|দুপুর|বিকেল|রাত/,
         isPM: function (input) {
             return /^(দুপুর|বিকেল|রাত)$/.test(input);
         },
@@ -92,7 +92,7 @@
             if (hour < 4) {
                 return 'রাত';
             } else if (hour < 10) {
-                return 'সকাল';
+                return 'শকাল';
             } else if (hour < 17) {
                 return 'দুপুর';
             } else if (hour < 20) {

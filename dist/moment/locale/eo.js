@@ -19,11 +19,11 @@
         weekdaysMin : 'Di_Lu_Ma_Me_Ĵa_Ve_Sa'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
-            LTS : 'HH:mm:ss',
+            LTS : 'LT:ss',
             L : 'YYYY-MM-DD',
             LL : 'D[-an de] MMMM, YYYY',
-            LLL : 'D[-an de] MMMM, YYYY HH:mm',
-            LLLL : 'dddd, [la] D[-an de] MMMM, YYYY HH:mm'
+            LLL : 'D[-an de] MMMM, YYYY LT',
+            LLLL : 'dddd, [la] D[-an de] MMMM, YYYY LT'
         },
         meridiemParse: /[ap]\.t\.m/i,
         isPM: function (input) {

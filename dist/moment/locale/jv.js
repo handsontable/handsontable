@@ -18,11 +18,11 @@
         weekdaysMin : 'Mg_Sn_Sl_Rb_Km_Jm_Sp'.split('_'),
         longDateFormat : {
             LT : 'HH.mm',
-            LTS : 'HH.mm.ss',
+            LTS : 'LT.ss',
             L : 'DD/MM/YYYY',
             LL : 'D MMMM YYYY',
-            LLL : 'D MMMM YYYY [pukul] HH.mm',
-            LLLL : 'dddd, D MMMM YYYY [pukul] HH.mm'
+            LLL : 'D MMMM YYYY [pukul] LT',
+            LLLL : 'dddd, D MMMM YYYY [pukul] LT'
         },
         meridiemParse: /enjing|siyang|sonten|ndalu/,
         meridiemHour : function (hour, meridiem) {

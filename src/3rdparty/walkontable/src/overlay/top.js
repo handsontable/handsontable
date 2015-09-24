@@ -119,7 +119,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   adjustElementsSize(force = false) {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
-      this.adjustRootChildsSize();
+      this.adjustRootChildrenSize();
 
       if (!force) {
         this.areElementSizesAdjusted = true;
@@ -149,7 +149,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   /**
    * Adjust overlay root childs size
    */
-  adjustRootChildsSize() {
+  adjustRootChildrenSize() {
     let scrollbarWidth = getScrollbarWidth();
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
@@ -216,9 +216,12 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     }
 
     if (bottomEdge) {
-      newY += this.sumCellSizes(0, sourceRow + 1);
-      newY -= this.wot.wtViewport.getViewportHeight();
+      let fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+      let fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+      let totalRows = this.wot.getSetting('totalRows');
 
+      newY += this.sumCellSizes(0, sourceRow + 1);
+      newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
       newY += 1;
 
@@ -289,3 +292,5 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 export {WalkontableTopOverlay};
 
 window.WalkontableTopOverlay = WalkontableTopOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP, WalkontableTopOverlay);

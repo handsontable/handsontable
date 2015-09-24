@@ -97,5 +97,5 @@ function getTableLeftClone() {
 }
 
 function getTableCornerClone() {
-  return $('.ht_clone_corner');
+  return $('.ht_clone_top_left_corner');
 }

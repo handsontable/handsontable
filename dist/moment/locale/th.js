@@ -17,11 +17,11 @@
         weekdaysMin : 'อา._จ._อ._พ._พฤ._ศ._ส.'.split('_'),
         longDateFormat : {
             LT : 'H นาฬิกา m นาที',
-            LTS : 'H นาฬิกา m นาที s วินาที',
+            LTS : 'LT s วินาที',
             L : 'YYYY/MM/DD',
             LL : 'D MMMM YYYY',
-            LLL : 'D MMMM YYYY เวลา H นาฬิกา m นาที',
-            LLLL : 'วันddddที่ D MMMM YYYY เวลา H นาฬิกา m นาที'
+            LLL : 'D MMMM YYYY เวลา LT',
+            LLLL : 'วันddddที่ D MMMM YYYY เวลา LT'
         },
         meridiemParse: /ก่อนเที่ยง|หลังเที่ยง/,
         isPM: function (input) {

@@ -34,6 +34,7 @@ class WalkontableTableRenderer {
     this.columnHeaders = [];
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
+    this.fixedRowsBottom = 0;
   }
 
   /**
@@ -47,6 +48,7 @@ class WalkontableTableRenderer {
     this.rowHeaders = this.wot.getSetting('rowHeaders');
     this.rowHeaderCount = this.rowHeaders.length;
     this.fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+    this.fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
     this.columnHeaders = this.wot.getSetting('columnHeaders');
     this.columnHeaderCount = this.columnHeaders.length;
 
@@ -56,6 +58,14 @@ class WalkontableTableRenderer {
     let totalRows = this.wot.getSetting('totalRows');
     let workspaceWidth;
     let adjusted = false;
+
+    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+
+      // do NOT render headers on the bottom or bottom-left corner overlay
+      this.columnHeaders = [];
+      this.columnHeaderCount = 0;
+    }
 
     if (totalColumns > 0) {
       // prepare COL and TH elements for rendering
@@ -105,6 +115,12 @@ class WalkontableTableRenderer {
       }
 
       this.wot.getSetting('onDraw', true);
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
+      let masterOverlay = this.wot.cloneOverlay.instance;
+
+      this.wot.cloneOverlay.markOversizedFixedBottomRows();
+
+      masterOverlay.wtOverlays.adjustElementsSize();
     }
   }
 
@@ -146,7 +162,7 @@ class WalkontableTableRenderer {
 
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
 
-      if (!isWorkingOnClone) {
+      if (!isWorkingOnClone || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }
@@ -198,8 +214,9 @@ class WalkontableTableRenderer {
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
+    let totalRows = this.instance.getSetting('totalRows');
 
-    if (expectedTableHeight === actualTableHeight) {
+    if (expectedTableHeight === actualTableHeight && !this.instance.getSetting('fixedRowsBottom')) {
       // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
       return;
     }

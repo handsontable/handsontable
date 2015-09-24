@@ -504,12 +504,12 @@ describe('Core_view', function () {
       var rowHeight = hot.getCell(1,3).clientHeight;
       var mainHolder = hot.view.wt.wtTable.holder;
 
-      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(this.$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
 
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(this.$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
     });
 
   });

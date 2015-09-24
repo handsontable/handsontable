@@ -1,4 +1,3 @@
-
 import {
   getComputedStyle,
   getTrimmingContainer,
@@ -10,6 +9,7 @@ import {
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
+import {WalkontableOverlay} from './overlay/_base.js';
 
 /**
  *
@@ -115,12 +115,14 @@ class WalkontableBorder {
         return true;
       }
     }
+
     function handler(event) {
       if (isOutside(event)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         _this.style.display = 'block';
       }
     }
+
     this.eventManager.addEventListener(document.body, 'mousemove', handler);
   }
 
@@ -310,25 +312,32 @@ class WalkontableBorder {
       return;
     }
     var isMultiple,
-      fromTD,
-      toTD,
-      fromOffset,
-      toOffset,
-      containerOffset,
-      top,
-      minTop,
-      left,
-      minLeft,
-      height,
-      width,
-      fromRow,
-      fromColumn,
-      toRow,
-      toColumn,
-      ilen;
+        fromTD,
+        toTD,
+        fromOffset,
+        toOffset,
+        containerOffset,
+        top,
+        minTop,
+        left,
+        minLeft,
+        height,
+        width,
+        fromRow,
+        fromColumn,
+        toRow,
+        toColumn,
+        trimmingContainer,
+        cornerOverlappingContainer,
+        ilen;
 
-    if (this.wot.cloneOverlay instanceof WalkontableTopOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+
+    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsTop');
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+               WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      ilen = this.wot.getSetting('fixedRowsBottom');
     } else {
       ilen = this.wot.wtTable.getRenderedRowsCount();
     }
@@ -431,15 +440,26 @@ class WalkontableBorder {
       this.cornerStyle.width = this.cornerDefaultStyle.width;
       this.cornerStyle.display = 'block';
 
+      trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
-        let cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + 'px';
           this.cornerStyle.borderRightWidth = 0;
         }
       }
+
+      if (toRow === this.wot.getSetting('totalRows') - 1) {
+        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) >= innerHeight(trimmingContainer);
+
+        if (cornerOverlappingContainer) {
+          this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + "px";
+          this.cornerStyle.borderBottomWidth = 0;
+        }
+      }
+
     }
 
     if (Handsontable.mobileBrowser) {

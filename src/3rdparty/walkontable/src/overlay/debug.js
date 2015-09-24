@@ -26,3 +26,5 @@ class WalkontableDebugOverlay extends WalkontableOverlay {
 export {WalkontableDebugOverlay};
 
 window.WalkontableDebugOverlay = WalkontableDebugOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_DEBUG, WalkontableDebugOverlay);

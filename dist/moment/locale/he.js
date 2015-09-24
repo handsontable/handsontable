@@ -19,15 +19,15 @@
         weekdaysMin : 'א_ב_ג_ד_ה_ו_ש'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
-            LTS : 'HH:mm:ss',
+            LTS : 'LT:ss',
             L : 'DD/MM/YYYY',
             LL : 'D [ב]MMMM YYYY',
-            LLL : 'D [ב]MMMM YYYY HH:mm',
-            LLLL : 'dddd, D [ב]MMMM YYYY HH:mm',
+            LLL : 'D [ב]MMMM YYYY LT',
+            LLLL : 'dddd, D [ב]MMMM YYYY LT',
             l : 'D/M/YYYY',
             ll : 'D MMM YYYY',
-            lll : 'D MMM YYYY HH:mm',
-            llll : 'ddd, D MMM YYYY HH:mm'
+            lll : 'D MMM YYYY LT',
+            llll : 'ddd, D MMM YYYY LT'
         },
         calendar : {
             sameDay : '[היום ב־]LT',

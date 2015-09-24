@@ -17,11 +17,11 @@
         weekdaysMin : 'su_má_tý_mi_hó_fr_le'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
-            LTS : 'HH:mm:ss',
+            LTS : 'LT:ss',
             L : 'DD/MM/YYYY',
             LL : 'D MMMM YYYY',
-            LLL : 'D MMMM YYYY HH:mm',
-            LLLL : 'dddd D. MMMM, YYYY HH:mm'
+            LLL : 'D MMMM YYYY LT',
+            LLLL : 'dddd D. MMMM, YYYY LT'
         },
         calendar : {
             sameDay : '[Í dag kl.] LT',

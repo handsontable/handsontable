@@ -17,11 +17,11 @@
         weekdaysMin : 'Dom_2ª_3ª_4ª_5ª_6ª_Sáb'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
-            LTS : 'HH:mm:ss',
+            LTS : 'LT:ss',
             L : 'DD/MM/YYYY',
             LL : 'D [de] MMMM [de] YYYY',
-            LLL : 'D [de] MMMM [de] YYYY [às] HH:mm',
-            LLLL : 'dddd, D [de] MMMM [de] YYYY [às] HH:mm'
+            LLL : 'D [de] MMMM [de] YYYY [às] LT',
+            LLLL : 'dddd, D [de] MMMM [de] YYYY [às] LT'
         },
         calendar : {
             sameDay: '[Hoje às] LT',
@@ -38,7 +38,7 @@
         relativeTime : {
             future : 'em %s',
             past : '%s atrás',
-            s : 'poucos segundos',
+            s : 'segundos',
             m : 'um minuto',
             mm : '%d minutos',
             h : 'uma hora',

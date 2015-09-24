@@ -53,11 +53,11 @@
         weekdaysMin : 'Sv_P_O_T_C_Pk_S'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
-            LTS : 'HH:mm:ss',
+            LTS : 'LT:ss',
             L : 'DD.MM.YYYY.',
             LL : 'YYYY. [gada] D. MMMM',
-            LLL : 'YYYY. [gada] D. MMMM, HH:mm',
-            LLLL : 'YYYY. [gada] D. MMMM, dddd, HH:mm'
+            LLL : 'YYYY. [gada] D. MMMM, LT',
+            LLLL : 'YYYY. [gada] D. MMMM, dddd, LT'
         },
         calendar : {
             sameDay : '[Šodien pulksten] LT',
