@@ -1,10 +1,11 @@
 import {
-  getComputedStyle,
-  getTrimmingContainer,
-  innerWidth,
-  offset,
-  outerHeight,
-  outerWidth,
+    getComputedStyle,
+    getTrimmingContainer,
+    innerWidth,
+    innerHeight,
+    offset,
+    outerHeight,
+    outerWidth,
 } from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {EventManager} from './../../../eventManager';
@@ -331,12 +332,11 @@ class WalkontableBorder {
         cornerOverlappingContainer,
         ilen;
 
-
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
         WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsTop');
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-               WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsBottom');
     } else {
       ilen = this.wot.wtTable.getRenderedRowsCount();
@@ -455,7 +455,7 @@ class WalkontableBorder {
         cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + "px";
+          this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + 'px';
           this.cornerStyle.borderBottomWidth = 0;
         }
       }

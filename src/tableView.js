@@ -213,10 +213,10 @@ function TableView(instance) {
     fixedRowsTop: function() {
       return that.settings.fixedRowsTop;
     },
-    fixedRowsBottom: function () {
+    fixedRowsBottom: function() {
       return that.settings.fixedRowsBottom;
     },
-    minSpareRows: function () {
+    minSpareRows: function() {
       return that.settings.minSpareRows;
     },
     renderAllRows: that.settings.renderAllRows,

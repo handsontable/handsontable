@@ -306,10 +306,10 @@ class WalkontableViewport {
       height -= fixedRowsHeight;
     }
 
-    if (this.wot.wtTable.holder.clientHeight !== this.wot.wtTable.holder.offsetHeight) {
-      scrollbarHeight = getScrollbarWidth();
-    } else {
+    if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
       scrollbarHeight = 0;
+    } else {
+      scrollbarHeight = getScrollbarWidth();
     }
 
     return new WalkontableViewportRowsCalculator(

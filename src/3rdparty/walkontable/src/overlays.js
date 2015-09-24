@@ -28,12 +28,13 @@ class WalkontableOverlays {
 
     this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
 
-    if (typeof WalkontableBottomOverlay !== 'undefined') {
-      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
-    } else {
+    if (typeof WalkontableBottomOverlay === 'undefined') {
       this.bottomOverlay = {
         needFullRender: false
       };
+
+    } else {
+      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
     }
 
     this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
@@ -69,15 +70,15 @@ class WalkontableOverlays {
         top: null,
         left: 0,
       },
-      'bottom': {
+      bottom: {
         top: null,
         left: 0
 
       },
       left: {
         top: 0,
-        left: null,
-      },
+        left: null
+      }
     };
     this.registerListeners();
   }
@@ -447,11 +448,10 @@ class WalkontableOverlays {
 
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
-    
+
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.adjustElementsSize(force);
     }
-
   }
 
   /**

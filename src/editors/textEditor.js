@@ -134,7 +134,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
 };
 
-
 TextEditor.prototype.open = function() {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
@@ -185,7 +184,6 @@ TextEditor.prototype.createElements = function() {
     that.refreshDimensions();
   }, 0));
 };
-
 
 TextEditor.prototype.getEditedCell = function() {
   var editorSection = this.checkEditorSection(),
