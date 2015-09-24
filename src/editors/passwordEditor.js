@@ -3,7 +3,6 @@ import {empty} from './../helpers/dom/element';
 import {getEditor, registerEditor} from './../editors';
 import {TextEditor} from './textEditor';
 
-
 /**
  * @private
  * @editor PasswordEditor

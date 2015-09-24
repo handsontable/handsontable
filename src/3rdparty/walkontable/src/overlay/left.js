@@ -8,9 +8,8 @@ import {
   outerWidth,
   removeClass,
   setOverlayPosition,
-    } from './../../../../helpers/dom/element';
+} from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
-
 
 /**
  * @class WalkontableLeftOverlay
@@ -133,7 +132,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    */
   adjustRootElementSize() {
     let masterHolder = this.wot.wtTable.holder;
-    let scrollbarHeight = masterHolder.clientHeight !== masterHolder.offsetHeight ? getScrollbarWidth() : 0;
+    let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let tableWidth;

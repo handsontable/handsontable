@@ -15,7 +15,6 @@ import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
 import {Walkontable} from './3rdparty/walkontable/src/core';
 
-
 // Support for older Handsontable versions
 Handsontable.TableView = TableView;
 
@@ -33,11 +32,11 @@ function TableView(instance) {
   var originalStyle = instance.rootElement.getAttribute('style');
 
   if (originalStyle) {
-    instance.rootElement.setAttribute('data-originalstyle', originalStyle); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+    instance.rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   }
 
   addClass(instance.rootElement, 'handsontable');
-  //  instance.rootElement.addClass('handsontable');
+  // instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
   addClass(table, 'htCore');
@@ -58,7 +57,7 @@ function TableView(instance) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
-      window.focus(); //make sure that window that contains HOT is active. Important when HOT is in iframe.
+      window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
 
@@ -95,7 +94,14 @@ function TableView(instance) {
     }
 
     // immediate click on "holder" means click on the right side of vertical scrollbar
-    if (next !== instance.view.wt.wtTable.holder) {
+    if (next === instance.view.wt.wtTable.holder) {
+      var scrollbarWidth = getScrollbarWidth();
+
+      if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
+        document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
+        return;
+      }
+    } else {
       while (next !== document.documentElement) {
         if (next === null) {
           if (event.isTargetWebComponent) {
@@ -110,13 +116,6 @@ function TableView(instance) {
         }
         next = next.parentNode;
       }
-    } else {
-      var scrollbarWidth = getScrollbarWidth();
-
-      if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
-        document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
-        return;
-      }
     }
 
     // function did not return until here, we have an outside click!
@@ -126,7 +125,6 @@ function TableView(instance) {
       instance.destroyEditor();
     }
   });
-
 
   this.eventManager.addEventListener(table, 'selectstart', function(event) {
     if (that.settings.fragmentSelection) {
@@ -163,8 +161,8 @@ function TableView(instance) {
         },
         multipleSelectionHandlesVisible: function() {
           return !that.isCellEdited() && !instance.selection.isMultiple();
-        }
-      }
+        },
+      },
     }),
     new WalkontableSelection({
       className: 'area',
@@ -177,22 +175,23 @@ function TableView(instance) {
         },
         multipleSelectionHandlesVisible: function() {
           return !that.isCellEdited() && instance.selection.isMultiple();
-        }
-      }
+        },
+      },
     }),
     new WalkontableSelection({
       className: 'highlight',
       highlightRowClassName: that.settings.currentRowClassName,
-      highlightColumnClassName: that.settings.currentColClassName
+      highlightColumnClassName: that.settings.currentColClassName,
     }),
     new WalkontableSelection({
       className: 'fill',
       border: {
         width: 1,
-        color: 'red'
+        color: 'red',
         //style: 'solid' // not used
-      }
-    })];
+      },
+    }),
+  ];
   selections.current = selections[0];
   selections.area = selections[1];
   selections.highlight = selections[2];
@@ -272,7 +271,7 @@ function TableView(instance) {
 
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
-          //do nothing
+          var nothing = 1; // do nothing
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
             instance.selection.setRangeEnd(coords);
@@ -411,7 +410,7 @@ function TableView(instance) {
         calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
-    }
+    },
   };
 
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);
@@ -434,7 +433,6 @@ function TableView(instance) {
       //event.stopPropagation();
     }
   });
-
 
   this.eventManager.addEventListener(document.documentElement, 'click', function() {
     if (that.settings.observeDOMVisibility) {

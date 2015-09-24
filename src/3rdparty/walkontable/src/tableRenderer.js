@@ -5,7 +5,7 @@ import {
   getScrollbarWidth,
   hasClass,
   innerHeight,
-    } from './../../../helpers/dom/element';
+} from './../../../helpers/dom/element';
 
 /**
  * @class WalkontableTableRenderer
@@ -17,6 +17,7 @@ class WalkontableTableRenderer {
   constructor(wtTable) {
     this.wtTable = wtTable;
     this.wot = wtTable.instance;
+
     // legacy support
     this.instance = wtTable.instance;
 

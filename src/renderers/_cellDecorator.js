@@ -14,8 +14,8 @@ Handsontable.renderers.cellDecorator = cellDecorator;
 
 function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   if (cellProperties.className) {
-    if(TD.className) {
-      TD.className = TD.className + " " + cellProperties.className;
+    if (TD.className) {
+      TD.className = TD.className + ' ' + cellProperties.className;
     } else {
       TD.className = cellProperties.className;
     }

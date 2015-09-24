@@ -3,10 +3,8 @@ import {addClass, removeClass} from './../../helpers/dom/element';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 
-
 /**
  * @plugin TouchScroll
- * @class TouchScroll
  */
 class TouchScroll extends BasePlugin {
   /**

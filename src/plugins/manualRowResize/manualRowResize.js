@@ -126,9 +126,9 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
+    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
 
-    if (row >= 0) { //if not col header
+    if (row >= 0) { // if not col header
       let box = this.currentTH.getBoundingClientRect();
 
       this.currentRow = row;
@@ -243,10 +243,10 @@ class ManualRowResize extends BasePlugin {
         this.newSize = hookNewSize;
       }
 
-      this.setManualSize(this.currentRow, this.newSize); //double click sets auto row size
+      this.setManualSize(this.currentRow, this.newSize); // double click sets auto row size
 
       this.hot.forceFullRender = true;
-      this.hot.view.render(); //updates all
+      this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
       this.hot.runHooks('afterRowResize', this.currentRow, this.newSize, true);
@@ -308,7 +308,7 @@ class ManualRowResize extends BasePlugin {
         this.hot.runHooks('beforeRowResize', this.currentRow, this.newSize);
 
         this.hot.forceFullRender = true;
-        this.hot.view.render(); //updates all
+        this.hot.view.render(); // updates all
         this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
         this.saveManualRowHeights();

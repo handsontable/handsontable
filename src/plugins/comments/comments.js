@@ -477,13 +477,13 @@ class Comments extends BasePlugin {
           return this.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
         },
         callback: () => this.onContextMenuAddComment(),
-        disabled: function () {
-          return this.getSelected() ? false: true;
+        disabled: function() {
+          return this.getSelected() ? false : true;
         }
       },
       {
         key: 'commentsRemove',
-        name: function () {
+        name: function() {
           return 'Delete Comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(key, selection),

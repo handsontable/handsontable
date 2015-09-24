@@ -76,8 +76,7 @@ export function deepExtend(target, extension) {
       if (!target[key]) {
         if (Array.isArray(extension[key])) {
           target[key] = [];
-        }
-        else {
+        } else {
           target[key] = {};
         }
       }
@@ -97,7 +96,7 @@ export function deepExtend(target, extension) {
  * @return {Object}
  */
 export function deepClone(obj) {
-  if (typeof obj === "object") {
+  if (typeof obj === 'object') {
     return JSON.parse(JSON.stringify(obj));
   }
 
@@ -149,14 +148,14 @@ export function mixin(Base, ...mixins) {
             }
 
             return this[propertyName];
-          }
+          };
         };
         let setter = function _setter(propertyName) {
           propertyName = '_' + propertyName;
 
           return function(value) {
             this[propertyName] = value;
-          }
+          };
         };
         Object.defineProperty(Base.prototype, key, {
           get: getter(key, value),
@@ -195,21 +194,19 @@ export function getPrototypeOf(obj) {
   var prototype;
 
   /* jshint ignore:start */
-  if(typeof obj.__proto__ == "object"){
+  if (typeof obj.__proto__ == 'object') {
     prototype = obj.__proto__;
   } else {
     var oldConstructor,
       constructor = obj.constructor;
 
-    if (typeof obj.constructor == "function") {
+    if (typeof obj.constructor == 'function') {
       oldConstructor = constructor;
 
-      if (delete obj.constructor){
+      if (delete obj.constructor) {
         constructor = obj.constructor; // get real constructor
         obj.constructor = oldConstructor; // restore constructor
       }
-
-
     }
 
     prototype = constructor ? constructor.prototype : null; // needed for IE

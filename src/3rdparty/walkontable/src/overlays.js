@@ -4,14 +4,13 @@ import {
   getScrollbarWidth,
   getScrollLeft,
   getScrollTop,
-    } from './../../../helpers/dom/element';
+} from './../../../helpers/dom/element';
 import {isKey} from './../../../helpers/unicode';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCornerOverlay} from './overlay/corner';
 import {WalkontableDebugOverlay} from './overlay/debug';
 import {WalkontableLeftOverlay} from './overlay/left';
 import {WalkontableTopOverlay} from './overlay/top';
-
 
 /**
  * @class WalkontableOverlays
@@ -46,21 +45,21 @@ class WalkontableOverlays {
     this.keyPressed = false;
     this.spreaderLastSize = {
       width: null,
-      height: null
+      height: null,
     };
     this.overlayScrollPositions = {
-      'master': {
+      master: {
         top: 0,
-        left: 0
+        left: 0,
       },
-      'top': {
+      top: {
         top: null,
-        left: 0
+        left: 0,
       },
-      'left': {
+      left: {
         top: 0,
-        left: null
-      }
+        left: null,
+      },
     };
     this.registerListeners();
   }
@@ -138,6 +137,7 @@ class WalkontableOverlays {
     if (Handsontable.mobileBrowser) {
       return;
     }
+
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     if (this.keyPressed && this.mainTableScrollableElement !== window &&

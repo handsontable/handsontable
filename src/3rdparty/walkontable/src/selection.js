@@ -4,7 +4,6 @@ import {WalkontableBorder} from './border';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 
-
 /**
  * @class WalkontableSelection
  */
@@ -30,6 +29,7 @@ class WalkontableSelection {
     if (this.instanceBorders[wotInstance.guid]) {
       return this.instanceBorders[wotInstance.guid];
     }
+
     // where is this returned?
     this.instanceBorders[wotInstance.guid] = new WalkontableBorder(wotInstance, this.settings);
   }
@@ -102,7 +102,7 @@ class WalkontableSelection {
       topLeft.row,
       topLeft.col,
       bottomRight.row,
-      bottomRight.col
+      bottomRight.col,
     ];
   }
 

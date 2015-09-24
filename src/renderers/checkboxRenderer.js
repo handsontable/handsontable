@@ -38,14 +38,14 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   if (value === cellProperties.checkedTemplate || equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
     input.checked = true;
-  }
-  else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
+
+  } else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     input.checked = false;
-  }
-  else if (value === null) { // default value
+
+  } else if (value === null) { // default value
     addClass(input, 'noValue');
-  }
-  else {
+
+  } else {
     input.style.display = 'none';
     addClass(input, BAD_VALUE_CLASS);
     badValue = true;
@@ -100,7 +100,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       KEY_CODES.SPACE,
       KEY_CODES.ENTER,
       KEY_CODES.DELETE,
-      KEY_CODES.BACKSPACE
+      KEY_CODES.BACKSPACE,
     ];
 
     if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
@@ -179,7 +179,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 export {checkboxRenderer};
 
 registerRenderer('checkbox', checkboxRenderer);
-
 
 /**
  * Create input element.

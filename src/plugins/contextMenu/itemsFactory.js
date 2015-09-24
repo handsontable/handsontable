@@ -7,7 +7,6 @@ import {
   predefinedItems
 } from './predefinedItems';
 
-
 /**
  * Predefined items class factory for menu items.
  *

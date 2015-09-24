@@ -2,10 +2,9 @@
 import {
   getScrollableElement,
   getTrimmingContainer,
-    } from './../../../../helpers/dom/element';
+} from './../../../../helpers/dom/element';
 import {defineGetter} from './../../../../helpers/object';
 import {eventManager as eventManagerObject} from './../../../../eventManager';
-
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -52,7 +51,7 @@ class WalkontableOverlay {
       WalkontableOverlay.CLONE_TOP,
       WalkontableOverlay.CLONE_LEFT,
       WalkontableOverlay.CLONE_CORNER,
-      WalkontableOverlay.CLONE_DEBUG
+      WalkontableOverlay.CLONE_DEBUG,
     ];
   }
 
@@ -61,7 +60,7 @@ class WalkontableOverlay {
    */
   constructor(wotInstance) {
     defineGetter(this, 'wot', wotInstance, {
-      writable: false
+      writable: false,
     });
 
     // legacy support, deprecated in the future
@@ -117,7 +116,7 @@ class WalkontableOverlay {
     return new Walkontable({
       cloneSource: this.wot,
       cloneOverlay: this,
-      table: clonedTable
+      table: clonedTable,
     });
   }
 

@@ -6,12 +6,14 @@ import {
   offset,
   outerHeight,
   outerWidth,
-    } from './../../../helpers/dom/element';
+} from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
 
-
+/**
+ *
+ */
 class WalkontableBorder {
   /**
    * @param {Walkontable} wotInstance
@@ -211,10 +213,10 @@ class WalkontableBorder {
     };
 
     let hitAreaStyle = {
-      'position': 'absolute',
-      'height': hitAreaWidth + 'px',
-      'width': hitAreaWidth + 'px',
-      'border-radius': parseInt(hitAreaWidth / 1.5, 10) + 'px'
+      position: 'absolute',
+      height: hitAreaWidth + 'px',
+      width: hitAreaWidth + 'px',
+      'border-radius': parseInt(hitAreaWidth / 1.5, 10) + 'px',
     };
 
     for (let prop in hitAreaStyle) {
@@ -225,12 +227,12 @@ class WalkontableBorder {
     }
 
     let handleStyle = {
-      'position': 'absolute',
-      'height': width + 'px',
-      'width': width + 'px',
+      position: 'absolute',
+      height: width + 'px',
+      width: width + 'px',
       'border-radius': parseInt(width / 1.5, 10) + 'px',
-      'background': '#F5F5FF',
-      'border': '1px solid #4285c8'
+      background: '#F5F5FF',
+      border: '1px solid #4285c8'
     };
 
     for (let prop in handleStyle) {
@@ -259,42 +261,42 @@ class WalkontableBorder {
     let handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
     let hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
-    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth, 10) + "px";
-    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth, 10) + "px";
+    this.selectionHandles.styles.topLeft.top = parseInt(top - handleWidth, 10) + 'px';
+    this.selectionHandles.styles.topLeft.left = parseInt(left - handleWidth, 10) + 'px';
 
-    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth / 4) * 3, 10) + "px";
-    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth / 4) * 3, 10) + "px";
+    this.selectionHandles.styles.topLeftHitArea.top = parseInt(top - (hitAreaWidth / 4) * 3, 10) + 'px';
+    this.selectionHandles.styles.topLeftHitArea.left = parseInt(left - (hitAreaWidth / 4) * 3, 10) + 'px';
 
-    this.selectionHandles.styles.bottomRight.top = parseInt(top + height, 10) + "px";
-    this.selectionHandles.styles.bottomRight.left = parseInt(left + width, 10) + "px";
+    this.selectionHandles.styles.bottomRight.top = parseInt(top + height, 10) + 'px';
+    this.selectionHandles.styles.bottomRight.left = parseInt(left + width, 10) + 'px';
 
-    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth / 4, 10) + "px";
-    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth / 4, 10) + "px";
+    this.selectionHandles.styles.bottomRightHitArea.top = parseInt(top + height - hitAreaWidth / 4, 10) + 'px';
+    this.selectionHandles.styles.bottomRightHitArea.left = parseInt(left + width - hitAreaWidth / 4, 10) + 'px';
 
     if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
-      this.selectionHandles.styles.topLeft.display = "block";
-      this.selectionHandles.styles.topLeftHitArea.display = "block";
+      this.selectionHandles.styles.topLeft.display = 'block';
+      this.selectionHandles.styles.topLeftHitArea.display = 'block';
 
-      if (!this.isPartRange(row, col)) {
-        this.selectionHandles.styles.bottomRight.display = "block";
-        this.selectionHandles.styles.bottomRightHitArea.display = "block";
+      if (this.isPartRange(row, col)) {
+        this.selectionHandles.styles.bottomRight.display = 'none';
+        this.selectionHandles.styles.bottomRightHitArea.display = 'none';
       } else {
-        this.selectionHandles.styles.bottomRight.display = "none";
-        this.selectionHandles.styles.bottomRightHitArea.display = "none";
+        this.selectionHandles.styles.bottomRight.display = 'block';
+        this.selectionHandles.styles.bottomRightHitArea.display = 'block';
       }
     } else {
-      this.selectionHandles.styles.topLeft.display = "none";
-      this.selectionHandles.styles.bottomRight.display = "none";
-      this.selectionHandles.styles.topLeftHitArea.display = "none";
-      this.selectionHandles.styles.bottomRightHitArea.display = "none";
+      this.selectionHandles.styles.topLeft.display = 'none';
+      this.selectionHandles.styles.bottomRight.display = 'none';
+      this.selectionHandles.styles.topLeftHitArea.display = 'none';
+      this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
     if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
-      this.selectionHandles.styles.topLeft.zIndex = "9999";
-      this.selectionHandles.styles.topLeftHitArea.zIndex = "9999";
+      this.selectionHandles.styles.topLeft.zIndex = '9999';
+      this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {
-      this.selectionHandles.styles.topLeft.zIndex = "";
-      this.selectionHandles.styles.topLeftHitArea.zIndex = "";
+      this.selectionHandles.styles.topLeft.zIndex = '';
+      this.selectionHandles.styles.topLeftHitArea.zIndex = '';
     }
   }
 
@@ -434,7 +436,7 @@ class WalkontableBorder {
         let cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + "px";
+          this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + 'px';
           this.cornerStyle.borderRightWidth = 0;
         }
       }

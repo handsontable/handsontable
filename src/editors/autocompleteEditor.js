@@ -31,7 +31,7 @@ AutocompleteEditor.prototype.createElements = function() {
   HandsontableEditor.prototype.createElements.apply(this, arguments);
 
   addClass(this.htContainer, 'autocompleteEditor');
-  addClass(this.htContainer, window.navigator.platform.indexOf('Mac') !== -1 ? 'htMacScroll' : '');
+  addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
 };
 
 var skipOne = false;
@@ -172,15 +172,15 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   var highlightIndex;
 
   /* jshint ignore:start */
-  if (this.cellProperties.filter != false) {
+  if (this.cellProperties.filter == false) {
+    highlightIndex = orderByRelevance[0];
+  } else {
     var sorted = [];
     for (var i = 0, choicesCount = orderByRelevance.length; i < choicesCount; i++) {
       sorted.push(choices[orderByRelevance[i]]);
     }
     highlightIndex = 0;
     choices = sorted;
-  } else {
-    highlightIndex = orderByRelevance[0];
   }
   /* jshint ignore:end */
 
@@ -195,7 +195,7 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
 
   this.instance.listen();
   this.TEXTAREA.focus();
-  setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  setCaretPosition(this.TEXTAREA, pos, (pos == endPos ? void 0 : endPos));
 };
 
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
@@ -218,7 +218,7 @@ AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
 };
 
 AutocompleteEditor.prototype.highlightBestMatchingChoice = function(index) {
-  if (typeof index === "number") {
+  if (typeof index === 'number') {
     this.htEditor.selectCell(index, 0);
   } else {
     this.htEditor.deselectCell();
@@ -254,7 +254,6 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     } else {
       valueIndex = currentItem.toLowerCase().indexOf(value.toLowerCase());
     }
-
 
     if (valueIndex == -1) {
       continue;

@@ -5,10 +5,9 @@ import {registerRenderer, getRenderer} from './../../renderers';
 /**
  * @private
  * @plugin Search
- * @class Search
  */
 Handsontable.Search = function Search(instance) {
-  this.query = function (queryStr, callback, queryMethod) {
+  this.query = function(queryStr, callback, queryMethod) {
     var rowCount = instance.countRows();
     var colCount = instance.countCols();
     var queryResult = [];
@@ -33,7 +32,7 @@ Handsontable.Search = function Search(instance) {
           var singleResult = {
             row: rowIndex,
             col: colIndex,
-            data: cellData
+            data: cellData,
           };
 
           queryResult.push(singleResult);
@@ -46,22 +45,18 @@ Handsontable.Search = function Search(instance) {
     }
 
     return queryResult;
-
   };
-
 };
 
-Handsontable.Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+Handsontable.Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
-Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
-
+Handsontable.Search.DEFAULT_QUERY_METHOD = function(query, value) {
   if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
     return false;
   }
-
-  if(typeof value == 'undefined' || value == null) {
+  if (typeof value == 'undefined' || value == null) {
     return false;
   }
 
@@ -70,43 +65,41 @@ Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
 
 Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-Handsontable.Search.global = (function () {
+Handsontable.Search.global = (function() {
 
   var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
   var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
   var defaultSearchResultClass = Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS;
 
   return {
-    getDefaultCallback: function () {
+    getDefaultCallback: function() {
       return defaultCallback;
     },
 
-    setDefaultCallback: function (newDefaultCallback) {
+    setDefaultCallback: function(newDefaultCallback) {
       defaultCallback = newDefaultCallback;
     },
 
-    getDefaultQueryMethod: function () {
+    getDefaultQueryMethod: function() {
       return defaultQueryMethod;
     },
 
-    setDefaultQueryMethod: function (newDefaultQueryMethod) {
+    setDefaultQueryMethod: function(newDefaultQueryMethod) {
       defaultQueryMethod = newDefaultQueryMethod;
     },
 
-    getDefaultSearchResultClass: function () {
+    getDefaultSearchResultClass: function() {
       return defaultSearchResultClass;
     },
 
-    setDefaultSearchResultClass: function (newSearchResultClass) {
+    setDefaultSearchResultClass: function(newSearchResultClass) {
       defaultSearchResultClass = newSearchResultClass;
     }
   };
 
 })();
 
-
-
-Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+Handsontable.SearchCellDecorator = function(instance, TD, row, col, prop, value, cellProperties) {
   var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
       cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
 
@@ -119,11 +112,10 @@ Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value
 
 var originalBaseRenderer = getRenderer('base');
 
-registerRenderer('base', function (instance, TD, row, col, prop, value, cellProperties) {
+registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
   originalBaseRenderer.apply(this, arguments);
   Handsontable.SearchCellDecorator.apply(this, arguments);
 });
-
 
 function init() {
   /* jshint ignore:start */

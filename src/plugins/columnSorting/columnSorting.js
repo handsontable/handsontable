@@ -5,7 +5,7 @@ import {
   hasClass,
   index,
   removeClass,
-    } from './../../helpers/dom/element';
+} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -101,13 +101,12 @@ class ColumnSorting extends BasePlugin {
     let sortingColumn;
     let sortingOrder;
 
-    if (typeof loadedSortingState !== 'undefined') {
-      sortingColumn = loadedSortingState.sortColumn;
-      sortingOrder = loadedSortingState.sortOrder;
-
-    } else {
+    if (typeof loadedSortingState === 'undefined') {
       sortingColumn = sortingSettings.column;
       sortingOrder = sortingSettings.sortOrder;
+    } else {
+      sortingColumn = loadedSortingState.sortColumn;
+      sortingOrder = loadedSortingState.sortOrder;
     }
     this.sortByColumn(sortingColumn, sortingOrder);
   }
@@ -131,7 +130,7 @@ class ColumnSorting extends BasePlugin {
       }
 
     } else {
-      this.hot.sortOrder = typeof order != 'undefined' ? order : true;
+      this.hot.sortOrder = typeof order === 'undefined' ? true : order;
     }
 
     this.hot.sortColumn = col;
@@ -200,9 +199,7 @@ class ColumnSorting extends BasePlugin {
       if (hasClass(e.target, 'columnSorting')) {
         let col = getColumn(e.target);
 
-        if (col !== this.lastSortedColumn) {
-          _this.sortOrderClass = 'ascending';
-        } else {
+        if (col === this.lastSortedColumn) {
           switch (_this.hot.sortOrder) {
             case void 0:
               _this.sortOrderClass = 'ascending';
@@ -213,6 +210,8 @@ class ColumnSorting extends BasePlugin {
             case false:
               _this.sortOrderClass = void 0;
           }
+        } else {
+          _this.sortOrderClass = 'ascending';
         }
 
         this.lastSortedColumn = col;
@@ -250,20 +249,20 @@ class ColumnSorting extends BasePlugin {
    */
   defaultSort(sortOrder) {
     return function(a, b) {
-      if (typeof a[1] == "string") {
+      if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
       }
-      if (typeof b[1] == "string") {
+      if (typeof b[1] == 'string') {
         b[1] = b[1].toLowerCase();
       }
 
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === "") {
+      if (a[1] === null || a[1] === '') {
         return 1;
       }
-      if (b[1] === null || b[1] === "") {
+      if (b[1] === null || b[1] === '') {
         return -1;
       }
       if (isNaN(a[1]) && !isNaN(b[1])) {
@@ -320,7 +319,7 @@ class ColumnSorting extends BasePlugin {
     let colMeta,
       sortFunction;
 
-    this.hot.sortingEnabled = false; //this is required by translateRow plugin hook
+    this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
 
     var colOffset = this.hot.colOffset();
@@ -342,12 +341,12 @@ class ColumnSorting extends BasePlugin {
 
     this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
 
-    //Append spareRows
+    // Append spareRows
     for (var i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn + colOffset)]);
     }
 
-    this.hot.sortingEnabled = true; //this is required by translateRow plugin hook
+    this.hot.sortingEnabled = true; // this is required by translateRow plugin hook
   }
 
   /**

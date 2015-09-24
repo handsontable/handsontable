@@ -8,9 +8,8 @@ import {
   outerHeight,
   removeClass,
   setOverlayPosition,
-    } from './../../../../helpers/dom/element';
+} from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
-
 
 /**
  * @class WalkontableTopOverlay
@@ -133,7 +132,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    */
   adjustRootElementSize() {
     let masterHolder = this.wot.wtTable.holder;
-    let scrollbarWidth = masterHolder.clientWidth !== masterHolder.offsetWidth ? getScrollbarWidth() : 0;
+    let scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let tableHeight;
@@ -179,7 +178,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       this.spreader.style.top = '0';
 
     } else {
-      throw new Error("Incorrect value of the rowsRenderCalculator");
+      throw new Error('Incorrect value of the rowsRenderCalculator');
     }
     this.spreader.style.bottom = '';
 
@@ -219,6 +218,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     if (bottomEdge) {
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= this.wot.wtViewport.getViewportHeight();
+
       // Fix 1 pixel offset when cell is selected
       newY += 1;
 
@@ -272,6 +272,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
         this.wot.wtOverlays.adjustElementsSize();
       }
     }
+
     // nasty workaround for double border in the header, TODO: find a pure-css solution
     if (this.wot.getSetting('rowHeaders').length === 0) {
       let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
