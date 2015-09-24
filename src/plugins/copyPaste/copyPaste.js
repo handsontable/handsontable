@@ -1,7 +1,8 @@
-
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {arrayEach} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
@@ -20,6 +21,7 @@ function CopyPastePlugin(instance) {
   this.copyPasteInstance = copyPaste();
   this.copyPasteInstance.onCut(onCut);
   this.copyPasteInstance.onPaste(onPaste);
+  this.onPaste = onPaste; // for paste testing purposes
 
   instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
@@ -59,9 +61,30 @@ function CopyPastePlugin(instance) {
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
       Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
-    instance.addHookOnce('afterChange', function(changes, source) {
-      if (changes && changes.length) {
-        this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col);
+    let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
+    let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+
+    instance.addHookOnce('afterChange', (changes, source) => {
+      let changesLength = changes ? changes.length : 0;
+
+      if (changesLength) {
+        let offset = {row: 0, col: 0};
+        let highestColumnIndex = -1;
+
+        arrayEach(changes, (change, index) => {
+          let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
+
+          if (nextChange) {
+            if (!isSelRowAreaCoverInputValue) {
+              offset.row = offset.row + Math.max(nextChange[0] - change[0] - 1, 0);
+            }
+            if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
+              highestColumnIndex = change[1];
+              offset.col = offset.col + Math.max(nextChange[1] - change[1] - 1, 0);
+            }
+          }
+        });
+        instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
       }
     });
 
@@ -140,12 +163,63 @@ function CopyPastePlugin(instance) {
     var endCol = bottomRight.col;
     var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
     var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
+    var copyableRanges = [];
 
-    instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
+    copyableRanges.push({
+      startRow: startRow,
+      startCol: startCol,
+      endRow: finalEndRow,
+      endCol: finalEndCol
+    });
+
+    copyableRanges = Handsontable.hooks.run(instance, 'modifyCopyableRange', copyableRanges);
+
+    var copyableData = this.getRangedCopyableData(copyableRanges);
+
+    instance.copyPaste.copyPasteInstance.copyable(copyableData);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+      Handsontable.hooks.run(instance, 'afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
     }
+  };
+
+  /**
+   * Create copyable text releated to range objects.
+   *
+   * @since 0.19.0
+   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @returns {String} Returns string which will be copied into clipboard.
+   */
+  this.getRangedCopyableData = function(ranges) {
+    let dataSet = [];
+    let copyableRows = [];
+    let copyableColumns = [];
+
+    // Count all copyable rows and columns
+    arrayEach(ranges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+    // Concat all rows and columns data defined in ranges into one copyable string
+    arrayEach(copyableRows, (row) => {
+      let rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(instance.getCopyableData(row, column));
+      });
+
+      dataSet.push(rowSet);
+    });
+
+    return SheetClip.stringify(dataSet);
   };
 }
 
@@ -175,10 +249,12 @@ function init() {
   }
 }
 
+
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterCopyLimit');
+Handsontable.hooks.register('modifyCopyableColumnRange');
 
 export {CopyPastePlugin};
 

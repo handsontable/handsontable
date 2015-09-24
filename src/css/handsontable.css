@@ -297,6 +297,39 @@
   right: -15px;
 }
 
+.handsontable th.beforeHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
+  content: '\25C0';
+  color: #bbb;
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  font-size: 5pt;
+}
+
+.handsontable th.afterHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.afterHiddenColumn::before {
+  left: 1px;
+  top: 2px;
+  right: auto;
+  content: '\25B6';
+}
+
+.handsontable td.afterHiddenColumn.firstVisible {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable thead th.hiddenHeader {
+  display: none;
+}
+
 /* border line */
 
 .handsontable .wtBorder {
@@ -642,7 +675,7 @@ Cell borders
   border-right: 1px solid #CCC;
 }
 
-.handsontable thead tr:nth-last-child(2) th {
+.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
   border-bottom: 1px solid #CCC;
   padding-bottom: 5px;
 }
@@ -717,8 +750,31 @@ thead .htCollapseButton:after {
   display: block;
 }
 
+.collapsibleIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(0% ,-50%);
+  right: 5px;
+  border: 1px solid #A6A6A6;
+  line-height: 10px;
+  color: #222;
+  border-radius: 10px;
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  -webkit-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  -moz-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  background: #eee;
+}
+
 .handsontable col.hidden {
   width: 0 !important;
+}
+
+.handsontable table tr th.lightRightBorder {
+  border-right: 1px solid #E6E6E6;
 }
 
 .handsontable tr.hidden,

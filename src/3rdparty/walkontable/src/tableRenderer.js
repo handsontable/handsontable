@@ -369,6 +369,9 @@ class WalkontableTableRenderer {
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
       TR = currentTr.nextSibling;
     }
+    if (TR.className) {
+      TR.removeAttribute('class');
+    }
 
     return TR;
   }

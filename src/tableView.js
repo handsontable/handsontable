@@ -1,4 +1,3 @@
-
 import {
   addClass,
   empty,
@@ -256,12 +255,20 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
+      var colspanOffset;
+      var TR = TD.parentNode;
+      var THEAD = TR.parentNode;
+      var headerLevel;
+      var headerColspan;
+
       instance.listen();
       that.activeWt = wt;
 
       isMouseDown = true;
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
+
+      instance.selection.setSelectedHeaders(false, false);
 
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
@@ -273,20 +280,21 @@ function TableView(instance) {
         } else {
           if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
+              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
+
               instance.selection.setSelectedHeaders(false, true);
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
             }
             if (coords.col < 0) {
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
               instance.selection.setSelectedHeaders(true, false);
+              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
             }
           } else {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
 
             instance.selection.setRangeStart(coords);
-
-            instance.selection.setSelectedHeaders(false, false);
           }
         }
 

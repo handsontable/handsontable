@@ -221,7 +221,13 @@ class ManualColumnResize extends BasePlugin {
     if (this.checkIfColumnHeader(event.target)) {
       let th = this.getTHFromTargetElement(event.target);
 
-      if (th) {
+      if (!th) {
+        return;
+      }
+
+      let colspan = th.getAttribute('colspan');
+
+      if (th && (colspan === null || colspan === 1)) {
         if (!this.pressed) {
           this.setupHandlePosition(th);
         }

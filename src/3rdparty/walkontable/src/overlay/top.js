@@ -274,10 +274,12 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     }
     // nasty workaround for double border in the header, TODO: find a pure-css solution
     if (this.wot.getSetting('rowHeaders').length === 0) {
-      let secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
+      let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
 
       if (secondHeaderCell) {
-        secondHeaderCell.style['border-left-width'] = 0;
+        for (let i = 0; i < secondHeaderCell.length; i++) {
+          secondHeaderCell[i].style['border-left-width'] = 0;
+        }
       }
     }
   }

@@ -29,7 +29,7 @@ describe('settings', function () {
         ]
       });
 
-      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\t\tJack');
+      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
     });
 
     it("with copyable=true, CTRL+C should copy the password value", function () {
@@ -50,7 +50,7 @@ describe('settings', function () {
         ]
       });
 
-      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\tSecret\tJack');
+      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\tSecret\tJack');
     });
 
     it("with copyable=false, CTRL+C should NOT copy the password value", function () {
@@ -71,7 +71,7 @@ describe('settings', function () {
         ]
       });
 
-      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\t\tJack');
+      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
     });
 
   });

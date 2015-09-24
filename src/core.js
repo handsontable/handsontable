@@ -6,6 +6,7 @@ import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
 import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
+import {arrayFlatten} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
@@ -243,7 +244,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
+          emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -328,7 +329,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var repeatCol
         , repeatRow
         , cmax
-        , rmax;
+        , rmax
+        , baseEnd = {
+          row: end !== null ? end.row : null,
+          col: end !== null ? end.col : null
+        };
 
       // insert data with specified pasteMode method
       switch (method) {
@@ -377,112 +382,107 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           current.row = start.row;
           current.col = start.col;
 
-          var iterators = {row: 0, col: 0}, // number of packages
-            selected = { // selected range
-              row: (end && start) ? (end.row - start.row + 1) : 1,
-              col: (end && start) ? (end.col - start.col + 1) : 1
-            },
-            pushData = true;
+          let selected = { // selected range
+            row: (end && start) ? (end.row - start.row + 1) : 1,
+            col: (end && start) ? (end.col - start.col + 1) : 1
+          };
+          let skippedRow = 0;
+          let skippedColumn = 0;
+          let pushData = true;
+          let cellMeta;
 
-          if (['up', 'left'].indexOf(direction) !== -1) {
-            iterators = {
-              row: Math.ceil(selected.row / rlen) || 1,
-              col: Math.ceil(selected.col / input[0].length) || 1
-            };
-          } else if (['down', 'right'].indexOf(direction) !== -1) {
-            iterators = {
-              row: 1,
-              col: 1
-            };
-          }
+          let getInputValue = function getInputValue(row, col = null) {
+            let rowValue = input[row % input.length];
 
+            if (col !== null) {
+              return rowValue[col % rowValue.length];
+            }
 
-          for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row) || (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
+            return rowValue;
+          };
+          let rowInputLength = input.length;
+          let rowSelectionLength = end ? end.row - start.row + 1 : 0;
+
+          for (r = 0, rlen = Math.max(rowInputLength, rowSelectionLength); r < rlen; r++) {
+            if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
+                (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
+                (current.row >= priv.settings.maxRows)) {
               break;
             }
+            let logicalRow = r - skippedRow;
+            let colInputLength = getInputValue(logicalRow).length;
+            let colSelectionLength = end ? end.col - start.col + 1 : 0;
+
             current.col = start.col;
-            clen = input[r] ? input[r].length : 0;
-            for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col) || (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
+            cellMeta = instance.getCellMeta(current.row, current.col);
+
+            if ((source === 'paste' || source === 'autofill') && cellMeta.skipRowOnPaste) {
+              skippedRow++;
+              current.row++;
+              rlen++;
+              continue;
+            }
+            skippedColumn = 0;
+
+            for (c = 0, clen = Math.max(colInputLength, colSelectionLength); c < clen; c++) {
+              if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
+                  (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
+                  (current.col >= priv.settings.maxCols)) {
                 break;
               }
+              cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if (!instance.getCellMeta(current.row, current.col).readOnly) {
-                var result,
-                  value = input[r][c],
-                  orgValue = instance.getDataAtCell(current.row, current.col),
-                  index = {
-                    row: r,
-                    col: c
-                  },
-                  valueSchema,
-                  orgValueSchema;
+              if ((source === 'paste' || source === 'autofill') && cellMeta.skipColumnOnPaste) {
+                skippedColumn++;
+                current.col++;
+                clen++;
+                continue;
+              }
+              let logicalColumn = c - skippedColumn;
 
-                if (source === 'autofill') {
-                  result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+              if (cellMeta.readOnly) {
+                current.col++;
+              }
+              let value = getInputValue(logicalRow, logicalColumn);
+              let orgValue = instance.getDataAtCell(current.row, current.col);
+              let index = {
+                row: logicalRow,
+                col: logicalColumn
+              };
 
-                  if (result) {
-                    iterators = typeof(result.iterators) !== 'undefined' ? result.iterators : iterators;
-                    value = typeof(result.value) !== 'undefined' ? result.value : value;
-                  }
+              if (source === 'autofill') {
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+
+                if (result) {
+                  value = typeof(result.value) !== 'undefined' ? result.value : value;
                 }
-                if (value !== null && typeof value === 'object') {
-                  if (orgValue === null || typeof orgValue !== 'object') {
-                    pushData = false;
-
-                  } else {
-                    orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                    valueSchema = duckSchema(value[0] || value);
-
-                    /* jshint -W073 */
-                    if (isObjectEquals(orgValueSchema, valueSchema)) {
-                      value = deepClone(value);
-                    } else {
-                      pushData = false;
-                    }
-                  }
-
-                } else if (orgValue !== null && typeof orgValue === 'object') {
+              }
+              if (value !== null && typeof value === 'object') {
+                if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;
-                }
-                if (pushData) {
-                  setData.push([current.row, current.col, value]);
-                }
-                pushData = true;
-              }
 
-              current.col++;
+                } else {
+                  let orgValueSchema = duckSchema(orgValue[0] || orgValue);
+                  let valueSchema = duckSchema(value[0] || value);
 
-              if (end && c === clen - 1) {
-                c = -1;
-
-                if (['down', 'right'].indexOf(direction) !== -1) {
-                  iterators.col++;
-                } else if (['up', 'left'].indexOf(direction) !== -1) {
-                  if (iterators.col > 1) {
-                    iterators.col--;
+                  /* jshint -W073 */
+                  if (isObjectEquals(orgValueSchema, valueSchema)) {
+                    value = deepClone(value);
+                  } else {
+                    pushData = false;
                   }
                 }
 
+              } else if (orgValue !== null && typeof orgValue === 'object') {
+                pushData = false;
               }
+              if (pushData) {
+                setData.push([current.row, current.col, value]);
+              }
+              pushData = true;
+              current.col++;
             }
-
             current.row++;
-            iterators.col = 1;
-
-            if (end && r === rlen - 1) {
-              r = -1;
-
-              if (['down', 'right'].indexOf(direction) !== -1) {
-                iterators.row++;
-              } else if (['up', 'left'].indexOf(direction) !== -1) {
-                if (iterators.row > 1) {
-                  iterators.row--;
-                }
-              }
-
-            }
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
@@ -1411,16 +1411,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * {@link DataMap#getCopyableText}
    *
    * @memberof Core#
-   * @function getCopyableData
+   * @function getCopyableText
    * @since 0.11
    * @param {Number} startRow From row
    * @param {Number} startCol From col
    * @param {Number} endRow To row
    * @param {Number} endCol To col
-   * @returns {Array|Object}
+   * @returns {String}
    */
-  this.getCopyableData = function(startRow, startCol, endRow, endCol) {
+  this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
+  };
+
+  /**
+   * Get copyable value at specyfied row and column index ({@link DataMap#getCopyable}).
+   *
+   * @memberof Core#
+   * @function getCopyableData
+   * @since 0.19.0
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {*}
+   */
+  this.getCopyableData = function(row, column) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
@@ -1967,6 +1981,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
+   *
+   * @since 0.19.0
+   * @returns {Array} Returns Array of ColumnSettings object.
+   */
+  this.getCellsMeta = function() {
+    return arrayFlatten(priv.cellSettings);
+  };
+
+  /**
    * Return cell properties for given `row`, `col` coordinates.
    *
    * @memberof Core#
@@ -2378,6 +2402,44 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         return 0;
       }
     }
+  };
+
+  this.getColspanOffset = function(col, level) {
+    var colspanSum = 0;
+
+    if(instance.colspanArray) {
+      for (var i = 0; i < col; i++) {
+        colspanSum += instance.colspanArray[level][i] - 1 || 0;
+      }
+
+      return colspanSum;
+    }
+
+    var colspanSum = 0;
+
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
+
+    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
+      if (TR.childNodes[i].hasAttribute('colspan')) {
+        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
+      }
+    }
+
+    return colspanSum;
+  };
+
+  this.getHeaderColspan = function(col, level) {
+    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
+    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
+    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
+    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
+
+    if(TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
+      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
+    }
+    return 0;
   };
 
   /**
@@ -3560,6 +3622,15 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * Skips the column on paste and pastes the data on the next column to the right
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  skipColumnOnPaste: false,
+
+  /**
+   * @description
    * Setting to true enables the search plugin (see [demo](http://handsontable.com/demo/search.html)).
    *
    * @type {Boolean}
@@ -3787,6 +3858,15 @@ DefaultSettings.prototype = {
    * @default 'auto'
    */
   viewportColumnRenderingOffset: 'auto',
+
+  /**
+   * Configuration of the plugin, allowing the user to show/hide certain columns
+   *
+   * @type {Object}
+   * @default undefined
+   * @since
+   */
+  hiddenColumns: void 0,
 
   /**
    * A usually small function or regular expression that validates the input.

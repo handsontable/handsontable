@@ -1,5 +1,5 @@
 
-import {addClass, hasClass} from './../helpers/dom/element';
+import {addClass, hasClass, empty} from './../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
 import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
@@ -15,7 +15,7 @@ clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
 
 var wrapTdContentWithWrapper = function(TD, WRAPPER){
   WRAPPER.innerHTML = TD.innerHTML;
-  dom.empty(TD);
+  empty(TD);
   TD.appendChild(WRAPPER);
 };
 
