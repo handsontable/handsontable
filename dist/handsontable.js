@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)
+ * Date: Fri Jul 24 2015 12:45:08 GMT+0700 (WIT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Fri Jul 24 2015 09:09:44 GMT+0200 (CEST)'
+  buildDate: 'Fri Jul 24 2015 12:45:08 GMT+0700 (WIT)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -6985,10 +6985,15 @@ AutocompleteEditor.prototype.open = function() {
   }
   that.instance._registerTimeout(setTimeout(function() {
     that.queryChoices(that.TEXTAREA.value);
+    that.htContainer.style.overflow = 'auto';
+    if (that.htContainer.getBoundingClientRect().bottom > that.instance.rootElement.getBoundingClientRect().bottom) {
+      that.htContainer.style.top = (-that.instance.getActiveEditor().TD.clientHeight - that.htContainer.clientHeight) + "px";
+    }
   }, 0));
 };
 AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
+  this.htContainer.style.top = "";
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
@@ -7321,6 +7326,12 @@ var $DateEditor = DateEditor;
     }
     this.datePickerStyle.display = 'block';
     this.$datePicker.show();
+    this.adjustDatePickerPos();
+  },
+  adjustDatePickerPos: function() {
+    if (this.datePicker.getBoundingClientRect().bottom > this.instance.rootElement.getBoundingClientRect().bottom) {
+      this.datePicker.style.top = (parseInt(this.datePicker.style.top) - this.instance.getActiveEditor().TD.clientHeight - this.datePicker.clientHeight) + "px";
+    }
   },
   hideDatepicker: function() {
     this.datePickerStyle.display = 'none';
