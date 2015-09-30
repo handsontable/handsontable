@@ -3964,5 +3964,10 @@ DefaultSettings.prototype = {
    * @type {Boolean}
    */
   strict: void 0,
+
+  /**
+   * If this setting is true, drag-down will create new rows once it reaches the last row.
+   */
+  dragDownCreateRow: true
 };
 Handsontable.DefaultSettings = DefaultSettings;

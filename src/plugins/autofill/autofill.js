@@ -109,7 +109,7 @@ function Autofill(instance) {
       _this.instance.mouseDragOutside = false;
     }
 
-    if (_this.instance.mouseDragOutside) {
+    if (_this.instance.mouseDragOutside && _this.instance.getSettings().dragDownCreateRow ) {
       setTimeout(function () {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
@@ -309,7 +309,7 @@ Autofill.prototype.checkIfNewRowNeeded = function () {
     tableRows = this.instance.countRows(),
     that = this;
 
-  if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+  if (this.instance.getSettings().dragDownCreateRow && this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
     selection = this.instance.getSelected();
     fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
