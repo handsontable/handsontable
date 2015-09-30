@@ -67,12 +67,44 @@ const REGISTERED_HOOKS = [
    * @param {String} source Is one of the strings: `"alter', "empty', "edit', "populateFromArray', "loadData', "autofill', "paste"`.
    */
   'afterChange',
+
+  /**
+   * @event Hooks#afterChangesObserved
+   */
   'afterChangesObserved',
+
+  /**
+   * @event Hooks#afterColumnMove
+   */
   'afterColumnMove',
+
+  /**
+   * @event Hooks#afterColumnResize
+   */
   'afterColumnResize',
+
+  /**
+   * @event Hooks#afterContextMenuDefaultOptions
+   */
   'afterContextMenuDefaultOptions',
+
+  /**
+   * @event Hooks#afterContextMenuHide
+   */
   'afterContextMenuHide',
+
+  /**
+   * @event Hooks#afterContextMenuShow
+   */
   'afterContextMenuShow',
+
+  /**
+   * @event Hooks#afterCopyLimit
+   * @param {Number} selectedRows Count of selected copyable rows.
+   * @param {Number} selectedColumns Count of selected copyable columns.
+   * @param {Number} copyRowsLimit Current copy rows limit.
+   * @param {Number} copyColumnsLimit Current copy columns limit.
+   */
   'afterCopyLimit',
 
   /**
@@ -231,8 +263,6 @@ const REGISTERED_HOOKS = [
    * @param {Object} cellProperties
    */
   'afterRenderer',
-  'afterRowMove',
-  'afterRowResize',
 
   /**
    * @event Hooks#afterScrollHorizontally
@@ -405,7 +435,6 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeInit
    */
-
   'beforeInit',
 
   /**
@@ -542,14 +571,6 @@ const REGISTERED_HOOKS = [
   'modifyRowHeight',
 
   /**
-   *
-   * @event Hooks#modifyCopyableColumnRange
-   * @since
-   * @param {String} copyableData
-   */
-  'modifyCopyableColumnRange',
-
-  /**
    * @event Hooks#persistentStateLoad
    */
   'persistentStateLoad',
@@ -563,6 +584,100 @@ const REGISTERED_HOOKS = [
    * @event Hooks#persistentStateSave
    */
   'persistentStateSave',
+
+  /**
+   * @event Hooks#beforeColumnSort
+   * @param {Number} column Sorted column index.
+   * @param {Boolean} order Soring order where:
+   *  * `true` means ascending order
+   *  * `false` means descending order
+   *  * `undefined` means original order
+   */
+  'beforeColumnSort',
+
+  /**
+   * @event Hooks#afterColumnSort
+   * @param {Number} column Sorted column index.
+   * @param {Boolean} order Soring order where:
+   *  * `true` means ascending order
+   *  * `false` means descending order
+   *  * `undefined` means original order
+   */
+  'afterColumnSort',
+
+  /**
+   * @event Hooks#afterAutofillApplyValues
+   */
+  'afterAutofillApplyValues',
+
+  /**
+   * @since 0.19.0
+   * @event Hooks#modifyCopyableRange
+   * @param {Array} ranges Array of objects defining copyable cells.
+   */
+  'modifyCopyableRange',
+
+  /**
+   * @event Hooks#beforeColumnMove
+   * @param {Number} startColumn Index of the column from which it is moved.
+   * @param {Number} endColumn Index of the column to which it is moved.
+   */
+  'beforeColumnMove',
+
+  /**
+   * @event Hooks#afterColumnMove
+   * @param {Number} startColumn Index of the column from which it is moved.
+   * @param {Number} endColumn Index of the column to which it is moved.
+   */
+  'afterColumnMove',
+
+  /**
+   * @event Hooks#beforeRowMove
+   * @param {Number} startRow Index of the row from which it is moved.
+   * @param {Number} endRow Index of the row to which it is moved.
+   */
+  'beforeRowMove',
+
+  /**
+   * @event Hooks#afterRowMove
+   * @param {Number} startRow Index of the row from which it is moved.
+   * @param {Number} endRow Index of the row to which it is moved.
+   */
+  'afterRowMove',
+
+  /**
+   * @event Hooks#beforeColumnResize
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   * @returns {Number} Should returns new column size or `undefined` if column size should be calculated automatically.
+   */
+  'beforeColumnResize',
+
+  /**
+   * @event Hooks#afterColumnResize
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  'afterColumnResize',
+
+  /**
+   * @event Hooks#beforeRowResize
+   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} newSize Calculated new row height.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   * @returns {Number} Should returns new row size or `undefined` if row size should be calculated automatically.
+   */
+  'beforeRowResize',
+
+  /**
+   * @event Hooks#afterRowResize
+   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} newSize Calculated new row height.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  'afterRowResize',
 ];
 
 import {arrayEach} from './helpers/array';

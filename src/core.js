@@ -1850,10 +1850,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   /**
    * @description
-   * Returns a data type defined in Handsontable settings under `type` key ([type](http://docs.handsontable.com/Options.html#type)).
+   * Returns a data type defined in Handsontable settings under `type` key ([Options#type](http://docs.handsontable.com/Options.html#type)).
    * If in selected range of cells are cells with different types it returns `'mixed'`.
    *
    * @since 0.18.1
+   * @memberof Core#
+   * @function getDataType
    * @param {Number} rowFrom From row index.
    * @param {Number} columnFrom To row index.
    * @param {Number} rowTo From column index.
@@ -2929,8 +2931,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
  * ---
  * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
  */
-var DefaultSettings = function() {
-};
+var DefaultSettings = function() {};
 
 DefaultSettings.prototype = {
   /**
@@ -2950,7 +2951,7 @@ DefaultSettings.prototype = {
    * Defines the structure of a new row when data source is an object.
    * Default like the first data row Array or Object.
    *
-   *  See [demo/datasources.html](http://handsontable.com/demo/datasources.html) for examples.
+   * See [demo/datasources.html](http://handsontable.com/demo/datasources.html) for examples.
    *
    * @type {Object}
    * @default undefined
@@ -3076,21 +3077,18 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var exampleContainer = document.getElementById('example');
-   * var hot = new Handsontable(exampleContainer, {
-   *   columns: [
-   *     {
-   *       // column options for the first column
-   *       type: 'numeric',
-   *       format: '0,0.00 $'
-   *     },
-   *     {
-   *       // column options for the second column
-   *       type: 'text',
-   *       readOnly: true
-   *     }
-   *   ]
-   * });
+   * columns: [
+   *   {
+   *     // column options for the first column
+   *     type: 'numeric',
+   *     format: '0,0.00 $'
+   *   },
+   *   {
+   *     // column options for the second column
+   *     type: 'text',
+   *     readOnly: true
+   *   }
+   * ],
    * ...
    * ```
    */
@@ -3107,17 +3105,15 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   cells: function (row, col, prop) {
-   *     var cellProperties = {};
+   * cells: function (row, col, prop) {
+   *   var cellProperties = {};
    *
-   *     if (row === 0 && col === 0) {
-   *       cellProperties.readOnly = true;
-   *     }
-   *
-   *     return cellProperties;
+   *   if (row === 0 && col === 0) {
+   *     cellProperties.readOnly = true;
    *   }
-   * });
+   *
+   *   return cellProperties;
+   * },
    * ...
    * ```
    */
@@ -3132,11 +3128,9 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   cell: [
-   *     {row: 0, col: 0, readOnly: true}
-   *   ]
-   * });
+   * cell: [
+   *   {row: 0, col: 0, readOnly: true}
+   * ],
    * ...
    * ```
    */
@@ -3157,9 +3151,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   comments: [{row: 1, col: 1, comment: "Test comment"}]
-   * });
+   * comments: [{row: 1, col: 1, comment: "Test comment"}],
    * ...
    * ```
    */
@@ -3179,28 +3171,24 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   customBorders: [
-   *     {range: {
-   *       from: {row: 1, col: 1},
-   *       to: {row: 3, col: 4}},
-   *       left: {},
-   *       right: {},
-   *       top: {},
-   *       bottom: {}
-   *     }
-   *   ],
-   * });
+   * customBorders: [
+   *   {range: {
+   *     from: {row: 1, col: 1},
+   *     to: {row: 3, col: 4}},
+   *     left: {},
+   *     right: {},
+   *     top: {},
+   *     bottom: {}
+   *   }
+   * ],
    * ...
    *
    * // or
    * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   customBorders: [
-   *     {row: 2, col: 2, left: {width: 2, color: 'red'},
-   *       right: {width: 1, color: 'green'}, top: '', bottom: ''}
-   *   ],
-   * });
+   * customBorders: [
+   *   {row: 2, col: 2, left: {width: 2, color: 'red'},
+   *     right: {width: 1, color: 'green'}, top: '', bottom: ''}
+   * ],
    * ...
    * ```
    */
@@ -3290,7 +3278,7 @@ DefaultSettings.prototype = {
    * Enables the fill handle (drag-down and copy-down) functionality, which shows the small rectangle in bottom
    * right corner of the selected area, that let's you expand values to the adjacent cells.
    *
-   * Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction),
+   * Possible values: `true` (to enable in all directions), `'vertical'` or `'horizontal'` (to enable in one direction),
    * `false` (to disable completely). Setting to `true` enables the fillHandle plugin.
    *
    * @type {Boolean|String}
@@ -3472,7 +3460,10 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `"none"`, `"last"`, `"all"`.
+   * [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values:
+   *  * `'none'` Disable stretching
+   *  * `'last'` Stretch only the last column
+   *  * `'all'` Stretch all the columns evenly
    *
    * @type {String}
    * @default 'none'
@@ -3581,6 +3572,25 @@ DefaultSettings.prototype = {
    * receive the following arguments: `function(instance, TD, row, col, prop, value, cellProperties) {}`.
    * You can map your own function to a string like this: `Handsontable.cellLookup.renderer.myRenderer = myRenderer;`
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [
+   *   {
+   *     editor: 'select',
+   *     renderer: 'autocomplete' // as string
+   *   },
+   *   {
+   *     // renderer as custom function
+   *     renderer: function(hotInstance, TD, row, col, prop, value, cellProperties) {
+   *       TD.style.color = 'blue';
+   *       TD.innerHTML = value;
+   *     }
+   *   }
+   * ]
+   * ...
+   * ```
+   *
    * @type {String|Function}
    * @default undefined
    */
@@ -3639,6 +3649,20 @@ DefaultSettings.prototype = {
    *  * [autocomplete](http://handsontable.com/demo/autocomplete.html)
    *  * [handsontable](http://handsontable.com/demo/handsontable.html)
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [
+   *   {
+   *     type: 'text'
+   *   },
+   *   {
+   *     type: 'checkbox'
+   *   }
+   * ]
+   * ...
+   * ```
+   *
    * @type {String}
    * @default 'text'
    */
@@ -3671,6 +3695,20 @@ DefaultSettings.prototype = {
    *  * text
    *
    * Or you can disable cell editing passing `false`.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [
+   *   {
+   *     editor: 'select'
+   *   },
+   *   {
+   *     editor: false
+   *   }
+   * ]
+   * ...
+   * ```
    *
    * @type {String|Function|Boolean}
    * @default 'text'
@@ -3735,11 +3773,22 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Defines if the right-click context menu should be enabled. Context menu allows to create new row or
-   * column at any place in the grid. Possible values: `true` (to enable basic options), `false` (to disable completely)
+   * column at any place in the grid. Possible values: `true` (to enable default options), `false` (to disable completely)
    * or array of any available strings: `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "undo", "redo", "sep1", "sep2", "sep3"]`.
+   * "remove_row", "remove_col", "---------", "undo", "redo"]`.
    *
    * See [demo/contextmenu.html](http://handsontable.com/demo/contextmenu.html) for examples.
+   *
+   * @example
+   * ```js
+   * ...
+   * // as a boolean
+   * contextMenu: true
+   * ...
+   * // as a array
+   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
+   * ...
+   * ```
    *
    * @type {Boolean|Array|Object}
    * @default undefined
@@ -3748,18 +3797,50 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * Defines new actions copy/paste for context menu. This functionality is depends on ZeroClipboard from that you
+   * should pass swf file path under `swfPath` object key.
+   *
+   * @example
+   * ```js
+   * ...
+   * contextMenuCopyPaste: {swfPath: '[path to file]'}
+   * ...
+   * ```
+   *
+   * @type {Object}
+   */
+  contextMenuCopyPaste: void 0,
+
+  /**
+   * @description
    * Defines if the dropdown menu in headers should be enabled. Dropdown menu allows to put custom or predefined actions
-   * which can intreact with selected column.
-   * Possible values: `true` (to enable basic options), `false` (to disable completely)
+   * which can interact with selected column.
+   * Possible values: `true` (to enable default options), `false` (to disable completely)
    * or array of any available strings: `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "undo", "redo", "clear_column", "sep1", "sep2", "sep3"]`.
+   * "remove_row", "remove_col", "undo", "redo", "---------", "clear_column"]`.
    *
    * See [demo/dropdownmenu.html](http://handsontable.com/demo/dropdownmenu.html) for examples.
    *
    * @type {Boolean|Array|Object}
    * @default undefined
    */
-  dropdownMenu: void 0,
+  //dropdownMenu: void 0,
+
+  /**
+   * @description
+   * Disable or enable copy/paste functionality.
+   *
+   * @example
+   * ```js
+   * ...
+   * copyPaste: false,
+   * ...
+   * ```
+   *
+   * @type {Boolean}
+   * @default undefined
+   */
+  copyPaste: void 0,
 
   /**
    * If `true`, undo/redo functionality is enabled.
@@ -3773,6 +3854,20 @@ DefaultSettings.prototype = {
    * @description
    * Turn on [Column sorting](http://handsontable.com/demo/sorting.html).
    *
+   * @example
+   * ```js
+   * ...
+   * // as boolean
+   * columnSorting: true
+   * ...
+   * // as a object with initial order (sort ascending column at index 2)
+   * columnSorting: {
+   *   column: 2,
+   *   sortOrder: true // true = ascending, false = descending, undefined = original order
+   * }
+   * ...
+   * ```
+   *
    * @type {Boolean|Object}
    * @default undefined
    */
@@ -3782,6 +3877,17 @@ DefaultSettings.prototype = {
    * @description
    * Turn on [Manual column move](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column order, if set to an array of column indexes.
+   *
+   * @example
+   * ```js
+   * ...
+   * // as boolean
+   * manualColumnMove: true
+   * ...
+   * // as a array with initial order (move column index at 0 to 1 and move column index at 1 to 4)
+   * manualColumnMove: [1, 4]
+   * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined
@@ -3793,6 +3899,16 @@ DefaultSettings.prototype = {
    * Turn on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column resized widths, if set to an array of numbers.
    *
+   * @example
+   * ```js
+   * ...
+   * // as boolean
+   * manualColumnResize: true
+   * ...
+   * // as a array with initial widths (column at 0 index has 40px and column at 1 index has 50px)
+   * manualColumnResize: [40, 50]
+   * ...
+   *
    * @type {Boolean|Array}
    * @default undefined
    */
@@ -3802,6 +3918,17 @@ DefaultSettings.prototype = {
    * @description
    * Turn on [Manual row move](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row order, if set to an array of row indexes.
+   *
+   * @example
+   * ```js
+   * ...
+   * // as boolean
+   * manualRowMove: true
+   * ...
+   * // as a array with initial order (move row index at 0 to 1 and move row index at 1 to 4)
+   * manualRowMove: [1, 4]
+   * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined
@@ -3813,6 +3940,16 @@ DefaultSettings.prototype = {
    * @description
    * Turn on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row resized heights, if set to an array of numbers.
+   *
+   * @example
+   * ```js
+   * ...
+   * // as boolean
+   * manualRowResize: true
+   * ...
+   * // as a array with initial heights (row at 0 index has 40px and row at 1 index has 50px)
+   * manualRowResize: [40, 50]
+   * ...
    *
    * @type {Boolean|Array}
    * @default undefined
@@ -3853,9 +3990,10 @@ DefaultSettings.prototype = {
    *
    * @type {Object}
    * @default undefined
-   * @since
+   * @since 0.19.0
    */
-  hiddenColumns: void 0,
+  //hiddenColumns: void 0,
+  //hiddenRows: void 0,
 
   /**
    * A usually small function or regular expression that validates the input.
@@ -3910,6 +4048,13 @@ DefaultSettings.prototype = {
    * @since 0.15.0-beta3
    */
   sortIndicator: false,
+
+  /**
+   * Disable or enable ManualColumnFreeze plugin.
+   *
+   * @type {Boolean}
+   * @default false
+   */
   manualColumnFreeze: void 0,
 
   /**
@@ -3920,8 +4065,60 @@ DefaultSettings.prototype = {
    * @default true
    */
   trimWhitespace: true,
+
   settings: void 0,
+
+  /**
+   * @description
+   * Defines data source for Autocomplete or Dropdown cell types.
+   *
+   * @example
+   * ```js
+   * ...
+   * // source as a array
+   * columns: [{
+   *   type: 'autocomplete',
+   *   source: ['A', 'B', 'C', 'D']
+   * }]
+   * ...
+   * // source as a function
+   * columns: [{
+   *   type: 'autocomplete',
+   *   source: function(query, callback) {
+   *     fetch('http://example.com/query?q=' + query, function(response) {
+   *       callback(response.items);
+   *     })
+   *   }
+   * }]
+   * ...
+   * ```
+   *
+   * @type {Array|Function}
+   * @default undefined
+   */
   source: void 0,
+
+  /**
+   * @description
+   * Defines column header name.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *     title: 'First name',
+   *     type: 'text',
+   *   },
+   *   {
+   *     title: 'Last name',
+   *     type: 'text',
+   *   }]
+   * ...
+   * ```
+   *
+   * @type {String}
+   * @default undefined
+   */
   title: void 0,
 
   /**
@@ -3958,6 +4155,15 @@ DefaultSettings.prototype = {
    * Valid value is: `'before'` or '`after`'. Default is `'after'`.
    *  * `value` - String or Function which will be used as label text.
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'checkbox',
+   *   label: {position: 'after', label: 'My label: '}
+   * }]
+   * ...
+   * ```
    *
    * @since 0.19.0
    * @type {Object}
@@ -3966,15 +4172,38 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. See http://numeric.com.
+   * Display format. See [numericjs](http://numericjs.com).
    *
    * Option desired for cell which `'numeric'` type.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'numeric',
+   *   format: '0,00'
+   * }]
+   * ...
+   * ```
+   *
+   * @type {String}
+   * @default undefined
    */
   format: void 0,
 
   /**
    * @description
-   * Language display format. See [numericjs](http://numeric.com). Option desired for cell which [numeric](http://docs.handsontable.com/demo-numeric.html) type.
+   * Language display format. See [numericjs](http://numericjs.com). Option desired for cell which [numeric](http://docs.handsontable.com/demo-numeric.html) type.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'numeric',
+   *   language: 'uk'
+   * }]
+   * ...
+   * ```
    *
    * @type {String}
    * @default 'en'
@@ -3984,6 +4213,16 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Data source for cell with [select](http://docs.handsontable.com/demo-select.html) type.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   editor: 'select',
+   *   selectOptions: ['A', 'B', 'C'],
+   * }]
+   * ...
+   * ```
    *
    * @type {Array}
    */
@@ -3997,7 +4236,7 @@ DefaultSettings.prototype = {
    * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
    * block Browser UI.
    *
-   * To configure this sync/async line you can pass absolute value (columns) or percentage.
+   * To configure this sync/async line you can pass absolute value (columns) or percentage. `syncLimit` options is available since 0.16.0.
    * @example
    * ```js
    * ...
@@ -4010,8 +4249,6 @@ DefaultSettings.prototype = {
    * autoColumnSize: {syncLimit: '40%'},
    * ...
    * ```
-   *
-   * `syncLimit` options is available since 0.16.0.
    *
    * @type {Object|Boolean}
    * @default {syncLimit: 50}
@@ -4026,7 +4263,7 @@ DefaultSettings.prototype = {
    * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
    * block Browser UI.
    *
-   * To configure this sync/async line you can pass absolute value (rows) or percentage.
+   * To configure this sync/async line you can pass absolute value (rows) or percentage. `syncLimit` options is available since 0.16.0.
    * @example
    * ```js
    * ...
@@ -4039,9 +4276,6 @@ DefaultSettings.prototype = {
    * autoRowSize: {syncLimit: '40%'},
    * ...
    * ```
-   *
-   * `syncLimit` options is available since 0.16.0.
-   *
    * @type {Object|Boolean}
    * @default {syncLimit: 1000}
    */
@@ -4051,6 +4285,16 @@ DefaultSettings.prototype = {
    * Date validation format.
    *
    * Option desired for cell which `'date'` type.
+   *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'date',
+   *   dateFormat: 'MM/DD/YYYY'
+   * }]
+   * ...
+   * ```
    *
    * @type {String}
    * @default 'DD/MM/YYYY'
@@ -4062,6 +4306,17 @@ DefaultSettings.prototype = {
    *
    * Option desired for cell which `'date'` type.
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'date',
+   *   dateFormat: 'YYYY-MM-DD',
+   *   correcrFormat: true
+   * }]
+   * ...
+   * ```
+   *
    * @type {Boolean}
    * @default false
    */
@@ -4072,6 +4327,16 @@ DefaultSettings.prototype = {
    *
    * Option desired for cell which `'date'` type.
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'date',
+   *   defautlData: '2015-02-02'
+   * }]
+   * ...
+   * ```
+   *
    * @type {String}
    */
   defaultDate: void 0,
@@ -4081,8 +4346,26 @@ DefaultSettings.prototype = {
    *
    * Option desired for cell which `'autocomplete'` type.
    *
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'autocomplete',
+   *   source: ['A', 'B', 'C'],
+   *   strict: true
+   * }]
+   * ...
+   * ```
+   *
    * @type {Boolean}
    */
   strict: void 0,
+
+  /**
+   * If typed `true` then virtual rendering for handsontable will be disabled.
+   *
+   * @type {Boolean}
+   */
+  renderAllRows: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;

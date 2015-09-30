@@ -252,6 +252,6 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterCopyLimit');
-Handsontable.hooks.register('modifyCopyableColumnRange');
+Handsontable.hooks.register('modifyCopyableRange');
 
 export {CopyPastePlugin};

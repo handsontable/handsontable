@@ -1,9 +1,9 @@
-describe('Array helper', function () {
+describe('Array helper', function() {
   //
   // Handsontable.helper.arrayFlatten
   //
   describe('arrayFlatten', function() {
-    it("should returns the flattened array", function () {
+    it('should returns the flattened array', function() {
       var arrayFlatten = Handsontable.helper.arrayFlatten;
 
       expect(arrayFlatten([1])).toEqual([1]);
@@ -16,7 +16,7 @@ describe('Array helper', function () {
   // Handsontable.helper.arrayAvg
   //
   describe('arrayAvg', function() {
-    it("should returns the average value", function () {
+    it('should returns the average value', function() {
       var arrayAvg = Handsontable.helper.arrayAvg;
 
       expect(arrayAvg([1])).toBe(1);
@@ -25,15 +25,31 @@ describe('Array helper', function () {
   });
 
   //
-  // Handsontable.helper.arrayAvg
+  // Handsontable.helper.arraySum
   //
   describe('arraySum', function() {
-    it("should returns the cumulative value", function () {
+    it('should returns the cumulative value', function() {
       var arraySum = Handsontable.helper.arraySum;
 
       expect(arraySum([1])).toBe(1);
       expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
       expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayMap
+  //
+  describe('arrayMap', function() {
+    it('should returns the mapped array', function() {
+      var arrayMap = Handsontable.helper.arrayMap;
+
+      expect(arrayMap([1], function(a) {
+        return a + 1;
+      })).toEqual([2]);
+      expect(arrayMap([1, 2, 3], function() {
+        return '';
+      })).toEqual(['', '', '']);
     });
   });
 });

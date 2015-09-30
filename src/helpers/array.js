@@ -96,6 +96,29 @@ export function arrayFilter(array, predicate) {
 }
 
 /**
+ * A specialized version of `.map` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+export function arrayMap(array, iteratee) {
+  let index = -1,
+    length = array.length,
+    resIndex = -1,
+    result = [];
+
+  while (++index < length) {
+    let value = array[index];
+
+    result[++resIndex] = iteratee(value, index, array);
+  }
+
+  return result;
+}
+
+/**
  * A specialized version of `.forEach` for arrays without support for callback
  * shorthands and `this` binding.
  *
@@ -150,4 +173,22 @@ export function arrayAvg(array) {
  */
 export function arrayFlatten(array) {
   return arrayReduce(array, (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value) : value), []);
+}
+
+/**
+ * Unique values in the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Array}
+ */
+export function arrayUnique(array) {
+  let unique = [];
+
+  arrayEach(array, (value) => {
+    if (unique.indexOf(value) === -1) {
+      unique.push(value);
+    }
+  });
+
+  return unique;
 }
