@@ -4160,7 +4160,7 @@ DefaultSettings.prototype = {
    * ...
    * columns: [{
    *   type: 'checkbox',
-   *   label: {position: 'after', label: 'My label: '}
+   *   label: {position: 'after', value: 'My label: '}
    * }]
    * ...
    * ```
