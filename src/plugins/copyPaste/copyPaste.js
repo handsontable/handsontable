@@ -65,7 +65,11 @@ function CopyPastePlugin(instance) {
       }
     });
 
-    instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+    // If hook returns true don't proceed with paste.
+    var proceed = Handsontable.hooks.run(instance, 'beforePaste', inputArray, areaStart.row, areaStart.col, areaEnd.row, areaEnd.col, instance.getSettings().pasteMode);
+    if(proceed) {
+      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+    }
   }
 
   function onBeforeKeyDown(event) {
@@ -141,10 +145,13 @@ function CopyPastePlugin(instance) {
     var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
     var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
-    instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
-
-    if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+    var data = instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol);
+    // Don't proceed if getCopyableData returns falsy value.
+    if(data) {
+      instance.copyPaste.copyPasteInstance.copyable(data);
+      if (endRow !== finalEndRow || endCol !== finalEndCol) {
+        Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+      }
     }
   };
 }
