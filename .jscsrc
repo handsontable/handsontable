@@ -72,7 +72,6 @@
   "requirePaddingNewLinesBeforeLineComments": false,
   "requirePaddingNewLinesAfterBlocks": false,
   "requireSemicolons": true,
-  "validateLineBreaks": "CRLF",
   "validateQuoteMarks": "'",
   "validateIndentation": 2,
   "disallowNotOperatorsInConditionals": true
