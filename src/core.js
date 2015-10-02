@@ -406,7 +406,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
-          for (r = 0, rlen = Math.max(rowInputLength, rowSelectionLength); r < rlen; r++) {
+          if (end) {
+            rlen = rowSelectionLength;
+          } else {
+            rlen = Math.max(rowInputLength, rowSelectionLength);
+          }
+          for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
                 (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
                 (current.row >= priv.settings.maxRows)) {
@@ -416,6 +421,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             let colInputLength = getInputValue(logicalRow).length;
             let colSelectionLength = end ? end.col - start.col + 1 : 0;
 
+            if (end) {
+              clen = colSelectionLength;
+            } else {
+              clen = Math.max(colInputLength, colSelectionLength);
+            }
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
@@ -427,7 +437,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             }
             skippedColumn = 0;
 
-            for (c = 0, clen = Math.max(colInputLength, colSelectionLength); c < clen; c++) {
+            for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
                   (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
                   (current.col >= priv.settings.maxCols)) {
@@ -441,11 +451,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 clen++;
                 continue;
               }
-              let logicalColumn = c - skippedColumn;
-
               if (cellMeta.readOnly) {
                 current.col++;
+                continue;
               }
+              let logicalColumn = c - skippedColumn;
               let value = getInputValue(logicalRow, logicalColumn);
               let orgValue = instance.getDataAtCell(current.row, current.col);
               let index = {
