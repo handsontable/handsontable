@@ -233,3 +233,28 @@ BaseEditor.prototype.isOpened = function() {
 BaseEditor.prototype.isWaiting = function() {
   return this.state === Handsontable.EditorState.WAITING;
 };
+
+BaseEditor.prototype.checkEditorSection = function() {
+  var totalRows = this.instance.countRows();
+  var section = '';
+
+  if (this.row < this.instance.getSettings().fixedRowsTop) {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      section = 'top-left-corner';
+    } else {
+      section = 'top';
+    }
+  } else if (this.instance.getSettings().fixedRowsBottom && this.row >= totalRows - this.instance.getSettings().fixedRowsBottom) {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      section = 'bottom-left-corner';
+    } else {
+      section = 'bottom';
+    }
+  } else {
+    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+      section = 'left';
+    }
+  }
+
+  return section;
+};

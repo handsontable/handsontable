@@ -6,8 +6,6 @@ import {registerPlugin} from './../../plugins';
 
 export {ManualRowMove};
 
-//registerPlugin('manualRowMove', ManualRowMove);
-
 /**
  * HandsontableManualRowMove
  *
@@ -52,8 +50,8 @@ function ManualRowMove() {
     var instance = this;
     currentTH = TH;
 
-    var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
-    if (row >= 0) { //if not row header
+    var row = this.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
+    if (row >= 0) { // if not row header
       currentRow = row;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.top;
@@ -121,7 +119,6 @@ function ManualRowMove() {
     var instance = this;
     var pressed;
 
-
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
       if (checkRowHeader(e.target)) {
         var th = getTHFromTargetElement(e.target);
@@ -164,7 +161,7 @@ function ManualRowMove() {
         Handsontable.hooks.run(instance, 'beforeRowMove', startRow, endRow);
 
         instance.forceFullRender = true;
-        instance.view.render(); //updates all
+        instance.view.render(); // updates all
 
         saveManualRowPositions.call(instance);
 
@@ -195,17 +192,17 @@ function ManualRowMove() {
 
   this.init = function(source) {
     var instance = this;
-    var manualRowMoveEnabled = !! (instance.getSettings().manualRowMove);
+    var manualRowMoveEnabled = !!(instance.getSettings().manualRowMove);
 
     if (manualRowMoveEnabled) {
       var initialManualRowPositions = instance.getSettings().manualRowMove;
       var loadedManualRowPostions = loadManualRowPositions.call(instance);
 
       // update plugin usages count for manualColumnPositions
-      if (typeof instance.manualRowPositionsPluginUsages != 'undefined') {
-        instance.manualRowPositionsPluginUsages.push('manualColumnMove');
-      } else {
+      if (typeof instance.manualRowPositionsPluginUsages === 'undefined') {
         instance.manualRowPositionsPluginUsages = ['manualColumnMove'];
+      } else {
+        instance.manualRowPositionsPluginUsages.push('manualColumnMove');
       }
 
       if (typeof loadedManualRowPostions != 'undefined') {
@@ -250,11 +247,11 @@ function ManualRowMove() {
 var htManualRowMove = new ManualRowMove();
 
 Handsontable.hooks.add('beforeInit', htManualRowMove.beforeInit);
-Handsontable.hooks.add('afterInit',  function () {
+Handsontable.hooks.add('afterInit',  function() {
   htManualRowMove.init.call(this, 'afterInit');
 });
 
-Handsontable.hooks.add('afterUpdateSettings', function () {
+Handsontable.hooks.add('afterUpdateSettings', function() {
   htManualRowMove.init.call(this, 'afterUpdateSettings');
 });
 

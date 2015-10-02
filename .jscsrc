@@ -1,0 +1,78 @@
+
+{
+  "esnext": true,
+  "disallowSpacesInNamedFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowSpacesInFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowSpacesInAnonymousFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowSpacesInFunctionDeclaration": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowEmptyBlocks": true,
+  "disallowSpacesInCallExpression": true,
+  "disallowSpacesInsideArrayBrackets": true,
+  "disallowSpacesInsideParentheses": true,
+  "disallowQuotedKeysInObjects": true,
+  "disallowSpaceAfterObjectKeys": true,
+  "disallowSpaceAfterPrefixUnaryOperators": true,
+  "disallowSpaceBeforePostfixUnaryOperators": true,
+  "disallowSpaceBeforeBinaryOperators": [
+    ","
+  ],
+  "disallowMixedSpacesAndTabs": true,
+  "disallowTrailingWhitespace": true,
+  "requireTrailingComma": false,
+  "disallowYodaConditions": true,
+  "disallowKeywords": [ "with" ],
+  "disallowKeywordsOnNewLine": ["else"],
+  "disallowMultipleLineBreaks": true,
+  "disallowMultipleLineStrings": true,
+  "disallowMultipleVarDecl": false,
+  "disallowSpaceBeforeComma": true,
+  "disallowSpaceBeforeSemicolon": true,
+  "requireSpaceBeforeBlockStatements": true,
+  "requireParenthesesAroundIIFE": true,
+  "requireSpacesInConditionalExpression": true,
+  "requireBlocksOnNewline": 1,
+  "requireCommaBeforeLineBreak": true,
+  "requireSpaceBeforeBinaryOperators": true,
+  "requireSpaceAfterBinaryOperators": true,
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
+  "requireLineFeedAtFileEnd": true,
+  "requireCapitalizedConstructors": true,
+  "requireDotNotation": true,
+  "requireSpacesInForStatement": true,
+  "requireSpaceBetweenArguments": true,
+  "requireCurlyBraces": [
+    "if",
+    "else",
+    "for",
+    "while",
+    "do",
+    "switch"
+  ],
+  "requireSpaceAfterKeywords": [
+    "if",
+    "else",
+    "for",
+    "while",
+    "do",
+    "switch",
+    "case",
+    "return",
+    "try",
+    "catch",
+    "typeof"
+  ],
+  "requirePaddingNewLinesBeforeLineComments": false,
+  "requirePaddingNewLinesAfterBlocks": false,
+  "requireSemicolons": true,
+  "validateQuoteMarks": "'",
+  "validateIndentation": 2,
+  "disallowNotOperatorsInConditionals": true
+}

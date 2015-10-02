@@ -13,5 +13,5 @@
 
 window.Handsontable = {
   version: '@@version',
-  buildDate: '@@timestamp'
+  buildDate: '@@timestamp',
 };

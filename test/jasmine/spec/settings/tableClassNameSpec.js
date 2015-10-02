@@ -20,8 +20,10 @@ describe('settings', function () {
         tableClassName: 'foo'
       });
 
+      var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
+
       // all overlays is created anyway but without left-top corner
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(3);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', function () {
@@ -31,7 +33,9 @@ describe('settings', function () {
         tableClassName: 'foo'
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(4);
+      var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
+
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', function () {
@@ -41,9 +45,11 @@ describe('settings', function () {
         tableClassName: 'foo bar'
       });
 
+      var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
+
       // all overlays is created anyway but without left-top corner
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(3);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toBe(3);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', function () {
@@ -53,8 +59,10 @@ describe('settings', function () {
         tableClassName: 'foo bar'
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(4);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toBe(4);
+      var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
+
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', function () {
@@ -64,9 +72,11 @@ describe('settings', function () {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(3);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toBe(3);
-      expect(hot.rootElement.querySelectorAll('table.baz').length).toBe(3);
+      var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
+
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', function () {
@@ -76,9 +86,11 @@ describe('settings', function () {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toBe(4);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toBe(4);
-      expect(hot.rootElement.querySelectorAll('table.baz').length).toBe(4);
+      var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
+
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
+      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
     });
   });
 });

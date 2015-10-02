@@ -150,7 +150,7 @@ describe("handsontable.MergeCells", function() {
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3\n");
+      expect(hot.getCopyableText(0, 0, 2, 2)).toBe("A1\t\tC1\n\t\tC2\nA3\tB3\tC3\n");
     });
   });
 

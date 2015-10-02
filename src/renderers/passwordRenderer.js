@@ -2,7 +2,6 @@
 import {fastInnerHTML} from './../helpers/dom/element';
 import {getRenderer, registerRenderer} from './../renderers';
 
-
 /**
  * @private
  * @renderer PasswordRenderer
@@ -23,7 +22,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var hashLength = cellProperties.hashLength || value.length;
   var hashSymbol = cellProperties.hashSymbol || '*';
 
-  for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {}
+  for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {} // jscs:ignore disallowEmptyBlocks
 
   fastInnerHTML(TD, hash);
 }

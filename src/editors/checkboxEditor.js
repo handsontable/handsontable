@@ -3,7 +3,6 @@ import {registerEditor} from './../editors';
 import {BaseEditor} from './_baseEditor';
 import {hasClass} from './../helpers/dom/element';
 
-
 /**
  * @private
  * @editor CheckboxEditor

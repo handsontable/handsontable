@@ -1,24 +1,22 @@
 import {
-  getStyle,
-  getTrimmingContainer,
-  hasClass,
-  index,
-  offset,
-  removeClass,
-  removeTextNodes,
-  overlayContainsElement
+    getStyle,
+    getTrimmingContainer,
+    hasClass,
+    index,
+    offset,
+    removeClass,
+    removeTextNodes,
+    overlayContainsElement
 } from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 import {WalkontableColumnFilter} from './filter/column';
-import {WalkontableCornerOverlay} from './overlay/corner';
-import {WalkontableDebugOverlay} from './overlay/debug';
-import {WalkontableLeftOverlay} from './overlay/left';
 import {WalkontableRowFilter} from './filter/row';
 import {WalkontableTableRenderer} from './tableRenderer';
-import {WalkontableTopOverlay} from './overlay/top';
 
-
+/**
+ *
+ */
 class WalkontableTable {
   /**
    * @param {Walkontable} wotInstance
@@ -26,6 +24,7 @@ class WalkontableTable {
    */
   constructor(wotInstance, table) {
     this.wot = wotInstance;
+
     // legacy support
     this.instance = this.wot;
     this.TABLE = table;
@@ -181,42 +180,14 @@ class WalkontableTable {
    * @returns {WalkontableTable}
    */
   draw(fastDraw) {
+    let totalRows = this.instance.getSetting('totalRows');
+
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
     }
 
-    if (!fastDraw) {
-      if (this.isWorkingOnClone()) {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
-      } else {
-        this.tableOffset = offset(this.TABLE);
-      }
-      let startRow;
-
-      if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
-        startRow = 0;
-      } else {
-        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
-      }
-      let startColumn;
-
-      if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableLeftOverlay ||
-        this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
-        startColumn = 0;
-      } else {
-        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
-      }
-      this.rowFilter = new WalkontableRowFilter(startRow, this.wot.getSetting('totalRows'), this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
-      this._doDraw(); //creates calculator after draw
-
-      this.alignOverlaysWithTrimmingContainer();
-
-    } else {
+    if (fastDraw) {
       if (!this.isWorkingOnClone()) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         this.wot.wtViewport.createVisibleCalculators();
@@ -224,15 +195,57 @@ class WalkontableTable {
       if (this.wot.wtOverlays) {
         this.wot.wtOverlays.refresh(true);
       }
+    } else {
+      if (this.isWorkingOnClone()) {
+        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
+      } else {
+        this.tableOffset = offset(this.TABLE);
+      }
+      let startRow;
+
+      if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) ||
+          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
+          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+        startRow = 0;
+      } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+          WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        startRow = totalRows - this.wot.getSetting('fixedRowsBottom');
+      } else {
+        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+      }
+      let startColumn;
+
+      if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) ||
+          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) ||
+          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
+          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        startColumn = 0;
+      } else {
+        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+      }
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this._doDraw(); //creates calculator after draw
+
+      this.alignOverlaysWithTrimmingContainer();
     }
     this.refreshSelections(fastDraw);
 
     if (!this.isWorkingOnClone()) {
       this.wot.wtOverlays.topOverlay.resetFixedPosition();
+
+      if (this.wot.wtOverlays.bottomOverlay.clone) {
+        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      }
+
       this.wot.wtOverlays.leftOverlay.resetFixedPosition();
 
       if (this.wot.wtOverlays.topLeftCornerOverlay) {
         this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      }
+
+      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
+        this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
     }
     this.wot.drawn = true;
@@ -405,11 +418,11 @@ class WalkontableTable {
   }
 
   isRowAfterViewport(row) {
-    return (row > this.getLastVisibleRow());
+    return (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
   }
 
   isRowAfterRenderedRows(row) {
-    return (row > this.getLastRenderedRow());
+    return (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
   }
 
   isColumnBeforeViewport(column) {
@@ -417,7 +430,7 @@ class WalkontableTable {
   }
 
   isColumnAfterViewport(column) {
-    return column > this.getLastVisibleColumn();
+    return (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
   }
 
   isLastRowFullyVisible() {
@@ -429,10 +442,12 @@ class WalkontableTable {
   }
 
   getRenderedColumnsCount() {
-    if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay) {
+    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG)) {
       return this.wot.getSetting('totalColumns');
 
-    } else if (this.wot.cloneOverlay instanceof WalkontableLeftOverlay || this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.wot.getSetting('fixedColumnsLeft');
 
     } else {
@@ -441,12 +456,16 @@ class WalkontableTable {
   }
 
   getRenderedRowsCount() {
-    if (this.wot.cloneOverlay instanceof WalkontableDebugOverlay) {
+    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG)) {
       return this.wot.getSetting('totalRows');
 
-    } else if (this.wot.cloneOverlay instanceof WalkontableTopOverlay ||
-      this.wot.cloneOverlay instanceof WalkontableCornerOverlay) {
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       return this.wot.getSetting('fixedRowsTop');
+
+    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
+        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return this.instance.getSetting('fixedRowsBottom');
     }
 
     return this.wot.wtViewport.rowsRenderCalculator.count;
@@ -510,7 +529,8 @@ class WalkontableTable {
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    let width = this.getColumnWidth(sourceColumn);
+    let columnWidth = this.getColumnWidth(sourceColumn);
+    let width = [void 0, null].indexOf(columnWidth) === -1 ? columnWidth : this.instance.wtSettings.settings.defaultColumnWidth;
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {
@@ -524,7 +544,6 @@ class WalkontableTable {
     return width;
   }
 }
-
 
 export {WalkontableTable};
 

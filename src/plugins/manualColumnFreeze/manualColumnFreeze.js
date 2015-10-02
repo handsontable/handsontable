@@ -44,10 +44,10 @@ class ManualColumnFreeze extends BasePlugin {
     super.init();
 
     // update plugin usages count for manualColumnPositions
-    if (typeof this.hot.manualColumnPositionsPluginUsages !== 'undefined') {
-      this.hot.manualColumnPositionsPluginUsages.push('manualColumnFreeze');
-    } else {
+    if (typeof this.hot.manualColumnPositionsPluginUsages === 'undefined') {
       this.hot.manualColumnPositionsPluginUsages = ['manualColumnFreeze'];
+    } else {
+      this.hot.manualColumnPositionsPluginUsages.push('manualColumnFreeze');
     }
 
     this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
@@ -244,7 +244,6 @@ class ManualColumnFreeze extends BasePlugin {
 
     return i - 1;
   }
-
 }
 
 export {ManualColumnFreeze};

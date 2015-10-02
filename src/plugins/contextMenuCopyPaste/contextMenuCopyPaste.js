@@ -1,6 +1,7 @@
 
 import {removeClass} from './../../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import {arrayEach} from './../../helpers/array';
+import {EventManager} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
@@ -15,54 +16,84 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   constructor(hotInstance) {
     super(hotInstance);
-
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = new EventManager(this);
+    /**
+     * Path to swf file which is necessary for ZeroClipboard.
+     *
+     * @type {String}
+     */
     this.swfPath = null;
-    this.hotContextMenu = null;
+    /**
+     * outsideClickDeselectsCache setting cache.
+     *
+     * @type {Boolean}
+     */
     this.outsideClickDeselectsCache = null;
-
-    this.hot.addHook('afterContextMenuShow', (htContextMenu) => this.setupZeroClipboard(htContextMenu));
-    this.hot.addHook('afterInit', () => this.afterInit());
-    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
   }
 
   /**
+   * Check if the plugin is enabled in the handsontable settings.
    *
+   * @returns {Boolean}
    */
-  afterInit() {
-    if (!this.hot.getSettings().contextMenuCopyPaste) {
-      return;
+  isEnabled() {
+    return this.hot.getSettings().contextMenuCopyPaste;
+  }
 
-    } else if (typeof this.hot.getSettings().contextMenuCopyPaste == 'object') {
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+    if (typeof this.hot.getSettings().contextMenuCopyPaste === 'object') {
       this.swfPath = this.hot.getSettings().contextMenuCopyPaste.swfPath;
     }
-
     if (typeof ZeroClipboard === 'undefined') {
-      console.error('To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.');
+      console.error('To be able to use the Copy/Paste feature from the context menu, you need to manually include ZeroClipboard.js file to your website.');
     }
     try {
       /* jshint -W031 */
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
-    } catch(exception) {
-      if ('undefined' == typeof navigator.mimeTypes['application/x-shockwave-flash']) {
+    } catch (exception) {
+      if (typeof navigator.mimeTypes['application/x-shockwave-flash'] == 'undefined') {
         console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
       }
     }
-    this.prepareZeroClipboard();
-  }
-
-  /**
-   * Prepare ZeroClipboard config values
-   */
-  prepareZeroClipboard() {
     if (this.swfPath) {
       ZeroClipboard.config({
         swfPath: this.swfPath
       });
     }
+    this.hot.addHook('afterContextMenuShow', () => this.onAfterContextMenuShow());
+    this.hot.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.registerEvents();
+    super.enablePlugin();
   }
 
   /**
-   * Get value to copy
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+  }
+
+  /**
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(document, 'mouseenter', () => this.removeCurrentClass());
+    this.eventManager.addEventListener(document, 'mouseleave', () => this.removeZeroClipboardClass());
+  }
+
+  /**
+   * Get value to copy.
    *
    * @returns {String}
    */
@@ -73,21 +104,19 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * Add Copy and Paste functionality to context menu
+   * Add Copy and Paste functionality to context menu.
    *
-   * @param defaultOptions
+   * @private
+   * @param {Object} defaultOptions
    */
-  addToContextMenu (defaultOptions) {
-    if (!this.hot.getSettings().contextMenuCopyPaste) {
-      return;
-    }
+  onAfterContextMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.unshift({
         key: 'copy',
         name: 'Copy'
       }, {
         key: 'paste',
         name: 'Paste',
-        callback: function () {
+        callback: function() {
           this.copyPaste.triggerPaste();
         }
       },
@@ -96,42 +125,42 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * @param {Object} hotContextMenu
+   * After context menu show listener.
+   *
+   * @private
    */
-  setupZeroClipboard(hotContextMenu) {
-    var data, zeroClipboardInstance;
+  onAfterContextMenuShow() {
+    const contextMenu = this.hot.getPlugin('contextMenu');
+    const data = contextMenu.menu.hotMenu.getData();
 
-    if (!this.hot.getSettings().contextMenuCopyPaste) {
-      return;
-    }
-    this.hotContextMenu = hotContextMenu;
-    data = this.hotContextMenu.getData();
-
-    // find position of 'copy' option
-    for (var i = 0, ilen = data.length; i < ilen; i++) {
-      /*jshint -W083 */
-      if (data[i].key === 'copy') {
-        zeroClipboardInstance = new ZeroClipboard(this.hotContextMenu.getCell(i, 0));
+    // find position of 'copy' option.
+    arrayEach(data, (item, index) => {
+      if (item.key === 'copy') {
+        let zeroClipboardInstance = new ZeroClipboard(contextMenu.menu.hotMenu.getCell(index, 0));
 
         zeroClipboardInstance.off();
         zeroClipboardInstance.on('copy', (event) => {
-          var clipboard = event.clipboardData;
+          let clipboard = event.clipboardData;
 
           clipboard.setData('text/plain', this.getCopyValue());
           this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
         });
 
-        this.bindEvents();
-        break;
+        return false;
       }
-    }
+    });
   }
 
+  /**
+   * @private
+   */
   removeCurrentClass() {
-    if (this.hotContextMenu.rootElement) {
-      var element = this.hotContextMenu.rootElement.querySelector('td.current');
+    const contextMenu = this.hot.getPlugin('contextMenu');
 
-      if ( element ) {
+    if (contextMenu.menu.isOpened()) {
+      let element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
+
+      if (element) {
         removeClass(element, 'current');
       }
     }
@@ -139,25 +168,20 @@ class ContextMenuCopyPaste extends BasePlugin {
     this.hot.getSettings().outsideClickDeselects = false;
   }
 
+  /**
+   * @private
+   */
   removeZeroClipboardClass() {
-    if (this.hotContextMenu.rootElement) {
-      var element = this.hotContextMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
+    const contextMenu = this.hot.getPlugin('contextMenu');
 
-      if ( element ) {
+    if (contextMenu.menu.isOpened()) {
+      let element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
+
+      if (element) {
         removeClass(element, 'zeroclipboard-is-hover');
       }
     }
     this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
-  }
-
-  /**
-   * Add all necessary event listeners
-   */
-  bindEvents() {
-    var eventManager = eventManagerObject(this.hotContextMenu);
-
-    eventManager.addEventListener(document, 'mouseenter', () => this.removeCurrentClass());
-    eventManager.addEventListener(document, 'mouseleave', () => this.removeZeroClipboardClass());
   }
 }
 

@@ -14,8 +14,8 @@ export function stringify(value) {
     case 'object':
       if (value === null) {
         return '';
-      }
-      else {
+
+      } else {
         return value.toString();
       }
       break;

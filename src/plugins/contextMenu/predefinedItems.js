@@ -33,6 +33,18 @@ export function predefinedItems() {
   return items;
 }
 
+/**
+ * Add new predefined menu item to the collection.
+ *
+ * @param {String} key Menu command id.
+ * @param {Object} item Object command descriptor.
+ */
+export function addItem(key, item) {
+  if (ITEMS.indexOf(key) === -1) {
+    _predefinedItems[key] = item;
+  }
+}
+
 const _predefinedItems = {
   [SEPARATOR]: {
     name: SEPARATOR
@@ -139,7 +151,7 @@ const _predefinedItems = {
     callback: function(key, selection) {
       let column = selection.start.col;
 
-      rangeEach(Math.max(selection.start.row, selection.end.row), (row) => this.setDataAtCell(row, column, ''));
+      this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column);
     },
     disabled: function() {
       let selected = getValidSelection(this);

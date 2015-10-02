@@ -6,10 +6,7 @@ import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
 
 export {MergeCells};
 
-//registerPlugin('mergeCells', MergeCells);
-
 function CellInfoCollection() {
-
   var collection = [];
 
   collection.getInfo = function(row, col) {
@@ -41,9 +38,7 @@ function CellInfoCollection() {
   };
 
   return collection;
-
 }
-
 
 /**
  * Plugin used to merge cells in Handsontable
@@ -119,7 +114,7 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
 
-      TD.style.display = "none";
+      TD.style.display = 'none';
     }
   } else {
     TD.removeAttribute('rowspan');
@@ -144,9 +139,8 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
 
   var newDelta = {
     row: delta.row,
-    col: delta.col
+    col: delta.col,
   };
-
 
   if (hook == 'modifyTransformStart') {
 
@@ -211,21 +205,21 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
         sharedBorders = currentSelectedRange.getBordersSharedWith(mergedRange);
 
       if (mergedRange.isEqual(currentSelectedRange)) { // only the merged range is selected
-        currentSelectedRange.setDirection("NW-SE");
+        currentSelectedRange.setDirection('NW-SE');
       } else if (sharedBorders.length > 0) {
         var mergeHighlighted = (currentSelectedRange.highlight.isEqual(mergedRange.from));
 
         if (sharedBorders.indexOf('top') > -1) { // if range shares a border with the merged section, change range direction accordingly
           if (currentSelectedRange.to.isSouthEastOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection("NW-SE");
+            currentSelectedRange.setDirection('NW-SE');
           } else if (currentSelectedRange.to.isSouthWestOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection("NE-SW");
+            currentSelectedRange.setDirection('NE-SW');
           }
         } else if (sharedBorders.indexOf('bottom') > -1) {
           if (currentSelectedRange.to.isNorthEastOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection("SW-NE");
+            currentSelectedRange.setDirection('SW-NE');
           } else if (currentSelectedRange.to.isNorthWestOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection("SE-NW");
+            currentSelectedRange.setDirection('SE-NW');
           }
         }
       }
@@ -336,10 +330,7 @@ var afterUpdateSettings = function() {
   var mergeCellsSetting = instance.getSettings().mergeCells;
 
   if (mergeCellsSetting) {
-    if (!instance.mergeCells) {
-      instance.mergeCells = new MergeCells(mergeCellsSetting);
-
-    } else {
+    if (instance.mergeCells) {
       instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
 
       if (Array.isArray(mergeCellsSetting)) {
@@ -347,6 +338,8 @@ var afterUpdateSettings = function() {
           instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
         }
       }
+    } else {
+      instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
 
   } else {
@@ -414,7 +407,7 @@ var modifyTransformFactory = function(hook) {
       var currentSelectedRange = this.getSelectedRange();
       this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
 
-      if (hook === "modifyTransformEnd") {
+      if (hook === 'modifyTransformEnd') {
         //sanitize "from" (core.js will sanitize to)
         var totalRows = this.countRows();
         var totalCols = this.countCols();
@@ -641,4 +634,3 @@ Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
 Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 
 Handsontable.MergeCells = MergeCells;
-

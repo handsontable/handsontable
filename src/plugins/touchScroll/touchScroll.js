@@ -1,12 +1,9 @@
-
 import {addClass, removeClass} from './../../helpers/dom/element';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 
-
 /**
  * @plugin TouchScroll
- * @class TouchScroll
  */
 class TouchScroll extends BasePlugin {
   /**
@@ -38,21 +35,36 @@ class TouchScroll extends BasePlugin {
 
       _this.scrollbars = [];
       _this.scrollbars.push(wtOverlays.topOverlay);
+
+      if (wtOverlays.bottomOverlay.clone) {
+        _this.scrollbars.push(wtOverlays.bottomOverlay);
+      }
       _this.scrollbars.push(wtOverlays.leftOverlay);
 
       if (wtOverlays.topLeftCornerOverlay) {
         _this.scrollbars.push(wtOverlays.topLeftCornerOverlay);
       }
+
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        _this.scrollbars.push(wtOverlays.bottomLeftCornerOverlay);
+      }
+
       _this.clones = [];
 
       if (wtOverlays.topOverlay.needFullRender) {
         _this.clones.push(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+      }
+      if (wtOverlays.bottomOverlay.needFullRender) {
+        _this.clones.push(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       }
       if (wtOverlays.leftOverlay.needFullRender) {
         _this.clones.push(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
       }
       if (wtOverlays.topLeftCornerOverlay) {
         _this.clones.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      }
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        _this.clones.push(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
       }
     });
   }

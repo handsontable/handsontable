@@ -8,7 +8,6 @@ import {TextEditor} from './textEditor';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 
-
 /**
  * @private
  * @editor HandsontableEditor
@@ -70,12 +69,12 @@ var onBeforeKeyDown = function(event) {
   var rowToSelect;
 
   if (event.keyCode == KEY_CODES.ARROW_DOWN) {
-    if (!innerHOT.getSelected()) {
-      rowToSelect = 0;
-    } else {
+    if (innerHOT.getSelected()) {
       var selectedRow = innerHOT.getSelected()[0];
       var lastRow = innerHOT.countRows() - 1;
       rowToSelect = Math.min(lastRow, selectedRow + 1);
+    } else {
+      rowToSelect = 0;
     }
   } else if (event.keyCode == KEY_CODES.ARROW_UP) {
     if (innerHOT.getSelected()) {

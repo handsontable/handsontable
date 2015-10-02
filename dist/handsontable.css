@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.18.0
+ * Handsontable 0.19.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 10 2015 14:56:37 GMT+0200 (CEST)
+ * Date: Fri Oct 02 2015 12:37:12 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -297,6 +297,39 @@
   right: -15px;
 }
 
+.handsontable th.beforeHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
+  content: '\25C0';
+  color: #bbb;
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  font-size: 5pt;
+}
+
+.handsontable th.afterHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.afterHiddenColumn::before {
+  left: 1px;
+  top: 2px;
+  right: auto;
+  content: '\25B6';
+}
+
+.handsontable td.afterHiddenColumn.firstVisible {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable thead th.hiddenHeader {
+  display: none;
+}
+
 /* border line */
 
 .handsontable .wtBorder {
@@ -446,6 +479,11 @@ CheckboxRenderer
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
+.handsontable .htCheckboxRendererLabel {
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
 
 /*
 NumericRenderer
@@ -587,7 +625,8 @@ Comment For Cell
   z-index: 102;
 }
 
-.ht_clone_corner {
+.ht_clone_top_left_corner,
+.ht_clone_bottom_left_corner {
   z-index: 103;
 }
 
@@ -633,67 +672,18 @@ Cell borders
   font-family: 'Arial';
 }
 
-
-/* Grouping indicators */
-.handsontable colgroup col.rowHeader.htGroupCol {
-  width: 25px !important;
-}
-.handsontable colgroup col.rowHeader.htGroupColClosest {
-  width: 30px !important;
-}
-
-.handsontable .htGroupIndicatorContainer {
-  background: #fff;
-  border: 0;
-  padding-bottom: 0;
-  vertical-align: bottom;
-  position: relative;
-}
-
-.handsontable thead .htGroupIndicatorContainer {
-  vertical-align: top;
-  border-bottom: 0;
-}
-
 .handsontable tbody tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
 }
 
-.handsontable thead tr:nth-last-child(2) th {
+.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
   border-bottom: 1px solid #CCC;
   padding-bottom: 5px;
 }
 
 
-.ht_clone_corner thead tr th:nth-last-child(2) {
+.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
-}
-
-.htVerticalGroup {
-  height: 100%;
-}
-
-.htHorizontalGroup {
-  width: 100%;
-  height: 100%;
-}
-
-.htVerticalGroup:not(.htCollapseButton):after {
-  content: "";
-  height: 100%;
-  width: 1px;
-  display: block;
-  background: #ccc;
-  margin-left: 5px;
-}
-
-.htHorizontalGroup:not(.htCollapseButton):after {
-  content: "";
-  width: 100%;
-  height: 1px;
-  display: block;
-  background: #ccc;
-  margin-top: 20%;
 }
 
 .htCollapseButton {
@@ -737,37 +727,6 @@ thead .htCollapseButton:after {
   top: 4px;
 }
 
-.handsontable tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  width: 5px;
-  position: relative;
-  top: 50%;
-}
-
-.handsontable thead tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  height: 5px;
-  width: 50%;
-  position: relative;
-  top: 0;
-  left: 50%;
-}
-
-.handsontable .htGroupLevelTrigger {
-  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  width: 15px;
-  height: 15px;
-  margin: 4px auto;
-  padding: 0;
-  line-height: 15px;
-  cursor: pointer;
-}
-
 .handsontable tr th .htExpandButton {
   position: absolute;
   width: 10px;
@@ -792,8 +751,31 @@ thead .htCollapseButton:after {
   display: block;
 }
 
+.collapsibleIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(0% ,-50%);
+  right: 5px;
+  border: 1px solid #A6A6A6;
+  line-height: 10px;
+  color: #222;
+  border-radius: 10px;
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  -webkit-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  -moz-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  background: #eee;
+}
+
 .handsontable col.hidden {
   width: 0 !important;
+}
+
+.handsontable table tr th.lightRightBorder {
+  border-right: 1px solid #E6E6E6;
 }
 
 .handsontable tr.hidden,
@@ -804,7 +786,8 @@ thead .htCollapseButton:after {
 
 .ht_master,
 .ht_clone_left,
-.ht_clone_top {
+.ht_clone_top,
+.ht_clone_bottom {
   overflow: hidden;
 }
 
@@ -817,7 +800,8 @@ thead .htCollapseButton:after {
   overflow-y: auto;
 }
 
-.ht_clone_top .wtHolder {
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -1152,8 +1136,9 @@ thead .htCollapseButton:after {
   cursor: default;
 }
 
-.htContextMenu table tbody tr td div {
-  padding-left: 10px;
+.htContextMenu table tbody tr td .htItemWrapper {
+  margin-left: 10px;
+  margin-right: 6px;
 }
 
 .htContextMenu table tbody tr td div span.selected {

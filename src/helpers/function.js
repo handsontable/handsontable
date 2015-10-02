@@ -1,6 +1,6 @@
 
 export function proxy(fun, context) {
-  return function () {
+  return function() {
     return fun.apply(context, arguments);
   };
 }
@@ -70,7 +70,7 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
   }
   function _throttleAfterHits() {
     if (remainHits) {
-      remainHits --;
+      remainHits--;
 
       return func.apply(this, arguments);
     }
