@@ -2,10 +2,11 @@
 import {
   getScrollableElement,
   getTrimmingContainer,
-    } from './../../../../helpers/dom/element';
+} from './../../../../helpers/dom/element';
 import {defineGetter} from './../../../../helpers/object';
 import {eventManager as eventManagerObject} from './../../../../eventManager';
 
+const registeredOverlays = {};
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -24,6 +25,13 @@ class WalkontableOverlay {
   /**
    * @type {String}
    */
+  static get CLONE_BOTTOM() {
+    return 'bottom';
+  }
+
+  /**
+   * @type {String}
+   */
   static get CLONE_LEFT() {
     return 'left';
   }
@@ -31,8 +39,15 @@ class WalkontableOverlay {
   /**
    * @type {String}
    */
-  static get CLONE_CORNER() {
-    return 'corner';
+  static get CLONE_TOP_LEFT_CORNER() {
+    return 'top_left_corner';
+  }
+
+  /**
+   * @type {String}
+   */
+  static get CLONE_BOTTOM_LEFT_CORNER() {
+    return 'bottom_left_corner';
   }
 
   /**
@@ -50,10 +65,50 @@ class WalkontableOverlay {
   static get CLONE_TYPES() {
     return [
       WalkontableOverlay.CLONE_TOP,
+      WalkontableOverlay.CLONE_BOTTOM,
       WalkontableOverlay.CLONE_LEFT,
-      WalkontableOverlay.CLONE_CORNER,
-      WalkontableOverlay.CLONE_DEBUG
+      WalkontableOverlay.CLONE_TOP_LEFT_CORNER,
+      WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER,
+      WalkontableOverlay.CLONE_DEBUG,
     ];
+  }
+
+  /**
+   * Register overlay class.
+   *
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @param {WalkontableOverlay} overlayClass Overlay class extended from base overlay class {@link WalkontableOverlay}
+   */
+  static registerOverlay(type, overlayClass) {
+    if (WalkontableOverlay.CLONE_TYPES.indexOf(type) === -1) {
+      throw new Error(`Unsupported overlay (${type}).`);
+    }
+    registeredOverlays[type] = overlayClass;
+  }
+
+  /**
+   * Create new instance of overlay type
+   *
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @param {Walkontable} wot Walkontable instance
+   */
+  static createOverlay(type, wot) {
+    return new registeredOverlays[type](wot);
+  }
+
+  /**
+   * Checks if overlay object (`overlay`) is instance of overlay type (`type`)
+   *
+   * @param {WalkontableOverlay} overlay Overlay object
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @returns {Boolean}
+   */
+  static isOverlayTypeOf(overlay, type) {
+    if (!overlay || !registeredOverlays[type]) {
+      return false;
+    }
+
+    return overlay instanceof registeredOverlays[type];
   }
 
   /**
@@ -61,7 +116,7 @@ class WalkontableOverlay {
    */
   constructor(wotInstance) {
     defineGetter(this, 'wot', wotInstance, {
-      writable: false
+      writable: false,
     });
 
     // legacy support, deprecated in the future
@@ -76,7 +131,7 @@ class WalkontableOverlay {
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
     this.needFullRender = this.shouldBeRendered();
-    this.isElementSizesAdjusted = false;
+    this.areElementSizesAdjusted = false;
   }
 
   /**
@@ -92,7 +147,7 @@ class WalkontableOverlay {
    * Make a clone of table for overlay
    *
    * @param {String} direction Can be `WalkontableOverlay.CLONE_TOP`, `WalkontableOverlay.CLONE_LEFT`,
-   *                           `WalkontableOverlay.CLONE_CORNER`, `WalkontableOverlay.CLONE_DEBUG`
+   *                           `WalkontableOverlay.CLONE_TOP_LEFT_CORNER`, `WalkontableOverlay.CLONE_DEBUG`
    * @returns {Walkontable}
    */
   makeClone(direction) {
@@ -117,7 +172,7 @@ class WalkontableOverlay {
     return new Walkontable({
       cloneSource: this.wot,
       cloneOverlay: this,
-      table: clonedTable
+      table: clonedTable,
     });
   }
 

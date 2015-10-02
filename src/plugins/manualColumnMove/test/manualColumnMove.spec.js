@@ -34,6 +34,25 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('1');
   });
 
+  it("should be enabled after specifying it in updateSettings config", function () {
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true
+    });
+
+    updateSettings({manualColumnMove: true});
+
+    this.$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
+
+    expect($('.manualColumnMover').size()).toBeGreaterThan(0);
+  });
+
   it("should change the default column order with updateSettings", function () {
     handsontable({
       data: [

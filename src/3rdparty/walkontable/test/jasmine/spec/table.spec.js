@@ -509,10 +509,10 @@ describe('WalkontableTable', function () {
         });
       wt.draw();
 
-      expect($('.ht_clone_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
-      expect($('.ht_clone_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
-      expect($('.ht_clone_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
-      expect($('.ht_clone_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
+      expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
+      expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
+      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
+      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
     });
   });
 

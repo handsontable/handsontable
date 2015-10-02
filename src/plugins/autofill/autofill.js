@@ -110,7 +110,7 @@ function Autofill(instance) {
     }
 
     if (_this.instance.mouseDragOutside) {
-      setTimeout(function () {
+      setTimeout(function() {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
       }, 200);
@@ -123,7 +123,7 @@ function Autofill(instance) {
   // Appeding autofill-specific methods to walkontable event settings
   wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
 
-  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function (event) {
+  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
     instance.autofill.handle.isDragged = 1;
     mouseDownOnCellCorner = true;
     wtOnCellCornerMouseDown(event);
@@ -131,7 +131,7 @@ function Autofill(instance) {
 
   wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
 
-  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function (event, coords, TD, wt) {
+  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
     if (instance.autofill && mouseDownOnCellCorner && !instance.view.isMouseDown() &&
       instance.autofill.handle && instance.autofill.handle.isDragged) {
       instance.autofill.handle.isDragged++;
@@ -141,7 +141,7 @@ function Autofill(instance) {
     wtOnCellMouseOver(event, coords, TD, wt);
   };
 
-  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function () {
+  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function() {
     instance.autofill.selectAdjacent();
   };
 }
@@ -152,7 +152,7 @@ function Autofill(instance) {
  * @function init
  * @memberof Autofill#
  */
-Autofill.prototype.init = function () {
+Autofill.prototype.init = function() {
   this.handle = {};
 };
 
@@ -162,7 +162,7 @@ Autofill.prototype.init = function () {
  * @function disable
  * @memberof Autofill#
  */
-Autofill.prototype.disable = function () {
+Autofill.prototype.disable = function() {
   this.handle.disabled = true;
 };
 
@@ -172,7 +172,7 @@ Autofill.prototype.disable = function () {
  * @function selectAdjacent
  * @memberof Autofill#
  */
-Autofill.prototype.selectAdjacent = function () {
+Autofill.prototype.selectAdjacent = function() {
   var select, data, r, maxR, c;
 
   if (this.instance.selection.isMultiple()) {
@@ -207,15 +207,15 @@ Autofill.prototype.selectAdjacent = function () {
  * @function apply
  * @memberof Autofill#
  */
-Autofill.prototype.apply = function () {
+Autofill.prototype.apply = function() {
   var drag, select, start, end, _data, direction, deltas, selRange;
 
   this.handle.isDragged = 0;
-  drag = this.instance.view.wt.selections.fill.getCorners();
 
-  if (!drag) {
+  if (this.instance.view.wt.selections.fill.isEmpty()) {
     return;
   }
+  drag = this.instance.view.wt.selections.fill.getCorners();
   this.instance.view.wt.selections.fill.clear();
 
   if (this.instance.selection.isMultiple()) {
@@ -253,7 +253,7 @@ Autofill.prototype.apply = function () {
   if (start && start.row > -1 && start.col > -1) {
     selRange = {
       from: this.instance.getSelectedRange().from,
-      to: this.instance.getSelectedRange().to
+      to: this.instance.getSelectedRange().to,
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
     deltas = getDeltas(start, end, _data, direction);
@@ -277,14 +277,14 @@ Autofill.prototype.apply = function () {
  * @memberof Autofill#
  * @param {WalkontableCellCoords} coords
  */
-Autofill.prototype.showBorder = function (coords) {
+Autofill.prototype.showBorder = function(coords) {
   var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),
     bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
 
   if (this.instance.getSettings().fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
     coords = new WalkontableCellCoords(coords.row, bottomRight.col);
 
-  } else if (this.instance.getSettings().fillHandle !== 'vertical') {
+  } else if (this.instance.getSettings().fillHandle !== 'vertical') { // jscs:ignore disallowNotOperatorsInConditionals
     coords = new WalkontableCellCoords(bottomRight.row, coords.col);
 
   } else {
@@ -303,7 +303,7 @@ Autofill.prototype.showBorder = function (coords) {
  * @function checkIfNewRowNeeded
  * @memberof Autofill#
  */
-Autofill.prototype.checkIfNewRowNeeded = function () {
+Autofill.prototype.checkIfNewRowNeeded = function() {
   var fillCorners,
     selection,
     tableRows = this.instance.countRows(),
@@ -316,7 +316,7 @@ Autofill.prototype.checkIfNewRowNeeded = function () {
     if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
       this.addingStarted = true;
 
-      this.instance._registerTimeout(setTimeout(function () {
+      this.instance._registerTimeout(setTimeout(function() {
         that.instance.alter('insert_row');
         that.addingStarted = false;
       }, 200));
@@ -324,8 +324,7 @@ Autofill.prototype.checkIfNewRowNeeded = function () {
   }
 };
 
-
-Handsontable.hooks.add('afterInit', function () {
+Handsontable.hooks.add('afterInit', function() {
   var autofill = new Autofill(this);
 
   if (typeof this.getSettings().fillHandle !== 'undefined') {

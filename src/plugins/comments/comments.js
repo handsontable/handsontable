@@ -60,7 +60,6 @@ class Comments extends BasePlugin {
      * @type {CommentEditor}
      */
     this.editor = null;
-
     /**
      * Instance of {@link EventManager}
      *
@@ -68,26 +67,22 @@ class Comments extends BasePlugin {
      * @type {EventManager}
      */
     this.eventManager = null;
-
     /**
      * Current cell range
      *
      * @type {Object}
      */
     this.range = {};
-
     /**
      * @private
      * @type {Boolean}
      */
     this.mouseDown = false;
-
     /**
      * @private
      * @type {Boolean}
      */
     this.contextMenuEvent = false;
-
     /**
      * @private
      * @type {*}
@@ -124,6 +119,13 @@ class Comments extends BasePlugin {
     this.addHook('afterRowResize', () => this.refreshEditorPosition());
     this.registerListeners();
     super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**
@@ -475,13 +477,13 @@ class Comments extends BasePlugin {
           return this.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
         },
         callback: () => this.onContextMenuAddComment(),
-        disabled: function () {
-          return this.getSelected() ? false: true;
+        disabled: function() {
+          return this.getSelected() ? false : true;
         }
       },
       {
         key: 'commentsRemove',
-        name: function () {
+        name: function() {
           return 'Delete Comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(key, selection),

@@ -8,7 +8,6 @@ import {TextEditor} from './textEditor';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 
-
 /**
  * @private
  * @editor HandsontableEditor
@@ -23,11 +22,6 @@ HandsontableEditor.prototype.createElements = function() {
   this.TEXTAREA_PARENT.appendChild(DIV);
 
   this.htContainer = DIV;
-  this.htEditor = new Handsontable(DIV, {
-    autoColumnSize: false,
-    autoRowSize: false
-  });
-
   this.assignHooks();
 };
 
@@ -36,7 +30,6 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   TextEditor.prototype.prepare.apply(this, arguments);
 
   var parent = this;
-
   var options = {
     startRows: 0,
     startCols: 0,
@@ -46,15 +39,13 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     copyPaste: false,
     autoColumnSize: false,
     autoRowSize: false,
-    cells: function() {
-      return {
-        readOnly: true
-      };
-    },
+    readOnly: true,
     fillHandle: false,
     afterOnCellMouseDown: function() {
       var value = this.getValue();
-      if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
+
+      // if the value is undefined then it means we don't want to set the value
+      if (value !== void 0) {
         parent.setValue(value);
       }
       parent.instance.destroyEditor();
@@ -64,14 +55,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   if (this.cellProperties.handsontable) {
     extend(options, cellProperties.handsontable);
   }
-  if (this.htEditor) {
-    this.htEditor.destroy();
-  }
-
-  this.htEditor = new Handsontable(this.htContainer, options);
-
-  //this.$htContainer.handsontable('destroy');
-  //this.$htContainer.handsontable(options);
+  this.htOptions = options;
 };
 
 var onBeforeKeyDown = function(event) {
@@ -85,12 +69,12 @@ var onBeforeKeyDown = function(event) {
   var rowToSelect;
 
   if (event.keyCode == KEY_CODES.ARROW_DOWN) {
-    if (!innerHOT.getSelected()) {
-      rowToSelect = 0;
-    } else {
+    if (innerHOT.getSelected()) {
       var selectedRow = innerHOT.getSelected()[0];
       var lastRow = innerHOT.countRows() - 1;
       rowToSelect = Math.min(lastRow, selectedRow + 1);
+    } else {
+      rowToSelect = 0;
     }
   } else if (event.keyCode == KEY_CODES.ARROW_UP) {
     if (innerHOT.getSelected()) {
@@ -121,7 +105,10 @@ HandsontableEditor.prototype.open = function() {
 
   TextEditor.prototype.open.apply(this, arguments);
 
-  this.htEditor.render();
+  if (this.htEditor) {
+    this.htEditor.destroy();
+  }
+  this.htEditor = new Handsontable(this.htContainer, this.htOptions);
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
@@ -132,7 +119,6 @@ HandsontableEditor.prototype.open = function() {
   }
 
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
-
 };
 
 HandsontableEditor.prototype.close = function() {
@@ -157,14 +143,14 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
 };
 
 HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
-  if (this.htEditor.isListening()) { //if focus is still in the HOT editor
+  if (this.htEditor && this.htEditor.isListening()) { //if focus is still in the HOT editor
 
     //if (Handsontable.tmpHandsontable(this.htContainer,'isListening')) { //if focus is still in the HOT editor
     //if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
     this.instance.listen(); //return the focus to the parent HOT instance
   }
 
-  if (this.htEditor.getSelected()) {
+  if (this.htEditor && this.htEditor.getSelected()) {
     //if (Handsontable.tmpHandsontable(this.htContainer,'getSelected')) {
     //if (this.$htContainer.handsontable('getSelected')) {
     //  var value = this.$htContainer.handsontable('getInstance').getValue();

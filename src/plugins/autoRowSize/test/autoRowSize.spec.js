@@ -56,7 +56,12 @@ describe('AutoRowSize', function () {
 
       expect(rowHeight(this.$container, 0)).toBeAroundValue(24);
       expect(rowHeight(this.$container, 1)).toBeAroundValue(43);
-      expect(rowHeight(this.$container, 2)).toBeAroundValue(106);
+
+      if (Handsontable.helper.isIE9()) {
+        expect(rowHeight(this.$container, 2)).toBeAroundValue(127);
+      } else {
+        expect(rowHeight(this.$container, 2)).toBeAroundValue(106);
+      }
     });
   });
 

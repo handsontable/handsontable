@@ -2,7 +2,6 @@
 import {polymerWrap, closest} from './helpers/dom/element';
 import {isWebComponentSupportedNatively} from './helpers/browser';
 
-
 /**
  * Event DOM manager for internal use in Handsontable.
  *
@@ -51,7 +50,7 @@ class EventManager {
             }
           });
         } else {
-          event.preventDefault = function () {
+          event.preventDefault = function() {
             this.returnValue = false;
           };
         }
@@ -65,7 +64,7 @@ class EventManager {
       element: element,
       event: eventName,
       callback: callback,
-      callbackProxy: callbackProxy
+      callbackProxy: callbackProxy,
     });
 
     if (window.addEventListener) {
@@ -73,7 +72,7 @@ class EventManager {
     } else {
       element.attachEvent('on' + eventName, callbackProxy);
     }
-    Handsontable.countEventManagerListeners ++;
+    Handsontable.countEventManagerListeners++;
 
     return () => {
       this.removeEventListener(element, eventName, callback);
@@ -105,7 +104,7 @@ class EventManager {
         } else {
           tmpEvent.element.detachEvent('on' + tmpEvent.event, tmpEvent.callbackProxy);
         }
-        Handsontable.countEventManagerListeners --;
+        Handsontable.countEventManagerListeners--;
       }
     }
   }
@@ -166,7 +165,7 @@ class EventManager {
       shiftKey: false,
       metaKey: false,
       button: 0,
-      relatedTarget: undefined
+      relatedTarget: undefined,
     };
     var event;
 
@@ -213,7 +212,7 @@ function extendEvent(context, event) {
   event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 
-  while (len --) {
+  while (len--) {
     if (event.path[len].nodeName === componentName) {
       isHotTableSpotted = true;
 
@@ -237,7 +236,7 @@ function extendEvent(context, event) {
   } else if (context instanceof Handsontable.Core || context instanceof Walkontable) {
     // Polymer doesn't support `event.target` property properly we must emulate it ourselves
     if (context instanceof Handsontable.Core) {
-      fromElement = context.view.wt.wtTable.TABLE;
+      fromElement = context.view ? context.view.wt.wtTable.TABLE : null;
 
     } else if (context instanceof Walkontable) {
       // .wtHider
@@ -257,7 +256,7 @@ function extendEvent(context, event) {
       return polymerWrap(target);
     },
     enumerable: true,
-    configurable: true
+    configurable: true,
   });
 
   return event;

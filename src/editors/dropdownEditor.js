@@ -1,7 +1,5 @@
-
 import {getEditor, registerEditor} from './../editors';
 import {AutocompleteEditor} from './autocompleteEditor';
-
 
 /**
  * @private
@@ -16,6 +14,17 @@ class DropdownEditor extends AutocompleteEditor {
     this.cellProperties.strict = true;
   }
 }
+
+Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
+  let cellMeta = this.getCellMeta(row, col);
+
+  if (cellMeta.editor === Handsontable.editors.DropdownEditor) {
+    if (cellMeta.strict === void 0) {
+      cellMeta.filter = false;
+      cellMeta.strict = true;
+    }
+  }
+});
 
 export {DropdownEditor};
 

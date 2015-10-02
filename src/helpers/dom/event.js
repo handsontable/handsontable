@@ -13,8 +13,7 @@ export function stopPropagation(event) {
   //http://msdn.microsoft.com/en-us/library/ie/ff975462(v=vs.85).aspx
   if (typeof event.stopPropagation === 'function') {
     event.stopPropagation();
-  }
-  else {
+  } else {
     event.cancelBubble = true;
   }
 }

@@ -39,7 +39,7 @@ export function isChildOf(child, parent) {
   var node = child.parentNode;
   var queriedParents = [];
 
-  if (typeof parent === "string") {
+  if (typeof parent === 'string') {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
@@ -51,6 +51,7 @@ export function isChildOf(child, parent) {
     }
     node = node.parentNode;
   }
+
   return false;
 }
 
@@ -75,8 +76,7 @@ export function isChildOfWebComponentTable(element) {
     if (isHotTable(parentNode)) {
       result = true;
       break;
-    }
-    else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    } else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       result = isHotTable(parentNode.host);
 
       if (result) {
@@ -135,6 +135,17 @@ export function index(element) {
   return i;
 }
 
+/**
+ * Check if the provided overlay contains the provided element
+ *
+ * @param {String} overlay
+ * @param {HTMLElement} element
+ * @returns {boolean}
+ */
+export function overlayContainsElement(overlayType, element) {
+  let overlayElement = document.querySelector('.ht_clone_' + overlayType);
+  return overlayElement ? overlayElement.contains(element) : null;
+}
 
 var classListSupport = document.documentElement.classList ? true : false;
 var _hasClass, _addClass, _removeClass;
@@ -154,7 +165,7 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function () {
+  var isSupportMultipleClassesArg = (function() {
     var element = document.createElement('div');
 
     element.classList.add('test', 'test2');
@@ -290,9 +301,9 @@ export function removeClass(element, className) {
 
 export function removeTextNodes(element, parent) {
   if (element.nodeType === 3) {
-    parent.removeChild(element); //bye text nodes!
-  }
-  else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
+    parent.removeChild(element); // bye text nodes!
+
+  } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     var childs = element.childNodes;
     for (var i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
@@ -328,8 +339,7 @@ export var HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 export function fastInnerHTML(element, content) {
   if (HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
-  }
-  else {
+  } else {
     fastInnerText(element, content);
   }
 }
@@ -354,8 +364,7 @@ export function fastInnerText(element, content) {
       // http://jsperf.com/replace-text-vs-reuse
       child.data = content;
     }
-  }
-  else {
+  } else {
     //slow lane - empty element and insert a text node
     empty(element);
     element.appendChild(document.createTextNode(content));
@@ -373,26 +382,23 @@ export function isVisible(elem) {
   while (polymerUnwrap(next) !== document.documentElement) { //until <html> reached
     if (next === null) { //parent detached from DOM
       return false;
-    }
-    else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { //this is Web Components Shadow DOM
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
         if (next.host.impl) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
           return isVisible(next.host.impl);
-        }
-        else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+
+        } else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
+
+        } else {
+          throw new Error('Lost in Web Components world');
         }
-        else {
-          throw new Error("Lost in Web Components world");
-        }
-      }
-      else {
+      } else {
         return false; //this is a node detached from document in IE8
       }
-    }
-    else if (next.style.display === 'none') {
+    } else if (next.style.display === 'none') {
       return false;
     }
     next = next.parentNode;
@@ -494,8 +500,7 @@ export function getWindowScrollLeft() {
 export function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
-  }
-  else {
+  } else {
     return element.scrollTop;
   }
 }
@@ -509,8 +514,7 @@ export function getScrollTop(element) {
 export function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
-  }
-  else {
+  } else {
     return element.scrollLeft;
   }
 }
@@ -537,6 +541,7 @@ export function getScrollableElement(element) {
 
     if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
       return el;
+
     } else if (window.getComputedStyle) {
       computedStyle = window.getComputedStyle(el);
       computedOverflow = computedStyle.getPropertyValue('overflow');
@@ -549,11 +554,11 @@ export function getScrollableElement(element) {
     }
 
     if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
     if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
-      props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
+        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
     el = el.parentNode;
@@ -606,17 +611,18 @@ export function getStyle(element, prop) {
     } else if (prop === 'height') {
       return window.innerHeight + 'px';
     }
+
     return;
   }
 
   var styleProp = element.style[prop],
     computedStyle;
-  if (styleProp !== "" && styleProp !== void 0) {
+  if (styleProp !== '' && styleProp !== void 0) {
     return styleProp;
 
   } else {
     computedStyle = getComputedStyle(element);
-    if (computedStyle[prop] !== "" && computedStyle[prop] !== void 0) {
+    if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
       return computedStyle[prop];
     }
     return void 0;
@@ -658,8 +664,7 @@ export function outerHeight(elem) {
     //http://bugs.jquery.com/ticket/2196
     //http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
     return elem.offsetHeight + elem.firstChild.offsetHeight;
-  }
-  else {
+  } else {
     return elem.offsetHeight;
   }
 }
@@ -709,8 +714,8 @@ export function removeEvent(element, event, callback) {
 export function getCaretPosition(el) {
   if (el.selectionStart) {
     return el.selectionStart;
-  }
-  else if (document.selection) { // IE8
+
+  } else if (document.selection) { // IE8
     el.focus();
 
     let r = document.selection.createRange();
@@ -768,17 +773,14 @@ export function setCaretPosition(element, pos, endPos) {
 
     try {
       element.setSelectionRange(pos, endPos);
-    }
-    catch(err) {
+    } catch (err) {
       var elementParent = element.parentNode;
       var parentDisplayValue = elementParent.style.display;
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
-
-  }
-  else if (element.createTextRange) { //IE8
+  } else if (element.createTextRange) { //IE8
     var range = element.createTextRange();
     range.collapse(true);
     range.moveEnd('character', endPos);
@@ -792,17 +794,17 @@ var cachedScrollbarWidth;
 //http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function walkontableCalculateScrollbarWidth() {
   var inner = document.createElement('p');
-  inner.style.width = "100%";
-  inner.style.height = "200px";
+  inner.style.width = '100%';
+  inner.style.height = '200px';
 
   var outer = document.createElement('div');
-  outer.style.position = "absolute";
-  outer.style.top = "0px";
-  outer.style.left = "0px";
-  outer.style.visibility = "hidden";
-  outer.style.width = "200px";
-  outer.style.height = "150px";
-  outer.style.overflow = "hidden";
+  outer.style.position = 'absolute';
+  outer.style.top = '0px';
+  outer.style.left = '0px';
+  outer.style.visibility = 'hidden';
+  outer.style.width = '200px';
+  outer.style.height = '150px';
+  outer.style.overflow = 'hidden';
   outer.appendChild(inner);
 
   (document.body || document.documentElement).appendChild(outer);
@@ -831,7 +833,6 @@ export function getScrollbarWidth() {
   return cachedScrollbarWidth;
 }
 
-
 /**
  * Sets overlay position depending on it's type and used browser
  */
@@ -851,7 +852,7 @@ export function getCssTransform(element) {
   var transform;
 
   /* jshint sub:true */
-  if (element.style['transform'] && (transform = element.style['transform']) !== '') {
+  if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
 
   } else if (element.style['-webkit-transform'] && (transform = element.style['-webkit-transform']) !== '') {
@@ -863,9 +864,8 @@ export function getCssTransform(element) {
 }
 
 export function resetCssTransform(element) {
-  /* jshint sub:true */
-  if (element['transform'] && element['transform'] !== '') {
-    element['transform'] = '';
+  if (element.transform && element.transform !== '') {
+    element.transform = '';
   } else if (element['-webkit-transform'] && element['-webkit-transform'] !== '') {
     element['-webkit-transform'] = '';
   }
@@ -892,7 +892,6 @@ export function isInput(element) {
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
 }
-
 
 // https://gist.github.com/paulirish/1579671
 let lastTime = 0;

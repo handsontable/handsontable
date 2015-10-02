@@ -25,7 +25,7 @@ function RegisteredEditor(editorClass) {
     return editorClass;
   };
 
-  this.getInstance = function (hotInstance) {
+  this.getInstance = function(hotInstance) {
     if (!(hotInstance.guid in instances)) {
       instances[hotInstance.guid] = new Clazz(hotInstance);
     }
@@ -64,11 +64,11 @@ function getEditor(editorName, hotInstance) {
       registerEditor(null, editorName);
     }
     editor = registeredEditorClasses.get(editorName);
-  }
-  else if (typeof editorName == 'string') {
+
+  } else if (typeof editorName == 'string') {
     editor = registeredEditorNames[editorName];
-  }
-  else {
+
+  } else {
     throw Error('Only strings and functions can be passed as "editor" parameter ');
   }
 
@@ -90,8 +90,8 @@ function getEditorConstructor(editorName) {
 
   if (typeof editorName == 'string') {
     editor = registeredEditorNames[editorName];
-  }
-  else {
+
+  } else {
     throw Error('Only strings and functions can be passed as "editor" parameter ');
   }
 

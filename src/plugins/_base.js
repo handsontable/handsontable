@@ -1,4 +1,3 @@
-
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
 import {getRegistredPluginNames, getPluginName} from './../plugins';
@@ -114,7 +113,6 @@ class BasePlugin {
    */
   callOnPluginsReady(callback) {
     if (this.isPluginsReady) {
-      this.pluginsInitializedCallbacks.length = 0;
       callback();
     } else {
       this.pluginsInitializedCallbacks.push(callback);
@@ -128,6 +126,7 @@ class BasePlugin {
    */
   onAfterPluginsInitialized() {
     arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }
 
@@ -144,7 +143,23 @@ class BasePlugin {
       if (!this.enabled && this.isEnabled()) {
         this.enablePlugin();
       }
+      if (this.enabled && this.isEnabled()) {
+
+        if (this.updatePlugin) {
+          this.updatePlugin();
+        }
+
+      }
     }
+  }
+
+  /**
+   * Update the plugin's settings
+   *
+   * @private
+   */
+  updatePlugin() {
+
   }
 
   /**

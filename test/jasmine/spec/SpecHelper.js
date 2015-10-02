@@ -51,7 +51,7 @@ var getLeftClone = function () {
 };
 
 var getCornerClone = function () {
-  return spec().$container.find('.ht_clone_corner');
+  return spec().$container.find('.ht_clone_top_left_corner');
 };
 
 //Rename me to countTD
@@ -398,6 +398,7 @@ var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 var getCell = handsontableMethodFactory('getCell');
+var getCellsMeta = handsontableMethodFactory('getCellsMeta');
 var getCellMeta = handsontableMethodFactory('getCellMeta');
 var setCellMeta = handsontableMethodFactory('setCellMeta');
 var removeCellMeta = handsontableMethodFactory('removeCellMeta');
@@ -406,10 +407,12 @@ var getCellEditor = handsontableMethodFactory('getCellEditor');
 var getCellValidator = handsontableMethodFactory('getCellValidator');
 var getData = handsontableMethodFactory('getData');
 var getCopyableData = handsontableMethodFactory('getCopyableData');
+var getCopyableText = handsontableMethodFactory('getCopyableText');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
 var getDataAtCol = handsontableMethodFactory('getDataAtCol');
+var getDataType = handsontableMethodFactory('getDataType');
 var getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 var getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
@@ -473,6 +476,30 @@ function getRenderedValue(trIndex, tdIndex) {
  */
 function getRenderedContent(trIndex, tdIndex) {
   return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children()
+}
+
+/**
+ * Create numerical data values for the table
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+function createNumericData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push((i + 1));
+    }
+    rows.push(row);
+  }
+  return rows;
 }
 
 /**

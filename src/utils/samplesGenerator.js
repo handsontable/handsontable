@@ -113,13 +113,15 @@ class SamplesGenerator {
       if (!samples.has(len)) {
         samples.set(len, {
           needed: SamplesGenerator.SAMPLE_COUNT,
-          strings: []
+          strings: [],
         });
       }
       let sample = samples.get(len);
 
       if (sample.needed) {
-        sample.strings.push({value, [type === 'row' ? 'col' : 'row']: index});
+        let computedKey = type === 'row' ? 'col' : 'row';
+
+        sample.strings.push({value, [computedKey]: index});
         sample.needed--;
       }
     });

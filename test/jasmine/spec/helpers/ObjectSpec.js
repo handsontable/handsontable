@@ -44,4 +44,95 @@ describe('Object helper', function () {
       expect(Handsontable.helper.duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
     });
   });
+
+  //
+  // Handsontable.helper.mixin
+  //
+  describe('mixin', function() {
+    it("should mix base object from one object", function () {
+      var Base = function() {};
+      var MixinFoo = {
+        local: 'value',
+        myFunction: function() {
+          return this.local;
+        },
+        mySetterFunction: function(value) {
+          this.local = value;
+        }
+      };
+
+      Handsontable.helper.mixin(Base, MixinFoo);
+
+      var instance = new Base();
+
+      expect(instance.myFunction()).toBe('value');
+      expect(instance.local).toBe('value');
+
+      instance.local = 123;
+
+      expect(instance.myFunction()).toBe(123);
+      expect(instance.local).toBe(123);
+
+      var initialObject = {a: 1};
+      instance.mySetterFunction(initialObject);
+
+      expect(instance.myFunction()).toBe(initialObject);
+      expect(instance.local).toBe(initialObject);
+    });
+
+    it("should mix base object from multiple objects", function () {
+      var Base = function() {};
+      var MixinFoo = {
+        local: 'value',
+        myFunction: function() {
+          return this.local;
+        },
+        mySetterFunction: function(value) {
+          this.local = value;
+        }
+      };
+      var MixinBar = {
+        test: {zzz: 2}
+      };
+      var MixinBaz = {
+        getTest: function() {
+          return this.test;
+        }
+      };
+
+      Handsontable.helper.mixin(Base, MixinFoo, MixinBar, MixinBaz);
+
+      var instance = new Base();
+
+      expect(instance.myFunction()).toBe('value');
+      expect(instance.local).toBe('value');
+      expect(instance.test).not.toBe(MixinBar.test);
+      expect(instance.test).toEqual(MixinBar.test);
+      expect(instance.test.zzz).toBe(2);
+      expect(instance.getTest()).not.toBe(MixinBar.test);
+      expect(instance.getTest()).toEqual(MixinBar.test);
+    });
+
+    it("mixed object shouldn\'t interfere with properties from another mixed objects", function () {
+      var Base = function() {};
+      var Base1 = function() {};
+      var MixinFoo = {
+        local: {},
+        myFunction: function() {
+          return this.local.test = 1;
+        }
+      };
+
+      Handsontable.helper.mixin(Base, MixinFoo);
+      Handsontable.helper.mixin(Base1, MixinFoo);
+
+      var instance = new Base();
+      var instance1 = new Base1();
+
+      instance.myFunction();
+
+      expect(instance.local.test).toEqual(1);
+      expect(instance1.local.test).not.toBeDefined();
+    });
+  });
 });

@@ -8,9 +8,8 @@ import {
   outerWidth,
   removeClass,
   setOverlayPosition,
-    } from './../../../../helpers/dom/element';
+} from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
-
 
 /**
  * @class WalkontableLeftOverlay
@@ -68,6 +67,8 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
       headerPosition = this.getScrollPosition();
     }
     this.adjustHeaderBordersPosition(headerPosition);
+
+    this.adjustElementsSize();
   }
 
   /**
@@ -118,10 +119,10 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   adjustElementsSize(force = false) {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
-      this.adjustRootChildsSize();
+      this.adjustRootChildrenSize();
 
       if (!force) {
-        this.isElementSizesAdjusted = true;
+        this.areElementSizesAdjusted = true;
       }
     }
   }
@@ -131,7 +132,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    */
   adjustRootElementSize() {
     let masterHolder = this.wot.wtTable.holder;
-    let scrollbarHeight = masterHolder.clientHeight !== masterHolder.offsetHeight ? getScrollbarWidth() : 0;
+    let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let tableWidth;
@@ -148,7 +149,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   /**
    * Adjust overlay root childs size
    */
-  adjustRootChildsSize() {
+  adjustRootChildrenSize() {
     let scrollbarWidth = getScrollbarWidth();
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
@@ -166,7 +167,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   applyToDOM() {
     let total = this.wot.getSetting('totalColumns');
 
-    if (!this.isElementSizesAdjusted) {
+    if (!this.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
@@ -278,3 +279,5 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 export {WalkontableLeftOverlay};
 
 window.WalkontableLeftOverlay = WalkontableLeftOverlay;
+
+WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);

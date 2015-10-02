@@ -11,7 +11,7 @@
  * var hot1 = new Handsontable(document.getElementById('example1'), {
  *   afterChange: function(changes, source) {
  *     $.ajax({
- *       url: "save.php",
+ *       url: "save.php',
  *       data: change
  *     });
  *   }
@@ -54,7 +54,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterCellMetaReset
    * @since 0.11
    */
-  "afterCellMetaReset",
+  'afterCellMetaReset',
 
   /**
    * @description
@@ -64,16 +64,48 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`
-   * @param {String} source Is one of the strings: `"alter", "empty", "edit", "populateFromArray", "loadData", "autofill", "paste"`.
+   * @param {String} source Is one of the strings: `"alter', "empty', "edit', "populateFromArray', "loadData', "autofill', "paste"`.
    */
-  "afterChange",
-  "afterChangesObserved",
-  "afterColumnMove",
-  "afterColumnResize",
-  "afterContextMenuDefaultOptions",
-  "afterContextMenuHide",
-  "afterContextMenuShow",
-  "afterCopyLimit",
+  'afterChange',
+
+  /**
+   * @event Hooks#afterChangesObserved
+   */
+  'afterChangesObserved',
+
+  /**
+   * @event Hooks#afterColumnMove
+   */
+  'afterColumnMove',
+
+  /**
+   * @event Hooks#afterColumnResize
+   */
+  'afterColumnResize',
+
+  /**
+   * @event Hooks#afterContextMenuDefaultOptions
+   */
+  'afterContextMenuDefaultOptions',
+
+  /**
+   * @event Hooks#afterContextMenuHide
+   */
+  'afterContextMenuHide',
+
+  /**
+   * @event Hooks#afterContextMenuShow
+   */
+  'afterContextMenuShow',
+
+  /**
+   * @event Hooks#afterCopyLimit
+   * @param {Number} selectedRows Count of selected copyable rows.
+   * @param {Number} selectedColumns Count of selected copyable columns.
+   * @param {Number} copyRowsLimit Current copy rows limit.
+   * @param {Number} copyColumnsLimit Current copy columns limit.
+   */
+  'afterCopyLimit',
 
   /**
    * Callback is fired when a new column is created.
@@ -82,7 +114,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Represents the index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
    */
-  "afterCreateCol",
+  'afterCreateCol',
 
   /**
    * Callback is fired when a new row is created.
@@ -91,26 +123,26 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Represents the index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
    */
-  "afterCreateRow",
+  'afterCreateRow',
 
   /**
    * Event called when current cell is deselected.
    *
    * @event Hooks#afterDeselect
    */
-  "afterDeselect",
+  'afterDeselect',
 
   /**
    * Callback fired after destroying Handsontable instance.
    *
    * @event Hooks#afterDestroy
    */
-  "afterDestroy",
+  'afterDestroy',
 
   /**
    * @event Hooks#afterDocumentKeyDown
    */
-  "afterDocumentKeyDown",
+  'afterDocumentKeyDown',
 
   /**
    * Callback fired after getting cell settings.
@@ -120,7 +152,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} col
    * @param {Object} cellProperties
    */
-  "afterGetCellMeta",
+  'afterGetCellMeta',
 
   /**
    * Callback fired after getting info about column header.
@@ -129,43 +161,43 @@ const REGISTERED_HOOKS = [
    * @param {Number} col
    * @param {Element} TH
    */
-  "afterGetColHeader",
+  'afterGetColHeader',
 
   /**
    * @event Hooks#afterGetRowHeader
    */
-  "afterGetRowHeader",
+  'afterGetRowHeader',
 
   /**
    * Callback fired after Handsontable instance is initiated.
    *
    * @event Hooks#afterInit
    */
-  "afterInit",
+  'afterInit',
 
   /**
    * @event Hooks#afterIsMultipleSelectionCheck
    */
-  "afterIsMultipleSelectionCheck",
+  'afterIsMultipleSelectionCheck',
 
   /**
    * Callback fired after new data is loaded (by `loadData` method) into the data source array.
    *
    * @event Hooks#afterLoadData
    */
-  "afterLoadData",
+  'afterLoadData',
 
   /**
    * @event Hooks#afterMomentumScroll
    */
-  "afterMomentumScroll",
+  'afterMomentumScroll',
 
   /**
    * @event Hooks#afterOnCellCornerMouseDown
    * @since 0.11
    * @param {Object} event
    */
-  "afterOnCellCornerMouseDown",
+  'afterOnCellCornerMouseDown',
 
   /**
    * Callback fired after clicking on a cell or row/column header.
@@ -178,7 +210,7 @@ const REGISTERED_HOOKS = [
    * @param {Object} coords
    * @param {Object} TD
    */
-  "afterOnCellMouseDown",
+  'afterOnCellMouseDown',
 
   /**
    * Callback fired after hovering a cell or row/column header with the mouse cursor.
@@ -191,7 +223,7 @@ const REGISTERED_HOOKS = [
    * @param {Object} coords
    * @param {Object} TD
    */
-  "afterOnCellMouseOver",
+  'afterOnCellMouseOver',
 
   /**
    * Callback is fired when one or more columns are removed.
@@ -200,7 +232,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Is an index of starter column.
    * @param {Number} amount Is an amount of removed columns.
    */
-  "afterRemoveCol",
+  'afterRemoveCol',
 
   /**
    * Callback is fired when one or more rows are removed.
@@ -209,7 +241,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Is an index of starter row.
    * @param {Number} amount Is an amount of removed rows.
    */
-  "afterRemoveRow",
+  'afterRemoveRow',
 
   /**
    * Callback fired after Handsontable table is rendered.
@@ -218,7 +250,7 @@ const REGISTERED_HOOKS = [
    * @param {Boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
    */
-  "afterRender",
+  'afterRender',
 
   /**
    * @event Hooks#afterRenderer
@@ -230,21 +262,19 @@ const REGISTERED_HOOKS = [
    * @param {String} value
    * @param {Object} cellProperties
    */
-  "afterRenderer",
-  "afterRowMove",
-  "afterRowResize",
+  'afterRenderer',
 
   /**
    * @event Hooks#afterScrollHorizontally
    * @since 0.11
    */
-  "afterScrollHorizontally",
+  'afterScrollHorizontally',
 
   /**
    * @event Hooks#afterScrollVertically
    * @since 0.11
    */
-  "afterScrollVertically",
+  'afterScrollVertically',
 
   /**
    * Callback fired while one or more cells are being selected (on mouse move).
@@ -255,7 +285,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row
    * @param {Number} c2 Selection end column
    */
-  "afterSelection",
+  'afterSelection',
 
   /**
    * The same as above, but data source object property name is used instead of the column number.
@@ -266,7 +296,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row
    * @param {String} p2 Selection end data source object property
    */
-  "afterSelectionByProp",
+  'afterSelectionByProp',
 
   /**
    * Callback fired after one or more cells are selected (on mouse up).
@@ -277,7 +307,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row
    * @param {Number} c2 Selection end column
    */
-  "afterSelectionEnd",
+  'afterSelectionEnd',
 
   /**
    * The same as above, but data source object property name is used instead of the column number.
@@ -288,7 +318,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row
    * @param {String} p2 Selection end data source object property
    */
-  "afterSelectionEndByProp",
+  'afterSelectionEndByProp',
 
   /**
    * Called after cell meta was changed, e.g. using the context menu.
@@ -300,12 +330,12 @@ const REGISTERED_HOOKS = [
    * @param {String} key
    * @param {*} value
    */
-  "afterSetCellMeta",
+  'afterSetCellMeta',
 
   /**
    * @event Hooks#afterUpdateSettings
    */
-  "afterUpdateSettings",
+  'afterUpdateSettings',
 
   /**
    * @description
@@ -322,20 +352,20 @@ const REGISTERED_HOOKS = [
    * @param {String} prop
    * @param {String} source
    */
-  "afterValidate",
+  'afterValidate',
 
   /**
    * @event Hooks#beforeAutofill
    * @param {Object} start Object containing information about first filled cell: `{row: 2, col: 0}`
    * @param {Object} end Object containing information about last filled cell: `{row: 4, col: 1}`
-   * @param {Array} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`
+   * @param {Array} data 2D array containing information about fill pattern: `[["1', "Ted"], ["1', "John"]]`
    */
-  "beforeAutofill",
+  'beforeAutofill',
 
   /**
    * @event Hooks#beforeCellAlignment
    */
-  "beforeCellAlignment",
+  'beforeCellAlignment',
 
   /**
    * Callback fired before one or more cells is changed. Its main purpose is to alter changes silently before input.
@@ -376,18 +406,18 @@ const REGISTERED_HOOKS = [
    * ...
    * ```
    */
-  "beforeChange",
+  'beforeChange',
 
   /**
    * @event Hooks#beforeChangeRender
    * @since 0.11
    */
-  "beforeChangeRender",
+  'beforeChangeRender',
 
   /**
    * @event Hooks#beforeDrawBorders
    */
-  "beforeDrawBorders",
+  'beforeDrawBorders',
 
   /**
    * Callback fired before getting cell settings.
@@ -397,7 +427,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} col
    * @param {Object} cellProperties
    */
-  "beforeGetCellMeta",
+  'beforeGetCellMeta',
 
   /**
    * @description
@@ -405,8 +435,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeInit
    */
-
-  "beforeInit",
+  'beforeInit',
 
   /**
    * Callback fired before Walkontable instance is initiated.
@@ -414,7 +443,7 @@ const REGISTERED_HOOKS = [
    * @since 0.11
    * @event Hooks#beforeInitWalkontable
    */
-  "beforeInitWalkontable",
+  'beforeInitWalkontable',
 
   /**
    * Callback fired before keydown event is handled. It can be used to overwrite default key bindings.
@@ -424,12 +453,12 @@ const REGISTERED_HOOKS = [
    * @since 0.9.0
    * @param {Object} event Original DOM event
    */
-  "beforeKeyDown",
+  'beforeKeyDown',
 
   /**
    * @event Hooks#beforeOnCellMouseDown
    */
-  "beforeOnCellMouseDown",
+  'beforeOnCellMouseDown',
 
   /**
    * Callback is fired when one or more columns are about to be removed.
@@ -438,7 +467,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
    */
-  "beforeRemoveCol",
+  'beforeRemoveCol',
 
   /**
    * Callback is fired when one or more rows are about to be removed.
@@ -447,7 +476,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
    */
-  "beforeRemoveRow",
+  'beforeRemoveRow',
 
   /**
    * Callback fired before Handsontable table is rendered.
@@ -456,7 +485,7 @@ const REGISTERED_HOOKS = [
    * @param {Boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
    */
-  "beforeRender",
+  'beforeRender',
 
   /**
    * Callback fired before setting range is ended.
@@ -464,12 +493,12 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeSetRangeEnd
    * @param {Array} coords WalkontableCellCoords array.
    */
-  "beforeSetRangeEnd",
+  'beforeSetRangeEnd',
 
   /**
    * @event Hooks#beforeTouchScroll
    */
-  "beforeTouchScroll",
+  'beforeTouchScroll',
 
   /**
    * @description
@@ -485,7 +514,7 @@ const REGISTERED_HOOKS = [
    * @param {String} prop
    * @param {String} source
    */
-  "beforeValidate",
+  'beforeValidate',
 
   /**
    * Callback fired after Handsontable instance is constructed (via `new` operator).
@@ -493,7 +522,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#construct
    * @since 0.16.1
    */
-  "construct",
+  'construct',
 
   /**
    * Callback fired after Handsontable instance is initiated but before table is rendered.
@@ -501,7 +530,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#init
    * @since 0.16.1
    */
-  "init",
+  'init',
 
   /**
    * Callback fired after column modify.
@@ -510,7 +539,7 @@ const REGISTERED_HOOKS = [
    * @since 0.11
    * @param {Number} col
    */
-  "modifyCol",
+  'modifyCol',
 
   /**
    * Callback fired after modify column's width.
@@ -520,7 +549,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} width
    * @param {Number} col
    */
-  "modifyColWidth",
+  'modifyColWidth',
 
   /**
    * Callback fired after row modify.
@@ -529,7 +558,7 @@ const REGISTERED_HOOKS = [
    * @since 0.11
    * @param {Number} row
    */
-  "modifyRow",
+  'modifyRow',
 
   /**
    * Callback fired after modify height of row.
@@ -539,25 +568,118 @@ const REGISTERED_HOOKS = [
    * @param {Number} height
    * @param {Number} row
    */
-  "modifyRowHeight",
+  'modifyRowHeight',
 
   /**
    * @event Hooks#persistentStateLoad
    */
-  "persistentStateLoad",
+  'persistentStateLoad',
 
   /**
    * @event Hooks#persistentStateReset
    */
-  "persistentStateReset",
+  'persistentStateReset',
 
   /**
    * @event Hooks#persistentStateSave
    */
-  "persistentStateSave"
+  'persistentStateSave',
+
+  /**
+   * @event Hooks#beforeColumnSort
+   * @param {Number} column Sorted column index.
+   * @param {Boolean} order Soring order where:
+   *  * `true` means ascending order
+   *  * `false` means descending order
+   *  * `undefined` means original order
+   */
+  'beforeColumnSort',
+
+  /**
+   * @event Hooks#afterColumnSort
+   * @param {Number} column Sorted column index.
+   * @param {Boolean} order Soring order where:
+   *  * `true` means ascending order
+   *  * `false` means descending order
+   *  * `undefined` means original order
+   */
+  'afterColumnSort',
+
+  /**
+   * @event Hooks#afterAutofillApplyValues
+   */
+  'afterAutofillApplyValues',
+
+  /**
+   * @since 0.19.0
+   * @event Hooks#modifyCopyableRange
+   * @param {Array} ranges Array of objects defining copyable cells.
+   */
+  'modifyCopyableRange',
+
+  /**
+   * @event Hooks#beforeColumnMove
+   * @param {Number} startColumn Index of the column from which it is moved.
+   * @param {Number} endColumn Index of the column to which it is moved.
+   */
+  'beforeColumnMove',
+
+  /**
+   * @event Hooks#afterColumnMove
+   * @param {Number} startColumn Index of the column from which it is moved.
+   * @param {Number} endColumn Index of the column to which it is moved.
+   */
+  'afterColumnMove',
+
+  /**
+   * @event Hooks#beforeRowMove
+   * @param {Number} startRow Index of the row from which it is moved.
+   * @param {Number} endRow Index of the row to which it is moved.
+   */
+  'beforeRowMove',
+
+  /**
+   * @event Hooks#afterRowMove
+   * @param {Number} startRow Index of the row from which it is moved.
+   * @param {Number} endRow Index of the row to which it is moved.
+   */
+  'afterRowMove',
+
+  /**
+   * @event Hooks#beforeColumnResize
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   * @returns {Number} Should returns new column size or `undefined` if column size should be calculated automatically.
+   */
+  'beforeColumnResize',
+
+  /**
+   * @event Hooks#afterColumnResize
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  'afterColumnResize',
+
+  /**
+   * @event Hooks#beforeRowResize
+   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} newSize Calculated new row height.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   * @returns {Number} Should returns new row size or `undefined` if row size should be calculated automatically.
+   */
+  'beforeRowResize',
+
+  /**
+   * @event Hooks#afterRowResize
+   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} newSize Calculated new row height.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  'afterRowResize',
 ];
 
-import {EventManager} from './eventManager';
 import {arrayEach} from './helpers/array';
 import {objectEach} from './helpers/object';
 
@@ -842,11 +964,11 @@ class Hooks {
    * // Results:
    * [
    * ...
-   *   "beforeInit",
-   *   "beforeRender",
-   *   "beforeSetRangeEnd",
-   *   "beforeDrawBorders",
-   *   "beforeChange",
+   *   'beforeInit',
+   *   'beforeRender',
+   *   'beforeSetRangeEnd',
+   *   'beforeDrawBorders',
+   *   'beforeChange',
    * ...
    * ]
    * ```
@@ -858,6 +980,34 @@ class Hooks {
 
 export {Hooks};
 
+/**
+ * Mixin object to extend objects functionality for local hooks.
+ *
+ * @type {Object}
+ */
+const localHooks = {
+  _localHooks: Object.create(null),
+
+  addLocalHook(key, callback) {
+    if (!this._localHooks[key]) {
+      this._localHooks[key] = [];
+    }
+    this._localHooks[key].push(callback);
+  },
+  runLocalHooks(key, ...params) {
+    if (this._localHooks[key]) {
+      arrayEach(this._localHooks[key], (callback) => callback.apply(this, params));
+    }
+  },
+  clearLocalHooks() {
+    this._localHooks = {};
+  },
+};
+
+export {localHooks};
+
 // temp for tests only!
 Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.Hooks = Hooks;
+
+Handsontable.utils.localHooks = localHooks;

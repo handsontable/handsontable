@@ -1,5 +1,6 @@
 
 import {stringify} from './mixed';
+import {rangeEach} from './number';
 
 /**
  * Convert string to upper case first letter.
@@ -12,6 +13,53 @@ export function toUpperCaseFirst(string) {
 }
 
 /**
+ * Checks if given prefix matches to the string.
+ *
+ * @param {String} string String to check.
+ * @param {String} string Needle to search.
+ * @returns {Boolean}
+ */
+export function startsWith(string, needle) {
+  let result = true;
+
+  rangeEach(needle.length - 1, (index) => {
+    if (string.charAt(index) !== needle.charAt(index)) {
+      result = false;
+
+      return false;
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Checks if given postfix matches to the string.
+ *
+ * @param {String} string String to check.
+ * @param {String} string Needle to search.
+ * @returns {Boolean}
+ */
+export function endsWith(string, needle) {
+  let result = true;
+  let needleLength = needle.length - 1;
+  let stringLength = string.length - 1;
+
+  rangeEach(needleLength, (index) => {
+    let stringIndex = stringLength - index;
+    let needleIndex = needleLength - index;
+
+    if (string.charAt(stringIndex) !== needle.charAt(needleIndex)) {
+      result = false;
+
+      return false;
+    }
+  });
+
+  return result;
+}
+
+/**
  * Compare strings case insensitively.
  *
  * @param {...String} strings Strings to compare.
@@ -21,7 +69,7 @@ export function equalsIgnoreCase(...strings) {
   let unique = [];
   let length = strings.length;
 
-  while (length --) {
+  while (length--) {
     let string = stringify(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {

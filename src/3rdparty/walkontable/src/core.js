@@ -1,10 +1,9 @@
-
 import {
   addClass,
   fastInnerText,
   isVisible,
   removeClass,
-    } from './../../../helpers/dom/element';
+} from './../../../helpers/dom/element';
 import {objectEach} from './../../../helpers/object';
 import {toUpperCaseFirst, randomString} from './../../../helpers/string';
 import {WalkontableEvent} from './event';
@@ -13,7 +12,11 @@ import {WalkontableScroll} from './scroll';
 import {WalkontableSettings} from './settings';
 import {WalkontableTable} from './table';
 import {WalkontableViewport} from './viewport';
-
+import {WalkontableOverlay} from './overlay/_base.js';
+import {WalkontableTopOverlay} from './overlay/top.js';
+import {WalkontableLeftOverlay} from './overlay/left.js';
+import {WalkontableDebugOverlay} from './overlay/debug.js';
+import {WalkontableTopLeftCornerOverlay} from './overlay/topLeftCorner.js';
 
 /**
  * @class Walkontable
@@ -100,17 +103,30 @@ class Walkontable {
       return this.wtTable.getCell(coords);
     }
 
-    let fixedRows = this.wtSettings.getSetting('fixedRowsTop');
+    let totalRows = this.wtSettings.getSetting('totalRows');
+    let fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+    let fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     let fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
 
-    if (coords.row < fixedRows && coords.col < fixedColumns) {
+    if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row < fixedRows) {
+    } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
+
+    } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
+      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
+        return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+      }
 
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
+
+    } else if (coords.row >= totalRows - fixedRowsBottom) {
+      if (this.wtOverlays.bottomOverlay.clone) {
+        return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
+      }
+
     }
 
     return this.wtTable.getCell(coords);

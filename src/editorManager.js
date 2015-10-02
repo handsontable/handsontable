@@ -10,7 +10,7 @@ export {EditorManager};
 // support for older versions of Handsontable
 Handsontable.EditorManager = EditorManager;
 
-function EditorManager(instance, priv, selection){
+function EditorManager(instance, priv, selection) {
   var _this = this,
     destroyed = false,
     eventManager,
@@ -23,7 +23,7 @@ function EditorManager(instance, priv, selection){
 
     if (shiftKey) {
       // move selection up
-      selection.transformStart(-enterMoves.row, - enterMoves.col);
+      selection.transformStart(-enterMoves.row, -enterMoves.col);
 
     } else {
       // move selection down (add a new row if needed)
@@ -59,9 +59,9 @@ function EditorManager(instance, priv, selection){
 
   function moveSelectionLeft(shiftKey) {
     if (shiftKey) {
-      selection.transformEnd(0, - 1);
+      selection.transformEnd(0, -1);
     } else {
-      selection.transformStart(0, - 1);
+      selection.transformStart(0, -1);
     }
   }
 
@@ -89,7 +89,7 @@ function EditorManager(instance, priv, selection){
 
     if (activeEditor && !activeEditor.isWaiting()) {
       if (!isMetaKey(event.keyCode) && !isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
-        _this.openEditor("", event);
+        _this.openEditor('', event);
 
         return;
       }
@@ -175,7 +175,7 @@ function EditorManager(instance, priv, selection){
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
-        event.preventDefault(); //prevent Opera from opening 'Go to Page dialog'
+        event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
         break;
 
       case KEY_CODES.ENTER:
@@ -198,8 +198,8 @@ function EditorManager(instance, priv, selection){
             moveSelectionAfterEnter(event.shiftKey);
           }
         }
-        event.preventDefault(); //don't add newline to field
-        stopImmediatePropagation(event); //required by HandsontableEditor
+        event.preventDefault(); // don't add newline to field
+        stopImmediatePropagation(event); // required by HandsontableEditor
         break;
 
       case KEY_CODES.ESCAPE:
@@ -215,7 +215,7 @@ function EditorManager(instance, priv, selection){
         } else {
           rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
         }
-        event.preventDefault(); //don't scroll the window
+        event.preventDefault(); // don't scroll the window
         stopPropagation(event);
         break;
 
@@ -225,19 +225,19 @@ function EditorManager(instance, priv, selection){
         } else {
           rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
         }
-        event.preventDefault(); //don't scroll the window
+        event.preventDefault(); // don't scroll the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_UP:
         selection.transformStart(-instance.countVisibleRows(), 0);
-        event.preventDefault(); //don't page up the window
+        event.preventDefault(); // don't page up the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_DOWN:
         selection.transformStart(instance.countVisibleRows(), 0);
-        event.preventDefault(); //don't page down the window
+        event.preventDefault(); // don't page down the window
         stopPropagation(event);
         break;
     }
@@ -252,7 +252,7 @@ function EditorManager(instance, priv, selection){
 
     function onDblClick(event, coords, elem) {
       // may be TD or TH
-      if (elem.nodeName == "TD") {
+      if (elem.nodeName == 'TD') {
         _this.openEditor();
 
         if (activeEditor) {
@@ -343,7 +343,7 @@ function EditorManager(instance, priv, selection){
    * @param {String} initialValue
    * @param {DOMEvent} event
    */
-  this.openEditor = function (initialValue, event) {
+  this.openEditor = function(initialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(initialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
@@ -365,12 +365,12 @@ function EditorManager(instance, priv, selection){
    * @param {Function} [callback]
    */
   this.closeEditor = function(restoreOriginalValue, ctrlDown, callback) {
-    if (!activeEditor) {
+    if (activeEditor) {
+      activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
+    } else {
       if (callback) {
         callback(false);
       }
-    } else {
-      activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
     }
   };
 
