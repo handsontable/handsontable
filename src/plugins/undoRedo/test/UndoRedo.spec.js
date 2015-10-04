@@ -892,18 +892,38 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
-          alter('insert_row');
+          alter('insert_row', 1);
 
           expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual(null);
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(2, 0)).toEqual('A2');
+          expect(getDataAtCell(2, 1)).toEqual('B2');
 
           HOT.undo();
 
           expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
 
           expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual(null);
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(2, 0)).toEqual('A2');
+          expect(getDataAtCell(2, 1)).toEqual('B2');
         });
 
         it('should redo creation of multiple rows', function () {
@@ -912,18 +932,54 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           alter('insert_row', 0, 5);
 
           expect(countRows()).toEqual(7);
+          expect(getDataAtCell(0, 0)).toEqual(null);
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(1, 0)).toEqual(null);
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(2, 0)).toEqual(null);
+          expect(getDataAtCell(2, 1)).toEqual(null);
+          expect(getDataAtCell(3, 0)).toEqual(null);
+          expect(getDataAtCell(3, 1)).toEqual(null);
+          expect(getDataAtCell(4, 0)).toEqual(null);
+          expect(getDataAtCell(4, 1)).toEqual(null);
+          expect(getDataAtCell(5, 0)).toEqual('A1');
+          expect(getDataAtCell(5, 1)).toEqual('B1');
+          expect(getDataAtCell(6, 0)).toEqual('A2');
+          expect(getDataAtCell(6, 1)).toEqual('B2');
 
           HOT.undo();
 
           expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
 
           expect(countRows()).toEqual(7);
+          expect(getDataAtCell(0, 0)).toEqual(null);
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(1, 0)).toEqual(null);
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(2, 0)).toEqual(null);
+          expect(getDataAtCell(2, 1)).toEqual(null);
+          expect(getDataAtCell(3, 0)).toEqual(null);
+          expect(getDataAtCell(3, 1)).toEqual(null);
+          expect(getDataAtCell(4, 0)).toEqual(null);
+          expect(getDataAtCell(4, 1)).toEqual(null);
+          expect(getDataAtCell(5, 0)).toEqual('A1');
+          expect(getDataAtCell(5, 1)).toEqual('B1');
+          expect(getDataAtCell(6, 0)).toEqual('A2');
+          expect(getDataAtCell(6, 1)).toEqual('B2');
         });
 
         it('should redo removal of single row', function () {
@@ -1018,18 +1074,38 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
-          alter('insert_col');
+          alter('insert_col', 1);
 
           expect(countCols()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(0, 2)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(1, 2)).toEqual('B2');
 
           HOT.undo();
 
           expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
 
           expect(countCols()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(0, 2)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(1, 2)).toEqual('B2');
         });
 
         it('should redo creation of multiple columns', function () {
@@ -1038,16 +1114,52 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           alter('insert_col', 1, 5);
 
           expect(countCols()).toEqual(7);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(0, 2)).toEqual(null);
+          expect(getDataAtCell(0, 3)).toEqual(null);
+          expect(getDataAtCell(0, 4)).toEqual(null);
+          expect(getDataAtCell(0, 5)).toEqual(null);
+          expect(getDataAtCell(0, 6)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(1, 2)).toEqual(null);
+          expect(getDataAtCell(1, 3)).toEqual(null);
+          expect(getDataAtCell(1, 4)).toEqual(null);
+          expect(getDataAtCell(1, 5)).toEqual(null);
+          expect(getDataAtCell(1, 6)).toEqual('B2');
 
           HOT.undo();
 
           expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(0, 2)).toEqual(null);
+          expect(getDataAtCell(0, 3)).toEqual(null);
+          expect(getDataAtCell(0, 4)).toEqual(null);
+          expect(getDataAtCell(0, 5)).toEqual(null);
+          expect(getDataAtCell(0, 6)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual(null);
+          expect(getDataAtCell(1, 2)).toEqual(null);
+          expect(getDataAtCell(1, 3)).toEqual(null);
+          expect(getDataAtCell(1, 4)).toEqual(null);
+          expect(getDataAtCell(1, 5)).toEqual(null);
+          expect(getDataAtCell(1, 6)).toEqual('B2');
 
           expect(countCols()).toEqual(7);
         });
