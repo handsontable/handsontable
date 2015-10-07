@@ -63,7 +63,7 @@ class ItemsFactory {
     let visibleItems = {};
 
     objectEach(this.predefinedItems, (value, key) => {
-      if (!value.hidden || value.hidden && !value.hidden.apply(this.hot)) {
+      if (!value.hidden || value.hidden && !value.hidden.apply(this.hot, [key])) {
         visibleItems[key] = value;
       }
     });
@@ -115,7 +115,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
       let item = items[name];
 
       // Item deleted from settings `allowInsertRow: false` etc.
-      if (!item && ITEMS.indexOf(name) >= 0) {
+      if (!item && ITEMS.indexOf(name) < 0) {
         return;
       }
       if (!item) {

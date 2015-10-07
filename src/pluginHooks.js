@@ -94,6 +94,11 @@ const REGISTERED_HOOKS = [
   'afterContextMenuHide',
 
   /**
+   * @event Hooks#beforeContextMenuShow
+   */
+  'beforeContextMenuShow',
+
+  /**
    * @event Hooks#afterContextMenuShow
    */
   'afterContextMenuShow',

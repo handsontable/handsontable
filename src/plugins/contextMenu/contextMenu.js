@@ -115,6 +115,10 @@ class ContextMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {className: 'htContextMenu'});
       this.menu.setMenuItems(menuItems);
 
+      this.menu.addLocalHook('beforeOpen', () => {
+        this.onBeforeContextMenuShow();
+        this.hot.runHooks('beforeContextMenuShow', this);
+      });
       this.menu.addLocalHook('afterOpen', () => this.hot.runHooks('afterContextMenuShow', this));
       this.menu.addLocalHook('afterClose', () => this.hot.runHooks('afterContextMenuHide', this));
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
@@ -250,6 +254,16 @@ class ContextMenu extends BasePlugin {
     }
     this.open(event);
   }
+
+  /**
+   * Before context menu show listener.
+   *
+   * @private
+   */
+  onBeforeContextMenuShow() {
+    let menuItems = this.itemsFactory.getVisibleItems();
+    this.menu.setMenuItems(menuItems);
+  }
 }
 
 ContextMenu.SEPARATOR = {
@@ -260,6 +274,7 @@ Handsontable.hooks.register('afterContextMenuDefaultOptions');
 Handsontable.hooks.register('afterContextMenuShow');
 Handsontable.hooks.register('afterContextMenuHide');
 Handsontable.hooks.register('afterContextMenuExecute');
+Handsontable.hooks.register('beforeContextMenuShow');
 
 export {ContextMenu};
 

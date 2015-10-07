@@ -75,6 +75,7 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
+    this.runLocalHooks('beforeOpen');
     let settings = {
       data: this.menuItems,
       colHeaders: false,
