@@ -574,7 +574,9 @@ DataMap.prototype.getText = function(start, end) {
  * @returns {String}
  */
 DataMap.prototype.getCopyableText = function(start, end) {
-  return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+  var range = this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+  var proceed = Handsontable.hooks.run(this.instance, 'beforeCopy', range);
+  return proceed ? SheetClip.stringify(range) : false;
 };
 
 export {DataMap};

@@ -31,4 +31,28 @@ describe('Core.getCopyableText', function () {
     expect(getCopyableText(0, 0)).toBe('\n');
     expect(getCopyableText(0, 0, 1, 2)).toBe('\t\t\n\t\t\n');
   });
+
+  it('beforeCopy should be called and allowed to change data being copied', function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      copyable: true,
+      beforeCopy: function(range) {
+        range[0][0] = 'Tabasco';
+      }
+    });
+
+    expect(getCopyableText(0, 0)).toBe('Tabasco\n'); //SheetClip.stringify will add new line.
+  });
+
+  it('copy should be canceled if beforeCopy returns false', function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      copyable: true,
+      beforeCopy: function(/* range */) {
+        return false;
+      }
+    });
+
+    expect(getCopyableText(0, 0)).toBe(false);
+  });
 });

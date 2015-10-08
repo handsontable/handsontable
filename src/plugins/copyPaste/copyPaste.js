@@ -87,7 +87,11 @@ function CopyPastePlugin(instance) {
       }
     });
 
-    instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+    // If hook returns false don't proceed with paste.
+    var proceed = Handsontable.hooks.run(instance, 'beforePaste', inputArray, areaStart.row, areaStart.col, areaEnd.row, areaEnd.col, instance.getSettings().pasteMode);
+    if (proceed) {
+      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+    }
   }
 
   function onBeforeKeyDown(event) {

@@ -101,4 +101,55 @@ describe('Core_copy', function () {
       expect(hot.getDataAtCell(1, 3)).toEqual('12');
     });
   });
+
+  it('beforePaste hook should be called', function () {
+    var hot = handsontable({
+      data: arrayOfArrays(),
+      beforePaste: function(inputArray, startRow, startCol, endRow, endCol, pasteMode) {
+        inputArray[0][3] = 'Ford';
+        inputArray[1][2] = '14';
+      }
+    });
+    $('textarea.copyPaste').val('\tRenault\tBMW\tFiat\tJaguar\n2008\t10\t11\t12\t13\n');
+
+    selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
+    keyDownUp('ctrl+v');
+    waits(200);
+
+    runs(function() {
+      expect(hot.getDataAtCell(0, 0)).toEqual('');
+      expect(hot.getDataAtCell(0, 1)).toEqual('Renault');
+      expect(hot.getDataAtCell(0, 2)).toEqual('BMW');
+      expect(hot.getDataAtCell(0, 3)).toEqual('Ford');
+      expect(hot.getDataAtCell(1, 0)).toEqual('2008');
+      expect(hot.getDataAtCell(1, 1)).toEqual('10');
+      expect(hot.getDataAtCell(1, 2)).toEqual('14');
+      expect(hot.getDataAtCell(1, 3)).toEqual('12');
+    });
+  });
+
+  it('paste should be canceled when returning false from beforePaste hook', function () {
+    var hot = handsontable({
+      data: arrayOfArrays(),
+      beforePaste: function(/* inputArray, startRow, startCol, endRow, endCol, pasteMode */) {
+        return false;
+      }
+    });
+    $('textarea.copyPaste').val('\tRenault\tBMW\tFiat\tJaguar\n2008\t10\t11\t12\t13\n');
+
+    selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
+    keyDownUp('ctrl+v');
+    waits(200);
+
+    runs(function() {
+      expect(hot.getDataAtCell(0, 0)).toEqual('');
+      expect(hot.getDataAtCell(0, 1)).toEqual('Kia');
+      expect(hot.getDataAtCell(0, 2)).toEqual('Nissan');
+      expect(hot.getDataAtCell(0, 3)).toEqual('Toyota');
+      expect(hot.getDataAtCell(1, 0)).toEqual('2008');
+      expect(hot.getDataAtCell(1, 1)).toEqual(10);
+      expect(hot.getDataAtCell(1, 2)).toEqual(11);
+      expect(hot.getDataAtCell(1, 3)).toEqual(12);
+    });
+  });
 });
