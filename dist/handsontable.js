@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Oct 02 2015 12:37:12 GMT+0200 (CEST)
+ * Date: Sat Oct 10 2015 16:55:17 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Oct 02 2015 12:37:12 GMT+0200 (CEST)',
+  buildDate: 'Sat Oct 10 2015 16:55:17 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -17910,7 +17910,7 @@ function TableView(instance) {
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
-    if (isMouseDown || !instance.rootElement) {
+    if (isMouseDown || !instance.rootElement || (that.settings.outsideClickIgnore && that.settings.outsideClickIgnore(event))) {
       return;
     }
     if (next === instance.view.wt.wtTable.holder) {

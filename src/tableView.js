@@ -89,7 +89,8 @@ function TableView(instance) {
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
 
-    if (isMouseDown || !instance.rootElement) {
+    if (isMouseDown || !instance.rootElement ||
+      (that.settings.outsideClickIgnore && that.settings.outsideClickIgnore(event))) {
       return; // it must have been started in a cell
     }
 
