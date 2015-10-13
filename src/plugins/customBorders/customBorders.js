@@ -501,4 +501,28 @@ Handsontable.hooks.add('afterInit', function() {
   }
 });
 
+var preCustomBorders = null;
+Handsontable.hooks.add('afterUpdateSettings', function() {
+  console.log('afterUpdateSettings')
+  var customBorders = this.getSettings().customBorders;
+  if (preCustomBorders) {
+    for(var j=0,l=preCustomBorders.length; j<l; j++){
+      removeAllBorders.call(this, preCustomBorders[j].row, preCustomBorders[j].col)
+    }
+  }
+  if (customBorders) {
+    for (var i = 0; i < customBorders.length; i++) {
+      if (customBorders[i].range) {
+        prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
+      } else {
+        prepareBorderFromCustomAdded.call(this, customBorders[i].row, customBorders[i].col, customBorders[i]);
+      }
+    }
+    this.render();
+    this.view.wt.draw(true);
+
+    preCustomBorders = customBorders;
+  }
+});
+
 Handsontable.CustomBorders = CustomBorders;
