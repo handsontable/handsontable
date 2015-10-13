@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Oct 10 2015 16:55:17 GMT+0800 (CST)
+ * Date: Tue Oct 13 2015 11:23:23 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Sat Oct 10 2015 16:55:17 GMT+0800 (CST)',
+  buildDate: 'Tue Oct 13 2015 11:23:23 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -14176,6 +14176,29 @@ Handsontable.hooks.add('afterInit', function() {
     }
     this.render();
     this.view.wt.draw(true);
+  }
+});
+var preCustomBorders = null;
+Handsontable.hooks.add('afterUpdateSettings', function() {
+  console.log('afterUpdateSettings');
+  var customBorders = this.getSettings().customBorders;
+  if (preCustomBorders) {
+    for (var j = 0,
+        l = preCustomBorders.length; j < l; j++) {
+      removeAllBorders.call(this, preCustomBorders[j].row, preCustomBorders[j].col);
+    }
+  }
+  if (customBorders) {
+    for (var i = 0; i < customBorders.length; i++) {
+      if (customBorders[i].range) {
+        prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
+      } else {
+        prepareBorderFromCustomAdded.call(this, customBorders[i].row, customBorders[i].col, customBorders[i]);
+      }
+    }
+    this.render();
+    this.view.wt.draw(true);
+    preCustomBorders = customBorders;
   }
 });
 Handsontable.CustomBorders = CustomBorders;
