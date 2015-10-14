@@ -312,6 +312,8 @@ class ColumnSorting extends BasePlugin {
 
   sort() {
     if (typeof this.hot.sortOrder == 'undefined') {
+      this.hot.sortIndex.length = 0;
+
       return;
     }
 
