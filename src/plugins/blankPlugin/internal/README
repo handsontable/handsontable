@@ -1,0 +1,14 @@
+--------------------------------
+ BLANK INTERNAL PLUGIN TEMPLATE
+--------------------------------
+
+The blankInternalPlugin.js file is a simple Handsontable plugin template, made to help you create more consistent Handsontable
+extensions.
+What "internal" means in this context is "built in ES6 (ES 2015) and compiled along with Handsontable sources using the HOT Builder".
+
+There are a few things to keep in mind while writing the "internal" plugins:
+
+1. They need to be written in ES6 (ES2015)
+2. They need to inherit from the BasePlugin class
+3. They need to follow the guidlines provided in the blankInternalPlugin.js comments.
+4. To keep the code as clean as possible, we use the JSCS code style checker. Our current JSCS settings are listed in the .jscsrc file in the root directory.
