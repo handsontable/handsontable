@@ -175,3 +175,5 @@ class BasePlugin {
 }
 
 export default BasePlugin;
+
+Handsontable.plugins.BasePlugin = BasePlugin;
