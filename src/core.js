@@ -1504,7 +1504,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     clen = instance.countCols();
 
     // Clear cellSettings cache
-    priv.cellSettings.length = 0;
+    // priv.cellSettings.length = 0;
 
     if (clen > 0) {
       var proto, column;

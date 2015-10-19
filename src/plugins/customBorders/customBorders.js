@@ -15,6 +15,17 @@ function CustomBorders() {}
  */
 var instance;
 
+var preCustomBorders = [];
+
+var _setCellMeta = function(row, col, type, border){
+  preCustomBorders.push({
+    row: row,
+    col: col,
+    type: type
+  });
+  this.setCellMeta(row, col, type, border);
+};
+
 /***
  * Check if plugin should be enabled
  */
@@ -89,7 +100,8 @@ var insertBorderIntoSettings = function(border) {
 var prepareBorderFromCustomAdded = function(row, col, borderObj) {
   var border = createEmptyBorders(row, col);
   border = extendDefaultBorder(border, borderObj);
-  this.setCellMeta(row, col, 'borders', border);
+  // this.setCellMeta(row, col, 'borders', border);
+  _setCellMeta.call(this, row, col, 'borders', border);
 
   insertBorderIntoSettings(border);
 };
@@ -138,8 +150,13 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
         }
       }
 
+      if (rowObj.customBorderStyle){
+        border.customBorderStyle = rowObj.customBorderStyle;
+      }
+
       if (add > 0) {
-        this.setCellMeta(row, col, 'borders', border);
+        // this.setCellMeta(row, col, 'borders', border);
+        _setCellMeta.call(this, row, col, 'borders', border);
         insertBorderIntoSettings(border);
       }
     }
@@ -261,9 +278,19 @@ var removeBordersFromDom = function(borderClassName) {
  * @param col
  */
 var removeAllBorders = function(row, col) {
-  var borderClassName = createClassName(row, col);
-  removeBordersFromDom(borderClassName);
-  this.removeCellMeta(row, col, 'borders');
+  if(row != undefined){
+    var borderClassName = createClassName(row, col);
+    removeBordersFromDom(borderClassName);
+    this.removeCellMeta(row, col, 'borders');
+  }else{
+    for(var i=0,l=preCustomBorders.length; i<l; i++){
+      var item = preCustomBorders[i];
+      var borderClassName = createClassName(item.row, item.col);
+      removeBordersFromDom(borderClassName);
+      this.removeCellMeta(item.row, item.col, 'borders');
+    }
+  }
+  preCustomBorders = [];
 };
 
 /***
@@ -289,7 +316,8 @@ var setBorder = function(row, col,place, remove) {
     bordersMeta[place] = createDefaultCustomBorder();
   }
 
-  this.setCellMeta(row, col, 'borders', bordersMeta);
+  // this.setCellMeta(row, col, 'borders', bordersMeta);
+  _setCellMeta.call(this, row, col, 'borders', bordersMeta);
 
   var borderClassName = createClassName(row, col);
   removeBordersFromDom(borderClassName);
@@ -501,16 +529,16 @@ Handsontable.hooks.add('afterInit', function() {
   }
 });
 
-var preCustomBorders = null;
 Handsontable.hooks.add('afterUpdateSettings', function() {
   console.log('afterUpdateSettings')
   var customBorders = this.getSettings().customBorders;
-  if (preCustomBorders) {
-    for(var j=0,l=preCustomBorders.length; j<l; j++){
-      removeAllBorders.call(this, preCustomBorders[j].row, preCustomBorders[j].col)
-    }
-  }
+  // if (preCustomBorders) {
+  //   for(var j=0,l=preCustomBorders.length; j<l; j++){
+  //     removeAllBorders.call(this, preCustomBorders[j].row, preCustomBorders[j].col)
+  //   }
+  // }
   if (customBorders) {
+    removeAllBorders.call(this);
     for (var i = 0; i < customBorders.length; i++) {
       if (customBorders[i].range) {
         prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
@@ -521,7 +549,7 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
     this.render();
     this.view.wt.draw(true);
 
-    preCustomBorders = customBorders;
+    // preCustomBorders = customBorders;
   }
 });
 

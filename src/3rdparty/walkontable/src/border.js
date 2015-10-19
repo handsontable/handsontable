@@ -137,6 +137,7 @@ class WalkontableBorder {
 
     let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
+    let _customBorderStyle = settings.customBorderStyle;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
@@ -150,10 +151,21 @@ class WalkontableBorder {
         div.className += ' hidden';
       }
       style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
       style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
       style.width = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
-
+      if(_customBorderStyle){
+        style.borderStyle = _customBorderStyle.style;
+        style.borderColor = _customBorderStyle.color;
+        if(['top', 'bottom'].indexOf(position) >= 0){
+          style.height = 0;
+          style.borderTopWidth = _customBorderStyle.width + 'px';
+        }else if(['left', 'right'].indexOf(position) >= 0){
+          style.width = 0;
+          style.borderLeftWidth = _customBorderStyle.width + 'px';
+        }
+      }else{
+        style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
+      }
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
