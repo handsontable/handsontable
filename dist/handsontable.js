@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 13 2015 11:23:23 GMT+0800 (CST)
+ * Date: Mon Oct 19 2015 18:11:54 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Oct 13 2015 11:23:23 GMT+0800 (CST)',
+  buildDate: 'Mon Oct 19 2015 18:11:54 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -223,6 +223,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.main = document.createElement('div');
     var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     var style = this.main.style;
+    var _customBorderStyle = settings.customBorderStyle;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
@@ -234,9 +235,21 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
         div.className += ' hidden';
       }
       style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
       style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
       style.width = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
+      if (_customBorderStyle) {
+        style.borderStyle = _customBorderStyle.style;
+        style.borderColor = _customBorderStyle.color;
+        if (['top', 'bottom'].indexOf(position) >= 0) {
+          style.height = 0;
+          style.borderTopWidth = _customBorderStyle.width + 'px';
+        } else if (['left', 'right'].indexOf(position) >= 0) {
+          style.width = 0;
+          style.borderLeftWidth = _customBorderStyle.width + 'px';
+        }
+      } else {
+        style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
+      }
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
@@ -4909,7 +4922,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.createMap();
     }
     clen = instance.countCols();
-    priv.cellSettings.length = 0;
     if (clen > 0) {
       var proto,
           column;
@@ -13854,6 +13866,15 @@ var WalkontableCellRange = ($___46__46__47__46__46__47_3rdparty_47_walkontable_4
 var WalkontableSelection = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_selection__ = require("3rdparty/walkontable/src/selection"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_selection__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_selection__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_selection__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 function CustomBorders() {}
 var instance;
+var preCustomBorders = [];
+var _setCellMeta = function(row, col, type, border) {
+  preCustomBorders.push({
+    row: row,
+    col: col,
+    type: type
+  });
+  this.setCellMeta(row, col, type, border);
+};
 var checkEnable = function(customBorders) {
   if (typeof customBorders === 'boolean') {
     if (customBorders === true) {
@@ -13899,7 +13920,7 @@ var insertBorderIntoSettings = function(border) {
 var prepareBorderFromCustomAdded = function(row, col, borderObj) {
   var border = createEmptyBorders(row, col);
   border = extendDefaultBorder(border, borderObj);
-  this.setCellMeta(row, col, 'borders', border);
+  _setCellMeta.call(this, row, col, 'borders', border);
   insertBorderIntoSettings(border);
 };
 var prepareBorderFromCustomAddedRange = function(rowObj) {
@@ -13932,8 +13953,11 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
           border.right = rowObj.right;
         }
       }
+      if (rowObj.customBorderStyle) {
+        border.customBorderStyle = rowObj.customBorderStyle;
+      }
       if (add > 0) {
-        this.setCellMeta(row, col, 'borders', border);
+        _setCellMeta.call(this, row, col, 'borders', border);
         insertBorderIntoSettings(border);
       }
     }
@@ -14002,9 +14026,20 @@ var removeBordersFromDom = function(borderClassName) {
   }
 };
 var removeAllBorders = function(row, col) {
-  var borderClassName = createClassName(row, col);
-  removeBordersFromDom(borderClassName);
-  this.removeCellMeta(row, col, 'borders');
+  if (row != undefined) {
+    var borderClassName = createClassName(row, col);
+    removeBordersFromDom(borderClassName);
+    this.removeCellMeta(row, col, 'borders');
+  } else {
+    for (var i = 0,
+        l = preCustomBorders.length; i < l; i++) {
+      var item = preCustomBorders[i];
+      var borderClassName = createClassName(item.row, item.col);
+      removeBordersFromDom(borderClassName);
+      this.removeCellMeta(item.row, item.col, 'borders');
+    }
+  }
+  preCustomBorders = [];
 };
 var setBorder = function(row, col, place, remove) {
   var bordersMeta = this.getCellMeta(row, col).borders;
@@ -14016,7 +14051,7 @@ var setBorder = function(row, col, place, remove) {
   } else {
     bordersMeta[place] = createDefaultCustomBorder();
   }
-  this.setCellMeta(row, col, 'borders', bordersMeta);
+  _setCellMeta.call(this, row, col, 'borders', bordersMeta);
   var borderClassName = createClassName(row, col);
   removeBordersFromDom(borderClassName);
   insertBorderIntoSettings(bordersMeta);
@@ -14178,17 +14213,11 @@ Handsontable.hooks.add('afterInit', function() {
     this.view.wt.draw(true);
   }
 });
-var preCustomBorders = null;
 Handsontable.hooks.add('afterUpdateSettings', function() {
   console.log('afterUpdateSettings');
   var customBorders = this.getSettings().customBorders;
-  if (preCustomBorders) {
-    for (var j = 0,
-        l = preCustomBorders.length; j < l; j++) {
-      removeAllBorders.call(this, preCustomBorders[j].row, preCustomBorders[j].col);
-    }
-  }
   if (customBorders) {
+    removeAllBorders.call(this);
     for (var i = 0; i < customBorders.length; i++) {
       if (customBorders[i].range) {
         prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
@@ -14198,7 +14227,6 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
     }
     this.render();
     this.view.wt.draw(true);
-    preCustomBorders = customBorders;
   }
 });
 Handsontable.CustomBorders = CustomBorders;
