@@ -980,34 +980,6 @@ class Hooks {
 
 export {Hooks};
 
-/**
- * Mixin object to extend objects functionality for local hooks.
- *
- * @type {Object}
- */
-const localHooks = {
-  _localHooks: Object.create(null),
-
-  addLocalHook(key, callback) {
-    if (!this._localHooks[key]) {
-      this._localHooks[key] = [];
-    }
-    this._localHooks[key].push(callback);
-  },
-  runLocalHooks(key, ...params) {
-    if (this._localHooks[key]) {
-      arrayEach(this._localHooks[key], (callback) => callback.apply(this, params));
-    }
-  },
-  clearLocalHooks() {
-    this._localHooks = {};
-  },
-};
-
-export {localHooks};
-
 // temp for tests only!
 Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.Hooks = Hooks;
-
-Handsontable.utils.localHooks = localHooks;

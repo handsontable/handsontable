@@ -205,8 +205,8 @@ function TableView(instance) {
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
-    totalRows: instance.countRows,
-    totalColumns: instance.countCols,
+    totalRows: () => instance.countRows(),
+    totalColumns: () => instance.countCols(),
     fixedColumnsLeft: function() {
       return that.settings.fixedColumnsLeft;
     },
@@ -221,25 +221,28 @@ function TableView(instance) {
     },
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function() {
-      var arr = [];
+      let headerRenderers = [];
+
       if (instance.hasRowHeaders()) {
-        arr.push(function(index, TH) {
-          that.appendRowHeader(index, TH);
+        headerRenderers.push(function(row, TH) {
+          that.appendRowHeader(row, TH);
         });
       }
-      Handsontable.hooks.run(instance, 'afterGetRowHeaderRenderers', arr);
-      return arr;
+      Handsontable.hooks.run(instance, 'afterGetRowHeaderRenderers', headerRenderers);
+
+      return headerRenderers;
     },
     columnHeaders: function() {
+      let headerRenderers = [];
 
-      var arr = [];
       if (instance.hasColHeaders()) {
-        arr.push(function(index, TH) {
-          that.appendColHeader(index, TH);
+        headerRenderers.push(function(column, TH) {
+          that.appendColHeader(column, TH);
         });
       }
-      Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', arr);
-      return arr;
+      Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', headerRenderers);
+
+      return headerRenderers;
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
