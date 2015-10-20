@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Oct 19 2015 18:11:54 GMT+0800 (CST)
+ * Date: Tue Oct 20 2015 10:59:18 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Oct 19 2015 18:11:54 GMT+0800 (CST)',
+  buildDate: 'Tue Oct 20 2015 10:59:18 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4425,13 +4425,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
-      selection.refreshBorders(null, keepEditorOpened);
+      selection.refreshBorders(null, keepEditorOpened, true);
     },
-    refreshBorders: function(revertOriginal, keepEditor) {
+    refreshBorders: function(revertOriginal, keepEditor, noRerender) {
       if (!keepEditor) {
         editorManager.destroyEditor(revertOriginal);
       }
-      instance.view.render();
+      if (noRerender) {
+        instance.view.wt.wtTable.refreshSelections();
+      } else {
+        instance.view.render();
+      }
       if (selection.isSelected() && !keepEditor) {
         editorManager.prepareEditor();
       }
@@ -4700,7 +4704,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     instance.forceFullRender = true;
     grid.adjustRowsAndCols();
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
-    selection.refreshBorders(null, true);
+    if ((source == 'edit' || source == 'from_server') && changes.length == 1) {
+      var _change = changes[0],
+          _row = _change[0],
+          _col = _change[1],
+          td;
+      td = instance.getCell(_row, _col, true);
+      instance.view.wt.wtSettings.settings.cellRenderer(_row, _col, td);
+    } else {
+      selection.refreshBorders(null, true);
+    }
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }

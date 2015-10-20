@@ -641,7 +641,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
-      selection.refreshBorders(null, keepEditorOpened);
+      selection.refreshBorders(null, keepEditorOpened, true);
     },
 
     /**
@@ -649,12 +649,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      *
      * @param {Boolean} [revertOriginal]
      * @param {Boolean} [keepEditor]
+     * @param {Boolean} [noRerender]
      */
-    refreshBorders: function(revertOriginal, keepEditor) {
+    refreshBorders: function(revertOriginal, keepEditor, noRerender) {
       if (!keepEditor) {
         editorManager.destroyEditor(revertOriginal);
       }
-      instance.view.render();
+      // instance.view.render();
+      if(noRerender){
+        instance.view.wt.wtTable.refreshSelections();
+      }else{
+        instance.view.render();
+      }
 
       if (selection.isSelected() && !keepEditor) {
         editorManager.prepareEditor();
@@ -1022,7 +1028,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
-    selection.refreshBorders(null, true);
+    if((source == 'edit' || source == 'from_server') && changes.length == 1){
+      var _change = changes[0],
+        _row = _change[0],
+        _col = _change[1],
+        td;
+        td = instance.getCell(_row, _col, true);
+      instance.view.wt.wtSettings.settings.cellRenderer(_row, _col, td);
+    }else{
+      selection.refreshBorders(null, true);
+    }
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }
