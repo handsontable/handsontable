@@ -524,7 +524,7 @@ Handsontable.hooks.add('afterInit', function() {
       }
     }
 
-    this.render();
+    // this.render();
     this.view.wt.draw(true);
   }
 });
@@ -546,7 +546,7 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
         prepareBorderFromCustomAdded.call(this, customBorders[i].row, customBorders[i].col, customBorders[i]);
       }
     }
-    this.render();
+    // this.render();
     this.view.wt.draw(true);
 
     // preCustomBorders = customBorders;
