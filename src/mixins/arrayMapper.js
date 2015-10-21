@@ -96,6 +96,7 @@ const arrayMapper = {
 
       return row;
     });
+
     rangeEach(amount - 1, (count) => {
       this._arrayMap.splice(index + count, 0, index + count);
     });

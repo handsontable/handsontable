@@ -149,9 +149,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_row':
-          // column order may have changes, so we need to translate the selection column index -> source array index
-          //index = instance.runHooks('modifyRow', index);
-
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
 
