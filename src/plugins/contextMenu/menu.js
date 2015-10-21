@@ -17,7 +17,7 @@ import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach, mixin} from './../../helpers/object';
 import {isSeparator, isDisabled, isSelectionDisabled, hasSubMenu, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
-import {localHooks} from './../../pluginHooks';
+import {localHooks} from './../../mixins/localHooks';
 import {SEPARATOR, predefinedItems} from './predefinedItems';
 import {stopPropagation, stopImmediatePropagation, pageX, pageY} from './../../helpers/dom/event';
 
@@ -137,7 +137,7 @@ class Menu {
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
-    let dataItem = this.hotMenu.getData()[row];
+    let dataItem = this.hotMenu.getSourceDataAtRow(row);
     let subMenu = new Menu(this.hot, {
       parent: this,
       name: dataItem.name,
@@ -157,7 +157,7 @@ class Menu {
    * @param {Number} row Row index.
    */
   closeSubMenu(row) {
-    let dataItem = this.hotMenu.getData()[row];
+    let dataItem = this.hotMenu.getSourceDataAtRow(row);
     let menus = this.hotSubMenus[dataItem.key];
 
     if (menus) {
@@ -210,7 +210,7 @@ class Menu {
     if (!this.isOpened() || !this.hotMenu.getSelected()) {
       return;
     }
-    const selectedItem = this.hotMenu.getData()[this.hotMenu.getSelected()[0]];
+    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelected()[0]);
 
     this.runLocalHooks('select', selectedItem, event);
 
@@ -385,7 +385,7 @@ class Menu {
    * @private
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
-    let item = hot.getData()[row];
+    let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
     let isSubMenu = (item) => {
@@ -515,7 +515,7 @@ class Menu {
 
       case KEY_CODES.ENTER:
         if (selection) {
-          if (this.hotMenu.getData()[selection[0]].submenu) {
+          if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
             stopEvent = true;
           } else {
             this.executeCommand(event);

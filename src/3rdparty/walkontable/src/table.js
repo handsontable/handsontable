@@ -490,7 +490,7 @@ class WalkontableTable {
     let oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
 
     if (oversizedHeight !== void 0) {
-      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+      height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
     }
 
     return height;

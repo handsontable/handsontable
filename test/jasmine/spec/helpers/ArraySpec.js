@@ -52,4 +52,46 @@ describe('Array helper', function() {
       })).toEqual(['', '', '']);
     });
   });
+
+  //
+  // Handsontable.helper.arrayMin
+  //
+  describe('arrayMin', function() {
+    it('should returns the lowest number from an array (array of numbers)', function() {
+      var arrayMin = Handsontable.helper.arrayMin;
+
+      expect(arrayMin([])).toBeUndefined();
+      expect(arrayMin([0])).toBe(0);
+      expect(arrayMin([0, 0, 0, -1, 3, 2])).toBe(-1);
+    });
+
+    it('should returns the lowest string from an array (array of strings)', function() {
+      var arrayMin = Handsontable.helper.arrayMin;
+
+      expect(arrayMin(['b', 'a', 'A', 'z', '1'])).toBe('1');
+      expect(arrayMin(['b', 'a', 'A', 'z'])).toBe('A');
+      expect(arrayMin(['b', 'a', 'z'])).toBe('a');
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayMax
+  //
+  describe('arrayMax', function() {
+    it('should returns the highest number from an array (array of numbers)', function() {
+      var arrayMax = Handsontable.helper.arrayMax;
+
+      expect(arrayMax([])).toBeUndefined();
+      expect(arrayMax([0])).toBe(0);
+      expect(arrayMax([0, 0, 0, -1, 3, 2])).toBe(3);
+    });
+
+    it('should returns the highest string from an array (array of strings)', function() {
+      var arrayMax = Handsontable.helper.arrayMax;
+
+      expect(arrayMax(['b', 'a', 'A', 'z', 'Z', '1'])).toBe('z');
+      expect(arrayMax(['b', 'a', 'A', 'Z', '1'])).toBe('b');
+      expect(arrayMax(['a', 'A', 'Z', '1'])).toBe('a');
+    });
+  });
 });

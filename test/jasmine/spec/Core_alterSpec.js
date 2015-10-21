@@ -67,7 +67,7 @@ describe('Core_alter', function () {
       });
       alter('remove_row');
 
-      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined, undefined);
+      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], undefined, undefined, undefined);
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', function () {

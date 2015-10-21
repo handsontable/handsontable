@@ -91,7 +91,8 @@ describe('Core_dataSchema', function () {
     keyDownUp('enter');
     keyProxy().val('Ted');
     keyDownUp('enter');
-    expect(getData()[0].name.first).toEqual('Ted');
+    expect(getData()[0][1]).toEqual('Ted');
+    expect(getSourceData()[0].name.first).toEqual('Ted');
   });
 
   it('should create new row from dataSchema (functional)', function () {
@@ -101,7 +102,7 @@ describe('Core_dataSchema', function () {
         return {id: 1000 + index, name: {first: null, last: null}, address: null}
       },
       isEmptyRow: function (r) {
-        var row = this.getData()[r];
+        var row = this.getSourceData()[r];
 
         return (row.name.first === null || row.name.first === '') &&
           (row.name.last === null || row.name.last === '') &&
@@ -129,8 +130,10 @@ describe('Core_dataSchema', function () {
     // need it in next frame as long as HT is rendered in async
     keyDownUp('enter');
 
-    expect(getData()[4].name.first).toEqual('Ted');
-    expect(getData()[4].id).toEqual(1004);
+    expect(getSourceData()[4].name.first).toEqual('Ted');
+    expect(getSourceData()[4].id).toEqual(1004);
+    expect(getData()[4][1]).toEqual('Ted');
+    expect(getData()[4][0]).toEqual(1004);
     expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
   });
 
