@@ -184,6 +184,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after new data is loaded (by `loadData` method) into the data source array.
    *
    * @event Hooks#afterLoadData
+   * @param {Boolean} firstTime flag that determines whether the data has been loaded during the initialization.
    */
   'afterLoadData',
 
@@ -542,6 +543,15 @@ const REGISTERED_HOOKS = [
   'modifyCol',
 
   /**
+   * Callback fired after column header modify.
+   *
+   * @event Hooks#modifyColHeader
+   * @since 0.20.0
+   * @param {Number} column Column index.
+   */
+  'modifyColumnHeader',
+
+  /**
    * Callback fired after modify column's width.
    *
    * @event Hooks#modifyColWidth
@@ -559,6 +569,15 @@ const REGISTERED_HOOKS = [
    * @param {Number} row
    */
   'modifyRow',
+
+  /**
+   * Callback fired after row header modify.
+   *
+   * @event Hooks#modifyRowHeader
+   * @since 0.20.0
+   * @param {Number} row Row index.
+   */
+  'modifyRowHeader',
 
   /**
    * Callback fired after modify height of row.

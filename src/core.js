@@ -1378,7 +1378,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
-    Handsontable.hooks.run(instance, 'afterLoadData');
+    Handsontable.hooks.run(instance, 'afterLoadData', priv.firstRun);
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];
@@ -2179,28 +2179,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getRowHeader
    * @param {Number} [row]
+   * @fires Hooks#modifyRowHeader
    * @returns {Array|String}
    */
   this.getRowHeader = function(row) {
-    if (row === void 0) {
-      var out = [];
-      for (var i = 0, ilen = instance.countRows(); i < ilen; i++) {
-        out.push(instance.getRowHeader(i));
-      }
-      return out;
+    let rowHeader = priv.settings.rowHeaders;
 
-    } else if (Array.isArray(priv.settings.rowHeaders) && priv.settings.rowHeaders[row] !== void 0) {
-      return priv.settings.rowHeaders[row];
-
-    } else if (typeof priv.settings.rowHeaders === 'function') {
-      return priv.settings.rowHeaders(row);
-
-    } else if (priv.settings.rowHeaders && typeof priv.settings.rowHeaders !== 'string' && typeof priv.settings.rowHeaders !== 'number') {
-      return row + 1;
-
-    } else {
-      return priv.settings.rowHeaders;
+    if (row !== void 0) {
+      row = Handsontable.hooks.run(instance, 'modifyRowHeader', row);
     }
+    if (row === void 0) {
+      rowHeader = [];
+      rangeEach(instance.countRows() - 1, (i) => {
+        rowHeader.push(instance.getRowHeader(i));
+      });
+
+    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
+      rowHeader = rowHeader[row];
+
+    } else if (typeof rowHeader === 'function') {
+      rowHeader = rowHeader(row);
+
+    } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
+      rowHeader = row + 1;
+    }
+
+    return rowHeader;
   };
 
   /**
@@ -2242,9 +2246,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getColHeader
    * @param {Number} [col] Column index
+   * @fires Hooks#modifyColHeader
    * @returns {Array|String}
    */
   this.getColHeader = function(col) {
+    col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
+
     if (col === void 0) {
       var out = [];
       for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
