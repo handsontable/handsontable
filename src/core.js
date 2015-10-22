@@ -1483,7 +1483,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.updateSettings = function(settings, init, noRefresh) {
     var i, clen;
 
-    window.noRefresh = noRefresh;
+    Handsontable.noRefresh = noRefresh;
 
     if (typeof settings.rows !== 'undefined') {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
@@ -1598,7 +1598,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
 
-    window.noRefresh = false;
+    Handsontable.noRefresh = false;
   };
 
   /**

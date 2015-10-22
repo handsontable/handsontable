@@ -73,7 +73,7 @@ class WalkontableTableRenderer {
       adjusted = true;
 
       // 如果noRefresh为true，则不重新渲染表格
-      if (!window.noRefresh) {
+      if (!Handsontable.noRefresh) {
         // adjust column widths according to user widths settings
         this.renderColumnHeaders();
 
