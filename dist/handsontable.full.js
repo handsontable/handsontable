@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 21 2015 10:47:40 GMT+0800 (CST)
+ * Date: Thu Oct 22 2015 10:58:37 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Oct 21 2015 10:47:40 GMT+0800 (CST)',
+  buildDate: 'Thu Oct 22 2015 10:58:37 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3139,8 +3139,10 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (totalColumns > 0) {
       this.adjustAvailableNodes();
       adjusted = true;
-      this.renderColumnHeaders();
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+      if (!window.noRefresh) {
+        this.renderColumnHeaders();
+        this.renderRows(totalRows, rowsToRender, columnsToRender);
+      }
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
@@ -4903,9 +4905,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getSchema = function() {
     return datamap.getSchema();
   };
-  this.updateSettings = function(settings, init) {
+  this.updateSettings = function(settings, init, noRefresh) {
     var i,
         clen;
+    window.noRefresh = noRefresh;
     if (typeof settings.rows !== 'undefined') {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
     }
@@ -4990,6 +4993,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.forceFullRender = true;
       selection.refreshBorders(null, true);
     }
+    window.noRefresh = false;
   };
   this.getValue = function() {
     var sel = instance.getSelected();

@@ -72,11 +72,15 @@ class WalkontableTableRenderer {
       this.adjustAvailableNodes();
       adjusted = true;
 
-      // adjust column widths according to user widths settings
-      this.renderColumnHeaders();
+      // 如果noRefresh为true，则不重新渲染表格
+      if (!window.noRefresh) {
+        // adjust column widths according to user widths settings
+        this.renderColumnHeaders();
 
-      //Render table rows
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+        //Render table rows
+        this.renderRows(totalRows, rowsToRender, columnsToRender);
+      }
+      
 
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
