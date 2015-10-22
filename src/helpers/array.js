@@ -152,6 +152,28 @@ export function arraySum(array) {
 }
 
 /**
+ * Returns the highest value from an array. Can be array of numbers or array of strings.
+ * NOTICE: Mixed values is not supported.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns the highest value from an array.
+ */
+export function arrayMax(array) {
+  return arrayReduce(array, (a, b) => (a > b ? a : b), Array.isArray(array) ? array[0] : void 0);
+}
+
+/**
+ * Returns the lowest value from an array. Can be array of numbers or array of strings.
+ * NOTICE: Mixed values is not supported.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns the lowest value from an array.
+ */
+export function arrayMin(array) {
+  return arrayReduce(array, (a, b) => (a < b ? a : b), Array.isArray(array) ? array[0] : void 0);
+}
+
+/**
  * Calculate average value for each item of the array.
  *
  * @param {Array} array The array to process.

@@ -1432,6 +1432,7 @@ describe('AutocompleteEditor', function() {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
+        expect(innerHot.getSourceData()).toEqual([]);
       });
     });
 

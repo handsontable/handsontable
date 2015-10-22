@@ -137,9 +137,11 @@ describe('Core_getCellMeta', function () {
       minSpareRows: 1,
       cells: function (row, col, prop) {
         var cellProperties = {};
-        if (getData()[row][col] === 'A') {
+
+        if (getSourceData()[row][col] === 'A') {
           cellProperties.readOnly = true;
         }
+
         return cellProperties;
       }
     });
@@ -169,9 +171,5 @@ describe('Core_getCellMeta', function () {
 
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
-
-
-
   });
-
 });

@@ -21,33 +21,40 @@ export function isNumeric(n) {
  * @param {Number} rangeFrom The number from start iterate.
  * @param {Number} rangeTo The number where finish iterate.
  * @param {Function} iteratee The function invoked per iteration.
- * @param {Boolean} onlyForward Only go from rangeFrom to rangeTo, never the other way around
  */
-export function rangeEach(rangeFrom, rangeTo, iteratee, onlyForward) {
+export function rangeEach(rangeFrom, rangeTo, iteratee) {
   let index = -1;
-  let _rangeTo = rangeTo;
-  let _rangeFrom = 0;
 
   if (typeof rangeTo === 'function') {
     iteratee = rangeTo;
-    _rangeTo = rangeFrom;
+    rangeTo = rangeFrom;
   } else {
     index = rangeFrom - 1;
   }
-  if (onlyForward || rangeFrom <= _rangeTo) {
-    while (++index <= _rangeTo) {
-      if (iteratee(index) === false) {
-        break;
-      }
+  while (++index <= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
     }
-  } else {
-    index = rangeFrom + 1;
-    //_rangeTo
+  }
+}
 
-    while (--index >= rangeTo) {
-      if (iteratee(index) === false) {
-        break;
-      }
+/**
+ * A specialized version of `.forEach` defined by ranges iterable in reverse order.
+ *
+ * @param {Number} rangeFrom The number from start iterate.
+ * @param {Number} rangeTo The number where finish iterate.
+ * @param {Function} iteratee The function invoked per iteration.
+ */
+export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
+  let index = rangeFrom + 1;
+
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = 0;
+  }
+  while (--index >= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
     }
   }
 }

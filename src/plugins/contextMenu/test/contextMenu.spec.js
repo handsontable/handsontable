@@ -593,7 +593,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -615,7 +615,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
