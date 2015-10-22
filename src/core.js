@@ -655,12 +655,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!keepEditor) {
         editorManager.destroyEditor(revertOriginal);
       }
-      // instance.view.render();
-      if(noRerender){
-        instance.view.wt.wtTable.refreshSelections();
-      }else{
-        instance.view.render();
+
+      // if noRerender is true then do not render full table
+      if (noRerender) {
+        instance.forceFullRender = false;
       }
+      instance.view.render();
 
       if (selection.isSelected() && !keepEditor) {
         editorManager.prepareEditor();
