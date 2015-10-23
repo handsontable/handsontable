@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Oct 23 2015 12:42:18 GMT+0800 (CST)
+ * Date: Fri Oct 23 2015 15:25:57 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Oct 23 2015 12:42:18 GMT+0800 (CST)',
+  buildDate: 'Fri Oct 23 2015 15:25:57 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -12949,6 +12949,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     key: ROW_ABOVE,
     name: 'Insert row above',
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertRow', selection.start.row);
       this.alter('insert_row', selection.start.row);
     },
     disabled: function() {
@@ -12972,6 +12973,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     key: ROW_BELOW,
     name: 'Insert row below',
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertRow', selection.end.row + 1);
       this.alter('insert_row', selection.end.row + 1);
     },
     disabled: function() {
@@ -12995,6 +12997,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     key: COLUMN_LEFT,
     name: 'Insert column on the left',
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertCol', selection.start.col);
       this.alter('insert_col', selection.start.col);
     },
     disabled: function() {
@@ -13021,6 +13024,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     key: COLUMN_RIGHT,
     name: 'Insert column on the right',
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertCol', selection.end.col + 1);
       this.alter('insert_col', selection.end.col + 1);
     },
     disabled: function() {
@@ -13069,6 +13073,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     name: 'Remove row',
     callback: function(key, selection) {
       var amount = selection.end.row - selection.start.row + 1;
+      this.runHooks('menuBeforeRemoveRow', selection.start.row, amount);
       this.alter('remove_row', selection.start.row, amount);
     },
     disabled: function() {
@@ -13092,6 +13097,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     name: 'Remove column',
     callback: function(key, selection) {
       var amount = selection.end.col - selection.start.col + 1;
+      this.runHooks('menuBeforeRemoveCol', selection.start.col, amount);
       this.alter('remove_col', selection.start.col, amount);
     },
     disabled: function() {
@@ -27257,5 +27263,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
+},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
 });
