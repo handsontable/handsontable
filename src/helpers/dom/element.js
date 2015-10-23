@@ -757,6 +757,23 @@ export function getSelectionEndPosition(el) {
 }
 
 /**
+ * Returns text under selection.
+ *
+ * @returns {String}
+ */
+export function getSelectionText() {
+  let text = '';
+
+  if (window.getSelection) {
+    text = window.getSelection().toString();
+  } else if (document.selection && document.selection.type !== 'Control') {
+    text = document.selection.createRange().text;
+  }
+
+  return text;
+}
+
+/**
  * Sets caret position in text input.
  *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/

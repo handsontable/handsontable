@@ -28,6 +28,7 @@ function TableView(instance) {
   this.eventManager = eventManagerObject(instance);
   this.instance = instance;
   this.settings = instance.getSettings();
+  this.selectionMouseDown = false;
 
   var originalStyle = instance.rootElement.getAttribute('style');
 
@@ -54,10 +55,21 @@ function TableView(instance) {
   instance.container.insertBefore(table, instance.container.firstChild);
 
   this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+    this.selectionMouseDown = true;
+
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
+    }
+  });
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
+    this.selectionMouseDown = false;
+  });
+  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
+    if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
+      clearTextSelection();
+      event.preventDefault();
     }
   });
 
@@ -457,11 +469,27 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (isInput(el)) {
     return true;
   }
-  if (this.settings.fragmentSelection && isChildOf(el, this.TBODY)) {
+  let isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+
+  if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    return true;
+  }
+  if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
     return true;
   }
 
   return false;
+};
+
+/**
+ * Check if selected only one cell.
+ *
+ * @returns {Boolean}
+ */
+TableView.prototype.isSelectedOnlyCell = function() {
+  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
+
+  return row !== void 0 && row === rowEnd && col === colEnd;
 };
 
 TableView.prototype.isCellEdited = function() {

@@ -141,13 +141,15 @@ var handsontableMouseTriggerFactory = function (type, button) {
       element = $(element);
     }
     var ev = $.Event(type);
-    ev.which = button || 1; //left click by default
-    element.simulate(type,ev);
-//    element.trigger(ev);
+    ev.which = button || 1; // left click by default
+
+    element.simulate(type, ev);
   }
 };
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
+var mouseMove = handsontableMouseTriggerFactory('mousemove');
+var mouseOver = handsontableMouseTriggerFactory('mouseover');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
 var mouseDoubleClick = function (element) {
   mouseDown(element);
