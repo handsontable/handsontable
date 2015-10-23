@@ -136,16 +136,13 @@ var closeDropdownMenu = function () {
  * @return {Function}
  */
 var handsontableMouseTriggerFactory = function (type, button) {
-  return function (element, targetElement) {
+  return function (element) {
     if (!(element instanceof jQuery)) {
       element = $(element);
     }
     var ev = $.Event(type);
     ev.which = button || 1; // left click by default
 
-    if (targetElement) {
-      ev.target = targetElement;
-    }
     element.simulate(type, ev);
   }
 };
