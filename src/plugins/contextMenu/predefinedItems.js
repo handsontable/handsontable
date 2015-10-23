@@ -54,6 +54,7 @@ const _predefinedItems = {
     name: 'Insert row above',
 
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertRow', selection.start.row);
       this.alter('insert_row', selection.start.row);
     },
     disabled: function() {
@@ -77,6 +78,7 @@ const _predefinedItems = {
     name: 'Insert row below',
 
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertRow', selection.end.row + 1);
       this.alter('insert_row', selection.end.row + 1);
     },
     disabled: function() {
@@ -99,6 +101,7 @@ const _predefinedItems = {
     key: COLUMN_LEFT,
     name: 'Insert column on the left',
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertCol', selection.start.col);
       this.alter('insert_col', selection.start.col);
     },
     disabled: function() {
@@ -124,6 +127,7 @@ const _predefinedItems = {
     name: 'Insert column on the right',
 
     callback: function(key, selection) {
+      this.runHooks('menuBeforeInsertCol', selection.end.col + 1);
       this.alter('insert_col', selection.end.col + 1);
     },
     disabled: function() {
@@ -171,7 +175,7 @@ const _predefinedItems = {
 
     callback: function(key, selection) {
       let amount = selection.end.row - selection.start.row + 1;
-
+      this.runHooks('menuBeforeRemoveRow', selection.start.row, amount);
       this.alter('remove_row', selection.start.row, amount);
     },
     disabled: function() {
@@ -194,7 +198,7 @@ const _predefinedItems = {
 
     callback: function(key, selection) {
       let amount = selection.end.col - selection.start.col + 1;
-
+      this.runHooks('menuBeforeRemoveCol', selection.start.col, amount);
       this.alter('remove_col', selection.start.col, amount);
     },
     disabled: function() {
