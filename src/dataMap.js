@@ -584,7 +584,7 @@ DataMap.prototype.getRange = function(start, end, destination) {
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];
-    let physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+    let physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', r);
 
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
       let rowValue;

@@ -22,7 +22,7 @@ const stateSaver = {
    * @param {String|Number} stateId
    */
   saveState(stateId) {
-    this._states[STATE_PREFIX + stateId] = this.getValue();
+    this._states[STATE_PREFIX + stateId] = this.getState();
   },
 
   /**
@@ -31,7 +31,7 @@ const stateSaver = {
    * @param {String|Number} stateId
    */
   restoreState(stateId) {
-    this.setValue(this._states[STATE_PREFIX + stateId]);
+    this.setState(this._states[STATE_PREFIX + stateId]);
   },
 
   /**

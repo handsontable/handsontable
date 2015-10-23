@@ -3662,9 +3662,10 @@ DefaultSettings.prototype = {
   commentedCellClassName: 'htCommentCell',
 
   /**
-   * Setting to `true` enables selecting just a fragment of the text within a single cell or between adjacent cells.
+   * Setting to `true` enables natively selecting a fragment of the text within a single cell, between adjacent cells or in a whole table.
+   * Setting to `'cell'` enables selecting fragment of the text within only one cell's body.
    *
-   * @type {Boolean}
+   * @type {Boolean|String}
    * @default false
    */
   fragmentSelection: false,
