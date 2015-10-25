@@ -464,7 +464,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               };
 
               if (source === 'autofill') {
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                if(index.row == input.length){
+                  index.row = 0;
+                }
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {row:1,col:1}, selected);
 
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;

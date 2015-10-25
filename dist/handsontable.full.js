@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Oct 24 2015 14:02:32 GMT+0800 (CST)
+ * Date: Mon Oct 26 2015 00:37:10 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Sat Oct 24 2015 14:02:32 GMT+0800 (CST)',
+  buildDate: 'Mon Oct 26 2015 00:37:10 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4313,7 +4313,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 col: logicalColumn
               };
               if (source === 'autofill') {
-                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                if (index.row == input.length) {
+                  index.row = 0;
+                }
+                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {
+                  row: 1,
+                  col: 1
+                }, selected);
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
@@ -11018,6 +11024,26 @@ function getDeltas(start, end, data, direction) {
   }
   return deltas;
 }
+function filterRawData(data) {
+  var destData = [],
+      item,
+      destItem;
+  for (var row = 0,
+      l = data.length; row < l; row++) {
+    destData[row] = [];
+    for (var col = 0,
+        len = data[row].length; col < len; col++) {
+      item = data[row][col];
+      if (item[0] != '=' && !isNaN(parseInt($(item).text(), 10))) {
+        destItem = parseInt($(item).text(), 10);
+      } else {
+        destItem = item;
+      }
+      destData[row].push(destItem);
+    }
+  }
+  return destData;
+}
 function Autofill(instance) {
   var _this = this,
       mouseDownOnCellCorner = false,
@@ -11160,6 +11186,7 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+    _data = filterRawData(_data);
     deltas = getDeltas(start, end, _data, direction);
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
     this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
@@ -19184,24 +19211,20 @@ CopyPasteClass.prototype.copyable = function(string) {
   var parsedStr = SheetClip.parse(string),
       rowItem,
       rowSet,
-      dataSet = [];
+      dataSet = [],
+      htmlReg = /^<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s+\/>)$/;
   for (var row = 0,
       l = parsedStr.length; row < l; row++) {
     rowSet = [];
     for (var col = 0,
         len = parsedStr[row].length; col < len; col++) {
       rowItem = parsedStr[row][col];
-      try {
+      if (rowItem[0] != '=' && htmlReg.test(rowItem)) {
         rowItem = $(rowItem).text();
-      } catch (e) {
-        console.log('copyable: ' + rowItem);
       }
       rowSet.push(rowItem);
     }
     dataSet.push(rowSet);
-  }
-  if (!SheetClip.stringify(dataSet).trim()) {
-    return;
   }
   this.elTextarea.htmlValue = string;
   this.elTextarea.value = SheetClip.stringify(dataSet);
@@ -19251,7 +19274,7 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
   if (_this.pasteCallbacks) {
     setTimeout(function() {
-      var val = string || _this.elTextarea.htmlValue;
+      var val = string || _this.elTextarea.value;
       for (var i = 0,
           len = _this.pasteCallbacks.length; i < len; i++) {
         _this.pasteCallbacks[i](val, event);
