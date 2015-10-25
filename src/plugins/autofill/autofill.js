@@ -48,6 +48,24 @@ function getDeltas(start, end, data, direction) {
   return deltas;
 }
 
+//将html转换成数字
+function filterRawData(data){
+  var destData = [], item, destItem;
+  for(var row=0,l=data.length; row<l; row++){
+    destData[row] = [];
+    for(var col=0,len=data[row].length; col<len; col++){
+      item = data[row][col];
+      if(item[0] != '=' && !isNaN(parseInt($(item).text(), 10))){
+        destItem = parseInt($(item).text(), 10);
+      }else{
+        destItem = item;
+      }
+      destData[row].push(destItem);
+    }
+  }
+  return destData;
+}
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
  * using the small square in the right bottom of the cell selection.
@@ -256,6 +274,7 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to,
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+    _data = filterRawData(_data);
     deltas = getDeltas(start, end, _data, direction);
 
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
