@@ -1,6 +1,6 @@
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
-import {getRegistredPluginNames, getPluginName} from './../plugins';
+import {getRegistredPluginNames} from './../plugins';
 
 const privatePool = new WeakMap();
 let initializedPlugins = null;
@@ -24,9 +24,11 @@ class BasePlugin {
     privatePool.set(this, {hooks: {}});
     initializedPlugins = null;
 
+    if (!this.constructor.name) {
+      this.constructor.name = getPluginName(this);
+    }
     this.pluginsInitializedCallbacks = [];
     this.isPluginsReady = false;
-    this.pluginName = null;
     this.enabled = false;
     this.initialized = false;
 
@@ -36,7 +38,7 @@ class BasePlugin {
   }
 
   init() {
-    this.pluginName = getPluginName(this.hot, this);
+    let pluginName = this.constructor.name;
 
     if (this.isEnabled && this.isEnabled()) {
       this.enablePlugin();
@@ -44,8 +46,8 @@ class BasePlugin {
     if (!initializedPlugins) {
       initializedPlugins = getRegistredPluginNames(this.hot);
     }
-    if (initializedPlugins.indexOf(this.pluginName) >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
+    if (initializedPlugins.indexOf(pluginName) >= 0) {
+      initializedPlugins.splice(initializedPlugins.indexOf(pluginName), 1);
     }
     if (!initializedPlugins.length) {
       this.hot.runHooks('afterPluginsInitialized');
@@ -144,11 +146,7 @@ class BasePlugin {
         this.enablePlugin();
       }
       if (this.enabled && this.isEnabled()) {
-
-        if (this.updatePlugin) {
-          this.updatePlugin();
-        }
-
+        this.updatePlugin();
       }
     }
   }
@@ -170,8 +168,25 @@ class BasePlugin {
       this.eventManager.destroy();
     }
     this.clearHooks();
+
+    objectEach(this, (value, property) => {
+      if (property !== 'hot') {
+        this[property] = null;
+      }
+    });
     delete this.hot;
   }
+}
+
+function getPluginName(plugin) {
+  let name = plugin.constructor.name;
+
+  if (!name) {
+    /*jshint -W020 */
+    name = plugin.constructor.toString().match(/^function\s*([^\s(]+)/)[1];
+  }
+
+  return name;
 }
 
 export default BasePlugin;

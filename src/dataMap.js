@@ -4,6 +4,7 @@ import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
 import {duckSchema, deepExtend} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
+import {rangeEach} from './helpers/number';
 import {MultiMap} from './multiMap';
 
 /**
@@ -161,14 +162,14 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
     amount = 1;
   }
 
-  if (typeof index !== 'number' || index >= this.instance.countRows()) {
-    index = this.instance.countRows();
+  if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
+    index = this.instance.countSourceRows();
   }
 
   currentIndex = index;
   var maxRows = this.instance.getSettings().maxRows;
-  while (numberOfCreatedRows < amount && this.instance.countRows() < maxRows) {
 
+  while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
     if (this.instance.dataType === 'array') {
       row = [];
       for (var c = 0; c < colCount; c++) {
@@ -183,7 +184,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
       deepExtend(row, this.getSchema());
     }
 
-    if (index === this.instance.countRows()) {
+    if (index === this.instance.countSourceRows()) {
       this.dataSource.push(row);
 
     } else {
@@ -215,7 +216,7 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
       'If you want to be able to add new columns, you have to use array datasource.');
   }
-  var rlen = this.instance.countRows(),
+  var rlen = this.instance.countSourceRows(),
     data = this.dataSource,
     constructor, numberOfCreatedCols = 0,
     currentIndex;
@@ -273,12 +274,12 @@ DataMap.prototype.removeRow = function(index, amount) {
     index = -amount;
   }
 
-  index = (this.instance.countRows() + index) % this.instance.countRows();
+  index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
   // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
   var logicRows = this.physicalRowsToLogical(index, amount);
 
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount);
+  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
 
   if (actionWasNotCancelled === false) {
     return;
@@ -292,7 +293,7 @@ DataMap.prototype.removeRow = function(index, amount) {
   data.length = 0;
   Array.prototype.push.apply(data, newData);
 
-  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount);
+  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -325,7 +326,7 @@ DataMap.prototype.removeCol = function(index, amount) {
   }
 
   var data = this.dataSource;
-  for (var r = 0, rlen = this.instance.countRows(); r < rlen; r++) {
+  for (var r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
     data[r].splice(index, amount);
   }
   this.priv.columnSettings.splice(index, amount);
@@ -399,16 +400,19 @@ DataMap.prototype.get = function(row, prop) {
   if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = this.dataSource[row];
+
     if (!out) {
       return null;
     }
     for (var i = 0, ilen = sliced.length; i < ilen; i++) {
       out = out[sliced[i]];
+
       if (typeof out === 'undefined') {
         return null;
       }
     }
     return out;
+
   } else if (typeof prop === 'function') {
     /**
      *  allows for interacting with complex structures, for example
@@ -423,12 +427,14 @@ DataMap.prototype.get = function(row, prop) {
      *      }
      *    }]}
      */
-    return prop(this.dataSource.slice(
-      row,
-      row + 1)[0]);
-  } else {
-    return this.dataSource[row] ? this.dataSource[row][prop] : null;
+    return prop(this.dataSource.slice(row, row + 1)[0]);
+
   }
+  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
+    return this.dataSource[row][prop];
+  }
+
+  return null;
 };
 
 var copyableLookup = cellMethodLookupFactory('copyable', false);
@@ -490,7 +496,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
  * @returns {Number}
  */
 DataMap.prototype.physicalRowsToLogical = function(index, amount) {
-  var totalRows = this.instance.countRows();
+  var totalRows = this.instance.countSourceRows();
   var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
   var rowsToRemove = amount;
@@ -511,11 +517,30 @@ DataMap.prototype.physicalRowsToLogical = function(index, amount) {
  * Clears the data array.
  */
 DataMap.prototype.clear = function() {
-  for (var r = 0; r < this.instance.countRows(); r++) {
+  for (var r = 0; r < this.instance.countSourceRows(); r++) {
     for (var c = 0; c < this.instance.countCols(); c++) {
       this.set(r, this.colToProp(c), '');
     }
   }
+};
+
+/**
+ * Get data length.
+ *
+ * @returns {Number}
+ */
+DataMap.prototype.getLength = function() {
+  let length = this.instance.countSourceRows();
+
+  rangeEach(this.instance.countSourceRows() - 1, (row) => {
+    row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+
+    if (row === null) {
+      length--;
+    }
+  });
+
+  return length;
 };
 
 /**
@@ -524,7 +549,20 @@ DataMap.prototype.clear = function() {
  * @returns {Array}
  */
 DataMap.prototype.getAll = function() {
-  return this.dataSource;
+  let start = {
+    row: 0,
+    col: 0,
+  };
+  let end = {
+    row: Math.max(this.instance.countSourceRows() - 1, 0),
+    col: Math.max(this.instance.countCols() - 1, 0),
+  };
+
+  if (start.row - end.row === 0 && !this.instance.countSourceRows()) {
+    return [];
+  }
+
+  return this.getRange(start, end, DataMap.prototype.DESTINATION_RENDERER);
 };
 
 /**
@@ -537,7 +575,7 @@ DataMap.prototype.getAll = function() {
  */
 DataMap.prototype.getRange = function(start, end, destination) {
   var r, rlen, c, clen, output = [],
-    row;
+    row, rowExists;
 
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
@@ -546,10 +584,19 @@ DataMap.prototype.getRange = function(start, end, destination) {
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];
+    let physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', r);
+
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
+      let rowValue;
+
+      if (physicalRow === null) {
+        break;
+      }
       row.push(getFn.call(this, r, this.colToProp(c)));
     }
-    output.push(row);
+    if (physicalRow !== null) {
+      output.push(row);
+    }
   }
 
   return output;

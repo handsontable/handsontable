@@ -24,6 +24,7 @@ class WalkontableViewportRowsCalculator {
    * @param {Function} rowHeightFn Function that returns the height of the row at a given index (in px)
    * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
    * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
+   * @param {Number} horizontalScrollbarHeight
    */
   constructor(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible, horizontalScrollbarHeight) {
     privatePool.set(this, {

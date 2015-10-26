@@ -131,7 +131,7 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   onAfterContextMenuShow() {
     const contextMenu = this.hot.getPlugin('contextMenu');
-    const data = contextMenu.menu.hotMenu.getData();
+    const data = contextMenu.menu.hotMenu.getSourceData();
 
     // find position of 'copy' option.
     arrayEach(data, (item, index) => {

@@ -2,6 +2,10 @@ var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
 
+var hot = function() {
+  return spec().$container.data('handsontable');
+};
+
 var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
@@ -13,6 +17,9 @@ beforeEach(function () {
   var matchers = {
     toBeInArray: function (arr) {
       return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeFunction: function () {
+      return typeof this.actual === 'function';
     },
     toBeAroundValue: function (val) {
       this.message = function (val) {
@@ -134,13 +141,15 @@ var handsontableMouseTriggerFactory = function (type, button) {
       element = $(element);
     }
     var ev = $.Event(type);
-    ev.which = button || 1; //left click by default
-    element.simulate(type,ev);
-//    element.trigger(ev);
+    ev.which = button || 1; // left click by default
+
+    element.simulate(type, ev);
   }
 };
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
+var mouseMove = handsontableMouseTriggerFactory('mousemove');
+var mouseOver = handsontableMouseTriggerFactory('mouseover');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
 var mouseDoubleClick = function (element) {
   mouseDown(element);
@@ -413,8 +422,10 @@ var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
 var getDataAtCol = handsontableMethodFactory('getDataAtCol');
 var getDataType = handsontableMethodFactory('getDataType');
+var getSourceData = handsontableMethodFactory('getSourceData');
 var getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 var getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+var getValue = handsontableMethodFactory('getValue');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
 var getColHeader = handsontableMethodFactory('getColHeader');
 var alter = handsontableMethodFactory('alter');

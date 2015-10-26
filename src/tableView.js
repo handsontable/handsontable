@@ -28,6 +28,7 @@ function TableView(instance) {
   this.eventManager = eventManagerObject(instance);
   this.instance = instance;
   this.settings = instance.getSettings();
+  this.selectionMouseDown = false;
 
   var originalStyle = instance.rootElement.getAttribute('style');
 
@@ -54,10 +55,21 @@ function TableView(instance) {
   instance.container.insertBefore(table, instance.container.firstChild);
 
   this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+    this.selectionMouseDown = true;
+
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
+    }
+  });
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
+    this.selectionMouseDown = false;
+  });
+  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
+    if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
+      clearTextSelection();
+      event.preventDefault();
     }
   });
 
@@ -205,8 +217,8 @@ function TableView(instance) {
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
-    totalRows: instance.countRows,
-    totalColumns: instance.countCols,
+    totalRows: () => instance.countRows(),
+    totalColumns: () => instance.countCols(),
     fixedColumnsLeft: function() {
       return that.settings.fixedColumnsLeft;
     },
@@ -221,25 +233,28 @@ function TableView(instance) {
     },
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: function() {
-      var arr = [];
+      let headerRenderers = [];
+
       if (instance.hasRowHeaders()) {
-        arr.push(function(index, TH) {
-          that.appendRowHeader(index, TH);
+        headerRenderers.push(function(row, TH) {
+          that.appendRowHeader(row, TH);
         });
       }
-      Handsontable.hooks.run(instance, 'afterGetRowHeaderRenderers', arr);
-      return arr;
+      Handsontable.hooks.run(instance, 'afterGetRowHeaderRenderers', headerRenderers);
+
+      return headerRenderers;
     },
     columnHeaders: function() {
+      let headerRenderers = [];
 
-      var arr = [];
       if (instance.hasColHeaders()) {
-        arr.push(function(index, TH) {
-          that.appendColHeader(index, TH);
+        headerRenderers.push(function(column, TH) {
+          that.appendColHeader(column, TH);
         });
       }
-      Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', arr);
-      return arr;
+      Handsontable.hooks.run(instance, 'afterGetColumnHeaderRenderers', headerRenderers);
+
+      return headerRenderers;
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
@@ -454,11 +469,27 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (isInput(el)) {
     return true;
   }
-  if (this.settings.fragmentSelection && isChildOf(el, this.TBODY)) {
+  let isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+
+  if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    return true;
+  }
+  if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
     return true;
   }
 
   return false;
+};
+
+/**
+ * Check if selected only one cell.
+ *
+ * @returns {Boolean}
+ */
+TableView.prototype.isSelectedOnlyCell = function() {
+  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
+
+  return row !== void 0 && row === rowEnd && col === colEnd;
 };
 
 TableView.prototype.isCellEdited = function() {

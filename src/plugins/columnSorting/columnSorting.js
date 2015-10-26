@@ -5,6 +5,7 @@ import {
     index,
     removeClass,
 } from './../../helpers/dom/element';
+import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -14,6 +15,7 @@ Handsontable.hooks.register('afterColumnSort');
 
 /**
  * This plugin sorts the view by a column (but does not sort the data source!)
+ * TODO: Implement mixin arrayMapper to ColumnSorting plugin.
  *
  * @private
  * @class ColumnSorting
@@ -59,6 +61,8 @@ class ColumnSorting extends BasePlugin {
     }
     this.bindColumnSortingAfterClick();
 
+    this.addHook('afterTrimRow', (row) => this.sort());
+    this.addHook('afterUntrimRow', (row) => this.sort());
     this.addHook('modifyRow', (row) => this.translateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
@@ -435,7 +439,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     for (var i = 0; i < amount; i++) {
-      this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
+      this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
     }
 
     this.saveSortingState();
@@ -450,22 +454,35 @@ class ColumnSorting extends BasePlugin {
     if (!this.isSorted()) {
       return;
     }
+    let removedRows = this.hot.sortIndex.splice(index, amount);
 
-    let physicalRemovedIndex = this.translateRow(index);
+    removedRows = arrayMap(removedRows, (row) => row[0]);
 
-    this.hot.sortIndex.splice(index, amount);
+    function countRowShift(logicalRow) {
+      // Todo: compare perf between reduce vs sort->each->brake
+      return arrayReduce(removedRows, (count, removedLogicalRow) => {
+        if (logicalRow > removedLogicalRow) {
+          count++;
+        }
 
-    for (var i = 0; i < this.hot.sortIndex.length; i++) {
-      if (this.hot.sortIndex[i][0] > physicalRemovedIndex) {
-        this.hot.sortIndex[i][0] -= amount;
-      }
+        return count;
+      }, 0);
     }
+
+    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow, physicalRow) => {
+      let rowShift = countRowShift(logicalRow[0]);
+
+      if (rowShift) {
+        logicalRow[0] -= rowShift;
+      }
+
+      return logicalRow;
+    });
 
     this.saveSortingState();
   }
-
 }
 
-export default ColumnSorting;
+export {ColumnSorting};
 
 registerPlugin('columnSorting', ColumnSorting);

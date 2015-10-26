@@ -416,7 +416,7 @@ describe('ColumnSorting', function() {
     ];
 
     function customIsEmptyRow(row) {
-      var data = getData();
+      var data = getSourceData();
       return data[row].isNew;
     }
 

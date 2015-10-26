@@ -63,7 +63,7 @@ class WalkontableBorder {
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event));
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 
@@ -86,12 +86,13 @@ class WalkontableBorder {
   }
 
   /**
-   * Mouse enter listener
+   * Mouse enter listener for fragment selection functionality.
    *
    * @private
    * @param {Event} event Dom event
+   * @param {HTMLElement} parentElement Part of border element.
    */
-  onMouseEnter(event) {
+  onMouseEnter(event, parentElement) {
     if (!this.mouseDown || !this.wot.getSetting('hideBorderOnMouseDownOver')) {
       return;
     }
@@ -99,8 +100,9 @@ class WalkontableBorder {
     stopImmediatePropagation(event);
 
     let _this = this;
-    let bounds = this.getBoundingClientRect();
-    this.style.display = 'none';
+    let bounds = parentElement.getBoundingClientRect();
+    // Hide border to prevents selection jumping when fragmentSelection is enabled.
+    parentElement.style.display = 'none';
 
     function isOutside(event) {
       if (event.clientY < Math.floor(bounds.top)) {
@@ -120,7 +122,7 @@ class WalkontableBorder {
     function handler(event) {
       if (isOutside(event)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
-        _this.style.display = 'block';
+        parentElement.style.display = 'block';
       }
     }
 
