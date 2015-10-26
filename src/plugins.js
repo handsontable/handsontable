@@ -94,4 +94,4 @@ function getPluginName(hotInstance, plugin) {
 export {registerPlugin, getPlugin, getRegistredPluginNames, getPluginName};
 
 Handsontable.plugins.utils = Handsontable.plugins.utils || {};
-Handsontable.plugins.utils.registerPlugin = registerPlugin;
+Handsontable.plugins.registerPlugin = registerPlugin;
