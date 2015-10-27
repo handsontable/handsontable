@@ -1864,6 +1864,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Returns a single value from the data.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {String|Number}
+   */
+  this.getSourceDataAtCell = function(row, column) {
+    return dataSource.getAtCell(row, column);
+  };
+
+  /**
    * @description
    * Returns a single row of the data (array or object, depending on what you have). `row` is the __visible__ index of the row.
    *
