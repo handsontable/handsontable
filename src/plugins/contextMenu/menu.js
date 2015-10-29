@@ -206,7 +206,7 @@ class Menu {
    *
    * @param {Event} [event]
    */
-  executeCommand(event = void 0) {
+  executeCommand(event) {
     if (!this.isOpened() || !this.hotMenu.getSelected()) {
       return;
     }

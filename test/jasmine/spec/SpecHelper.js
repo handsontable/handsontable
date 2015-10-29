@@ -33,6 +33,12 @@ beforeEach(function () {
   };
 
   this.addMatchers(matchers);
+
+  if (document.activeElement && document.activeElement != document.body) {
+    document.activeElement.blur();
+  } else if (!document.activeElement) { // IE
+    document.body.focus();
+  }
 });
 
 /**
@@ -128,6 +134,17 @@ var dropdownMenu = function (columnIndex) {
 
 var closeDropdownMenu = function () {
   $(document).simulate('mousedown');
+};
+
+var dropdownMenuRootElement = function () {
+  var plugin = hot().getPlugin('dropdownMenu');
+  var root;
+
+  if (plugin && plugin.menu) {
+    root = plugin.menu.container;
+  }
+
+  return root;
 };
 
 /**
