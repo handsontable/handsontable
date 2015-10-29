@@ -842,6 +842,19 @@ class Hooks {
   }
 
   /**
+   * Check if for specified hook name added some listeners.
+   *
+   * @param {String} key Hook name.
+   * @param {Object} [context=null]
+   * @returns {Boolean}
+   */
+  has(key, context = null) {
+    let bucket = this.getBucket(context);
+
+    return bucket[key] !== void 0 && bucket[key].length ? true : false;
+  }
+
+  /**
    * Run all local and global listeners by hook name.
    *
    * @see Core#runHooks

@@ -1030,8 +1030,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.logicalCol,
-          row = cellProperties.logicalRow,
+      var col = cellProperties.psychicalCol,
+          row = cellProperties.psychicalRow,
           td = instance.getCell(row, col, true);
 
       if (td) {
@@ -1170,12 +1170,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.listen = function() {
     Handsontable.activeGuid = instance.guid;
-
-    if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    } else if (!document.activeElement) { // IE
-      document.body.focus();
-    }
   };
 
   /**
@@ -2022,8 +2016,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var prop = datamap.colToProp(col),
         cellProperties;
 
-    let logicalRow = row;
-    let logicalCol = col;
+    let psychicalRow = row;
+    let psychicalCol = col;
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
@@ -2042,8 +2036,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     cellProperties.row = row;
     cellProperties.col = col;
-    cellProperties.logicalRow = logicalRow;
-    cellProperties.logicalCol = logicalCol;
+    cellProperties.psychicalRow = psychicalRow;
+    cellProperties.psychicalCol = psychicalCol;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
@@ -2400,7 +2394,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Number} Total number in rows in data source.
    */
   this.countSourceRows = function() {
-    return this.getSourceData().length;
+    return instance.getSourceData().length;
   };
 
   /**
@@ -2666,11 +2660,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     coords = new WalkontableCellCoords(row, col);
     priv.selRange = new WalkontableCellRange(coords, coords, coords);
 
-    if (document.activeElement && document.activeElement !== document.documentElement &&
-        document.activeElement !== document.body) {
-      // needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
-      document.activeElement.blur();
-    }
     if (changeListener) {
       instance.listen();
     }

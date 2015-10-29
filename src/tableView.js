@@ -139,12 +139,11 @@ function TableView(instance) {
   });
 
   this.eventManager.addEventListener(table, 'selectstart', function(event) {
-    if (that.settings.fragmentSelection) {
+    if (that.settings.fragmentSelection || isInput(event.target)) {
       return;
     }
-
-    //https://github.com/handsontable/handsontable/issues/160
-    //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
+    // https://github.com/handsontable/handsontable/issues/160
+    // Prevent text from being selected when performing drag down.
     event.preventDefault();
   });
 

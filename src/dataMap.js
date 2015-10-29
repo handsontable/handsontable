@@ -532,13 +532,15 @@ DataMap.prototype.clear = function() {
 DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
-  rangeEach(this.instance.countSourceRows() - 1, (row) => {
-    row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+  if (Handsontable.hooks.has('modifyRow', this.instance)) {
+    rangeEach(this.instance.countSourceRows() - 1, (row) => {
+      row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
 
-    if (row === null) {
-      length--;
-    }
-  });
+      if (row === null) {
+        length--;
+      }
+    });
+  }
 
   return length;
 };

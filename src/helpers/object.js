@@ -251,3 +251,27 @@ export function objectEach(object, iteratee) {
 
   return object;
 }
+
+/**
+ * Get object property by its name. Access to sub properties can be achieved by dot notation (e.q. `'foo.bar.baz'`).
+ *
+ * @param {Object} object Object which value will be exported.
+ * @param {String} name Object property name.
+ * @returns {*}
+ */
+export function getProperty(object, name) {
+  let names = name.split('.');
+  let result = object;
+
+  objectEach(names, (name) => {
+    result = result[name];
+
+    if (result === void 0) {
+      result = void 0;
+
+      return false;
+    }
+  });
+
+  return result;
+}

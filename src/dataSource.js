@@ -1,7 +1,7 @@
 
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend} from './helpers/object';
+import {duckSchema, deepExtend, getProperty} from './helpers/object';
 import {extendArray, arrayEach} from './helpers/array';
 import {rangeEach} from './helpers/number';
 
@@ -53,7 +53,16 @@ class DataSource {
   getAtColumn(column) {
     let result = [];
 
-    arrayEach(this.data, (row) => result.push(row[this.colToProp(column)]));
+    arrayEach(this.data, (row) => {
+      let property = this.colToProp(column);
+
+      if (typeof property === 'string') {
+        row = getProperty(row, property);
+      } else {
+        row = row[property];
+      }
+      result.push(row);
+    });
 
     return result;
   }
