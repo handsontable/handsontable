@@ -662,6 +662,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       // if noRerender is true then do not render full table
       if (noRerender) {
         instance.forceFullRender = false;
+
+        // render table-left-head, edit by xp 2015.10.30
+        var refreshLeftHeader = instance.getSettings().refreshLeftHeader;
+        if (typeof refreshLeftHeader === 'function') {
+          refreshLeftHeader();
+        }
+
       }
       instance.view.render();
 

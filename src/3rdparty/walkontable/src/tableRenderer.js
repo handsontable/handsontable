@@ -139,6 +139,30 @@ class WalkontableTableRenderer {
   }
 
   /**
+   * refresh table-left-head height
+   * edit by xp 2015.10.30
+   */
+  refreshRowHeaders() {
+    var totalRows = this.wot.getSetting('totalRows');
+    var TR;
+    var visibleRowIndex = 1;
+    var $leftTr = $('.ht_clone_left tr');
+    while(visibleRowIndex < totalRows) {
+      TR = $leftTr[visibleRowIndex];
+      if (TR.firstChild) {
+        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex-1].firstChild).outerHeight();
+        if (height) {
+          TR.firstChild.style.height = height + 'px';
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+      visibleRowIndex++;
+    }
+  }
+
+
+  /**
    * @param {Number} totalRows
    * @param {Number} rowsToRender
    * @param {Number} columnsToRender
