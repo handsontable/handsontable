@@ -2394,7 +2394,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Number} Total number in rows in data source.
    */
   this.countSourceRows = function() {
-    return instance.getSourceData().length;
+    return instance.getSourceData() ? instance.getSourceData().length : 0;
   };
 
   /**
