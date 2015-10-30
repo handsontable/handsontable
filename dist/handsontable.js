@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Oct 26 2015 00:37:10 GMT+0800 (CST)
+ * Date: Fri Oct 30 2015 17:11:00 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Oct 26 2015 00:37:10 GMT+0800 (CST)',
+  buildDate: 'Fri Oct 30 2015 17:11:00 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3183,6 +3183,24 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.wtTable.tbodyChildrenLength--;
     }
   },
+  refreshRowHeaders: function() {
+    var totalRows = this.wot.getSetting('totalRows');
+    var TR;
+    var visibleRowIndex = 1;
+    var $leftTr = $('.ht_clone_left tr');
+    while (visibleRowIndex < totalRows) {
+      TR = $leftTr[visibleRowIndex];
+      if (TR.firstChild) {
+        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1].firstChild).outerHeight();
+        if (height) {
+          TR.firstChild.style.height = height + 'px';
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+      visibleRowIndex++;
+    }
+  },
   renderRows: function(totalRows, rowsToRender, columnsToRender) {
     var lastTD,
         TR;
@@ -4441,6 +4459,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (noRerender) {
         instance.forceFullRender = false;
+        var refreshLeftHeader = instance.getSettings().refreshLeftHeader;
+        if (typeof refreshLeftHeader === 'function') {
+          refreshLeftHeader();
+        }
       }
       instance.view.render();
       if (selection.isSelected() && !keepEditor) {
@@ -20451,5 +20473,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
+},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
 });

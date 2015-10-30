@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Oct 26 2015 00:37:10 GMT+0800 (CST)
+ * Date: Fri Oct 30 2015 17:11:00 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Oct 26 2015 00:37:10 GMT+0800 (CST)',
+  buildDate: 'Fri Oct 30 2015 17:11:00 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3183,6 +3183,24 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.wtTable.tbodyChildrenLength--;
     }
   },
+  refreshRowHeaders: function() {
+    var totalRows = this.wot.getSetting('totalRows');
+    var TR;
+    var visibleRowIndex = 1;
+    var $leftTr = $('.ht_clone_left tr');
+    while (visibleRowIndex < totalRows) {
+      TR = $leftTr[visibleRowIndex];
+      if (TR.firstChild) {
+        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1].firstChild).outerHeight();
+        if (height) {
+          TR.firstChild.style.height = height + 'px';
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+      visibleRowIndex++;
+    }
+  },
   renderRows: function(totalRows, rowsToRender, columnsToRender) {
     var lastTD,
         TR;
@@ -4441,6 +4459,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (noRerender) {
         instance.forceFullRender = false;
+        var refreshLeftHeader = instance.getSettings().refreshLeftHeader;
+        if (typeof refreshLeftHeader === 'function') {
+          refreshLeftHeader();
+        }
       }
       instance.view.render();
       if (selection.isSelected() && !keepEditor) {
@@ -24067,7 +24089,7 @@ if (typeof exports !== "undefined") {
                 return;
             }
 
-            if (!hasClass(target.parentNode, 'is-disabled')) {
+            if (!hasClass(target, 'is-disabled')) {
                 if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
                     self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
                     if (opts.bound) {
@@ -24078,7 +24100,6 @@ if (typeof exports !== "undefined") {
                             }
                         }, 100);
                     }
-                    return;
                 }
                 else if (hasClass(target, 'pika-prev')) {
                     self.prevMonth();
@@ -24088,6 +24109,7 @@ if (typeof exports !== "undefined") {
                 }
             }
             if (!hasClass(target, 'pika-select')) {
+                // if this is touch event prevent mouse events emulation
                 if (e.preventDefault) {
                     e.preventDefault();
                 } else {
@@ -24193,7 +24215,8 @@ if (typeof exports !== "undefined") {
         self.el = document.createElement('div');
         self.el.className = 'pika-single' + (opts.isRTL ? ' is-rtl' : '') + (opts.theme ? ' ' + opts.theme : '');
 
-        addEvent(self.el, 'ontouchend' in document ? 'touchend' : 'mousedown', self._onMouseDown, true);
+        addEvent(self.el, 'mousedown', self._onMouseDown, true);
+        addEvent(self.el, 'touchend', self._onMouseDown, true);
         addEvent(self.el, 'change', self._onChange);
 
         if (opts.field) {
@@ -24287,9 +24310,7 @@ if (typeof exports !== "undefined") {
                 this.setMinDate(opts.minDate);
             }
             if (opts.maxDate) {
-                setToStartOfDay(opts.maxDate);
-                opts.maxYear  = opts.maxDate.getFullYear();
-                opts.maxMonth = opts.maxDate.getMonth();
+                this.setMaxDate(opts.maxDate);
             }
 
             if (isArray(opts.yearRange)) {
@@ -24477,6 +24498,7 @@ if (typeof exports !== "undefined") {
             this._o.minDate = value;
             this._o.minYear  = value.getFullYear();
             this._o.minMonth = value.getMonth();
+            this.draw();
         },
 
         /**
@@ -24484,7 +24506,11 @@ if (typeof exports !== "undefined") {
          */
         setMaxDate: function(value)
         {
+            setToStartOfDay(value);
             this._o.maxDate = value;
+            this._o.maxYear = value.getFullYear();
+            this._o.maxMonth = value.getMonth();
+            this.draw();
         },
 
         setStartRange: function(value)
@@ -24550,11 +24576,11 @@ if (typeof exports !== "undefined") {
         adjustPosition: function()
         {
             var field, pEl, width, height, viewportWidth, viewportHeight, scrollTop, left, top, clientRect;
-            
+
             if (this._o.container) return;
-            
+
             this.el.style.position = 'absolute';
-            
+
             field = this._o.trigger;
             pEl = field;
             width = this.el.offsetWidth;
@@ -24624,8 +24650,7 @@ if (typeof exports !== "undefined") {
             cells += 7 - after;
             for (var i = 0, r = 0; i < cells; i++)
             {
-                var dayConfig,
-                    day = new Date(year, month, 1 + (i - before)),
+                var day = new Date(year, month, 1 + (i - before)),
                     isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
                     isToday = compareDates(day, now),
                     isEmpty = i < before || i >= (days + before),
@@ -24709,6 +24734,7 @@ if (typeof exports !== "undefined") {
         {
             this.hide();
             removeEvent(this.el, 'mousedown', this._onMouseDown, true);
+            removeEvent(this.el, 'touchend', this._onMouseDown, true);
             removeEvent(this.el, 'change', this._onChange);
             if (this._o.field) {
                 removeEvent(this._o.field, 'change', this._onInputChange);
@@ -27311,5 +27337,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
+},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
 });
