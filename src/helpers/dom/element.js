@@ -636,7 +636,7 @@ export function getStyle(element, prop) {
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
 export function getComputedStyle(element) {
-  if(document.defaultView.getComputedStyle !== '' && document.defaultView.getComputedStyle !== void 0) {
+  if (document.defaultView.getComputedStyle !== '' && document.defaultView.getComputedStyle !== void 0) {
     return document.defaultView.getComputedStyle(element);
   } else {
     return element.currentStyle;
