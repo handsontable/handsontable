@@ -337,6 +337,9 @@ export var HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  * @return {void}
  */
 export function fastInnerHTML(element, content) {
+  if (content === null || content === undefined) {
+    content = '';
+  }
   if (HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
   } else {
