@@ -664,10 +664,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.forceFullRender = false;
 
         // render table-left-head, edit by xp 2015.10.30
-        var refreshLeftHeader = instance.getSettings().refreshLeftHeader;
-        if (typeof refreshLeftHeader === 'function') {
-          refreshLeftHeader();
-        }
+        instance.runHooks('menuRowChange');
 
       }
       instance.view.render();

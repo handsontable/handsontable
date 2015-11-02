@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Oct 30 2015 17:11:00 GMT+0800 (CST)
+ * Date: Mon Nov 02 2015 11:28:03 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Oct 30 2015 17:11:00 GMT+0800 (CST)',
+  buildDate: 'Mon Nov 02 2015 11:28:03 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4459,10 +4459,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (noRerender) {
         instance.forceFullRender = false;
-        var refreshLeftHeader = instance.getSettings().refreshLeftHeader;
-        if (typeof refreshLeftHeader === 'function') {
-          refreshLeftHeader();
-        }
+        instance.runHooks('menuRowChange');
       }
       instance.view.render();
       if (selection.isSelected() && !keepEditor) {
@@ -13000,6 +12997,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     callback: function(key, selection) {
       this.runHooks('menuBeforeInsertRow', selection.start.row);
       this.alter('insert_row', selection.start.row);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       var selected = getValidSelection(this);
@@ -13024,6 +13022,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     callback: function(key, selection) {
       this.runHooks('menuBeforeInsertRow', selection.end.row + 1);
       this.alter('insert_row', selection.end.row + 1);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       var selected = getValidSelection(this);
@@ -13124,6 +13123,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       var amount = selection.end.row - selection.start.row + 1;
       this.runHooks('menuBeforeRemoveRow', selection.start.row, amount);
       this.alter('remove_row', selection.start.row, amount);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       var selected = getValidSelection(this);
