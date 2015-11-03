@@ -61,6 +61,28 @@ export function createSpreadsheetObjectData(rowCount, colCount) {
   return rows;
 }
 
+/**
+ * Generates an empty data object.
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} columns Number of columns to generate
+ * @returns {Array}
+ */
+export function createEmptySpreadsheetData(rows, columns) {
+  let data = [];
+  let row;
+
+  for (let i = 0; i < rows; i++) {
+    row = [];
+    for (let j = 0; j < columns; j++) {
+      row.push('');
+    }
+    data.push(row);
+  }
+
+  return data;
+}
+
 export function translateRowsToColumns(input) {
   var i, ilen, j, jlen, output = [], olen = 0;
 

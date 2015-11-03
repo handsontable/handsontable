@@ -8,7 +8,7 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
-    } from './helpers/dom/element';
+} from './helpers/dom/element';
 import {eventManager as eventManagerObject} from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
@@ -581,13 +581,12 @@ TableView.prototype.appendColHeader = function(col, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
-    if (!hasClass(container, 'relative')) {
+    if (hasClass(container, 'relative')) {
+      this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
+    } else {
       empty(TH);
-      this.appendRowHeader(col, TH);
-
-      return;
+      this.appendColHeader(col, TH);
     }
-    this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
 
   } else {
     var div = document.createElement('div');
