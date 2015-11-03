@@ -1397,7 +1397,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @param {Number} [c] From col
    * @param {Number} [r2] To row
    * @param {Number} [c2] To col
-   * @returns {Array|Object}
+   * @returns {Array}
    */
   this.getData = function(r, c, r2, c2) {
     if (typeof r === 'undefined') {
@@ -1860,9 +1860,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Returns a single value from the data.
    *
+   * @memberof Core#
+   * @function getSourceDataAtCell
    * @param {Number} row Row index.
    * @param {Number} column Column index.
-   * @returns {String|Number}
+   * @returns {*}
+   * @since 0.20.0
    */
   this.getSourceDataAtCell = function(row, column) {
     return dataSource.getAtCell(row, column);
@@ -3968,6 +3971,7 @@ DefaultSettings.prototype = {
    * // as a array with initial widths (column at 0 index has 40px and column at 1 index has 50px)
    * manualColumnResize: [40, 50]
    * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined
@@ -4010,6 +4014,7 @@ DefaultSettings.prototype = {
    * // as a array with initial heights (row at 0 index has 40px and row at 1 index has 50px)
    * manualRowResize: [40, 50]
    * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined

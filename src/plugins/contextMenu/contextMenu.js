@@ -241,6 +241,8 @@ class ContextMenu extends BasePlugin {
 
   /**
    * On menu after open listener.
+   *
+   * @private
    */
   onMenuAfterOpen() {
     this.hot.runHooks('afterContextMenuShow', this);
@@ -248,6 +250,8 @@ class ContextMenu extends BasePlugin {
 
   /**
    * On menu after close listener.
+   *
+   * @private
    */
   onMenuAfterClose() {
     this.hot.listen();
