@@ -2476,11 +2476,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     coords = new WalkontableCellCoords(row, col);
     priv.selRange = new WalkontableCellRange(coords, coords, coords);
 
-    if (document.activeElement && document.activeElement !== document.documentElement &&
-      document.activeElement !== document.body) {
-      // needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
-      document.activeElement.blur();
-    }
+    //jndp
+    // if (document.activeElement && document.activeElement !== document.documentElement &&
+    //   document.activeElement !== document.body) {
+    //   // needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    //   document.activeElement.blur();
+    // }
     if (changeListener) {
       instance.listen();
     }

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 24 2015 12:45:08 GMT+0700 (WIT)
+ * Date: Mon Nov 02 2015 23:52:23 GMT+0800 (SGT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Fri Jul 24 2015 12:45:08 GMT+0700 (WIT)'
+  buildDate: 'Mon Nov 02 2015 23:52:23 GMT+0800 (SGT)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5021,9 +5021,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     coords = new WalkontableCellCoords(row, col);
     priv.selRange = new WalkontableCellRange(coords, coords, coords);
-    if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    }
     if (changeListener) {
       instance.listen();
     }
