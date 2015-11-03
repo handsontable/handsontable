@@ -1391,6 +1391,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * Return the current data object (the same that was passed by `data` configuration option or `loadData` method).
    * Optionally you can provide cell range `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
    *
+   * Note: getData functionality changed with the release of version 0.20. If you're looking for the previous functionality,
+   * you should use the getSourceData method.
+   *
    * @memberof Core#
    * @function getData
    * @param {Number} [r] From row
