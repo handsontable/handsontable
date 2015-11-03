@@ -1030,8 +1030,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.psychicalCol,
-          row = cellProperties.psychicalRow,
+      var col = cellProperties.physicalCol,
+          row = cellProperties.physicalRow,
           td = instance.getCell(row, col, true);
 
       if (td) {
@@ -2016,8 +2016,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var prop = datamap.colToProp(col),
         cellProperties;
 
-    let psychicalRow = row;
-    let psychicalCol = col;
+    let physicalRow = row;
+    let physicalCol = col;
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
@@ -2036,8 +2036,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     cellProperties.row = row;
     cellProperties.col = col;
-    cellProperties.psychicalRow = psychicalRow;
-    cellProperties.psychicalCol = psychicalCol;
+    cellProperties.physicalRow = physicalRow;
+    cellProperties.physicalCol = physicalCol;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
