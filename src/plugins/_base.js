@@ -190,3 +190,5 @@ function getPluginName(plugin) {
 }
 
 export default BasePlugin;
+
+Handsontable.plugins.BasePlugin = BasePlugin;

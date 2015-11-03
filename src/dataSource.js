@@ -69,6 +69,17 @@ class DataSource {
   }
 
   /**
+   * Returns a single value from the data.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {String|Number}
+   */
+  getAtCell(row, column) {
+    return this.data[row][this.colToProp(column)];
+  }
+
+  /**
    * Returns source data by passed range.
    *
    * @param {Object} start Object with `row` and `col` keys.
