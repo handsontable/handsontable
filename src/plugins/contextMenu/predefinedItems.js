@@ -56,6 +56,7 @@ const _predefinedItems = {
     callback: function(key, selection) {
       this.runHooks('menuBeforeInsertRow', selection.start.row);
       this.alter('insert_row', selection.start.row);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       let selected = getValidSelection(this);
@@ -80,6 +81,7 @@ const _predefinedItems = {
     callback: function(key, selection) {
       this.runHooks('menuBeforeInsertRow', selection.end.row + 1);
       this.alter('insert_row', selection.end.row + 1);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       let selected = getValidSelection(this);
@@ -177,6 +179,7 @@ const _predefinedItems = {
       let amount = selection.end.row - selection.start.row + 1;
       this.runHooks('menuBeforeRemoveRow', selection.start.row, amount);
       this.alter('remove_row', selection.start.row, amount);
+      this.runHooks('menuRowChange');
     },
     disabled: function() {
       let selected = getValidSelection(this);
