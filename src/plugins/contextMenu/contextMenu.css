@@ -65,6 +65,10 @@
   cursor: default;
 }
 
+.htContextMenu table tbody tr.htHidden {
+  display: none;
+}
+
 .htContextMenu table tbody tr td .htItemWrapper {
   margin-left: 10px;
   margin-right: 6px;

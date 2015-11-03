@@ -184,6 +184,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after new data is loaded (by `loadData` method) into the data source array.
    *
    * @event Hooks#afterLoadData
+   * @param {Boolean} firstTime flag that determines whether the data has been loaded during the initialization.
    */
   'afterLoadData',
 
@@ -542,6 +543,15 @@ const REGISTERED_HOOKS = [
   'modifyCol',
 
   /**
+   * Callback fired after column header modify.
+   *
+   * @event Hooks#modifyColHeader
+   * @since 0.20.0
+   * @param {Number} column Column index.
+   */
+  'modifyColumnHeader',
+
+  /**
    * Callback fired after modify column's width.
    *
    * @event Hooks#modifyColWidth
@@ -559,6 +569,15 @@ const REGISTERED_HOOKS = [
    * @param {Number} row
    */
   'modifyRow',
+
+  /**
+   * Callback fired after row header modify.
+   *
+   * @event Hooks#modifyRowHeader
+   * @since 0.20.0
+   * @param {Number} row Row index.
+   */
+  'modifyRowHeader',
 
   /**
    * Callback fired after modify height of row.
@@ -823,6 +842,19 @@ class Hooks {
   }
 
   /**
+   * Check if for specified hook name added some listeners.
+   *
+   * @param {String} key Hook name.
+   * @param {Object} [context=null]
+   * @returns {Boolean}
+   */
+  has(key, context = null) {
+    let bucket = this.getBucket(context);
+
+    return bucket[key] !== void 0 && bucket[key].length ? true : false;
+  }
+
+  /**
    * Run all local and global listeners by hook name.
    *
    * @see Core#runHooks
@@ -980,34 +1012,6 @@ class Hooks {
 
 export {Hooks};
 
-/**
- * Mixin object to extend objects functionality for local hooks.
- *
- * @type {Object}
- */
-const localHooks = {
-  _localHooks: Object.create(null),
-
-  addLocalHook(key, callback) {
-    if (!this._localHooks[key]) {
-      this._localHooks[key] = [];
-    }
-    this._localHooks[key].push(callback);
-  },
-  runLocalHooks(key, ...params) {
-    if (this._localHooks[key]) {
-      arrayEach(this._localHooks[key], (callback) => callback.apply(this, params));
-    }
-  },
-  clearLocalHooks() {
-    this._localHooks = {};
-  },
-};
-
-export {localHooks};
-
 // temp for tests only!
 Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.Hooks = Hooks;
-
-Handsontable.utils.localHooks = localHooks;

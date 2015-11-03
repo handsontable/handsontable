@@ -115,8 +115,8 @@ class ContextMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {className: 'htContextMenu'});
       this.menu.setMenuItems(menuItems);
 
-      this.menu.addLocalHook('afterOpen', () => this.hot.runHooks('afterContextMenuShow', this));
-      this.menu.addLocalHook('afterClose', () => this.hot.runHooks('afterContextMenuHide', this));
+      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
 
       // Register all commands. Predefined and added by user or by plugins
@@ -204,18 +204,6 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Destroy instance.
-   */
-  destroy() {
-    this.close();
-
-    if (this.menu) {
-      this.menu.destroy();
-    }
-    super.destroy();
-  }
-
-  /**
    * On context menu listener.
    *
    * @private
@@ -249,6 +237,37 @@ class ContextMenu extends BasePlugin {
       }
     }
     this.open(event);
+  }
+
+  /**
+   * On menu after open listener.
+   *
+   * @private
+   */
+  onMenuAfterOpen() {
+    this.hot.runHooks('afterContextMenuShow', this);
+  }
+
+  /**
+   * On menu after close listener.
+   *
+   * @private
+   */
+  onMenuAfterClose() {
+    this.hot.listen();
+    this.hot.runHooks('afterContextMenuHide', this);
+  }
+
+  /**
+   * Destroy instance.
+   */
+  destroy() {
+    this.close();
+
+    if (this.menu) {
+      this.menu.destroy();
+    }
+    super.destroy();
   }
 }
 

@@ -11,6 +11,7 @@ import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
 import {rangeEach} from './helpers/number';
 import {TableView} from './tableView';
+import {DataSource} from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range';
@@ -51,6 +52,7 @@ Handsontable.activeGuid = null;
 Handsontable.Core = function Core(rootElement, userSettings) {
   var priv,
       datamap,
+      dataSource,
       grid,
       selection,
       editorManager,
@@ -109,10 +111,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       switch (action) {
         case 'insert_row':
 
-          if (instance.getSettings().maxRows === instance.countRows()) {
+          if (instance.getSettings().maxRows === instance.countSourceRows()) {
             return;
           }
-
           delta = datamap.createRow(index, amount);
 
           if (delta) {
@@ -148,9 +149,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_row':
-          // column order may have changes, so we need to translate the selection column index -> source array index
-          index = instance.runHooks('modifyCol', index);
-
           datamap.removeRow(index, amount);
           priv.cellSettings.splice(index, amount);
 
@@ -859,6 +857,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   this.init = function() {
+    dataSource = new DataSource(instance, priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if (Handsontable.mobileBrowser) {
@@ -1031,8 +1030,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.col,
-          row = cellProperties.row,
+      var col = cellProperties.physicalCol,
+          row = cellProperties.physicalRow,
           td = instance.getCell(row, col, true);
 
       if (td) {
@@ -1171,12 +1170,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.listen = function() {
     Handsontable.activeGuid = instance.guid;
-
-    if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    } else if (!document.activeElement) { // IE
-      document.body.focus();
-    }
   };
 
   /**
@@ -1371,11 +1364,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     datamap = new DataMap(instance, priv, GridSettings);
+    dataSource.data = data;
+    dataSource.dataType = instance.dataType;
+    dataSource.colToProp = datamap.colToProp.bind(datamap);
+    dataSource.propToCol = datamap.propToCol.bind(datamap);
 
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
-    Handsontable.hooks.run(instance, 'afterLoadData');
+    Handsontable.hooks.run(instance, 'afterLoadData', priv.firstRun);
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];
@@ -1394,13 +1391,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * Return the current data object (the same that was passed by `data` configuration option or `loadData` method).
    * Optionally you can provide cell range `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
    *
+   * Note: getData functionality changed with the release of version 0.20. If you're looking for the previous functionality,
+   * you should use the getSourceData method.
+   *
    * @memberof Core#
    * @function getData
    * @param {Number} [r] From row
    * @param {Number} [c] From col
    * @param {Number} [r2] To row
    * @param {Number} [c2] To col
-   * @returns {Array|Object}
+   * @returns {Array}
    */
   this.getData = function(r, c, r2, c2) {
     if (typeof r === 'undefined') {
@@ -1810,23 +1810,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Return the source data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Optionally you can provide cell range `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
+   *
+   * @memberof Core#
+   * @function getSourceData
+   * @since 0.20.0
+   * @param {Number} [r] From row
+   * @param {Number} [c] From col
+   * @param {Number} [r2] To row
+   * @param {Number} [c2] To col
+   * @returns {Array}
+   */
+  this.getSourceData = function(r, c, r2, c2) {
+    let data;
+
+    if (r === void 0) {
+      data = dataSource.getData();
+    } else {
+      data = dataSource.getByRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2));
+    }
+
+    return data;
+  };
+
+  /**
    * Returns array of column values from the data source. `col` is the index of the row in the data source.
    *
    * @memberof Core#
    * @function getSourceDataAtCol
    * @since 0.11.0-beta3
-   * @param {Number} col
+   * @param {Number} column
    * @returns {Array}
    */
-  this.getSourceDataAtCol = function(col) {
-    var out = [],
-        data = priv.settings.data;
-
-    for (var i = 0; i < data.length; i++) {
-      out.push(data[i][col]);
-    }
-
-    return out;
+  this.getSourceDataAtCol = function(column) {
+    return dataSource.getAtColumn(column);
   };
 
   /**
@@ -1839,7 +1857,21 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Array|Object}
    */
   this.getSourceDataAtRow = function(row) {
-    return priv.settings.data[row];
+    return dataSource.getAtRow(row);
+  };
+
+  /**
+   * Returns a single value from the data.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtCell
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {*}
+   * @since 0.20.0
+   */
+  this.getSourceDataAtCell = function(row, column) {
+    return dataSource.getAtCell(row, column);
   };
 
   /**
@@ -2001,6 +2033,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var prop = datamap.colToProp(col),
         cellProperties;
 
+    let physicalRow = row;
+    let physicalCol = col;
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
@@ -2019,6 +2053,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     cellProperties.row = row;
     cellProperties.col = col;
+    cellProperties.physicalRow = physicalRow;
+    cellProperties.physicalCol = physicalCol;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
@@ -2154,28 +2190,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getRowHeader
    * @param {Number} [row]
+   * @fires Hooks#modifyRowHeader
    * @returns {Array|String}
    */
   this.getRowHeader = function(row) {
-    if (row === void 0) {
-      var out = [];
-      for (var i = 0, ilen = instance.countRows(); i < ilen; i++) {
-        out.push(instance.getRowHeader(i));
-      }
-      return out;
+    let rowHeader = priv.settings.rowHeaders;
 
-    } else if (Array.isArray(priv.settings.rowHeaders) && priv.settings.rowHeaders[row] !== void 0) {
-      return priv.settings.rowHeaders[row];
-
-    } else if (typeof priv.settings.rowHeaders === 'function') {
-      return priv.settings.rowHeaders(row);
-
-    } else if (priv.settings.rowHeaders && typeof priv.settings.rowHeaders !== 'string' && typeof priv.settings.rowHeaders !== 'number') {
-      return row + 1;
-
-    } else {
-      return priv.settings.rowHeaders;
+    if (row !== void 0) {
+      row = Handsontable.hooks.run(instance, 'modifyRowHeader', row);
     }
+    if (row === void 0) {
+      rowHeader = [];
+      rangeEach(instance.countRows() - 1, (i) => {
+        rowHeader.push(instance.getRowHeader(i));
+      });
+
+    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
+      rowHeader = rowHeader[row];
+
+    } else if (typeof rowHeader === 'function') {
+      rowHeader = rowHeader(row);
+
+    } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
+      rowHeader = row + 1;
+    }
+
+    return rowHeader;
   };
 
   /**
@@ -2217,9 +2257,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getColHeader
    * @param {Number} [col] Column index
+   * @fires Hooks#modifyColHeader
    * @returns {Array|String}
    */
   this.getColHeader = function(col) {
+    col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
+
     if (col === void 0) {
       var out = [];
       for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
@@ -2360,14 +2403,26 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns total number of rows in the grid.
+   * Returns total number of rows in the data source.
+   *
+   * @memberof Core#
+   * @function countSourceRows
+   * @since 0.20.0
+   * @returns {Number} Total number in rows in data source.
+   */
+  this.countSourceRows = function() {
+    return instance.getSourceData() ? instance.getSourceData().length : 0;
+  };
+
+  /**
+   * Returns total number of visible rows in the grid.
    *
    * @memberof Core#
    * @function countRows
-   * @returns {Number} Total number in rows the grid
+   * @returns {Number} Total number in rows the grid.
    */
   this.countRows = function() {
-    return priv.settings.data.length;
+    return datamap.getLength();
   };
 
   /**
@@ -2622,11 +2677,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     coords = new WalkontableCellCoords(row, col);
     priv.selRange = new WalkontableCellRange(coords, coords, coords);
 
-    if (document.activeElement && document.activeElement !== document.documentElement &&
-        document.activeElement !== document.body) {
-      // needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
-      document.activeElement.blur();
-    }
     if (changeListener) {
       instance.listen();
     }
@@ -2687,6 +2737,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
+    if (dataSource) {
+      dataSource.destroy();
+    }
+    dataSource = null;
+
     empty(instance.rootElement);
     eventManager.destroy();
 
@@ -3613,9 +3668,10 @@ DefaultSettings.prototype = {
   commentedCellClassName: 'htCommentCell',
 
   /**
-   * Setting to `true` enables selecting just a fragment of the text within a single cell or between adjacent cells.
+   * Setting to `true` enables natively selecting a fragment of the text within a single cell, between adjacent cells or in a whole table.
+   * Setting to `'cell'` enables selecting fragment of the text within only one cell's body.
    *
-   * @type {Boolean}
+   * @type {Boolean|String}
    * @default false
    */
   fragmentSelection: false,
@@ -3918,6 +3974,7 @@ DefaultSettings.prototype = {
    * // as a array with initial widths (column at 0 index has 40px and column at 1 index has 50px)
    * manualColumnResize: [40, 50]
    * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined
@@ -3960,6 +4017,7 @@ DefaultSettings.prototype = {
    * // as a array with initial heights (row at 0 index has 40px and row at 1 index has 50px)
    * manualRowResize: [40, 50]
    * ...
+   * ```
    *
    * @type {Boolean|Array}
    * @default undefined

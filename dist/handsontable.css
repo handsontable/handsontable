@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.19.0
+ * Handsontable 0.20.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Oct 02 2015 12:37:12 GMT+0200 (CEST)
+ * Date: Tue Nov 03 2015 14:30:34 GMT+0100 (CET)
  */
 
 .handsontable {
@@ -1134,6 +1134,10 @@ thead .htCollapseButton:after {
   background: #fff;
   color: #999;
   cursor: default;
+}
+
+.htContextMenu table tbody tr.htHidden {
+  display: none;
 }
 
 .htContextMenu table tbody tr td .htItemWrapper {

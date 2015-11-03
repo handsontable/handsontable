@@ -45,7 +45,7 @@ function createObserver() {
     instance.observeChangesActive = true;
   };
 
-  instance.observedData = instance.getData();
+  instance.observedData = instance.getSourceData();
   instance.observer = jsonpatch.observe(instance.observedData, function(patches) {
     if (instance.observeChangesActive) {
       runHookForOperation.call(instance, patches);
