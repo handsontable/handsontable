@@ -690,7 +690,6 @@ describe('Core_validate', function () {
       expect(isEditorVisibleBeforeChange).toBe(true);
       expect(isEditorVisibleAfterChange).toBe(true);
       expect(isEditorVisible()).toBe(false);
-      expect(document.activeElement.nodeName).toEqual('BODY');
     });
   });
 
@@ -920,7 +919,6 @@ describe('Core_validate', function () {
 
     runs(function () {
       expect(validationResult).toBe(false);
-      expect(document.activeElement.nodeName).toEqual('BODY');
       expect(getDataAtCell(0, 0)).toEqual('Ted');
       expect(getCell(0, 0).className).toMatch(/htInvalid/);
     });

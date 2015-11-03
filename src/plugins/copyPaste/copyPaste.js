@@ -3,7 +3,8 @@ import SheetClip from 'SheetClip';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
+import {getSelectionText} from './../../helpers/dom/element';
 import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
@@ -97,7 +98,14 @@ function CopyPastePlugin(instance) {
     if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
       return;
     }
+    if (isImmediatePropagationStopped(event)) {
+      return;
+    }
     if (isCtrlKey(event.keyCode)) {
+      // When fragmentSelection is enabled and some text is selected then don't blur selection calling 'setCopyableText'
+      if (instance.getSettings().fragmentSelection && getSelectionText()) {
+        return;
+      }
       // when CTRL is pressed, prepare selectable text in textarea
       _this.setCopyableText();
       stopImmediatePropagation(event);

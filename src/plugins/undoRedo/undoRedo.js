@@ -35,7 +35,7 @@ Handsontable.UndoRedo = function(instance) {
   });
 
   instance.addHook('beforeRemoveRow', function(index, amount) {
-    var originalData = plugin.instance.getData();
+    var originalData = plugin.instance.getSourceData();
     index = (originalData.length + index) % originalData.length;
     var removedData = originalData.slice(index, index + amount);
     var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
@@ -53,7 +53,7 @@ Handsontable.UndoRedo = function(instance) {
   });
 
   instance.addHook('beforeRemoveCol', function(index, amount) {
-    var originalData = plugin.instance.getData();
+    var originalData = plugin.instance.getSourceData();
     index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     var removedData = [];
 
@@ -233,7 +233,7 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undone
   var spliceArgs = [this.index, 0];
   Array.prototype.push.apply(spliceArgs, this.data);
 
-  Array.prototype.splice.apply(instance.getData(), spliceArgs);
+  Array.prototype.splice.apply(instance.getSourceData(), spliceArgs);
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -296,7 +296,7 @@ Handsontable.UndoRedo.RemoveColumnAction = function(index, data, headers) {
 inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
   var row, spliceArgs;
-  for (var i = 0, len = instance.getData().length; i < len; i++) {
+  for (var i = 0, len = instance.getSourceData().length; i < len; i++) {
     row = instance.getSourceDataAtRow(i);
 
     spliceArgs = [this.index, 0];

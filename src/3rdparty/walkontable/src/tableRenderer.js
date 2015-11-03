@@ -147,7 +147,7 @@ class WalkontableTableRenderer {
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (visibleRowIndex > 1000) {
-        throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+        console.error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone

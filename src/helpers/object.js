@@ -125,8 +125,16 @@ export function clone(object) {
  * @returns {Object}
  */
 export function mixin(Base, ...mixins) {
+  if (!Base.MIXINS) {
+    Base.MIXINS = [];
+  }
   arrayEach(mixins, (mixin) => {
+    Base.MIXINS.push(mixin.MIXIN_NAME);
+
     objectEach(mixin, (value, key) => {
+      if (Base.prototype[key] !== void 0) {
+        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
+      }
       if (typeof value === 'function') {
         Base.prototype[key] = value;
 
@@ -218,9 +226,9 @@ export function getPrototypeOf(obj) {
 
 export function defineGetter(object, property, value, options) {
   options.value = value;
-  options.writable = options.writable === false ? false : true;
-  options.enumerable = options.enumerable === false ? false : true;
-  options.configurable = options.configurable === false ? false : true;
+  options.writable = options.writable !== false;
+  options.enumerable = options.enumerable !== false;
+  options.configurable = options.configurable !== false;
 
   Object.defineProperty(object, property, options);
 }
@@ -242,4 +250,28 @@ export function objectEach(object, iteratee) {
   }
 
   return object;
+}
+
+/**
+ * Get object property by its name. Access to sub properties can be achieved by dot notation (e.q. `'foo.bar.baz'`).
+ *
+ * @param {Object} object Object which value will be exported.
+ * @param {String} name Object property name.
+ * @returns {*}
+ */
+export function getProperty(object, name) {
+  let names = name.split('.');
+  let result = object;
+
+  objectEach(names, (name) => {
+    result = result[name];
+
+    if (result === void 0) {
+      result = void 0;
+
+      return false;
+    }
+  });
+
+  return result;
 }

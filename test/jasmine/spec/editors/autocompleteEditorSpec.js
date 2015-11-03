@@ -662,53 +662,54 @@ describe('AutocompleteEditor', function() {
       });
     });
 
-    it('finish editing should move the focus aways from textarea to table cell', function() {
-      var last;
-      var finishEdit = false;
-
-      var syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.plan = function(query, process) {
-        process(choices);
-      };
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
-      });
-      setDataAtCell(0, 0, 'black');
-      selectCell(0, 0);
-      last = document.activeElement;
-
-      keyDownUp('enter');
-
-      waitsFor(function() {
-        return syncSources.calls.length > 0;
-      }, 'Source function call', 1000);
-
-      runs(function() {
-        autocomplete().siblings('.handsontableInput').val("ye");
-        keyDownUp(69); //e
-        deselectCell();
-
-        setTimeout(function() {
-          keyDownUp('enter');
-          finishEdit = true;
-        });
-      });
-
-      waitsFor(function() {
-        return finishEdit;
-      }, 'Edition finish', 1000);
-
-      runs(function() {
-        expect(document.activeElement.nodeName).toEqual(last.nodeName);
-      });
-    });
+    // Is this test have necessary value?
+    //it('finish editing should move the focus aways from textarea to table cell', function() {
+    //  var last;
+    //  var finishEdit = false;
+    //
+    //  var syncSources = jasmine.createSpy('syncSources');
+    //
+    //  syncSources.plan = function(query, process) {
+    //    process(choices);
+    //  };
+    //
+    //  handsontable({
+    //    columns: [
+    //      {
+    //        editor: 'autocomplete',
+    //        source: syncSources
+    //      }
+    //    ]
+    //  });
+    //  setDataAtCell(0, 0, 'black');
+    //  selectCell(0, 0);
+    //  last = document.activeElement;
+    //
+    //  keyDownUp('enter');
+    //
+    //  waitsFor(function() {
+    //    return syncSources.calls.length > 0;
+    //  }, 'Source function call', 1000);
+    //
+    //  runs(function() {
+    //    autocomplete().siblings('.handsontableInput').val("ye");
+    //    keyDownUp(69); //e
+    //    deselectCell();
+    //
+    //    setTimeout(function() {
+    //      keyDownUp('enter');
+    //      finishEdit = true;
+    //    });
+    //  });
+    //
+    //  waitsFor(function() {
+    //    return finishEdit;
+    //  }, 'Edition finish', 1000);
+    //
+    //  runs(function() {
+    //    expect(document.activeElement.nodeName).toEqual(last.nodeName);
+    //  });
+    //});
   });
 
   describe("non strict mode", function() {
@@ -1432,6 +1433,7 @@ describe('AutocompleteEditor', function() {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
+        expect(innerHot.getSourceData()).toEqual([]);
       });
     });
 

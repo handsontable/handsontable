@@ -104,7 +104,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
 
     while (from < to) {
-      sum += this.wot.wtTable.getRowHeight(from) || defaultRowHeight;
+      let height = this.wot.wtTable.getRowHeight(from);
+
+      sum += height === void 0 ? defaultRowHeight : height;
       from++;
     }
 

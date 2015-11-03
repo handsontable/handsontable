@@ -2,6 +2,10 @@ var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
 
+var hot = function() {
+  return spec().$container.data('handsontable');
+};
+
 var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
@@ -13,6 +17,9 @@ beforeEach(function () {
   var matchers = {
     toBeInArray: function (arr) {
       return ($.inArray(this.actual, arr) > -1);
+    },
+    toBeFunction: function () {
+      return typeof this.actual === 'function';
     },
     toBeAroundValue: function (val) {
       this.message = function (val) {
@@ -26,6 +33,12 @@ beforeEach(function () {
   };
 
   this.addMatchers(matchers);
+
+  if (document.activeElement && document.activeElement != document.body) {
+    document.activeElement.blur();
+  } else if (!document.activeElement) { // IE
+    document.body.focus();
+  }
 });
 
 /**
@@ -123,6 +136,17 @@ var closeDropdownMenu = function () {
   $(document).simulate('mousedown');
 };
 
+var dropdownMenuRootElement = function () {
+  var plugin = hot().getPlugin('dropdownMenu');
+  var root;
+
+  if (plugin && plugin.menu) {
+    root = plugin.menu.container;
+  }
+
+  return root;
+};
+
 /**
  * Returns a function that triggers a mouse event
  * @param {String} type Event type
@@ -134,13 +158,15 @@ var handsontableMouseTriggerFactory = function (type, button) {
       element = $(element);
     }
     var ev = $.Event(type);
-    ev.which = button || 1; //left click by default
-    element.simulate(type,ev);
-//    element.trigger(ev);
+    ev.which = button || 1; // left click by default
+
+    element.simulate(type, ev);
   }
 };
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
+var mouseMove = handsontableMouseTriggerFactory('mousemove');
+var mouseOver = handsontableMouseTriggerFactory('mouseover');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
 var mouseDoubleClick = function (element) {
   mouseDown(element);
@@ -413,8 +439,10 @@ var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
 var getDataAtCol = handsontableMethodFactory('getDataAtCol');
 var getDataType = handsontableMethodFactory('getDataType');
+var getSourceData = handsontableMethodFactory('getSourceData');
 var getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 var getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+var getValue = handsontableMethodFactory('getValue');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
 var getColHeader = handsontableMethodFactory('getColHeader');
 var alter = handsontableMethodFactory('alter');
