@@ -87,6 +87,7 @@ class Menu {
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
       }],
       renderAllRows: true,
+      fragmentSelection: 'cell',
       beforeKeyDown: (event) => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords, TD) => this.openSubMenu(coords.row)
     };
@@ -118,7 +119,6 @@ class Menu {
       this.hotMenu.destroy();
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
-      this.hot.listen();
       this.runLocalHooks('afterClose');
     }
   }
@@ -206,7 +206,7 @@ class Menu {
    *
    * @param {Event} [event]
    */
-  executeCommand(event = void 0) {
+  executeCommand(event) {
     if (!this.isOpened() || !this.hotMenu.getSelected()) {
       return;
     }
@@ -397,9 +397,14 @@ class Menu {
     let itemIsDisabled = (item) => {
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
     };
+    let itemIsHidden = (item) => {
+      return typeof item.hidden == 'function' && item.hidden.call(this.hot) === true;
+    };
     let itemIsSelectionDisabled = (item) => {
       return item.disableSelection;
     };
+    let isHidden = itemIsHidden(item);
+
     if (typeof value === 'function') {
       value = value.call(this.hot);
     }
@@ -410,14 +415,19 @@ class Menu {
     if (itemIsSeparator(item)) {
       addClass(TD, 'htSeparator');
 
-    } else if (typeof item.renderer === 'function') {
+    } else if (!isHidden && typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
       TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
 
     } else {
       fastInnerHTML(wrapper, value);
     }
-    if (itemIsDisabled(item)) {
+    if (isHidden) {
+      if (TD.parentNode) {
+        addClass(TD.parentNode, 'htHidden');
+      }
+
+    } else if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
 
@@ -431,7 +441,7 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
       }
     } else {
       removeClass(TD, 'htSubmenu');
@@ -440,7 +450,7 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col));
+        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
       }
     }
   }

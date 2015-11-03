@@ -224,8 +224,15 @@ class ColumnSorting extends BasePlugin {
     });
 
     function countRowHeaders() {
-      let THs = _this.hot.view.TBODY.querySelector('tr').querySelectorAll('th');
-      return THs.length;
+      let tr = _this.hot.view.TBODY.querySelector('tr');
+      let length = 1;
+
+      if (tr) {
+        /*jshint -W020 */
+        length = tr.querySelectorAll('th').length;
+      }
+
+      return length;
     }
 
     function getColumn(target) {

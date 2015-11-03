@@ -1,6 +1,6 @@
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
-import {getRegistredPluginNames} from './../plugins';
+import {getRegistredPluginNames, getPluginName} from './../plugins';
 
 const privatePool = new WeakMap();
 let initializedPlugins = null;
@@ -24,9 +24,7 @@ class BasePlugin {
     privatePool.set(this, {hooks: {}});
     initializedPlugins = null;
 
-    if (!this.constructor.name) {
-      this.constructor.name = getPluginName(this);
-    }
+    this.pluginName = null;
     this.pluginsInitializedCallbacks = [];
     this.isPluginsReady = false;
     this.enabled = false;
@@ -38,7 +36,7 @@ class BasePlugin {
   }
 
   init() {
-    let pluginName = this.constructor.name;
+    this.pluginName = getPluginName(this.hot, this);
 
     if (this.isEnabled && this.isEnabled()) {
       this.enablePlugin();
@@ -46,8 +44,8 @@ class BasePlugin {
     if (!initializedPlugins) {
       initializedPlugins = getRegistredPluginNames(this.hot);
     }
-    if (initializedPlugins.indexOf(pluginName) >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf(pluginName), 1);
+    if (initializedPlugins.indexOf(this.pluginName) >= 0) {
+      initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
     if (!initializedPlugins.length) {
       this.hot.runHooks('afterPluginsInitialized');
@@ -176,17 +174,6 @@ class BasePlugin {
     });
     delete this.hot;
   }
-}
-
-function getPluginName(plugin) {
-  let name = plugin.constructor.name;
-
-  if (!name) {
-    /*jshint -W020 */
-    name = plugin.constructor.toString().match(/^function\s*([^\s(]+)/)[1];
-  }
-
-  return name;
 }
 
 export default BasePlugin;
