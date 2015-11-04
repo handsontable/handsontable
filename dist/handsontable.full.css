@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 02 2015 11:28:03 GMT+0800 (CST)
+ * Date: Wed Nov 04 2015 17:52:54 GMT+0800 (CST)
  */
 
 .handsontable {
@@ -158,6 +158,7 @@
   text-align: center;
   font-weight: normal;
   white-space: nowrap;
+  font-size: 12px;
 }
 
 .handsontable thead th {
