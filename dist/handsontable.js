@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 04 2015 17:52:54 GMT+0800 (CST)
+ * Date: Wed Nov 04 2015 21:38:35 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Nov 04 2015 17:52:54 GMT+0800 (CST)',
+  buildDate: 'Wed Nov 04 2015 21:38:35 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4274,6 +4274,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           var skippedColumn = 0;
           var pushData = true;
           var cellMeta;
+          var iterators = {
+            row: 1,
+            col: 1
+          };
           var getInputValue = function getInputValue(row) {
             var col = arguments[1] !== (void 0) ? arguments[1] : null;
             var rowValue = input[row % input.length];
@@ -4333,13 +4337,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 col: logicalColumn
               };
               if (source === 'autofill') {
-                if (index.row == input.length) {
-                  index.row = 0;
-                }
-                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {
-                  row: 1,
-                  col: 1
-                }, selected);
+                index.row = index.row % input.length;
+                index.col = index.col % input[0].length;
+                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+                iterators = result.iterators;
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
@@ -20475,5 +20476,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
+},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
 });
