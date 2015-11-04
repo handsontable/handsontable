@@ -158,6 +158,7 @@
   text-align: center;
   font-weight: normal;
   white-space: nowrap;
+  font-size: 12px;
 }
 
 .handsontable thead th {

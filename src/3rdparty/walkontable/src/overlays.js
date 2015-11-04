@@ -175,6 +175,10 @@ class WalkontableOverlays {
     if (event.type === 'scroll') {
       this.syncScrollPositions(event);
 
+      // refresh left-table-head
+      var wtRenderer = new WalkontableTableRenderer(this.instance.wtTable);
+      wtRenderer.refreshRowHeaders();
+
     } else {
       this.translateMouseWheelToScroll(event);
     }
