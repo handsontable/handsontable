@@ -394,6 +394,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let pushData = true;
           let cellMeta;
 
+          let iterators = {
+            row: 1,
+            col: 1
+          };  //init iterators for autofill
+
           let getInputValue = function getInputValue(row, col = null) {
             let rowValue = input[row % input.length];
 
@@ -464,11 +469,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               };
 
               if (source === 'autofill') {
-                if(index.row == input.length){
-                  index.row = 0;
-                }
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {row:1,col:1}, selected);
-
+                index.row = index.row % input.length;
+                index.col = index.col % input[0].length;
+                // if(index.row == input.length){
+                //   index.row = 0;
+                // }
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+                iterators = result.iterators;
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }

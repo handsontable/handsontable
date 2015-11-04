@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 04 2015 17:52:54 GMT+0800 (CST)
+ * Date: Wed Nov 04 2015 21:38:35 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Nov 04 2015 17:52:54 GMT+0800 (CST)',
+  buildDate: 'Wed Nov 04 2015 21:38:35 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4274,6 +4274,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           var skippedColumn = 0;
           var pushData = true;
           var cellMeta;
+          var iterators = {
+            row: 1,
+            col: 1
+          };
           var getInputValue = function getInputValue(row) {
             var col = arguments[1] !== (void 0) ? arguments[1] : null;
             var rowValue = input[row % input.length];
@@ -4333,13 +4337,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 col: logicalColumn
               };
               if (source === 'autofill') {
-                if (index.row == input.length) {
-                  index.row = 0;
-                }
-                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {
-                  row: 1,
-                  col: 1
-                }, selected);
+                index.row = index.row % input.length;
+                index.col = index.col % input[0].length;
+                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+                iterators = result.iterators;
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
@@ -24091,7 +24092,7 @@ if (typeof exports !== "undefined") {
                 return;
             }
 
-            if (!hasClass(target, 'is-disabled')) {
+            if (!hasClass(target.parentNode, 'is-disabled')) {
                 if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
                     self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
                     if (opts.bound) {
@@ -24102,6 +24103,7 @@ if (typeof exports !== "undefined") {
                             }
                         }, 100);
                     }
+                    return;
                 }
                 else if (hasClass(target, 'pika-prev')) {
                     self.prevMonth();
@@ -24111,7 +24113,6 @@ if (typeof exports !== "undefined") {
                 }
             }
             if (!hasClass(target, 'pika-select')) {
-                // if this is touch event prevent mouse events emulation
                 if (e.preventDefault) {
                     e.preventDefault();
                 } else {
@@ -24217,8 +24218,7 @@ if (typeof exports !== "undefined") {
         self.el = document.createElement('div');
         self.el.className = 'pika-single' + (opts.isRTL ? ' is-rtl' : '') + (opts.theme ? ' ' + opts.theme : '');
 
-        addEvent(self.el, 'mousedown', self._onMouseDown, true);
-        addEvent(self.el, 'touchend', self._onMouseDown, true);
+        addEvent(self.el, 'ontouchend' in document ? 'touchend' : 'mousedown', self._onMouseDown, true);
         addEvent(self.el, 'change', self._onChange);
 
         if (opts.field) {
@@ -24312,7 +24312,9 @@ if (typeof exports !== "undefined") {
                 this.setMinDate(opts.minDate);
             }
             if (opts.maxDate) {
-                this.setMaxDate(opts.maxDate);
+                setToStartOfDay(opts.maxDate);
+                opts.maxYear  = opts.maxDate.getFullYear();
+                opts.maxMonth = opts.maxDate.getMonth();
             }
 
             if (isArray(opts.yearRange)) {
@@ -24500,7 +24502,6 @@ if (typeof exports !== "undefined") {
             this._o.minDate = value;
             this._o.minYear  = value.getFullYear();
             this._o.minMonth = value.getMonth();
-            this.draw();
         },
 
         /**
@@ -24508,11 +24509,7 @@ if (typeof exports !== "undefined") {
          */
         setMaxDate: function(value)
         {
-            setToStartOfDay(value);
             this._o.maxDate = value;
-            this._o.maxYear = value.getFullYear();
-            this._o.maxMonth = value.getMonth();
-            this.draw();
         },
 
         setStartRange: function(value)
@@ -24578,11 +24575,11 @@ if (typeof exports !== "undefined") {
         adjustPosition: function()
         {
             var field, pEl, width, height, viewportWidth, viewportHeight, scrollTop, left, top, clientRect;
-
+            
             if (this._o.container) return;
-
+            
             this.el.style.position = 'absolute';
-
+            
             field = this._o.trigger;
             pEl = field;
             width = this.el.offsetWidth;
@@ -24652,7 +24649,8 @@ if (typeof exports !== "undefined") {
             cells += 7 - after;
             for (var i = 0, r = 0; i < cells; i++)
             {
-                var day = new Date(year, month, 1 + (i - before)),
+                var dayConfig,
+                    day = new Date(year, month, 1 + (i - before)),
                     isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
                     isToday = compareDates(day, now),
                     isEmpty = i < before || i >= (days + before),
@@ -24736,7 +24734,6 @@ if (typeof exports !== "undefined") {
         {
             this.hide();
             removeEvent(this.el, 'mousedown', this._onMouseDown, true);
-            removeEvent(this.el, 'touchend', this._onMouseDown, true);
             removeEvent(this.el, 'change', this._onChange);
             if (this._o.field) {
                 removeEvent(this._o.field, 'change', this._onInputChange);
@@ -27339,5 +27336,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
+},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("zeroclipboard")
 });
