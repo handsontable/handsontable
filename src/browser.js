@@ -53,6 +53,12 @@ Handsontable.buildDate = '@@timestamp';
 Handsontable.packageName = '@@name';
 Handsontable.version = '@@version';
 
+let baseVersion = '@@baseVersion';
+
+if (!/^@@/.test(baseVersion)) {
+  Handsontable.baseVersion = baseVersion;
+}
+
 Handsontable.plugins = {};
 Handsontable.helper = {};
 Handsontable.dom = {};
