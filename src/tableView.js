@@ -84,6 +84,14 @@ function TableView(instance) {
     }
   });
 
+  this.eventManager.addEventListener(document.documentElement, 'touchend', function(event) {
+    setTimeout(function() {
+      if (instance.selection.isInProgress()) {
+        instance.selection.finish();
+      }
+    }, 0);
+  });
+
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
     var next = event.target;
     var eventX = event.x || event.clientX;
