@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 10 2015 15:20:55 GMT+0800 (CST)
+ * Date: Wed Nov 11 2015 20:00:36 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Nov 10 2015 15:20:55 GMT+0800 (CST)',
+  buildDate: 'Wed Nov 11 2015 20:00:36 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5011,6 +5011,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     if (height) {
       instance.rootElement.style.overflow = 'hidden';
+    }
+    if (!init && (settings.fixedRowsTop || settings.fixedColumnsLeft)) {
+      instance.view.wt.draw(false);
     }
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
@@ -20476,5 +20479,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,57,58,59,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
+},{}]},{},[23,57,59,58,60,81,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,84,85,98,99,100,88,89,90,91,92,93,30,34,31,32,39,33,35,36,37,38])("numeral")
 });
