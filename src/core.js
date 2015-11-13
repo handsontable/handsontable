@@ -1602,6 +1602,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     /* jshint ignore:end */
 
+    // rerender full view when update fixed row or col
+    if (!init && (settings.fixedRowsTop || settings.fixedColumnsLeft)) {
+      instance.view.wt.draw(false);
+    }
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
