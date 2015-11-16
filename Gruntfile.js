@@ -289,7 +289,9 @@ module.exports = function(grunt) {
           dist: 'package.json'
         },
         options: {
-          disableUI: false
+          disableUI: true,
+          external: ['plugins', 'editors'],
+          exclude: ['ColumnSorting', 'Comments', 'UndoRedo', 'Search']
         }
       },
       options: {

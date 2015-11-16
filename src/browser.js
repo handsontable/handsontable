@@ -26,8 +26,9 @@ if (!Handsontable.hooks) {
 
 import './core';
 import './renderers/_cellDecorator';
-import './cellTypes';
-import './../plugins/jqueryHandsontable';
+// import './cellTypes';
+import './_cellTypes';
+// import './../plugins/jqueryHandsontable';
 
 // export helpers
 import * as arrayHelpers from './helpers/array';
