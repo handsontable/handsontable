@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 16 2015 16:42:50 GMT+0800 (CST)
+ * Date: Mon Nov 16 2015 17:51:59 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Nov 16 2015 16:42:50 GMT+0800 (CST)',
+  buildDate: 'Mon Nov 16 2015 17:51:59 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3750,14 +3750,26 @@ window.WalkontableViewport = WalkontableViewport;
 //# 
 },{"calculator/viewportColumns":2,"calculator/viewportRows":3,"eventManager":39,"helpers/dom/element":43}],22:[function(require,module,exports){
 "use strict";
-var $__helpers_47_browser__;
+var $__helpers_47_browser__,
+    $__editors__,
+    $__renderers__,
+    $__editors_47_textEditor__,
+    $__renderers_47_textRenderer__;
 var isMobileBrowser = ($__helpers_47_browser__ = require("helpers/browser"), $__helpers_47_browser__ && $__helpers_47_browser__.__esModule && $__helpers_47_browser__ || {default: $__helpers_47_browser__}).isMobileBrowser;
+var getEditorConstructor = ($__editors__ = require("editors"), $__editors__ && $__editors__.__esModule && $__editors__ || {default: $__editors__}).getEditorConstructor;
+var getRenderer = ($__renderers__ = require("renderers"), $__renderers__ && $__renderers__.__esModule && $__renderers__ || {default: $__renderers__}).getRenderer;
+var TextEditor = ($__editors_47_textEditor__ = require("editors/textEditor"), $__editors_47_textEditor__ && $__editors_47_textEditor__.__esModule && $__editors_47_textEditor__ || {default: $__editors_47_textEditor__}).TextEditor;
+var TextRenderer = ($__renderers_47_textRenderer__ = require("renderers/textRenderer"), $__renderers_47_textRenderer__ && $__renderers_47_textRenderer__.__esModule && $__renderers_47_textRenderer__ || {default: $__renderers_47_textRenderer__}).TextRenderer;
 Handsontable.mobileBrowser = isMobileBrowser();
-Handsontable.cellTypes = {};
+Handsontable.TextCell = {
+  editor: Handsontable.mobileBrowser ? getEditorConstructor('mobile') : getEditorConstructor('text'),
+  renderer: getRenderer('text')
+};
+Handsontable.cellTypes = {text: Handsontable.TextCell};
 Handsontable.cellLookup = {validator: {}};
 
 //# 
-},{"helpers/browser":41}],23:[function(require,module,exports){
+},{"editors":27,"editors/textEditor":38,"helpers/browser":41,"renderers":80,"renderers/textRenderer":82}],23:[function(require,module,exports){
 "use strict";
 var $__shims_47_classes__,
     $__es6collections__,
@@ -3828,7 +3840,7 @@ arrayHelpers.arrayEach([domHelpers, domEventHelpers], (function(helper) {
 }));
 
 //# 
-},{"_cellTypes":22,"core":24,"es6collections":"es6collections","helpers/array":40,"helpers/browser":41,"helpers/data":42,"helpers/dom/element":43,"helpers/dom/event":44,"helpers/function":45,"helpers/mixed":46,"helpers/number":47,"helpers/object":48,"helpers/setting":49,"helpers/string":50,"helpers/unicode":51,"pluginHooks":53,"renderers/_cellDecorator":81,"shims/classes":82}],24:[function(require,module,exports){
+},{"_cellTypes":22,"core":24,"es6collections":"es6collections","helpers/array":40,"helpers/browser":41,"helpers/data":42,"helpers/dom/element":43,"helpers/dom/event":44,"helpers/function":45,"helpers/mixed":46,"helpers/number":47,"helpers/object":48,"helpers/setting":49,"helpers/string":50,"helpers/unicode":51,"pluginHooks":53,"renderers/_cellDecorator":81,"shims/classes":83}],24:[function(require,module,exports){
 "use strict";
 var $__numeral__,
     $__helpers_47_dom_47_element__,
@@ -5561,7 +5573,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":2,"3rdparty/walkontable/src/cell/coords":4,"3rdparty/walkontable/src/cell/range":5,"3rdparty/walkontable/src/selection":17,"dataMap":25,"editorManager":26,"eventManager":39,"helpers/array":40,"helpers/data":42,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/setting":49,"helpers/string":50,"numeral":"numeral","plugins":54,"renderers":80,"tableView":83}],25:[function(require,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":2,"3rdparty/walkontable/src/cell/coords":4,"3rdparty/walkontable/src/cell/range":5,"3rdparty/walkontable/src/selection":17,"dataMap":25,"editorManager":26,"eventManager":39,"helpers/array":40,"helpers/data":42,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/setting":49,"helpers/string":50,"numeral":"numeral","plugins":54,"renderers":80,"tableView":84}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -10551,7 +10563,7 @@ var $AutoColumnSize = AutoColumnSize;
 registerPlugin('autoColumnSize', AutoColumnSize);
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":2,"_base":55,"helpers/array":40,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/string":50,"plugins":54,"utils/ghostTable":84,"utils/samplesGenerator":85}],57:[function(require,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":2,"_base":55,"helpers/array":40,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/string":50,"plugins":54,"utils/ghostTable":85,"utils/samplesGenerator":86}],57:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoRowSize: {get: function() {
@@ -10856,7 +10868,7 @@ var $AutoRowSize = AutoRowSize;
 registerPlugin('autoRowSize', AutoRowSize);
 
 //# 
-},{"_base":55,"helpers/array":40,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/string":50,"plugins":54,"utils/ghostTable":84,"utils/samplesGenerator":85}],58:[function(require,module,exports){
+},{"_base":55,"helpers/array":40,"helpers/dom/element":43,"helpers/number":47,"helpers/object":48,"helpers/string":50,"plugins":54,"utils/ghostTable":85,"utils/samplesGenerator":86}],58:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Autofill: {get: function() {
@@ -15962,6 +15974,49 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 //# 
 },{"helpers/dom/element":43,"renderers":80}],82:[function(require,module,exports){
 "use strict";
+Object.defineProperties(exports, {
+  textRenderer: {get: function() {
+      return textRenderer;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47_helpers_47_mixed__,
+    $___46__46__47_renderers__;
+var $__0 = ($___46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
+    empty = $__0.empty,
+    fastInnerText = $__0.fastInnerText;
+var stringify = ($___46__46__47_helpers_47_mixed__ = require("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
+var $__2 = ($___46__46__47_renderers__ = require("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
+    getRenderer = $__2.getRenderer,
+    registerRenderer = $__2.registerRenderer;
+function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('base').apply(this, arguments);
+  if (!value && cellProperties.placeholder) {
+    value = cellProperties.placeholder;
+  }
+  var escaped = stringify(value);
+  if (!instance.getSettings().trimWhitespace) {
+    escaped = escaped.replace(/ /g, String.fromCharCode(160));
+  }
+  if (cellProperties.rendererTemplate) {
+    empty(TD);
+    var TEMPLATE = document.createElement('TEMPLATE');
+    TEMPLATE.setAttribute('bind', '{{}}');
+    TEMPLATE.innerHTML = cellProperties.rendererTemplate;
+    HTMLTemplateElement.decorate(TEMPLATE);
+    TEMPLATE.model = instance.getSourceDataAtRow(row);
+    TD.appendChild(TEMPLATE);
+  } else {
+    fastInnerText(TD, escaped);
+  }
+}
+;
+registerRenderer('text', textRenderer);
+
+//# 
+},{"helpers/dom/element":43,"helpers/mixed":46,"renderers":80}],83:[function(require,module,exports){
+"use strict";
 (function(global) {
   'use strict';
   if (global.$traceurRuntime) {
@@ -16343,7 +16398,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 })();
 
 //# 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TableView: {get: function() {
@@ -16826,7 +16881,7 @@ TableView.prototype.destroy = function() {
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":4,"3rdparty/walkontable/src/core":6,"3rdparty/walkontable/src/selection":17,"eventManager":39,"helpers/dom/element":43,"helpers/dom/event":44}],84:[function(require,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":4,"3rdparty/walkontable/src/core":6,"3rdparty/walkontable/src/selection":17,"eventManager":39,"helpers/dom/element":43,"helpers/dom/event":44}],85:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   GhostTable: {get: function() {
@@ -17051,7 +17106,7 @@ Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.GhostTable = GhostTable;
 
 //# 
-},{"helpers/array":40,"helpers/dom/element":43,"helpers/mixed":46,"helpers/number":47,"helpers/object":48}],85:[function(require,module,exports){
+},{"helpers/array":40,"helpers/dom/element":43,"helpers/mixed":46,"helpers/number":47,"helpers/object":48}],86:[function(require,module,exports){
 "use strict";
 var $__7;
 Object.defineProperties(exports, {
