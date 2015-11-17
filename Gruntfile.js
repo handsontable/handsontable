@@ -291,7 +291,11 @@ module.exports = function(grunt) {
         options: {
           disableUI: true,
           external: ['plugins', 'editors'],
-          exclude: ['ColumnSorting', 'Comments', 'UndoRedo', 'Search']
+          exclude: [
+            'AutocompleteEditor', 'CheckboxEditor', 'DateEditor', 'DropdownEditor', 'MobileTextEditor', 'PasswordEditor', 'SelectEditor',
+            'ColumnSorting', 'Comments', 'UndoRedo', 'Search', 'AutoColumnSize', 'AutoRowSize', 'ObserveChanges', 
+            'pikaday', 'moment'
+          ]
         }
       },
       options: {
