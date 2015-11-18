@@ -1170,12 +1170,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.listen = function() {
     Handsontable.activeGuid = instance.guid;
-
-    if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    } else if (!document.activeElement) { //IE
-      document.body.focus();
-    }
   };
 
   /**
