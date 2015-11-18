@@ -20150,8 +20150,8 @@ if (typeof exports !== "undefined") {
   }
   function formatNumeral(n, format, roundingFunction) {
     var output;
-    if (format.indexOf('$') > -1) {
-      output = formatCurrency(n, format, roundingFunction);
+    if (format.indexOf(languages[currentLanguage].currency.symbol) > -1) {
+      output = formatCurrency(n, format, roundingFunction, languages[currentLanguage].currency.symbol);
     } else if (format.indexOf('%') > -1) {
       output = formatPercentage(n, format, roundingFunction);
     } else if (format.indexOf(':') > -1) {
@@ -20195,21 +20195,21 @@ if (typeof exports !== "undefined") {
     }
     return n._value;
   }
-  function formatCurrency(n, format, roundingFunction) {
-    var symbolIndex = format.indexOf('$'),
-        openParenIndex = format.indexOf('('),
-        minusSignIndex = format.indexOf('-'),
-        space = '',
-        spliceIndex,
-        output;
-    if (format.indexOf(' $') > -1) {
+  function formatCurrency(n, format, roundingFunction, symbol) {
+    var symbolIndex = format.indexOf(symbol),
+      openParenIndex = format.indexOf('('),
+      minusSignIndex = format.indexOf('-'),
+      space = '',
+      spliceIndex,
+      output;
+    if (format.indexOf(' '+symbol) > -1) {
       space = ' ';
-      format = format.replace(' $', '');
-    } else if (format.indexOf('$ ') > -1) {
+      format = format.replace(' '+symbol, '');
+    } else if (format.indexOf(symbol+' ') > -1) {
       space = ' ';
-      format = format.replace('$ ', '');
+      format = format.replace(symbol+' ', '');
     } else {
-      format = format.replace('$', '');
+      format = format.replace(symbol, '');
     }
     output = formatNumber(n._value, format, roundingFunction);
     if (symbolIndex <= 1) {
@@ -20219,18 +20219,18 @@ if (typeof exports !== "undefined") {
         if (symbolIndex < openParenIndex || symbolIndex < minusSignIndex) {
           spliceIndex = 0;
         }
-        output.splice(spliceIndex, 0, languages[currentLanguage].currency.symbol + space);
+        output.splice(spliceIndex, 0, symbol + space);
         output = output.join('');
       } else {
-        output = languages[currentLanguage].currency.symbol + space + output;
+        output = symbol + space + output;
       }
     } else {
       if (output.indexOf(')') > -1) {
         output = output.split('');
-        output.splice(-1, 0, space + languages[currentLanguage].currency.symbol);
+        output.splice(-1, 0, space + symbol);
         output = output.join('');
       } else {
-        output = output + space + languages[currentLanguage].currency.symbol;
+        output = output + space + symbol;
       }
     }
     return output;
@@ -20454,6 +20454,40 @@ if (typeof exports !== "undefined") {
       return (~~(number % 100 / 10) === 1) ? 'th' : (b === 1) ? 'st' : (b === 2) ? 'nd' : (b === 3) ? 'rd' : 'th';
     },
     currency: {symbol: '$'}
+  });
+  numeral.language('ko', {
+    delimiters: {
+      thousands: ',',
+      decimal: '.'
+    },
+    abbreviations: {
+      thousand: 'k',
+      million: 'm',
+      billion: 'b',
+      trillion: 't'
+    },
+    ordinal: function(number) {
+      var b = number % 10;
+      return (~~(number % 100 / 10) === 1) ? 'th' : (b === 1) ? 'st' : (b === 2) ? 'nd' : (b === 3) ? 'rd' : 'th';
+    },
+    currency: {symbol: '₩'}
+  });
+  numeral.language('jp', {
+    delimiters: {
+      thousands: ',',
+      decimal: '.'
+    },
+    abbreviations: {
+      thousand: 'k',
+      million: 'm',
+      billion: 'b',
+      trillion: 't'
+    },
+    ordinal: function(number) {
+      var b = number % 10;
+      return (~~(number % 100 / 10) === 1) ? 'th' : (b === 1) ? 'st' : (b === 2) ? 'nd' : (b === 3) ? 'rd' : 'th';
+    },
+    currency: {symbol: '¥'}
   });
   numeral.zeroFormat = function(format) {
     zeroFormat = typeof(format) === 'string' ? format : null;
