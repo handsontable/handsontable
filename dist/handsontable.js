@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 17 2015 16:23:30 GMT+0800 (CST)
+ * Date: Thu Nov 19 2015 14:42:28 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Nov 17 2015 16:23:30 GMT+0800 (CST)',
+  buildDate: 'Thu Nov 19 2015 14:42:28 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9466,6 +9466,7 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+    _data = filterRawData(_data);
     deltas = getDeltas(start, end, _data, direction);
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
     this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
@@ -11444,11 +11445,17 @@ function CopyPastePlugin(instance) {
     arrayEach(copyableRows, (function(row) {
       var rowSet = [];
       arrayEach(copyableColumns, (function(column) {
-        rowSet.push(instance.getCopyableData(row, column));
+        var tdItem = instance.getCell(row, column);
+        rowSet.push(getDomHtml(tdItem));
       }));
       dataSet.push(rowSet);
     }));
     return SheetClip.stringify(dataSet);
+    function getDomHtml(dom) {
+      var tempContainer = $('<div></div>');
+      tempContainer.append(dom.cloneNode(true));
+      return tempContainer.html();
+    }
   };
 }
 function init() {
@@ -15355,6 +15362,8 @@ if (typeof exports !== 'undefined') {
 //# 
 },{}],"copyPaste":[function(require,module,exports){
 "use strict";
+var $__SheetClip__;
+var SheetClip = ($__SheetClip__ = require("SheetClip"), $__SheetClip__ && $__SheetClip__.__esModule && $__SheetClip__ || {default: $__SheetClip__}).default;
 var instance;
 function copyPaste() {
   if (!instance) {
@@ -15394,9 +15403,11 @@ CopyPasteClass.prototype.init = function() {
     this.elTextarea.className = 'copyPaste';
     this.elTextarea.onpaste = function(event) {
       var clipboardContents,
+          clipboardHtml,
           temp;
       if ('WebkitAppearance' in document.documentElement.style) {
-        clipboardContents = event.clipboardData.getData("Text");
+        clipboardContents = event.clipboardData.getData("text/plain");
+        clipboardHtml = event.clipboardData.getData("text/table");
         if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
           temp = clipboardContents.split('\n');
           if (temp[temp.length - 1] === '') {
@@ -15405,8 +15416,14 @@ CopyPasteClass.prototype.init = function() {
           clipboardContents = temp.join('\n');
         }
         this.value = clipboardContents;
+        this.htmlValue = clipboardHtml;
         return false;
       }
+    };
+    this.elTextarea.oncopy = function(event) {
+      event.clipboardData.setData('text/plain', this.value);
+      event.clipboardData.setData('text/table', this.htmlValue);
+      return false;
     };
     style = this.elTextarea.style;
     style.width = '10000px';
@@ -15476,7 +15493,22 @@ CopyPasteClass.prototype.copyable = function(string) {
   if (typeof string !== 'string' && string.toString === void 0) {
     throw new Error('copyable requires string parameter');
   }
-  this.elTextarea.value = string;
+  var parsedStr = SheetClip.parse(string),
+      rowItem,
+      rowSet,
+      dataSet = [];
+  for (var row = 0,
+      l = parsedStr.length; row < l; row++) {
+    rowSet = [];
+    for (var col = 0,
+        len = parsedStr[row].length; col < len; col++) {
+      rowItem = $(parsedStr[row][col]).text();
+      rowSet.push(rowItem);
+    }
+    dataSet.push(rowSet);
+  }
+  this.elTextarea.htmlValue = string;
+  this.elTextarea.value = SheetClip.stringify(dataSet);
   this.selectNodeText(this.elTextarea);
 };
 CopyPasteClass.prototype.onCut = function(callback) {
@@ -15523,7 +15555,9 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
   if (_this.pasteCallbacks) {
     setTimeout(function() {
-      var val = string || _this.elTextarea.value;
+      var copiedVal = _this.elTextarea.htmlValue || _this.elTextarea.value,
+          val;
+      val = string || copiedVal;
       for (var i = 0,
           len = _this.pasteCallbacks.length; i < len; i++) {
         _this.pasteCallbacks[i](val, event);
@@ -15547,7 +15581,7 @@ CopyPasteClass.prototype.hasBeenDestroyed = function() {
 };
 
 //# 
-},{}],"es6collections":[function(require,module,exports){
+},{"SheetClip":"SheetClip"}],"es6collections":[function(require,module,exports){
 "use strict";
 (function(exports) {
   'use strict';

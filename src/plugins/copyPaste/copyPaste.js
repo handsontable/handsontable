@@ -212,13 +212,21 @@ function CopyPastePlugin(instance) {
       let rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
-        rowSet.push(instance.getCopyableData(row, column));
+        // rowSet.push(instance.getCopyableData(row, column));
+        let tdItem = instance.getCell(row, column);
+        rowSet.push(getDomHtml(tdItem)); //include td wrapper
       });
 
       dataSet.push(rowSet);
     });
 
     return SheetClip.stringify(dataSet);
+
+    function getDomHtml(dom){
+      let tempContainer = $('<div></div>');
+      tempContainer.append(dom.cloneNode(true));
+      return tempContainer.html();
+    }
   };
 }
 

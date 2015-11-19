@@ -274,7 +274,7 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to,
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    // _data = filterRawData(_data);
+    _data = filterRawData(_data);
     deltas = getDeltas(start, end, _data, direction);
 
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
