@@ -58,6 +58,12 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
 
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+    document.activeElement.blur();
+  } else if (!document.activeElement) { //IE
+    document.body.focus();
+  }
+
   this.state = Handsontable.EditorState.VIRGIN;
 };
 
