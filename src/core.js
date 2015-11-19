@@ -3130,6 +3130,16 @@ DefaultSettings.prototype = {
   colWidths: void 0,
 
   /**
+   * Defines row heights in pixels. Accepts number, string (that will be converted to number),
+   * array of numbers (if you want to define row height separately for each row) or a
+   * function (if you want to set row height dynamically on each render).
+   *
+   * @type {Array|Function|Number|String}
+   * @default undefined
+   */
+  rowHeights: void 0,
+
+  /**
    * @description
    * Defines the cell properties and data binding for certain columns.
    *

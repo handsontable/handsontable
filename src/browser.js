@@ -1,23 +1,14 @@
 
-let version = Handsontable.version;
-let buildDate = Handsontable.buildDate;
-
 window.Handsontable = function Handsontable(rootElement, userSettings) {
-  var instance = new Handsontable.Core(rootElement, userSettings || {});
+  let instance = new Handsontable.Core(rootElement, userSettings || {});
 
   instance.init();
 
   return instance;
 };
 
-Handsontable.version = version;
-Handsontable.buildDate = buildDate;
-
 import './shims/classes';
 import 'es6collections';
-
-Handsontable.plugins = {};
-
 import {Hooks} from './pluginHooks';
 
 if (!Handsontable.hooks) {
@@ -28,8 +19,6 @@ import './core';
 import './renderers/_cellDecorator';
 import './cellTypes';
 import './../plugins/jqueryHandsontable';
-
-// export helpers
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
@@ -40,13 +29,44 @@ import * as objectHelpers from './helpers/object';
 import * as settingHelpers from './helpers/setting';
 import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
+import * as domHelpers from './helpers/dom/element';
+import * as domEventHelpers from './helpers/dom/event';
 
-const helpers = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers,
-  settingHelpers, stringHelpers, unicodeHelpers];
+const HELPERS = [
+  arrayHelpers,
+  browserHelpers,
+  dataHelpers,
+  functionHelpers,
+  mixedHelpers,
+  numberHelpers,
+  objectHelpers,
+  settingHelpers,
+  stringHelpers,
+  unicodeHelpers,
+];
+const DOM = [
+  domHelpers,
+  domEventHelpers,
+];
 
+Handsontable.buildDate = '@@timestamp';
+Handsontable.packageName = '@@name';
+Handsontable.version = '@@version';
+
+let baseVersion = '@@baseVersion';
+
+if (!/^@@/.test(baseVersion)) {
+  Handsontable.baseVersion = baseVersion;
+}
+
+Handsontable.plugins = {};
 Handsontable.helper = {};
+Handsontable.dom = {};
+// legacy support
+Handsontable.Dom = Handsontable.dom;
 
-arrayHelpers.arrayEach(helpers, (helper) => {
+// fill helpers
+arrayHelpers.arrayEach(HELPERS, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if (key.charAt(0) !== '_') {
       Handsontable.helper[key] = helper[key];
@@ -54,14 +74,8 @@ arrayHelpers.arrayEach(helpers, (helper) => {
   });
 });
 
-// export helpers
-import * as domHelpers from './helpers/dom/element';
-import * as domEventHelpers from './helpers/dom/event';
-
-Handsontable.dom = {};
-Handsontable.Dom = Handsontable.dom; // legacy support
-
-arrayHelpers.arrayEach([domHelpers, domEventHelpers], (helper) => {
+// fill dom helpers
+arrayHelpers.arrayEach(DOM, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if (key.charAt(0) !== '_') {
       Handsontable.dom[key] = helper[key];
