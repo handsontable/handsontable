@@ -363,7 +363,8 @@ class ManualRowResize extends BasePlugin {
 
       let manualRowHeight = this.manualRowHeights[row];
 
-      if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || !autoRowSizePlugin.enabled)) {
+      if (manualRowHeight !== void 0 
+        && (manualRowHeight === autoRowHeightResult || !autoRowSizePlugin || !autoRowSizePlugin.enabled)) {
         return manualRowHeight;
       }
     }
