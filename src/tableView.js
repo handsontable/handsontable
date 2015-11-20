@@ -154,8 +154,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'current',
       border: {
-        width: 2,
-        color: '#5292F7',
+        width: (typeof that.settings.selectedCurrentBorderWidth === 'number' && that.settings.selectedCurrentBorderWidth > -1) ? that.settings.selectedCurrentBorderWidth : 2,
+        color: (typeof that.settings.selectedCurrentBorderColor === 'string' && that.settings.selectedCurrentBorderColor !== '') ? that.settings.selectedCurrentBorderColor : '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
@@ -168,8 +168,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'area',
       border: {
-        width: 1,
-        color: '#89AFF9',
+        width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
+        color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9',
         //style: 'solid', // not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
@@ -187,8 +187,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'fill',
       border: {
-        width: 1,
-        color: 'red',
+        width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
+        color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9'
         //style: 'solid' // not used
       },
     }),
