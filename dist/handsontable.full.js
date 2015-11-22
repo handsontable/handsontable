@@ -7145,6 +7145,7 @@ var $DateEditor = DateEditor;
     this.$datePicker.config(this.getDatePickerConfig());
     var offset = this.TD.getBoundingClientRect();
     var dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+    var setInitTime = this.cellProperties.setInitTime || false;
     var datePickerConfig = this.$datePicker.config();
     var dateStr;
     var isMouseDown = this.instance.view.isMouseDown();
@@ -7153,6 +7154,7 @@ var $DateEditor = DateEditor;
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
+    datePickerConfig.setInitTime = setInitTime;
     if (this.originalValue) {
       dateStr = this.originalValue;
       if (moment(dateStr, dateFormat, true).isValid()) {
@@ -24085,6 +24087,10 @@ if (typeof exports !== "undefined") {
         // the initial date to view when first opened
         defaultDate: null,
 
+        // if you do not want initialize a time. change this value to 'true'
+        setInitTime: false,
+        setInitTimeFnc: null,
+
         // make the `defaultDate` the initial selected value
         setDefaultDate: false,
 
@@ -24281,9 +24287,32 @@ if (typeof exports !== "undefined") {
         return html += '</div>';
     },
 
-    renderTable = function(opts, data)
+    renderTime = function (opts, count) {
+      if (!opts.setInitTime || (opts.numberOfMonths-1) > count) return '';
+
+      var html = [];
+      var nowTime = new Date();
+      var clasName = 'pika-select pika-time-text';
+      html[0] = '<tr><td class="htMiddle htCenter">';
+      html[1] = '&nbsp;hour : <input type="text" size="2" id="pika-table-hour" class="'+clasName+'" value="'+nowTime.getHours()+'"> ';
+      html[2] = 'min : <input type="text" size="2" id="pika-table-min" class="'+clasName+'" value="'+nowTime.getMinutes()+'"> ';
+      html[3] = 'sec : <input type="text" size="2" id="pika-table-sec" class="'+clasName+'" value="'+nowTime.getSeconds()+'"> ';
+      html[4] = '&nbsp;<button class="pika-settime" id="pika-settime-btn">stop</button>';
+      html[5] = '</td><tr>';
+
+      if (Pikaday.prototype.customTimeFnc) {
+        clearInterval(Pikaday.prototype.customTimeFnc);
+        Pikaday.prototype.customTimeFnc = null;
+      }
+
+      Pikaday.prototype.customTimeFnc = setInterval(Pikaday.prototype.setCustomTime, 1000);
+
+      return '<table cellpadding="0" cellspacing="0" class="pika-table" style="margin-top: 5px;">'+html.join('')+'</table>';
+    },
+
+    renderTable = function(opts, data, count)
     {
-        return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + '</table>';
+        return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + renderTime(opts, count) + '</table>';
     },
 
 
@@ -24308,7 +24337,16 @@ if (typeof exports !== "undefined") {
 
             if (!hasClass(target.parentNode, 'is-disabled')) {
                 if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
-                    self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
+                    var date;
+                    if (!opts.setInitTime) {
+                      date = new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day'));
+                    } else {
+                      var hour = document.getElementById('pika-table-hour').value;
+                      var min = document.getElementById('pika-table-min').value;
+                      var sec = document.getElementById('pika-table-sec').value;
+                      date = new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day'), hour, min, sec);
+                    }
+                    self.setDate(date);
                     if (opts.bound) {
                         sto(function() {
                             self.hide();
@@ -24324,6 +24362,9 @@ if (typeof exports !== "undefined") {
                 }
                 else if (hasClass(target, 'pika-next')) {
                     self.nextMonth();
+                }
+                else if (hasClass(target, 'pika-settime')) {
+                    self.setCustomTimeSwitch();
                 }
             }
             if (!hasClass(target, 'pika-select')) {
@@ -24484,6 +24525,7 @@ if (typeof exports !== "undefined") {
      */
     Pikaday.prototype = {
 
+        customTimeFnc: null,
 
         /**
          * configure functionality
@@ -24611,7 +24653,10 @@ if (typeof exports !== "undefined") {
             }
 
             this._d = new Date(date.getTime());
-            setToStartOfDay(this._d);
+            // if the value of the setInit Time is 'true'. It does not reset the time
+            if (!this._o.setInitTime) {
+              setToStartOfDay(this._d);
+            }
             this.gotoDate(this._d);
 
             if (this._o.field) {
@@ -24737,6 +24782,38 @@ if (typeof exports !== "undefined") {
         },
 
         /**
+         * set the select or now time.
+         */
+        setCustomTime: function()
+        {
+          var nowTime = new Date();
+          var hour = document.getElementById('pika-table-hour');
+          var min = document.getElementById('pika-table-min');
+          var sec = document.getElementById('pika-table-sec');
+
+          if (hour && min && sec) {
+            hour.value = nowTime.getHours();
+            min.value = nowTime.getMinutes();
+            sec.value = nowTime.getSeconds();
+          }
+        },
+
+        setCustomTimeSwitch: function() {
+          if (Pikaday.prototype.customTimeFnc) {
+            clearInterval(Pikaday.prototype.customTimeFnc);
+            Pikaday.prototype.customTimeFnc = null;
+          } else {
+            Pikaday.prototype.customTimeFnc = setInterval(this.setCustomTime, 1000);
+          }
+
+          if (document.getElementById('pika-settime-btn').textContent.trim() == 'stop') {
+            document.getElementById('pika-settime-btn').innerText = 'start';
+          } else {
+            document.getElementById('pika-settime-btn').innerText = 'stop';
+          }
+        },
+
+        /**
          * refresh the HTML
          */
         draw: function(force)
@@ -24765,7 +24842,7 @@ if (typeof exports !== "undefined") {
             }
 
             for (var c = 0; c < opts.numberOfMonths; c++) {
-                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year) + this.render(this.calendars[c].year, this.calendars[c].month) + '</div>';
+                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year) + this.render(this.calendars[c].year, this.calendars[c].month, c) + '</div>';
             }
 
             this.el.innerHTML = html;
@@ -24840,7 +24917,7 @@ if (typeof exports !== "undefined") {
         /**
          * render HTML for a particular month
          */
-        render: function(year, month)
+        render: function(year, month, count)
         {
             var opts   = this._o,
                 now    = new Date(),
@@ -24899,7 +24976,7 @@ if (typeof exports !== "undefined") {
                     r = 0;
                 }
             }
-            return renderTable(opts, data);
+            return renderTable(opts, data, count);
         },
 
         isVisible: function()
