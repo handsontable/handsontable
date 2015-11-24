@@ -481,9 +481,21 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   });
 };
 
+var resetBorders = function(instance) {
+  var clre = /border_row[0-9]+col[0-9]+/;
+  for (var i = 0; i < instance.view.wt.selections.length; i++) {
+    if (clre.exec(instance.view.wt.selections[i].settings.className)) {
+      removeBordersFromDom(instance.view.wt.selections[i].settings.className);
+      instance.view.wt.selections.splice(i, 1);
+      --i;
+    }
+  }
+};
+
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-Handsontable.hooks.add('afterInit', function() {
+
+var prepareBorders = function() {
   var customBorders = this.getSettings().customBorders;
 
   if (customBorders) {
@@ -495,9 +507,25 @@ Handsontable.hooks.add('afterInit', function() {
         prepareBorderFromCustomAdded.call(this, customBorders[i].row, customBorders[i].col, customBorders[i]);
       }
     }
-
     this.render();
     this.view.wt.draw(true);
+  }
+  if (this.customBorders) {
+    this.customBorders.settings = customBorders;
+  }
+};
+
+Handsontable.hooks.add('afterInit', function() {
+  prepareBorders.call(this);
+});
+
+Handsontable.hooks.add('afterUpdateSettings', function() {
+  if (!this.customBorders) {
+    init.call(this);
+  }
+  if (this.customBorders && this.customBorders.settings !== this.getSettings().customBorders) {
+    resetBorders(this);
+    prepareBorders.call(this);
   }
 });
 

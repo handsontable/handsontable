@@ -52,6 +52,63 @@ describe('CustomBorders', function () {
     expect(borders[3].style.width).toEqual('1px'); // right 1px width
   });
 
+  it('should draw custom borders when set through updateSettings', function () {
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(7, 7),
+      colHeaders: true,
+      rowHeaders: true,
+      customBorders: []
+    });
+    //[top,left, bottom, right]
+    hot.updateSettings({ customBorders: [        {
+          row: 2,
+          col: 2,
+          left:{
+            width:2,
+            color: 'red'
+          },
+          right:{
+            width:1,
+            color: 'green'
+          }
+        }]});
+    var borders = $('.wtBorder.border_row2col2');
+    expect(borders.length).toEqual(20); //4 times 5 elements (top,right, bottom, left, corner)
+    expect(borders[0].className).toContain('hidden'); // hidden top
+    expect(borders[1].style.backgroundColor).toEqual('red'); // left red
+    expect(borders[1].style.width).toEqual('2px'); // left 2px width
+    expect(borders[2].className).toContain('hidden'); // hidden bottom
+    expect(borders[3].style.backgroundColor).toEqual('green'); // green right
+    expect(borders[3].style.width).toEqual('1px'); // right 1px width
+  });
+
+  it('should remove custom borders after updateSettings', function () {
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(7, 7),
+      colHeaders: true,
+      rowHeaders: true,
+      customBorders: [
+        {
+          row: 2,
+          col: 2,
+          left:{
+            width:2,
+            color: 'red'
+          },
+          right:{
+            width:1,
+            color: 'green'
+          }
+        }]
+    });
+    //[top,left, bottom, right]
+    hot.updateSettings({ customBorders: []});
+
+    var borders = $('.wtBorder.border_row2col2');
+    expect(borders.length).toEqual(0);
+  });
   it('should draw custom borders for range', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(7, 7),
