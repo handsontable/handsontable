@@ -106,6 +106,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       amount = amount || 1;
 
+      // update cell propoties
+      updateCellPropoties(action, index, amount);
+
       switch (action) {
         case 'insert_row':
 
@@ -905,7 +908,59 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     Handsontable.hooks.run(instance, 'afterInit');
   };
+ 
+  /**
+   * update cellPropoties position when add row or add col
+   *
+   * @param {String} action type,such as insert_row,insert_col
+   * @param {Number} position where to excute the action
+   * @param {Number} how much rows/cols will be added
+   * edit by xp 2015.11.25
+   */
+  function updateCellPropoties(action, index, amount) {
+    var settingList = priv.cellSettings;
+    var rowItem, cellItem;
 
+    // remove动作handsontablel已做过处理，直接return
+    if (action === 'remove_row' || action === 'remove_col') {
+      return;
+    }
+
+    for(var i=0;i<settingList.length;i++) {
+      rowItem = settingList[i];
+
+      for(var k=0;k<rowItem.length;k++) {
+        cellItem = rowItem[k];
+
+        // add row by amount
+        if(action === 'insert_row' && index < i) {
+          cellItem.row += amount;
+        }
+
+        // add col by amount
+        if(action === 'insert_col' && index < k) {
+          cellItem.col += amount;
+        }
+      }
+
+      // insert new col items
+      if(action === 'insert_col'){
+        for(var n=0;n<amount;n++){
+          rowItem.splice(index, 0, new priv.columnSettings[index+n+1]());
+        }
+      }
+
+    }
+
+    // insert new row items
+    if(action === 'insert_row'){
+      for(var m=0;m<amount;m++) {
+        settingList.splice(index, 0, []);
+      }
+    }
+
+  };
+  
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
     var resolved = false;
 
