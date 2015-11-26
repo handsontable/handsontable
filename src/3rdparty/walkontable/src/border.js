@@ -440,7 +440,7 @@ class WalkontableBorder {
 
     this.rightStyle.top = top + 'px';
     this.rightStyle.left = left + width - delta + 'px';
-    this.rightStyle.height = height + 1 + 'px';
+    this.rightStyle.height = height + 2 + 'px';
     this.rightStyle.display = 'block';
 
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {

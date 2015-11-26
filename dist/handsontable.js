@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 26 2015 11:06:21 GMT+0800 (CST)
+ * Date: Thu Nov 26 2015 17:32:55 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Nov 26 2015 11:06:21 GMT+0800 (CST)',
+  buildDate: 'Thu Nov 26 2015 17:32:55 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -423,7 +423,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.bottomStyle.display = 'block';
     this.rightStyle.top = top + 'px';
     this.rightStyle.left = left + width - delta + 'px';
-    this.rightStyle.height = height + 1 + 'px';
+    this.rightStyle.height = height + 2 + 'px';
     this.rightStyle.display = 'block';
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       this.cornerStyle.display = 'none';
@@ -3926,6 +3926,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     alter: function(action, index, amount, source, keepEmptyRows) {
       var delta;
       amount = amount || 1;
+      updateCellPropoties(action, index, amount);
       switch (action) {
         case 'insert_row':
           if (instance.getSettings().maxRows === instance.countRows()) {
@@ -4497,6 +4498,37 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     Handsontable.hooks.run(instance, 'afterInit');
   };
+  function updateCellPropoties(action, index, amount) {
+    var settingList = priv.cellSettings;
+    var rowItem,
+        cellItem;
+    if (action === 'remove_row' || action === 'remove_col') {
+      return;
+    }
+    for (var i = 0; i < settingList.length; i++) {
+      rowItem = settingList[i];
+      for (var k = 0; k < rowItem.length; k++) {
+        cellItem = rowItem[k];
+        if (action === 'insert_row' && index < i) {
+          cellItem.row += amount;
+        }
+        if (action === 'insert_col' && index < k) {
+          cellItem.col += amount;
+        }
+      }
+      if (action === 'insert_col') {
+        for (var n = 0; n < amount; n++) {
+          rowItem.splice(index, 0, new priv.columnSettings[index + n + 1]());
+        }
+      }
+    }
+    if (action === 'insert_row') {
+      for (var m = 0; m < amount; m++) {
+        settingList.splice(index, 0, []);
+      }
+    }
+  }
+  ;
   function ValidatorsQueue() {
     var resolved = false;
     return {
