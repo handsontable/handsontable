@@ -119,9 +119,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); // will call render() internally
-            } else {
-              selection.refreshBorders(); // it will call render and prepare methods
             }
+            
+            // force render after inert_row
+            instance.forceFullRender = true;
+            selection.refreshBorders(); // it will call render and prepare methods
           }
           break;
 
@@ -141,9 +143,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.col >= index) {
               priv.selRange.from.col = priv.selRange.from.col + delta;
               selection.transformEnd(0, delta); // will call render() internally
-            } else {
-              selection.refreshBorders(); // it will call render and prepare methods
             }
+
+            // force render after inert_col
+            instance.forceFullRender = true;
+            selection.refreshBorders(); // it will call render and prepare methods
           }
           break;
 
