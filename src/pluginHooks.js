@@ -713,7 +713,7 @@ class Hooks {
   /**
    * Returns new object with empty handlers related to every registered hook name.
    *
-   * @returns {Object}
+   * @returns {Object} The empty bucket object.
    *
    * @example
    * ```js
@@ -737,10 +737,10 @@ class Hooks {
   }
 
   /**
-   * Get hook bucket based on context object or if argument is `undefined` get global hook bucked.
+   * Get hook bucket based on context object or if argument is `undefined`, get the global hook bucket.
    *
-   * @param {Object} [context=null]
-   * @returns {Object} Returns global or handsontable instance bucket
+   * @param {Object} [context=null] A Handsontable instance.
+   * @returns {Object} Returns a global or Handsontable instance bucket.
    */
   getBucket(context = null) {
     if (context) {
@@ -755,17 +755,29 @@ class Hooks {
   }
 
   /**
-   * Adds listener (globally or locally) to specified hook name.
+   * Adds listener (globally or locally) to a specified hook name.
+   * If the `context` parameter is provided, the hook will be added only to the instance it references. Otherwise, the callback will be used everytime the hook fires on any Handsontable instance.
+   * You can provide an array of callback functions as the `callback` argument, this way they will all be fired once the hook was triggered.
    *
    * @see Core#addHook
-   * @param {String} key Hook/Event name
-   * @param {Function|Array} callback Callback function or array of functions
-   * @param {Object} [context=null]
-   * @returns {Hooks} Instance of Hooks
+   * @param {String} key Hook name.
+   * @param {Function|Array} callback Callback function or an array of functions.
+   * @param {Object} [context=null] The context for the hook callback to be added - a Handsontable instance or leave empty.
+   * @returns {Hooks} Instance of Hooks.
    *
    * @example
    * ```js
+   * // single callback, added locally
    * Handsontable.hooks.add('beforeInit', myCallback, hotInstance);
+   *
+   * // single callback, added globally
+   * Handsontable.hooks.add('beforeInit', myCallback);
+   *
+   * // multiple callbacks, added locally
+   * Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback], hotInstance);
+   *
+   * // multiple callbacks, added globally
+   * Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
    * ```
    */
   add(key, callback, context = null) {
@@ -791,12 +803,12 @@ class Hooks {
   }
 
   /**
-   * Adds listener to specified hook. After hook runs this listener will be automatically removed.
+   * Adds a listener to specified hook. After the hook runs this listener will be automatically removed from the bucket.
    *
    * @see Core#addHookOnce
-   * @param {String} key Hook/Event name
-   * @param {Function} callback Callback function
-   * @param {Object} [context=null]
+   * @param {String} key Hook/Event name.
+   * @param {Function} callback Callback function.
+   * @param {Object} [context=null] A Handsontable instance.
    *
    * @example
    * ```js
@@ -814,13 +826,13 @@ class Hooks {
   }
 
   /**
-   * Removes listener from hooks.
+   * Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
    *
    * @see Core#removeHook
-   * @param {String} key Hook/Event name
-   * @param {Function} callback Callback function
-   * @param {Object} [context=null]
-   * @return {Boolean} Returns `true` if hook was removed
+   * @param {String} key Hook/Event name.
+   * @param {Function} callback Callback function (needs the be the function that was previously added to the hook).
+   * @param {Object} [context=null] Handsontable instance.
+   * @return {Boolean} Returns `true` if hook was removed, `false` otherwise.
    *
    * @example
    * ```js
@@ -842,11 +854,12 @@ class Hooks {
   }
 
   /**
-   * Check if for specified hook name added some listeners.
+   * Checks whether there are any registered listeners for the provided hook name.
+   * If the `context` parameter is provided, it only checks for listeners assigned to the given Handsontable instance.
    *
    * @param {String} key Hook name.
-   * @param {Object} [context=null]
-   * @returns {Boolean}
+   * @param {Object} [context=null] A Handsontable instance.
+   * @returns {Boolean} `true` for success, `false` otherwise.
    */
   has(key, context = null) {
     let bucket = this.getBucket(context);
@@ -855,18 +868,19 @@ class Hooks {
   }
 
   /**
-   * Run all local and global listeners by hook name.
+   * Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
+   * It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.
    *
    * @see Core#runHooks
-   * @param {Object} context
-   * @param {String} key Hook/Event name
-   * @param {*} [p1]
-   * @param {*} [p2]
-   * @param {*} [p3]
-   * @param {*} [p4]
-   * @param {*} [p5]
-   * @param {*} [p6]
-   * @returns {*}
+   * @param {Object} context Handsontable instance.
+   * @param {String} key Hook/Event name.
+   * @param {*} [p1] Parameter to be passed as an argument to the callback function.
+   * @param {*} [p2] Parameter to be passed as an argument to the callback function.
+   * @param {*} [p3] Parameter to be passed as an argument to the callback function.
+   * @param {*} [p4] Parameter to be passed as an argument to the callback function.
+   * @param {*} [p5] Parameter to be passed as an argument to the callback function.
+   * @param {*} [p6] Parameter to be passed as an argument to the callback function.
+   * @returns {*} Either a return value from the last called callback or `p1`.
    *
    * @example
    * ```js
@@ -925,21 +939,27 @@ class Hooks {
   }
 
   /**
-   * Destroy all listeners connected to the context. If context is not exists then listeners will by destroy
-   * from globally.
+   * Destroy all listeners connected to the context. If no context is provided, the global listeners will be destroyed.
    *
-   * @param {Object} [context=null]
+   * @param {Object} [context=null] A Handsontable instance.
+   * @example
+   * ```js
+   * // destroy the global listeners
+   * Handsontable.hooks.destroy();
+   *
+   * // destroy the local listeners
+   * Handsontable.hooks.destroy(hotInstance);
+   * ```
    */
   destroy(context = null) {
     objectEach(this.getBucket(context), (value, key, bucket) => (bucket[key].length = 0));
   }
 
   /**
-   * Registers a hook name (adds it to the list of the known hook names). Used by plugins. It is not necessary to call,
-   * register, but if you use it, your plugin hook will be used returned by getRegistered
-   * (which itself is used in the demo http://handsontable.com/demo/callbacks.html).
+   * Registers a hook name (adds it to the list of the known hook names). Used by plugins.
+   * It is not necessary to call register, but if you use it, your plugin hook will be used returned by the `getRegistered` method. (which itself is used in the demo http://docs.handsontable.com/tutorial-callbacks.html).
    *
-   * @param key {String} Hook name
+   * @param key {String} The hook name.
    *
    * @example
    * ```js
@@ -953,9 +973,9 @@ class Hooks {
   }
 
   /**
-   * Unregister a hook name (removes it from the list of known hook names).
+   * Deregisters a hook name (removes it from the list of known hook names).
    *
-   * @param key {String} Hook name
+   * @param key {String} Hook name.
    *
    * @example
    * ```js
@@ -971,12 +991,13 @@ class Hooks {
   /**
    * Returns boolean information if a hook by such name has been registered.
    *
-   * @param key {String} Hook name
-   * @returns {Boolean}
+   * @param key {String} Hook name.
+   * @returns {Boolean} `true` for success, `false` otherwise.
    *
    * @example
    * ```js
    * Handsontable.hooks.isRegistered('beforeInit');
+   *
    * // Results:
    * true
    * ```
@@ -988,11 +1009,12 @@ class Hooks {
   /**
    * Returns an array of registered hooks.
    *
-   * @returns {Array}
+   * @returns {Array} An array of registered hooks.
    *
    * @example
    * ```js
    * Handsontable.hooks.getRegistered();
+   *
    * // Results:
    * [
    * ...
