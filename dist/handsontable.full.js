@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 19 2015 15:37:50 GMT+0800 (CST)
+ * Date: Thu Nov 26 2015 11:06:21 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Nov 19 2015 15:37:50 GMT+0800 (CST)',
+  buildDate: 'Thu Nov 26 2015 11:06:21 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3936,9 +3936,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0);
-            } else {
-              selection.refreshBorders();
             }
+            instance.forceFullRender = true;
+            selection.refreshBorders();
           }
           break;
         case 'insert_col':
@@ -3952,9 +3952,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.col >= index) {
               priv.selRange.from.col = priv.selRange.from.col + delta;
               selection.transformEnd(0, delta);
-            } else {
-              selection.refreshBorders();
             }
+            instance.forceFullRender = true;
+            selection.refreshBorders();
           }
           break;
         case 'remove_row':
