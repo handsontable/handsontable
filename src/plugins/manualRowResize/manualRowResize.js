@@ -71,6 +71,12 @@ class ManualRowResize extends BasePlugin {
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
+    // bind hook for updateColWidthAfterAddCol when col added
+    this.addHook('updateRowHeightAfterAddRow', (index, amount) => this.updateRowHeightAfterAddRow(index, amount));
+
+    // bind hook for updateColWidthAfterRemoveCol when col removed
+    this.addHook('updateRowHeightAfterRemoveRow', (index, amount) => this.updateRowHeightAfterRemoveRow(index, amount));
+
     Handsontable.hooks.register('beforeRowResize');
     Handsontable.hooks.register('afterRowResize');
 
@@ -344,6 +350,34 @@ class ManualRowResize extends BasePlugin {
     this.manualRowHeights[row] = height;
 
     return height;
+  }
+
+  /**
+   * update modified rowHeights list after row removed
+   *
+   * @param {Number} the row index where to remove new row
+   * @param {Number} the number of rows to be removed
+   * edit by xp 2015.11.27
+   */
+  updateRowHeightAfterRemoveRow(index, amount) {
+    if(this.manualRowHeights.length > index) {
+      this.manualRowHeights.splice(index, amount);
+    }
+  }
+
+  /**
+   * update modified rowHeights list after row added
+   *
+   * @param {Number} the row index where to add new row
+   * @param {Number} the number of rows to be added
+   * edit by xp 2015.11.27
+   */
+  updateRowHeightAfterAddRow(index, amount) {
+    if(this.manualRowHeights.length > index) {
+      for(var i=0;i<amount;i++) {
+        this.manualRowHeights.splice(index, 0, undefined);
+      }
+    }
   }
 
   /**

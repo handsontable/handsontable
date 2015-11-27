@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 26 2015 17:32:55 GMT+0800 (CST)
+ * Date: Fri Nov 27 2015 21:41:20 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Nov 26 2015 17:32:55 GMT+0800 (CST)',
+  buildDate: 'Fri Nov 27 2015 21:41:20 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3927,6 +3927,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var delta;
       amount = amount || 1;
       updateCellPropoties(action, index, amount);
+      updateColWidthAndRowHeight(action, index, amount);
       switch (action) {
         case 'insert_row':
           if (instance.getSettings().maxRows === instance.countRows()) {
@@ -4526,6 +4527,39 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       for (var m = 0; m < amount; m++) {
         settingList.splice(index, 0, []);
       }
+    }
+  }
+  ;
+  function updateColWidthAndRowHeight(action, index, amount) {
+    var commonCell = priv.cellSettings[0][0],
+        colWidths = commonCell.colWidths,
+        rowHeights = commonCell.rowHeights,
+        defaultHeight = undefined,
+        defaultWidth = instance.getSettings().defaultColWidth || 100;
+    if (typeof rowHeights !== 'object' || typeof colWidths !== 'object') {
+      return;
+    }
+    switch (action) {
+      case 'remove_row':
+        rowHeights.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterRemoveRow', index, amount);
+        break;
+      case 'remove_col':
+        colWidths.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateColWidthAfterRemoveCol', index, amount);
+        break;
+      case 'insert_row':
+        for (var i = 0; i < amount; i++) {
+          rowHeights.splice(index, 0, defaultHeight);
+        }
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterAddRow', index, amount);
+        break;
+      case 'insert_col':
+        for (var i = 0; i < amount; i++) {
+          colWidths.splice(index, 0, defaultWidth);
+        }
+        Handsontable.hooks.run(instance, 'updateColWidthAfterAddCol', index, amount);
+        break;
     }
   }
   ;
@@ -12452,6 +12486,12 @@ var $ManualColumnResize = ManualColumnResize;
     this.addHook('modifyColWidth', (function(width, col) {
       return $__5.onModifyColWidth(width, col);
     }));
+    this.addHook('updateColWidthAfterAddCol', (function(index, amount) {
+      return $__5.updateColWidthAfterAddCol(index, amount);
+    }));
+    this.addHook('updateColWidthAfterRemoveCol', (function(index, amount) {
+      return $__5.updateColWidthAfterRemoveCol(index, amount);
+    }));
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -12623,6 +12663,18 @@ var $ManualColumnResize = ManualColumnResize;
     column = this.hot.runHooks('modifyCol', column);
     this.manualColumnWidths[column] = width;
     return width;
+  },
+  updateColWidthAfterRemoveCol: function(index, amount) {
+    if (this.manualColumnWidths.length > index) {
+      this.manualColumnWidths.splice(index, amount);
+    }
+  },
+  updateColWidthAfterAddCol: function(index, amount) {
+    if (this.manualColumnWidths.length > index) {
+      for (var i = 0; i < amount; i++) {
+        this.manualColumnWidths.splice(index, 0, undefined);
+      }
+    }
   },
   onModifyColWidth: function(width, column) {
     if (this.enabled) {
@@ -12925,6 +12977,12 @@ var $ManualRowResize = ManualRowResize;
     this.addHook('modifyRowHeight', (function(height, row) {
       return $__5.onModifyRowHeight(height, row);
     }));
+    this.addHook('updateRowHeightAfterAddRow', (function(index, amount) {
+      return $__5.updateRowHeightAfterAddRow(index, amount);
+    }));
+    this.addHook('updateRowHeightAfterRemoveRow', (function(index, amount) {
+      return $__5.updateRowHeightAfterRemoveRow(index, amount);
+    }));
     Handsontable.hooks.register('beforeRowResize');
     Handsontable.hooks.register('afterRowResize');
     this.bindEvents();
@@ -13084,6 +13142,18 @@ var $ManualRowResize = ManualRowResize;
     row = this.hot.runHooks('modifyRow', row);
     this.manualRowHeights[row] = height;
     return height;
+  },
+  updateRowHeightAfterRemoveRow: function(index, amount) {
+    if (this.manualRowHeights.length > index) {
+      this.manualRowHeights.splice(index, amount);
+    }
+  },
+  updateRowHeightAfterAddRow: function(index, amount) {
+    if (this.manualRowHeights.length > index) {
+      for (var i = 0; i < amount; i++) {
+        this.manualRowHeights.splice(index, 0, undefined);
+      }
+    }
   },
   onModifyRowHeight: function(height, row) {
     if (this.enabled) {
