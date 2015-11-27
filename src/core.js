@@ -109,6 +109,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       // update cell propoties
       updateCellPropoties(action, index, amount);
 
+      // update colWidths and rowHeights after add col/row
+      updateColWidthAndRowHeight(action, index, amount);
+
       switch (action) {
         case 'insert_row':
 
@@ -958,9 +961,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         settingList.splice(index, 0, []);
       }
     }
-
   };
-  
+
+  /**
+   * update cellPropoties position when add row or add col
+   *
+   * @param {String} action type,such as insert_row,insert_col
+   * @param {Number} position where to excute the action
+   * @param {Number} how much rows/cols will be added
+   * edit by xp 2015.11.27
+   */
+  function updateColWidthAndRowHeight(action, index, amount) {
+    var commonCell = priv.cellSettings[0][0],
+        colWidths = commonCell.colWidths,
+        rowHeights = commonCell.rowHeights,
+        defaultHeight = undefined,
+        defaultWidth = instance.getSettings().defaultColWidth || 100;
+
+
+    // remove 已经做过处理return
+    if (action === 'remove_row' || action === 'remove_col') {
+      return;
+    }
+
+    // 如果是插入行
+    if (action === 'insert_row' && typeof rowHeights === 'object') {
+
+      // 更新setting中的值
+      for(var i=0;i<amount;i++) {
+        rowHeights.splice(index, 0, defaultHeight);
+      }
+
+      // 更新modify中的值
+      Handsontable.hooks.run(instance, 'updateRowHeightAfterAddRow', index, amount);
+    }
+
+    // 如果是插入列
+    if (action === 'insert_col' && typeof colWidths === 'object') {
+
+      // 更新setting中的值
+      for(var i=0;i<amount;i++) {
+        colWidths.splice(index, 0, defaultWidth);
+      }
+
+      // 更新modify中的值
+      Handsontable.hooks.run(instance, 'updateColWidthAfterAddCol', index, amount);
+    }
+  };
+
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
     var resolved = false;
 
