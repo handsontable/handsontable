@@ -112,7 +112,7 @@ class ContextMenu extends BasePlugin {
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
       let menuItems = this.itemsFactory.getVisibleItems(settings);
 
-      this.menu = new Menu(this.hot, {className: 'htContextMenu'});
+      this.menu = new Menu(this.hot, {className: 'htContextMenu', keepInViewport: true});
       this.menu.setMenuItems(menuItems);
 
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
