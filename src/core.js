@@ -1391,7 +1391,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns the current data object (the same that was passed by `data` configuration option or `loadData` method, unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
+   * Returns the current data object (the same that was passed by `data` configuration option or `loadData` method,
+   * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
    * Optionally you can provide cell range by defining `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
    *
    * Note: getData functionality changed with the release of version 0.20. If you're looking for the previous functionality,
@@ -1458,8 +1459,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Use it if you need to change configuration after initialization. The `settings` parameter is an object containing the new settings, declared the same way as in the initial settings object.
-   * Note, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
+   * Use it if you need to change configuration after initialization. The `settings` parameter is an object containing the new
+   * settings, declared the same way as in the initial settings object.
+   * Note, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
+   * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
    * @memberof Core#
    * @function updateSettings
@@ -1715,7 +1718,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @function getCell
    * @param {Number} row Row index.
    * @param {Number} col Column index.
-   * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example, if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
+   * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
+   * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
    * @returns {Element} The cell's TD element.
    */
   this.getCell = function(row, col, topmost) {

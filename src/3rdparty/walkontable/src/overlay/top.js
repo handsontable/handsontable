@@ -1,4 +1,3 @@
-
 import {
   addClass,
   getScrollbarWidth,
@@ -89,7 +88,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * Triggers onScroll hook callback
    */
   onScroll() {
-    this.wot.getSetting('onScrollVertically');
+    this.wot.getSetting('onScrollHorizontally');
   }
 
   /**
