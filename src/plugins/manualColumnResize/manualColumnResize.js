@@ -65,6 +65,9 @@ class ManualColumnResize extends BasePlugin {
     // bind hook for updateColWidthAfterAddCol when col added
     this.addHook('updateColWidthAfterAddCol', (index, amount) => this.updateColWidthAfterAddCol(index, amount));
 
+    // bind hook for updateColWidthAfterRemoveCol when col removed
+    this.addHook('updateColWidthAfterRemoveCol', (index, amount) => this.updateColWidthAfterRemoveCol(index, amount));
+
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -362,7 +365,20 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * update modified colwidths list after row added
+   * update modified colWidths list after col removed
+   *
+   * @param {Number} the column index where to remove col
+   * @param {Number} the number of cols to be removed
+   * edit by xp 2015.11.27
+   */
+  updateColWidthAfterRemoveCol(index, amount) {
+    if(this.manualColumnWidths.length > index) {
+      this.manualColumnWidths.splice(index, amount);
+    }
+  }
+  
+  /**
+   * update modified colWidths list after col added
    *
    * @param {Number} the column index where to add new col
    * @param {Number} the number of cols to be added
@@ -375,6 +391,7 @@ class ManualColumnResize extends BasePlugin {
       }
     }
   }
+
   /**
    * Modify the provided column width, based on the plugin settings
    *

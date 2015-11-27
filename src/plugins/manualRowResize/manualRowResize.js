@@ -74,6 +74,9 @@ class ManualRowResize extends BasePlugin {
     // bind hook for updateColWidthAfterAddCol when col added
     this.addHook('updateRowHeightAfterAddRow', (index, amount) => this.updateRowHeightAfterAddRow(index, amount));
 
+    // bind hook for updateColWidthAfterRemoveCol when col removed
+    this.addHook('updateRowHeightAfterRemoveRow', (index, amount) => this.updateRowHeightAfterRemoveRow(index, amount));
+
     Handsontable.hooks.register('beforeRowResize');
     Handsontable.hooks.register('afterRowResize');
 
@@ -347,6 +350,19 @@ class ManualRowResize extends BasePlugin {
     this.manualRowHeights[row] = height;
 
     return height;
+  }
+
+  /**
+   * update modified rowHeights list after row removed
+   *
+   * @param {Number} the row index where to remove new row
+   * @param {Number} the number of rows to be removed
+   * edit by xp 2015.11.27
+   */
+  updateRowHeightAfterRemoveRow(index, amount) {
+    if(this.manualRowHeights.length > index) {
+      this.manualRowHeights.splice(index, amount);
+    }
   }
 
   /**

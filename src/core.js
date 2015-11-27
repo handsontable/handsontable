@@ -978,35 +978,33 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         defaultHeight = undefined,
         defaultWidth = instance.getSettings().defaultColWidth || 100;
 
-
-    // remove 已经做过处理return
-    if (action === 'remove_row' || action === 'remove_col') {
+    if(typeof rowHeights !== 'object' || typeof colWidths !== 'object') {
       return;
     }
 
-    // 如果是插入行
-    if (action === 'insert_row' && typeof rowHeights === 'object') {
-
-      // 更新setting中的值
-      for(var i=0;i<amount;i++) {
-        rowHeights.splice(index, 0, defaultHeight);
-      }
-
-      // 更新modify中的值
-      Handsontable.hooks.run(instance, 'updateRowHeightAfterAddRow', index, amount);
+    switch(action) {
+      case 'remove_row':
+        rowHeights.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterRemoveRow', index, amount);
+        break;
+      case 'remove_col':
+        colWidths.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateColWidthAfterRemoveCol', index, amount);
+        break;
+      case 'insert_row':
+        for(var i=0;i<amount;i++) {
+          rowHeights.splice(index, 0, defaultHeight);
+        }
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterAddRow', index, amount);
+        break;
+      case 'insert_col':
+        for(var i=0;i<amount;i++) {
+          colWidths.splice(index, 0, defaultWidth);
+        }
+        Handsontable.hooks.run(instance, 'updateColWidthAfterAddCol', index, amount);
+        break;
     }
 
-    // 如果是插入列
-    if (action === 'insert_col' && typeof colWidths === 'object') {
-
-      // 更新setting中的值
-      for(var i=0;i<amount;i++) {
-        colWidths.splice(index, 0, defaultWidth);
-      }
-
-      // 更新modify中的值
-      Handsontable.hooks.run(instance, 'updateColWidthAfterAddCol', index, amount);
-    }
   };
 
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
