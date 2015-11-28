@@ -93,7 +93,8 @@ class ManualColumnResize extends BasePlugin {
     if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
     } else {
-      this.manualColumnWidths = [];
+      // not reset it
+      // this.manualColumnWidths = [];
     }
   }
 

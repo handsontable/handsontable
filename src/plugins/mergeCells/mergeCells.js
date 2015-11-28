@@ -359,8 +359,10 @@ var onBeforeKeyDown = function(event) {
 
   if (ctrlDown) {
     if (event.keyCode === 77) { //CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      var range = this.getSelectedRange();
+      this.mergeCells.mergeOrUnmergeSelection(range);
       this.render();
+      Handsontable.hooks.run(this, 'mergeCellsByShortcut', {start:range.from, end:range.to});
       stopImmediatePropagation(event);
     }
   }

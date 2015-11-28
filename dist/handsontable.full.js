@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Nov 27 2015 21:41:20 GMT+0800 (CST)
+ * Date: Sat Nov 28 2015 13:50:48 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Nov 27 2015 21:41:20 GMT+0800 (CST)',
+  buildDate: 'Sat Nov 28 2015 13:50:48 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -12508,9 +12508,7 @@ var $ManualColumnResize = ManualColumnResize;
     var initialColumnWidth = this.hot.getSettings().manualColumnResize;
     if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
-    } else {
-      this.manualColumnWidths = [];
-    }
+    } else {}
   },
   disablePlugin: function() {
     $traceurRuntime.superGet(this, $ManualColumnResize.prototype, "disablePlugin").call(this);
@@ -12992,9 +12990,7 @@ var $ManualRowResize = ManualRowResize;
     var initialRowHeights = this.hot.getSettings().manualRowResize;
     if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
-    } else {
-      this.manualRowHeights = [];
-    }
+    } else {}
   },
   disablePlugin: function() {
     $traceurRuntime.superGet(this, $ManualRowResize.prototype, "disablePlugin").call(this);
@@ -13477,8 +13473,13 @@ var onBeforeKeyDown = function(event) {
   var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
   if (ctrlDown) {
     if (event.keyCode === 77) {
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      var range = this.getSelectedRange();
+      this.mergeCells.mergeOrUnmergeSelection(range);
       this.render();
+      Handsontable.hooks.run(this, 'mergeCellsByShortcut', {
+        start: range.from,
+        end: range.to
+      });
       stopImmediatePropagation(event);
     }
   }
