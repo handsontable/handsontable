@@ -68,6 +68,9 @@ class ManualColumnResize extends BasePlugin {
     // bind hook for updateColWidthAfterRemoveCol when col removed
     this.addHook('updateColWidthAfterRemoveCol', (index, amount) => this.updateColWidthAfterRemoveCol(index, amount));
 
+    // bind hook for resetModifyColWidth when update col settings
+    this.addHook('resetModifyColWidth', (index) => this.resetModifyColWidth(index));
+
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -378,6 +381,18 @@ class ManualColumnResize extends BasePlugin {
     }
   }
   
+  /**
+   * update modified colWidths after updateSettings
+   *
+   * @param {Number} the column index where to reset
+   * edit by xp 2015.11.28
+   */
+  resetModifyColWidth(index){
+    if (this.manualColumnWidths[index]) {
+      this.manualColumnWidths[index] = undefined;
+    }
+  }
+
   /**
    * update modified colWidths list after col added
    *
