@@ -964,7 +964,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * update cellPropoties position when add row or add col
+   * update colWidth/rowHeight when add row or add col
    *
    * @param {String} action type,such as insert_row,insert_col
    * @param {Number} position where to excute the action
