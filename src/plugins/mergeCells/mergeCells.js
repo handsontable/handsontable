@@ -50,7 +50,7 @@ function CellInfoCollection() {
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
   var mergeCell;
-  
+
   if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
       mergeCell = mergeCellsSetting[i];
@@ -114,6 +114,11 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
 
 MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
+
+  // return if TD is not exist
+  if(!TD) {
+    return;
+  }
 
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
