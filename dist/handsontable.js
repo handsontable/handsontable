@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 01 2015 00:47:59 GMT+0800 (CST)
+ * Date: Tue Dec 01 2015 01:55:46 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Dec 01 2015 00:47:59 GMT+0800 (CST)',
+  buildDate: 'Tue Dec 01 2015 01:55:46 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4531,7 +4531,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
   ;
   function updateColWidthAndRowHeight(action, index, amount) {
-    var commonCell = priv.cellSettings[0][0],
+    var commonCell = priv.cellSettings[0][0] || priv.cellSettings[1][1],
         colWidths = commonCell.colWidths,
         rowHeights = commonCell.rowHeights,
         defaultHeight = undefined,
@@ -13284,6 +13284,9 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
 };
 MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
+  if (!TD) {
+    return;
+  }
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       TD.setAttribute('rowspan', info.rowspan);

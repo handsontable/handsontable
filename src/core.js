@@ -972,7 +972,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * edit by xp 2015.11.27
    */
   function updateColWidthAndRowHeight(action, index, amount) {
-    var commonCell = priv.cellSettings[0][0],
+    var commonCell = priv.cellSettings[0][0] || priv.cellSettings[1][1],
         colWidths = commonCell.colWidths,
         rowHeights = commonCell.rowHeights,
         defaultHeight = undefined,
