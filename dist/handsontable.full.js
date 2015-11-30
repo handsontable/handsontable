@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Nov 28 2015 18:14:17 GMT+0800 (CST)
+ * Date: Tue Dec 01 2015 00:25:03 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Sat Nov 28 2015 18:14:17 GMT+0800 (CST)',
+  buildDate: 'Tue Dec 01 2015 00:25:03 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -13239,7 +13239,9 @@ function MergeCells(mergeCellsSetting) {
   if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0,
         ilen = mergeCellsSetting.length; i < ilen; i++) {
-      this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      if (mergeCell.rowspan > 1 || mergeCell.colspan > 1) {
+        this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      }
     }
   }
 }
@@ -13260,8 +13262,12 @@ MergeCells.prototype.mergeRange = function(cellRange) {
   this.mergedCellInfoCollection.setInfo(mergeParent);
 };
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
+  var row = Math.min(cellRange.from.row, cellRange.to.row);
+  var col = Math.min(cellRange.to.col, cellRange.to.col);
+  var info = this.mergedCellInfoCollection.getInfo(row, col);
   if (info) {
+    cellRange.from.row = row;
+    cellRange.from.col = col;
     this.unmergeSelection(cellRange.from);
   } else {
     this.mergeSelection(cellRange);
@@ -13277,7 +13283,7 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
 MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
   if (info) {
-    if (info.row === row && info.col === col) {
+    if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       TD.setAttribute('rowspan', info.rowspan);
       TD.setAttribute('colspan', info.colspan);
     } else {
@@ -13289,6 +13295,21 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
     TD.removeAttribute('rowspan');
     TD.removeAttribute('colspan');
   }
+};
+MergeCells.prototype.inOtherMergeCell = function(info) {
+  var mergeCell,
+      inOtherMergeCell = false,
+      row = info.row,
+      col = info.col,
+      rowspan,
+      colspan;
+  for (var i in this.mergedCellInfoCollection) {
+    mergeCell = this.mergedCellInfoCollection[i];
+    if (!(row == mergeCell.row && col == mergeCell.col) && row >= mergeCell.row && col >= mergeCell.col && row <= mergeCell.row + mergeCell.rowspan - 1 && col <= mergeCell.col + mergeCell.colspan - 1) {
+      inOtherMergeCell = true;
+    }
+  }
+  return inOtherMergeCell;
 };
 MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delta) {
   var sameRowspan = function(merged, coords) {
