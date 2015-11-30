@@ -52,7 +52,9 @@ function MergeCells(mergeCellsSetting) {
 
   if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
-      this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      if(mergeCell.rowspan > 1 || mergeCell.colspan > 1) {
+        this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      }
     }
   }
 }
@@ -84,9 +86,14 @@ MergeCells.prototype.mergeRange = function(cellRange) {
 };
 
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
+  var row = Math.min(cellRange.from.row, cellRange.to.row);
+  var col = Math.min(cellRange.from.col, cellRange.to.col);
+
+  var info = this.mergedCellInfoCollection.getInfo(row, col);
   if (info) {
     //unmerge
+    cellRange.from.row = row;
+    cellRange.from.col = col;
     this.unmergeSelection(cellRange.from);
   } else {
     //merge
@@ -107,7 +114,7 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
 
   if (info) {
-    if (info.row === row && info.col === col) {
+    if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       TD.setAttribute('rowspan', info.rowspan);
       TD.setAttribute('colspan', info.colspan);
     } else {
@@ -121,7 +128,23 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
     TD.removeAttribute('colspan');
   }
 };
+MergeCells.prototype.inOtherMergeCell = function(info) {
+  var mergeCell,
+      inOtherMergeCell = false,
+      row = info.row,
+      col = info.col,
+      rowspan, colspan;
 
+  for(var i in this.mergedCellInfoCollection) {
+    mergeCell = this.mergedCellInfoCollection[i];
+
+    if(!(row == mergeCell.row && col == mergeCell.col) && row >= mergeCell.row && col>= mergeCell.col && row <= mergeCell.row+mergeCell.rowspan-1 && col <= mergeCell.col+mergeCell.colspan-1) {
+      inOtherMergeCell = true;
+    }
+  }
+
+  return inOtherMergeCell;
+};
 MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delta) {
   var sameRowspan = function(merged, coords) {
     if (coords.row >= merged.row && coords.row <= (merged.row + merged.rowspan - 1)) {
