@@ -49,9 +49,11 @@ function CellInfoCollection() {
  */
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
-
+  var mergeCell;
+  
   if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+      mergeCell = mergeCellsSetting[i];
       if(mergeCell.rowspan > 1 || mergeCell.colspan > 1) {
         this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
       }
