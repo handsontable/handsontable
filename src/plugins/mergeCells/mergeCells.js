@@ -87,7 +87,7 @@ MergeCells.prototype.mergeRange = function(cellRange) {
 
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
   var row = Math.min(cellRange.from.row, cellRange.to.row);
-  var col = Math.min(cellRange.to.col, cellRange.to.col);
+  var col = Math.min(cellRange.from.col, cellRange.to.col);
 
   var info = this.mergedCellInfoCollection.getInfo(row, col);
   if (info) {
