@@ -14,16 +14,16 @@ Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');
 
 /**
+ * @plugin ColumnSorting
+ *
  * This plugin sorts the view by a column (but does not sort the data source!)
  * TODO: Implement mixin arrayMapper to ColumnSorting plugin.
  *
- * @private
- * @class ColumnSorting
- * @plugin ColumnSorting
  * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
   /**
+   * @private
    * @param {Object} hotInstance
    */
   constructor(hotInstance) {

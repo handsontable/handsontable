@@ -114,6 +114,7 @@ class Comments extends BasePlugin {
     }
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterScrollHorizontally', () => this.refreshEditorPosition());
     this.addHook('afterScrollVertically', () => this.refreshEditorPosition());
     this.addHook('afterColumnResize', () => this.refreshEditorPosition());
     this.addHook('afterRowResize', () => this.refreshEditorPosition());

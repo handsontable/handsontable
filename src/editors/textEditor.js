@@ -339,6 +339,10 @@ TextEditor.prototype.bindEvents = function() {
     stopPropagation(event);
   });
 
+  this.instance.addHook('afterScrollHorizontally', function() {
+    editor.refreshDimensions();
+  });
+
   this.instance.addHook('afterScrollVertically', function() {
     editor.refreshDimensions();
   });

@@ -12,6 +12,7 @@ import {isWebComponentSupportedNatively} from './helpers/browser';
 class EventManager {
   /**
    * @param {Object} [context=null]
+   * @private
    */
   constructor(context = null) {
     this.context = context || this;
@@ -24,6 +25,7 @@ class EventManager {
   /**
    * Add event
    *
+   * @private
    * @param {Element} element
    * @param {String} eventName
    * @param {Function} callback
@@ -82,6 +84,7 @@ class EventManager {
   /**
    * Remove event
    *
+   * @private
    * @param {Element} element
    * @param {String} eventName
    * @param {Function} callback
@@ -112,6 +115,7 @@ class EventManager {
   /**
    * Clear all events
    *
+   * @private
    * @since 0.15.0-beta3
    */
   clearEvents() {
@@ -147,6 +151,7 @@ class EventManager {
   /**
    * Trigger event
    *
+   * @private
    * @param {Element} element
    * @param {String} eventName
    */
