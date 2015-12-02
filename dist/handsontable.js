@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 17:45:34 GMT+0800 (CST)
+ * Date: Wed Dec 02 2015 18:11:52 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 17:45:34 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 02 2015 18:11:52 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -11523,8 +11523,9 @@ function CopyPastePlugin(instance) {
       arrayEach(copyableColumns, (function(column) {
         if (instance.isCopyable(row, column)) {
           var tdItem = instance.getCell(row, column);
-          tdItem.setAttribute('class', tdItem.getAttribute('class').replace(/(area|highlight)/g, ''));
           rowSet.push(getDomHtml(tdItem));
+        } else {
+          rowSet.push('');
         }
       }));
       dataSet.push(rowSet);
@@ -11532,7 +11533,9 @@ function CopyPastePlugin(instance) {
     return SheetClip.stringify(dataSet);
     function getDomHtml(dom) {
       var tempContainer = $('<div></div>');
-      tempContainer.append(dom.cloneNode(true));
+      var cloneTd = dom.cloneNode(true);
+      cloneTd.setAttribute('class', cloneTd.getAttribute('class').replace(/(area|highlight)/g, ''));
+      tempContainer.append(cloneTd);
       return tempContainer.html();
     }
   };
