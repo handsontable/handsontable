@@ -88,19 +88,30 @@ MergeCells.prototype.mergeRange = function(cellRange) {
 };
 
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var row = Math.min(cellRange.from.row, cellRange.to.row);
-  var col = Math.min(cellRange.from.col, cellRange.to.col);
+  var from = $.extend(true, {}, cellRange.from),
+      to = $.extend(true, {}, cellRange.to),
+      row = Math.min(from.row, to.row),
+      col = Math.min(from.col, to.col),
+      rowspan = Math.abs(from.row - cellRange.to.row) + 1,
+      colspan = Math.abs(from.col - cellRange.to.col) + 1;
+
+  // make sure that from is the left-top
+  if(from.row > to.row || from.col > to.col ) {
+    cellRange.from = to;
+    cellRange.to = from;
+  }
+
+  function expandMerge(info) {
+    return rowspan > 1 && rowspan > info.rowspan || colspan > 1 && colspan > info.colspan;
+  }
 
   var info = this.mergedCellInfoCollection.getInfo(row, col);
-  if (info) {
-    //unmerge
-    cellRange.from.row = row;
-    cellRange.from.col = col;
+  if (info && !expandMerge(info)) {
     this.unmergeSelection(cellRange.from);
   } else {
-    //merge
     this.mergeSelection(cellRange);
   }
+
 };
 
 MergeCells.prototype.mergeSelection = function(cellRange) {
