@@ -330,9 +330,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      * @param {String} [method="overwrite"]
      * @param {String} direction (left|right|up|down)
      * @param {Array} deltas array
+     * @param {Array} inputAttr is used when source is 'autofill'
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function(start, input, end, source, method, direction, deltas) {
+    populateFromArray: function(start, input, end, source, method, direction, deltas, inputAttr) {
       var r, rlen, c, clen, setData = [], current = {};
 
       rlen = input.length;
@@ -418,6 +419,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
             return rowValue;
           };
+
+          let addAttrToValue = function addAttrToValue(row, col, value) {
+            if (inputAttr) {
+              var rowAttr, colAttr, _classes = '', _dataAttrs = '', i, key;
+              rowAttr = inputAttr[row];
+              colAttr = rowAttr[col];
+              if (colAttr.classes) {
+                for (i = 0; i < colAttr.classes.length; i++) {
+                  _classes += (' ' + colAttr.classes[i]);
+                }  
+              }
+              
+              if (colAttr.dataAttrs) {
+                for (key in colAttr.dataAttrs) {
+                  _dataAttrs += (' data-' + key + '="' + colAttr.dataAttrs[key] + '"');
+                }  
+              }
+              
+              if (_classes || _dataAttrs) {
+                value = '<td ' + 'class="' + _classes + '" ' + _dataAttrs + '>' + value + '</td>';
+              }
+            }
+            return value
+          }
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
@@ -489,6 +514,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }
+                value = addAttrToValue(index.row, index.col, value);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {

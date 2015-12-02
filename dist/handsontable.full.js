@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 22:43:04 GMT+0800 (CST)
+ * Date: Wed Dec 02 2015 22:54:42 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 22:43:04 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 02 2015 22:54:42 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4083,7 +4083,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.wtOverlays.adjustElementsSize();
       }
     },
-    populateFromArray: function(start, input, end, source, method, direction, deltas) {
+    populateFromArray: function(start, input, end, source, method, direction, deltas, inputAttr) {
       var r,
           rlen,
           c,
@@ -4160,6 +4160,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             }
             return rowValue;
           };
+          var addAttrToValue = function addAttrToValue(row, col, value) {
+            if (inputAttr) {
+              var rowAttr,
+                  colAttr,
+                  _classes = '',
+                  _dataAttrs = '',
+                  i,
+                  key;
+              rowAttr = inputAttr[row];
+              colAttr = rowAttr[col];
+              if (colAttr.classes) {
+                for (i = 0; i < colAttr.classes.length; i++) {
+                  _classes += (' ' + colAttr.classes[i]);
+                }
+              }
+              if (colAttr.dataAttrs) {
+                for (key in colAttr.dataAttrs) {
+                  _dataAttrs += (' data-' + key + '="' + colAttr.dataAttrs[key] + '"');
+                }
+              }
+              if (_classes || _dataAttrs) {
+                value = '<td ' + 'class="' + _classes + '" ' + _dataAttrs + '>' + value + '</td>';
+              }
+            }
+            return value;
+          };
           var rowInputLength = input.length;
           var rowSelectionLength = end ? end.row - start.row + 1 : 0;
           if (end) {
@@ -4218,6 +4244,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
+                value = addAttrToValue(index.row, index.col, value);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
@@ -9376,13 +9403,16 @@ function getDeltas(start, end, data, direction) {
   }
   return deltas;
 }
-function filterRawData(data) {
+function filterRawData(data, selRange, tableInst) {
   var destData = [],
       item,
-      destItem;
+      destItem,
+      baseRow = Math.min(selRange.from.row, selRange.to.row),
+      baseCol = Math.min(selRange.from.col, selRange.to.col);
   for (var row = 0,
       l = data.length; row < l; row++) {
     destData[row] = [];
+    attrData[row] = [];
     for (var col = 0,
         len = data[row].length; col < len; col++) {
       item = data[row][col];
@@ -9392,9 +9422,13 @@ function filterRawData(data) {
         destItem = item;
       }
       destData[row].push(destItem);
+      attrData[row].push(tableInst.getCellMeta(baseRow + row, baseCol + col));
     }
   }
-  return destData;
+  return {
+    value: destData,
+    attr: attrData
+  };
 }
 function Autofill(instance) {
   var _this = this,
@@ -9538,10 +9572,10 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    _data = filterRawData(_data);
-    deltas = getDeltas(start, end, _data, direction);
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
+    _data = filterRawData(_data, selRange, this.instance);
+    deltas = getDeltas(start, end, _data.value, direction);
+    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
+    this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);
     this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
     this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
   } else {
