@@ -1394,7 +1394,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @param {Array} deltas array
    * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas) {
+  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas, inputAttr) {
     var c;
 
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
@@ -1402,7 +1402,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     c = typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null;
 
-    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas, inputAttr);
   };
 
   /**

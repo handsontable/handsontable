@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 23:45:29 GMT+0800 (CST)
+ * Date: Thu Dec 03 2015 00:05:31 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 23:45:29 GMT+0800 (CST)',
+  buildDate: 'Thu Dec 03 2015 00:05:31 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4806,13 +4806,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.destroyEditor = function(revertOriginal) {
     selection.refreshBorders(revertOriginal);
   };
-  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas) {
+  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas, inputAttr) {
     var c;
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays');
     }
     c = typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null;
-    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas, inputAttr);
   };
   this.spliceCol = function(col, index, amount) {
     return datamap.spliceCol.apply(datamap, arguments);
