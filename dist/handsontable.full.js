@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 17:36:23 GMT+0800 (CST)
+ * Date: Wed Dec 02 2015 17:45:34 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 17:36:23 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 02 2015 17:45:34 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9741,7 +9741,10 @@ var $ContextMenu = ContextMenu;
       $__11.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
       $__11.itemsFactory.setPredefinedItems(predefinedItems.items);
       var menuItems = $__11.itemsFactory.getVisibleItems(settings);
-      $__11.menu = new Menu($__11.hot, {className: 'htContextMenu'});
+      $__11.menu = new Menu($__11.hot, {
+        className: 'htContextMenu',
+        keepInViewport: true
+      });
       $__11.menu.setMenuItems(menuItems);
       $__11.menu.addLocalHook('afterOpen', (function() {
         return $__11.hot.runHooks('afterContextMenuShow', $__11);
@@ -11417,6 +11420,7 @@ function CopyPastePlugin(instance) {
     areaEnd = new WalkontableCellCoords(Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row), Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
     var isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     var isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+    Handsontable.hooks.run(instance, 'beforePaste', instance.getData(), areaEnd);
     instance.addHookOnce('afterChange', (function(changes, source) {
       var changesLength = changes ? changes.length : 0;
       if (changesLength) {
