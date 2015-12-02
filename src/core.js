@@ -106,6 +106,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       amount = amount || 1;
 
+      // update cell propoties
+      updateCellPropoties(action, index, amount);
+
+      // update colWidths and rowHeights after add col/row
+      updateColWidthAndRowHeight(action, index, amount);
+
       switch (action) {
         case 'insert_row':
 
@@ -119,9 +125,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); // will call render() internally
-            } else {
-              selection.refreshBorders(); // it will call render and prepare methods
             }
+            
+            // force render after inert_row
+            instance.forceFullRender = true;
+            selection.refreshBorders(); // it will call render and prepare methods
           }
           break;
 
@@ -141,9 +149,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             if (selection.isSelected() && priv.selRange.from.col >= index) {
               priv.selRange.from.col = priv.selRange.from.col + delta;
               selection.transformEnd(0, delta); // will call render() internally
-            } else {
-              selection.refreshBorders(); // it will call render and prepare methods
             }
+
+            // force render after inert_col
+            instance.forceFullRender = true;
+            selection.refreshBorders(); // it will call render and prepare methods
           }
           break;
 
@@ -900,6 +910,101 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.firstRun = false;
     }
     Handsontable.hooks.run(instance, 'afterInit');
+  };
+ 
+  /**
+   * update cellPropoties position when add row or add col
+   *
+   * @param {String} action type,such as insert_row,insert_col
+   * @param {Number} position where to excute the action
+   * @param {Number} how much rows/cols will be added
+   * edit by xp 2015.11.25
+   */
+  function updateCellPropoties(action, index, amount) {
+    var settingList = priv.cellSettings;
+    var rowItem, cellItem;
+
+    // remove动作handsontablel已做过处理，直接return
+    if (action === 'remove_row' || action === 'remove_col') {
+      return;
+    }
+
+    for(var i=0;i<settingList.length;i++) {
+      rowItem = settingList[i];
+
+      for(var k=0;k<rowItem.length;k++) {
+        cellItem = rowItem[k];
+
+        // add row by amount
+        if(action === 'insert_row' && index < i) {
+          cellItem.row += amount;
+        }
+
+        // add col by amount
+        if(action === 'insert_col' && index < k) {
+          cellItem.col += amount;
+        }
+      }
+
+      // insert new col items
+      if(action === 'insert_col'){
+        for(var n=0;n<amount;n++){
+          rowItem.splice(index, 0, new priv.columnSettings[index+n+1]());
+        }
+      }
+
+    }
+
+    // insert new row items
+    if(action === 'insert_row'){
+      for(var m=0;m<amount;m++) {
+        settingList.splice(index, 0, []);
+      }
+    }
+  };
+
+  /**
+   * update colWidth/rowHeight when add row or add col
+   *
+   * @param {String} action type,such as insert_row,insert_col
+   * @param {Number} position where to excute the action
+   * @param {Number} how much rows/cols will be added
+   * edit by xp 2015.11.27
+   */
+  function updateColWidthAndRowHeight(action, index, amount) {
+    var commonCell = priv.cellSettings[0][0] || priv.cellSettings[1][1],
+        colWidths = commonCell.colWidths,
+        rowHeights = commonCell.rowHeights,
+        defaultHeight = undefined,
+        defaultWidth = instance.getSettings().defaultColWidth || 100;
+
+    if(typeof rowHeights !== 'object' || typeof colWidths !== 'object') {
+      return;
+    }
+
+    switch(action) {
+      case 'remove_row':
+        rowHeights.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterRemoveRow', index, amount);
+        break;
+      case 'remove_col':
+        colWidths.splice(index, amount);
+        Handsontable.hooks.run(instance, 'updateColWidthAfterRemoveCol', index, amount);
+        break;
+      case 'insert_row':
+        for(var i=0;i<amount;i++) {
+          rowHeights.splice(index, 0, defaultHeight);
+        }
+        Handsontable.hooks.run(instance, 'updateRowHeightAfterAddRow', index, amount);
+        break;
+      case 'insert_col':
+        for(var i=0;i<amount;i++) {
+          colWidths.splice(index, 0, defaultWidth);
+        }
+        Handsontable.hooks.run(instance, 'updateColWidthAfterAddCol', index, amount);
+        break;
+    }
+
   };
 
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file

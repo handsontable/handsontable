@@ -63,6 +63,7 @@ function CopyPastePlugin(instance) {
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
+    Handsontable.hooks.run(instance, 'beforePaste', instance.getData(), areaEnd);
     instance.addHookOnce('afterChange', (changes, source) => {
       let changesLength = changes ? changes.length : 0;
 

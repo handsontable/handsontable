@@ -62,6 +62,15 @@ class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
 
+    // bind hook for updateColWidthAfterAddCol when col added
+    this.addHook('updateColWidthAfterAddCol', (index, amount) => this.updateColWidthAfterAddCol(index, amount));
+
+    // bind hook for updateColWidthAfterRemoveCol when col removed
+    this.addHook('updateColWidthAfterRemoveCol', (index, amount) => this.updateColWidthAfterRemoveCol(index, amount));
+
+    // bind hook for resetModifyColWidth when update col settings
+    this.addHook('resetModifyColWidth', (index) => this.resetModifyColWidth(index));
+
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -87,7 +96,8 @@ class ManualColumnResize extends BasePlugin {
     if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
     } else {
-      this.manualColumnWidths = [];
+      // not reset it
+      // this.manualColumnWidths = [];
     }
   }
 
@@ -356,6 +366,46 @@ class ManualColumnResize extends BasePlugin {
     this.manualColumnWidths[column] = width;
 
     return width;
+  }
+
+  /**
+   * update modified colWidths list after col removed
+   *
+   * @param {Number} the column index where to remove col
+   * @param {Number} the number of cols to be removed
+   * edit by xp 2015.11.27
+   */
+  updateColWidthAfterRemoveCol(index, amount) {
+    if(this.manualColumnWidths.length > index) {
+      this.manualColumnWidths.splice(index, amount);
+    }
+  }
+  
+  /**
+   * update modified colWidths after updateSettings
+   *
+   * @param {Number} the column index where to reset
+   * edit by xp 2015.11.28
+   */
+  resetModifyColWidth(index){
+    if (this.manualColumnWidths[index]) {
+      this.manualColumnWidths[index] = undefined;
+    }
+  }
+
+  /**
+   * update modified colWidths list after col added
+   *
+   * @param {Number} the column index where to add new col
+   * @param {Number} the number of cols to be added
+   * edit by xp 2015.11.27
+   */
+  updateColWidthAfterAddCol(index, amount) {
+    if(this.manualColumnWidths.length > index) {
+      for(var i=0;i<amount;i++) {
+        this.manualColumnWidths.splice(index, 0, undefined);
+      }
+    }
   }
 
   /**
