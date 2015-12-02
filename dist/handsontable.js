@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 12:29:48 GMT+0800 (CST)
+ * Date: Wed Dec 02 2015 17:45:34 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 12:29:48 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 02 2015 17:45:34 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4864,6 +4864,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
   };
+  this.isCopyable = function(row, column) {
+    return datamap.isCopyable(row, datamap.colToProp(column));
+  };
   this.getCopyableData = function(row, column) {
     return datamap.getCopyable(row, datamap.colToProp(column));
   };
@@ -5928,6 +5931,9 @@ DataMap.prototype.getCopyable = function(row, prop) {
     return this.get(row, prop);
   }
   return '';
+};
+DataMap.prototype.isCopyable = function(row, prop) {
+  return copyableLookup.call(this.instance, row, this.propToCol(prop));
 };
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
@@ -11515,8 +11521,11 @@ function CopyPastePlugin(instance) {
     arrayEach(copyableRows, (function(row) {
       var rowSet = [];
       arrayEach(copyableColumns, (function(column) {
-        var tdItem = instance.getCell(row, column);
-        rowSet.push(getDomHtml(tdItem));
+        if (instance.isCopyable(row, column)) {
+          var tdItem = instance.getCell(row, column);
+          tdItem.setAttribute('class', tdItem.getAttribute('class').replace(/(area|highlight)/g, ''));
+          rowSet.push(getDomHtml(tdItem));
+        }
       }));
       dataSet.push(rowSet);
     }));

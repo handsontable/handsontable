@@ -448,6 +448,13 @@ DataMap.prototype.getCopyable = function(row, prop) {
 };
 
 /**
+ * judgement if the cell can be copied
+ */
+DataMap.prototype.isCopyable = function(row, prop) {
+  return copyableLookup.call(this.instance, row, this.propToCol(prop));
+};
+
+/**
  * Saves single value to the data array.
  *
  * @param {Number} row
