@@ -213,8 +213,12 @@ function CopyPastePlugin(instance) {
 
       arrayEach(copyableColumns, (column) => {
         // rowSet.push(instance.getCopyableData(row, column));
-        let tdItem = instance.getCell(row, column);
-        rowSet.push(getDomHtml(tdItem)); //include td wrapper
+
+        if(instance.isCopyable(row, column)) {
+          let tdItem = instance.getCell(row, column);
+          tdItem.setAttribute('class', tdItem.getAttribute('class').replace(/(area|highlight)/g, ''));
+          rowSet.push(getDomHtml(tdItem)); //include td wrapper
+        }
       });
 
       dataSet.push(rowSet);

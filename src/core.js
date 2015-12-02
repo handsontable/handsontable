@@ -1562,6 +1562,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * judgement if the cell can be copied
+   */
+  this.isCopyable = function(row, column) {
+    return datamap.isCopyable(row, datamap.colToProp(column));
+  };
+
+  /**
    * Get copyable value at specyfied row and column index ({@link DataMap#getCopyable}).
    *
    * @memberof Core#
