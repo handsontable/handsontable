@@ -3,20 +3,49 @@ import {registerPlugin} from './../../plugins';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection';
 
-/**
- * @private
- * @class CustomBorders
- * @plugin CustomBorders
- */
 function CustomBorders() {}
-
 /***
  * Current instance (table where borders should be placed)
  */
 var instance;
 
+/**
+ * This plugin enables an option to apply custom borders through the context menu (configurable with context menu key `borders`).
+ *
+ * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form of an array.
+ *
+ * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for more examples.
+ *
+ * @example
+ * ```js
+ * ...
+ * customBorders: [
+ *   {range: {
+   *     from: {row: 1, col: 1},
+   *     to: {row: 3, col: 4}},
+   *     left: {},
+   *     right: {},
+   *     top: {},
+   *     bottom: {}
+   *   }
+ * ],
+ * ...
+ *
+ * // or
+ * ...
+ * customBorders: [
+ *   {row: 2, col: 2, left: {width: 2, color: 'red'},
+ *     right: {width: 1, color: 'green'}, top: '', bottom: ''}
+ * ],
+ * ...
+ * ```
+ * @private
+ * @class CustomBorders
+ * @plugin CustomBorders
+ */
+
 /***
- * Check if plugin should be enabled
+ * Check if plugin should be enabled.
  */
 var checkEnable = function(customBorders) {
   if (typeof customBorders === 'boolean') {
@@ -34,8 +63,8 @@ var checkEnable = function(customBorders) {
 };
 
 /***
- * Initialize plugin
-  */
+ * Initialize plugin.
+ */
 var init = function() {
   if (checkEnable(this.getSettings().customBorders)) {
     if (!this.customBorders) {
@@ -46,9 +75,10 @@ var init = function() {
 };
 
 /***
- * get index of border setting
- * @param className
- * @returns {number}
+ * Get index of border from the settings.
+ *
+ * @param {String} className
+ * @returns {Number}
  */
 var getSettingIndex = function(className) {
   for (var i = 0; i < instance.view.wt.selections.length; i++) {
@@ -61,7 +91,8 @@ var getSettingIndex = function(className) {
 };
 
 /***
- * Insert WalkontableSelection instance into Walkontable.settings
+ * Insert WalkontableSelection instance into Walkontable settings.
+ *
  * @param border
  */
 var insertBorderIntoSettings = function(border) {
@@ -80,10 +111,10 @@ var insertBorderIntoSettings = function(border) {
 };
 
 /***
- * Prepare borders from setting (single cell)
+ * Prepare borders from setting (single cell).
  *
- * @param row
- * @param col
+ * @param {Number} row Row index.
+ * @param {Number} col Column index.
  * @param borderObj
  */
 var prepareBorderFromCustomAdded = function(row, col, borderObj) {
@@ -95,8 +126,9 @@ var prepareBorderFromCustomAdded = function(row, col, borderObj) {
 };
 
 /***
- * Prepare borders from setting (object)
- * @param rowObj
+ * Prepare borders from setting (object).
+ *
+ * @param {Object} rowObj
  */
 var prepareBorderFromCustomAddedRange = function(rowObj) {
   var range = rowObj.range;
@@ -147,18 +179,20 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
 };
 
 /***
- * Create separated class name for borders for each cell
- * @param row
- * @param col
- * @returns {string}
+ * Create separated class name for borders for each cell.
+ *
+ * @param {Number} row Row index.
+ * @param {Number} col Column index.
+ * @returns {String}
  */
 var createClassName = function(row, col) {
   return 'border_row' + row + 'col' + col;
 };
 
 /***
- * Create default single border for each position (top/right/bottom/left)
- * @returns {{width: number, color: string}}
+ * Create default single border for each position (top/right/bottom/left).
+ *
+ * @returns {Object} `{{width: number, color: string}}`
  */
 var createDefaultCustomBorder = function() {
   return {
@@ -168,8 +202,9 @@ var createDefaultCustomBorder = function() {
 };
 
 /***
- * Create default object for empty border
- * @returns {{hide: boolean}}
+ * Create default object for empty border.
+ *
+ * @returns {Object} `{{hide: boolean}}`
  */
 var createSingleEmptyBorder = function() {
   return {
@@ -178,8 +213,9 @@ var createSingleEmptyBorder = function() {
 };
 
 /***
- * Create default Handsontable border object
- * @returns {{width: number, color: string, cornerVisible: boolean}}
+ * Create default Handsontable border object.
+ *
+ * @returns {Object} `{{width: number, color: string, cornerVisible: boolean}}`
  */
 var createDefaultHtBorder = function() {
   return {
@@ -190,11 +226,11 @@ var createDefaultHtBorder = function() {
 };
 
 /***
- * Prepare empty border for each cell with all custom borders hidden
+ * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param row
- * @param col
- * @returns {{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}
+ * @param {Number} row Row index.
+ * @param {Number} col Column index.
+ * @returns {Object} `{{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
 var createEmptyBorders = function(row, col) {
   return {
@@ -234,7 +270,7 @@ var extendDefaultBorder = function(defaultBorder, customBorder) {
 };
 
 /**
- * Remove borders divs from DOM
+ * Remove borders divs from DOM.
  *
  * @param borderClassName
  */
@@ -255,10 +291,10 @@ var removeBordersFromDom = function(borderClassName) {
 };
 
 /***
- * Remove border (triggered from context menu)
+ * Remove border (triggered from context menu).
  *
- * @param row
- * @param col
+ * @param {Number} row Row index.
+ * @param {Number} col Column index.
  */
 var removeAllBorders = function(row, col) {
   var borderClassName = createClassName(row, col);

@@ -2,7 +2,8 @@ import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 
 /**
- * This plugin allows to manually "freeze" and "unfreeze" a column using the Context Menu.
+ * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu.
+ * You can turn it on by setting a `manualColumnFreeze` property to `true`.
  *
  * @plugin ManualColumnFreeze
  */
@@ -13,7 +14,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Check if the plugin is enabled in the Handsontable settings.
    *
    * @returns {Boolean}
    */
@@ -22,7 +23,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this handsontable instance.
+   * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -73,7 +74,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Add the manualColumnFreeze context menu entries
+   * Add the manualColumnFreeze context menu entries.
    *
    * @private
    * @param {Object} defaultOptions
@@ -113,7 +114,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Freeze the given column (add it to fixed columns).
    *
-   * @param {Number} column
+   * @param {Number} column Column index.
    */
   freezeColumn(column) {
     if (column <= this.fixedColumnsCount - 1) {
@@ -134,7 +135,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Unfreeze the given column (remove it from fixed columns and bring to it's previous position).
    *
-   * @param {Number} column
+   * @param {Number} column Column index.
    */
   unfreezeColumn(column) {
     if (column > this.fixedColumnsCount - 1) {
@@ -177,7 +178,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Checks whether 'manualColumnPositions' array needs creating and/or initializing.
    *
-   * @param {Number} [column]
+   * @param {Number} [column] Column index.
    */
   checkPositionData(column) {
     if (!this.hot.manualColumnPositions || this.hot.manualColumnPositions.length === 0) {
@@ -197,7 +198,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Fills the 'manualColumnPositions' array with consecutive column indexes.
    *
-   * @param {Number} length
+   * @param {Number} length Length for the array.
    */
   createPositionData(length) {
     if (this.hot.manualColumnPositions.length < length) {
@@ -210,9 +211,9 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Updates the column order array used by modifyCol callback.
    *
-   * @param {Number} column
-   * @param {Number} actualColumn column index of the currently selected cell.
-   * @param {Number|null} returnColumn suggested return slot for the unfreezed column (can be null).
+   * @param {Number} column Column index.
+   * @param {Number} actualColumn Column index of the currently selected cell.
+   * @param {Number|null} returnColumn suggested return slot for the unfrozen column (can be `null`).
    * @param {String} action 'freeze' or 'unfreeze'.
    */
   modifyColumnOrder(column, actualColumn, returnColumn, action) {
@@ -228,9 +229,9 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Estimates the most fitting return position for unfreezed column.
+   * Estimates the most fitting return position for unfrozen column.
    *
-   * @param {Number} column
+   * @param {Number} column Column index.
    */
   getBestColumnReturnPosition(column) {
     let i = this.fixedColumnsCount;
