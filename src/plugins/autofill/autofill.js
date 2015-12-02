@@ -50,7 +50,7 @@ function getDeltas(start, end, data, direction) {
 
 //将html转换成数字
 function filterRawData(data, selRange, tableInst){
-  var destData = [], item, destItem,
+  var destData = [], attrData = [], item, destItem,
   baseRow = Math.min(selRange.from.row, selRange.to.row),
   baseCol = Math.min(selRange.from.col, selRange.to.col);
 
