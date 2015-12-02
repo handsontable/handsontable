@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 23:42:42 GMT+0800 (CST)
+ * Date: Wed Dec 02 2015 23:45:29 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 23:42:42 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 02 2015 23:45:29 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -13315,12 +13315,21 @@ MergeCells.prototype.mergeRange = function(cellRange) {
   this.mergedCellInfoCollection.setInfo(mergeParent);
 };
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var row = Math.min(cellRange.from.row, cellRange.to.row);
-  var col = Math.min(cellRange.from.col, cellRange.to.col);
+  var from = $.extend(true, {}, cellRange.from),
+      to = $.extend(true, {}, cellRange.to),
+      row = Math.min(from.row, to.row),
+      col = Math.min(from.col, to.col),
+      rowspan = Math.abs(from.row - cellRange.to.row) + 1,
+      colspan = Math.abs(from.col - cellRange.to.col) + 1;
+  if (from.row > to.row || from.col > to.col) {
+    cellRange.from = to;
+    cellRange.to = from;
+  }
+  function expandMerge(info) {
+    return rowspan > 1 && rowspan > info.rowspan || colspan > 1 && colspan > info.colspan;
+  }
   var info = this.mergedCellInfoCollection.getInfo(row, col);
-  if (info) {
-    cellRange.from.row = row;
-    cellRange.from.col = col;
+  if (info && !expandMerge(info)) {
     this.unmergeSelection(cellRange.from);
   } else {
     this.mergeSelection(cellRange);
