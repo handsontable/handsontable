@@ -2836,6 +2836,24 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Check if for specified hook name added some listeners.
+   *
+   * @memberof Core#
+   * @function hasHook
+   * @see Hooks#has
+   * @param {String} key Hook name
+   * @return {Boolean}
+   *
+   * @example
+   * ```js
+   * var hasBeforeInitListeners = hot.hasHook('beforeInit');
+   * ```
+   */
+  this.hasHook = function(key) {
+    return Handsontable.hooks.has(key, instance);
+  };
+
+  /**
    * Adds listener to specified hook name and only for this Handsontable instance. After hook runs this
    * listener will be automatically removed.
    *

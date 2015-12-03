@@ -135,4 +135,30 @@ describe('Object helper', function () {
       expect(instance1.local.test).not.toBeDefined();
     });
   });
+
+  //
+  // Handsontable.helper.clone
+  //
+  describe('clone', function() {
+    it("should returns cloned object", function () {
+      var clone = Handsontable.helper.clone;
+
+      var function1 = function() {};
+      var object1 = {};
+      var object2 = {
+        foo: false,
+        und: void 0,
+        bar: 0,
+        baz: object1,
+        func: function1,
+      };
+
+      expect(clone(object1)).toEqual({});
+      expect(clone(object1)).not.toBe(object1);
+      expect(clone(object2)).toEqual(object2);
+      expect(clone(object2)).not.toBe(object2);
+      expect(clone(object2).baz).toBe(object2.baz);
+      expect(clone(object2).func).toBe(function1);
+    });
+  });
 });
