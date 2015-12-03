@@ -11,6 +11,15 @@ import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coord
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 
 /**
+ * @description
+ * This plugin enables the copy/paste functionality in Handsontable.
+ *
+ * @example
+ * ```js
+ * ...
+ * copyPaste: true,
+ * ...
+ * ```
  * @class CopyPaste
  * @plugin CopyPaste
  * @dependencies copyPaste SheetClip
@@ -231,7 +240,7 @@ function CopyPastePlugin(instance) {
 }
 
 /**
- * Init plugin
+ * Init plugin.
  *
  * @function init
  * @memberof CopyPaste#

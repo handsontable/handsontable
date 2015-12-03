@@ -2,7 +2,7 @@
 import {addClass} from './../../helpers/dom/element';
 
 /**
- * Comment editor for Comments plugin.
+ * Comment editor for the Comments plugin.
  *
  * @class CommentEditor
  * @plugin Comments
@@ -31,10 +31,10 @@ class CommentEditor {
   }
 
   /**
-   * Set position of comments editor according to x, y coords
+   * Set position of comments editor according to x, y coords.
    *
-   * @param {Number} x
-   * @param {Number} y
+   * @param {Number} x X position (in pixels).
+   * @param {Number} y Y position (in pixels).
    */
   setPosition(x, y) {
     this.editorStyle.left = x + 'px';
@@ -67,7 +67,7 @@ class CommentEditor {
   /**
    * Set comment value
    *
-   * @param {String} [value]
+   * @param {String} [value] The value to use.
    */
   setValue(value = '') {
     value = value || '';

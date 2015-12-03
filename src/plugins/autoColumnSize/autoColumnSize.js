@@ -14,19 +14,33 @@ import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable
  * @plugin AutoColumnSize
  *
  * @description
- * This plugin allows to set columns width related to the widest cell in column.
+ * This plugin allows to set column widths based on their widest cells.
  *
- * Default value is `undefined` which is the same effect as `true`. Enable this plugin can decrease performance.
+ * By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `true`).
+ * Enabling this plugin may decrease the overall table performance, as it needs to calculate the widths of all cells to
+ * resize the columns accordingly.
+ * If you experience problems with the performance, try turning this feature off and declaring the column widths manually.
  *
- * Column width calculations are divided into sync and async part. Each of this part has own advantages and
- * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
- * block Browser UI.
+ * Column width calculations are divided into sync and async part. Each of this parts has their own advantages and
+ * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
+ * block the browser UI.
+ *
+ * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+ * ```js
+ * ...
+ * // as a number (300 columns in sync, rest async)
+ * autoColumnSize: {syncLimit: 300},
+ * ...
+ *
+ * ...
+ * // as a string (percent)
+ * autoColumnSize: {syncLimit: '40%'},
+ * ...
+ * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
- *
  * @example
- *
  * ```js
  * ...
  * var hot = new Handsontable(document.getElementById('example'), {
@@ -232,7 +246,7 @@ class AutoColumnSize extends BasePlugin {
    * Get calculated column height.
    *
    * @param {Number} col Column index.
-   * @param {Number} [defaultWidth] Default column width. It will be pick up if no calculated width found.
+   * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
    */

@@ -41,7 +41,7 @@ function CellInfoCollection() {
 }
 
 /**
- * Plugin used to merge cells in Handsontable
+ * Plugin used to merge cells in Handsontable.
  *
  * @private
  * @plugin MergeCells

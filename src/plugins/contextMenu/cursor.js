@@ -77,7 +77,7 @@ class Cursor {
    * Checks if element can be placed below the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit below the cursor.
-   * @param {Number} [viewportHeight]
+   * @param {Number} [viewportHeight] The viewport height.
    * @returns {Boolean}
    */
   fitsBelow(element, viewportHeight = window.innerHeight) {
@@ -88,7 +88,7 @@ class Cursor {
    * Checks if element can be placed on the right of the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit on the right of the cursor.
-   * @param {Number} [viewportWidth]
+   * @param {Number} [viewportWidth] The viewport width.
    * @returns {Boolean}
    */
   fitsOnRight(element, viewportWidth = window.innerWidth) {

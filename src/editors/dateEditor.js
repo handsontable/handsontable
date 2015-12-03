@@ -21,6 +21,7 @@ Handsontable.editors.DateEditor = DateEditor;
 class DateEditor extends TextEditor {
   /**
    * @param {Core} hotInstance Handsontable instance
+   * @private
    */
   constructor(hotInstance) {
     this.$datePicker = null;
