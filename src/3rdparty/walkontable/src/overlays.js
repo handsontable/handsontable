@@ -296,12 +296,12 @@ class WalkontableOverlays {
 
         if (topOverlay) {
           topOverlay.scrollLeft = tempScrollValue;
-          delegatedScroll = true;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
 
         if (bottomOverlay) {
           bottomOverlay.scrollLeft = tempScrollValue;
-          delegatedScroll = true;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
       }
       tempScrollValue = getScrollTop(target);
@@ -313,7 +313,7 @@ class WalkontableOverlays {
 
         if (leftOverlay) {
           leftOverlay.scrollTop = tempScrollValue;
-          delegatedScroll = true;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
       }
 
