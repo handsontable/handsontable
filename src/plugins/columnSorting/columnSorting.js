@@ -13,19 +13,34 @@ import {registerPlugin} from './../../plugins';
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');
 
+// TODO: Implement mixin arrayMapper to ColumnSorting plugin.
+
 /**
- * This plugin sorts the view by a column (but does not sort the data source!)
- * TODO: Implement mixin arrayMapper to ColumnSorting plugin.
- *
- * @private
- * @class ColumnSorting
  * @plugin ColumnSorting
+ *
+ * @description
+ * This plugin sorts the view by a column (but does not sort the data source!).
+ * To enable the plugin, set the `columnSorting` property to either:
+ * * a boolean value (`true`/`false`),
+ * * an object defining the initial sorting order (see the example below).
+ *
+ * @example
+ * ```js
+ * ...
+ * // as boolean
+ * columnSorting: true
+ * ...
+ * // as a object with initial order (sort ascending column at index 2)
+ * columnSorting: {
+ *  column: 2,
+ *  sortOrder: true // true = ascending, false = descending, undefined = original order
+ * }
+ * ...
+ * ```
  * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
-  /**
-   * @param {Object} hotInstance
-   */
+
   constructor(hotInstance) {
     super(hotInstance);
     this.sortIndicators = [];
@@ -94,6 +109,11 @@ class ColumnSorting extends BasePlugin {
     super.disablePlugin();
   }
 
+  /**
+   * afterUpdateSettings callback.
+   *
+   * @private
+   */
   onAfterUpdateSettings() {
     this.sortBySettings();
   }
@@ -116,8 +136,9 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * Set sorted column and order info
-   * @param col {number} sorted column
-   * @param order {boolean|undefined} sorting order
+   *
+   * @param {number} col Sorted column index.
+   * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
   setSortingColumn(col, order) {
     if (typeof col == 'undefined') {
@@ -177,8 +198,9 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Load the sorting state
-   * @returns {*} previousle saved sorting state
+   * Load the sorting state.
+   *
+   * @returns {*} Previously saved sorting state.
    */
   loadSortingState() {
     let storedState = {};
@@ -188,7 +210,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Bind the events for column sorting
+   * Bind the events for column sorting.
    */
   bindColumnSortingAfterClick() {
     if (this.bindedSortEvent) {
@@ -253,9 +275,10 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Default sorting algorithm
-   * @param sortOrder
-   * @returns {Function} the comparing function
+   * Default sorting algorithm.
+   *
+   * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
+   * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder) {
     return function(a, b) {
@@ -292,8 +315,8 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * Date sorting algorithm
-   * @param sortOrder
-   * @returns {Function} The compare function
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @returns {Function} The compare function.
    */
   dateSort(sortOrder) {
     return function(a, b) {
@@ -321,6 +344,9 @@ class ColumnSorting extends BasePlugin {
     };
   }
 
+  /**
+   * Perform the sorting.
+   */
   sort() {
     if (typeof this.hot.sortOrder == 'undefined') {
       this.hot.sortIndex.length = 0;
@@ -362,9 +388,10 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `modifyRow` hook callback. Translates physical row index to the sorted row index
-   * @param row {number} row index
-   * @returns {number} sorted row index
+   * `modifyRow` hook callback. Translates physical row index to the sorted row index.
+   *
+   * @param {Number} row Row index.
+   * @returns {Number} Sorted row index.
    */
   translateRow(row) {
     if (this.hot.sortingEnabled && (typeof this.hot.sortOrder !== 'undefined') && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
@@ -375,9 +402,10 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Translates sorted row index to physical row index
-   * @param row {number} sorted row index
-   * @returns {number} physical row index
+   * Translates sorted row index to physical row index.
+   *
+   * @param {Number} row Sorted row index.
+   * @returns {number} Physical row index.
    */
   untranslateRow(row) {
     if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
@@ -390,9 +418,11 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers
-   * @param col
-   * @param TH
+   * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers.
+   *
+   * @private
+   * @param {Number} col Column index.
+   * @param {Element} TH TH HTML element.
    */
   getColHeader(col, TH) {
     let headerLink = TH.querySelector('.colHeader');
@@ -424,17 +454,20 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Check if any column is in a sorted state
-   * @returns {boolean}
+   * Check if any column is in a sorted state.
+   *
+   * @returns {Boolean}
    */
   isSorted() {
     return typeof this.hot.sortColumn != 'undefined';
   }
 
   /**
-   * `afterCreateRow` callback. Updates the sorting state after a row have been created
-   * @param index
-   * @param amount
+   * `afterCreateRow` callback. Updates the sorting state after a row have been created.
+   *
+   * @private
+   * @param {Number} index
+   * @param {Number} amount
    */
   afterCreateRow(index, amount) {
     if (!this.isSorted()) {
@@ -456,8 +489,10 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * `afterRemoveRow` hook callback.
-   * @param index
-   * @param amount
+   *
+   * @private
+   * @param {Number} index
+   * @param {Number} amount
    */
   afterRemoveRow(index, amount) {
     if (!this.isSorted()) {

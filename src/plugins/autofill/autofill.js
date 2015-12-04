@@ -275,7 +275,7 @@ Autofill.prototype.apply = function() {
  *
  * @function showBorder
  * @memberof Autofill#
- * @param {WalkontableCellCoords} coords
+ * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
  */
 Autofill.prototype.showBorder = function(coords) {
   var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),

@@ -7,6 +7,10 @@ import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 
 /**
+ * @description
+ * This plugin adds a copy/paste functionality to the context menu. Due to browser restrictions, it uses ZeroClipboard to allow
+ * copying data with a click.
+ *
  * @plugin ContextMenuCopyPaste
  * @dependencies ContextMenu zeroclipboard
  */
@@ -93,7 +97,7 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * Get value to copy.
+   * Get a value to copy.
    *
    * @returns {String}
    */
@@ -104,7 +108,7 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * Add Copy and Paste functionality to context menu.
+   * Add Copy and Paste functionality to the context menu.
    *
    * @private
    * @param {Object} defaultOptions

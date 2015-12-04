@@ -17,8 +17,20 @@ import {CommentEditor} from './commentEditor';
  * @plugin Comments
  *
  * @description
- * With option `comments: true`, you can manage cell comments programmatically or through the context menu.
- * To initialize Handsontable with predefined comments, provide comment cell property: `{row: 1, col: 1, comment: "Test comment"}`
+ * This plugin allows setting an managing cell comments by either an option in the context menu or with the API.
+ *
+ * To enable the plugin, you'll need to set the `comments` property of the config object to `true`:
+ * ```js
+ * ...
+ * comments: true
+ * ...
+ * ```
+ *
+ * OR by declaring it as an object with the plugin settings.
+ * For example, to enable it with a pre-defined comment added to cell at (1,1), you'd need to set it up like this:
+ * ```js
+ * comments: {row: 1, col: 1, comment: "Test comment"}
+ * ```
  *
  * @example
  *
@@ -32,7 +44,7 @@ import {CommentEditor} from './commentEditor';
  *     {row: 2, col: 2, comment: 'Bar'}
  *   ]
  * });
- * // Access to comments plugin instance:
+ * // Access to the Comments plugin instance:
  * var commentsPlugin = hot.getPlugin('comments');
  *
  * // Managing comments programmatically:
@@ -55,20 +67,20 @@ class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Instance of {@link CommentEditor}
+     * Instance of {@link CommentEditor}.
      *
      * @type {CommentEditor}
      */
     this.editor = null;
     /**
-     * Instance of {@link EventManager}
+     * Instance of {@link EventManager}.
      *
      * @private
      * @type {EventManager}
      */
     this.eventManager = null;
     /**
-     * Current cell range
+     * Current cell range.
      *
      * @type {Object}
      */
@@ -114,6 +126,7 @@ class Comments extends BasePlugin {
     }
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterScrollHorizontally', () => this.refreshEditorPosition());
     this.addHook('afterScrollVertically', () => this.refreshEditorPosition());
     this.addHook('afterColumnResize', () => this.refreshEditorPosition());
     this.addHook('afterRowResize', () => this.refreshEditorPosition());
@@ -159,7 +172,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if event target is cell with comment.
+   * Check if event target is a cell with comment.
    *
    * @param {Event} event DOM event
    * @returns {Boolean}
@@ -169,9 +182,9 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if event target is comment textarea.
+   * Check if event target is a comment textarea.
    *
-   * @param {Event} event DOM event
+   * @param {Event} event DOM event.
    * @returns {Boolean}
    */
   targetIsCommentTextArea(event) {
@@ -196,8 +209,8 @@ class Comments extends BasePlugin {
   /**
    * Save comment for cell.
    *
-   * @param {Number} row Row index
-   * @param {Number} col Column index
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
    */
   saveCommentAtCell(row, col) {
     this.setRange({
@@ -221,8 +234,8 @@ class Comments extends BasePlugin {
   /**
    * Remove comment.
    *
-   * @param {Number} row Row index
-   * @param {Number} col Column index
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
    */
   removeCommentAtCell(row, col) {
     this.setRange({
@@ -234,7 +247,7 @@ class Comments extends BasePlugin {
   /**
    * Show comment editor according to previously set range (see {@link Comments#setRange}).
    *
-   * @returns {Boolean} Returns `true` if comment editor was showed
+   * @returns {Boolean} Returns `true` if comment editor was showed.
    */
   show() {
     if (!this.range.from) {
@@ -252,9 +265,9 @@ class Comments extends BasePlugin {
   /**
    * Show comment editor according to cell coordinates.
    *
-   * @param {Number} row Row index
-   * @param {Number} col Column index
-   * @returns {Boolean} Returns `true` if comment editor was showed
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @returns {Boolean} Returns `true` if comment editor was showed.
    */
   showAtCell(row, col) {
     this.setRange({
@@ -272,9 +285,9 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Refresh comment editor position
+   * Refresh comment editor position.
    *
-   * @param {Boolean} [force=false] If `true` then recalculation will be trigger forced.
+   * @param {Boolean} [force=false] If `true` then recalculation will be forced.
    */
   refreshEditorPosition(force = false) {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
@@ -318,7 +331,7 @@ class Comments extends BasePlugin {
    * Mouse down DOM listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event Mouse event.
    */
   onMouseDown(event) {
     this.mouseDown = true;
@@ -336,7 +349,7 @@ class Comments extends BasePlugin {
    * Mouse over DOM listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event Mouse event.
    */
   onMouseOver(event) {
     if (this.mouseDown || this.editor.isFocused()) {
@@ -359,7 +372,7 @@ class Comments extends BasePlugin {
    * Mouse move DOM listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event Mouse Event.
    */
   onMouseMove(event) {
     // Fix for Chrome issues about not firing mousedown events on textarea corner handler

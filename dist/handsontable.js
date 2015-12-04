@@ -1187,7 +1187,7 @@ var Walkontable = function Walkontable(settings) {
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
-    } else if (coords.row >= totalRows - fixedRowsBottom) {
+    } else if (coords.row > totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -1698,7 +1698,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     }
   },
   onScroll: function() {
-    this.wot.getSetting('onScrollHorizontally');
+    this.wot.getSetting('onScrollVertically');
   },
   sumCellSizes: function(from, to) {
     var sum = 0;
@@ -1881,7 +1881,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     }
   },
   onScroll: function() {
-    this.wot.getSetting('onScrollVertically');
+    this.wot.getSetting('onScrollHorizontally');
   },
   sumCellSizes: function(from, to) {
     var sum = 0;
@@ -2135,6 +2135,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       left: null
     }
   };
+  this.verticalScrolling = false;
+  this.horizontalScrolling = false;
+  this.delegatedScrollCallback = false;
   this.registerListeners();
 };
 ($traceurRuntime.createClass)(WalkontableOverlays, {
@@ -2147,8 +2150,14 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       return;
     }
     this.wot.draw(true);
-    this.topOverlay.onScroll();
-    this.leftOverlay.onScroll();
+    if (this.verticalScrolling) {
+      this.leftOverlay.onScroll();
+    }
+    if (this.horizontalScrolling) {
+      this.topOverlay.onScroll();
+    }
+    this.verticalScrolling = false;
+    this.horizontalScrolling = false;
   },
   registerListeners: function() {
     var $__3 = this;
@@ -2271,6 +2280,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var topOverlay;
     var leftOverlay;
     var bottomOverlay;
+    var delegatedScroll = false;
     if (this.topOverlay.needFullRender) {
       topOverlay = this.topOverlay.clone.wtTable.holder;
     }
@@ -2286,26 +2296,32 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     if (target === master) {
       tempScrollValue = getScrollLeft(target);
       if (this.overlayScrollPositions.master.left !== tempScrollValue) {
+        this.horizontalScrolling = true;
         this.overlayScrollPositions.master.left = tempScrollValue;
         scrollValueChanged = true;
         if (topOverlay) {
           topOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
         if (bottomOverlay) {
           bottomOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
       }
       tempScrollValue = getScrollTop(target);
       if (this.overlayScrollPositions.master.top !== tempScrollValue) {
+        this.verticalScrolling = true;
         this.overlayScrollPositions.master.top = tempScrollValue;
         scrollValueChanged = true;
         if (leftOverlay) {
           leftOverlay.scrollTop = tempScrollValue;
+          delegatedScroll = (this.mainTableScrollableElement !== window);
         }
       }
     } else if (target === bottomOverlay) {
       tempScrollValue = getScrollLeft(target);
       if (this.overlayScrollPositions.bottom.left !== tempScrollValue) {
+        this.horizontalScrolling = true;
         this.overlayScrollPositions.bottom.left = tempScrollValue;
         scrollValueChanged = true;
         master.scrollLeft = tempScrollValue;
@@ -2317,6 +2333,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     } else if (target === topOverlay) {
       tempScrollValue = getScrollLeft(target);
       if (this.overlayScrollPositions.top.left !== tempScrollValue) {
+        this.horizontalScrolling = true;
         this.overlayScrollPositions.top.left = tempScrollValue;
         scrollValueChanged = true;
         master.scrollLeft = tempScrollValue;
@@ -2328,6 +2345,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     } else if (target === leftOverlay) {
       tempScrollValue = getScrollTop(target);
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
+        this.verticalScrolling = true;
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
         master.scrollTop = tempScrollValue;
@@ -2338,7 +2356,14 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
-      this.refreshAll();
+      if (this.delegatedScrollCallback) {
+        this.delegatedScrollCallback = false;
+      } else {
+        this.refreshAll();
+      }
+      if (delegatedScroll) {
+        this.delegatedScrollCallback = true;
+      }
     }
   },
   syncScrollWithMaster: function() {
@@ -3823,9 +3848,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Thu Nov 19 2015 10:51:56 GMT+0100 (CET)';
+Handsontable.buildDate = 'Fri Dec 04 2015 11:56:12 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.20.1';
+Handsontable.version = '0.20.2';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -5517,6 +5542,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.addHook = function(key, callback) {
     Handsontable.hooks.add(key, callback, instance);
+  };
+  this.hasHook = function(key) {
+    return Handsontable.hooks.has(key, instance);
   };
   this.addHookOnce = function(key, callback) {
     Handsontable.hooks.once(key, callback, instance);
@@ -7796,6 +7824,9 @@ SelectEditor.prototype.init = function() {
 };
 SelectEditor.prototype.registerHooks = function() {
   var $__5 = this;
+  this.instance.addHook('afterScrollHorizontally', (function() {
+    return $__5.refreshDimensions();
+  }));
   this.instance.addHook('afterScrollVertically', (function() {
     return $__5.refreshDimensions();
   }));
@@ -8260,6 +8291,9 @@ TextEditor.prototype.bindEvents = function() {
   });
   this.eventManager.addEventListener(this.TEXTAREA, 'paste', function(event) {
     stopPropagation(event);
+  });
+  this.instance.addHook('afterScrollHorizontally', function() {
+    editor.refreshDimensions();
   });
   this.instance.addHook('afterScrollVertically', function() {
     editor.refreshDimensions();
@@ -9870,7 +9904,7 @@ function deepClone(obj) {
 function clone(object) {
   var result = {};
   objectEach(object, (function(value, key) {
-    return result[key] = value;
+    result[key] = value;
   }));
   return result;
 }
@@ -10019,6 +10053,12 @@ Object.defineProperties(exports, {
   isPercentValue: {get: function() {
       return isPercentValue;
     }},
+  substitute: {get: function() {
+      return substitute;
+    }},
+  padStart: {get: function() {
+      return padStart;
+    }},
   __esModule: {value: true}
 });
 var $__mixed__,
@@ -10075,6 +10115,36 @@ function randomString() {
 function isPercentValue(value) {
   return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
 }
+function substitute(template) {
+  var variables = arguments[1] !== (void 0) ? arguments[1] : {};
+  return (template + '').replace(/(?:\\)?\[([^\[\]]+)]/g, function(match, name) {
+    if (match.charAt(0) === '\\') {
+      return match.substr(1, match.length - 1);
+    }
+    return variables[name] === void 0 ? '' : variables[name];
+  });
+}
+function padStart(string, maxLength) {
+  var fillString = arguments[2] !== (void 0) ? arguments[2] : ' ';
+  string = string + '';
+  if (string.length >= maxLength) {
+    return string;
+  }
+  fillString = String(fillString);
+  var fillStringLength = fillString.length;
+  if (!fillStringLength) {
+    fillString = ' ';
+  }
+  var fillLen = maxLength - string.length;
+  var timesToRepeat = Math.ceil(fillLen / fillString.length);
+  var truncatedString = '';
+  rangeEach(timesToRepeat, (function(index) {
+    truncatedString += fillString;
+  }));
+  truncatedString = truncatedString.slice(0, fillLen);
+  return truncatedString + string;
+}
+;
 
 //# 
 },{"mixed":48,"number":49}],53:[function(require,module,exports){
@@ -10273,7 +10343,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterColumnMove', 'afterColumnResize', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterIsMultipleSelectionCheck', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'modifyColumnHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize'];
 var arrayEach = ($__helpers_47_array__ = require("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = require("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -11964,6 +12034,9 @@ var $Comments = Comments;
     this.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
       return $__6.onAfterRenderer(TD, cellProperties);
     }));
+    this.addHook('afterScrollHorizontally', (function() {
+      return $__6.refreshEditorPosition();
+    }));
     this.addHook('afterScrollVertically', (function() {
       return $__6.refreshEditorPosition();
     }));
@@ -12343,7 +12416,10 @@ var $ContextMenu = ContextMenu;
       $__11.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
       $__11.itemsFactory.setPredefinedItems(predefinedItems.items);
       var menuItems = $__11.itemsFactory.getVisibleItems(settings);
-      $__11.menu = new Menu($__11.hot, {className: 'htContextMenu'});
+      $__11.menu = new Menu($__11.hot, {
+        className: 'htContextMenu',
+        keepInViewport: true
+      });
       $__11.menu.setMenuItems(menuItems);
       $__11.menu.addLocalHook('afterOpen', (function() {
         return $__11.onMenuAfterOpen();

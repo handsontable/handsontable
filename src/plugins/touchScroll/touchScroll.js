@@ -3,7 +3,9 @@ import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 
 /**
+ * @private
  * @plugin TouchScroll
+ * @class TouchScroll
  */
 class TouchScroll extends BasePlugin {
   /**

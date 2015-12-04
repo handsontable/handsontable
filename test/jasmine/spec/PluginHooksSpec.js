@@ -294,6 +294,17 @@ describe('PluginHooks', function () {
 
       expect(hooks.getRegistered().length).toBeGreaterThan(0);
     });
+
+    it('should returns `true` if at least one listener was added to the hook', function () {
+      var hooks = new Handsontable.utils.Hooks();
+      var context = {};
+
+      expect(hooks.has('beforeInit', context)).toBe(false);
+
+      hooks.add('beforeInit', function() {}, context);
+
+      expect(hooks.has('beforeInit', context)).toBe(true);
+    });
   });
 
 
