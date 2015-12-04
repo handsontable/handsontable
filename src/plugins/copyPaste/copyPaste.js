@@ -216,8 +216,9 @@ function CopyPastePlugin(instance) {
         // rowSet.push(instance.getCopyableData(row, column));
 
         if(instance.isCopyable(row, column)) {
-          let tdItem = instance.getCell(row, column);
-          rowSet.push(getDomHtml(tdItem)); //include td wrapper
+          let tdValue = instance.getDataAtCell(row, column);
+          let tdMeta = instance.getCellMeta(row, column);
+          rowSet.push(instance.generateCellHtml(tdValue, tdMeta));
         } else {
           rowSet.push('');
         }
@@ -228,13 +229,6 @@ function CopyPastePlugin(instance) {
 
     return SheetClip.stringify(dataSet);
 
-    function getDomHtml(dom){
-      let tempContainer = $('<div></div>');
-      let cloneTd = dom.cloneNode(true);
-      cloneTd.setAttribute('class', cloneTd.getAttribute('class').replace(/(area|highlight)/g, ''));
-      tempContainer.append(cloneTd);
-      return tempContainer.html();
-    }
   };
 }
 

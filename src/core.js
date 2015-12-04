@@ -420,29 +420,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             return rowValue;
           };
 
-          let addAttrToValue = function addAttrToValue(row, col, value) {
-            if (inputAttr) {
-              var rowAttr, colAttr, _classes = '', _dataAttrs = '', i, key;
-              rowAttr = inputAttr[row];
-              colAttr = rowAttr[col];
-              if (colAttr.classes) {
-                for (i = 0; i < colAttr.classes.length; i++) {
-                  _classes += (' ' + colAttr.classes[i]);
-                }  
-              }
-              
-              if (colAttr.dataAttrs) {
-                for (key in colAttr.dataAttrs) {
-                  _dataAttrs += (' data-' + key + '="' + colAttr.dataAttrs[key] + '"');
-                }  
-              }
-              
-              if (_classes || _dataAttrs) {
-                value = '<td ' + 'class="' + _classes + '" ' + _dataAttrs + '>' + value + '</td>';
-              }
-            }
-            return value
-          }
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
@@ -514,7 +491,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }
-                value = addAttrToValue(index.row, index.col, value);
+                value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
@@ -962,14 +939,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         for(var k=0;k<rowItem.length;k++) {
           cellItem = rowItem[k];
 
-          // add row by amount
-          if(action === 'insert_row' && index < i) {
-            cellItem.row += amount;
-          }
+          if(cellItem) {
+            // add row by amount
+            if(action === 'insert_row' && index < i) {
+              cellItem.row += amount;
+            }
 
-          // add col by amount
-          if(action === 'insert_col' && index < k) {
-            cellItem.col += amount;
+            // add col by amount
+            if(action === 'insert_col' && index < k) {
+              cellItem.col += amount;
+            }
           }
         }
       } else {
@@ -1872,6 +1851,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.alter = function(action, index, amount, source, keepEmptyRows) {
     grid.alter(action, index, amount, source, keepEmptyRows);
+  };
+
+  /**
+   * Returns the HTML string of a TD element for given `value`, `meta`.
+   * Returns the original value if the value is HTML string.
+   *
+   * @memberof Core#
+   * @function generateCellHtml
+   * @param {String} value
+   * @param {Object} meta
+   * @returns {String}
+   */
+  this.generateCellHtml = function (value, meta) {
+    var tempContainer = $(value);
+    if (tempContainer[0]) {
+        return value;
+    } else {
+    tempContainer = $('<div></div>');
+    var td = $('<td>' + value + '</td>');
+    var i, key;
+
+    if (meta.classes) {
+        td.addClass(meta.classes.join(' '));  
+    }
+
+    td.removeClass('area highlight');
+
+    if (meta.dataAttrs) {
+        for (key in meta.dataAttrs) {
+          td.attr('data-' + key, meta.dataAttrs[key]);
+        }
+    }
+    tempContainer.append(td);
+    return tempContainer.html();
+    }  
   };
 
   /**
