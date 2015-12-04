@@ -6,8 +6,16 @@ import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 
 /**
- * Handsontable UndoRedo class
+ * @description
+ * Handsontable UndoRedo plugin. It allows to undo and redo certain actions done in the table.
+ * Please note, that not all actions are currently undo-able.
  *
+ * @example
+ * ```js
+ * ...
+ * undo: true
+ * ...
+ * ```
  * @class UndoRedo
  * @plugin UndoRedo
  */

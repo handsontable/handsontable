@@ -4,14 +4,15 @@ import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 
+// Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+
 /**
+ * @description
  * ManualColumnResize Plugin.
  *
  * Has 2 UI components:
  * - handle - the draggable element that sets the desired width of the column.
  * - guide - the helper guide that shows the desired width as a vertical guide.
- *
- * Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
  *
  * @plugin ManualColumnResize
  */
@@ -121,7 +122,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Set the resize handle position.
    *
-   * @param {HTMLCellElement} TH
+   * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
@@ -177,7 +178,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Check if provided element is considered a column header.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
    */
   checkIfColumnHeader(element) {
@@ -196,7 +197,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Get the TH element from the provided element.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
   getTHFromTargetElement(element) {
@@ -215,7 +216,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mouseover' event callback - set the handle position.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseOver(event) {
     if (this.checkIfColumnHeader(event.target)) {
@@ -341,7 +342,7 @@ class ManualColumnResize extends BasePlugin {
    * Cache the current column width.
    *
    * @param {Number} column Column index.
-   * @param {Number} width
+   * @param {Number} width Column width.
    * @returns {Number}
    */
   setManualSize(column, width) {
@@ -362,7 +363,7 @@ class ManualColumnResize extends BasePlugin {
    * Modify the provided column width, based on the plugin settings
    *
    * @private
-   * @param {Number} width
+   * @param {Number} width Column width.
    * @param {Number} column Column index.
    * @returns {Number}
    */

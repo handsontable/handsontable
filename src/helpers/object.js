@@ -112,7 +112,9 @@ export function deepClone(obj) {
 export function clone(object) {
   let result = {};
 
-  objectEach(object, (value, key) => result[key] = value);
+  objectEach(object, (value, key) => {
+    result[key] = value;
+  });
 
   return result;
 }

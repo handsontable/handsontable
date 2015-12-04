@@ -60,7 +60,7 @@ class Menu {
   }
 
   /**
-   * Check is menu is using as sub-menu.
+   * Check if menu is using as sub-menu.
    *
    * @returns {Boolean}
    */
@@ -124,7 +124,7 @@ class Menu {
   }
 
   /**
-   * Open sub menu at row index.
+   * Open sub menu at the provided row index.
    *
    * @param {Number} row Row index.
    * @returns {Menu|Boolean} Returns created menu or `false` if no one menu was created.
@@ -260,7 +260,7 @@ class Menu {
   /**
    * Set menu position above cursor object.
    *
-   * @param {Cursor} cursor
+   * @param {Cursor} cursor `Cursor` object.
    */
   setPositionAboveCursor(cursor) {
     let top = cursor.top - this.container.offsetHeight;
@@ -275,7 +275,7 @@ class Menu {
   /**
    * Set menu position below cursor object.
    *
-   * @param {Cursor} cursor
+   * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
     let top = cursor.top - 1;
@@ -290,7 +290,7 @@ class Menu {
   /**
    * Set menu position on the right of cursor object.
    *
-   * @param {Cursor} cursor
+   * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnRightOfCursor(cursor) {
     let left;
@@ -306,7 +306,7 @@ class Menu {
   /**
    * Set menu position on the left of cursor object.
    *
-   * @param {Cursor} cursor
+   * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
     this.container.style.left = (cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4) + 'px';
@@ -343,7 +343,7 @@ class Menu {
    * Select next cell in opened menu.
    *
    * @param {Number} row Row index.
-   * @param {Number} col Column indx.
+   * @param {Number} col Column index.
    */
   selectNextCell(row, col) {
     let nextRow = row + 1;
@@ -459,7 +459,7 @@ class Menu {
    * Create container/wrapper for handsontable.
    *
    * @private
-   * @param {String} [name] Class name
+   * @param {String} [name] Class name.
    * @returns {HTMLElement}
    */
   createContainer(name = null) {

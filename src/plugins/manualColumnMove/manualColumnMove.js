@@ -7,11 +7,12 @@ import {registerPlugin} from './../../plugins';
 export {ManualColumnMove};
 
 /**
- * HandsontableManualColumnMove
+ * @description
+ * Handsontable ManualColumnMove
  *
  * Has 2 UI components:
- * - handle - the draggable element that sets the desired position of the column
- * - guide - the helper guide that shows the desired position as a vertical guide
+ * * handle - the draggable element that sets the desired position of the column,
+ * * guide - the helper guide that shows the desired position as a vertical guide
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
