@@ -958,19 +958,24 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     for(var i=0;i<settingList.length;i++) {
       rowItem = settingList[i];
 
-      for(var k=0;k<rowItem.length;k++) {
-        cellItem = rowItem[k];
+      if(rowItem) {
+        for(var k=0;k<rowItem.length;k++) {
+          cellItem = rowItem[k];
 
-        // add row by amount
-        if(action === 'insert_row' && index < i) {
-          cellItem.row += amount;
-        }
+          // add row by amount
+          if(action === 'insert_row' && index < i) {
+            cellItem.row += amount;
+          }
 
-        // add col by amount
-        if(action === 'insert_col' && index < k) {
-          cellItem.col += amount;
+          // add col by amount
+          if(action === 'insert_col' && index < k) {
+            cellItem.col += amount;
+          }
         }
+      } else {
+        console.log('row not exsit');
       }
+      
 
       // insert new col items
       if(action === 'insert_col'){
