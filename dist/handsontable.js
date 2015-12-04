@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 04 2015 21:22:31 GMT+0800 (CST)
+ * Date: Fri Dec 04 2015 22:06:25 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Dec 04 2015 21:22:31 GMT+0800 (CST)',
+  buildDate: 'Fri Dec 04 2015 22:06:25 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3144,10 +3144,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var TR;
     var visibleRowIndex = 1;
     var $leftTr = $('.ht_clone_left tr');
+    var masterTr;
     while (visibleRowIndex < totalRows) {
       TR = $leftTr[visibleRowIndex];
-      if (TR && TR.firstChild) {
-        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1].firstChild).outerHeight();
+      masterTr = this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1];
+      if (TR && TR.firstChild && masterTr) {
+        var height = $(masterTr.firstChild).outerHeight();
         if (height) {
           TR.firstChild.style.height = height + 'px';
         } else {
