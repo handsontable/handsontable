@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 03 2015 00:05:31 GMT+0800 (CST)
+ * Date: Fri Dec 04 2015 21:06:58 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Dec 03 2015 00:05:31 GMT+0800 (CST)',
+  buildDate: 'Fri Dec 04 2015 21:06:58 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4160,32 +4160,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             }
             return rowValue;
           };
-          var addAttrToValue = function addAttrToValue(row, col, value) {
-            if (inputAttr) {
-              var rowAttr,
-                  colAttr,
-                  _classes = '',
-                  _dataAttrs = '',
-                  i,
-                  key;
-              rowAttr = inputAttr[row];
-              colAttr = rowAttr[col];
-              if (colAttr.classes) {
-                for (i = 0; i < colAttr.classes.length; i++) {
-                  _classes += (' ' + colAttr.classes[i]);
-                }
-              }
-              if (colAttr.dataAttrs) {
-                for (key in colAttr.dataAttrs) {
-                  _dataAttrs += (' data-' + key + '="' + colAttr.dataAttrs[key] + '"');
-                }
-              }
-              if (_classes || _dataAttrs) {
-                value = '<td ' + 'class="' + _classes + '" ' + _dataAttrs + '>' + value + '</td>';
-              }
-            }
-            return value;
-          };
           var rowInputLength = input.length;
           var rowSelectionLength = end ? end.row - start.row + 1 : 0;
           if (end) {
@@ -4244,7 +4218,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
-                value = addAttrToValue(index.row, index.col, value);
+                value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
@@ -4537,6 +4511,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       rowItem = settingList[i];
       for (var k = 0; k < rowItem.length; k++) {
         cellItem = rowItem[k];
+        if (!cellItem) {
+          break;
+        }
         if (action === 'insert_row' && index < i) {
           cellItem.row += amount;
         }
@@ -5035,6 +5012,28 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.alter = function(action, index, amount, source, keepEmptyRows) {
     grid.alter(action, index, amount, source, keepEmptyRows);
+  };
+  this.generateCellHtml = function(value, meta) {
+    var tempContainer = $(value);
+    if (tempContainer[0]) {
+      return value;
+    } else {
+      tempContainer = $('<div></div>');
+      var td = $('<td>' + value + '</td>');
+      var i,
+          key;
+      if (meta.classes) {
+        td.addClass(meta.classes.join(' '));
+      }
+      td.removeClass('area highlight');
+      if (meta.dataAttrs) {
+        for (key in meta.dataAttrs) {
+          td.attr('data-' + key, meta.dataAttrs[key]);
+        }
+      }
+      tempContainer.append(td);
+      return tempContainer.html();
+    }
   };
   this.getCell = function(row, col, topmost) {
     return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col), topmost);
@@ -11557,8 +11556,9 @@ function CopyPastePlugin(instance) {
       var rowSet = [];
       arrayEach(copyableColumns, (function(column) {
         if (instance.isCopyable(row, column)) {
-          var tdItem = instance.getCell(row, column);
-          rowSet.push(getDomHtml(tdItem));
+          var tdValue = instance.getDataAtCell(row, column);
+          var tdMeta = instance.getCellMeta(row, column);
+          rowSet.push(instance.generateCellHtml(tdValue, tdMeta));
         } else {
           rowSet.push('');
         }
@@ -11566,13 +11566,6 @@ function CopyPastePlugin(instance) {
       dataSet.push(rowSet);
     }));
     return SheetClip.stringify(dataSet);
-    function getDomHtml(dom) {
-      var tempContainer = $('<div></div>');
-      var cloneTd = dom.cloneNode(true);
-      cloneTd.setAttribute('class', cloneTd.getAttribute('class').replace(/(area|highlight)/g, ''));
-      tempContainer.append(cloneTd);
-      return tempContainer.html();
-    }
   };
 }
 function init() {
