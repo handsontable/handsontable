@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 07 2015 19:13:34 GMT+0800 (CST)
+ * Date: Mon Dec 07 2015 19:45:39 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Dec 07 2015 19:13:34 GMT+0800 (CST)',
+  buildDate: 'Mon Dec 07 2015 19:45:39 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -14969,11 +14969,15 @@ function TableView(instance) {
       document.selection.empty();
     }
   };
+  var selectedCurrentBorderWidth = that.settings.selectedCurrentBorderWidth;
+  var selectedCurrentBorderColor = that.settings.selectedCurrentBorderColor;
+  var selectedAreaBorderWidth = that.settings.selectedAreaBorderWidth;
+  var selectedAreaBorderColor = that.settings.selectedAreaBorderColor;
   var selections = [new WalkontableSelection({
     className: 'current',
     border: {
-      width: (typeof that.settings.selectedCurrentBorderWidth === 'number' && that.settings.selectedCurrentBorderWidth > -1) ? that.settings.selectedCurrentBorderWidth : 2,
-      color: (typeof that.settings.selectedCurrentBorderColor === 'string' && that.settings.selectedCurrentBorderColor !== '') ? that.settings.selectedCurrentBorderColor : '#5292F7',
+      width: (typeof selectedCurrentBorderWidth === 'number' && selectedCurrentBorderWidth > -1) ? selectedCurrentBorderWidth : 2,
+      color: (typeof selectedCurrentBorderColor === 'string' && selectedCurrentBorderColor !== '') ? selectedCurrentBorderColor : '#5292F7',
       cornerVisible: function() {
         return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
       },
@@ -14984,8 +14988,8 @@ function TableView(instance) {
   }), new WalkontableSelection({
     className: 'area',
     border: {
-      width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
-      color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9',
+      width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+      color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9',
       cornerVisible: function() {
         return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
       },
@@ -15000,8 +15004,8 @@ function TableView(instance) {
   }), new WalkontableSelection({
     className: 'fill',
     border: {
-      width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
-      color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9'
+      width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+      color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9'
     }
   })];
   selections.current = selections[0];

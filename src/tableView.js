@@ -150,12 +150,16 @@ function TableView(instance) {
     }
   };
 
+  var selectedCurrentBorderWidth = that.settings.selectedCurrentBorderWidth;
+  var selectedCurrentBorderColor = that.settings.selectedCurrentBorderColor;
+  var selectedAreaBorderWidth = that.settings.selectedAreaBorderWidth;
+  var selectedAreaBorderColor = that.settings.selectedAreaBorderColor;
   var selections = [
     new WalkontableSelection({
       className: 'current',
       border: {
-        width: (typeof that.settings.selectedCurrentBorderWidth === 'number' && that.settings.selectedCurrentBorderWidth > -1) ? that.settings.selectedCurrentBorderWidth : 2,
-        color: (typeof that.settings.selectedCurrentBorderColor === 'string' && that.settings.selectedCurrentBorderColor !== '') ? that.settings.selectedCurrentBorderColor : '#5292F7',
+        width: (typeof selectedCurrentBorderWidth === 'number' && selectedCurrentBorderWidth > -1) ? selectedCurrentBorderWidth : 2,
+        color: (typeof selectedCurrentBorderColor === 'string' && selectedCurrentBorderColor !== '') ? selectedCurrentBorderColor : '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
@@ -168,8 +172,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'area',
       border: {
-        width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
-        color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9',
+        width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+        color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9',
         //style: 'solid', // not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
@@ -187,8 +191,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'fill',
       border: {
-        width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
-        color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9'
+        width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+        color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9'
         //style: 'solid' // not used
       },
     }),
