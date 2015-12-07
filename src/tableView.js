@@ -284,7 +284,11 @@ function TableView(instance) {
             instance.selection.setRangeEnd(coords);
           }
         } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
+
+          if (coords.row < 0 && coords.col < 0) { // 此为点击左上角corner的情况(-1, -1)
+            instance.selection.selectAll();
+
+          } else if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
               headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
               headerColspan = instance.getHeaderColspan(coords.col, headerLevel);

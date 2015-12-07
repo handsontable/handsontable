@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 07 2015 18:52:11 GMT+0800 (CST)
+ * Date: Mon Dec 07 2015 19:13:34 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Dec 07 2015 18:52:11 GMT+0800 (CST)',
+  buildDate: 'Mon Dec 07 2015 19:13:34 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -15084,7 +15084,9 @@ function TableView(instance) {
             instance.selection.setRangeEnd(coords);
           }
         } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
+          if (coords.row < 0 && coords.col < 0) {
+            instance.selection.selectAll();
+          } else if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
               headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
               headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
