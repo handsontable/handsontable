@@ -141,7 +141,7 @@ class ManualColumnResize extends BasePlugin {
       let box = this.currentTH.getBoundingClientRect();
 
       this.currentCol = col;
-      this.startOffset = box.left - 6;
+      this.startOffset = box.left - 2;
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
@@ -164,7 +164,7 @@ class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style.left = parseInt(this.handle.style.left) - 4 + 'px';
     this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   }
@@ -173,7 +173,7 @@ class ManualColumnResize extends BasePlugin {
    * Refresh the resize guide position.
    */
   refreshGuidePosition() {
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style.left = parseInt(this.handle.style.left) - 4 + 'px';
   }
 
   /**
