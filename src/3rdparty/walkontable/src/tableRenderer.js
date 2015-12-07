@@ -147,10 +147,12 @@ class WalkontableTableRenderer {
     var TR;
     var visibleRowIndex = 1;
     var $leftTr = $('.ht_clone_left tr');
+    var masterTr;
     while(visibleRowIndex < totalRows) {
       TR = $leftTr[visibleRowIndex];
-      if (TR && TR.firstChild) {
-        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex-1].firstChild).outerHeight();
+      masterTr = this.wot.wtTable.TBODY.childNodes[visibleRowIndex-1];
+      if (TR && TR.firstChild && masterTr) {
+        var height = $(masterTr.firstChild).outerHeight();
         if (height) {
           TR.firstChild.style.height = height + 'px';
         } else {
