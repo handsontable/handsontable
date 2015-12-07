@@ -142,7 +142,7 @@ class ManualRowResize extends BasePlugin {
       let box = this.currentTH.getBoundingClientRect();
 
       this.currentRow = row;
-      this.startOffset = box.top - 6;
+      this.startOffset = box.top - 2;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
@@ -164,7 +164,8 @@ class ManualRowResize extends BasePlugin {
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
-    this.guide.style.top = this.handle.style.top;
+    // 改了resizer的高度，所以这里需要做一下微调
+    this.guide.style.top = parseInt(this.handle.style.top) - 4 + 'px';
     this.guide.style.left = this.handle.style.left;
     this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
     this.hot.rootElement.appendChild(this.guide);
@@ -174,7 +175,8 @@ class ManualRowResize extends BasePlugin {
    * Refresh the resize guide position.
    */
   refreshGuidePosition() {
-    this.guide.style.top = this.handle.style.top;
+    // 改了resizer的高度，所以这里需要做一下微调
+    this.guide.style.top = parseInt(this.handle.style.top) - 4 + 'px';
   }
 
   /**

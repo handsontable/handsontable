@@ -4571,6 +4571,60 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    */
-  renderAllRows: void 0
+  renderAllRows: void 0,
+
+  /**
+   * for current selections border style
+   *
+   * border width
+   * 
+   * @type {int}
+   */ 
+  selectedCurrentBorderWidth: 2,
+
+  /**
+   * for current selections border style
+   * 
+   * border color
+   * 
+   * @type {hex}
+   */ 
+  selectedCurrentBorderColor: '#5292F7',
+
+  /**
+   * for area selections border style
+   *
+   * border width
+   * 
+   * @type {int}
+   */ 
+  selectedAreaBorderWidth: 1,
+
+  /**
+   * for area selections border style
+   * 
+   * border color
+   * 
+   * @type {hex}
+   */ 
+  selectedAreaBorderColor: '#89AFF9',
+
+  /**
+   * for selections border style which is been dragging 
+   *
+   * border width
+   * 
+   * @type {int}
+   */ 
+  selectedFillBorderWidth: 1,
+
+  /**
+   * for selections border style which is been dragging 
+   * 
+   * border color
+   * 
+   * @type {hex}
+   */ 
+  selectedFillBorderColor: 'red'
 };
 Handsontable.DefaultSettings = DefaultSettings;
