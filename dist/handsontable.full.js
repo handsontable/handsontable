@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 12:29:48 GMT+0800 (CST)
+ * Date: Mon Dec 07 2015 14:52:13 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 12:29:48 GMT+0800 (CST)',
+  buildDate: 'Mon Dec 07 2015 14:52:13 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5634,7 +5634,13 @@ DefaultSettings.prototype = {
   correctFormat: false,
   defaultDate: void 0,
   strict: void 0,
-  renderAllRows: void 0
+  renderAllRows: void 0,
+  selectedCurrentBorderWidth: 2,
+  selectedCurrentBorderColor: '#5292F7',
+  selectedAreaBorderWidth: 1,
+  selectedAreaBorderColor: '#89AFF9',
+  selectedFillBorderWidth: 1,
+  selectedFillBorderColor: 'red'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -14912,8 +14918,8 @@ function TableView(instance) {
   var selections = [new WalkontableSelection({
     className: 'current',
     border: {
-      width: 2,
-      color: '#5292F7',
+      width: (typeof that.settings.selectedCurrentBorderWidth === 'number' && that.settings.selectedCurrentBorderWidth > -1) ? that.settings.selectedCurrentBorderWidth : 2,
+      color: (typeof that.settings.selectedCurrentBorderColor === 'string' && that.settings.selectedCurrentBorderColor !== '') ? that.settings.selectedCurrentBorderColor : '#5292F7',
       cornerVisible: function() {
         return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
       },
@@ -14924,8 +14930,8 @@ function TableView(instance) {
   }), new WalkontableSelection({
     className: 'area',
     border: {
-      width: 1,
-      color: '#89AFF9',
+      width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
+      color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9',
       cornerVisible: function() {
         return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
       },
@@ -14940,8 +14946,8 @@ function TableView(instance) {
   }), new WalkontableSelection({
     className: 'fill',
     border: {
-      width: 1,
-      color: 'red'
+      width: (typeof that.settings.selectedAreaBorderWidth === 'number' && that.settings.selectedAreaBorderWidth > -1) ? that.settings.selectedAreaBorderWidth : 1,
+      color: (typeof that.settings.selectedAreaBorderColor === 'string' && that.settings.selectedAreaBorderColor !== '') ? that.settings.selectedAreaBorderColor : '#89AFF9'
     }
   })];
   selections.current = selections[0];
@@ -15554,24 +15560,38 @@ CopyPasteClass.prototype.init = function() {
       var clipboardContents,
           clipboardHtml,
           temp;
-      if ('WebkitAppearance' in document.documentElement.style) {
+      if (event.clipboardData && event.clipboardData.getData) {
         clipboardContents = event.clipboardData.getData("text/plain");
         clipboardHtml = event.clipboardData.getData("text/table");
-        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
-          temp = clipboardContents.split('\n');
-          if (temp[temp.length - 1] === '') {
-            temp.pop();
-          }
-          clipboardContents = temp.join('\n');
+        if ('MozAppearance' in window.document.documentElement.style) {
+          clipboardHtml = event.clipboardData.getData("text/html");
         }
-        this.value = clipboardContents;
-        this.htmlValue = clipboardHtml;
-        return false;
+      } else if (window.clipboardData && window.clipboardData.getData) {
+        clipboardContents = window.clipboardData.getData("Text");
+        clipboardHtml = clipboardContents;
       }
+      temp = clipboardContents.split('\n');
+      if (temp[temp.length - 1] === '') {
+        temp.pop();
+      }
+      clipboardContents = temp.join('\n');
+      this.value = clipboardContents;
+      this.htmlValue = clipboardHtml;
+      return false;
     };
     this.elTextarea.oncopy = function(event) {
-      event.clipboardData.setData('text/plain', this.value);
-      event.clipboardData.setData('text/table', this.htmlValue);
+      if (event.clipboardData && event.clipboardData.setData) {
+        event.clipboardData.setData('text/plain', this.value);
+        event.clipboardData.setData('text/table', this.htmlValue);
+        if ('MozAppearance' in window.document.documentElement.style) {
+          event.clipboardData.setData('text/html', this.htmlValue);
+        }
+      } else if (window.clipboardData && window.clipboardData.setData) {
+        window.clipboardData.setData('Text', this.value);
+        if (thi.htmlValue) {
+          window.clipboardData.setData('Text', this.htmlValue);
+        }
+      }
       return false;
     };
     style = this.elTextarea.style;
