@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 07 2015 14:59:06 GMT+0800 (CST)
+ * Date: Mon Dec 07 2015 18:52:11 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Dec 07 2015 14:59:06 GMT+0800 (CST)',
+  buildDate: 'Mon Dec 07 2015 18:52:11 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -12585,7 +12585,7 @@ var $ManualColumnResize = ManualColumnResize;
     if (col >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentCol = col;
-      this.startOffset = box.left - 6;
+      this.startOffset = box.left - 2;
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
@@ -12599,12 +12599,12 @@ var $ManualColumnResize = ManualColumnResize;
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style.left = parseInt(this.handle.style.left) - 4 + 'px';
     this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style.left = parseInt(this.handle.style.left) - 4 + 'px';
   },
   hideHandleAndGuide: function() {
     removeClass(this.handle, 'active');
@@ -13075,7 +13075,7 @@ var $ManualRowResize = ManualRowResize;
     if (row >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentRow = row;
-      this.startOffset = box.top - 6;
+      this.startOffset = box.top - 2;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
@@ -13088,13 +13088,13 @@ var $ManualRowResize = ManualRowResize;
   setupGuidePosition: function() {
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = parseInt(this.handle.style.top) - 4 + 'px';
     this.guide.style.left = this.handle.style.left;
     this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = parseInt(this.handle.style.top) - 4 + 'px';
   },
   hideHandleAndGuide: function() {
     removeClass(this.handle, 'active');
@@ -15617,9 +15617,6 @@ CopyPasteClass.prototype.init = function() {
       if (event.clipboardData && event.clipboardData.getData) {
         clipboardContents = event.clipboardData.getData("text/plain");
         clipboardHtml = event.clipboardData.getData("text/table");
-        if ('MozAppearance' in window.document.documentElement.style) {
-          clipboardHtml = event.clipboardData.getData("text/html");
-        }
       } else if (window.clipboardData && window.clipboardData.getData) {
         clipboardContents = window.clipboardData.getData("Text");
         clipboardHtml = clipboardContents;
@@ -15637,14 +15634,8 @@ CopyPasteClass.prototype.init = function() {
       if (event.clipboardData && event.clipboardData.setData) {
         event.clipboardData.setData('text/plain', this.value);
         event.clipboardData.setData('text/table', this.htmlValue);
-        if ('MozAppearance' in window.document.documentElement.style) {
-          event.clipboardData.setData('text/html', this.htmlValue);
-        }
       } else if (window.clipboardData && window.clipboardData.setData) {
         window.clipboardData.setData('Text', this.value);
-        if (thi.htmlValue) {
-          window.clipboardData.setData('Text', this.htmlValue);
-        }
       }
       return false;
     };
