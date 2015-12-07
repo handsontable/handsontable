@@ -330,9 +330,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      * @param {String} [method="overwrite"]
      * @param {String} direction (left|right|up|down)
      * @param {Array} deltas array
+     * @param {Array} inputAttr is used when source is 'autofill'
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function(start, input, end, source, method, direction, deltas) {
+    populateFromArray: function(start, input, end, source, method, direction, deltas, inputAttr) {
       var r, rlen, c, clen, setData = [], current = {};
 
       rlen = input.length;
@@ -418,6 +419,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
             return rowValue;
           };
+
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
@@ -489,6 +491,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }
+                value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
@@ -932,19 +935,26 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     for(var i=0;i<settingList.length;i++) {
       rowItem = settingList[i];
 
-      for(var k=0;k<rowItem.length;k++) {
-        cellItem = rowItem[k];
+      if(rowItem) {
+        for(var k=0;k<rowItem.length;k++) {
+          cellItem = rowItem[k];
 
-        // add row by amount
-        if(action === 'insert_row' && index < i) {
-          cellItem.row += amount;
-        }
+          if(cellItem) {
+            // add row by amount
+            if(action === 'insert_row' && index < i) {
+              cellItem.row += amount;
+            }
 
-        // add col by amount
-        if(action === 'insert_col' && index < k) {
-          cellItem.col += amount;
+            // add col by amount
+            if(action === 'insert_col' && index < k) {
+              cellItem.col += amount;
+            }
+          }
         }
+      } else {
+        console.log('row not exsit');
       }
+      
 
       // insert new col items
       if(action === 'insert_col'){
@@ -1368,7 +1378,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @param {Array} deltas array
    * @returns {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas) {
+  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas, inputAttr) {
     var c;
 
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
@@ -1376,7 +1386,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     c = typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null;
 
-    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas, inputAttr);
   };
 
   /**
@@ -1559,6 +1569,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
+  };
+
+  /**
+   * judgement if the cell can be copied
+   */
+  this.isCopyable = function(row, column) {
+    return datamap.isCopyable(row, datamap.colToProp(column));
   };
 
   /**
@@ -1834,6 +1851,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.alter = function(action, index, amount, source, keepEmptyRows) {
     grid.alter(action, index, amount, source, keepEmptyRows);
+  };
+
+  /**
+   * Returns the HTML string of a TD element for given `value`, `meta`.
+   * Returns the original value if the value is HTML string.
+   *
+   * @memberof Core#
+   * @function generateCellHtml
+   * @param {String} value
+   * @param {Object} meta
+   * @returns {String}
+   */
+  this.generateCellHtml = function (value, meta) {
+    var tempContainer = $(value);
+    if (tempContainer[0]) {
+        return value;
+    } else {
+    tempContainer = $('<div></div>');
+    var td = $('<td>' + value + '</td>');
+    var i, key;
+
+    if (meta.classes) {
+        td.addClass(meta.classes.join(' '));  
+    }
+
+    td.removeClass('area highlight');
+
+    if (meta.dataAttrs) {
+        for (key in meta.dataAttrs) {
+          td.attr('data-' + key, meta.dataAttrs[key]);
+        }
+    }
+    tempContainer.append(td);
+    return tempContainer.html();
+    }  
   };
 
   /**

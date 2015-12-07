@@ -214,8 +214,14 @@ function CopyPastePlugin(instance) {
 
       arrayEach(copyableColumns, (column) => {
         // rowSet.push(instance.getCopyableData(row, column));
-        let tdItem = instance.getCell(row, column);
-        rowSet.push(getDomHtml(tdItem)); //include td wrapper
+
+        if(instance.isCopyable(row, column)) {
+          let tdValue = instance.getDataAtCell(row, column);
+          let tdMeta = instance.getCellMeta(row, column);
+          rowSet.push(instance.generateCellHtml(tdValue, tdMeta));
+        } else {
+          rowSet.push('');
+        }
       });
 
       dataSet.push(rowSet);
@@ -223,11 +229,6 @@ function CopyPastePlugin(instance) {
 
     return SheetClip.stringify(dataSet);
 
-    function getDomHtml(dom){
-      let tempContainer = $('<div></div>');
-      tempContainer.append(dom.cloneNode(true));
-      return tempContainer.html();
-    }
   };
 }
 

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 07 2015 14:52:13 GMT+0800 (CST)
+ * Date: Mon Dec 07 2015 14:59:06 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Dec 07 2015 14:52:13 GMT+0800 (CST)',
+  buildDate: 'Mon Dec 07 2015 14:59:06 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3144,10 +3144,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var TR;
     var visibleRowIndex = 1;
     var $leftTr = $('.ht_clone_left tr');
+    var masterTr;
     while (visibleRowIndex < totalRows) {
       TR = $leftTr[visibleRowIndex];
-      if (TR && TR.firstChild) {
-        var height = $(this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1].firstChild).outerHeight();
+      masterTr = this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1];
+      if (TR && TR.firstChild && masterTr) {
+        var height = $(masterTr.firstChild).outerHeight();
         if (height) {
           TR.firstChild.style.height = height + 'px';
         } else {
@@ -4083,7 +4085,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.wtOverlays.adjustElementsSize();
       }
     },
-    populateFromArray: function(start, input, end, source, method, direction, deltas) {
+    populateFromArray: function(start, input, end, source, method, direction, deltas, inputAttr) {
       var r,
           rlen,
           c,
@@ -4218,6 +4220,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
                 }
+                value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
@@ -4508,14 +4511,20 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     for (var i = 0; i < settingList.length; i++) {
       rowItem = settingList[i];
-      for (var k = 0; k < rowItem.length; k++) {
-        cellItem = rowItem[k];
-        if (action === 'insert_row' && index < i) {
-          cellItem.row += amount;
+      if (rowItem) {
+        for (var k = 0; k < rowItem.length; k++) {
+          cellItem = rowItem[k];
+          if (cellItem) {
+            if (action === 'insert_row' && index < i) {
+              cellItem.row += amount;
+            }
+            if (action === 'insert_col' && index < k) {
+              cellItem.col += amount;
+            }
+          }
         }
-        if (action === 'insert_col' && index < k) {
-          cellItem.col += amount;
-        }
+      } else {
+        console.log('row not exsit');
       }
       if (action === 'insert_col') {
         for (var n = 0; n < amount; n++) {
@@ -4779,13 +4788,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.destroyEditor = function(revertOriginal) {
     selection.refreshBorders(revertOriginal);
   };
-  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas) {
+  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas, inputAttr) {
     var c;
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays');
     }
     c = typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null;
-    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, c, source, method, direction, deltas, inputAttr);
   };
   this.spliceCol = function(col, index, amount) {
     return datamap.spliceCol.apply(datamap, arguments);
@@ -4863,6 +4872,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
+  };
+  this.isCopyable = function(row, column) {
+    return datamap.isCopyable(row, datamap.colToProp(column));
   };
   this.getCopyableData = function(row, column) {
     return datamap.getCopyable(row, datamap.colToProp(column));
@@ -5005,6 +5017,28 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.alter = function(action, index, amount, source, keepEmptyRows) {
     grid.alter(action, index, amount, source, keepEmptyRows);
+  };
+  this.generateCellHtml = function(value, meta) {
+    var tempContainer = $(value);
+    if (tempContainer[0]) {
+      return value;
+    } else {
+      tempContainer = $('<div></div>');
+      var td = $('<td>' + value + '</td>');
+      var i,
+          key;
+      if (meta.classes) {
+        td.addClass(meta.classes.join(' '));
+      }
+      td.removeClass('area highlight');
+      if (meta.dataAttrs) {
+        for (key in meta.dataAttrs) {
+          td.attr('data-' + key, meta.dataAttrs[key]);
+        }
+      }
+      tempContainer.append(td);
+      return tempContainer.html();
+    }
   };
   this.getCell = function(row, col, topmost) {
     return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col), topmost);
@@ -5934,6 +5968,9 @@ DataMap.prototype.getCopyable = function(row, prop) {
     return this.get(row, prop);
   }
   return '';
+};
+DataMap.prototype.isCopyable = function(row, prop) {
+  return copyableLookup.call(this.instance, row, this.propToCol(prop));
 };
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
@@ -9376,13 +9413,17 @@ function getDeltas(start, end, data, direction) {
   }
   return deltas;
 }
-function filterRawData(data) {
+function filterRawData(data, selRange, tableInst) {
   var destData = [],
+      attrData = [],
       item,
-      destItem;
+      destItem,
+      baseRow = Math.min(selRange.from.row, selRange.to.row),
+      baseCol = Math.min(selRange.from.col, selRange.to.col);
   for (var row = 0,
       l = data.length; row < l; row++) {
     destData[row] = [];
+    attrData[row] = [];
     for (var col = 0,
         len = data[row].length; col < len; col++) {
       item = data[row][col];
@@ -9392,9 +9433,13 @@ function filterRawData(data) {
         destItem = item;
       }
       destData[row].push(destItem);
+      attrData[row].push(tableInst.getCellMeta(baseRow + row, baseCol + col));
     }
   }
-  return destData;
+  return {
+    value: destData,
+    attr: attrData
+  };
 }
 function Autofill(instance) {
   var _this = this,
@@ -9538,10 +9583,10 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    _data = filterRawData(_data);
-    deltas = getDeltas(start, end, _data, direction);
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
+    _data = filterRawData(_data, selRange, this.instance);
+    deltas = getDeltas(start, end, _data.value, direction);
+    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
+    this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);
     this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
     this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
   } else {
@@ -11521,17 +11566,17 @@ function CopyPastePlugin(instance) {
     arrayEach(copyableRows, (function(row) {
       var rowSet = [];
       arrayEach(copyableColumns, (function(column) {
-        var tdItem = instance.getCell(row, column);
-        rowSet.push(getDomHtml(tdItem));
+        if (instance.isCopyable(row, column)) {
+          var tdValue = instance.getDataAtCell(row, column);
+          var tdMeta = instance.getCellMeta(row, column);
+          rowSet.push(instance.generateCellHtml(tdValue, tdMeta));
+        } else {
+          rowSet.push('');
+        }
       }));
       dataSet.push(rowSet);
     }));
     return SheetClip.stringify(dataSet);
-    function getDomHtml(dom) {
-      var tempContainer = $('<div></div>');
-      tempContainer.append(dom.cloneNode(true));
-      return tempContainer.html();
-    }
   };
 }
 function init() {
@@ -13274,12 +13319,21 @@ MergeCells.prototype.mergeRange = function(cellRange) {
   this.mergedCellInfoCollection.setInfo(mergeParent);
 };
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var row = Math.min(cellRange.from.row, cellRange.to.row);
-  var col = Math.min(cellRange.from.col, cellRange.to.col);
+  var from = $.extend(true, {}, cellRange.from),
+      to = $.extend(true, {}, cellRange.to),
+      row = Math.min(from.row, to.row),
+      col = Math.min(from.col, to.col),
+      rowspan = Math.abs(from.row - cellRange.to.row) + 1,
+      colspan = Math.abs(from.col - cellRange.to.col) + 1;
+  if (from.row > to.row || from.col > to.col) {
+    cellRange.from = to;
+    cellRange.to = from;
+  }
+  function expandMerge(info) {
+    return rowspan > 1 && rowspan > info.rowspan || colspan > 1 && colspan > info.colspan;
+  }
   var info = this.mergedCellInfoCollection.getInfo(row, col);
-  if (info) {
-    cellRange.from.row = row;
-    cellRange.from.col = col;
+  if (info && !expandMerge(info)) {
     this.unmergeSelection(cellRange.from);
   } else {
     this.mergeSelection(cellRange);

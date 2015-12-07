@@ -49,10 +49,14 @@ function getDeltas(start, end, data, direction) {
 }
 
 //将html转换成数字
-function filterRawData(data){
-  var destData = [], item, destItem;
+function filterRawData(data, selRange, tableInst){
+  var destData = [], attrData = [], item, destItem,
+  baseRow = Math.min(selRange.from.row, selRange.to.row),
+  baseCol = Math.min(selRange.from.col, selRange.to.col);
+
   for(var row=0,l=data.length; row<l; row++){
     destData[row] = [];
+    attrData[row] = [];
     for(var col=0,len=data[row].length; col<len; col++){
       item = data[row][col];
       if(item[0] != '=' && !isNaN(parseInt($(item).text(), 10))){
@@ -61,9 +65,13 @@ function filterRawData(data){
         destItem = item;
       }
       destData[row].push(destItem);
+      attrData[row].push(tableInst.getCellMeta(baseRow + row, baseCol + col));
     }
   }
-  return destData;
+  return {
+    value: destData,
+    attr: attrData
+  };
 }
 
 /**
@@ -274,11 +282,11 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to,
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    _data = filterRawData(_data);
-    deltas = getDeltas(start, end, _data, direction);
+    _data = filterRawData(_data, selRange, this.instance);
+    deltas = getDeltas(start, end, _data.value, direction);
 
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
+    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
+    this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);
 
     this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
     this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
