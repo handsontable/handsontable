@@ -14,7 +14,7 @@ class WalkontableViewportRowsCalculator {
    * @type {Number}
    */
   static get DEFAULT_HEIGHT() {
-    return 23;
+    return 21;
   }
 
   /**
