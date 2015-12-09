@@ -57,7 +57,7 @@ class WalkontableSettings {
       rowHeight: function(row) {
         return; //return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: 23,
+      defaultRowHeight: 21, //改默认行高，该值对垂直方向的动态渲染有影响, 以及一些需要行高参与的计算，原来值为：23
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,

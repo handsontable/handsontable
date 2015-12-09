@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 07 2015 19:45:39 GMT+0800 (CST)
+ * Date: Wed Dec 09 2015 09:33:26 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Dec 07 2015 19:45:39 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 09 2015 09:33:26 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -719,7 +719,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
       this.count = this.endRow - this.startRow + 1;
     }
   }}, {get DEFAULT_HEIGHT() {
-    return 23;
+    return 21;
   }});
 ;
 window.WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
@@ -2594,7 +2594,7 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     rowHeight: function(row) {
       return;
     },
-    defaultRowHeight: 23,
+    defaultRowHeight: 21,
     defaultColumnWidth: 50,
     selections: null,
     hideBorderOnMouseDownOver: false,
