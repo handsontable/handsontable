@@ -14,7 +14,7 @@ class WalkontableViewportRowsCalculator {
    * @type {Number}
    */
   static get DEFAULT_HEIGHT() {
-    return 23;
+    return 21; //改默认行高，该值对垂直方向的动态渲染有影响，原来的值为23
   }
 
   /**
