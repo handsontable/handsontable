@@ -1226,6 +1226,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   /**
+   * just set value to datamap
+   * for copypaste in html_render
+   */
+  this.setCellDataToDataMap = function(row, col, value, source) {
+    datamap.set(row, col, value, source);
+  };
+
+  /**
    * @description
    * Set new value to a cell. To change many cells at once, pass an array of `changes` in format `[[row, col, value], ...]` as
    * the only parameter. `col` is the index of __visible__ column (note that if columns were reordered,
