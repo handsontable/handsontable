@@ -1872,28 +1872,33 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {String}
    */
   this.generateCellHtml = function (value, meta) {
-    var tempContainer = $(value);
-    if (tempContainer[0]) {
-        return value;
+    var tempContainer;
+    if(isHtml(value) && $(value)[0].tagName == 'TD'){
+      return value;
     } else {
-    tempContainer = $('<div></div>');
-    var td = $('<td>' + value + '</td>');
-    var i, key;
+      tempContainer = $('<div></div>');
+      var td = $('<td>' + value + '</td>');
+      var i, key;
 
-    if (meta.classes) {
-        td.addClass(meta.classes.join(' '));  
+      if (meta.classes) {
+          td.addClass(meta.classes.join(' '));  
+      }
+
+      td.removeClass('area highlight');
+
+      if (meta.dataAttrs) {
+          for (key in meta.dataAttrs) {
+            td.attr('data-' + key, meta.dataAttrs[key]);
+          }
+      }
+      tempContainer.append(td);
+      return tempContainer.html();
     }
-
-    td.removeClass('area highlight');
-
-    if (meta.dataAttrs) {
-        for (key in meta.dataAttrs) {
-          td.attr('data-' + key, meta.dataAttrs[key]);
-        }
+      
+    function isHtml(str){
+      var htmlReg = /^<(\w+)(\s+[^>]*)?((\/?>)|(>([^<>]*)<\/\1>))$/;
+      return htmlReg.test(str);
     }
-    tempContainer.append(td);
-    return tempContainer.html();
-    }  
   };
 
   /**

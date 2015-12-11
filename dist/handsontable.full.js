@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 10 2015 19:35:58 GMT+0800 (CST)
+ * Date: Fri Dec 11 2015 22:10:58 GMT+0600 (ALMT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Dec 10 2015 19:35:58 GMT+0800 (CST)',
+  buildDate: 'Fri Dec 11 2015 22:10:58 GMT+0600 (ALMT)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5022,8 +5022,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     grid.alter(action, index, amount, source, keepEmptyRows);
   };
   this.generateCellHtml = function(value, meta) {
-    var tempContainer = $(value);
-    if (tempContainer[0]) {
+    var tempContainer;
+    if (isHtml(value) && $(value)[0].tagName == 'TD') {
       return value;
     } else {
       tempContainer = $('<div></div>');
@@ -5041,6 +5041,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       tempContainer.append(td);
       return tempContainer.html();
+    }
+    function isHtml(str) {
+      var htmlReg = /^<(\w+)(\s+[^>]*)?((\/?>)|(>([^<>]*)<\/\1>))$/;
+      return htmlReg.test(str);
     }
   };
   this.getCell = function(row, col, topmost) {
