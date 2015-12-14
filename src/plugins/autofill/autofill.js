@@ -48,7 +48,7 @@ function getDeltas(start, end, data, direction) {
   return deltas;
 }
 
-//将html转换成数字
+//解析需要autofill的值和属性
 function filterRawData(data, selRange, tableInst){
   var destData = [], attrData = [], item, destItem,
   baseRow = Math.min(selRange.from.row, selRange.to.row),
@@ -58,13 +58,7 @@ function filterRawData(data, selRange, tableInst){
     destData[row] = [];
     attrData[row] = [];
     for(var col=0,len=data[row].length; col<len; col++){
-      item = data[row][col];
-      if(item[0] != '=' && !isNaN(parseInt($(item).text(), 10))){
-        destItem = parseInt($(item).text(), 10);
-      }else{
-        destItem = item;
-      }
-      destData[row].push(destItem);
+      destData[row].push(data[row][col]);
       attrData[row].push(tableInst.getCellMeta(baseRow + row, baseCol + col));
     }
   }
