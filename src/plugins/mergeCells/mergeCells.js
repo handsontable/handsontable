@@ -366,9 +366,9 @@ var afterInit = function() {
   }
 };
 
-var afterUpdateSettings = function() {
+var afterUpdateSettings = function(settings) {
   var instance = this;
-  var mergeCellsSetting = instance.getSettings().mergeCells;
+  var mergeCellsSetting = settings.mergeCells;
 
   if (mergeCellsSetting) {
     if (instance.mergeCells) {
@@ -383,11 +383,6 @@ var afterUpdateSettings = function() {
       instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
 
-  } else {
-    // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
-    if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
-    }
   }
 };
 
