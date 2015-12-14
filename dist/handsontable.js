@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 15 2015 04:07:09 GMT+0800 (CST)
+ * Date: Tue Dec 15 2015 04:12:18 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Dec 15 2015 04:07:09 GMT+0800 (CST)',
+  buildDate: 'Tue Dec 15 2015 04:12:18 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -14948,7 +14948,7 @@ function TableView(instance) {
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      if ($(event.target).hasClass('s-header-back-icon', 's-header-back-up')) {
+      if ($(event.target).hasClass('s-header-back-icon') || $(event.target).hasClass('s-header-back-up')) {
         $('.handsontableInput').html('');
       }
       instance.destroyEditor();

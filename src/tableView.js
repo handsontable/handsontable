@@ -125,7 +125,7 @@ function TableView(instance) {
     } else {
 
       // fix click back-icon will occur huge bug 2015.12.15 by xp
-      if($(event.target).hasClass('s-header-back-icon', 's-header-back-up')) {
+      if($(event.target).hasClass('s-header-back-icon') || $(event.target).hasClass('s-header-back-up')) {
         $('.handsontableInput').html('');
       }
       instance.destroyEditor();
