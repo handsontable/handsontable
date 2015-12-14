@@ -119,13 +119,13 @@ function TableView(instance) {
       }
     }
 
-    // function did not return until here, we have an outside click!
+    // function did not retuhanrn until here, we have an outside click!
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
 
       // fix click back-icon will occur huge bug 2015.12.15 by xp
-      if($(event.target).hasClass('s-header-back-icon')) {
+      if($(event.target).hasClass('s-header-back-icon') || $(event.target).hasClass('s-header-back-up')) {
         $('.handsontableInput').html('');
       }
       instance.destroyEditor();
