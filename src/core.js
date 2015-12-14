@@ -1739,7 +1739,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.view.wt.draw(false);
     }
     if (!init) {
-      Handsontable.hooks.run(instance, 'afterUpdateSettings');
+      Handsontable.hooks.run(instance, 'afterUpdateSettings', settings);
     }
 
     grid.adjustRowsAndCols();
