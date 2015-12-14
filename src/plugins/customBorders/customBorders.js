@@ -179,7 +179,7 @@ var createClassName = function(row, col) {
  */
 var createDefaultCustomBorder = function() {
   return {
-    width: 1,
+    width: 2,
     color: '#000'
   };
 };
@@ -200,7 +200,7 @@ var createSingleEmptyBorder = function() {
  */
 var createDefaultHtBorder = function() {
   return {
-    width: 1,
+    width: 2,
     color: '#000',
     cornerVisible: false,
   };
