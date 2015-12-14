@@ -176,6 +176,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
 
           grid.adjustRowsAndCols();
+          instance.forceFullRender = true;
           selection.refreshBorders(); // it will call render and prepare methods
           break;
 
@@ -202,6 +203,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // priv.columnSettings.splice(index, amount);
 
           grid.adjustRowsAndCols();
+          instance.forceFullRender = true;
           selection.refreshBorders(); // it will call render and prepare methods
           break;
 
@@ -959,7 +961,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       // insert new col items
       if(action === 'insert_col'){
         for(var n=0;n<amount;n++){
-          rowItem.splice(index, 0, new priv.columnSettings[index+n+1]());
+          rowItem.splice(index, 0, columnFactory(GridSettings, priv.columnsSettingConflicts)());
         }
       }
 

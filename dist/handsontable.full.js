@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 11 2015 22:10:58 GMT+0600 (ALMT)
+ * Date: Mon Dec 14 2015 13:12:48 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Dec 11 2015 22:10:58 GMT+0600 (ALMT)',
+  buildDate: 'Mon Dec 14 2015 13:12:48 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3975,6 +3975,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom - index);
           }
           grid.adjustRowsAndCols();
+          instance.forceFullRender = true;
           selection.refreshBorders();
           break;
         case 'remove_col':
@@ -3996,6 +3997,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             instance.getSettings().colHeaders.splice(index, amount);
           }
           grid.adjustRowsAndCols();
+          instance.forceFullRender = true;
           selection.refreshBorders();
           break;
         default:
@@ -4528,7 +4530,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (action === 'insert_col') {
         for (var n = 0; n < amount; n++) {
-          rowItem.splice(index, 0, new priv.columnSettings[index + n + 1]());
+          rowItem.splice(index, 0, columnFactory(GridSettings, priv.columnsSettingConflicts)());
         }
       }
     }
@@ -10727,7 +10729,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       }
       var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected && this.countCols() > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertColumn;
@@ -10754,7 +10756,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       }
       var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected && this.countCols() > 1;
     },
     hidden: function() {
       return !this.getSettings().allowInsertColumn;
