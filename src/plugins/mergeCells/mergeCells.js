@@ -372,7 +372,7 @@ var afterUpdateSettings = function() {
 
   if (mergeCellsSetting) {
     if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+      instance.mergeCells.mergedCellInfoCollection = instance.mergeCells.mergedCellInfoCollection || new CellInfoCollection();
 
       if (Array.isArray(mergeCellsSetting)) {
         for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
