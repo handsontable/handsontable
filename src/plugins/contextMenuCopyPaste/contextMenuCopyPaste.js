@@ -146,6 +146,14 @@ class ContextMenuCopyPaste extends BasePlugin {
           this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
         });
 
+        // hide copy/paste btn when error, edit by xp 2015.12.15
+        zeroClipboardInstance.on('error', (function(){
+          let $menuItems = $('.htContextMenu tbody tr');
+          $($menuItems[0]).hide();
+          $($menuItems[1]).hide();
+          $('.htSeparator').first().hide();
+        }));
+
         return false;
       }
     });
