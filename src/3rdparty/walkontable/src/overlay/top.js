@@ -42,9 +42,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
-    let preserveOverflow = this.wot.getSetting('preventOverflow');
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preserveOverflow || preserveOverflow !== 'vertical')) {
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'vertical')) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let top = Math.ceil(box.top);
       let bottom = Math.ceil(box.bottom);

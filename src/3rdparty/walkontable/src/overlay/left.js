@@ -43,9 +43,9 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
-    let preserveOverflow = this.wot.getSetting('preventOverflow');
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preserveOverflow || preserveOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let left = Math.ceil(box.left);
       let right = Math.ceil(box.right);
@@ -238,10 +238,10 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    let preserveOverflow = this.wot.getSetting('preventOverflow');
+    let preventOverflow = this.wot.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preserveOverflow && this.trimmingContainer === window) {
+    if (!preventOverflow && this.trimmingContainer === window) {
       offset = this.wot.wtTable.holderOffset.left;
     }
 

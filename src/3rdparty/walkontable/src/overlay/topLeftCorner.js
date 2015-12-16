@@ -39,7 +39,7 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
     let tableWidth = outerWidth(this.clone.wtTable.TABLE);
-    let preserveOverflow = this.wot.getSetting('preventOverflow');
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
@@ -50,13 +50,13 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
       let finalLeft = '0';
       let finalTop = '0';
 
-      if (!preserveOverflow || preserveOverflow === 'vertical') {
+      if (!preventOverflow || preventOverflow === 'vertical') {
         if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
           finalLeft = -left + 'px';
         }
       }
 
-      if (!preserveOverflow || preserveOverflow === 'horizontal') {
+      if (!preventOverflow || preventOverflow === 'horizontal') {
         if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
           finalTop = -top + 'px';
         }

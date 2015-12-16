@@ -283,7 +283,7 @@ class WalkontableOverlays {
     let leftOverlay;
     let bottomOverlay;
     let delegatedScroll = false;
-    let preserveOverflow = this.wot.getSetting('preventOverflow');
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.topOverlay.needFullRender) {
       topOverlay = this.topOverlay.clone.wtTable.holder;
@@ -302,7 +302,7 @@ class WalkontableOverlays {
     }
 
     if (target === masterHorizontal || target === masterVertical) {
-      if (preserveOverflow) {
+      if (preventOverflow) {
         tempScrollValue = getScrollLeft(this.scrollableElement);
       } else {
         tempScrollValue = getScrollLeft(target);
