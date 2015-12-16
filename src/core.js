@@ -4591,6 +4591,27 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    */
-  renderAllRows: void 0
+  renderAllRows: void 0,
+
+  /**
+   * Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will appear horizontal
+   * scrollbar in case where parent's width is narrower then table's width.
+   *
+   * Possible values:
+   *  * `false` - Disables functionality (Default option).
+   *  * `horizontal` - Prevents horizontal overflow table.
+   *  * `vertical` - Prevents vertical overflow table (Not implemented yet).
+   *
+   * @since 0.20.3
+   * @example
+   * ```js
+   * ...
+   * preventOverflow: 'horizontal'
+   * ...
+   * ```
+   *
+   * @type {String|Boolean}
+   */
+  preventOverflow: false
 };
 Handsontable.DefaultSettings = DefaultSettings;
