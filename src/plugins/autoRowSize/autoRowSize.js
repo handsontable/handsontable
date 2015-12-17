@@ -15,7 +15,7 @@ import {isPercentValue} from './../../helpers/string';
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
- * By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `false`).
+ * By default, the plugin is declared as `undefined`, which makes it disabled (same as if it was declared as `false`).
  * Enabling this plugin may decrease the overall table performance, as it needs to calculate the heights of all cells to
  * resize the rows accordingly.
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
