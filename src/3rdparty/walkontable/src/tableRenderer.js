@@ -5,6 +5,7 @@ import {
   getScrollbarWidth,
   hasClass,
   innerHeight,
+  outerWidth
 } from './../../../helpers/dom/element';
 
 /**
@@ -97,6 +98,15 @@ class WalkontableTableRenderer {
 
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
+
+      let hiderWidth = outerWidth(this.wtTable.hider);
+      let tableWidth = outerWidth(this.wtTable.TABLE);
+
+      if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+        // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
+        this.adjustColumnWidths(columnsToRender);
+      }
+
       this.wot.wtOverlays.applyToDOM();
 
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
@@ -342,7 +352,7 @@ class WalkontableTableRenderer {
   }
 
   /**
-   * @param {Number} columnsToRender
+   * @param {Number} columnsToRender Number of columns to render.
    */
   adjustColumnWidths(columnsToRender) {
     let scrollbarCompensation = 0;

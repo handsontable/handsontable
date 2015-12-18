@@ -159,8 +159,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
 
           var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-          if (fixedRowsBottom && totalRows - fixedRowsBottom <= index + 1) {
-            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom - index); //TODO: not sure if right
+          if (fixedRowsBottom && index >= totalRows - fixedRowsBottom) {
+            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
           }
 
           grid.adjustRowsAndCols();
