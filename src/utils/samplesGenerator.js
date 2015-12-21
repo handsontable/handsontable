@@ -15,6 +15,10 @@ class SamplesGenerator {
    * @type {Number}
    */
   static get SAMPLE_COUNT() {
+    if (this.customSampleCount) {
+      return this.customSampleCount;
+    }
+
     return 3;
   }
 
@@ -92,6 +96,7 @@ class SamplesGenerator {
    */
   generateSample(type, range, specifierValue) {
     const samples = new Map();
+    let sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
       let value;
@@ -119,10 +124,15 @@ class SamplesGenerator {
       let sample = samples.get(len);
 
       if (sample.needed) {
-        let computedKey = type === 'row' ? 'col' : 'row';
+        let duplicate = sampledValues.indexOf(value) > -1;
 
-        sample.strings.push({value, [computedKey]: index});
-        sample.needed--;
+        if (!duplicate) {
+          let computedKey = type === 'row' ? 'col' : 'row';
+
+          sample.strings.push({value, [computedKey]: index});
+          sampledValues.push(value);
+          sample.needed--;
+        }
       }
     });
 
