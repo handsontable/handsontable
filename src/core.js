@@ -223,11 +223,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols: function() {
+      let autoCreate;
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         let rows = instance.countRows();
 
         if (rows < priv.settings.minRows) {
+          autoCreate = priv.settings.minRows - rows;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate);
           for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
             datamap.createRow(instance.countRows(), 1, true);
           }
@@ -235,6 +238,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.minSpareRows) {
         let emptyRows = instance.countEmptyRows(true);
+        autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
+        instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate);
 
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
@@ -253,6 +258,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
         // should I add empty cols to meet minCols?
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          autoCreate = priv.settings.minCols - instance.countCols;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate);
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -260,6 +267,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
             emptyCols < priv.settings.minSpareCols) {
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyRows, priv.settings.maxCols - instance.countCols());
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 16 2015 11:00:10 GMT+0600 (ALMT)
+ * Date: Tue Dec 29 2015 11:22:12 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 16 2015 11:00:10 GMT+0600 (ALMT)',
+  buildDate: 'Tue Dec 29 2015 11:22:12 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4009,9 +4009,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     },
     adjustRowsAndCols: function() {
+      var autoCreate;
       if (priv.settings.minRows) {
         var rows = instance.countRows();
         if (rows < priv.settings.minRows) {
+          autoCreate = priv.settings.minRows - rows;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate);
           for (var r = 0,
               minRows = priv.settings.minRows; r < minRows - rows; r++) {
             datamap.createRow(instance.countRows(), 1, true);
@@ -4020,6 +4023,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.minSpareRows) {
         var emptyRows = instance.countEmptyRows(true);
+        autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
+        instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate);
         if (emptyRows < priv.settings.minSpareRows) {
           for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
             datamap.createRow(instance.countRows(), 1, true);
@@ -4032,11 +4037,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           emptyCols = instance.countEmptyCols(true);
         }
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          autoCreate = priv.settings.minCols - instance.countCols;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate);
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
         }
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyRows, priv.settings.maxCols - instance.countCols());
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
