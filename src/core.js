@@ -267,7 +267,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
             emptyCols < priv.settings.minSpareCols) {
-          autoCreate = Math.min(priv.settings.minSpareCols - emptyRows, priv.settings.maxCols - instance.countCols());
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyCols, priv.settings.maxCols - instance.countCols());
           instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
