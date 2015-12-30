@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 30 2015 16:56:05 GMT+0800 (CST)
+ * Date: Wed Dec 30 2015 20:13:02 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 30 2015 16:56:05 GMT+0800 (CST)',
+  buildDate: 'Wed Dec 30 2015 20:13:02 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4044,7 +4044,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
         }
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
-          autoCreate = Math.min(priv.settings.minSpareCols - emptyRows, priv.settings.maxCols - instance.countCols());
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyCols, priv.settings.maxCols - instance.countCols());
           instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
