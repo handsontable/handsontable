@@ -238,11 +238,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.minSpareRows) {
         let emptyRows = instance.countEmptyRows(true);
-        autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
-        instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
 
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
+          autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
           for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
             datamap.createRow(instance.countRows(), 1, true);
           }
