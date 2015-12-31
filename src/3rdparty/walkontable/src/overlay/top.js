@@ -274,7 +274,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       let masterParent = this.wot.wtTable.holder.parentNode;
       let previousState = hasClass(masterParent, 'innerBorderTop');
 
-      if (position) {
+      if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
       } else {
         removeClass(masterParent, 'innerBorderTop');

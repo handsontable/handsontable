@@ -5,6 +5,10 @@
   text-align: center;
 }
 
+.handsontable.htRemoveRow tr:first-child th.htRemoveRow {
+  border-top: 1px solid #CCC;
+}
+
 .handsontable.htRemoveRow th.htRemoveRow .btn {
   background-color: #BBB;
   border-radius: 9px;
