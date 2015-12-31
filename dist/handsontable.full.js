@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 30 2015 20:13:02 GMT+0800 (CST)
+ * Date: Thu Dec 31 2015 14:28:18 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 30 2015 20:13:02 GMT+0800 (CST)',
+  buildDate: 'Thu Dec 31 2015 14:28:18 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4371,6 +4371,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           totalRows,
           totalCols,
           coords,
+          autoCreate,
           fixedRowsBottom;
       instance.runHooks('modifyTransformStart', delta);
       totalRows = instance.countRows();
@@ -4378,6 +4379,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       fixedRowsBottom = instance.getSettings().fixedRowsBottom;
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, 'enter');
           instance.alter('insert_row', totalRows);
           totalRows = instance.countRows();
         } else if (priv.settings.autoWrapCol) {
@@ -4390,6 +4393,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, 'enter');
           instance.alter('insert_col', totalCols);
           totalCols = instance.countCols();
         } else if (priv.settings.autoWrapRow) {
