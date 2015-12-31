@@ -730,6 +730,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         totalRows,
         totalCols,
         coords,
+        autoCreate,
         fixedRowsBottom;
 
       instance.runHooks('modifyTransformStart', delta);
@@ -740,6 +741,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, 'enter');
           instance.alter('insert_row', totalRows);
           totalRows = instance.countRows();
 
@@ -754,6 +757,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, 'enter');
           instance.alter('insert_col', totalCols);
           totalCols = instance.countCols();
 
