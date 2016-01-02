@@ -385,6 +385,16 @@ const REGISTERED_HOOKS = [
   "beforeChangeRender",
 
   /**
+   * Juliend
+   */
+  "beforeCellCopy",
+
+  /**
+   * Juliend
+   */
+  "afterCopy",
+
+  /**
    * @event Hooks#beforeDrawBorders
    */
   "beforeDrawBorders",

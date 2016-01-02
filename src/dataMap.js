@@ -447,7 +447,9 @@ var copyableLookup = helper.cellMethodLookupFactory('copyable', false);
  */
 DataMap.prototype.getCopyable = function (row, prop) {
   if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-    return this.get(row, prop);
+    //juliend
+    var value = this.get(row, prop);
+    return Handsontable.hooks.run(this.instance, 'beforeCellCopy', value, row, prop);
   }
   return '';
 };

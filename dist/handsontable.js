@@ -3,17 +3,17 @@
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
- * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
+ * Copyright 2016 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 02 2015 23:52:23 GMT+0800 (SGT)
+ * Date: Sat Jan 02 2016 16:59:14 GMT+0700 (WIT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Mon Nov 02 2015 23:52:23 GMT+0800 (SGT)'
+  buildDate: 'Sat Jan 02 2016 16:59:14 GMT+0700 (WIT)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5508,7 +5508,8 @@ DataMap.prototype.get = function(row, prop) {
 var copyableLookup = helper.cellMethodLookupFactory('copyable', false);
 DataMap.prototype.getCopyable = function(row, prop) {
   if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
-    return this.get(row, prop);
+    var value = this.get(row, prop);
+    return Handsontable.hooks.run(this.instance, 'beforeCellCopy', value, row, prop);
   }
   return '';
 };
@@ -9373,7 +9374,7 @@ Object.defineProperties(exports, {
 });
 var $__eventManager_46_js__,
     $__helpers_46_js__;
-var REGISTERED_HOOKS = ["afterCellMetaReset", "afterChange", "afterChangesObserved", "afterColumnMove", "afterColumnResize", "afterContextMenuDefaultOptions", "afterContextMenuHide", "afterContextMenuShow", "afterCopyLimit", "afterCreateCol", "afterCreateRow", "afterDeselect", "afterDestroy", "afterDocumentKeyDown", "afterGetCellMeta", "afterGetColHeader", "afterGetRowHeader", "afterInit", "afterIsMultipleSelectionCheck", "afterLoadData", "afterMomentumScroll", "afterOnCellCornerMouseDown", "afterOnCellMouseDown", "afterOnCellMouseOver", "afterRemoveCol", "afterRemoveRow", "afterRender", "afterRenderer", "afterRowMove", "afterRowResize", "afterScrollHorizontally", "afterScrollVertically", "afterSelection", "afterSelectionByProp", "afterSelectionEnd", "afterSelectionEndByProp", "afterSetCellMeta", "afterUpdateSettings", "afterValidate", "beforeAutofill", "beforeCellAlignment", "beforeChange", "beforeChangeRender", "beforeDrawBorders", "beforeGetCellMeta", "beforeInit", "beforeInitWalkontable", "beforeKeyDown", "beforeOnCellMouseDown", "beforeRemoveCol", "beforeRemoveRow", "beforeRender", "beforeSetRangeEnd", "beforeTouchScroll", "beforeValidate", "construct", "init", "modifyCol", "modifyColWidth", "modifyRow", "modifyRowHeight", "persistentStateLoad", "persistentStateReset", "persistentStateSave"];
+var REGISTERED_HOOKS = ["afterCellMetaReset", "afterChange", "afterChangesObserved", "afterColumnMove", "afterColumnResize", "afterContextMenuDefaultOptions", "afterContextMenuHide", "afterContextMenuShow", "afterCopyLimit", "afterCreateCol", "afterCreateRow", "afterDeselect", "afterDestroy", "afterDocumentKeyDown", "afterGetCellMeta", "afterGetColHeader", "afterGetRowHeader", "afterInit", "afterIsMultipleSelectionCheck", "afterLoadData", "afterMomentumScroll", "afterOnCellCornerMouseDown", "afterOnCellMouseDown", "afterOnCellMouseOver", "afterRemoveCol", "afterRemoveRow", "afterRender", "afterRenderer", "afterRowMove", "afterRowResize", "afterScrollHorizontally", "afterScrollVertically", "afterSelection", "afterSelectionByProp", "afterSelectionEnd", "afterSelectionEndByProp", "afterSetCellMeta", "afterUpdateSettings", "afterValidate", "beforeAutofill", "beforeCellAlignment", "beforeChange", "beforeChangeRender", "beforeCellCopy", "afterCopy", "beforeDrawBorders", "beforeGetCellMeta", "beforeInit", "beforeInitWalkontable", "beforeKeyDown", "beforeOnCellMouseDown", "beforeRemoveCol", "beforeRemoveRow", "beforeRender", "beforeSetRangeEnd", "beforeTouchScroll", "beforeValidate", "construct", "init", "modifyCol", "modifyColWidth", "modifyRow", "modifyRowHeight", "persistentStateLoad", "persistentStateReset", "persistentStateSave"];
 var EventManager = ($__eventManager_46_js__ = require("./eventManager.js"), $__eventManager_46_js__ && $__eventManager_46_js__.__esModule && $__eventManager_46_js__ || {default: $__eventManager_46_js__}).EventManager;
 var $__1 = ($__helpers_46_js__ = require("./helpers.js"), $__helpers_46_js__ && $__helpers_46_js__.__esModule && $__helpers_46_js__ || {default: $__helpers_46_js__}),
     arrayEach = $__1.arrayEach,
@@ -12264,6 +12265,7 @@ var WalkontableCellRange = ($___46__46__47__46__46__47_3rdparty_47_walkontable_4
 function CopyPastePlugin(instance) {
   var _this = this;
   this.copyPasteInstance = copyPaste();
+  this.copyPasteInstance.onCopy(onCopy);
   this.copyPasteInstance.onCut(onCut);
   this.copyPasteInstance.onPaste(onPaste);
   instance.addHook('beforeKeyDown', onBeforeKeyDown);
@@ -12271,7 +12273,16 @@ function CopyPastePlugin(instance) {
     if (!instance.isListening()) {
       return;
     }
+    var selected = instance.getSelected();
+    Handsontable.hooks.run(instance, "afterCopy", selected[0], selected[1], selected[2], selected[3]);
     instance.selection.empty();
+  }
+  function onCopy() {
+    if (!instance.isListening()) {
+      return;
+    }
+    var selected = instance.getSelected();
+    Handsontable.hooks.run(instance, "afterCopy", selected[0], selected[1], selected[2], selected[3]);
   }
   function onPaste(str) {
     var input,
@@ -12323,6 +12334,7 @@ function CopyPastePlugin(instance) {
   }
   this.destroy = function() {
     if (this.copyPasteInstance) {
+      this.copyPasteInstance.removeCallback(onCopy);
       this.copyPasteInstance.removeCallback(onCut);
       this.copyPasteInstance.removeCallback(onPaste);
       this.copyPasteInstance.destroy();
@@ -18473,6 +18485,10 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
       setTimeout(function() {
         _this.triggerCut(event);
       }, 0);
+    } else if (event.keyCode === 67) {
+      setTimeout(function() {
+        _this.triggerCopy(event);
+      }, 0);
     } else if (event.keyCode === 86) {
       setTimeout(function() {
         _this.triggerPaste(event);
@@ -18500,6 +18516,9 @@ CopyPasteClass.prototype.copyable = function(string) {
   }
   this.elTextarea.value = string;
   this.selectNodeText(this.elTextarea);
+};
+CopyPasteClass.prototype.onCopy = function(callback) {
+  this.copyCallbacks.push(callback);
 };
 CopyPasteClass.prototype.onCut = function(callback) {
   this.cutCallbacks.push(callback);
@@ -18537,6 +18556,17 @@ CopyPasteClass.prototype.triggerCut = function(event) {
       for (var i = 0,
           len = _this.cutCallbacks.length; i < len; i++) {
         _this.cutCallbacks[i](event);
+      }
+    }, 50);
+  }
+};
+CopyPasteClass.prototype.triggerCopy = function(event) {
+  var _this = this;
+  if (_this.copyCallbacks) {
+    setTimeout(function() {
+      for (var i = 0,
+          len = _this.copyCallbacks.length; i < len; i++) {
+        _this.copyCallbacks[i](event);
       }
     }, 50);
   }

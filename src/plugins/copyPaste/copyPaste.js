@@ -16,6 +16,7 @@ function CopyPastePlugin(instance) {
   var _this = this;
 
   this.copyPasteInstance = copyPaste();
+  this.copyPasteInstance.onCopy(onCopy);
   this.copyPasteInstance.onCut(onCut);
   this.copyPasteInstance.onPaste(onPaste);
 
@@ -25,7 +26,21 @@ function CopyPastePlugin(instance) {
     if (!instance.isListening()) {
       return;
     }
+
+    //juliend
+    var selected = instance.getSelected();
+    Handsontable.hooks.run(instance, "afterCopy",selected[0],selected[1],selected[2],selected[3]);
+
     instance.selection.empty();
+  }
+
+  //juliend
+  function onCopy() {
+    if (!instance.isListening()) {
+      return;
+    }
+    var selected = instance.getSelected();
+    Handsontable.hooks.run(instance, "afterCopy",selected[0],selected[1],selected[2],selected[3]);
   }
 
   function onPaste(str) {
@@ -96,6 +111,8 @@ function CopyPastePlugin(instance) {
    */
   this.destroy = function() {
     if (this.copyPasteInstance) {
+      //juliend
+      this.copyPasteInstance.removeCallback(onCopy);
       this.copyPasteInstance.removeCallback(onCut);
       this.copyPasteInstance.removeCallback(onPaste);
       this.copyPasteInstance.destroy();
