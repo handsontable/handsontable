@@ -31,7 +31,7 @@ class WalkontableSelection {
     }
 
     // where is this returned?
-    this.instanceBorders[wotInstance.guid] = new WalkontableBorder(wotInstance, this.settings);
+    return this.instanceBorders[wotInstance.guid] = new WalkontableBorder(wotInstance, this.settings);
   }
 
   /**

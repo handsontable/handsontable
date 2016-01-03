@@ -260,7 +260,8 @@ class WalkontableTable {
   }
 
   removeClassFromCells(className) {
-    const nodes = this.TABLE.querySelectorAll('.' + className);
+    let selector = className.replace(' ', '.');
+    const nodes = this.TABLE.querySelectorAll('.' + selector);
 
     for (let i = 0, len = nodes.length; i < len; i++) {
       removeClass(nodes[i], className);

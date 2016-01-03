@@ -195,7 +195,7 @@ function TableView(instance) {
         color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9'
         //style: 'solid' // not used
       },
-    }),
+    })
   ];
   selections.current = selections[0];
   selections.area = selections[1];
@@ -270,8 +270,16 @@ function TableView(instance) {
       var THEAD = TR.parentNode;
       var headerLevel;
       var headerColspan;
+      var editor, editorVal;
 
-      instance.listen();
+      editor = instance.getActiveEditor();
+      editorVal = editor.getValue();
+      if(isFormula(editorVal)){
+        event.preventDefault();
+      }else{
+        instance.listen();
+      }
+
       that.activeWt = wt;
 
       isMouseDown = true;
@@ -315,6 +323,14 @@ function TableView(instance) {
         Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
 
         that.activeWt = that.wt;
+      }
+
+      function isFormula(val){
+        val = val.trim();
+        if(val[0] == '='){
+          return true;
+        }
+        return false;
       }
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
