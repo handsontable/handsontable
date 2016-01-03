@@ -3,17 +3,17 @@
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
- * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
+ * Copyright 2016 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 31 2015 14:28:18 GMT+0800 (CST)
+ * Date: Sun Jan 03 2016 23:00:10 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Dec 31 2015 14:28:18 GMT+0800 (CST)',
+  buildDate: 'Sun Jan 03 2016 23:00:10 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2448,7 +2448,7 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
     if (this.instanceBorders[wotInstance.guid]) {
       return this.instanceBorders[wotInstance.guid];
     }
-    this.instanceBorders[wotInstance.guid] = new WalkontableBorder(wotInstance, this.settings);
+    return this.instanceBorders[wotInstance.guid] = new WalkontableBorder(wotInstance, this.settings);
   },
   isEmpty: function() {
     return this.cellRange === null;
@@ -2852,7 +2852,8 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     wtRenderer.render();
   },
   removeClassFromCells: function(className) {
-    var nodes = this.TABLE.querySelectorAll('.' + className);
+    var selector = className.replace(' ', '.');
+    var nodes = this.TABLE.querySelectorAll('.' + selector);
     for (var i = 0,
         len = nodes.length; i < len; i++) {
       removeClass(nodes[i], className);
@@ -4301,6 +4302,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         row: null,
         col: null
       };
+      var isEnableFormulaRange = instance.getSettings().isEnableFormulaRange,
+          isSetFormulaRange = false;
+      if (isEnableFormulaRange && isEnableFormulaRange()) {
+        isSetFormulaRange = true;
+        keepEditorOpened = true;
+      }
       Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords);
       instance.selection.begin();
       newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
@@ -4314,13 +4321,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (typeof disableVisualSelection === 'string') {
         disableVisualSelection = [disableVisualSelection];
       }
-      if (disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+      if (isAddRangeFun('current') && !isSetFormulaRange) {
         instance.view.wt.selections.current.add(priv.selRange.highlight);
       }
+      instance.view.wt.selections.forEach(function(ele) {
+        if (ele.settings.className.indexOf('formula-selected') > -1 && ele.settings.key) {
+          instance.view.wt.selections[ele.settings.key].clear();
+        }
+      });
       instance.view.wt.selections.area.clear();
-      if ((disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) && selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selRange.from);
-        instance.view.wt.selections.area.add(priv.selRange.to);
+      if (disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) {
+        if (isSetFormulaRange) {
+          Handsontable.hooks.run(instance, 'customSetFormulaRange', priv.selRange);
+        } else if (selection.isMultiple()) {
+          instance.view.wt.selections.area.add(priv.selRange.from);
+          instance.view.wt.selections.area.add(priv.selRange.to);
+        }
       }
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
@@ -4343,6 +4359,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
       }
       selection.refreshBorders(null, keepEditorOpened, true);
+      function isAddRangeFun(type) {
+        return disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf(type) === -1;
+      }
     },
     refreshBorders: function(revertOriginal, keepEditor, noRerender) {
       if (!keepEditor) {
@@ -15094,7 +15113,15 @@ function TableView(instance) {
       var THEAD = TR.parentNode;
       var headerLevel;
       var headerColspan;
-      instance.listen();
+      var editor,
+          editorVal;
+      editor = instance.getActiveEditor();
+      editorVal = editor.getValue();
+      if (isFormula(editorVal)) {
+        event.preventDefault();
+      } else {
+        instance.listen();
+      }
       that.activeWt = wt;
       isMouseDown = true;
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
@@ -15128,6 +15155,13 @@ function TableView(instance) {
         }
         Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
         that.activeWt = that.wt;
+      }
+      function isFormula(val) {
+        val = val.trim();
+        if (val[0] == '=') {
+          return true;
+        }
+        return false;
       }
     },
     onCellMouseOver: function(event, coords, TD, wt) {

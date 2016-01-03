@@ -612,6 +612,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         col: null,
       };
 
+      var isEnableFormulaRange = instance.getSettings().isEnableFormulaRange, 
+        isSetFormulaRange = false;
+      if(isEnableFormulaRange && isEnableFormulaRange()){
+        isSetFormulaRange = true;
+        keepEditorOpened = true;  //当需要选择公式选区时，不要调用destoryEditor
+      }
+
       // trigger handlers
       Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords);
       instance.selection.begin();
@@ -624,6 +631,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         priv.selRange.from = coords;
       }
+
       // set up current selection
       instance.view.wt.selections.current.clear();
 
@@ -633,19 +641,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         disableVisualSelection = [disableVisualSelection];
       }
 
-      if (disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+      if (isAddRangeFun('current') && !isSetFormulaRange) {
         instance.view.wt.selections.current.add(priv.selRange.highlight);
       }
+      //set up formula selection
+      instance.view.wt.selections.forEach(function(ele){
+        if(ele.settings.className.indexOf('formula-selected') > -1 && ele.settings.key){
+          instance.view.wt.selections[ele.settings.key].clear();
+        }
+      });
+
       // set up area selection
       instance.view.wt.selections.area.clear();
 
-      if ((disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
-          selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selRange.from);
-        instance.view.wt.selections.area.add(priv.selRange.to);
+      if (disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) {
+        if(isSetFormulaRange){
+          //只特殊处理current和area的选区
+          Handsontable.hooks.run(instance, 'customSetFormulaRange', priv.selRange);
+        }else if(selection.isMultiple()){
+          instance.view.wt.selections.area.add(priv.selRange.from);
+          instance.view.wt.selections.area.add(priv.selRange.to);
+        }
       }
+      
       // set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
@@ -675,7 +694,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
+
       selection.refreshBorders(null, keepEditorOpened, true);
+
+      function isAddRangeFun(type){
+        return disableVisualSelection === false ||
+          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf(type) === -1
+      }
     },
 
     /**
