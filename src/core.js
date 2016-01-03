@@ -502,7 +502,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }
-                value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
+                if(value[0] == '='){
+                  //auto fill formula
+                  instance.setCellMetaObject(current.row, current.col, {
+                    type: 'formula',
+                    dataType: 'formula',
+                    renderer: void 0
+                  });
+                }else{
+                  value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);  
+                }
               }
               if (value !== null && typeof value === 'object') {
                 if (orgValue === null || typeof orgValue !== 'object') {
