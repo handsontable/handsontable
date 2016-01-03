@@ -222,12 +222,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     /**
      * Makes sure there are empty rows at the bottom of the table
      */
-    adjustRowsAndCols: function() {
+    adjustRowsAndCols: function(source) {
+      let autoCreate;
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         let rows = instance.countRows();
 
         if (rows < priv.settings.minRows) {
+          autoCreate = priv.settings.minRows - rows;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
           for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
             datamap.createRow(instance.countRows(), 1, true);
           }
@@ -238,6 +241,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
+          autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
           for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
             datamap.createRow(instance.countRows(), 1, true);
           }
@@ -253,6 +258,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
         // should I add empty cols to meet minCols?
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          autoCreate = priv.settings.minCols - instance.countCols();
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -260,6 +267,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
             emptyCols < priv.settings.minSpareCols) {
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyCols, priv.settings.maxCols - instance.countCols());
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -746,6 +755,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         totalRows,
         totalCols,
         coords,
+        autoCreate,
         fixedRowsBottom;
 
       instance.runHooks('modifyTransformStart', delta);
@@ -756,6 +766,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, 'enter');
           instance.alter('insert_row', totalRows);
           totalRows = instance.countRows();
 
@@ -770,6 +782,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, 'enter');
           instance.alter('insert_col', totalCols);
           totalCols = instance.countCols();
 
@@ -1182,7 +1196,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     instance.forceFullRender = true; // used when data was changed
-    grid.adjustRowsAndCols();
+    grid.adjustRowsAndCols(source);
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
     if((source == 'edit' || source == 'from_server') && changes.length == 1){
       var _change = changes[0],

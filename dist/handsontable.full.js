@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 16 2015 11:00:10 GMT+0600 (ALMT)
+ * Date: Thu Dec 31 2015 14:28:18 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 16 2015 11:00:10 GMT+0600 (ALMT)',
+  buildDate: 'Thu Dec 31 2015 14:28:18 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -628,7 +628,7 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
     return width;
   }
 }, {get DEFAULT_WIDTH() {
-    return 50;
+    return 102;
   }});
 ;
 window.WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator;
@@ -4008,10 +4008,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         grid.adjustRowsAndCols();
       }
     },
-    adjustRowsAndCols: function() {
+    adjustRowsAndCols: function(source) {
+      var autoCreate;
       if (priv.settings.minRows) {
         var rows = instance.countRows();
         if (rows < priv.settings.minRows) {
+          autoCreate = priv.settings.minRows - rows;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
           for (var r = 0,
               minRows = priv.settings.minRows; r < minRows - rows; r++) {
             datamap.createRow(instance.countRows(), 1, true);
@@ -4021,6 +4024,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (priv.settings.minSpareRows) {
         var emptyRows = instance.countEmptyRows(true);
         if (emptyRows < priv.settings.minSpareRows) {
+          autoCreate = Math.min(priv.settings.minSpareRows - emptyRows, priv.settings.maxRows - instance.countRows());
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, source);
           for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
             datamap.createRow(instance.countRows(), 1, true);
           }
@@ -4032,11 +4037,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           emptyCols = instance.countEmptyCols(true);
         }
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          autoCreate = priv.settings.minCols - instance.countCols();
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
         }
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
+          autoCreate = Math.min(priv.settings.minSpareCols - emptyCols, priv.settings.maxCols - instance.countCols());
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, source);
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, true);
           }
@@ -4362,6 +4371,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           totalRows,
           totalCols,
           coords,
+          autoCreate,
           fixedRowsBottom;
       instance.runHooks('modifyTransformStart', delta);
       totalRows = instance.countRows();
@@ -4369,6 +4379,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       fixedRowsBottom = instance.getSettings().fixedRowsBottom;
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateRow', instance.countRows(), autoCreate, 'enter');
           instance.alter('insert_row', totalRows);
           totalRows = instance.countRows();
         } else if (priv.settings.autoWrapCol) {
@@ -4381,6 +4393,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
+          autoCreate = 1;
+          instance.runHooks('beforeAutoCreateCol', instance.countCols(), autoCreate, 'enter');
           instance.alter('insert_col', totalCols);
           totalCols = instance.countCols();
         } else if (priv.settings.autoWrapRow) {
@@ -4680,7 +4694,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
     instance.forceFullRender = true;
-    grid.adjustRowsAndCols();
+    grid.adjustRowsAndCols(source);
     Handsontable.hooks.run(instance, 'beforeChangeRender', changes, source);
     if ((source == 'edit' || source == 'from_server') && changes.length == 1) {
       var _change = changes[0],

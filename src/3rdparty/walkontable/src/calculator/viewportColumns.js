@@ -14,7 +14,7 @@ class WalkontableViewportColumnsCalculator {
    * @type {Number}
    */
   static get DEFAULT_WIDTH() {
-    return 50;
+    return 102;
   }
 
   /**
