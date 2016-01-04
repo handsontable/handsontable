@@ -1,4 +1,3 @@
-
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import {objectEach} from './../helpers/object';
@@ -42,19 +41,19 @@ class SamplesGenerator {
      * @default {null}
      */
     this.customSampleCount = null;
-    /**
-     * Get the sample count for this instance.
-     *
-     * @returns {Number}
-     */
-    this.getSampleCount = function () {
-      if (this.customSampleCount) {
-        return this.customSampleCount;
-      } else {
-        return SamplesGenerator.SAMPLE_COUNT;
-      }
-    }
   }
+
+  /**
+   * Get the sample count for this instance.
+   *
+   * @returns {Number}
+   */
+  getSampleCount() {
+    if (this.customSampleCount) {
+      return this.customSampleCount;
+    }
+    return SamplesGenerator.SAMPLE_COUNT;
+  };
 
   /**
    * Generate samples for row. You can control which area should be sampled by passing `rowRange` object and `colRange` object.
