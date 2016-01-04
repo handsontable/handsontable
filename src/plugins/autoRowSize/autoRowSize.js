@@ -116,10 +116,11 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    let samplingRatio = this.hot.getSettings().autoRowSize ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    let setting = this.hot.getSettings().autoRowSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
-      SamplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
     }
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());

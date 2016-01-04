@@ -15,10 +15,6 @@ class SamplesGenerator {
    * @type {Number}
    */
   static get SAMPLE_COUNT() {
-    if (this.customSampleCount) {
-      return this.customSampleCount;
-    }
-
     return 3;
   }
 
@@ -39,6 +35,25 @@ class SamplesGenerator {
      * @type {Function}
      */
     this.dataFactory = dataFactory;
+    /**
+     * Custom number of samples to take of each value length.
+     *
+     * @type {Number}
+     * @default {null}
+     */
+    this.customSampleCount = null;
+    /**
+     * Get the sample count for this instance.
+     *
+     * @returns {Number}
+     */
+    this.getSampleCount = function () {
+      if (this.customSampleCount) {
+        return this.customSampleCount;
+      } else {
+        return SamplesGenerator.SAMPLE_COUNT;
+      }
+    }
   }
 
   /**
@@ -117,7 +132,7 @@ class SamplesGenerator {
 
       if (!samples.has(len)) {
         samples.set(len, {
-          needed: SamplesGenerator.SAMPLE_COUNT,
+          needed: this.getSampleCount(),
           strings: [],
         });
       }
