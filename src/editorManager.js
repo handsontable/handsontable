@@ -250,6 +250,10 @@ function EditorManager(instance, priv, selection) {
       instance.runHooks('afterDocumentKeyDown', event);
     });
 
+    eventManager.addEventListener(document.documentElement, 'keyup', function(event) {
+      instance.runHooks('afterDocumentKeyUp', event);
+    });
+
     function onDblClick(event, coords, elem) {
       // may be TD or TH
       if (elem.nodeName == 'TD') {
