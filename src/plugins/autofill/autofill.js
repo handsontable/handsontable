@@ -132,6 +132,7 @@ function Autofill(instance) {
     if (_this.instance.mouseDragOutside) {
       setTimeout(function() {
         _this.addingStarted = false;
+        _this.instance.runHooks('beforeAutoCreateRow', _this.instance.countRows(), 1, 'mouseDragOutside');
         _this.instance.alter('insert_row');
       }, 200);
     }
@@ -338,6 +339,7 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
       this.addingStarted = true;
 
       this.instance._registerTimeout(setTimeout(function() {
+        that.instance.runHooks('beforeAutoCreateRow', that.instance.countRows(), 1, 'checkIfNewRowNeeded');
         that.instance.alter('insert_row');
         that.addingStarted = false;
       }, 200));
