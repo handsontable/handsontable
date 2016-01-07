@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 05 2016 12:10:28 GMT+0800 (CST)
+ * Date: Thu Jan 07 2016 16:41:03 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Jan 05 2016 12:10:28 GMT+0800 (CST)',
+  buildDate: 'Thu Jan 07 2016 16:41:03 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9526,6 +9526,7 @@ function Autofill(instance) {
     if (_this.instance.mouseDragOutside) {
       setTimeout(function() {
         _this.addingStarted = false;
+        _this.instance.runHooks('beforeAutoCreateRow', _this.instance.countRows(), 1, 'mouseDragOutside');
         _this.instance.alter('insert_row');
       }, 200);
     }
@@ -9667,6 +9668,7 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
     if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
       this.addingStarted = true;
       this.instance._registerTimeout(setTimeout(function() {
+        that.instance.runHooks('beforeAutoCreateRow', that.instance.countRows(), 1, 'checkIfNewRowNeeded');
         that.instance.alter('insert_row');
         that.addingStarted = false;
       }, 200));
