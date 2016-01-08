@@ -1,4 +1,3 @@
-
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
@@ -15,7 +14,7 @@ import {isPercentValue} from './../../helpers/string';
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
- * By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `false`).
+ * By default, the plugin is declared as `undefined`, which makes it disabled (same as if it was declared as `false`).
  * Enabling this plugin may decrease the overall table performance, as it needs to calculate the heights of all cells to
  * resize the rows accordingly.
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
@@ -62,6 +61,7 @@ class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
   }
+
   static get SYNC_CALCULATION_LIMIT() {
     return 500;
   }
@@ -115,6 +115,14 @@ class AutoRowSize extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    let setting = this.hot.getSettings().autoRowSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    }
+
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
     this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());

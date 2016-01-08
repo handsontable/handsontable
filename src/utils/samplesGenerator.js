@@ -1,4 +1,3 @@
-
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import {objectEach} from './../helpers/object';
@@ -35,7 +34,26 @@ class SamplesGenerator {
      * @type {Function}
      */
     this.dataFactory = dataFactory;
+    /**
+     * Custom number of samples to take of each value length.
+     *
+     * @type {Number}
+     * @default {null}
+     */
+    this.customSampleCount = null;
   }
+
+  /**
+   * Get the sample count for this instance.
+   *
+   * @returns {Number}
+   */
+  getSampleCount() {
+    if (this.customSampleCount) {
+      return this.customSampleCount;
+    }
+    return SamplesGenerator.SAMPLE_COUNT;
+  };
 
   /**
    * Generate samples for row. You can control which area should be sampled by passing `rowRange` object and `colRange` object.
@@ -92,6 +110,7 @@ class SamplesGenerator {
    */
   generateSample(type, range, specifierValue) {
     const samples = new Map();
+    let sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
       let value;
@@ -112,17 +131,22 @@ class SamplesGenerator {
 
       if (!samples.has(len)) {
         samples.set(len, {
-          needed: SamplesGenerator.SAMPLE_COUNT,
+          needed: this.getSampleCount(),
           strings: [],
         });
       }
       let sample = samples.get(len);
 
       if (sample.needed) {
-        let computedKey = type === 'row' ? 'col' : 'row';
+        let duplicate = sampledValues.indexOf(value) > -1;
 
-        sample.strings.push({value, [computedKey]: index});
-        sample.needed--;
+        if (!duplicate) {
+          let computedKey = type === 'row' ? 'col' : 'row';
+
+          sample.strings.push({value, [computedKey]: index});
+          sampledValues.push(value);
+          sample.needed--;
+        }
       }
     });
 

@@ -59,7 +59,7 @@ const _predefinedItems = {
     disabled: function() {
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.countRows() >= this.getSettings().maxRows) {
         return true;
       }
 
@@ -82,7 +82,7 @@ const _predefinedItems = {
     disabled: function() {
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.countRows() >= this.getSettings().maxRows) {
         return true;
       }
 
