@@ -6,6 +6,7 @@ import {
   getWindowScrollTop,
   hasClass,
   outerWidth,
+  innerHeight,
   removeClass,
   setOverlayPosition,
 } from './../../../../helpers/dom/element';
@@ -42,8 +43,9 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let left = Math.ceil(box.left);
       let right = Math.ceil(box.right);
@@ -135,10 +137,15 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableWidth;
 
-    if (this.trimmingContainer !== window) {
-      overlayRootStyle.height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
+    if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
+      let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
+
+      height = Math.min(height, innerHeight(this.wot.wtTable.wtRootElement));
+
+      overlayRootStyle.height = height + 'px';
     }
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
@@ -231,12 +238,14 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    if (this.trimmingContainer === window) {
-      return this.wot.wtTable.holderOffset.left;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
+    let offset = 0;
 
-    } else {
-      return 0;
+    if (!preventOverflow && this.trimmingContainer === window) {
+      offset = this.wot.wtTable.holderOffset.left;
     }
+
+    return offset;
   }
 
   /**
