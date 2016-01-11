@@ -229,9 +229,24 @@ class ContextMenu extends BasePlugin {
     let showRowHeaders = settings.rowHeaders;
     let showColHeaders = settings.colHeaders;
 
+    let editor = this.hot.getActiveEditor();
+    let formula = $(editor.DIV).text();
+
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
+
+    function isFormula(val){
+      if(typeof val != 'string'){
+        return false;
+      }
+      val = val.trim();
+      if(val[0] == '='){
+        return true;
+      }
+      return false;
+    }
+
     // if event is from hot-table we must get web component element not element inside him
     let element = event.realTarget;
     this.close();
@@ -250,6 +265,9 @@ class ContextMenu extends BasePlugin {
       if (containsCornerHeader) {
         return;
       }
+    }
+    if(editor._opened && isFormula(formula)){
+      return;
     }
     this.open(event);
   }

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 07 2016 16:41:03 GMT+0800 (CST)
+ * Date: Sun Jan 10 2016 21:50:50 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jan 07 2016 16:41:03 GMT+0800 (CST)',
+  buildDate: 'Sun Jan 10 2016 21:50:50 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9903,8 +9903,20 @@ var $ContextMenu = ContextMenu;
     var settings = this.hot.getSettings();
     var showRowHeaders = settings.rowHeaders;
     var showColHeaders = settings.colHeaders;
+    var editor = this.hot.getActiveEditor();
+    var formula = $(editor.DIV).text();
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
+    }
+    function isFormula(val) {
+      if (typeof val != 'string') {
+        return false;
+      }
+      val = val.trim();
+      if (val[0] == '=') {
+        return true;
+      }
+      return false;
     }
     var element = event.realTarget;
     this.close();
@@ -9919,6 +9931,9 @@ var $ContextMenu = ContextMenu;
       if (containsCornerHeader) {
         return;
       }
+    }
+    if (editor._opened && isFormula(formula)) {
+      return;
     }
     this.open(event);
   }
