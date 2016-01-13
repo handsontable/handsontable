@@ -88,6 +88,11 @@ function getEditor(editorName, hotInstance) {
 function getEditorConstructor(editorName) {
   var editor;
 
+  // fix mobile editor  2016mobile#1
+  if(editorName == 'mobile') {
+    editorName = 'text';
+  }
+  
   if (typeof editorName == 'string') {
     editor = registeredEditorNames[editorName];
 

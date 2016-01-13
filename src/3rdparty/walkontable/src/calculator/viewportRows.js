@@ -86,7 +86,13 @@ class WalkontableViewportRowsCalculator {
 
     // Calculate the number (start and end index) of rows needed
     for (let i = 0; i < totalRows; i++) {
-      let rowHeight = rowHeightFn(i);
+
+      // show all row  2016mobile#2
+      if(Handsontable.mobileBrowser){
+        let rowHeight = 0;
+      } else {
+        let rowHeight = rowHeightFn(i);
+      }
 
       if (rowHeight === undefined) {
         rowHeight = WalkontableViewportRowsCalculator.DEFAULT_HEIGHT;

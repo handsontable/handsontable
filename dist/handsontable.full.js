@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 10 2016 21:50:50 GMT+0800 (CST)
+ * Date: Wed Jan 13 2016 19:27:35 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Sun Jan 10 2016 21:50:50 GMT+0800 (CST)',
+  buildDate: 'Wed Jan 13 2016 19:27:35 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -220,9 +220,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.cornerStyle.width = this.cornerDefaultStyle.width;
     this.cornerStyle.height = this.cornerDefaultStyle.height;
     this.cornerStyle.border = [this.cornerDefaultStyle.borderWidth, this.cornerDefaultStyle.borderStyle, this.cornerDefaultStyle.borderColor].join(' ');
-    if (Handsontable.mobileBrowser) {
-      this.createMultipleSelectorHandles();
-    }
+    if (Handsontable.mobileBrowser) {}
     this.disappear();
     if (!this.wot.wtTable.bordersHolder) {
       this.wot.wtTable.bordersHolder = document.createElement('div');
@@ -425,9 +423,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.rightStyle.left = left + width - delta + 'px';
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
-    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
-      this.cornerStyle.display = 'none';
-    } else {
+    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {} else {
       this.cornerStyle.top = top + height - 4 + 'px';
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
@@ -449,9 +445,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
         }
       }
     }
-    if (Handsontable.mobileBrowser) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
-    }
+    if (Handsontable.mobileBrowser) {}
   },
   disappear: function() {
     this.topStyle.display = 'none';
@@ -459,10 +453,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.bottomStyle.display = 'none';
     this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
-    if (Handsontable.mobileBrowser) {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
-    }
+    if (Handsontable.mobileBrowser) {}
   },
   hasSetting: function(setting) {
     if (typeof setting === 'function') {
@@ -519,7 +510,11 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
     var totalColumns = priv.totalColumns;
     var viewportWidth = priv.viewportWidth;
     for (var i = 0; i < totalColumns; i++) {
-      columnWidth = this._getColumnWidth(i);
+      if (Handsontable.mobileBrowser) {
+        columnWidth = 0;
+      } else {
+        columnWidth = this._getColumnWidth(i);
+      }
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
@@ -673,7 +668,11 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
     var viewportHeight = priv.viewportHeight;
     var horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
     for (var i = 0; i < totalRows; i++) {
-      var rowHeight = rowHeightFn(i);
+      if (Handsontable.mobileBrowser) {
+        var rowHeight = 0;
+      } else {
+        var rowHeight$__1 = rowHeightFn(i);
+      }
       if (rowHeight === undefined) {
         rowHeight = $WalkontableViewportRowsCalculator.DEFAULT_HEIGHT;
       }
@@ -6460,6 +6459,9 @@ function getEditor(editorName, hotInstance) {
 }
 function getEditorConstructor(editorName) {
   var editor;
+  if (editorName == 'mobile') {
+    editorName = 'text';
+  }
   if (typeof editorName == 'string') {
     editor = registeredEditorNames[editorName];
   } else {
