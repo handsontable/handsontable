@@ -190,7 +190,8 @@ class WalkontableBorder {
     ].join(' ');
 
     if (Handsontable.mobileBrowser) {
-      this.createMultipleSelectorHandles();
+      // hide selectionHandles in mobile 2016mobile#4
+      // this.createMultipleSelectorHandles();
     }
     this.disappear();
 
@@ -444,7 +445,8 @@ class WalkontableBorder {
     this.rightStyle.display = 'block';
 
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
-      this.cornerStyle.display = 'none';
+      // hide selectionHandles in mobile 2016mobile#5
+      // this.cornerStyle.display = 'none';
     } else {
       this.cornerStyle.top = top + height - 4 + 'px';
       this.cornerStyle.left = left + width - 4 + 'px';
@@ -475,7 +477,8 @@ class WalkontableBorder {
     }
 
     if (Handsontable.mobileBrowser) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+      // hide selectionHandles in mobile 2016mobile#7
+      // this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
     }
   }
 
@@ -490,8 +493,9 @@ class WalkontableBorder {
     this.cornerStyle.display = 'none';
 
     if (Handsontable.mobileBrowser) {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
+      // hide selectionHandles in mobile 2016mobile#6
+      // this.selectionHandles.styles.topLeft.display = 'none';
+      // this.selectionHandles.styles.bottomRight.display = 'none';
     }
   }
 
