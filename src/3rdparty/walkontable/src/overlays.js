@@ -237,6 +237,12 @@ class WalkontableOverlays {
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
     let parentHolder;
 
+    // Fix for extremely slow header scrolling with a mousewheel on Firefox
+    if (event.deltaMode === 1) {
+      deltaY = deltaY * 120;
+      deltaX = deltaX * 120;
+    }
+
     while (tempElem != document && tempElem != null) {
       if (tempElem.className.indexOf('wtHolder') > -1) {
         parentHolder = tempElem;
