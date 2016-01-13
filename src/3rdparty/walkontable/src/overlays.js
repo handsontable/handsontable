@@ -314,12 +314,12 @@ class WalkontableOverlays {
         this.overlayScrollPositions.master.left = tempScrollValue;
         scrollValueChanged = true;
 
-        if (topOverlay) {
+        if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
           topOverlay.scrollLeft = tempScrollValue;
           delegatedScroll = (masterHorizontal !== window);
         }
 
-        if (bottomOverlay) {
+        if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
           bottomOverlay.scrollLeft = tempScrollValue;
           delegatedScroll = (masterHorizontal !== window);
         }
@@ -331,7 +331,7 @@ class WalkontableOverlays {
         this.overlayScrollPositions.master.top = tempScrollValue;
         scrollValueChanged = true;
 
-        if (leftOverlay) {
+        if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
           leftOverlay.scrollTop = tempScrollValue;
           delegatedScroll = (masterVertical !== window);
         }
@@ -346,7 +346,9 @@ class WalkontableOverlays {
         this.overlayScrollPositions.bottom.left = tempScrollValue;
         scrollValueChanged = true;
 
-        masterHorizontal.scrollLeft = tempScrollValue;
+        if (masterHorizontal.scrollLeft !== tempScrollValue) {
+          masterHorizontal.scrollLeft = tempScrollValue;
+        }
       }
 
       // "fake" scroll value calculated from the mousewheel event
@@ -364,7 +366,9 @@ class WalkontableOverlays {
         this.overlayScrollPositions.top.left = tempScrollValue;
         scrollValueChanged = true;
 
-        masterHorizontal.scrollLeft = tempScrollValue;
+        if (masterHorizontal.scrollLeft !== tempScrollValue) {
+          masterHorizontal.scrollLeft = tempScrollValue;
+        }
       }
 
       // "fake" scroll value calculated from the mousewheel event
@@ -382,7 +386,9 @@ class WalkontableOverlays {
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
 
-        masterVertical.scrollTop = tempScrollValue;
+        if (masterVertical.scrollTop !== tempScrollValue) {
+          masterVertical.scrollTop = tempScrollValue;
+        }
       }
 
       // "fake" scroll value calculated from the mousewheel event
