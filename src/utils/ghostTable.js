@@ -211,7 +211,7 @@ class GhostTable {
         const td = d.createElement('td');
         const tr = d.createElement('tr');
 
-        renderer(this.hot, td, row, column, this.hot.colToProp(row), string.value, cellProperties);
+        renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
         tr.appendChild(td);
         fragment.appendChild(tr);
       });
