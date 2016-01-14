@@ -203,6 +203,7 @@ class Walkontable {
   /**
    * Check overlay type of this Walkontable instance.
    *
+   * @param {String} name Clone type @see {WalkontableOverlay.CLONE_TYPES}.
    * @returns {Boolean}
    */
   isOverlayName(name) {
