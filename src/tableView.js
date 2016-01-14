@@ -273,8 +273,8 @@ function TableView(instance) {
       var editor, editorVal;
 
       editor = instance.getActiveEditor();
-      editorVal = editor.getValue();
-      if(isFormula(editorVal)){
+      editorVal = editor && editor.getValue();
+      if(editorVal && isFormula(editorVal)){
         event.preventDefault();
       }else{
         instance.listen();
