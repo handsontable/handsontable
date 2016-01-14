@@ -201,6 +201,20 @@ class Walkontable {
   }
 
   /**
+   * Check overlay type of this Walkontable instance.
+   *
+   * @param {String} name Clone type @see {WalkontableOverlay.CLONE_TYPES}.
+   * @returns {Boolean}
+   */
+  isOverlayName(name) {
+    if (this.cloneOverlay) {
+      return this.cloneOverlay.type === name;
+    }
+
+    return false;
+  }
+
+  /**
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {
