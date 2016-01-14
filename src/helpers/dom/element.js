@@ -338,9 +338,9 @@ export var HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  */
 export function fastInnerHTML(element, content) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = content || '';
+    element.innerHTML = content;
   } else {
-    fastInnerText(element, content || '');
+    fastInnerText(element, content);
   }
 }
 
