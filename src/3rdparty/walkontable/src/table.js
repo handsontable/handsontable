@@ -213,7 +213,7 @@ class WalkontableTable {
         startRow = 0;
       } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
           WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startRow = totalRows - this.wot.getSetting('fixedRowsBottom');
+        startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
       }
@@ -446,33 +446,39 @@ class WalkontableTable {
   }
 
   getRenderedColumnsCount() {
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG)) {
-      return this.wot.getSetting('totalColumns');
+    let columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
+    let totalColumns = this.wot.getSetting('totalColumns');
 
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return this.wot.getSetting('fixedColumnsLeft');
+    if (this.wot.isOverlayName(WalkontableOverlay.CLONE_DEBUG)) {
+      columnsCount = totalColumns;
 
-    } else {
-      return this.wot.wtViewport.columnsRenderCalculator.count;
+    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_LEFT) ||
+               this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
+               this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
+
     }
+
+    return columnsCount;
   }
 
   getRenderedRowsCount() {
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG)) {
-      return this.wot.getSetting('totalRows');
+    let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
+    let totalRows = this.wot.getSetting('totalRows');
 
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
-      return this.wot.getSetting('fixedRowsTop');
+    if (this.wot.isOverlayName(WalkontableOverlay.CLONE_DEBUG)) {
+      rowsCount = totalRows;
 
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return this.instance.getSetting('fixedRowsBottom');
+    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP) ||
+               this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+      rowsCount = Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
+
+    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM) ||
+               this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      rowsCount = Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
     }
 
-    return this.wot.wtViewport.rowsRenderCalculator.count;
+    return rowsCount;
   }
 
   getVisibleRowsCount() {

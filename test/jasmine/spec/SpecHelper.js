@@ -59,12 +59,22 @@ var getTopClone = function () {
   return spec().$container.find('.ht_clone_top');
 };
 
+var getTopLeftClone = function () {
+  return spec().$container.find('.ht_clone_top_left_corner');
+};
+// for compatybility
+var getCornerClone = getTopLeftClone;
+
 var getLeftClone = function () {
   return spec().$container.find('.ht_clone_left');
 };
 
-var getCornerClone = function () {
-  return spec().$container.find('.ht_clone_top_left_corner');
+var getBottomClone = function () {
+  return spec().$container.find('.ht_clone_bottom');
+};
+
+var getBottomLeftClone = function () {
+  return spec().$container.find('.ht_clone_bottom_left_corner');
 };
 
 //Rename me to countTD
