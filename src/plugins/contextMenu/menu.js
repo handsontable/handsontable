@@ -36,6 +36,12 @@ class Menu {
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
+    this.offset = {
+      above: 0,
+      below: 0,
+      left: 0,
+      right: 0,
+    };
     this._afterScrollCallback = null;
 
     this.registerEvents();
@@ -57,6 +63,16 @@ class Menu {
    */
   setMenuItems(menuItems) {
     this.menuItems = menuItems;
+  }
+
+  /**
+   * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
+   *
+   * @param {String} area Specified area name (`above`, `below`, `left` or `right`).
+   * @param {Number} offset Offset value.
+   */
+  setOffset(area, offset = 0) {
+    this.offset[area] = offset;
   }
 
   /**
@@ -141,7 +157,8 @@ class Menu {
     let subMenu = new Menu(this.hot, {
       parent: this,
       name: dataItem.name,
-      className: this.options.className
+      className: this.options.className,
+      keepInViewport: true,
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
@@ -263,7 +280,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionAboveCursor(cursor) {
-    let top = cursor.top - this.container.offsetHeight;
+    let top = this.offset.above + cursor.top - this.container.offsetHeight;
 
     /* jshint -W020 */
     if (this.isSubMenu()) {
@@ -278,7 +295,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = cursor.top - 1;
+    let top = this.offset.below + cursor.top - 1;
 
     /* jshint -W020 */
     if (this.isSubMenu()) {
@@ -298,7 +315,7 @@ class Menu {
     if (this.isSubMenu()) {
       left = window.scrollX + 1 + cursor.left + cursor.cellWidth;
     } else {
-      left = 1 + cursor.left;
+      left = this.offset.right + 1 + cursor.left;
     }
     this.container.style.left = left + 'px';
   }
@@ -309,7 +326,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    this.container.style.left = (cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4) + 'px';
+    this.container.style.left = (this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4) + 'px';
   }
 
   /**
