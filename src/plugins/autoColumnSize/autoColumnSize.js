@@ -87,10 +87,14 @@ class AutoColumnSize extends BasePlugin {
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
     /**
+     * `true` if only the first calculation was performed.
+     *
      * @type {Boolean}
      */
     this.firstCalculation = true;
     /**
+     * `true` if the size calculation is in progress.
+     *
      * @type {Boolean}
      */
     this.inProgress = false;
