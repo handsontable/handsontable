@@ -117,8 +117,8 @@ var contextMenu = function (cell) {
   var cellOffset = $(cell).offset();
 
   $(cell).simulate('contextmenu',{
-    clientX: cellOffset.left,
-    clientY: cellOffset.top
+    clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
+    clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
 };
 

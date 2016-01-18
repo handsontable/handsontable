@@ -8,7 +8,8 @@ import {ItemsFactory} from './itemsFactory';
 import {Menu} from './menu';
 import {objectEach, mixin} from './../../helpers/object';
 import {registerPlugin} from './../../plugins';
-import {stopPropagation} from './../../helpers/dom/event';
+import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
+import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -180,7 +181,10 @@ class ContextMenu extends BasePlugin {
       return;
     }
     this.menu.open();
-    this.menu.setPosition(event);
+    this.menu.setPosition({
+      top: parseInt(pageY(event), 10) - getWindowScrollTop(),
+      left: parseInt(pageX(event), 10) - getWindowScrollLeft(),
+    });
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;

@@ -282,9 +282,8 @@ class Menu {
   setPositionAboveCursor(cursor) {
     let top = this.offset.above + cursor.top - this.container.offsetHeight;
 
-    /* jshint -W020 */
     if (this.isSubMenu()) {
-      top = window.scrollY + cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
+      top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
     }
     this.container.style.top = top + 'px';
   }
@@ -295,11 +294,10 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top - 1;
+    let top = this.offset.below + cursor.top;
 
-    /* jshint -W020 */
     if (this.isSubMenu()) {
-      top = cursor.top + window.scrollY - 1;
+      top = cursor.top - 1;
     }
     this.container.style.top = top + 'px';
   }
@@ -313,10 +311,11 @@ class Menu {
     let left;
 
     if (this.isSubMenu()) {
-      left = window.scrollX + 1 + cursor.left + cursor.cellWidth;
+      left = 1 + cursor.left + cursor.cellWidth;
     } else {
       left = this.offset.right + 1 + cursor.left;
     }
+
     this.container.style.left = left + 'px';
   }
 
@@ -326,7 +325,9 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    this.container.style.left = (this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4) + 'px';
+    let left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
+
+    this.container.style.left = left + 'px';
   }
 
   /**
