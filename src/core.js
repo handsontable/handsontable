@@ -1030,8 +1030,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.physicalCol,
-          row = cellProperties.physicalRow,
+      var col = cellProperties.visualCol,
+          row = cellProperties.visualRow,
           td = instance.getCell(row, col, true);
 
       if (td) {
@@ -1050,16 +1050,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     if (typeof validator == 'function') {
 
-      value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.row, cellProperties.prop, source);
+      value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(function() {
         validator.call(cellProperties, value, function(valid) {
-          valid = Handsontable.hooks.run(instance, 'afterValidate', valid, value, cellProperties.row, cellProperties.prop, source);
+          valid = Handsontable.hooks.run(instance, 'afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
           done(valid);
-          Handsontable.hooks.run(instance, 'postAfterValidate', valid, value, cellProperties.row, cellProperties.prop, source);
+          Handsontable.hooks.run(instance, 'postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
       }, 0));
 
@@ -2054,8 +2054,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var prop = datamap.colToProp(col),
         cellProperties;
 
-    let physicalRow = row;
-    let physicalCol = col;
+    let visualRow = row;
+    let visualCol = col;
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
@@ -2074,8 +2074,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     cellProperties.row = row;
     cellProperties.col = col;
-    cellProperties.physicalRow = physicalRow;
-    cellProperties.physicalCol = physicalCol;
+    cellProperties.visualRow = visualRow;
+    cellProperties.visualCol = visualCol;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
