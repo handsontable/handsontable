@@ -15,6 +15,7 @@ import {arrayEach} from './../../helpers/array';
 import {Cursor} from './cursor';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach, mixin} from './../../helpers/object';
+import {debounce} from './../../helpers/function';
 import {isSeparator, isDisabled, isSelectionDisabled, hasSubMenu, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import {localHooks} from './../../mixins/localHooks';
@@ -91,6 +92,8 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
+    const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+
     let settings = {
       data: this.menuItems,
       colHeaders: false,
@@ -105,7 +108,16 @@ class Menu {
       renderAllRows: true,
       fragmentSelection: 'cell',
       beforeKeyDown: (event) => this.onBeforeKeyDown(event),
-      afterOnCellMouseOver: (event, coords, TD) => this.openSubMenu(coords.row)
+      afterOnCellMouseOver: (event, coords, TD) => {
+        if (!TD.textContent) {
+          return;
+        }
+        if (this.isAllSubMenusClosed()) {
+          delayedOpenSubMenu(coords.row);
+        } else {
+          this.openSubMenu(coords.row);
+        }
+      }
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -146,6 +158,9 @@ class Menu {
    * @returns {Menu|Boolean} Returns created menu or `false` if no one menu was created.
    */
   openSubMenu(row) {
+    if (!this.hotMenu) {
+      return;
+    }
     let cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();
