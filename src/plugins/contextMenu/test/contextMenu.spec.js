@@ -311,12 +311,15 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      })
     });
 
     it('should open subMenu on the left-bottom of main menu if there\'s free space', function() {
@@ -335,13 +338,16 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      });
     });
 
     it('should open subMenu on the right-bottom of main menu if there\'s free space', function() {
@@ -361,13 +367,16 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      });
     });
 
     it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', function() {
@@ -385,13 +394,16 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+        expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      });
     });
 
     it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', function() {
@@ -409,13 +421,16 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+        expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      });
     });
   });
 
