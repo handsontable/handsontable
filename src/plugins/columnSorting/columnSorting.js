@@ -355,13 +355,12 @@ class ColumnSorting extends BasePlugin {
     }
 
     let colMeta,
-        sortFunction,
-        i;
+        sortFunction;
 
     this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
 
-    for (i = 0, ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
+    for (let i = 0, ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
@@ -380,7 +379,7 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
 
     // Append spareRows
-    for (i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
+    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
