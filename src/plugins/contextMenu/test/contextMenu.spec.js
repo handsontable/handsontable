@@ -247,6 +247,151 @@ describe('ContextMenu', function () {
 
       expect(contextSubMenu.length).toEqual(0);
     });
+
+    it('should open subMenu on the left of main menu if on the right there\'s no space left', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4,  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        width: window.innerWidth
+      });
+
+      selectCell(0, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the right of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4,  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        width: window.innerWidth
+      });
+
+      selectCell(0, countCols() - 9);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the left-bottom of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight,
+      });
+
+      window.scrollTo(0, document.body.clientHeight);
+      selectCell(0, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the right-bottom of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      window.scrollTo(0, document.body.clientHeight);
+      selectCell(0, countCols() - 9);
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      selectCell(countRows() - 1, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      selectCell(countRows() - 1, countCols() - 9);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+    });
   });
 
   describe("default context menu actions", function () {
