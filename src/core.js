@@ -4622,7 +4622,7 @@ DefaultSettings.prototype = {
    *
    * @pro
    * @since 1.0.0-beta1
-   * @type {Boolean}
+   * @type {Boolean|String}
    * @example
    *
    * ```js
