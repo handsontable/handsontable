@@ -6,7 +6,6 @@ import {isWebComponentSupportedNatively} from './helpers/browser';
  * Event DOM manager for internal use in Handsontable.
  *
  * @class EventManager
- * @private
  * @util
  */
 class EventManager {
