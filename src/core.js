@@ -4651,7 +4651,7 @@ DefaultSettings.prototype = {
    *
    * @pro
    * @since 1.0.0-beta1
-   * @type {Boolean}
+   * @type {Boolean|Array}
    * @example
    * ```js
    * ...
@@ -4686,7 +4686,7 @@ DefaultSettings.prototype = {
    *
    * @pro
    * @since 1.0.0-beta1
-   * @type {Boolean|Object}
+   * @type {Boolean|Object|Array}
    */
   dropdownMenu: void 0,
 
