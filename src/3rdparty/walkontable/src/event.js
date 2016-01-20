@@ -183,6 +183,10 @@ function WalkontableEvent(instance) {
 
   // check if full HOT instance, or detached WOT AND run on mobile device
   if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+
+    // 2016mobile#12
+    return;
+    
     var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
 
     eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {

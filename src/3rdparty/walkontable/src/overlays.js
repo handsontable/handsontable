@@ -162,8 +162,10 @@ class WalkontableOverlays {
    * @param {Event} event
    */
   onTableScroll(event) {
-    // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
+
+    // 2016mobile#13
     if (Handsontable.mobileBrowser) {
+      this.syncScrollPositions(event);
       return;
     }
 
@@ -243,6 +245,15 @@ class WalkontableOverlays {
    * @param {Number} [fakeScrollValue=null]
    */
   syncScrollPositions(event, fakeScrollValue = null) {
+
+    // 2016mobile#14
+    if(Handsontable.mobileBrowser) {
+      event = {
+        target: $('.ht_master .wtHolder')[0],
+        type: 'scroll'
+      }
+    }
+
     if (this.destroyed) {
       return;
     }

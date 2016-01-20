@@ -88,11 +88,13 @@ class WalkontableViewportRowsCalculator {
     for (let i = 0; i < totalRows; i++) {
 
       // show all row  2016mobile#2
-      if(Handsontable.mobileBrowser){
-        let rowHeight = 0;
-      } else {
-        let rowHeight = rowHeightFn(i);
-      }
+      // if(Handsontable.mobileBrowser){
+      //   let rowHeight = 0;
+      // } else {
+        
+      // }
+      // 2016mobile#11
+      let rowHeight = rowHeightFn(i);
 
       if (rowHeight === undefined) {
         rowHeight = WalkontableViewportRowsCalculator.DEFAULT_HEIGHT;

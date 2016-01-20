@@ -501,6 +501,11 @@ export function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
   } else {
+
+    // 2016mobile#8
+    if(Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+      return -window.myScroll.y;
+    }
     return element.scrollTop;
   }
 }
@@ -515,6 +520,11 @@ export function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
   } else {
+
+    // 2016mobile#9
+    if(Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+      return -window.myScroll.x;
+    }
     return element.scrollLeft;
   }
 }
@@ -526,6 +536,12 @@ export function getScrollLeft(element) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
+
+  // 2016mobile#10
+  if(Handsontable.mobileBrowser) {
+    return $('.ht_master .wtHolder')[0]
+  }
+  
   var el = element.parentNode,
     props = ['auto', 'scroll'],
     overflow, overflowX, overflowY,
