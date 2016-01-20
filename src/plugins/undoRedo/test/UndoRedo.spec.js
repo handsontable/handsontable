@@ -365,9 +365,9 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
           expect(getColHeader()).toEqual(['A']);
 
           HOT.undo();
@@ -399,9 +399,9 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
           expect(getColHeader()).toEqual(['Header1']);
 
           HOT.undo();
@@ -437,12 +437,12 @@ describe('UndoRedo', function () {
           expect(countCols()).toEqual(2);
           expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toEqual('D1');
-          expect(getDataAtCell(0, 2)).toBeUndefined();
-          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(0, 2)).toBeNull();
+          expect(getDataAtCell(0, 3)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toEqual('D2');
-          expect(getDataAtCell(1, 2)).toBeUndefined();
-          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 2)).toBeNull();
+          expect(getDataAtCell(1, 3)).toBeNull();
 
           HOT.undo();
 
@@ -478,13 +478,13 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(0, 2)).toBeUndefined();
-          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
+          expect(getDataAtCell(0, 2)).toBeNull();
+          expect(getDataAtCell(0, 3)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 2)).toBeUndefined();
-          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
+          expect(getDataAtCell(1, 2)).toBeNull();
+          expect(getDataAtCell(1, 3)).toBeNull();
           expect(getColHeader()).toEqual(['A']);
 
           HOT.undo();
@@ -523,12 +523,12 @@ describe('UndoRedo', function () {
           expect(countCols()).toEqual(2);
           expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toEqual('D1');
-          expect(getDataAtCell(0, 2)).toBeUndefined();
-          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(0, 2)).toBeNull();
+          expect(getDataAtCell(0, 3)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toEqual('D2');
-          expect(getDataAtCell(1, 2)).toBeUndefined();
-          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 2)).toBeNull();
+          expect(getDataAtCell(1, 3)).toBeNull();
           expect(getColHeader()).toEqual(['Header1', 'Header4']);
 
           HOT.undo();
@@ -1067,9 +1067,9 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
 
           HOT.undo();
 
@@ -1083,9 +1083,9 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
         });
 
         it('should redo removal of multiple columns', function () {
@@ -1107,13 +1107,13 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(0, 2)).toBeUndefined();
-          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
+          expect(getDataAtCell(0, 2)).toBeNull();
+          expect(getDataAtCell(0, 3)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 2)).toBeUndefined();
-          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
+          expect(getDataAtCell(1, 2)).toBeNull();
+          expect(getDataAtCell(1, 3)).toBeNull();
 
           HOT.undo();
 
@@ -1131,13 +1131,13 @@ describe('UndoRedo', function () {
 
           expect(countCols()).toEqual(1);
           expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(0, 2)).toBeUndefined();
-          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(0, 1)).toBeNull();
+          expect(getDataAtCell(0, 2)).toBeNull();
+          expect(getDataAtCell(0, 3)).toBeNull();
           expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 2)).toBeUndefined();
-          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 1)).toBeNull();
+          expect(getDataAtCell(1, 2)).toBeNull();
+          expect(getDataAtCell(1, 3)).toBeNull();
         });
 
         it("should redo multiple changes", function () {

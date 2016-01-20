@@ -59,7 +59,7 @@ const _predefinedItems = {
     disabled: function() {
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.countRows() >= this.getSettings().maxRows) {
         return true;
       }
 
@@ -82,7 +82,7 @@ const _predefinedItems = {
     disabled: function() {
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.countRows() >= this.getSettings().maxRows) {
         return true;
       }
 
@@ -151,7 +151,9 @@ const _predefinedItems = {
     callback: function(key, selection) {
       let column = selection.start.col;
 
-      this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column);
+      if (this.countRows()) {
+        this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column);
+      }
     },
     disabled: function() {
       let selected = getValidSelection(this);

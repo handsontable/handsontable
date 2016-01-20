@@ -23,7 +23,7 @@ class ItemsFactory {
   /**
    * Set predefined items.
    *
-   * @param {Array} predefinedItems
+   * @param {Array} predefinedItems Array of predefined items.
    */
   setPredefinedItems(predefinedItems) {
     let items = {};

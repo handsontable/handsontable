@@ -25,6 +25,9 @@ class WalkontableSettings {
       stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,
+      preventOverflow: function() {
+        return false;
+      },
 
       //data source
       data: void 0,

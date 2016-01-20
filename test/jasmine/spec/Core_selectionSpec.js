@@ -408,6 +408,23 @@ describe('Core_selection', function () {
     expect(tickEnd).toEqual(1);
   });
 
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 1]);
+  });
+
   it('should move focus to selected cell', function () {
     var $input = $('<input>').appendTo(document.body);
     handsontable({

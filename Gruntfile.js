@@ -91,9 +91,17 @@ module.exports = function(grunt) {
     },
 
     jasmine: {
+      options: {
+        page: {
+          viewportSize: {
+            width: 1200,
+            height: 1000
+          }
+        },
+      },
       handsontable: {
         src: [
-          'dist/handsontable.js',
+          'dist/handsontable.min.js',
           'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
@@ -111,7 +119,7 @@ module.exports = function(grunt) {
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
-            'dist/handsontable.css',
+            'dist/handsontable.min.css',
             'plugins/removeRow/handsontable.removeRow.css',
             'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'demo/js/pikaday/css/pikaday.css'
@@ -136,7 +144,7 @@ module.exports = function(grunt) {
       },
       walkontable: {
         src: [
-          'dist/handsontable.js'
+          'dist/handsontable.min.js'
         ],
         options: {
           specs: [
@@ -166,7 +174,7 @@ module.exports = function(grunt) {
       },
       mobile: {
         src: [
-          'dist/handsontable.js',
+          'dist/handsontable.min.js',
           'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
@@ -181,7 +189,7 @@ module.exports = function(grunt) {
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
-            'dist/handsontable.css',
+            'dist/handsontable.min.css',
             'plugins/removeRow/handsontable.removeRow.css',
             'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'demo/js/pikaday/css/pikaday.css'

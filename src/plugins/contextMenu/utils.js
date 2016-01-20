@@ -33,9 +33,6 @@ export function getValidSelection(hot) {
   if (selected[0] < 0) {
     return null;
   }
-  if (hot.countRows() >= hot.getSettings().maxRows) {
-    return null;
-  }
 
   return selected;
 }

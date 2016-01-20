@@ -1,5 +1,4 @@
-
-import {getWindowScrollLeft, getWindowScrollTop,} from './../../helpers/dom/element';
+import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
 import {pageX, pageY} from './../../helpers/dom/event';
 
 /**
@@ -14,7 +13,6 @@ class Cursor {
     let windowScrollLeft = getWindowScrollLeft();
     let top, topRelative;
     let left, leftRelative;
-    let scrollTop, scrollLeft;
     let cellHeight, cellWidth;
 
     this.type = this.getSourceType(object);
@@ -23,26 +21,28 @@ class Cursor {
     if (this.type === 'literal') {
       top = parseInt(object.top, 10);
       left = parseInt(object.left, 10);
-      cellHeight = object.height;
-      cellWidth = object.width;
+      cellHeight = object.height || 0;
+      cellWidth = object.width || 0;
+      topRelative = top;
+      leftRelative = left;
+      top = top + windowScrollTop;
+      left = left + windowScrollLeft;
 
     } else if (this.type === 'event') {
       top = parseInt(pageY(object), 10);
       left = parseInt(pageX(object), 10);
       cellHeight = object.target.clientHeight;
       cellWidth = object.target.clientWidth;
+      topRelative = top - windowScrollTop;
+      leftRelative = left - windowScrollLeft;
     }
-    topRelative = top - windowScrollTop;
-    leftRelative = left - windowScrollLeft;
-    scrollTop = windowScrollTop;
-    scrollLeft = windowScrollLeft;
 
     this.top = top;
     this.topRelative = topRelative;
     this.left = left;
     this.leftRelative = leftRelative;
-    this.scrollTop = scrollTop;
-    this.scrollLeft = scrollLeft;
+    this.scrollTop = windowScrollTop;
+    this.scrollLeft = windowScrollLeft;
     this.cellHeight = cellHeight;
     this.cellWidth = cellWidth;
   }
@@ -77,7 +77,7 @@ class Cursor {
    * Checks if element can be placed below the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit below the cursor.
-   * @param {Number} [viewportHeight]
+   * @param {Number} [viewportHeight] The viewport height.
    * @returns {Boolean}
    */
   fitsBelow(element, viewportHeight = window.innerHeight) {
@@ -88,7 +88,7 @@ class Cursor {
    * Checks if element can be placed on the right of the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit on the right of the cursor.
-   * @param {Number} [viewportWidth]
+   * @param {Number} [viewportWidth] The viewport width.
    * @returns {Boolean}
    */
   fitsOnRight(element, viewportWidth = window.innerWidth) {

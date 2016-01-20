@@ -172,7 +172,10 @@ class WalkontableViewportColumnsCalculator {
       this.needVerifyLastColumnWidth = true;
 
     } else if (this.stretch === 'last' && totalWidth !== Infinity) {
-      this.stretchLastWidth = -remainingSize + this._getColumnWidth(totalColumns - 1);
+      let columnWidth = this._getColumnWidth(totalColumns - 1);
+      let lastColumnWidth = -remainingSize + columnWidth;
+
+      this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth;
     }
   }
 

@@ -5,7 +5,6 @@ describe('ColumnSorting', function() {
     this.$container = $('<div id="' + id + '" style="overflow: auto; width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.sortByColumn = function(columnIndex) {
-//      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
       this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
     };
   });
@@ -416,7 +415,7 @@ describe('ColumnSorting', function() {
     ];
 
     function customIsEmptyRow(row) {
-      var data = getData();
+      var data = getSourceData();
       return data[row].isNew;
     }
 
@@ -1245,4 +1244,38 @@ describe('ColumnSorting', function() {
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
   });
+
+  it("should properly sort the table, when it's scrolled to the far right", function() {
+    var data = [[ "Jasmine Ferguson" , "Britney Carey" , "Kelly Decker" , "Lacey Mcleod" , "Leona Shaffer" , "Kelli Ochoa" , "Adele Roberson" , "Viola Snow" , "Barron Cherry" , "Calhoun Lane" , "Elvia Andrews" , "Katheryn Dale" , "Dorthy Hale" , "Munoz Randall" , "Fields Morse" , "Hubbard Nichols" , "Chang Yang" , "Osborn Anthony" , "Owens Warner" , "Gloria Hampton"   ],  [ "Lane Hill" , "Belinda Mathews" , "York Gray" , "Celina Stone" , "Victoria Mays" , "Angelina Lott" , "Joyce Mason" , "Shawn Rodriguez" , "Susanna Mayo" , "Wolf Fuller" , "Long Hester" , "Dudley Doyle" , "Wilder Sutton" , "Oneal Avery" , "James Mclaughlin" , "Lenora Guzman" , "Mcmahon Sullivan" , "Abby Weeks" , "Beverly Joseph" , "Rosalind Church"   ],  [ "Myrtle Landry" , "Hays Huff" , "Hernandez Benjamin" , "Mclaughlin Garza" , "Franklin Barton" , "Lara Buchanan" , "Ratliff Beck" , "Rosario Munoz" , "Isabelle Dalton" , "Smith Woodard" , "Marjorie Marshall" , "Spears Stein" , "Brianna Bowman" , "Marci Clay" , "Palmer Harrell" , "Ball Levy" , "Shelley Mendoza" , "Morrow Glass" , "Baker Knox" , "Adrian Holman"   ],  [ "Trisha Howell" , "Brooke Harrison" , "Anthony Watkins" , "Ellis Cobb" , "Sheppard Dillon" , "Mathis Bray" , "Foreman Burns" , "Lina Glenn" , "Giles Pollard" , "Weiss Ballard" , "Lynnette Smith" , "Flores Kline" , "Graciela Singleton" , "Santiago Mcclure" , "Claudette Battle" , "Nita Holloway" , "Eula Wolfe" , "Pruitt Stokes" , "Felicia Briggs" , "Melba Bradshaw"   ]];
+
+    var hot = handsontable({
+      data: data,
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
+    hot.render();
+    hot.sort(15);
+
+    expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
+    expect(getDataAtCell(1, 15)).toEqual('Hubbard Nichols');
+    expect(getDataAtCell(2, 15)).toEqual('Lenora Guzman');
+    expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
+
+    hot.sort(15);
+
+    expect(getDataAtCell(3, 15)).toEqual('Ball Levy');
+    expect(getDataAtCell(2, 15)).toEqual('Hubbard Nichols');
+    expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
+    expect(getDataAtCell(0, 15)).toEqual('Nita Holloway');
+
+    hot.sort(15);
+
+    expect(getDataAtCell(0, 15)).toEqual('Hubbard Nichols');
+    expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
+    expect(getDataAtCell(2, 15)).toEqual('Ball Levy');
+    expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
+  });
+
 });

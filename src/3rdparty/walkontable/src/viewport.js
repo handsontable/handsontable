@@ -61,11 +61,16 @@ class WalkontableViewport {
 
   getWorkspaceWidth() {
     let width;
-    let totalColumns = this.instance.getSetting('totalColumns');
+    let totalColumns = this.wot.getSetting('totalColumns');
     let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     let overflow;
-    let stretchSetting = this.instance.getSetting('stretchH');
+    let stretchSetting = this.wot.getSetting('stretchH');
     let docOffsetWidth = document.documentElement.offsetWidth;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
+
+    if (preventOverflow) {
+      return outerWidth(this.instance.wtTable.wtRootElement);
+    }
 
     if (Handsontable.freezeOverlays) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -285,7 +290,7 @@ class WalkontableViewport {
     } else {
       height = this.getViewportHeight();
     }
-    pos = getScrollTop(this.wot.wtOverlays.mainTableScrollableElement) - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+    pos = this.wot.wtOverlays.topOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
 
     if (pos < 0) {
       pos = 0;

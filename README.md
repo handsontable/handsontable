@@ -45,9 +45,9 @@ Check out the demos at http://handsontable.com/examples.html or fork the example
 
 ### API Reference
 
-- [Core methods](http://docs.handsontable.com/0.17.0/Core.html)
-- [Options](http://docs.handsontable.com/0.17.0/Options.html)
-- [Hooks](http://docs.handsontable.com/0.17.0/Hooks.html)
+- [Core methods](http://docs.handsontable.com/Core.html)
+- [Options](http://docs.handsontable.com/Options.html)
+- [Hooks](http://docs.handsontable.com/Hooks.html)
 
 ### Troubleshooting
 

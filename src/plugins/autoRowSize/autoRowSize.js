@@ -1,4 +1,3 @@
-
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
@@ -13,16 +12,31 @@ import {isPercentValue} from './../../helpers/string';
  * @plugin AutoRowSize
  *
  * @description
- * This plugin allows to set row height related to the highest cell in row.
+ * This plugin allows to set row heights based on their highest cells.
  *
- * Default value is `undefined` which is the same effect as `false`. Enable this plugin can decrease performance.
+ * By default, the plugin is declared as `undefined`, which makes it disabled (same as if it was declared as `false`).
+ * Enabling this plugin may decrease the overall table performance, as it needs to calculate the heights of all cells to
+ * resize the rows accordingly.
+ * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
  *
- * Row height calculations are divided into sync and async part. Each of this part has own advantages and
- * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
- * block Browser UI.
+ * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and
+ * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
+ * block the browser UI.
+ *
+ * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+ * ```js
+ * ...
+ * // as a number (300 columns in sync, rest async)
+ * autoRowSize: {syncLimit: 300},
+ * ...
+ *
+ * ...
+ * // as a string (percent)
+ * autoRowSize: {syncLimit: '40%'},
+ * ...
+ * ```
  *
  * To configure this plugin see {@link Options#autoRowSize}.
- *
  *
  * @example
  *
@@ -47,6 +61,7 @@ class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
   }
+
   static get SYNC_CALCULATION_LIMIT() {
     return 500;
   }
@@ -72,10 +87,14 @@ class AutoRowSize extends BasePlugin {
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
     /**
+     * `true` if only the first calculation was performed.
+     *
      * @type {Boolean}
      */
     this.firstCalculation = true;
     /**
+     * `true` if the size calculation is in progress.
+     *
      * @type {Boolean}
      */
     this.inProgress = false;
@@ -85,7 +104,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Check if the plugin is enabled in the Handsontable settings.
    *
    * @returns {Boolean}
    */
@@ -100,6 +119,14 @@ class AutoRowSize extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    let setting = this.hot.getSettings().autoRowSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    }
+
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
     this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
@@ -318,6 +345,14 @@ class AutoRowSize extends BasePlugin {
   onBeforeRender() {
     let force = this.hot.renderCall;
     this.calculateRowsHeight({from: this.getFirstVisibleRow(), to: this.getLastVisibleRow()}, void 0, force);
+
+    let fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+
+    // Calculate rows height synchronously for bottom overlay
+    if (fixedRowsBottom) {
+      let totalRows = this.hot.countRows() - 1;
+      this.calculateRowsHeight({from: totalRows - fixedRowsBottom, to: totalRows});
+    }
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllRowsHeight();

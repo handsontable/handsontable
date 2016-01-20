@@ -6,12 +6,12 @@ import {isWebComponentSupportedNatively} from './helpers/browser';
  * Event DOM manager for internal use in Handsontable.
  *
  * @class EventManager
- * @private
  * @util
  */
 class EventManager {
   /**
    * @param {Object} [context=null]
+   * @private
    */
   constructor(context = null) {
     this.context = context || this;
@@ -22,11 +22,11 @@ class EventManager {
   }
 
   /**
-   * Add event
+   * Register specified listener (`eventName`) to the element.
    *
-   * @param {Element} element
-   * @param {String} eventName
-   * @param {Function} callback
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
+   * @param {Function} callback Function which will be called after event occur.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback) {
@@ -80,11 +80,11 @@ class EventManager {
   }
 
   /**
-   * Remove event
+   * Remove the event listener previously registered.
    *
-   * @param {Element} element
-   * @param {String} eventName
-   * @param {Function} callback
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
+   * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
    */
   removeEventListener(element, eventName, callback) {
     let len = this.context.eventListeners.length;
@@ -110,8 +110,9 @@ class EventManager {
   }
 
   /**
-   * Clear all events
+   * Clear all previously registered events.
    *
+   * @private
    * @since 0.15.0-beta3
    */
   clearEvents() {
@@ -130,14 +131,14 @@ class EventManager {
   }
 
   /**
-   * Clear all events
+   * Clear all previously registered events.
    */
   clear() {
     this.clearEvents();
   }
 
   /**
-   * Destroy instance
+   * Destroy instance of EventManager.
    */
   destroy() {
     this.clearEvents();
@@ -145,10 +146,10 @@ class EventManager {
   }
 
   /**
-   * Trigger event
+   * Trigger event at the specified target element.
    *
-   * @param {Element} element
-   * @param {String} eventName
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
     let options = {

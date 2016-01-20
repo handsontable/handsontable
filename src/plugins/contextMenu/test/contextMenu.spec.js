@@ -207,7 +207,7 @@ describe('ContextMenu', function () {
 
   describe("subMenu", function () {
 
-    it ('should open subMenu if there is subMenu for item', function (){
+    it ('should not open subMenu immediately', function (){
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -220,12 +220,37 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      expect(item.text()).toBe('Alignment');
-      expect(item.hasClass('htSubmenu')).toBe(true);
-
       var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-      expect(contextSubMenu.length).toEqual(1);
+      expect(contextSubMenu.length).toEqual(0);
+
+      waits(250);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.length).toEqual(0);
+      })
+    });
+
+    it ('should open subMenu with delay', function (){
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+
+      item.simulate('mouseover');
+
+      waits(350); // menu opens after 300ms
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.length).toEqual(1);
+      });
     });
 
     it ('should NOT open subMenu if there is no subMenu for item', function () {
@@ -246,6 +271,166 @@ describe('ContextMenu', function () {
       var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
       expect(contextSubMenu.length).toEqual(0);
+    });
+
+    it('should open subMenu on the left of main menu if on the right there\'s no space left', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4,  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        width: window.innerWidth
+      });
+
+      selectCell(0, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      expect(item.text()).toBe('Alignment');
+      expect(item.hasClass('htSubmenu')).toBe(true);
+
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+      expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+    });
+
+    it('should open subMenu on the right of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4,  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        width: window.innerWidth
+      });
+
+      selectCell(0, countCols() - 9);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
+
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      })
+    });
+
+    it('should open subMenu on the left-bottom of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight,
+      });
+
+      window.scrollTo(0, document.body.clientHeight);
+      selectCell(0, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
+
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      });
+    });
+
+    it('should open subMenu on the right-bottom of main menu if there\'s free space', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      window.scrollTo(0, document.body.clientHeight);
+      selectCell(0, countCols() - 9);
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
+
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      });
+    });
+
+    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      selectCell(countRows() - 1, countCols() - 1);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
+
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      });
+    });
+
+    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
+        contextMenu: true,
+        height: window.innerHeight
+      });
+
+      selectCell(countRows() - 1, countCols() - 9);
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect(item.text()).toBe('Alignment');
+        expect(item.hasClass('htSubmenu')).toBe(true);
+
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+
+        expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      });
     });
   });
 
@@ -593,7 +778,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -615,7 +800,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -805,12 +990,15 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
-      button.simulate('mousedown'); //Text left
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+        button.simulate('mousedown'); //Text left
 
-      expect(getCellMeta(0,0).className).toEqual('htLeft');
-      expect(getCell(0,0).className).toContain('htLeft');
+        expect(getCellMeta(0,0).className).toEqual('htLeft');
+        expect(getCell(0,0).className).toContain('htLeft');
+      });
     });
 
     it("should align text center", function () {
@@ -825,13 +1013,15 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
-
-      button.simulate('mousedown'); //Text center
-      expect(getCellMeta(0,0).className).toEqual('htCenter');
-      expect(getCell(0,0).className).toContain('htCenter');
+        button.simulate('mousedown'); //Text center
+        expect(getCellMeta(0,0).className).toEqual('htCenter');
+        expect(getCell(0,0).className).toContain('htCenter');
+      });
     });
 
     it("should align text right", function () {
@@ -846,12 +1036,15 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
-      button.simulate('mousedown'); //Text right
-      expect(getCellMeta(0,0).className).toEqual('htRight');
-      expect(getCell(0,0).className).toContain('htRight');
+        button.simulate('mousedown'); //Text right
+        expect(getCellMeta(0,0).className).toEqual('htRight');
+        expect(getCell(0,0).className).toContain('htRight');
+      });
     });
 
     it("should justify text", function () {
@@ -866,13 +1059,16 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
-      button.simulate('mousedown'); //Text justify
-      deselectCell();
-      expect(getCellMeta(0,0).className).toEqual('htJustify');
-      expect(getCell(0,0).className).toContain('htJustify');
+        button.simulate('mousedown'); //Text justify
+        deselectCell();
+        expect(getCellMeta(0,0).className).toEqual('htJustify');
+        expect(getCell(0,0).className).toContain('htJustify');
+      });
     });
 
     it("should vertical align text top", function () {
@@ -887,13 +1083,16 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
-      button.simulate('mousedown'); //Text top
-      deselectCell();
-      expect(getCellMeta(0,0).className).toEqual('htTop');
-      expect(getCell(0,0).className).toContain('htTop');
+        button.simulate('mousedown'); //Text top
+        deselectCell();
+        expect(getCellMeta(0,0).className).toEqual('htTop');
+        expect(getCell(0,0).className).toContain('htTop');
+      });
     });
 
     it("should vertical align text middle", function () {
@@ -908,13 +1107,16 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
-      button.simulate('mousedown'); //Text middle
-      deselectCell();
-      expect(getCellMeta(0,0).className).toEqual('htMiddle');
-      expect(getCell(0,0).className).toContain('htMiddle');
+        button.simulate('mousedown'); //Text middle
+        deselectCell();
+        expect(getCellMeta(0,0).className).toEqual('htMiddle');
+        expect(getCell(0,0).className).toContain('htMiddle');
+      });
     });
 
     it("should vertical align text bottom", function () {
@@ -928,12 +1130,15 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
-      button.simulate('mousedown'); //Text bottom
-      deselectCell();
-      expect(getCellMeta(0,0).className).toEqual('htBottom');
-      expect(getCell(0,0).className).toContain('htBottom');
+      waits(350);
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
+        button.simulate('mousedown'); //Text bottom
+        deselectCell();
+        expect(getCellMeta(0,0).className).toEqual('htBottom');
+        expect(getCell(0,0).className).toContain('htBottom');
+      });
     });
 
     it("should add comment", function () {
@@ -952,25 +1157,28 @@ describe('ContextMenu', function () {
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       expect(menu.find('td:eq(17)').hasClass('htDisabled')).toBe(true);
 
-      menu.find('td').not('.htSeparator').eq(10).simulate('mousedown');
-
-      var comments = $('body > .htCommentsContainer > .htComments');
-      expect(comments[0]).not.toBeUndefined();
-      expect(comments.css('display')).toEqual('block');
-
-      var textArea = comments.find('textarea');
-      textArea.focus();
-      textArea.val(testComment);
-      textArea.blur();
-
-      mouseDown(document.body);
-
-      waits(100);
-
+      waits(350);
       runs(function() {
-        expect(getCellMeta(1, 1).comment).toEqual(testComment);
-        expect(getCell(1, 1).className).toContain('htCommentCell');
-      });
+        menu.find('td').not('.htSeparator').eq(10).simulate('mousedown');
+
+        var comments = $('body > .htCommentsContainer > .htComments');
+        expect(comments[0]).not.toBeUndefined();
+        expect(comments.css('display')).toEqual('block');
+
+        var textArea = comments.find('textarea');
+        textArea.focus();
+        textArea.val(testComment);
+        textArea.blur();
+
+        mouseDown(document.body);
+
+        waits(100);
+
+        runs(function() {
+          expect(getCellMeta(1, 1).comment).toEqual(testComment);
+          expect(getCell(1, 1).className).toContain('htCommentCell');
+        });
+      })
     });
 
     it("should delete comment", function () {
