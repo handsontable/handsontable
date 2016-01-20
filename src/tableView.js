@@ -404,12 +404,22 @@ function TableView(instance) {
     },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
-      let viewportOffset = that.settings.viewportRowRenderingOffset;
+
+      // 2016mobile#17
+      let viewportOffset = instance.viewportOffset || that.settings.viewportRowRenderingOffset;
 
       if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
         viewportOffset = 10;
       }
       if (typeof viewportOffset === 'number') {
+
+        // 2016mobile#18
+        if(Handsontable.mobileBrowser) {
+          if(calc.endRow > 150 && rows > 210 && viewportOffset === 200) {
+            viewportOffset = 30;
+            instance.viewportOffset = 30;
+          }
+        }
         calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
         calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
       }

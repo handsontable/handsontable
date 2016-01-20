@@ -296,7 +296,9 @@ class WalkontableOverlays {
 
         if (topOverlay) {
           // 2016mobile#15
-          // topOverlay.scrollLeft = tempScrollValue;
+          if(!Handsontable.mobileBrowser) {
+            topOverlay.scrollLeft = tempScrollValue;
+          }
         }
 
         if (bottomOverlay) {
@@ -311,7 +313,9 @@ class WalkontableOverlays {
 
         if (leftOverlay) {
           // 2016mobile#16
-          // leftOverlay.scrollTop = tempScrollValue;
+          if(!Handsontable.mobileBrowser) {
+            leftOverlay.scrollTop = tempScrollValue;
+          }
         }
       }
 
