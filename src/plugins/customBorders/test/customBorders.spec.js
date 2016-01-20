@@ -134,23 +134,22 @@ describe('CustomBorders', function () {
       };
 
     contextMenu();
-
     var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
-//    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextMenuSub_' + item.text());
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+    waits(350);
+    runs(function() {
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
 
-//    button.trigger('mousedown');
-    button.simulate('mousedown');
+      button.simulate('mousedown');
 
-    //expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.left).toEqual(empty);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0,0).borders.right).toEqual(empty);
-
+      //expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
+      expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
+      expect(getCellMeta(0,0).borders.left).toEqual(empty);
+      expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
+      expect(getCellMeta(0,0).borders.right).toEqual(empty);
+    });
   });
 
   it('should draw left border from context menu options', function () {
@@ -170,20 +169,21 @@ describe('CustomBorders', function () {
 
     contextMenu();
     var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
-//    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextMenuSub_' + item.text());
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+    waits(350);
+    runs(function() {
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
-//    button.trigger('mousedown');
-    button.simulate('mousedown');
+      button.simulate('mousedown');
 
-    expect(getCellMeta(0,0).borders.hasOwnProperty('left')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(empty);
-    expect(getCellMeta(0,0).borders.left).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0,0).borders.right).toEqual(empty);
+      expect(getCellMeta(0,0).borders.hasOwnProperty('left')).toBe(true);
+      expect(getCellMeta(0,0).borders.top).toEqual(empty);
+      expect(getCellMeta(0,0).borders.left).toEqual(defaultBorder);
+      expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
+      expect(getCellMeta(0,0).borders.right).toEqual(empty);
+    });
   });
 
   it('should draw right border from context menu options', function () {
@@ -203,20 +203,21 @@ describe('CustomBorders', function () {
 
     contextMenu();
     var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
-//    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextMenuSub_' + item.text());
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+    waits(350);
+    runs(function() {
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
-//    button.trigger('mousedown');
-    button.simulate('mousedown');
+      button.simulate('mousedown');
 
-    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(empty);
-    expect(getCellMeta(0,0).borders.left).toEqual(empty);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0,0).borders.right).toEqual(defaultBorder);
+      expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
+      expect(getCellMeta(0,0).borders.top).toEqual(empty);
+      expect(getCellMeta(0,0).borders.left).toEqual(empty);
+      expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
+      expect(getCellMeta(0,0).borders.right).toEqual(defaultBorder);
+    });
   });
 
   it('should draw bottom border from context menu options', function () {
@@ -234,23 +235,23 @@ describe('CustomBorders', function () {
         hide: true
       };
 
-
     contextMenu();
     var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
-//    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextMenuSub_' + item.text());
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+    waits(350);
+    runs(function() {
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
-//    button.trigger('mousedown');
-    button.simulate('mousedown');
+      button.simulate('mousedown');
 
-    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(empty);
-    expect(getCellMeta(0,0).borders.left).toEqual(empty);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.right).toEqual(empty);
+      expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
+      expect(getCellMeta(0,0).borders.top).toEqual(empty);
+      expect(getCellMeta(0,0).borders.left).toEqual(empty);
+      expect(getCellMeta(0,0).borders.bottom).toEqual(defaultBorder);
+      expect(getCellMeta(0,0).borders.right).toEqual(empty);
+    });
   });
 
   it('should remove all bottoms border from context menu options', function () {
@@ -261,12 +262,12 @@ describe('CustomBorders', function () {
       {
         row: 0,
         col: 0,
-        left:{
-          width:2,
+        left: {
+          width: 2,
           color: 'red'
         },
-        right:{
-          width:1,
+        right: {
+          width: 1,
           color: 'green'
         }
       }]
@@ -274,15 +275,16 @@ describe('CustomBorders', function () {
 
     contextMenu();
     var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
-//    item.trigger('mouseover');
     item.simulate('mouseover');
 
-    var contextSubMenu = $('.htContextMenuSub_' + item.text());
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+    waits(350);
+    runs(function() {
+      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
-//    button.trigger('mousedown');
-    button.simulate('mousedown');
+      button.simulate('mousedown');
 
-    expect(getCellMeta(0,0).borders).toBeUndefined();
+      expect(getCellMeta(0,0).borders).toBeUndefined();
+    });
   });
 });

@@ -177,6 +177,35 @@ describe('Core_validate', function () {
     });
   });
 
+  it('should not throw error after calling validateCells without first argument', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == "B1") {
+          callb(false);
+        }
+        else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate
+    });
+
+    expect(hot.validateCells).not.toThrow();
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length == 4;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+    });
+  });
+
+
   it('should add class name `htInvalid` to an cell that does not validate - on validateCells', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 

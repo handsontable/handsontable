@@ -93,9 +93,10 @@ class WalkontableTableRenderer {
     }
     this.removeRedundantRows(rowsToRender);
 
-    if (!this.wtTable.isWorkingOnClone()) {
+    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
-
+    }
+    if (!this.wtTable.isWorkingOnClone()) {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
 
@@ -125,12 +126,9 @@ class WalkontableTableRenderer {
       }
 
       this.wot.getSetting('onDraw', true);
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
-      let masterOverlay = this.wot.cloneOverlay.instance;
 
-      this.wot.cloneOverlay.markOversizedFixedBottomRows();
-
-      masterOverlay.wtOverlays.adjustElementsSize();
+    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+      this.wot.cloneSource.wtOverlays.adjustElementsSize();
     }
   }
 
@@ -172,7 +170,9 @@ class WalkontableTableRenderer {
 
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
 
-      if (!isWorkingOnClone || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
+      if (!isWorkingOnClone ||
+          // Necessary to refresh oversized row heights after editing cell in overlays
+          this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }

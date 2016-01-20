@@ -334,15 +334,7 @@ class WalkontableBorder {
         cornerOverlappingContainer,
         ilen;
 
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
-      ilen = this.wot.getSetting('fixedRowsTop');
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      ilen = this.wot.getSetting('fixedRowsBottom');
-    } else {
-      ilen = this.wot.wtTable.getRenderedRowsCount();
-    }
+    ilen = this.wot.wtTable.getRenderedRowsCount();
 
     for (let i = 0; i < ilen; i++) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);

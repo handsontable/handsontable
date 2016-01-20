@@ -1030,8 +1030,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.physicalCol,
-          row = cellProperties.physicalRow,
+      var col = cellProperties.visualCol,
+          row = cellProperties.visualRow,
           td = instance.getCell(row, col, true);
 
       if (td) {
@@ -1050,16 +1050,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     if (typeof validator == 'function') {
 
-      value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.row, cellProperties.prop, source);
+      value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(function() {
         validator.call(cellProperties, value, function(valid) {
-          valid = Handsontable.hooks.run(instance, 'afterValidate', valid, value, cellProperties.row, cellProperties.prop, source);
+          valid = Handsontable.hooks.run(instance, 'afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
           done(valid);
-          Handsontable.hooks.run(instance, 'postAfterValidate', valid, value, cellProperties.row, cellProperties.prop, source);
+          Handsontable.hooks.run(instance, 'postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
       }, 0));
 
@@ -2054,8 +2054,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     var prop = datamap.colToProp(col),
         cellProperties;
 
-    let physicalRow = row;
-    let physicalCol = col;
+    let visualRow = row;
+    let visualCol = col;
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
@@ -2074,8 +2074,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     cellProperties.row = row;
     cellProperties.col = col;
-    cellProperties.physicalRow = physicalRow;
-    cellProperties.physicalCol = physicalCol;
+    cellProperties.visualRow = visualRow;
+    cellProperties.visualCol = visualCol;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
@@ -2182,18 +2182,24 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function validateCells
-   * @param {Function} callback The callback function.
+   * @param {Function} [callback] The callback function.
    */
   this.validateCells = function(callback) {
     var waitingForValidator = new ValidatorsQueue();
-    waitingForValidator.onQueueEmpty = callback;
+
+    if (callback) {
+      waitingForValidator.onQueueEmpty = callback;
+    }
 
     /* jshint ignore:start */
-    var i = instance.countRows() - 1;
+    let i = instance.countRows() - 1;
+
     while (i >= 0) {
-      var j = instance.countCols() - 1;
+      let j = instance.countCols() - 1;
+
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
+
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
           if (typeof result !== 'boolean') {
             throw new Error('Validation error: result is not boolean');
@@ -4612,6 +4618,157 @@ DefaultSettings.prototype = {
    *
    * @type {String|Boolean}
    */
-  preventOverflow: false
+  preventOverflow: false,
+
+  /**
+   * @description
+   * Plugin allowing binding the table rows with their headers.
+   * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically, if at the initialization
+   * row 0 has a header titled "A", it will have it no matter what you do with the table.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|String}
+   * @example
+   *
+   * ```js
+   * ...
+   * var hot = new Handsontable(document.getElementById('example'), {
+   *   date: getData(),
+   *   bindRowsWithHeaders: true
+   * });
+   * ...
+   * ```
+   *
+   */
+  bindRowsWithHeaders: void 0,
+
+  /**
+   * @description
+   * The CollapsibleColumns plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
+   *
+   * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
+   *
+   * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every header with a defined
+   * `colspan` property.
+   *
+   * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array of objects, as in
+   * the example below.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Array}
+   * @example
+   * ```js
+   * ...
+   *  collapsibleColumns: [
+   *    {row: -4, col: 1, collapsible: true},
+   *    {row: -3, col: 5, collapsible: true}
+   *  ]
+   * ...
+   * // or
+   * ...
+   *  collapsibleColumns: true
+   * ...
+   * ```
+   */
+  collapsibleColumns: void 0,
+
+  /**
+   * @description
+   * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+   * See the demo for more information.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Object}
+   */
+  columnSummary: void 0,
+
+  /**
+   * This plugin allows adding a configurable dropdown menu to the table's column headers.
+   * The dropdown menu acts like the Context Menu, but is triggered by clicking the button in the header.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Object|Array}
+   */
+  dropdownMenu: void 0,
+
+  /**
+   * The filters plugin.
+   * It allows filtering the table data either by the built-in component or with the API.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean}
+   */
+  filters: void 0,
+
+  /**
+   * @description
+   * GanttChart plugin enables a possibility to create a Gantt chart using a Handsontable instance.
+   * In this case, the whole table becomes read-only.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Object}
+   */
+  ganttChart: void 0,
+
+  /**
+   * @description
+   * Allows adding a tooltip to the table headers.
+   *
+   * Available options:
+   * * the `rows` property defines if tooltips should be added to row headers,
+   * * the `columns` property defines if tooltips should be added to column headers,
+   * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Object}
+   */
+  headerTooltips: void 0,
+
+  /**
+   * Plugin allowing hiding of certain columns.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Object}
+   */
+  hiddenColumns: void 0,
+
+  /**
+   * @description
+   * Plugin allowing hiding of certain rows.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Object}
+   */
+  hiddenRows: void 0,
+
+  /**
+   * @description
+   * Allows creating a nested header structure, using the HTML's colspan attribute.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Array}
+   */
+  nestedHeaders: void 0,
+
+  /**
+   * @description
+   * Plugin allowing hiding of certain rows.
+   *
+   * @pro
+   * @since 1.0.0-beta1
+   * @type {Boolean|Array}
+   */
+  trimRows: void 0
+
 };
 Handsontable.DefaultSettings = DefaultSettings;
