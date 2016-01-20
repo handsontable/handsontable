@@ -273,7 +273,6 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-<<<<<<< HEAD
    * Before context menu show listener.
    *
    * @private
@@ -281,7 +280,8 @@ class ContextMenu extends BasePlugin {
   onBeforeContextMenuShow() {
     let menuItems = this.itemsFactory.getVisibleItems();
     this.menu.setMenuItems(menuItems);
-=======
+  }
+
    * On menu after open listener.
    *
    * @private
@@ -310,7 +310,6 @@ class ContextMenu extends BasePlugin {
       this.menu.destroy();
     }
     super.destroy();
->>>>>>> upstream/master
   }
 }
 
