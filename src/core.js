@@ -4666,8 +4666,7 @@ DefaultSettings.prototype = {
    *    {row: -3, col: 5, collapsible: true}
    *  ]
    * ...
-   * ```
-   * ```js
+   * // or
    * ...
    *  collapsibleColumns: true
    * ...
