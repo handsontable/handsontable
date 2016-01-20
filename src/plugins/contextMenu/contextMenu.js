@@ -282,6 +282,7 @@ class ContextMenu extends BasePlugin {
     this.menu.setMenuItems(menuItems);
   }
 
+  /**
    * On menu after open listener.
    *
    * @private
