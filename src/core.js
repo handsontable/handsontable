@@ -2182,18 +2182,24 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function validateCells
-   * @param {Function} callback The callback function.
+   * @param {Function} [callback] The callback function.
    */
   this.validateCells = function(callback) {
     var waitingForValidator = new ValidatorsQueue();
-    waitingForValidator.onQueueEmpty = callback;
+
+    if (callback) {
+      waitingForValidator.onQueueEmpty = callback;
+    }
 
     /* jshint ignore:start */
-    var i = instance.countRows() - 1;
+    let i = instance.countRows() - 1;
+
     while (i >= 0) {
-      var j = instance.countCols() - 1;
+      let j = instance.countCols() - 1;
+
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
+
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
           if (typeof result !== 'boolean') {
             throw new Error('Validation error: result is not boolean');
