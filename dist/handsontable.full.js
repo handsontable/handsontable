@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 14 2016 20:11:42 GMT+0800 (CST)
+ * Date: Wed Jan 20 2016 10:24:00 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jan 14 2016 20:11:42 GMT+0800 (CST)',
+  buildDate: 'Wed Jan 20 2016 10:24:00 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -668,11 +668,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
     var viewportHeight = priv.viewportHeight;
     var horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
     for (var i = 0; i < totalRows; i++) {
-      if (Handsontable.mobileBrowser) {
-        var rowHeight = 0;
-      } else {
-        var rowHeight$__1 = rowHeightFn(i);
-      }
+      var rowHeight = rowHeightFn(i);
       if (rowHeight === undefined) {
         rowHeight = $WalkontableViewportRowsCalculator.DEFAULT_HEIGHT;
       }
@@ -1301,6 +1297,7 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
   if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+    return;
     var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
     eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
       that.instance.touchApplied = true;
@@ -2164,6 +2161,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   onTableScroll: function(event) {
     if (Handsontable.mobileBrowser) {
+      this.syncScrollPositions(event);
       return;
     }
     if (this.keyPressed && this.mainTableScrollableElement !== window && !event.target.contains(this.mainTableScrollableElement)) {
@@ -2211,6 +2209,12 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
+    if (Handsontable.mobileBrowser) {
+      event = {
+        target: $('.ht_master .wtHolder')[0],
+        type: 'scroll'
+      };
+    }
     if (this.destroyed) {
       return;
     }
@@ -2444,6 +2448,9 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
 };
 ($traceurRuntime.createClass)(WalkontableSelection, {
   getBorder: function(wotInstance) {
+    if (Handsontable.mobileBrowser) {
+      return;
+    }
     if (this.instanceBorders[wotInstance.guid]) {
       return this.instanceBorders[wotInstance.guid];
     }
@@ -8143,6 +8150,9 @@ function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
   } else {
+    if (Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+      return -window.myScroll.y;
+    }
     return element.scrollTop;
   }
 }
@@ -8150,10 +8160,16 @@ function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
   } else {
+    if (Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+      return -window.myScroll.x;
+    }
     return element.scrollLeft;
   }
 }
 function getScrollableElement(element) {
+  if (Handsontable.mobileBrowser) {
+    return $('.ht_master .wtHolder')[0];
+  }
   var el = element.parentNode,
       props = ['auto', 'scroll'],
       overflow,
