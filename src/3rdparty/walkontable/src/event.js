@@ -182,46 +182,44 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
   // check if full HOT instance, or detached WOT AND run on mobile device
-  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+  // 2016mobile#12
+  // if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
 
-    // 2016mobile#12
-    return;
-    
-    var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
+  //   var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
 
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
-      that.instance.touchApplied = true;
-      if (isChildOf(event.target, classSelector)) {
-        onTouchStart.call(event.target, event);
-      }
-    });
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', function(event) {
-      that.instance.touchApplied = false;
-      if (isChildOf(event.target, classSelector)) {
-        onTouchEnd.call(event.target, event);
-      }
-    });
+  //   eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
+  //     that.instance.touchApplied = true;
+  //     if (isChildOf(event.target, classSelector)) {
+  //       onTouchStart.call(event.target, event);
+  //     }
+  //   });
+  //   eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', function(event) {
+  //     that.instance.touchApplied = false;
+  //     if (isChildOf(event.target, classSelector)) {
+  //       onTouchEnd.call(event.target, event);
+  //     }
+  //   });
 
-    if (!that.instance.momentumScrolling) {
-      that.instance.momentumScrolling = {};
-    }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
-      clearTimeout(that.instance.momentumScrolling._timeout);
+  //   if (!that.instance.momentumScrolling) {
+  //     that.instance.momentumScrolling = {};
+  //   }
+  //   eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
+  //     clearTimeout(that.instance.momentumScrolling._timeout);
 
-      if (!that.instance.momentumScrolling.ongoing) {
-        that.instance.getSetting('onBeforeTouchScroll');
-      }
-      that.instance.momentumScrolling.ongoing = true;
+  //     if (!that.instance.momentumScrolling.ongoing) {
+  //       that.instance.getSetting('onBeforeTouchScroll');
+  //     }
+  //     that.instance.momentumScrolling.ongoing = true;
 
-      that.instance.momentumScrolling._timeout = setTimeout(function() {
-        if (!that.instance.touchApplied) {
-          that.instance.momentumScrolling.ongoing = false;
+  //     that.instance.momentumScrolling._timeout = setTimeout(function() {
+  //       if (!that.instance.touchApplied) {
+  //         that.instance.momentumScrolling.ongoing = false;
 
-          that.instance.getSetting('onAfterMomentumScroll');
-        }
-      }, 200);
-    });
-  }
+  //         that.instance.getSetting('onAfterMomentumScroll');
+  //       }
+  //     }, 200);
+  //   });
+  // }
 
   eventManager.addEventListener(window, 'resize', function() {
     if (that.instance.getSetting('stretchH') !== 'none') {
