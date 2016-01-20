@@ -295,7 +295,8 @@ class WalkontableOverlays {
         scrollValueChanged = true;
 
         if (topOverlay) {
-          topOverlay.scrollLeft = tempScrollValue;
+          // 2016mobile#15
+          // topOverlay.scrollLeft = tempScrollValue;
         }
 
         if (bottomOverlay) {
@@ -309,7 +310,8 @@ class WalkontableOverlays {
         scrollValueChanged = true;
 
         if (leftOverlay) {
-          leftOverlay.scrollTop = tempScrollValue;
+          // 2016mobile#16
+          // leftOverlay.scrollTop = tempScrollValue;
         }
       }
 
