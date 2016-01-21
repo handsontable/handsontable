@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 21 2016 17:31:29 GMT+0800 (CST)
+ * Date: Thu Jan 21 2016 17:34:08 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jan 21 2016 17:31:29 GMT+0800 (CST)',
+  buildDate: 'Thu Jan 21 2016 17:34:08 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3276,9 +3276,15 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         TD.className = '';
       }
       TD.removeAttribute('style');
-      temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+      if (Handsontable.mobileBrowser) {
+        temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+      } else {
+        temp = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+      }
     }
-    TR.innerHTML = temp;
+    if (Handsontable.mobileBrowser) {
+      TR.innerHTML = temp;
+    }
     return TD;
   },
   adjustColumnWidths: function(columnsToRender) {

@@ -368,9 +368,18 @@ class WalkontableTableRenderer {
         TD.className = '';
       }
       TD.removeAttribute('style');
-      temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+
+      if(Handsontable.mobileBrowser) {
+        temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+      } else {
+        temp = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+      }
+      
     }
-    TR.innerHTML = temp;
+    
+    if(Handsontable.mobileBrowser) {
+      TR.innerHTML = temp;
+    } 
 
     return TD;
   }
