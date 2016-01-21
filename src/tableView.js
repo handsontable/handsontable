@@ -248,7 +248,7 @@ function TableView(instance) {
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
-    cellRenderer: function(row, col, TD) {
+    cellRenderer: function(row, col, TD, stringElement) {
 
       var prop = that.instance.colToProp(col),
         cellProperties = that.instance.getCellMeta(row, col),
@@ -256,9 +256,13 @@ function TableView(instance) {
 
       var value = that.instance.getDataAtRowProp(row, prop);
 
-      renderer(that.instance, TD, row, col, prop, value, cellProperties);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
+      var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties);
+      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties, stringElement);
 
+      // mobile#20
+      if(stringElement) {
+        return renderedCell;
+      }
     },
     selections: selections,
     hideBorderOnMouseDownOver: function() {
