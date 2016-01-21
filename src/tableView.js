@@ -256,7 +256,7 @@ function TableView(instance) {
 
       var value = that.instance.getDataAtRowProp(row, prop);
 
-      var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties);
+      var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties, stringElement);
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties, stringElement);
 
       // mobile#20
