@@ -146,7 +146,7 @@ class WalkontableViewport {
     if (this.containerWidth) {
       return this.containerWidth;
     }
-    let mainContainer = this.instance.wtTable.holder;
+    let mainContainer = this.instance.wtTable.holder.parentNode;
     let fillWidth;
     let dummyElement;
 
