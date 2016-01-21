@@ -349,6 +349,9 @@ class WalkontableTableRenderer {
     let TD;
     let sourceColIndex;
 
+    // 2016mobile#19
+    let temp = TR.firstChild.outerHTML;
+
     for (let visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
       sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
 
@@ -365,8 +368,18 @@ class WalkontableTableRenderer {
         TD.className = '';
       }
       TD.removeAttribute('style');
-      this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+
+      if(Handsontable.mobileBrowser) {
+        temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+      } else {
+        temp = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+      }
+      
     }
+    
+    if(Handsontable.mobileBrowser) {
+      TR.innerHTML = temp;
+    } 
 
     return TD;
   }
