@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 22 2016 19:21:54 GMT+0800 (CST)
+ * Date: Fri Jan 22 2016 20:50:16 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Jan 22 2016 19:21:54 GMT+0800 (CST)',
+  buildDate: 'Fri Jan 22 2016 20:50:16 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3275,11 +3275,15 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       TD.removeAttribute('style');
       if (Handsontable.mobileBrowser) {
         objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
-        temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
-        _.map(objectTD.attributes, function(attr) {
-          temp += ' ' + attr[0] + '="' + attr[1] + '"';
-        });
-        temp += '>' + objectTD.value + '</' + objectTD.tagName + '>';
+        if (objectTD) {
+          temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
+          _.map(objectTD.attributes, function(attr) {
+            temp += ' ' + attr[0] + '="' + attr[1] + '"';
+          });
+          temp += '>' + objectTD.value + '</' + objectTD.tagName + '>';
+        } else {
+          temp += TD.outerHTML;
+        }
       } else {
         this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
       }
