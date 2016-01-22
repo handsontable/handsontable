@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 21 2016 17:36:12 GMT+0800 (CST)
+ * Date: Fri Jan 22 2016 16:13:57 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jan 21 2016 17:36:12 GMT+0800 (CST)',
+  buildDate: 'Fri Jan 22 2016 16:13:57 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3259,7 +3259,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     }
   },
   renderCells: function(sourceRowIndex, TR, columnsToRender) {
-    var TD;
+    var TD,
+        objectTD;
     var sourceColIndex;
     var temp = TR.firstChild.outerHTML;
     for (var visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
@@ -3277,9 +3278,14 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       TD.removeAttribute('style');
       if (Handsontable.mobileBrowser) {
-        temp += this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+        objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
+        temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
+        _.map(objectTD.attributes, function(attr) {
+          temp += ' ' + attr[0] + '="' + attr[1] + '"';
+        });
+        temp += '>' + objectTD.value + '</' + objectTD.tagName + '>';
       } else {
-        temp = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+        this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
       }
     }
     if (Handsontable.mobileBrowser) {
@@ -13421,16 +13427,27 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   }
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
-      TD.setAttribute('rowspan', info.rowspan);
-      TD.setAttribute('colspan', info.colspan);
+      if (TD.objectEle) {
+        TD.attributes.push(['rowspan', info.rowspan]);
+        TD.attributes.push(['colspan', info.colspan]);
+      } else {
+        TD.setAttribute('rowspan', info.rowspan);
+        TD.setAttribute('colspan', info.colspan);
+      }
     } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-      TD.style.display = 'none';
+      if (TD.objectEle) {
+        TD.style += 'display:none';
+      } else {
+        TD.removeAttribute('rowspan');
+        TD.removeAttribute('colspan');
+        TD.style.display = 'none';
+      }
     }
   } else {
-    TD.removeAttribute('rowspan');
-    TD.removeAttribute('colspan');
+    if (!TD.objectEle) {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+    }
   }
 };
 MergeCells.prototype.inOtherMergeCell = function(info) {
@@ -15127,7 +15144,7 @@ function TableView(instance) {
           renderer = that.instance.getCellRenderer(cellProperties);
       var value = that.instance.getDataAtRowProp(row, prop);
       var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties, stringElement);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties, stringElement);
+      Handsontable.hooks.run(that.instance, 'afterRenderer', renderedCell, row, col, prop, value, cellProperties, stringElement);
       if (stringElement) {
         return renderedCell;
       }
