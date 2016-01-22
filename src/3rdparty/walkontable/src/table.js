@@ -378,7 +378,7 @@ class WalkontableTable {
 
     if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
       col = this.columnFilter.offsettedTH(col);
-      
+
     } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
