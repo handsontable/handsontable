@@ -131,19 +131,34 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
     return;
   }
 
+  // 2016 mobile#21
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
-      TD.setAttribute('rowspan', info.rowspan);
-      TD.setAttribute('colspan', info.colspan);
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
 
-      TD.style.display = 'none';
+      if(TD.objectEle) {
+        TD.attributes.push(['rowspan', info.rowspan]);
+        TD.attributes.push(['colspan', info.colspan]);
+      } else {
+        TD.setAttribute('rowspan', info.rowspan);
+        TD.setAttribute('colspan', info.colspan);
+      }
+      
+    } else {
+      if(TD.objectEle) {
+        TD.style += 'display:none';
+      } else {
+        TD.removeAttribute('rowspan');
+        TD.removeAttribute('colspan');
+        TD.style.display = 'none';
+      }
+      
     }
   } else {
-    TD.removeAttribute('rowspan');
-    TD.removeAttribute('colspan');
+    if(!TD.objectEle) {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+    }
+    
   }
 };
 MergeCells.prototype.inOtherMergeCell = function(info) {
