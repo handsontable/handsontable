@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 22 2016 16:17:39 GMT+0800 (CST)
+ * Date: Fri Jan 22 2016 19:21:54 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Jan 22 2016 16:17:39 GMT+0800 (CST)',
+  buildDate: 'Fri Jan 22 2016 19:21:54 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -15140,7 +15140,7 @@ function TableView(instance) {
           renderer = that.instance.getCellRenderer(cellProperties);
       var value = that.instance.getDataAtRowProp(row, prop);
       var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties, stringElement);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', renderedCell, row, col, prop, value, cellProperties, stringElement);
+      Handsontable.hooks.run(that.instance, 'afterRenderer', renderedCell || TD, row, col, prop, value, cellProperties, stringElement);
       if (stringElement) {
         return renderedCell;
       }
