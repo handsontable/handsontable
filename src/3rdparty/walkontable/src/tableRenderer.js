@@ -372,13 +372,15 @@ class WalkontableTableRenderer {
       // 2016mobile#20
       if (Handsontable.mobileBrowser) {
         objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
-        temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
-
-        _.map(objectTD.attributes, function(attr){
-          temp += ' '+attr[0]+'="'+attr[1]+'"';
-        })
-
-        temp += '>'+objectTD.value+'</'+objectTD.tagName+'>'
+        if(objectTD) {
+          temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
+          _.map(objectTD.attributes, function(attr) {
+            temp += ' ' + attr[0] + '="' + attr[1] + '"';
+          });
+          temp += '>' + objectTD.value + '</' + objectTD.tagName + '>';
+        } else {
+          temp += TD.outerHTML;
+        }
       } else {
         this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
       }
