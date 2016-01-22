@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 22 2016 16:13:57 GMT+0800 (CST)
+ * Date: Fri Jan 22 2016 16:17:39 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Jan 22 2016 16:13:57 GMT+0800 (CST)',
+  buildDate: 'Fri Jan 22 2016 16:17:39 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -510,11 +510,7 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
     var totalColumns = priv.totalColumns;
     var viewportWidth = priv.viewportWidth;
     for (var i = 0; i < totalColumns; i++) {
-      if (Handsontable.mobileBrowser) {
-        columnWidth = 0;
-      } else {
-        columnWidth = this._getColumnWidth(i);
-      }
+      columnWidth = this._getColumnWidth(i);
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
