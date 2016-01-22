@@ -91,13 +91,7 @@ class WalkontableViewportColumnsCalculator {
     let viewportWidth = priv.viewportWidth;
 
     for (let i = 0; i < totalColumns; i++) {
-      
-      // show all cols  2016mobile#3
-      if(Handsontable.mobileBrowser){
-        columnWidth = 0;
-      } else {
-        columnWidth = this._getColumnWidth(i);
-      }
+      columnWidth = this._getColumnWidth(i);
 
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
