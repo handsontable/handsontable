@@ -76,6 +76,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   this.guid = 'ht_' + randomString(); // this is the namespace for global events
 
+  dataSource = new DataSource(instance);
+
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
@@ -857,7 +859,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   this.init = function() {
-    dataSource = new DataSource(instance, priv.settings.data);
+    dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if (Handsontable.mobileBrowser) {
