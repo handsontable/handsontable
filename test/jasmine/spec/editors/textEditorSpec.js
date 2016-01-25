@@ -81,6 +81,7 @@ describe('TextEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
       expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('-1px');
     });
   });
 
@@ -106,6 +107,38 @@ describe('TextEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
       expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
+    });
+  });
+
+  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', function () {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        columns: [
+          {data: 'prop0', title: 'Prop 0'},
+          {data: 'prop1', title: 'Prop 1'},
+          {data: 'prop2', title: 'Prop 2'},
+          {data: 'prop3', title: 'Prop 3'},
+        ]
+      }),
+      editorHeight;
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
     });
   });
 
