@@ -26,11 +26,6 @@ class WalkontableSelection {
    * @returns {WalkontableBorder}
    */
   getBorder(wotInstance) {
-    
-    // 2016mobile#15
-    if(Handsontable.mobileBrowser) {
-      return;
-    }
 
     if (this.instanceBorders[wotInstance.guid]) {
       return this.instanceBorders[wotInstance.guid];
