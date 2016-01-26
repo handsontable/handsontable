@@ -117,6 +117,11 @@ class WalkontableTableRenderer {
         let firstRendered = this.wtTable.getFirstRenderedColumn();
         let lastRendered = this.wtTable.getLastRenderedColumn();
 
+        let rowHeaderWidth = this.wot.wtViewport.getRowHeaderWidth();
+        for (let i = 0; i < this.rowHeaderCount; i++) {
+          this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidth) ? rowHeaderWidth[i] : rowHeaderWidth) + 'px';
+        }
+
         for (let i = firstRendered; i < lastRendered; i++) {
           let width = this.wtTable.getStretchedColumnWidth(i);
           let renderedIndex = this.columnFilter.sourceToRendered(i);
@@ -300,6 +305,7 @@ class WalkontableTableRenderer {
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
+    let columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
 
     while (level) {
       level--;
@@ -310,11 +316,14 @@ class WalkontableTableRenderer {
       if (!currentHeader) {
         continue;
       }
-      //currentHeaderHeight = defaultRowHeight;
       currentHeaderHeight = innerHeight(currentHeader);
 
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
       }
     }
   }
@@ -363,6 +372,11 @@ class WalkontableTableRenderer {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
+
+    let rowHeaderWidth = this.wot.wtViewport.getRowHeaderWidth();
+    for (let i = 0; i < this.rowHeaderCount; i++) {
+      this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidth) ? rowHeaderWidth[i] : rowHeaderWidth) + 'px';
+    }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));

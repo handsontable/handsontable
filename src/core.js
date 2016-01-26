@@ -4768,7 +4768,25 @@ DefaultSettings.prototype = {
    * @since 1.0.0-beta1
    * @type {Boolean|Array}
    */
-  trimRows: void 0
+  trimRows: void 0,
+
+  /**
+   * @description
+   * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row header levels are defined.
+   *
+   * @since 0.21.1
+   * @type {Number|Array}
+   */
+  rowHeaderWidth: void 0,
+
+  /**
+   * @description
+   * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many column header levels are defined.
+   *
+   * @since 0.21.1
+   * @type {Number|Array}
+   */
+  columnHeaderHeight: void 0
 
 };
 Handsontable.DefaultSettings = DefaultSettings;

@@ -432,6 +432,12 @@ function TableView(instance) {
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     },
+    rowHeaderWidth: function() {
+      return that.settings.rowHeaderWidth;
+    },
+    columnHeaderHeight: function() {
+      return that.settings.columnHeaderHeight;
+    }
   };
 
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);

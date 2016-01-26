@@ -89,6 +89,8 @@ class WalkontableSettings {
 
       renderAllRows: false,
       groups: false,
+      rowHeaderWidth: null,
+      columnHeaderHeight: null
     };
 
     // reference to settings
