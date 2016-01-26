@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 22 2016 20:50:16 GMT+0800 (CST)
+ * Date: Tue Jan 26 2016 18:58:55 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri Jan 22 2016 20:50:16 GMT+0800 (CST)',
+  buildDate: 'Tue Jan 26 2016 18:58:55 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3157,7 +3157,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       if (TR.firstChild) {
         var height = this.wot.wtTable.getRowHeight(sourceRowIndex);
         if (height) {
-          height--;
+          height++;
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
@@ -3203,7 +3203,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         rowInnerHeight = innerHeight(currentTr) - 1;
       }
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight || previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
     }
   },
