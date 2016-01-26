@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 26 2016 18:58:55 GMT+0800 (CST)
+ * Date: Tue Jan 26 2016 19:32:26 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Jan 26 2016 18:58:55 GMT+0800 (CST)',
+  buildDate: 'Tue Jan 26 2016 19:32:26 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1292,6 +1292,37 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
+  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+    var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
+      that.instance.touchApplied = true;
+      if (isChildOf(event.target, classSelector)) {
+        onTouchStart.call(event.target, event);
+      }
+    });
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', function(event) {
+      that.instance.touchApplied = false;
+      if (isChildOf(event.target, classSelector)) {
+        onTouchEnd.call(event.target, event);
+      }
+    });
+    if (!that.instance.momentumScrolling) {
+      that.instance.momentumScrolling = {};
+    }
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
+      clearTimeout(that.instance.momentumScrolling._timeout);
+      if (!that.instance.momentumScrolling.ongoing) {
+        that.instance.getSetting('onBeforeTouchScroll');
+      }
+      that.instance.momentumScrolling.ongoing = true;
+      that.instance.momentumScrolling._timeout = setTimeout(function() {
+        if (!that.instance.touchApplied) {
+          that.instance.momentumScrolling.ongoing = false;
+          that.instance.getSetting('onAfterMomentumScroll');
+        }
+      }, 200);
+    });
+  }
   eventManager.addEventListener(window, 'resize', function() {
     if (that.instance.getSetting('stretchH') !== 'none') {
       that.instance.draw();
@@ -2416,9 +2447,6 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
 };
 ($traceurRuntime.createClass)(WalkontableSelection, {
   getBorder: function(wotInstance) {
-    if (Handsontable.mobileBrowser) {
-      return;
-    }
     if (this.instanceBorders[wotInstance.guid]) {
       return this.instanceBorders[wotInstance.guid];
     }
@@ -3158,6 +3186,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         var height = this.wot.wtTable.getRowHeight(sourceRowIndex);
         if (height) {
           height++;
+          if (sourceRowIndex === 0) {
+            height++;
+          }
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';

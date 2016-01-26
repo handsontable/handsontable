@@ -204,6 +204,9 @@ class WalkontableTableRenderer {
 
         if (height) {
           height++;
+          if(sourceRowIndex === 0) {
+            height++;
+          }
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
