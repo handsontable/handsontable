@@ -203,8 +203,7 @@ class WalkontableTableRenderer {
         let height = this.wot.wtTable.getRowHeight(sourceRowIndex);
 
         if (height) {
-          // Decrease height. 1 pixel will be "replaced" by 1px border top
-          height--;
+          height++;
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
@@ -266,7 +265,7 @@ class WalkontableTableRenderer {
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
           previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
     }
   }
