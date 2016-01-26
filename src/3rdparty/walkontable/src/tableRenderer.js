@@ -372,7 +372,7 @@ class WalkontableTableRenderer {
       TD.removeAttribute('style');
 
       // 2016mobile#20
-      if (Handsontable.mobileBrowser) {
+      if (Handsontable.mobileBrowser && TR.isCreated) {
         objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
         if(objectTD) {
           temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
@@ -389,7 +389,7 @@ class WalkontableTableRenderer {
       
     }
     
-    if(Handsontable.mobileBrowser) {
+    if(Handsontable.mobileBrowser && TR.isCreated) {
       TR.innerHTML = temp;
     } 
 
@@ -434,13 +434,14 @@ class WalkontableTableRenderer {
     if (rowIndex >= this.wtTable.tbodyChildrenLength) {
       TR = this.createRow();
       this.appendToTbody(TR);
-
+      TR.isCreated = true;
     } else if (rowIndex === 0) {
       TR = this.TBODY.firstChild;
-
+      TR.isCreated = false;
     } else {
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
       TR = currentTr.nextSibling;
+      TR.isCreated = false;
     }
     if (TR.className) {
       TR.removeAttribute('class');

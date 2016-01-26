@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 26 2016 19:32:26 GMT+0800 (CST)
+ * Date: Tue Jan 26 2016 20:26:02 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Jan 26 2016 19:32:26 GMT+0800 (CST)',
+  buildDate: 'Tue Jan 26 2016 20:26:02 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3304,7 +3304,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         TD.className = '';
       }
       TD.removeAttribute('style');
-      if (Handsontable.mobileBrowser) {
+      if (Handsontable.mobileBrowser && TR.isCreated) {
         objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
         if (objectTD) {
           temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
@@ -3319,7 +3319,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
       }
     }
-    if (Handsontable.mobileBrowser) {
+    if (Handsontable.mobileBrowser && TR.isCreated) {
       TR.innerHTML = temp;
     }
     return TD;
@@ -3346,10 +3346,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (rowIndex >= this.wtTable.tbodyChildrenLength) {
       TR = this.createRow();
       this.appendToTbody(TR);
+      TR.isCreated = true;
     } else if (rowIndex === 0) {
       TR = this.TBODY.firstChild;
+      TR.isCreated = false;
     } else {
       TR = currentTr.nextSibling;
+      TR.isCreated = false;
     }
     if (TR.className) {
       TR.removeAttribute('class');
