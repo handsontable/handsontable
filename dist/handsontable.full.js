@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 26 2016 20:26:02 GMT+0800 (CST)
+ * Date: Wed Jan 27 2016 16:06:46 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Jan 26 2016 20:26:02 GMT+0800 (CST)',
+  buildDate: 'Wed Jan 27 2016 16:06:46 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1309,19 +1309,6 @@ function WalkontableEvent(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
-      clearTimeout(that.instance.momentumScrolling._timeout);
-      if (!that.instance.momentumScrolling.ongoing) {
-        that.instance.getSetting('onBeforeTouchScroll');
-      }
-      that.instance.momentumScrolling.ongoing = true;
-      that.instance.momentumScrolling._timeout = setTimeout(function() {
-        if (!that.instance.touchApplied) {
-          that.instance.momentumScrolling.ongoing = false;
-          that.instance.getSetting('onAfterMomentumScroll');
-        }
-      }, 200);
-    });
   }
   eventManager.addEventListener(window, 'resize', function() {
     if (that.instance.getSetting('stretchH') !== 'none') {

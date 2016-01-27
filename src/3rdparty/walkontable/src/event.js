@@ -203,22 +203,22 @@ function WalkontableEvent(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
-      clearTimeout(that.instance.momentumScrolling._timeout);
+    // eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function(event) {
+    //   clearTimeout(that.instance.momentumScrolling._timeout);
 
-      if (!that.instance.momentumScrolling.ongoing) {
-        that.instance.getSetting('onBeforeTouchScroll');
-      }
-      that.instance.momentumScrolling.ongoing = true;
+    //   if (!that.instance.momentumScrolling.ongoing) {
+    //     that.instance.getSetting('onBeforeTouchScroll');
+    //   }
+    //   that.instance.momentumScrolling.ongoing = true;
 
-      that.instance.momentumScrolling._timeout = setTimeout(function() {
-        if (!that.instance.touchApplied) {
-          that.instance.momentumScrolling.ongoing = false;
+    //   that.instance.momentumScrolling._timeout = setTimeout(function() {
+    //     if (!that.instance.touchApplied) {
+    //       that.instance.momentumScrolling.ongoing = false;
 
-          that.instance.getSetting('onAfterMomentumScroll');
-        }
-      }, 200);
-    });
+    //       that.instance.getSetting('onAfterMomentumScroll');
+    //     }
+    //   }, 200);
+    // });
   }
 
   eventManager.addEventListener(window, 'resize', function() {
