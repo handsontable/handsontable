@@ -36,6 +36,28 @@ describe('Public API', function () {
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();
     });
-  })
+  });
 
+  describe('Editors', function () {
+    it('should expose static method for registering external editors', function () {
+      expect(Handsontable.editors.registerEditor).toBeFunction();
+    });
+
+    it('should expose BaseEditor class', function () {
+      expect(Handsontable.editors.BaseEditor).toBeFunction();
+    });
+
+    it('should expose all registered editor classes', function () {
+      expect(Handsontable.editors.AutocompleteEditor).toBeFunction();
+      expect(Handsontable.editors.CheckboxEditor).toBeFunction();
+      expect(Handsontable.editors.DateEditor).toBeFunction();
+      expect(Handsontable.editors.DropdownEditor).toBeFunction();
+      expect(Handsontable.editors.HandsontableEditor).toBeFunction();
+      expect(Handsontable.editors.MobileEditor).toBeFunction();
+      expect(Handsontable.editors.NumericEditor).toBeFunction();
+      expect(Handsontable.editors.PasswordEditor).toBeFunction();
+      expect(Handsontable.editors.SelectEditor).toBeFunction();
+      expect(Handsontable.editors.TextEditor).toBeFunction();
+    });
+  });
 });
