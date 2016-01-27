@@ -200,9 +200,11 @@ function ManualColumnMove() {
 
       if (typeof loadedManualColumnPositions != 'undefined') {
         this.manualColumnPositions = loadedManualColumnPositions;
+
       } else if (Array.isArray(initialManualColumnPositions)) {
         this.manualColumnPositions = initialManualColumnPositions;
-      } else {
+
+      } else if (!initialManualColumnPositions || this.manualColumnPositions === void 0) {
         this.manualColumnPositions = [];
       }
 
@@ -214,9 +216,10 @@ function ManualColumnMove() {
         } else {
           instance.manualColumnPositionsPluginUsages.push('manualColumnMove');
         }
-
+        unbindEvents.call(this);
         bindEvents.call(this);
-        if (this.manualColumnPositions.length > 0) {
+
+        if (this.manualColumnPositions && this.manualColumnPositions.length > 0) {
           this.forceFullRender = true;
           this.render();
         }
