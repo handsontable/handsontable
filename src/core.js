@@ -76,6 +76,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   this.guid = 'ht_' + randomString(); // this is the namespace for global events
 
+  dataSource = new DataSource(instance);
+
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
@@ -857,7 +859,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   this.init = function() {
-    dataSource = new DataSource(instance, priv.settings.data);
+    dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if (Handsontable.mobileBrowser) {
@@ -3139,7 +3141,7 @@ DefaultSettings.prototype = {
    * ...
    * ```
    */
-  rowHeaders: null,
+  rowHeaders: void 0,
 
   /**
    * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
@@ -3574,7 +3576,7 @@ DefaultSettings.prototype = {
    * @type {Boolean}
    * @default false
    */
-  persistentState: false,
+  persistentState: void 0,
 
   /**
    * Class name for all visible rows in current selection.
@@ -4265,7 +4267,7 @@ DefaultSettings.prototype = {
    * @default false
    * @since 0.15.0-beta3
    */
-  sortIndicator: false,
+  sortIndicator: void 0,
 
   /**
    * Disable or enable ManualColumnFreeze plugin.

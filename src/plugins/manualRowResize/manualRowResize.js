@@ -88,7 +88,8 @@ class ManualRowResize extends BasePlugin {
 
     if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
-    } else {
+
+    } else if (!initialRowHeights) {
       this.manualRowHeights = [];
     }
   }
