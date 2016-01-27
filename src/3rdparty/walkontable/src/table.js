@@ -361,13 +361,27 @@ class WalkontableTable {
   getCoords(TD) {
     const TR = TD.parentNode;
     let row = index(TR);
+    let col = TD.cellIndex;
 
-    if (TR.parentNode === this.THEAD) {
-      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_TOP, TD)) {
+      if (TR.parentNode === this.THEAD) {
+        row -= 1;
+      }
+
     } else {
-      row = this.rowFilter.renderedToSource(row);
+      if (TR.parentNode === this.THEAD) {
+        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+      } else {
+        row = this.rowFilter.renderedToSource(row);
+      }
     }
-    let col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
+
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
+      col = this.columnFilter.offsettedTH(col);
+
+    } else {
+      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
 
     return new WalkontableCellCoords(row, col);
   }
