@@ -118,7 +118,8 @@ class WalkontableTableRenderer {
         let lastRendered = this.wtTable.getLastRenderedColumn();
 
         let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-        if ([void 0, null].indexOf(rowHeaderWidthSetting) === -1) {
+
+        if (rowHeaderWidthSetting != null) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
             this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
           }
@@ -376,7 +377,8 @@ class WalkontableTableRenderer {
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-    if ([void 0, null].indexOf(rowHeaderWidthSetting) === -1) {
+
+    if (rowHeaderWidthSetting != null) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
         this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
       }
