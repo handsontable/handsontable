@@ -800,6 +800,16 @@ const REGISTERED_HOOKS = [
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterRowResize',
+
+  /**
+   * Fired before applying stretched column width to column.
+   *
+   * @event Hooks#beforeStretchingColumnWidth
+   * @param {Number} stretchedWidth Calculated width.
+   * @param {Number} column Column index.
+   * @returns {Number} Returns new width which will be applied to the column element.
+   */
+  'beforeStretchingColumnWidth',
 ];
 
 import {arrayEach} from './helpers/array';

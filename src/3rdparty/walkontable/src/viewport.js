@@ -369,7 +369,10 @@ class WalkontableViewport {
       },
       visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
-      this.wot.getSetting('stretchH')
+      this.wot.getSetting('stretchH'),
+      (stretchedWidth, column) => {
+        return this.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+      }
     );
   }
 

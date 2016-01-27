@@ -25,15 +25,18 @@ class WalkontableViewportColumnsCalculator {
    * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
    * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
    * @param {Boolean} stretchH
+   * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
-  constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+  constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH,
+              stretchingColumnWidthFn = (width) => width) {
     privatePool.set(this, {
       viewportWidth,
       scrollOffset,
       totalColumns,
       columnWidthFn,
       overrideFn,
-      onlyFullyVisible
+      onlyFullyVisible,
+      stretchingColumnWidthFn,
     });
 
     /**
@@ -211,7 +214,14 @@ class WalkontableViewportColumnsCalculator {
     let totalColumns = priv.totalColumns;
 
     if (!this.stretchAllColumnsWidth[column]) {
-      this.stretchAllColumnsWidth[column] = Math.round(baseWidth * this.stretchAllRatio);
+      let stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
+      let newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
+
+      if (newStretchedWidth === void 0) {
+        this.stretchAllColumnsWidth[column] = stretchedWidth;
+      } else {
+        this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
+      }
     }
 
     if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
