@@ -436,7 +436,7 @@ const REGISTERED_HOOKS = [
    * new Handsontable(document.getElementById('example'), {
    *   beforeChange: function(changes, source) {
    *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0][1] = 10;
+   *     changes[0][3] = 10;
    *   }
    * });
    * ...
