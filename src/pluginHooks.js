@@ -800,6 +800,22 @@ const REGISTERED_HOOKS = [
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterRowResize',
+
+  /**
+   * Fired after getting the column header renderers.
+   *
+   * @event Hooks#afterGetColumnHeaderRenderers
+   * @param {Array} array Array of the column header renderers.
+   */
+  'afterGetColumnHeaderRenderers',
+
+  /**
+   * Fired after getting the row header renderers.
+   *
+   * @event Hooks#afterGetRowHeaderRenderers
+   * @param {Array} array Array of the row header renderers.
+   */
+  'afterGetRowHeaderRenderers'
 ];
 
 import {arrayEach} from './helpers/array';

@@ -150,4 +150,48 @@ describe('RowHeader', function () {
     expect(leftClone.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('Z');
 
   });
+
+  it('should allow defining custom row header width using the rowHeaderWidth config option', function() {
+    var hot = handsontable({
+      startCols: 3,
+      rowHeaders: true,
+      rowHeaderWidth: 150
+    });
+
+    expect(this.$container.find('th').eq(0).outerWidth()).toEqual(150);
+    expect(this.$container.find('col').first().css('width')).toEqual('150px');
+  });
+
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+    var hot = handsontable({
+      startCols: 3,
+      rowHeaders: true,
+      rowHeaderWidth: [66, 96],
+      afterGetRowHeaderRenderers: function(array) {
+        array.push(function(index, TH) {
+          TH.innerHTML = '';
+
+          var div = document.createElement('div');
+          var span = document.createElement('span');
+
+          div.className = 'relative';
+          span.className = 'rowHeader';
+
+          span.innerText = index;
+
+          div.appendChild(span);
+          TH.appendChild(div);
+        });
+
+        return array;
+      }
+    });
+    hot.render();
+
+    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
+    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
+
+    expect(this.$container.find('col').first().css('width')).toEqual('66px');
+    expect(this.$container.find('col').eq(1).css('width')).toEqual('96px');
+  });
 });
