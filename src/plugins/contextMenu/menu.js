@@ -599,6 +599,7 @@ class Menu {
       return;
     }
     if (this.container && isChildOf(event.target, this.container)) {
+      event.stopPropagation();
       this.executeCommand(event);
     }
     // Automatically close menu when clicked element is not belongs to menu or submenu
