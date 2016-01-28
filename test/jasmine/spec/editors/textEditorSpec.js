@@ -938,4 +938,30 @@ describe('TextEditor', function () {
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual("Ma\nserati");
   });
+
+  it("should be displayed and resized properly, so it doesn't exceed the viewport dimensions", function() {
+    var data = [["","","","",""], ["","The Dude abides. I don't know about you but I take comfort in that. It's good knowin' he's out there. The Dude. Takin' 'er easy for all us sinners. Shoosh. I sure hope he makes the finals.","","",""], ["","","","",""]];
+
+    var hot = handsontable({
+      data: data,
+      colWidths: 40,
+      width: 300,
+      height: 200,
+      minSpareRows: 20,
+      minSpareCols: 20
+    });
+
+    selectCell(1, 1);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
+
+    var $editorInput = $('.handsontableInput');
+    var $editedCell = $(hot.getCell(1,1));
+
+    expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+
+    hot.view.wt.scrollHorizontal(3);
+    hot.render();
+
+    expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+  });
 });
