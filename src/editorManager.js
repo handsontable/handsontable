@@ -28,6 +28,7 @@ function EditorManager(instance, priv, selection) {
     } else {
       // move selection down (add a new row if needed)
       selection.transformStart(enterMoves.row, enterMoves.col, true);
+      instance.runHooks('afterMoveSelectionAfterEnter');
     }
   }
 
@@ -183,6 +184,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened()) {
 
           if (activeEditor && activeEditor.state !== Handsontable.EditorState.WAITING) {
+            Handsontable.enterPress = true;
             _this.closeEditorAndSaveChanges(ctrlDown);
           }
           moveSelectionAfterEnter(event.shiftKey);
