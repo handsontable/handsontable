@@ -205,7 +205,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @param sourceRow {Number} Row index which you want to scroll to
    * @param [bottomEdge=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
    */
-  scrollTo(sourceRow, bottomEdge) {
+  scrollTo(sourceRow, bottomEdge, justCalc) {
     let newY = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     let mainHolder = sourceInstance.wtTable.holder;
@@ -230,7 +230,11 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     }
     newY += scrollbarCompensation;
 
-    this.setScrollPosition(newY);
+    if(justCalc) {
+      return newY;
+    } else {
+      this.setScrollPosition(newY);
+    }
   }
 
   /**
