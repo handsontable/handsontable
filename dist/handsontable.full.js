@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 28 2016 17:53:45 GMT+0800 (CST)
+ * Date: Thu Jan 28 2016 21:58:36 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jan 28 2016 17:53:45 GMT+0800 (CST)',
+  buildDate: 'Thu Jan 28 2016 21:58:36 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1697,7 +1697,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
       this.clone.wtTable.spreader.style.top = '';
     }
   },
-  scrollTo: function(sourceCol, beyondRendered) {
+  scrollTo: function(sourceCol, beyondRendered, justCalc) {
     var newX = this.getTableParentOffset();
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
@@ -1713,6 +1713,11 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     }
     newX += scrollbarCompensation;
     this.setScrollPosition(newX);
+    if (justCalc) {
+      return newX;
+    } else {
+      this.setScrollPosition(newX);
+    }
   },
   getTableParentOffset: function() {
     if (this.trimmingContainer === window) {
@@ -1880,7 +1885,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       this.clone.wtTable.spreader.style.left = '';
     }
   },
-  scrollTo: function(sourceRow, bottomEdge) {
+  scrollTo: function(sourceRow, bottomEdge, justCalc) {
     var newY = this.getTableParentOffset();
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
@@ -1899,7 +1904,11 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
     }
     newY += scrollbarCompensation;
-    this.setScrollPosition(newY);
+    if (justCalc) {
+      return newY;
+    } else {
+      this.setScrollPosition(newY);
+    }
   },
   getTableParentOffset: function() {
     if (this.mainTableScrollableElement === window) {
