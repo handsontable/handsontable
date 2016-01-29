@@ -815,7 +815,17 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterGetRowHeaderRenderers
    * @param {Array} array Array of the row header renderers.
    */
-  'afterGetRowHeaderRenderers'
+  'afterGetRowHeaderRenderers',
+
+  /**
+   * Fired before applying stretched column width to column.
+   *
+   * @event Hooks#beforeStretchingColumnWidth
+   * @param {Number} stretchedWidth Calculated width.
+   * @param {Number} column Column index.
+   * @returns {Number} Returns new width which will be applied to the column element.
+   */
+  'beforeStretchingColumnWidth',
 ];
 
 import {arrayEach} from './helpers/array';

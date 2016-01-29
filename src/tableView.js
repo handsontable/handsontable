@@ -392,6 +392,9 @@ function TableView(instance) {
     onAfterMomentumScroll: function() {
       instance.runHooks('afterMomentumScroll');
     },
+    onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
+      return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
+    },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;
