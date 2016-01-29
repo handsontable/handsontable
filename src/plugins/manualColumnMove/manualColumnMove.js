@@ -87,14 +87,14 @@ function ManualColumnMove() {
   }
 
   var checkColumnHeader = function(element) {
-    if (element.tagName != 'BODY') {
+    if (element != this.rootElement) {
       if (element.parentNode.tagName == 'THEAD') {
         return true;
       } else {
-        element = element.parentNode;
-        return checkColumnHeader(element);
+        return checkColumnHeader.call(this, element.parentNode);
       }
     }
+
     return false;
   };
 
@@ -115,7 +115,7 @@ function ManualColumnMove() {
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkColumnHeader(e.target)) {
+      if (checkColumnHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
