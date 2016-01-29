@@ -131,7 +131,9 @@ class ColumnSorting extends BasePlugin {
       sortingColumn = loadedSortingState.sortColumn;
       sortingOrder = loadedSortingState.sortOrder;
     }
-    this.sortByColumn(sortingColumn, sortingOrder);
+    if (typeof sortingColumn === 'number') {
+      this.sortByColumn(sortingColumn, sortingOrder);
+    }
   }
 
   /**
@@ -167,9 +169,12 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    let allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
 
-    this.sort();
+    if (allowSorting !== false) {
+      this.sort();
+    }
+    this.updateSortIndicator();
     this.hot.render();
 
     this.saveSortingState();
@@ -365,8 +370,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
-
-    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
+    this.updateSortIndicator();
 
     switch (colMeta.type) {
       case 'date':
@@ -384,6 +388,18 @@ class ColumnSorting extends BasePlugin {
     }
 
     this.hot.sortingEnabled = true; // this is required by translateRow plugin hook
+  }
+
+  /**
+   * Update indicator states.
+   */
+  updateSortIndicator() {
+    if (typeof this.hot.sortOrder == 'undefined') {
+      return;
+    }
+    const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+
+    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
   }
 
   /**

@@ -77,7 +77,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(80);
   });
 
-  it("should reset column widths when an empty array is passed", function () {
+  it("should reset column widths when undefined is passed", function () {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -87,7 +87,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(180);
 
     updateSettings({
-      manualColumnResize: []
+      manualColumnResize: void 0
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toEqual(50);

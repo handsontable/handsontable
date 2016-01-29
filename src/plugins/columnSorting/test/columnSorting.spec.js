@@ -470,7 +470,7 @@ describe('ColumnSorting', function() {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     updateSettings({
-      columnSorting: true
+      columnSorting: void 0
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -542,7 +542,7 @@ describe('ColumnSorting', function() {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     updateSettings({
-      columnSorting: true
+      columnSorting: void 0
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -578,6 +578,31 @@ describe('ColumnSorting', function() {
 
     expect(this.beforeColumnSortHandler.callCount).toEqual(1);
     expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+  });
+
+  it("should not sorting column when beforeColumnSort returns false", function() {
+    var hot = handsontable({
+      data: [
+        [2],
+        [4],
+        [1],
+        [3]
+      ],
+      columnSorting: true,
+      beforeColumnSort: function() {
+        return false;
+      }
+    });
+
+    hot.sort(0, true);
+
+    waits(100);
+    runs(function() {
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    })
   });
 
   it("should add beforeColumnSort event listener in constructor", function() {
@@ -1197,14 +1222,7 @@ describe('ColumnSorting', function() {
 
     this.sortByColumn(1);
 
-    //ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
-
-    this.sortByColumn(1);
-
-    //descending
+    // descending (updateSettings doesn't reset sorting stack)
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
@@ -1214,6 +1232,14 @@ describe('ColumnSorting', function() {
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
+
+    this.sortByColumn(1);
+
+    // ascending
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
 
     // ---------------------------------
     // INDICATOR SET FOR A SINGLE COLUMN
@@ -1229,20 +1255,23 @@ describe('ColumnSorting', function() {
     });
 
     this.sortByColumn(0);
+
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(1);
+
+    // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(2);
+
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
-
   });
 
   it("should properly sort the table, when it's scrolled to the far right", function() {
