@@ -93,14 +93,14 @@ function ManualRowMove() {
   }
 
   var checkRowHeader = function(element) {
-    if (element.tagName != 'BODY') {
+    if (element != this.rootElement) {
       if (element.parentNode.tagName == 'TBODY') {
         return true;
       } else {
-        element = element.parentNode;
-        return checkRowHeader(element);
+        return checkRowHeader.call(this, element.parentNode);
       }
     }
+
     return false;
   };
 
@@ -120,7 +120,7 @@ function ManualRowMove() {
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkRowHeader(e.target)) {
+      if (checkRowHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {

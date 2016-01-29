@@ -184,12 +184,11 @@ class ManualRowResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfRowHeader(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'TBODY') {
+    if (element != this.hot.rootElement) {
+      if (element.parentNode.tagName == 'THEAD') {
         return true;
       } else {
-        element = element.parentNode;
-        return this.checkIfRowHeader(element);
+        return this.checkIfRowHeader(element.parentNode);
       }
     }
 
