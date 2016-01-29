@@ -94,11 +94,13 @@ function ManualRowMove() {
 
   var checkRowHeader = function(element) {
     if (element != this.rootElement) {
-      if (element.parentNode.tagName == 'TBODY') {
+      let parent = element.parentNode;
+
+      if (parent.tagName == 'TBODY') {
         return true;
-      } else {
-        return checkRowHeader.call(this, element.parentNode);
       }
+
+      return checkRowHeader.call(this, parent);
     }
 
     return false;

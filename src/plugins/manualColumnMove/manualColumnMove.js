@@ -88,11 +88,13 @@ function ManualColumnMove() {
 
   var checkColumnHeader = function(element) {
     if (element != this.rootElement) {
-      if (element.parentNode.tagName == 'THEAD') {
+      let parent = element.parentNode;
+
+      if (parent.tagName === 'THEAD') {
         return true;
-      } else {
-        return checkColumnHeader.call(this, element.parentNode);
       }
+
+      return checkColumnHeader.call(this, parent);
     }
 
     return false;
