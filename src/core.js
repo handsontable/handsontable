@@ -1092,7 +1092,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setDataAtCell
    * @param {Number|Array} row Row index or array of changes in format `[[row, col, value], ...]`.
-   * @param {Number|String} col Column index or source string.
+   * @param {Number} col Column index.
    * @param {String} value New value.
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onChange callback).
    */
