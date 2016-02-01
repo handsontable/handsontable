@@ -84,7 +84,7 @@ function CopyPastePlugin(instance) {
             }
           }
         });
-        instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
+        // instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
       }
     });
 
