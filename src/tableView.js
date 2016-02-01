@@ -293,7 +293,7 @@ function TableView(instance) {
       instance.selection.setSelectedHeaders(false, false);
 
       if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
+        if (event.button === 2 && instance.selection.inInSelection($.extend(true, {}, coords))) { //right mouse button
           var nothing = 1; // do nothing
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
