@@ -445,8 +445,11 @@ class WalkontableBorder {
     this.rightStyle.display = 'block';
 
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+      
       // hide selectionHandles in mobile 2016mobile#5
-      // this.cornerStyle.display = 'none';
+      if(!Handsontable.mobileBrowser) {
+        this.cornerStyle.display = 'none';
+      }
     } else {
       this.cornerStyle.top = top + height - 4 + 'px';
       this.cornerStyle.left = left + width - 4 + 'px';

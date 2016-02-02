@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 01 2016 20:00:52 GMT+0800 (CST)
+ * Date: Tue Feb 02 2016 16:57:45 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Feb 01 2016 20:00:52 GMT+0800 (CST)',
+  buildDate: 'Tue Feb 02 2016 16:57:45 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -423,7 +423,11 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.rightStyle.left = left + width - delta + 'px';
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
-    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {} else {
+    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+      if (!Handsontable.mobileBrowser) {
+        this.cornerStyle.display = 'none';
+      }
+    } else {
       this.cornerStyle.top = top + height - 4 + 'px';
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
