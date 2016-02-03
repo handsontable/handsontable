@@ -18,9 +18,6 @@ class SamplesGenerator {
     return 3;
   }
 
-  /**
-   * @param {Function} dataFactory Function which gave data to collect samples.
-   */
   constructor(dataFactory) {
     /**
      * Samples prepared for calculations.
