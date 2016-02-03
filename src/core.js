@@ -2817,7 +2817,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   /**
-   * Returns the active editor object. {@link Handsontable.EditorManager#getActiveEditor}
+   * Returns the active editor object.
    *
    * @memberof Core#
    * @function getActiveEditor

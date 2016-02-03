@@ -5,7 +5,8 @@ import {rangeEach} from './../helpers/number';
 import {stringify} from './../helpers/mixed';
 
 /**
- * @private
+ * @class SamplesGenerator
+ * @util
  */
 class SamplesGenerator {
   /**

@@ -75,13 +75,13 @@ class AutoColumnSize extends BasePlugin {
      */
     this.widths = [];
     /**
-     * Instance of GhostTable for rows and columns size calculations.
+     * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of SamplesGenerator for generating samples necessary for columns width calculations.
+     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
      *
      * @type {SamplesGenerator}
      */
