@@ -4,10 +4,13 @@ import {
     getComputedStyle,
     getCssTransform,
     getScrollableElement,
+    getScrollbarWidth,
     innerWidth,
     offset,
     resetCssTransform,
     setCaretPosition,
+    hasVerticalScrollbar,
+    hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from 'autoResize';
 import {BaseEditor} from './_baseEditor';
@@ -254,8 +257,8 @@ TextEditor.prototype.refreshDimensions = function() {
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
       settings = this.instance.getSettings(),
-      rowHeadersCount = settings.rowHeaders ? 1 : 0,
-      colHeadersCount = settings.colHeaders ? 1 : 0,
+      rowHeadersCount = this.instance.hasRowHeaders(),
+      colHeadersCount = this.instance.hasColHeaders(),
       editorSection = this.checkEditorSection(),
       backgroundColor = this.TD.style.backgroundColor,
       cssTransformOffset;
@@ -281,7 +284,6 @@ TextEditor.prototype.refreshDimensions = function() {
 
   if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
       (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
-
     editTop += 1;
   }
 
@@ -297,25 +299,28 @@ TextEditor.prototype.refreshDimensions = function() {
 
   this.textareaParentStyle.top = editTop + 'px';
   this.textareaParentStyle.left = editLeft + 'px';
-  // end prepare textarea position
 
-  var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
-      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+  let firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
+  let firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
+  let horizontalScrollPosition = this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+  let verticalScrollPosition = this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition();
+  let scrollbarWidth = getScrollbarWidth();
+
+  let cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
+  let cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
   let width = innerWidth(this.TD) - 8;
-  // 10 is TEXTAREAs padding
-  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9;
+  let actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  let actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
   let height = this.TD.scrollHeight + 1;
-  // 10 is TEXTAREAs border and padding
-  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2, 23);
+  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
 
   const cellComputedStyle = getComputedStyle(this.TD);
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-
   this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
-
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {

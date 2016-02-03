@@ -87,14 +87,16 @@ function ManualColumnMove() {
   }
 
   var checkColumnHeader = function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'THEAD') {
+    if (element != this.rootElement) {
+      let parent = element.parentNode;
+
+      if (parent.tagName === 'THEAD') {
         return true;
-      } else {
-        element = element.parentNode;
-        return checkColumnHeader(element);
       }
+
+      return checkColumnHeader.call(this, parent);
     }
+
     return false;
   };
 
@@ -115,7 +117,7 @@ function ManualColumnMove() {
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkColumnHeader(e.target)) {
+      if (checkColumnHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
@@ -200,9 +202,11 @@ function ManualColumnMove() {
 
       if (typeof loadedManualColumnPositions != 'undefined') {
         this.manualColumnPositions = loadedManualColumnPositions;
+
       } else if (Array.isArray(initialManualColumnPositions)) {
         this.manualColumnPositions = initialManualColumnPositions;
-      } else {
+
+      } else if (!initialManualColumnPositions || this.manualColumnPositions === void 0) {
         this.manualColumnPositions = [];
       }
 
@@ -214,9 +218,10 @@ function ManualColumnMove() {
         } else {
           instance.manualColumnPositionsPluginUsages.push('manualColumnMove');
         }
-
+        unbindEvents.call(this);
         bindEvents.call(this);
-        if (this.manualColumnPositions.length > 0) {
+
+        if (this.manualColumnPositions && this.manualColumnPositions.length > 0) {
           this.forceFullRender = true;
           this.render();
         }

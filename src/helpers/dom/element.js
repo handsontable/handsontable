@@ -851,6 +851,26 @@ export function getScrollbarWidth() {
 }
 
 /**
+ * Checks if the provided element has a vertical scrollbar.
+ *
+ * @param {HTMLElement} element
+ * @returns {Boolean}
+ */
+export function hasVerticalScrollbar(element) {
+  return element.offsetWidth !== element.clientWidth;
+}
+
+/**
+ * Checks if the provided element has a vertical scrollbar.
+ *
+ * @param {HTMLElement} element
+ * @returns {Boolean}
+ */
+export function hasHorizontalScrollbar(element) {
+  return element.offsetHeight !== element.clientHeight;
+}
+
+/**
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {

@@ -77,7 +77,25 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(80);
   });
 
-  it("should reset column widths", function () {
+  it("should reset column widths when undefined is passed", function () {
+    handsontable({
+      manualColumnResize: [100, 150, 180]
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toEqual(100);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toEqual(150);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(180);
+
+    updateSettings({
+      manualColumnResize: void 0
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toEqual(50);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toEqual(50);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(50);
+  });
+
+  it("should not reset column widths when `true` is passed", function () {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -90,9 +108,141 @@ describe('manualColumnResize', function () {
       manualColumnResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toEqual(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toEqual(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(50);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toEqual(100);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toEqual(150);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toEqual(180);
+  });
+
+  it("should resize (narrowing) appropriate columns, even when stretchH `all` is enabled", function () {
+    this.$container.css('width', '910px');
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all'
+    });
+
+    resizeColumn(1, 65);
+
+    var $columnHeaders = this.$container.find('thead tr:eq(1) th');
+
+    expect($columnHeaders.eq(0).width()).toEqual(210);
+    expect($columnHeaders.eq(1).width()).toEqual(63);
+    expect($columnHeaders.eq(2).width()).toEqual(211);
+    expect($columnHeaders.eq(3).width()).toEqual(211);
+    expect($columnHeaders.eq(4).width()).toEqual(209);
+  });
+
+  it("should resize (extending) appropriate columns, even when stretchH `all` is enabled", function () {
+    this.$container.css('width', '910px');
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all'
+    });
+
+    resizeColumn(1, 400);
+
+    var $columnHeaders = this.$container.find('thead tr:eq(1) th');
+
+    expect($columnHeaders.eq(0).width()).toEqual(126);
+    expect($columnHeaders.eq(1).width()).toEqual(398);
+    expect($columnHeaders.eq(2).width()).toEqual(127);
+    expect($columnHeaders.eq(3).width()).toEqual(127);
+    expect($columnHeaders.eq(4).width()).toEqual(126);
+  });
+
+  it("should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`", function () {
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    this.$container.css('width', '910px');
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all',
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    resizeColumn(1, 65);
+
+    var $columnHeaders = this.$container.find('thead tr:eq(1) th');
+
+    expect($columnHeaders.eq(0).width()).toEqual(210);
+    expect($columnHeaders.eq(1).width()).toEqual(63);
+    expect($columnHeaders.eq(2).width()).toEqual(211);
+    expect($columnHeaders.eq(3).width()).toEqual(211);
+    expect($columnHeaders.eq(4).width()).toEqual(209);
+
+    var $th = $columnHeaders.eq(1);
+
+    $th.simulate('mouseover');
+
+    var $resizer = this.$container.find('.manualColumnResizer');
+    var resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    waitsFor(function() {
+      return afterColumnResizeCallback.calls.length > 1;
+    }, 'Column resize', 1000);
+
+    runs(function() {
+      expect($columnHeaders.eq(0).width()).toEqual(180);
+      expect($columnHeaders.eq(1).width()).toEqual(181);
+      expect($columnHeaders.eq(2).width()).toEqual(181);
+      expect($columnHeaders.eq(3).width()).toEqual(181);
+      expect($columnHeaders.eq(4).width()).toEqual(181);
+    });
+  });
+
+  it("should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`", function () {
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    this.$container.css('width', '910px');
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'last',
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    resizeColumn(0, 65);
+
+    var $columnHeaders = this.$container.find('thead tr:eq(0) th');
+
+    expect($columnHeaders.eq(0).width()).toEqual(63);
+    expect($columnHeaders.eq(1).width()).toEqual(49);
+    expect($columnHeaders.eq(2).width()).toEqual(49);
+    expect($columnHeaders.eq(3).width()).toEqual(49);
+    expect($columnHeaders.eq(4).width()).toEqual(694);
+
+    var $th = $columnHeaders.eq(0);
+
+    $th.simulate('mouseover');
+
+    var $resizer = this.$container.find('.manualColumnResizer');
+    var resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mouseup');
+
+    waitsFor(function() {
+      return afterColumnResizeCallback.calls.length > 1;
+    }, 'Column resize', 1000);
+
+    runs(function() {
+      expect($columnHeaders.eq(0).width()).toEqual(18);
+      expect($columnHeaders.eq(1).width()).toEqual(49);
+      expect($columnHeaders.eq(2).width()).toEqual(49);
+      expect($columnHeaders.eq(3).width()).toEqual(49);
+      expect($columnHeaders.eq(4).width()).toEqual(739);
+    });
   });
 
   it("should resize appropriate columns, even if the column order was changed with manualColumnMove plugin", function () {

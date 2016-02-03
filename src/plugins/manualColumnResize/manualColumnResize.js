@@ -62,6 +62,7 @@ class ManualColumnResize extends BasePlugin {
     let loadedManualColumnWidths = this.loadManualColumnWidths();
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
+    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
 
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
@@ -87,7 +88,8 @@ class ManualColumnResize extends BasePlugin {
 
     if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
-    } else {
+
+    } else if (!initialColumnWidth) {
       this.manualColumnWidths = [];
     }
   }
@@ -182,13 +184,14 @@ class ManualColumnResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfColumnHeader(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'THEAD') {
+    if (element != this.hot.rootElement) {
+      let parent = element.parentNode;
+
+      if (parent.tagName === 'THEAD') {
         return true;
-      } else {
-        element = element.parentNode;
-        return this.checkIfColumnHeader(element);
       }
+
+      return this.checkIfColumnHeader(parent);
     }
 
     return false;
@@ -249,7 +252,11 @@ class ManualColumnResize extends BasePlugin {
         this.newSize = hookNewSize;
       }
 
-      this.setManualSize(this.currentCol, this.newSize); // double click sets auto row size
+      if (this.hot.getSettings().stretchH === 'all') {
+        this.clearManualSize(this.currentCol);
+      } else {
+        this.setManualSize(this.currentCol, this.newSize); // double click sets by auto row size plugin
+      }
 
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
@@ -360,6 +367,17 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Clear cache for the current column index.
+   *
+   * @param {Number} column Column index.
+   */
+  clearManualSize(column) {
+    column = this.hot.runHooks('modifyCol', column);
+
+    this.manualColumnWidths[column] = void 0;
+  }
+
+  /**
    * Modify the provided column width, based on the plugin settings
    *
    * @private
@@ -374,6 +392,24 @@ class ManualColumnResize extends BasePlugin {
       if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[column]) {
         return this.manualColumnWidths[column];
       }
+    }
+
+    return width;
+  }
+
+  /**
+   * Modify the provided column stretched width. This hook decides if specified column should be stretched or not.
+   *
+   * @private
+   * @param {Number} stretchedWidth Stretched width.
+   * @param {Number} column Column index.
+   * @returns {Number}
+   */
+  onBeforeStretchingColumnWidth(stretchedWidth, column) {
+    let width = this.manualColumnWidths[column];
+
+    if (width === void 0) {
+      width = stretchedWidth;
     }
 
     return width;

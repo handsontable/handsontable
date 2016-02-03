@@ -10,7 +10,7 @@ import {rangeEach} from './helpers/number';
  * @private
  */
 class DataSource {
-  constructor(hotInstance, dataSource) {
+  constructor(hotInstance, dataSource = []) {
     /**
      * Instance of Handsontable.
      *
@@ -36,12 +36,21 @@ class DataSource {
   }
 
   /**
-   * Get all data
+   * Get all data.
    *
    * @returns {Array}
    */
   getData() {
     return this.data;
+  }
+
+  /**
+   * Set new data source.
+   *
+   * @param data {Array}
+   */
+  setData(data) {
+    this.data = data;
   }
 
   /**

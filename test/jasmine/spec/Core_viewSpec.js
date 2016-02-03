@@ -624,6 +624,58 @@ describe('Core_view', function () {
       expect(masterTH[5].offsetWidth).toEqual(overlayTH[5].offsetWidth);
     });
 
+    it("should respect stretched widths returned in beforeStretchingColumnWidth hook", function() {
+      this.$container[0].style.width = '501px';
+      this.$container[0].style.height = '100px';
+      this.$container[0].style.overflow = 'hidden';
+
+      var callbackSpy = jasmine.createSpy();
+
+      callbackSpy.andCallFake(function(width, column) {
+        if (column === 1) {
+          return 150;
+        }
+
+        return width;
+      });
+
+      var hot = handsontable({
+        startRows: 2,
+        startCols: 5,
+        rowHeaders: true,
+        colHeaders: true,
+        stretchH: 'all',
+        beforeStretchingColumnWidth: callbackSpy
+      });
+
+      var $columnHeaders = this.$container.find('thead tr:eq(0) th');
+
+      expect($columnHeaders.eq(0).width()).toEqual(48);
+      expect($columnHeaders.eq(1).width()).toEqual(73);
+      expect($columnHeaders.eq(2).width()).toEqual(149);
+      expect($columnHeaders.eq(3).width()).toEqual(74);
+      expect($columnHeaders.eq(4).width()).toEqual(74);
+
+      expect(callbackSpy).toHaveBeenCalled();
+      // First cycle to check what columns has permanent width
+      expect(callbackSpy.calls[0].args[0]).not.toBeDefined();
+      expect(callbackSpy.calls[0].args[1]).toBe(0);
+      expect(callbackSpy.calls[1].args[0]).not.toBeDefined();
+      expect(callbackSpy.calls[1].args[1]).toBe(1);
+      expect(callbackSpy.calls[2].args[0]).not.toBeDefined();
+      expect(callbackSpy.calls[2].args[1]).toBe(2);
+      expect(callbackSpy.calls[3].args[0]).not.toBeDefined();
+      expect(callbackSpy.calls[3].args[1]).toBe(3);
+      expect(callbackSpy.calls[4].args[0]).not.toBeDefined();
+      expect(callbackSpy.calls[4].args[1]).toBe(4);
+      // Second cycle retrieve stretched width or permanent width
+      expect(callbackSpy.calls[5].args[0]).toBe(75);
+      expect(callbackSpy.calls[6].args[0]).toBe(75);
+      expect(callbackSpy.calls[7].args[0]).toBe(75);
+      expect(callbackSpy.calls[8].args[0]).toBe(75);
+      expect(callbackSpy.calls[9].args[0]).toBe(75);
+    });
+
   });
 
 });
