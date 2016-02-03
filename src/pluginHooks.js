@@ -677,7 +677,8 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired before sorting the column.
+   * Fired before sorting the column. If you return `false` value then sorting will be not applied by
+   * Handsontable (useful for server-side sorting).
    *
    * @event Hooks#beforeColumnSort
    * @param {Number} column Sorted column index.

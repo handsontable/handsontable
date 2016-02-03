@@ -159,7 +159,7 @@ describe('Core_getCellMeta', function () {
     updateSettings({
       columnSorting: {
         column: 0,
-        order: true
+        sortOrder: true
       }
     });
 

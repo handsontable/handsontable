@@ -97,7 +97,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
-  it("should change the row height to defaults when an empty array is passed", function () {
+  it("should change the row height to defaults when undefined is passed", function () {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -107,7 +107,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(80);
 
     updateSettings({
-      manualRowResize: []
+      manualRowResize: void 0
     });
 
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
