@@ -113,7 +113,37 @@ describe('manualRowMove', function () {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
   });
 
-  it('should reset row order', function () {
+  it('should reset row order with updateSettings when undefined is passed', function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"},
+        {id: 6, name: "Chuck", lastName: "Jackson"},
+        {id: 7, name: "Meg", lastName: "Jansen"},
+        {id: 8, name: "Rob", lastName: "Norris"},
+        {id: 9, name: "Sean", lastName: "O'Hara"},
+        {id: 10, name: "Eve", lastName: "Branson"}
+      ],
+      manualRowMove: [1, 2, 0]
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+
+    updateSettings({
+      manualRowMove: void 0
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+  });
+
+  it('should not change row order with updateSettings when `true` is passed', function () {
     handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
@@ -138,9 +168,9 @@ describe('manualRowMove', function () {
       manualRowMove: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
   });
 
   it('should move rows for manualRowMove: true', function () {

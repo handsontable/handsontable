@@ -88,7 +88,8 @@ class ManualRowResize extends BasePlugin {
 
     if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
-    } else {
+
+    } else if (!initialRowHeights) {
       this.manualRowHeights = [];
     }
   }
@@ -183,13 +184,14 @@ class ManualRowResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfRowHeader(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'TBODY') {
+    if (element != this.hot.rootElement) {
+      let parent = element.parentNode;
+
+      if (parent.tagName === 'TBODY') {
         return true;
-      } else {
-        element = element.parentNode;
-        return this.checkIfRowHeader(element);
       }
+
+      return this.checkIfRowHeader(parent);
     }
 
     return false;

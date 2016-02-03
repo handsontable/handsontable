@@ -6,12 +6,10 @@ import {rangeEach} from './../helpers/number';
 import {stringify} from './../helpers/mixed';
 
 /**
- * @private
+ * @class GhostTable
+ * @util
  */
 class GhostTable {
-  /**
-   * @param {Core} hotInstance
-   */
   constructor(hotInstance) {
     /**
      * Handsontable instance.

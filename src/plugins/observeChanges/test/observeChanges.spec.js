@@ -506,7 +506,6 @@ describe('HandsontableObserveChanges', function () {
           return afterRemoveRowCallback.calls.length > 0;
         }, 'afterRemoveRow event fire', 1000);
 
-
         runs(function () {
           expect(afterRemoveRowCallback.calls.length).toEqual(2);
 

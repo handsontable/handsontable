@@ -6,7 +6,8 @@ import {
     offset,
     removeClass,
     removeTextNodes,
-    overlayContainsElement
+    overlayContainsElement,
+    closest
 } from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
@@ -359,15 +360,34 @@ class WalkontableTable {
    * @returns {WalkontableCellCoords}
    */
   getCoords(TD) {
-    const TR = TD.parentNode;
-    let row = index(TR);
-
-    if (TR.parentNode === this.THEAD) {
-      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-    } else {
-      row = this.rowFilter.renderedToSource(row);
+    if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
+      TD = closest(TD, ['TD', 'TH']);
     }
-    let col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
+
+    const TR = TD.parentNode;
+    const CONTAINER = TR.parentNode;
+    let row = index(TR);
+    let col = TD.cellIndex;
+
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_TOP, TD)) {
+      if (CONTAINER.nodeName === 'THEAD') {
+        row -= CONTAINER.childNodes.length;
+      }
+
+    } else {
+      if (CONTAINER === this.THEAD) {
+        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+      } else {
+        row = this.rowFilter.renderedToSource(row);
+      }
+    }
+
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
+      col = this.columnFilter.offsettedTH(col);
+
+    } else {
+      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
 
     return new WalkontableCellCoords(row, col);
   }
@@ -540,7 +560,7 @@ class WalkontableTable {
 
   getStretchedColumnWidth(sourceColumn) {
     let columnWidth = this.getColumnWidth(sourceColumn);
-    let width = [void 0, null].indexOf(columnWidth) === -1 ? columnWidth : this.instance.wtSettings.settings.defaultColumnWidth;
+    let width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {

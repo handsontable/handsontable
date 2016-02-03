@@ -79,6 +79,42 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
+  it("should not change the row height when `true` is passing", function () {
+    handsontable({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+
+    updateSettings({
+      manualRowResize: true
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+  });
+
+  it("should change the row height to defaults when undefined is passed", function () {
+    handsontable({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+
+    updateSettings({
+      manualRowResize: void 0
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
+  });
+
   it("should reset row height", function () {
     handsontable({
       manualRowResize: true

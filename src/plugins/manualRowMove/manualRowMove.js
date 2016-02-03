@@ -93,14 +93,16 @@ function ManualRowMove() {
   }
 
   var checkRowHeader = function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'TBODY') {
+    if (element != this.rootElement) {
+      let parent = element.parentNode;
+
+      if (parent.tagName == 'TBODY') {
         return true;
-      } else {
-        element = element.parentNode;
-        return checkRowHeader(element);
       }
+
+      return checkRowHeader.call(this, parent);
     }
+
     return false;
   };
 
@@ -120,7 +122,7 @@ function ManualRowMove() {
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkRowHeader(e.target)) {
+      if (checkRowHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
@@ -207,21 +209,25 @@ function ManualRowMove() {
 
       if (typeof loadedManualRowPostions != 'undefined') {
         this.manualRowPositions = loadedManualRowPostions;
+
       } else if (Array.isArray(initialManualRowPositions)) {
         this.manualRowPositions = initialManualRowPositions;
-      } else {
+
+      } else if (!initialManualRowPositions || this.manualRowPositions === void 0) {
         this.manualRowPositions = [];
       }
 
       if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
+        unbindEvents.call(this);
         bindEvents.call(this);
-        if (this.manualRowPositions.length > 0) {
+        if (this.manualRowPositions && this.manualRowPositions.length > 0) {
           instance.forceFullRender = true;
           instance.render();
         }
       }
     } else {
       var pluginUsagesIndex = instance.manualRowPositionsPluginUsages ? instance.manualRowPositionsPluginUsages.indexOf('manualColumnMove') : -1;
+
       if (pluginUsagesIndex > -1) {
         unbindEvents.call(this);
         instance.manualRowPositions = [];

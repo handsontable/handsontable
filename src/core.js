@@ -76,6 +76,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   this.guid = 'ht_' + randomString(); // this is the namespace for global events
 
+  dataSource = new DataSource(instance);
+
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
@@ -857,7 +859,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   this.init = function() {
-    dataSource = new DataSource(instance, priv.settings.data);
+    dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
     if (Handsontable.mobileBrowser) {
@@ -1090,7 +1092,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setDataAtCell
    * @param {Number|Array} row Row index or array of changes in format `[[row, col, value], ...]`.
-   * @param {Number|String} col Column index or source string.
+   * @param {Number} col Column index.
    * @param {String} value New value.
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onChange callback).
    */
@@ -2815,7 +2817,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   /**
-   * Returns the active editor object. {@link Handsontable.EditorManager#getActiveEditor}
+   * Returns the active editor object.
    *
    * @memberof Core#
    * @function getActiveEditor
@@ -3139,7 +3141,7 @@ DefaultSettings.prototype = {
    * ...
    * ```
    */
-  rowHeaders: null,
+  rowHeaders: void 0,
 
   /**
    * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
@@ -3574,7 +3576,7 @@ DefaultSettings.prototype = {
    * @type {Boolean}
    * @default false
    */
-  persistentState: false,
+  persistentState: void 0,
 
   /**
    * Class name for all visible rows in current selection.
@@ -4265,7 +4267,7 @@ DefaultSettings.prototype = {
    * @default false
    * @since 0.15.0-beta3
    */
-  sortIndicator: false,
+  sortIndicator: void 0,
 
   /**
    * Disable or enable ManualColumnFreeze plugin.
@@ -4768,7 +4770,25 @@ DefaultSettings.prototype = {
    * @since 1.0.0-beta1
    * @type {Boolean|Array}
    */
-  trimRows: void 0
+  trimRows: void 0,
+
+  /**
+   * @description
+   * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row header levels are defined.
+   *
+   * @since 0.22.0
+   * @type {Number|Array}
+   */
+  rowHeaderWidth: void 0,
+
+  /**
+   * @description
+   * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many column header levels are defined.
+   *
+   * @since 0.22.0
+   * @type {Number|Array}
+   */
+  columnHeaderHeight: void 0
 
 };
 Handsontable.DefaultSettings = DefaultSettings;

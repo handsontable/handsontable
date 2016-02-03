@@ -81,6 +81,7 @@ describe('TextEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
       expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('-1px');
     });
   });
 
@@ -106,6 +107,38 @@ describe('TextEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
       expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
+    });
+  });
+
+  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', function () {
+    var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        columns: [
+          {data: 'prop0', title: 'Prop 0'},
+          {data: 'prop1', title: 'Prop 1'},
+          {data: 'prop2', title: 'Prop 2'},
+          {data: 'prop3', title: 'Prop 3'},
+        ]
+      }),
+      editorHeight;
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
     });
   });
 
@@ -904,5 +937,31 @@ describe('TextEditor', function () {
     $editorInput.simulate('keydown', {altKey: true, keyCode: Handsontable.helper.KEY_CODES.ENTER});
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual("Ma\nserati");
+  });
+
+  it("should be displayed and resized properly, so it doesn't exceed the viewport dimensions", function() {
+    var data = [["","","","",""], ["","The Dude abides. I don't know about you but I take comfort in that. It's good knowin' he's out there. The Dude. Takin' 'er easy for all us sinners. Shoosh. I sure hope he makes the finals.","","",""], ["","","","",""]];
+
+    var hot = handsontable({
+      data: data,
+      colWidths: 40,
+      width: 300,
+      height: 200,
+      minSpareRows: 20,
+      minSpareCols: 20
+    });
+
+    selectCell(1, 1);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
+
+    var $editorInput = $('.handsontableInput');
+    var $editedCell = $(hot.getCell(1,1));
+
+    expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+
+    hot.view.wt.scrollHorizontal(3);
+    hot.render();
+
+    expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
 });

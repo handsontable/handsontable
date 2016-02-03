@@ -75,13 +75,13 @@ class AutoRowSize extends BasePlugin {
      */
     this.heights = [];
     /**
-     * Instance of GhostTable for rows and columns size calculations.
+     * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of SamplesGenerator for generating samples necessary for rows height calculations.
+     * Instance of {@link SamplesGenerator} for generating samples necessary for rows height calculations.
      *
      * @type {SamplesGenerator}
      */
