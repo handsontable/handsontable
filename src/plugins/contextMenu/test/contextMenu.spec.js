@@ -1141,6 +1141,20 @@ describe('ContextMenu', function () {
       });
     });
 
+    it("should not close menu after clicking on submenu root item", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Alignment
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
     it("should add comment", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -1286,6 +1300,19 @@ describe('ContextMenu', function () {
   });
 
   describe("disabling actions", function () {
+    it("should not close menu after clicking on disabled item", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: ['undo', 'redo'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Undo
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
 
     it("should disable undo and redo action if undoRedo plugin is not enabled ", function () {
       var hot = handsontable({
