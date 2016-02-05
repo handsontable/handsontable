@@ -168,7 +168,8 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       // String.prototype.trim is defined in Walkontable polyfill.js
       val = [
         // We trim only string values
-        [typeof this.getValue() === 'string' ? String.prototype.trim.call(this.getValue() || '') : this.getValue()]];
+        var value = this.getValue();
+        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]];
     } else {
       val = [
         [this.getValue()]
