@@ -164,15 +164,16 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       return;
     }
 
+    let value = this.getValue();
+
     if (this.instance.getSettings().trimWhitespace) {
-      // String.prototype.trim is defined in Walkontable polyfill.js
+      // We trim only string values
       val = [
-        // We trim only string values
-        var value = this.getValue();
-        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]];
+        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
+      ];
     } else {
       val = [
-        [this.getValue()]
+        [value]
       ];
     }
 
