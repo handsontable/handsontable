@@ -474,11 +474,20 @@ var getActiveEditor = handsontableMethodFactory('getActiveEditor');
  * @returns {Number}
  */
 function colWidth($elem, col) {
-  var TD = $elem[0].querySelector('TBODY TR').querySelectorAll('TD')[col];
-  if (!TD) {
+  var TR = $elem[0].querySelector('TBODY TR');
+  var cell;
+
+  if (TR) {
+    cell = TR.querySelectorAll('TD')[col];
+  } else {
+    cell = $elem[0].querySelector('THEAD TR').querySelectorAll('TH')[col];
+  }
+
+  if (!cell) {
     throw new Error("Cannot find table column of index '" + col + "'");
   }
-  return TD.offsetWidth;
+
+  return cell.offsetWidth;
 }
 
 /**
