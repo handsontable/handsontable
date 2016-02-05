@@ -87,13 +87,13 @@ describe('AutoColumnSize', function () {
     });
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(56);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(94);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(95);
     expect(colWidth(this.$container, 2)).toBeAroundValue(175);
 
     hot.alter('remove_row', 0);
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(56);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(94);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(95);
     expect(colWidth(this.$container, 2)).toBeAroundValue(175);
   });
 
