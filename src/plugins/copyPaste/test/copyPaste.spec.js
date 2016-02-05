@@ -14,9 +14,13 @@ describe('CopyPaste', function () {
 
   it("should remove additional new line from copied text (only safari)", function () {
     var getData = jasmine.createSpy().andReturn('a\nb\n\n');
+    var preventDefault = jasmine.createSpy();
     var hot = handsontable();
 
-    $('.copyPaste')[0].onpaste({clipboardData: {getData: getData}});
+    $('.copyPaste')[0].onpaste(
+      {clipboardData: {getData: getData},
+      preventDefault: preventDefault
+    });
 
     if (Handsontable.helper.isSafari()) {
       expect($('.copyPaste')[0].value).toEqual('a\nb\n');
@@ -26,6 +30,8 @@ describe('CopyPaste', function () {
       expect($('.copyPaste')[0].value).toBe('a\nb\n\n');
       expect(getData).toHaveBeenCalledWith('Text');
     }
+
+    expect(preventDefault).toHaveBeenCalled();
   });
 
 
