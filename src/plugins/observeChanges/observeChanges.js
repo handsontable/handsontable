@@ -64,6 +64,10 @@ function runHookForOperation(rawPatches) {
     var patch = patches[i];
     var parsedPath = parsePath(patch.path);
 
+    if (!parsedPath) {
+      return;
+    }
+
     switch (patch.op) {
       case 'add':
         if (isNaN(parsedPath.col)) {
@@ -106,12 +110,15 @@ function runHookForOperation(rawPatches) {
     return rawPatches.filter(function(patch) {
       var parsedPath = parsePath(patch.path);
 
+      if (!parsedPath) {
+        return;
+      }
+
       if (['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)) {
-        if (newOrRemovedColumns.indexOf(parsedPath.col) != -1) { // jscs:ignore disallowNotOperatorsInConditionals
+        if (newOrRemovedColumns.indexOf(parsedPath.col) !== -1) {
           return false;
-        } else {
-          newOrRemovedColumns.push(parsedPath.col);
         }
+        newOrRemovedColumns.push(parsedPath.col);
       }
 
       return true;
@@ -131,6 +138,11 @@ function runHookForOperation(rawPatches) {
 
   function parsePath(path) {
     var match = path.match(/^\/(\d+)\/?(.*)?$/);
+
+    if (!match) {
+      return;
+    }
+
     return {
       row: parseInt(match[1], 10),
       col: /^\d*$/.test(match[2]) ? parseInt(match[2], 10) : match[2]

@@ -2817,7 +2817,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   /**
-   * Returns the active editor object. {@link Handsontable.EditorManager#getActiveEditor}
+   * Returns the active editor object.
    *
    * @memberof Core#
    * @function getActiveEditor
@@ -4776,7 +4776,7 @@ DefaultSettings.prototype = {
    * @description
    * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row header levels are defined.
    *
-   * @since 0.21.1
+   * @since 0.22.0
    * @type {Number|Array}
    */
   rowHeaderWidth: void 0,
@@ -4785,7 +4785,7 @@ DefaultSettings.prototype = {
    * @description
    * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many column header levels are defined.
    *
-   * @since 0.21.1
+   * @since 0.22.0
    * @type {Number|Array}
    */
   columnHeaderHeight: void 0

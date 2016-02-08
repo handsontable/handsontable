@@ -525,13 +525,17 @@ Object.defineProperties(exports, {
 });
 var privatePool = new WeakMap();
 var WalkontableViewportColumnsCalculator = function WalkontableViewportColumnsCalculator(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+  var stretchingColumnWidthFn = arguments[7] !== (void 0) ? arguments[7] : (function(width) {
+    return width;
+  });
   privatePool.set(this, {
     viewportWidth: viewportWidth,
     scrollOffset: scrollOffset,
     totalColumns: totalColumns,
     columnWidthFn: columnWidthFn,
     overrideFn: overrideFn,
-    onlyFullyVisible: onlyFullyVisible
+    onlyFullyVisible: onlyFullyVisible,
+    stretchingColumnWidthFn: stretchingColumnWidthFn
   });
   this.count = 0;
   this.startColumn = null;
@@ -606,24 +610,27 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
     if (this.stretch === 'none') {
       return;
     }
-    var sumAll = 0;
-    var columnWidth;
-    var remainingSize;
+    this.totalTargetWidth = totalWidth;
     var priv = privatePool.get(this);
     var totalColumns = priv.totalColumns;
+    var sumAll = 0;
     for (var i = 0; i < totalColumns; i++) {
-      columnWidth = this._getColumnWidth(i);
-      sumAll += columnWidth;
+      var columnWidth = this._getColumnWidth(i);
+      var permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
+      if (typeof permanentColumnWidth === 'number') {
+        totalWidth -= permanentColumnWidth;
+      } else {
+        sumAll += columnWidth;
+      }
     }
-    this.totalTargetWidth = totalWidth;
-    remainingSize = sumAll - totalWidth;
-    if (this.stretch === 'all' && remainingSize < 0) {
+    var remainingSize = totalWidth - sumAll;
+    if (this.stretch === 'all' && remainingSize > 0) {
       this.stretchAllRatio = totalWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.needVerifyLastColumnWidth = true;
     } else if (this.stretch === 'last' && totalWidth !== Infinity) {
       var columnWidth$__1 = this._getColumnWidth(totalColumns - 1);
-      var lastColumnWidth = -remainingSize + columnWidth$__1;
+      var lastColumnWidth = remainingSize + columnWidth$__1;
       this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth$__1;
     }
   },
@@ -641,7 +648,13 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
     var priv = privatePool.get(this);
     var totalColumns = priv.totalColumns;
     if (!this.stretchAllColumnsWidth[column]) {
-      this.stretchAllColumnsWidth[column] = Math.round(baseWidth * this.stretchAllRatio);
+      var stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
+      var newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
+      if (newStretchedWidth === void 0) {
+        this.stretchAllColumnsWidth[column] = stretchedWidth;
+      } else {
+        this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
+      }
     }
     if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
       this.needVerifyLastColumnWidth = false;
@@ -664,7 +677,7 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
   },
   _getColumnWidth: function(column) {
     var width = privatePool.get(this).columnWidthFn(column);
-    if (width === undefined) {
+    if (width === void 0) {
       width = $WalkontableViewportColumnsCalculator.DEFAULT_WIDTH;
     }
     return width;
@@ -2874,10 +2887,15 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     onScrollHorizontally: null,
     onBeforeTouchScroll: null,
     onAfterMomentumScroll: null,
+    onBeforeStretchingColumnWidth: (function(width) {
+      return width;
+    }),
     scrollbarWidth: 10,
     scrollbarHeight: 10,
     renderAllRows: false,
-    groups: false
+    groups: false,
+    rowHeaderWidth: null,
+    columnHeaderHeight: null
   };
   this.settings = {};
   for (var i in this.defaults) {
@@ -2944,7 +2962,8 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     offset = $__0.offset,
     removeClass = $__0.removeClass,
     removeTextNodes = $__0.removeTextNodes,
-    overlayContainsElement = $__0.overlayContainsElement;
+    overlayContainsElement = $__0.overlayContainsElement,
+    closest = $__0.closest;
 var WalkontableCellCoords = ($__cell_47_coords__ = require("cell/coords"), $__cell_47_coords__ && $__cell_47_coords__.__esModule && $__cell_47_coords__ || {default: $__cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__cell_47_range__ = require("cell/range"), $__cell_47_range__ && $__cell_47_range__.__esModule && $__cell_47_range__ || {default: $__cell_47_range__}).WalkontableCellRange;
 var WalkontableColumnFilter = ($__filter_47_column__ = require("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
@@ -3173,14 +3192,29 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     }
   },
   getCoords: function(TD) {
-    var TR = TD.parentNode;
-    var row = index(TR);
-    if (TR.parentNode === this.THEAD) {
-      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-    } else {
-      row = this.rowFilter.renderedToSource(row);
+    if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
+      TD = closest(TD, ['TD', 'TH']);
     }
-    var col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex);
+    var TR = TD.parentNode;
+    var CONTAINER = TR.parentNode;
+    var row = index(TR);
+    var col = TD.cellIndex;
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_TOP, TD)) {
+      if (CONTAINER.nodeName === 'THEAD') {
+        row -= CONTAINER.childNodes.length;
+      }
+    } else {
+      if (CONTAINER === this.THEAD) {
+        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+      } else {
+        row = this.rowFilter.renderedToSource(row);
+      }
+    }
+    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
+      col = this.columnFilter.offsettedTH(col);
+    } else {
+      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
     return new WalkontableCellCoords(row, col);
   },
   getTrForRow: function(row) {
@@ -3292,7 +3326,7 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
   },
   getStretchedColumnWidth: function(sourceColumn) {
     var columnWidth = this.getColumnWidth(sourceColumn);
-    var width = [void 0, null].indexOf(columnWidth) === -1 ? columnWidth : this.instance.wtSettings.settings.defaultColumnWidth;
+    var width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
     var calculator = this.wot.wtViewport.columnsRenderCalculator;
     if (calculator) {
       var stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
@@ -3394,9 +3428,15 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.wot.wtViewport.containerWidth = null;
         var firstRendered = this.wtTable.getFirstRenderedColumn();
         var lastRendered = this.wtTable.getLastRenderedColumn();
-        for (var i = firstRendered; i < lastRendered; i++) {
-          var width = this.wtTable.getStretchedColumnWidth(i);
-          var renderedIndex = this.columnFilter.sourceToRendered(i);
+        var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        if (rowHeaderWidthSetting != null) {
+          for (var i = 0; i < this.rowHeaderCount; i++) {
+            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+          }
+        }
+        for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
+          var width = this.wtTable.getStretchedColumnWidth(i$__2);
+          var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
           this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
         }
       }
@@ -3518,6 +3558,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var previousColHeaderHeight;
     var currentHeader;
     var currentHeaderHeight;
+    var columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
     while (level) {
       level--;
       previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
@@ -3528,6 +3569,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       currentHeaderHeight = innerHeight(currentHeader);
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
       }
     }
   },
@@ -3560,6 +3604,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
+    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    if (rowHeaderWidthSetting != null) {
+      for (var i = 0; i < this.rowHeaderCount; i++) {
+        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+      }
+    }
     for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       var width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
       this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
@@ -3664,7 +3714,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__2 = this.columnHeaders.length; i$__2 < theadChildrenLength; i$__2++) {
+        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -3856,16 +3906,24 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     return containerHeight;
   },
   getRowHeaderWidth: function() {
+    var rowHeadersHeightSetting = this.instance.getSetting('rowHeaderWidth');
+    var rowHeaders = this.instance.getSetting('rowHeaders');
+    if (rowHeadersHeightSetting) {
+      this.rowHeaderWidth = 0;
+      for (var i = 0,
+          len = rowHeaders.length; i < len; i++) {
+        this.rowHeaderWidth += rowHeadersHeightSetting[i] || rowHeadersHeightSetting;
+      }
+    }
     if (this.wot.cloneSource) {
       return this.wot.cloneSource.wtViewport.getRowHeaderWidth();
     }
     if (isNaN(this.rowHeaderWidth)) {
-      var rowHeaders = this.instance.getSetting('rowHeaders');
       if (rowHeaders.length) {
         var TH = this.instance.wtTable.TABLE.querySelector('TH');
         this.rowHeaderWidth = 0;
-        for (var i = 0,
-            len = rowHeaders.length; i < len; i++) {
+        for (var i$__6 = 0,
+            len$__7 = rowHeaders.length; i$__6 < len$__7; i$__6++) {
           if (TH) {
             this.rowHeaderWidth += outerWidth(TH);
             TH = TH.nextSibling;
@@ -3954,7 +4012,9 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     }
     return new WalkontableViewportColumnsCalculator(width, pos, this.wot.getSetting('totalColumns'), (function(sourceCol) {
       return $__4.wot.wtTable.getColumnWidth(sourceCol);
-    }), visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride, visible, this.wot.getSetting('stretchH'));
+    }), visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride, visible, this.wot.getSetting('stretchH'), (function(stretchedWidth, column) {
+      return $__4.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+    }));
   },
   createRenderCalculators: function() {
     var fastDraw = arguments[0] !== (void 0) ? arguments[0] : false;
@@ -4026,7 +4086,8 @@ var $__shims_47_classes__,
     $__helpers_47_string__,
     $__helpers_47_unicode__,
     $__helpers_47_dom_47_element__,
-    $__helpers_47_dom_47_event__;
+    $__helpers_47_dom_47_event__,
+    $__plugins__;
 window.Handsontable = function Handsontable(rootElement, userSettings) {
   var instance = new Handsontable.Core(rootElement, userSettings || {});
   instance.init();
@@ -4056,14 +4117,16 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Wed Jan 20 2016 14:44:19 GMT+0100 (CET)';
+Handsontable.buildDate = 'Wed Feb 03 2016 13:43:22 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.21.0';
+Handsontable.version = '0.22.0';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
 }
 Handsontable.plugins = {};
+var registerPlugin = ($__plugins__ = require("plugins"), $__plugins__ && $__plugins__.__esModule && $__plugins__ || {default: $__plugins__}).registerPlugin;
+Handsontable.plugins.registerPlugin = registerPlugin;
 Handsontable.helper = {};
 Handsontable.dom = {};
 Handsontable.Dom = Handsontable.dom;
@@ -4083,7 +4146,7 @@ arrayHelpers.arrayEach(DOM, (function(helper) {
 }));
 
 //# 
-},{"cellTypes":24,"core":25,"es6collections":"es6collections","helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":45,"helpers/dom/event":46,"helpers/function":47,"helpers/mixed":48,"helpers/number":49,"helpers/object":50,"helpers/setting":51,"helpers/string":52,"helpers/unicode":53,"pluginHooks":56,"plugins/jqueryHandsontable":1,"renderers/_cellDecorator":89,"shims/classes":96}],24:[function(require,module,exports){
+},{"cellTypes":24,"core":25,"es6collections":"es6collections","helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":45,"helpers/dom/event":46,"helpers/function":47,"helpers/mixed":48,"helpers/number":49,"helpers/object":50,"helpers/setting":51,"helpers/string":52,"helpers/unicode":53,"pluginHooks":56,"plugins":57,"plugins/jqueryHandsontable":1,"renderers/_cellDecorator":89,"shims/classes":96}],24:[function(require,module,exports){
 "use strict";
 var $__helpers_47_browser__,
     $__editors__,
@@ -4256,6 +4319,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.renderCall = false;
   rootElement.insertBefore(this.container, rootElement.firstChild);
   this.guid = 'ht_' + randomString();
+  dataSource = new DataSource(instance);
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid;
   }
@@ -4816,7 +4880,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.init = function() {
-    dataSource = new DataSource(instance, priv.settings.data);
+    dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
     if (Handsontable.mobileBrowser) {
       addClass(instance.rootElement, 'mobile');
@@ -5786,7 +5850,7 @@ DefaultSettings.prototype = {
   height: void 0,
   startRows: 5,
   startCols: 5,
-  rowHeaders: null,
+  rowHeaders: void 0,
   colHeaders: null,
   colWidths: void 0,
   rowHeights: void 0,
@@ -5825,7 +5889,7 @@ DefaultSettings.prototype = {
   copyRowsLimit: 1000,
   copyColsLimit: 1000,
   pasteMode: 'overwrite',
-  persistentState: false,
+  persistentState: void 0,
   currentRowClassName: void 0,
   currentColClassName: void 0,
   className: void 0,
@@ -5895,7 +5959,7 @@ DefaultSettings.prototype = {
   viewportColumnRenderingOffset: 'auto',
   validator: void 0,
   disableVisualSelection: false,
-  sortIndicator: false,
+  sortIndicator: void 0,
   manualColumnFreeze: void 0,
   trimWhitespace: true,
   settings: void 0,
@@ -5925,7 +5989,9 @@ DefaultSettings.prototype = {
   hiddenColumns: void 0,
   hiddenRows: void 0,
   nestedHeaders: void 0,
-  trimRows: void 0
+  trimRows: void 0,
+  rowHeaderWidth: void 0,
+  columnHeaderHeight: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -6351,7 +6417,8 @@ var $__3 = ($__helpers_47_array__ = require("helpers/array"), $__helpers_47_arra
     extendArray = $__3.extendArray,
     arrayEach = $__3.arrayEach;
 var rangeEach = ($__helpers_47_number__ = require("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
-var DataSource = function DataSource(hotInstance, dataSource) {
+var DataSource = function DataSource(hotInstance) {
+  var dataSource = arguments[1] !== (void 0) ? arguments[1] : [];
   this.hot = hotInstance;
   this.data = dataSource;
   this.dataType = 'array';
@@ -6361,6 +6428,9 @@ var DataSource = function DataSource(hotInstance, dataSource) {
 ($traceurRuntime.createClass)(DataSource, {
   getData: function() {
     return this.data;
+  },
+  setData: function(data) {
+    this.data = data;
   },
   getAtColumn: function(column) {
     var $__5 = this;
@@ -8252,10 +8322,13 @@ var $__0 = ($___46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/el
     getComputedStyle = $__0.getComputedStyle,
     getCssTransform = $__0.getCssTransform,
     getScrollableElement = $__0.getScrollableElement,
+    getScrollbarWidth = $__0.getScrollbarWidth,
     innerWidth = $__0.innerWidth,
     offset = $__0.offset,
     resetCssTransform = $__0.resetCssTransform,
-    setCaretPosition = $__0.setCaretPosition;
+    setCaretPosition = $__0.setCaretPosition,
+    hasVerticalScrollbar = $__0.hasVerticalScrollbar,
+    hasHorizontalScrollbar = $__0.hasHorizontalScrollbar;
 var autoResize = ($__autoResize__ = require("autoResize"), $__autoResize__ && $__autoResize__.__esModule && $__autoResize__ || {default: $__autoResize__}).default;
 var BaseEditor = ($___95_baseEditor__ = require("_baseEditor"), $___95_baseEditor__ && $___95_baseEditor__.__esModule && $___95_baseEditor__ || {default: $___95_baseEditor__}).BaseEditor;
 var eventManagerObject = ($___46__46__47_eventManager__ = require("eventManager"), $___46__46__47_eventManager__ && $___46__46__47_eventManager__.__esModule && $___46__46__47_eventManager__ || {default: $___46__46__47_eventManager__}).eventManager;
@@ -8452,8 +8525,8 @@ TextEditor.prototype.refreshDimensions = function() {
       editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
       settings = this.instance.getSettings(),
-      rowHeadersCount = settings.rowHeaders ? 1 : 0,
-      colHeadersCount = settings.colHeaders ? 1 : 0,
+      rowHeadersCount = this.instance.hasRowHeaders(),
+      colHeadersCount = this.instance.hasColHeaders(),
       editorSection = this.checkEditorSection(),
       backgroundColor = this.TD.style.backgroundColor,
       cssTransformOffset;
@@ -8487,12 +8560,19 @@ TextEditor.prototype.refreshDimensions = function() {
   }
   this.textareaParentStyle.top = editTop + 'px';
   this.textareaParentStyle.left = editLeft + 'px';
-  var cellTopOffset = this.TD.offsetTop - this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition(),
-      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+  var firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
+  var firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
+  var horizontalScrollPosition = this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+  var verticalScrollPosition = this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition();
+  var scrollbarWidth = getScrollbarWidth();
+  var cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
+  var cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
   var width = innerWidth(this.TD) - 8;
-  var maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9;
+  var actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  var actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  var maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
   var height = this.TD.scrollHeight + 1;
-  var maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - 2, 23);
+  var maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
   var cellComputedStyle = getComputedStyle(this.TD);
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
@@ -9221,6 +9301,12 @@ Object.defineProperties(exports, {
   getScrollbarWidth: {get: function() {
       return getScrollbarWidth;
     }},
+  hasVerticalScrollbar: {get: function() {
+      return hasVerticalScrollbar;
+    }},
+  hasHorizontalScrollbar: {get: function() {
+      return hasHorizontalScrollbar;
+    }},
   setOverlayPosition: {get: function() {
       return setOverlayPosition;
     }},
@@ -9748,6 +9834,12 @@ function getScrollbarWidth() {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
   }
   return cachedScrollbarWidth;
+}
+function hasVerticalScrollbar(element) {
+  return element.offsetWidth !== element.clientWidth;
+}
+function hasHorizontalScrollbar(element) {
+  return element.offsetHeight !== element.clientHeight;
 }
 function setOverlayPosition(overlayElem, left, top) {
   if (isIE8() || isIE9()) {
@@ -10586,7 +10678,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth'];
 var arrayEach = ($__helpers_47_array__ = require("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = require("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -10749,7 +10841,6 @@ var $__helpers_47_object__,
 var objectEach = ($__helpers_47_object__ = require("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var toUpperCaseFirst = ($__helpers_47_string__ = require("helpers/string"), $__helpers_47_string__ && $__helpers_47_string__.__esModule && $__helpers_47_string__ || {default: $__helpers_47_string__}).toUpperCaseFirst;
 var registeredPlugins = new WeakMap();
-Handsontable.plugins = Handsontable.plugins || {};
 function registerPlugin(pluginName, PluginClass) {
   pluginName = toUpperCaseFirst(pluginName);
   Handsontable.plugins[pluginName] = PluginClass;
@@ -10798,8 +10889,6 @@ function getPluginName(hotInstance, plugin) {
   return pluginName;
 }
 ;
-Handsontable.plugins.utils = Handsontable.plugins.utils || {};
-Handsontable.plugins.registerPlugin = registerPlugin;
 
 //# 
 },{"helpers/object":50,"helpers/string":52}],58:[function(require,module,exports){
@@ -11887,7 +11976,9 @@ var $ColumnSorting = ColumnSorting;
       sortingColumn = loadedSortingState.sortColumn;
       sortingOrder = loadedSortingState.sortOrder;
     }
-    this.sortByColumn(sortingColumn, sortingOrder);
+    if (typeof sortingColumn === 'number') {
+      this.sortByColumn(sortingColumn, sortingOrder);
+    }
   },
   setSortingColumn: function(col, order) {
     if (typeof col == 'undefined') {
@@ -11910,8 +12001,11 @@ var $ColumnSorting = ColumnSorting;
     if (typeof this.hot.sortColumn == 'undefined') {
       return;
     }
-    Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
-    this.sort();
+    var allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    if (allowSorting !== false) {
+      this.sort();
+    }
+    this.updateSortIndicator();
     this.hot.render();
     this.saveSortingState();
     Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
@@ -12047,7 +12141,7 @@ var $ColumnSorting = ColumnSorting;
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
-    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
+    this.updateSortIndicator();
     switch (colMeta.type) {
       case 'date':
         sortFunction = this.dateSort;
@@ -12060,6 +12154,13 @@ var $ColumnSorting = ColumnSorting;
       this.hot.sortIndex.push([i$__7, this.hot.getDataAtCell(i$__7, this.hot.sortColumn)]);
     }
     this.hot.sortingEnabled = true;
+  },
+  updateSortIndicator: function() {
+    if (typeof this.hot.sortOrder == 'undefined') {
+      return;
+    }
+    var colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
   },
   translateRow: function(row) {
     if (this.hot.sortingEnabled && (typeof this.hot.sortOrder !== 'undefined') && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
@@ -15198,13 +15299,12 @@ function ManualColumnMove() {
     removeClass(guide, 'active');
   }
   var checkColumnHeader = function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'THEAD') {
+    if (element != this.rootElement) {
+      var parent = element.parentNode;
+      if (parent.tagName === 'THEAD') {
         return true;
-      } else {
-        element = element.parentNode;
-        return checkColumnHeader(element);
       }
+      return checkColumnHeader.call(this, parent);
     }
     return false;
   };
@@ -15222,7 +15322,7 @@ function ManualColumnMove() {
     var instance = this;
     var pressed;
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkColumnHeader(e.target)) {
+      if (checkColumnHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
@@ -15290,7 +15390,7 @@ function ManualColumnMove() {
         this.manualColumnPositions = loadedManualColumnPositions;
       } else if (Array.isArray(initialManualColumnPositions)) {
         this.manualColumnPositions = initialManualColumnPositions;
-      } else {
+      } else if (!initialManualColumnPositions || this.manualColumnPositions === void 0) {
         this.manualColumnPositions = [];
       }
       if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
@@ -15299,8 +15399,9 @@ function ManualColumnMove() {
         } else {
           instance.manualColumnPositionsPluginUsages.push('manualColumnMove');
         }
+        unbindEvents.call(this);
         bindEvents.call(this);
-        if (this.manualColumnPositions.length > 0) {
+        if (this.manualColumnPositions && this.manualColumnPositions.length > 0) {
           this.forceFullRender = true;
           this.render();
         }
@@ -15438,6 +15539,9 @@ var $ManualColumnResize = ManualColumnResize;
     this.addHook('modifyColWidth', (function(width, col) {
       return $__5.onModifyColWidth(width, col);
     }));
+    this.addHook('beforeStretchingColumnWidth', (function(stretchedWidth, column) {
+      return $__5.onBeforeStretchingColumnWidth(stretchedWidth, column);
+    }));
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -15454,7 +15558,7 @@ var $ManualColumnResize = ManualColumnResize;
     var initialColumnWidth = this.hot.getSettings().manualColumnResize;
     if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
-    } else {
+    } else if (!initialColumnWidth) {
       this.manualColumnWidths = [];
     }
   },
@@ -15501,13 +15605,12 @@ var $ManualColumnResize = ManualColumnResize;
     removeClass(this.guide, 'active');
   },
   checkIfColumnHeader: function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'THEAD') {
+    if (element != this.hot.rootElement) {
+      var parent = element.parentNode;
+      if (parent.tagName === 'THEAD') {
         return true;
-      } else {
-        element = element.parentNode;
-        return this.checkIfColumnHeader(element);
       }
+      return this.checkIfColumnHeader(parent);
     }
     return false;
   },
@@ -15541,7 +15644,11 @@ var $ManualColumnResize = ManualColumnResize;
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
       }
-      this.setManualSize(this.currentCol, this.newSize);
+      if (this.hot.getSettings().stretchH === 'all') {
+        this.clearManualSize(this.currentCol);
+      } else {
+        this.setManualSize(this.currentCol, this.newSize);
+      }
       this.hot.forceFullRender = true;
       this.hot.view.render();
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
@@ -15610,12 +15717,23 @@ var $ManualColumnResize = ManualColumnResize;
     this.manualColumnWidths[column] = width;
     return width;
   },
+  clearManualSize: function(column) {
+    column = this.hot.runHooks('modifyCol', column);
+    this.manualColumnWidths[column] = void 0;
+  },
   onModifyColWidth: function(width, column) {
     if (this.enabled) {
       column = this.hot.runHooks('modifyCol', column);
       if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[column]) {
         return this.manualColumnWidths[column];
       }
+    }
+    return width;
+  },
+  onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
+    var width = this.manualColumnWidths[column];
+    if (width === void 0) {
+      width = stretchedWidth;
     }
     return width;
   }
@@ -15709,13 +15827,12 @@ function ManualRowMove() {
     removeClass(guide, 'active');
   }
   var checkRowHeader = function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'TBODY') {
+    if (element != this.rootElement) {
+      var parent = element.parentNode;
+      if (parent.tagName == 'TBODY') {
         return true;
-      } else {
-        element = element.parentNode;
-        return checkRowHeader(element);
       }
+      return checkRowHeader.call(this, parent);
     }
     return false;
   };
@@ -15733,7 +15850,7 @@ function ManualRowMove() {
     var instance = this;
     var pressed;
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkRowHeader(e.target)) {
+      if (checkRowHeader.call(instance, e.target)) {
         var th = getTHFromTargetElement(e.target);
         if (th) {
           if (pressed) {
@@ -15803,12 +15920,13 @@ function ManualRowMove() {
         this.manualRowPositions = loadedManualRowPostions;
       } else if (Array.isArray(initialManualRowPositions)) {
         this.manualRowPositions = initialManualRowPositions;
-      } else {
+      } else if (!initialManualRowPositions || this.manualRowPositions === void 0) {
         this.manualRowPositions = [];
       }
       if (source === 'afterInit' || source === 'afterUpdateSettings' && eventManager.context.eventListeners.length === 0) {
+        unbindEvents.call(this);
         bindEvents.call(this);
-        if (this.manualRowPositions.length > 0) {
+        if (this.manualRowPositions && this.manualRowPositions.length > 0) {
           instance.forceFullRender = true;
           instance.render();
         }
@@ -15920,7 +16038,7 @@ var $ManualRowResize = ManualRowResize;
     var initialRowHeights = this.hot.getSettings().manualRowResize;
     if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
-    } else {
+    } else if (!initialRowHeights) {
       this.manualRowHeights = [];
     }
   },
@@ -15967,13 +16085,12 @@ var $ManualRowResize = ManualRowResize;
     removeClass(this.guide, 'active');
   },
   checkIfRowHeader: function(element) {
-    if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'TBODY') {
+    if (element != this.hot.rootElement) {
+      var parent = element.parentNode;
+      if (parent.tagName === 'TBODY') {
         return true;
-      } else {
-        element = element.parentNode;
-        return this.checkIfRowHeader(element);
       }
+      return this.checkIfRowHeader(parent);
     }
     return false;
   },
@@ -16968,6 +17085,9 @@ function runHookForOperation(rawPatches) {
       len = patches.length; i < len; i++) {
     var patch = patches[i];
     var parsedPath = parsePath(patch.path);
+    if (!parsedPath) {
+      return;
+    }
     switch (patch.op) {
       case 'add':
         if (isNaN(parsedPath.col)) {
@@ -16998,12 +17118,14 @@ function runHookForOperation(rawPatches) {
     var newOrRemovedColumns = [];
     return rawPatches.filter(function(patch) {
       var parsedPath = parsePath(patch.path);
+      if (!parsedPath) {
+        return;
+      }
       if (['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)) {
-        if (newOrRemovedColumns.indexOf(parsedPath.col) != -1) {
+        if (newOrRemovedColumns.indexOf(parsedPath.col) !== -1) {
           return false;
-        } else {
-          newOrRemovedColumns.push(parsedPath.col);
         }
+        newOrRemovedColumns.push(parsedPath.col);
       }
       return true;
     });
@@ -17015,6 +17137,9 @@ function runHookForOperation(rawPatches) {
   }
   function parsePath(path) {
     var match = path.match(/^\/(\d+)\/?(.*)?$/);
+    if (!match) {
+      return;
+    }
     return {
       row: parseInt(match[1], 10),
       col: /^\d*$/.test(match[2]) ? parseInt(match[2], 10) : match[2]
@@ -18853,6 +18978,9 @@ function TableView(instance) {
     onAfterMomentumScroll: function() {
       instance.runHooks('afterMomentumScroll');
     },
+    onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
+      return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
+    },
     viewportRowCalculatorOverride: function(calc) {
       var rows = instance.countRows();
       var viewportOffset = that.settings.viewportRowRenderingOffset;
@@ -18888,6 +19016,12 @@ function TableView(instance) {
         calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
+    },
+    rowHeaderWidth: function() {
+      return that.settings.rowHeaderWidth;
+    },
+    columnHeaderHeight: function() {
+      return that.settings.columnHeaderHeight;
     }
   };
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);

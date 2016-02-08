@@ -8,9 +8,6 @@ import {registerPlugin} from './../../plugins';
  * @class TouchScroll
  */
 class TouchScroll extends BasePlugin {
-  /**
-   * @param {Handsontable} hotInstance
-   */
   constructor(hotInstance) {
     super(hotInstance);
 

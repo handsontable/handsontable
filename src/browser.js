@@ -59,7 +59,13 @@ if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
 }
 
+// namespace for plugins
 Handsontable.plugins = {};
+
+import {registerPlugin} from './plugins';
+
+Handsontable.plugins.registerPlugin = registerPlugin;
+
 Handsontable.helper = {};
 Handsontable.dom = {};
 // legacy support

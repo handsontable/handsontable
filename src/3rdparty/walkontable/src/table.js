@@ -6,7 +6,8 @@ import {
     offset,
     removeClass,
     removeTextNodes,
-    overlayContainsElement
+    overlayContainsElement,
+    closest
 } from './../../../helpers/dom/element';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
@@ -359,17 +360,22 @@ class WalkontableTable {
    * @returns {WalkontableCellCoords}
    */
   getCoords(TD) {
+    if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
+      TD = closest(TD, ['TD', 'TH']);
+    }
+
     const TR = TD.parentNode;
+    const CONTAINER = TR.parentNode;
     let row = index(TR);
     let col = TD.cellIndex;
 
     if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_TOP, TD)) {
-      if (TR.parentNode === this.THEAD) {
-        row -= 1;
+      if (CONTAINER.nodeName === 'THEAD') {
+        row -= CONTAINER.childNodes.length;
       }
 
     } else {
-      if (TR.parentNode === this.THEAD) {
+      if (CONTAINER === this.THEAD) {
         row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
       } else {
         row = this.rowFilter.renderedToSource(row);

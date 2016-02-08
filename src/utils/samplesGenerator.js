@@ -5,7 +5,8 @@ import {rangeEach} from './../helpers/number';
 import {stringify} from './../helpers/mixed';
 
 /**
- * @private
+ * @class SamplesGenerator
+ * @util
  */
 class SamplesGenerator {
   /**
@@ -17,9 +18,6 @@ class SamplesGenerator {
     return 3;
   }
 
-  /**
-   * @param {Function} dataFactory Function which gave data to collect samples.
-   */
   constructor(dataFactory) {
     /**
      * Samples prepared for calculations.

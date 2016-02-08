@@ -113,7 +113,7 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('1');
   });
 
-  it("should reset column order with updateSettings when an empty array is passed", function () {
+  it("should reset column order with updateSettings when undefined is passed", function () {
     handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
@@ -135,7 +135,7 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('1');
 
     updateSettings({
-      manualColumnMove: []
+      manualColumnMove: void 0
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
