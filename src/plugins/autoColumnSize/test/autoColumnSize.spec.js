@@ -75,6 +75,28 @@ describe('AutoColumnSize', function () {
     });
   });
 
+  it('should keep last columns width unchanged if all rows was removed', function () {
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      columns: [
+        {data: 'id', title: 'Identifier'},
+        {data: 'name', title: 'Name'},
+        {data: 'lastName', title: 'Last Name'},
+      ]
+    });
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(95);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
+
+    hot.alter('remove_row', 0);
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(95);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
+  });
+
   it('should be possible to disable plugin using updateSettings', function () {
 
     handsontable({
