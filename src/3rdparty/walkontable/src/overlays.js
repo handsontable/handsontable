@@ -394,12 +394,21 @@ class WalkontableOverlays {
         this.pendingScrollCallbacks.bottom.left--;
 
       } else {
-
         if (fakeScrollValue == null) {
           this.pendingScrollCallbacks.master.left++;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
+
+        if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.top.left++;
+          }
+
+          topOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (masterVertical !== window);
+        }
+
       }
 
       // "fake" scroll value calculated from the mousewheel event
@@ -432,6 +441,15 @@ class WalkontableOverlays {
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
         masterVertical.scrollTop += fakeScrollValue;
+      }
+
+      if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.bottom.left++;
+        }
+
+        bottomOverlay.scrollLeft = tempScrollValue;
+        delegatedScroll = (masterVertical !== window);
       }
 
     } else if (target === leftOverlay) {
