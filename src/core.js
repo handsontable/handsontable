@@ -118,6 +118,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           delta = datamap.createRow(index, amount);
 
+          priv.cellSettings.splice(index, 0, []);
+
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
@@ -132,6 +134,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // column order may have changes, so we need to translate the selection column index -> source array index
           // index = instance.runHooksAndReturn('modifyCol', index);
           delta = datamap.createCol(index, amount);
+
+          for (var row = 0, len = datamap.getAll().length; row < len; row++) {
+            if (row in priv.cellSettings) {
+              priv.cellSettings[row].splice(index, 0, void 0);
+            }
+          }
 
           if (delta) {
 
@@ -1521,7 +1529,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     clen = instance.countCols();
 
     // Clear cellSettings cache
-    priv.cellSettings.length = 0;
+    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+      priv.cellSettings.length = 0;
+    }
 
     if (clen > 0) {
       var proto, column;
