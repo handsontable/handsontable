@@ -4545,7 +4545,7 @@ DefaultSettings.prototype = {
    * columns: [{
    *   type: 'date',
    *   dateFormat: 'YYYY-MM-DD',
-   *   correcrFormat: true
+   *   correctFormat: true
    * }]
    * ...
    * ```
@@ -4565,7 +4565,7 @@ DefaultSettings.prototype = {
    * ...
    * columns: [{
    *   type: 'date',
-   *   defautlData: '2015-02-02'
+   *   defaultData: '2015-02-02'
    * }]
    * ...
    * ```

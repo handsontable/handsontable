@@ -1,211 +1,173 @@
-
-import {registerPlugin} from './../../plugins';
+import BasePlugin from './../_base';
 import jsonpatch from 'jsonpatch';
-
-export {ObserveChanges};
-
-/**
- * @private
- * @plugin ObserveChanges
- * @dependencies jsonpatch
- */
-function ObserveChanges() {}
-
-Handsontable.hooks.add('afterLoadData', init);
-Handsontable.hooks.add('afterUpdateSettings', init);
+import {DataObserver} from './dataObserver';
+import {arrayEach} from './../../helpers/array';
+import {registerPlugin} from './../../plugins';
 
 Handsontable.hooks.register('afterChangesObserved');
 
-function init() {
-  var instance = this;
-  var pluginEnabled = instance.getSettings().observeChanges;
-
-  if (pluginEnabled) {
-    if (instance.observer) {
-      destroy.call(instance); //destroy observer for old data object
-    }
-    createObserver.call(instance);
-    bindEvents.call(instance);
-
-  } else if (!pluginEnabled) {
-    destroy.call(instance);
-  }
-}
-
-function createObserver() {
-  var instance = this;
-
-  instance.observeChangesActive = true;
-
-  instance.pauseObservingChanges = function() {
-    instance.observeChangesActive = false;
-  };
-
-  instance.resumeObservingChanges = function() {
-    instance.observeChangesActive = true;
-  };
-
-  instance.observedData = instance.getSourceData();
-  instance.observer = jsonpatch.observe(instance.observedData, function(patches) {
-    if (instance.observeChangesActive) {
-      runHookForOperation.call(instance, patches);
-      instance.render();
-    }
-
-    instance.runHooks('afterChangesObserved');
-  });
-}
-
-function runHookForOperation(rawPatches) {
-  var instance = this;
-  var patches = cleanPatches(rawPatches);
-
-  for (var i = 0, len = patches.length; i < len; i++) {
-    var patch = patches[i];
-    var parsedPath = parsePath(patch.path);
-
-    if (!parsedPath) {
-      return;
-    }
-
-    switch (patch.op) {
-      case 'add':
-        if (isNaN(parsedPath.col)) {
-          instance.runHooks('afterCreateRow', parsedPath.row);
-        } else {
-          instance.runHooks('afterCreateCol', parsedPath.col);
-        }
-        break;
-
-      case 'remove':
-        if (isNaN(parsedPath.col)) {
-          instance.runHooks('afterRemoveRow', parsedPath.row, 1);
-        } else {
-          instance.runHooks('afterRemoveCol', parsedPath.col, 1);
-        }
-        break;
-
-      case 'replace':
-        instance.runHooks('afterChange', [parsedPath.row, parsedPath.col, null, patch.value], 'external');
-        break;
-    }
-  }
-
-  function cleanPatches(rawPatches) {
-    var patches;
-
-    patches = removeLengthRelatedPatches(rawPatches);
-    patches = removeMultipleAddOrRemoveColPatches(patches);
-
-    return patches;
+/**
+ * @plugin ObserveChanges
+ * @dependencies jsonpatch
+ */
+class ObserveChanges extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * Instance of {@link DataObserver}.
+     *
+     * @type {DataObserver}
+     */
+    this.observer = null;
   }
 
   /**
-   * Removing or adding column will produce one patch for each table row.
-   * This function leaves only one patch for each column add/remove operation
+   * Check if the plugin is enabled in the handsontable settings.
+   *
+   * @returns {Boolean}
    */
-  function removeMultipleAddOrRemoveColPatches(rawPatches) {
-    var newOrRemovedColumns = [];
-
-    return rawPatches.filter(function(patch) {
-      var parsedPath = parsePath(patch.path);
-
-      if (!parsedPath) {
-        return;
-      }
-
-      if (['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)) {
-        if (newOrRemovedColumns.indexOf(parsedPath.col) !== -1) {
-          return false;
-        }
-        newOrRemovedColumns.push(parsedPath.col);
-      }
-
-      return true;
-    });
-
+  isEnabled() {
+    return this.hot.getSettings().observeChanges;
   }
 
   /**
-   * If observeChanges uses native Object.observe method, then it produces patches for length property.
-   * This function removes them.
+   * Enable plugin for this Handsontable instance.
    */
-  function removeLengthRelatedPatches(rawPatches) {
-    return rawPatches.filter(function(patch) {
-      return !/[/]length/ig.test(patch.path);
-    });
-  }
-
-  function parsePath(path) {
-    var match = path.match(/^\/(\d+)\/?(.*)?$/);
-
-    if (!match) {
+  enablePlugin() {
+    if (this.enabled) {
       return;
     }
-
-    return {
-      row: parseInt(match[1], 10),
-      col: /^\d*$/.test(match[2]) ? parseInt(match[2], 10) : match[2]
-    };
-  }
-}
-
-function destroy() {
-  var instance = this;
-
-  if (instance.observer) {
-    destroyObserver.call(instance);
-    unbindEvents.call(instance);
-  }
-}
-
-function destroyObserver() {
-  var instance = this;
-
-  jsonpatch.unobserve(instance.observedData, instance.observer);
-  delete instance.observedData;
-  delete instance.observeChangesActive;
-  delete instance.pauseObservingChanges;
-  delete instance.resumeObservingChanges;
-}
-
-function bindEvents() {
-  var instance = this;
-  instance.addHook('afterDestroy', destroy);
-
-  instance.addHook('afterCreateRow', afterTableAlter);
-  instance.addHook('afterRemoveRow', afterTableAlter);
-
-  instance.addHook('afterCreateCol', afterTableAlter);
-  instance.addHook('afterRemoveCol', afterTableAlter);
-
-  instance.addHook('afterChange', function(changes, source) {
-    if (source != 'loadData') {
-      afterTableAlter.call(this);
+    if (!this.observer) {
+      this.observer = new DataObserver(this.hot.getSourceData());
+      this._exposePublicApi();
     }
-  });
+
+    this.observer.addLocalHook('change', (patches) => this.onDataChange(patches));
+    this.addHook('afterCreateRow', () => this.onAfterTableAlter());
+    this.addHook('afterRemoveRow', () => this.onAfterTableAlter());
+    this.addHook('afterCreateCol', () => this.onAfterTableAlter());
+    this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
+    this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
+    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+
+    super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    if (this.observer) {
+      this.observer.destroy();
+      this.observer = null;
+      this._deletePublicApi();
+    }
+
+    super.disablePlugin();
+  }
+
+  /**
+   * Data change observer.
+   *
+   * @private
+   * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
+   */
+  onDataChange(patches) {
+    if (!this.observer.isPaused()) {
+      const actions = {
+        add: (patch) => {
+          if (isNaN(patch.col)) {
+            this.hot.runHooks('afterCreateRow', patch.row);
+          } else {
+            this.hot.runHooks('afterCreateCol', patch.col);
+          }
+        },
+        remove: (patch) => {
+          if (isNaN(patch.col)) {
+            this.hot.runHooks('afterRemoveRow', patch.row, 1);
+          } else {
+            this.hot.runHooks('afterRemoveCol', patch.col, 1);
+          }
+        },
+        replace: (patch) => {
+          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], 'external');
+        },
+      };
+
+      arrayEach(patches, (patch) => {
+        if (actions[patch.op]) {
+          actions[patch.op](patch);
+        }
+      });
+      this.hot.render();
+    }
+
+    this.hot.runHooks('afterChangesObserved');
+  }
+
+  /**
+   * On after table alter listener. Prevents infinity loop between internal and external data changing.
+   *
+   * @private
+   * @param source
+   */
+  onAfterTableAlter(source) {
+    if (source !== 'loadData') {
+      this.observer.pause();
+      this.hot.addHookOnce('afterChangesObserved', () => this.observer.resume());
+    }
+  }
+
+  /**
+   * On after load data listener.
+   *
+   * @private
+   * @param {Boolean} firstRun `true` if event was fired first time.
+   */
+  onAfterLoadData(firstRun) {
+    if (!firstRun) {
+      this.observer.setObservedData(this.hot.getSourceData());
+    }
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    if (this.observer) {
+      this.observer.destroy();
+      this._deletePublicApi();
+    }
+    super.destroy();
+  }
+
+  /**
+   * Expose plugins methods to the core.
+   *
+   * @private
+   */
+  _exposePublicApi() {
+    const hot = this.hot;
+
+    hot.pauseObservingChanges = () => this.observer.pause();
+    hot.resumeObservingChanges = () => this.observer.resume();
+    hot.isPausedObservingChanges = () => this.observer.isPaused();
+  }
+
+  /**
+   * Delete all previously exposed methods.
+   *
+   * @private
+   */
+  _deletePublicApi() {
+    const hot = this.hot;
+
+    delete hot.pauseObservingChanges;
+    delete hot.resumeObservingChanges;
+    delete hot.isPausedObservingChanges;
+  }
 }
 
-function unbindEvents() {
-  var instance = this;
-  instance.removeHook('afterDestroy', destroy);
+export {ObserveChanges};
 
-  instance.removeHook('afterCreateRow', afterTableAlter);
-  instance.removeHook('afterRemoveRow', afterTableAlter);
-
-  instance.removeHook('afterCreateCol', afterTableAlter);
-  instance.removeHook('afterRemoveCol', afterTableAlter);
-
-  instance.removeHook('afterChange', afterTableAlter);
-}
-
-function afterTableAlter() {
-  var instance = this;
-
-  instance.pauseObservingChanges();
-
-  instance.addHookOnce('afterChangesObserved', function() {
-    instance.resumeObservingChanges();
-  });
-
-}
+registerPlugin('observeChanges', ObserveChanges);
