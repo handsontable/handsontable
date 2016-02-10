@@ -97,6 +97,7 @@ function TableView(instance) {
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -131,7 +132,12 @@ function TableView(instance) {
     }
 
     // function did not return until here, we have an outside click!
-    if (that.settings.outsideClickDeselects) {
+
+    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ?
+      that.settings.outsideClickDeselects(originalTarget) :
+      that.settings.outsideClickDeselects;
+
+    if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
