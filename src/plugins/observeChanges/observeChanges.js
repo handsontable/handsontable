@@ -9,6 +9,22 @@ Handsontable.hooks.register('afterChangesObserved');
 /**
  * @plugin ObserveChanges
  * @dependencies jsonpatch
+ *
+ * @description
+ * This plugin allows to observe data source changes.
+ *
+ * By default, the plugin is declared as `undefined`, which makes it disabled.
+ * Enabling this plugin switches table into one-way data binding where changes are applied into data source (from outside table)
+ * will be automatically reflected in the table.
+ *
+ * ```js
+ * ...
+ * // as a boolean
+ * observeChanges: true,
+ * ...
+ * ```
+ *
+ * To configure this plugin see {@link Options#observeChanges}.
  */
 class ObserveChanges extends BasePlugin {
   constructor(hotInstance) {

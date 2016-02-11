@@ -3603,7 +3603,7 @@ DefaultSettings.prototype = {
   currentColClassName: void 0,
 
   /**
-   * Class name for the Hadnstontable container element.
+   * Class name for the Handsontable container element.
    *
    * @type {String|Array}
    * @default undefined
@@ -4788,7 +4788,17 @@ DefaultSettings.prototype = {
    * @since 0.22.0
    * @type {Number|Array}
    */
-  columnHeaderHeight: void 0
+  columnHeaderHeight: void 0,
 
+  /**
+   * @description
+   * Enabling this plugin switches table into one-way data binding where changes are applied into data source (from outside table)
+   * will be automatically reflected in the table.
+   *
+   * For every data change `afterChangesObserved` hook will be fired.
+   *
+   * @type {Boolean}
+   */
+  observeChanges: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;
