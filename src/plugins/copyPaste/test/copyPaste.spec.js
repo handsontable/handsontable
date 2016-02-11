@@ -25,13 +25,13 @@ describe('CopyPaste', function () {
     if (Handsontable.helper.isSafari()) {
       expect($('.copyPaste')[0].value).toEqual('a\nb\n');
       expect(getData).toHaveBeenCalledWith('Text');
+      expect(preventDefault).toHaveBeenCalled();
 
     } else if (Handsontable.helper.isChrome()) {
       expect($('.copyPaste')[0].value).toBe('a\nb\n\n');
       expect(getData).toHaveBeenCalledWith('Text');
+      expect(preventDefault).toHaveBeenCalled();
     }
-
-    expect(preventDefault).toHaveBeenCalled();
   });
 
 
