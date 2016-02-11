@@ -911,20 +911,22 @@ export function resetCssTransform(element) {
 /**
  * Determines if the given DOM element is an input field.
  * Notice: By 'input' we mean input, textarea and select nodes
- * @param element - DOM element
- * @returns {boolean}
+ *
+ * @param {HTMLElement} element - DOM element
+ * @returns {Boolean}
  */
 export function isInput(element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
-  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
+  return element && (inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true');
 }
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
  * Notice: By 'input' we mean input, textarea and select nodes
- * @param element - DOM element
- * @returns {boolean}
+ *
+ * @param {HTMLElement} element - DOM element
+ * @returns {Boolean}
  */
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
