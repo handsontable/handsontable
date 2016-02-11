@@ -1187,7 +1187,7 @@ var Walkontable = function Walkontable(settings) {
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
-    } else if (coords.row > totalRows - fixedRowsBottom) {
+    } else if (coords.row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -3823,7 +3823,7 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Wed Feb 10 2016 19:05:44 GMT-0500 (EST)';
+Handsontable.buildDate = 'Thu Nov 19 2015 10:51:56 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.20.1';
 var baseVersion = '@@baseVersion';
@@ -18234,7 +18234,6 @@ function TableView(instance) {
     }
   });
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
-    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -18260,8 +18259,7 @@ function TableView(instance) {
         next = next.parentNode;
       }
     }
-    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ? that.settings.outsideClickDeselects(originalTarget) : that.settings.outsideClickDeselects;
-    if (outsideClickDeselects) {
+    if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
@@ -20677,5 +20675,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,59,60,61,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("numeral")
+},{}]},{},[23,59,61,60,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("numeral")
 });
