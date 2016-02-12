@@ -78,7 +78,7 @@ export function deepExtend(target, extension) {
       if (!target[key]) {
         if (Array.isArray(extension[key])) {
           target[key] = [];
-        } else if (Object.prototype.toString.call(extension[key]) === "[object Date]") {
+        } else if (Object.prototype.toString.call(extension[key]) === '[object Date]') {
           target[key] = extension[key];
         } else {
           target[key] = {};

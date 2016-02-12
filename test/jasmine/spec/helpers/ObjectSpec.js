@@ -161,4 +161,50 @@ describe('Object helper', function () {
       expect(clone(object2).func).toBe(function1);
     });
   });
+
+  describe('deepExtend', function () {
+    it('should extend an object with all the properties of another object (recursively)', function () {
+      var deepExtend = Handsontable.helper.deepExtend;
+      var baseObject = {
+        test: 'one',
+        anotherTest: ['one, two']
+      };
+      var date = new Date();
+      var partial = {
+        prop1: 'prop1',
+        prop2: 34,
+        prop3: [
+          12,
+          'test',
+          {
+            prop: 'one'
+          },
+          [0, 1]
+        ],
+        prop4: {
+          p1: 0,
+          p2: [0, 1],
+          p3: {
+            a: 'b'
+          }
+        },
+        prop5: date
+      };
+
+      deepExtend(baseObject, partial);
+
+      expect(baseObject.test).toEqual('one');
+      expect(baseObject.anotherTest).toEqual(['one, two']);
+      expect(baseObject.prop1).toEqual('prop1');
+      expect(baseObject.prop2).toEqual(34);
+      expect(baseObject.prop3[0]).toEqual(12);
+      expect(baseObject.prop3[1]).toEqual('test');
+      expect(baseObject.prop3[2].prop).toEqual('one');
+      expect(baseObject.prop3[3]).toEqual([0, 1]);
+      expect(baseObject.prop4.p1).toEqual(0);
+      expect(baseObject.prop4.p2).toEqual([0, 1]);
+      expect(baseObject.prop4.p3.a).toEqual('b');
+      expect(baseObject.prop5).toEqual(date);
+    });
+  });
 });
