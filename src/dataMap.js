@@ -396,8 +396,9 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
  */
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
-
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
+    return this.dataSource[row][prop];
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = this.dataSource[row];
 
@@ -430,9 +431,6 @@ DataMap.prototype.get = function(row, prop) {
     return prop(this.dataSource.slice(row, row + 1)[0]);
 
   }
-  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
-    return this.dataSource[row][prop];
-  }
 
   return null;
 };
@@ -463,8 +461,9 @@ DataMap.prototype.getCopyable = function(row, prop) {
  */
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
-
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
+    this.dataSource[row][prop] = value;
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = this.dataSource[row];
     for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
