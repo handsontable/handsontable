@@ -15,13 +15,17 @@ Handsontable.DateValidator = function(value, callback) {
   let valid = true;
   let dateEditor = getEditor('date', this.instance);
 
-  if (value === null) {
+  if (value == null) {
     value = '';
   }
   let isValidDate = moment(new Date(value)).isValid();
   // is it in the specified format
   let isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
+  if (this.allowEmpty && value === '') {
+    isValidDate = true;
+    isValidFormat = true;
+  }
   if (!isValidDate) {
     valid = false;
   }

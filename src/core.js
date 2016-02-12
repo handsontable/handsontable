@@ -3699,6 +3699,16 @@ DefaultSettings.prototype = {
   allowInvalid: true,
 
   /**
+   * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`).
+   * If set to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
+   *
+   * @type {Boolean}
+   * @default true
+   * @since 0.22.1
+   */
+  allowEmpty: true,
+
+  /**
    * CSS class name for cells that did not pass validation.
    *
    * @type {String}
