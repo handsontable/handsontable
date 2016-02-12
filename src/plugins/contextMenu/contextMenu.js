@@ -236,6 +236,45 @@ class ContextMenu extends BasePlugin {
     this.commandExecutor.execute.apply(this.commandExecutor, params);
   }
 
+  changeItems(removeItemFunction, newItems) {
+
+    if (typeof removeItemFunction === 'function') {
+      arrayEach(Object.entries(this.itemsFactory.predefinedItems), (entry) => {
+        let key = entry[0];
+        let item = entry[1];
+        if (removeItemFunction(key, item)) {
+          delete this.itemsFactory.predefinedItems[key];
+        }
+      });
+    }
+
+    arrayEach(Object.entries(newItems || {}), (entry) => {
+      let key = entry[0];
+      let item = entry[1];
+      this.itemsFactory.predefinedItems[key] = item;
+    });
+
+    // START: this block here is essentially copied from the constructor
+    let menuItems = this.itemsFactory.predefinedItems;
+    this.itemsFactory.setPredefinedItems(menuItems);
+
+    this.menu = new Menu(this.hot, { className: 'htContextMenu', keepInViewport: true });
+    this.menu.setMenuItems(menuItems);
+
+    this.menu.addLocalHook('beforeOpen', () => {
+      this.onBeforeContextMenuShow();
+      this.hot.runHooks('beforeContextMenuShow', this);
+    });
+
+    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+
+    // Register all commands. Predefined and added by user or by plugins
+    arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+    // END: this block here is essentially copied from the constructor
+  }
+
   /**
    * On context menu listener.
    *
