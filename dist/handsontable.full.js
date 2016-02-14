@@ -4056,7 +4056,7 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Wed Jan 20 2016 13:28:21 GMT-0500 (EST)';
+Handsontable.buildDate = 'Sat Feb 13 2016 19:40:39 GMT-0500 (EST)';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.21.0';
 var baseVersion = '@@baseVersion';
@@ -12747,6 +12747,49 @@ var $ContextMenu = ContextMenu;
       params[$__14] = arguments[$__14];
     this.commandExecutor.execute.apply(this.commandExecutor, params);
   },
+  changeItems: function(removeItemFunction, newItems) {
+    var $__12 = this;
+    if (typeof removeItemFunction === 'function') {
+      arrayEach(Object.entries(this.itemsFactory.predefinedItems), (function(entry) {
+        var key = entry[0];
+        var item = entry[1];
+        if (removeItemFunction(key, item)) {
+          delete $__12.itemsFactory.predefinedItems[key];
+        }
+      }));
+    }
+    arrayEach(Object.entries(newItems || {}), (function(entry) {
+      var key = entry[0];
+      var item = entry[1];
+      $__12.itemsFactory.predefinedItems[key] = item;
+    }));
+    var menuItems = this.itemsFactory.predefinedItems;
+    this.itemsFactory.setPredefinedItems(menuItems);
+    this.menu = new Menu(this.hot, {
+      className: 'htContextMenu',
+      keepInViewport: true
+    });
+    this.menu.setMenuItems(menuItems);
+    this.menu.addLocalHook('beforeOpen', (function() {
+      $__12.onBeforeContextMenuShow();
+      $__12.hot.runHooks('beforeContextMenuShow', $__12);
+    }));
+    this.menu.addLocalHook('afterOpen', (function() {
+      return $__12.onMenuAfterOpen();
+    }));
+    this.menu.addLocalHook('afterClose', (function() {
+      return $__12.onMenuAfterClose();
+    }));
+    this.menu.addLocalHook('executeCommand', (function() {
+      for (var params = [],
+          $__15 = 0; $__15 < arguments.length; $__15++)
+        params[$__15] = arguments[$__15];
+      return $__12.executeCommand.apply($__12, params);
+    }));
+    arrayEach(menuItems, (function(command) {
+      return $__12.commandExecutor.registerCommand(command.key, command);
+    }));
+  },
   onContextMenu: function(event) {
     var settings = this.hot.getSettings();
     var showRowHeaders = settings.rowHeaders;
@@ -20548,7 +20591,7 @@ if (typeof exports !== "undefined") {
 //# 
 },{}],"moment":[function(require,module,exports){
 //! moment.js
-//! version : 2.11.1
+//! version : 2.11.2
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -22365,7 +22408,7 @@ if (typeof exports !== "undefined") {
     }
 
     // ASP.NET json date format regex
-    var aspNetRegex = /(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/;
+    var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
 
     // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
     // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
@@ -24120,7 +24163,7 @@ if (typeof exports !== "undefined") {
     // Side effect imports
 
 
-    utils_hooks__hooks.version = '2.11.1';
+    utils_hooks__hooks.version = '2.11.2';
 
     setHookCallback(local__createLocal);
 
@@ -28353,5 +28396,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,59,61,60,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("zeroclipboard")
+},{}]},{},[23,59,60,61,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("zeroclipboard")
 });
