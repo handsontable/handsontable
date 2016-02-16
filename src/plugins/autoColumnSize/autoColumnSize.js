@@ -379,7 +379,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => this.widths[data[1]] = void 0);
+    arrayEach(changes, (data) => this.widths[this.hot.propToCol(data[1])] = void 0);
   }
 
   /**
