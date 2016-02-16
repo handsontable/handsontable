@@ -22,6 +22,28 @@ describe('FillHandle', function () {
     expect(isFillHandleVisible()).toBe(true);
   });
 
+  it('should appear when fillHandle is enabled as `string` value', function () {
+    handsontable({
+      fillHandle: 'horizontal'
+    });
+
+    selectCell(2, 2);
+
+    expect(isFillHandleVisible()).toBe(true);
+  });
+
+  it('should appear when fillHandle is enabled as `object` value', function () {
+    handsontable({
+      fillHandle: {
+        allowInsertRow: true
+      }
+    });
+
+    selectCell(2, 2);
+
+    expect(isFillHandleVisible()).toBe(true);
+  });
+
   it('should not appear when fillHandle equals false', function () {
     handsontable({
       fillHandle: false
@@ -216,6 +238,154 @@ describe('FillHandle', function () {
     });
   });
 
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        autoInsertRow: true,
+      }
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+    expect(hot.countRows()).toBe(4);
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(5);
+
+      this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(6);
+      });
+
+    });
+  });
+
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        direction: 'vertical',
+        autoInsertRow: true,
+      }
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+    expect(hot.countRows()).toBe(4);
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(5);
+
+      this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(6);
+      });
+
+    });
+  });
+
+  it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        direction: 'horizontal',
+        autoInsertRow: true,
+      }
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+    expect(hot.countRows()).toBe(4);
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(4);
+
+      this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(4);
+      });
+    });
+  });
+
+  it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        autoInsertRow: false
+      }
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    var ev = {}
+      , $lastRow = this.$container.find('tr:last-child td:eq(2)');
+
+    expect(hot.countRows()).toBe(4);
+
+    ev.clientX = $lastRow.offset().left / 2;
+    ev.clientY = $lastRow.offset().top + 50;
+
+    $(document).simulate('mousemove', ev);
+
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(4);
+
+      ev.clientY = $lastRow.offset().top + 150;
+      $(document).simulate('mousemove',ev);
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(4);
+      });
+    });
+  });
+
   it('should not add new rows if the current number of rows reaches the maxRows setting', function () {
     var hot = handsontable({
       data: [
@@ -384,11 +554,47 @@ describe('FillHandle', function () {
         runs(function () {
           expect(hot.countRows()).toBe(4);
         });
-
       });
+    });
+  });
 
+  it('should add new row after dragging the handle below the viewport', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ]
     });
 
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    var ev = {}
+      , $lastRow = this.$container.find('tr:last-child td:eq(2)');
+
+    expect(hot.countRows()).toBe(4);
+
+    ev.clientX = $lastRow.offset().left / 2;
+    ev.clientY = $lastRow.offset().top + 50;
+
+    $(document).simulate('mousemove', ev);
+
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(5);
+
+      ev.clientY = $lastRow.offset().top + 150;
+      $(document).simulate('mousemove',ev);
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(6);
+      });
+    });
   });
 
 });

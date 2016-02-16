@@ -3419,7 +3419,27 @@ DefaultSettings.prototype = {
    * Possible values: `true` (to enable in all directions), `'vertical'` or `'horizontal'` (to enable in one direction),
    * `false` (to disable completely). Setting to `true` enables the fillHandle plugin.
    *
-   * @type {Boolean|String}
+   * Since 0.23.0 you can pass object to plugin which allows you to add more options for this functionality. If `autoInsertRow`
+   * option is `true`, fill-handler will create new rows till it reaches the last row. It is enabled by default.
+   *
+   * @example
+   * ```js
+   * ...
+   * fillHandle: true // enable plugin in all directions and with autoInsertRow as true
+   * ...
+   * // or
+   * ...
+   * fillHandle: 'vertical' // enable plugin in vertical direction and with autoInsertRow as true
+   * ...
+   * // or
+   * ...
+   * fillHandle: { // enable plugin in horizontal direction and with autoInsertRow as false
+   *   direction: 'horizontal',
+   *   autoInsertRow: false,
+   * }
+   * ```
+   *
+   * @type {Boolean|String|Object}
    * @default true
    */
   fillHandle: true,
