@@ -43,15 +43,15 @@ describe('AutoColumnSize', function () {
     });
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(50);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(93);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(175);
+    expect([93, 94, 95, 96].indexOf(colWidth(this.$container, 1))).toBeGreaterThan(-1);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(129);
     expect(colWidth(this.$container, 1)).toBeAroundValue(50);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(175);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
   });
 
   it('should correctly detect column width with colHeaders', function () {
