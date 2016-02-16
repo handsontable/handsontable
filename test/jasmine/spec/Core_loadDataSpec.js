@@ -38,18 +38,30 @@ describe('Core_loadData', function () {
 
   var arrayOfNestedObjects = function () {
     return [
-      {id: 1, name: {
-        first: "Ted",
-        last: "Right"
-      }},
-      {id: 2, name: {
-        first: "Frank",
-        last: "Honest"
-      }},
-      {id: 3, name: {
-        first: "Joan",
-        last: "Well"
-      }}
+      {
+        id: 1,
+        name: {
+          first: "Ted",
+          last: "Right"
+        },
+        'full.street': 'Street I',
+      },
+      {
+        id: 2,
+        name: {
+          first: "Frank",
+          last: "Honest"
+        },
+        'full.street': 'Street II',
+      },
+      {
+        id: 3,
+        name: {
+          first: "Joan",
+          last: "Well"
+        },
+        'full.street': 'Street III',
+      }
     ]
   };
 
@@ -82,10 +94,13 @@ describe('Core_loadData', function () {
       columns: [
         {data: "id"},
         {data: "name.last"},
-        {data: "name.first"}
+        {data: "name.first"},
+        {data: "full.street"},
       ]
     });
     expect(getDataAtCell(0, 2)).toEqual("Ted");
+    expect(getDataAtCell(1, 3)).toEqual("Street II");
+    expect(getDataAtRowProp(2, 'full.street')).toEqual("Street III");
   });
 
   it('should figure out default column names for array of nested objects', function () {
@@ -181,13 +196,12 @@ describe('Core_loadData', function () {
 
     handsontable({
       data: arrayOfNestedObjects(),
-      colWidths: [90, 90, 90],
-      rowHeights: [23, 23, 23],
+      colWidths: [90, 90, 90, 90],
+      rowHeights: [23, 23, 23, 23],
       cells: cellsSpy
     });
     //
-    expect(cellsSpy.calls.length).toEqual(31);
-
+    expect(cellsSpy.calls.length).toEqual(43);
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays)', function () {
@@ -197,12 +211,12 @@ describe('Core_loadData', function () {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       rowHeaders: true,
-      colWidths: [90, 90, 90],
-      rowHeights: [90, 90, 90],
+      colWidths: [90, 90, 90, 90],
+      rowHeights: [90, 90, 90, 90],
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.length).toEqual(40);
+    expect(cellsSpy.calls.length).toEqual(56);
   });
 
   it('should remove grid rows if new data source has less of them', function () {

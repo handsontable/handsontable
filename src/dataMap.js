@@ -397,14 +397,20 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
 
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    var sliced = prop.split('.');
-    var out = this.dataSource[row];
+  const dataRow = this.dataSource[row];
+
+  // try to get value under property `prop` (includes dot)
+  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+    return dataRow[prop];
+
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+    let sliced = prop.split('.');
+    let out = dataRow;
 
     if (!out) {
       return null;
     }
-    for (var i = 0, ilen = sliced.length; i < ilen; i++) {
+    for (let i = 0, ilen = sliced.length; i < ilen; i++) {
       out = out[sliced[i]];
 
       if (typeof out === 'undefined') {
@@ -428,10 +434,6 @@ DataMap.prototype.get = function(row, prop) {
      *    }]}
      */
     return prop(this.dataSource.slice(row, row + 1)[0]);
-
-  }
-  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
-    return this.dataSource[row][prop];
   }
 
   return null;
@@ -464,11 +466,17 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
 
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    var sliced = prop.split('.');
-    var out = this.dataSource[row];
-    for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+  const dataRow = this.dataSource[row];
 
+  // try to set value under property `prop` (includes dot)
+  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+    dataRow[prop] = value;
+
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+    let sliced = prop.split('.');
+    let out = dataRow;
+
+    for (let i = 0, ilen = sliced.length - 1; i < ilen; i++) {
       if (typeof out[sliced[i]] === 'undefined') {
         out[sliced[i]] = {};
       }
@@ -481,7 +489,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
     prop(this.dataSource.slice(row, row + 1)[0], value);
 
   } else {
-    this.dataSource[row][prop] = value;
+    dataRow[prop] = value;
   }
 };
 
