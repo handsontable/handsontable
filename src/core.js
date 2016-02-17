@@ -3460,8 +3460,7 @@ DefaultSettings.prototype = {
    * ...
    * // or
    * ...
-   * fillHandle: { // enable plugin in horizontal direction and with autoInsertRow as false
-   *   direction: 'horizontal',
+   * fillHandle: { // enable plugin in both directions and with autoInsertRow as false
    *   autoInsertRow: false,
    * }
    * ```
@@ -3749,9 +3748,23 @@ DefaultSettings.prototype = {
    * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`).
    * If set to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
    *
+   * @example
+   * ```js
+   * ...
+   * allowEmpty: true // allow empty values for all cells (whole table)
+   * ...
+   * // or
+   * ...
+   * columns: [
+   *   // allow empty values only for 'date' column
+   *   {data: 'date', dateFormat: 'DD/MM/YYYY', allowEmpty: true}
+   * ]
+   * ...
+   * ```
+   *
    * @type {Boolean}
    * @default true
-   * @since 0.22.1
+   * @since 0.23.0
    */
   allowEmpty: true,
 
@@ -4852,9 +4865,10 @@ DefaultSettings.prototype = {
    * Enabling this plugin switches table into one-way data binding where changes are applied into data source (from outside table)
    * will be automatically reflected in the table.
    *
-   * For every data change `afterChangesObserved` hook will be fired.
+   * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
    *
    * @type {Boolean}
+   * @default false
    */
   observeChanges: void 0,
 };

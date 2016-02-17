@@ -34,7 +34,7 @@ class DataObserver {
   }
 
   /**
-   * Set date to observe.
+   * Set data to observe.
    *
    * @param {*} observedData
    */
