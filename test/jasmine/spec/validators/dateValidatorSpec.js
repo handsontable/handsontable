@@ -21,6 +21,30 @@ describe('dateValidator', function () {
     ];
   };
 
+  it("should validate an empty string (default behavior)", function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'date', type: 'date'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, '');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
+    });
+  });
+
   it("should not positively validate a non-date string", function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -165,7 +189,81 @@ describe('dateValidator', function () {
     });
   });
 
-  describe("correctFormat", function () {
+  describe("allowEmpty", function() {
+    it("should not validate an empty string when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date', undefined, undefined);
+      });
+    });
+
+    it("should not validate `null` when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, null);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date', undefined, undefined);
+      });
+    });
+
+    it("should not validate `undefined` when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, void 0);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'date', undefined, undefined);
+      });
+    });
+  });
+
+  describe("correctFormat", function() {
     it("should not make any changes to entered string if correctFormat is not set", function () {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -267,8 +365,6 @@ describe('dateValidator', function () {
       });
 
       waits(30);
-
     });
   });
-
 });
