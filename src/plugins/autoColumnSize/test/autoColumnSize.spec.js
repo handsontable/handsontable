@@ -31,6 +31,29 @@ describe('AutoColumnSize', function () {
     expect(width1).toBeLessThan(width2);
   });
 
+  it('should update column width after update value in cell (array of objects)', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'},
+      ]
+    });
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(50);
+    expect([93, 94, 95, 96].indexOf(colWidth(this.$container, 1))).toBeGreaterThan(-1);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
+
+    setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
+    setDataAtRowProp(0, 'name', 'foo');
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(129);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(50);
+    expect([171, 174, 175, 176].indexOf(colWidth(this.$container, 2))).toBeGreaterThan(-1); // codeship reports different values
+  });
+
   it('should correctly detect column width with colHeaders', function () {
     handsontable({
       data: arrayOfObjects(),
