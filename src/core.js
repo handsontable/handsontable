@@ -5,7 +5,7 @@ import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
 import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
-import {arrayFlatten} from './helpers/array';
+import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
@@ -110,6 +110,25 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       amount = amount || 1;
 
+      function spliceWith(data, index, count, toInject) {
+        let valueFactory = () => {
+          let result;
+
+          if (toInject === 'array') {
+            result = [];
+
+          } else if (toInject === 'object') {
+            result = {};
+          }
+
+          return result;
+        };
+        let spliceArgs = arrayMap(new Array(count), () => valueFactory());
+
+        spliceArgs.unshift(index, 0);
+        data.splice.apply(data, spliceArgs);
+      }
+
       switch (action) {
         case 'insert_row':
 
@@ -117,8 +136,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             return;
           }
           delta = datamap.createRow(index, amount);
-
-          priv.cellSettings.splice(index, 0, []);
+          spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
@@ -137,7 +155,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {
-              priv.cellSettings[row].splice(index, 0, void 0);
+              spliceWith(priv.cellSettings[row], index, amount);
             }
           }
 
