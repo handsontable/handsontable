@@ -45,7 +45,7 @@ describe('Core_setCellMeta', function () {
     expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
   });
 
-  it('should change cell meta data with updateSettings', function () {
+  it('should change cell meta data with updateSettings when the cell option is defined', function () {
     var classNames = [
       'htCenter htTop',
       'htRight htBottom'

@@ -118,6 +118,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           delta = datamap.createRow(index, amount);
 
+          priv.cellSettings.splice(index, 0, []);
+
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
@@ -133,8 +135,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // index = instance.runHooksAndReturn('modifyCol', index);
           delta = datamap.createCol(index, amount);
 
-          if (delta) {
+          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+            if (priv.cellSettings[row]) {
+              priv.cellSettings[row].splice(index, 0, void 0);
+            }
+          }
 
+          if (delta) {
             if (Array.isArray(instance.getSettings().colHeaders)) {
               var spliceArray = [index, 0];
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
@@ -172,8 +179,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         case 'remove_col':
           datamap.removeCol(index, amount);
 
-          for (var row = 0, len = datamap.getAll().length; row < len; row++) {
-            if (row in priv.cellSettings) {  // if row hasn't been rendered it wouldn't have cellSettings
+          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+            if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(index, amount);
             }
           }
@@ -1521,7 +1528,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     clen = instance.countCols();
 
     // Clear cellSettings cache
-    priv.cellSettings.length = 0;
+    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+      priv.cellSettings.length = 0;
+    }
 
     if (clen > 0) {
       var proto, column;

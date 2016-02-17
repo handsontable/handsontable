@@ -280,6 +280,17 @@ describe('Core_alter', function () {
       expect(hot.getSettings().fixedRowsTop).toEqual(1);
     });
 
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 3,
+        startRows: 4
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('remove_row', 1, 1);
+
+      expect(getCellMeta(1, 1).className).toEqual('test');
+    });
   });
 
   describe("remove column", function () {
@@ -480,6 +491,18 @@ describe('Core_alter', function () {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
     });
 
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('remove_col', 1, 1);
+
+      expect(getCellMeta(1, 1).className).toEqual('test');
+    });
+
   });
 
   describe("insert row", function () {
@@ -619,6 +642,18 @@ describe('Core_alter', function () {
       var selected = getSelected();
       expect(selected[0]).toEqual(3);
       expect(selected[2]).toEqual(3);
+    });
+
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('insert_row', 1, 1);
+
+      expect(getCellMeta(3, 1).className).toEqual('test');
     });
 
   });
@@ -778,6 +813,18 @@ describe('Core_alter', function () {
       expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
       alter('insert_col', null, 1);
       expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
+    });
+
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('insert_col', 1, 1);
+
+      expect(getCellMeta(1, 3).className).toEqual('test');
     });
 
   });
