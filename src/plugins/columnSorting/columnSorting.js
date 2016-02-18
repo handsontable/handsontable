@@ -44,6 +44,7 @@ class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     this.sortIndicators = [];
+    this.lastSortedColumn = null;
   }
 
   /**
@@ -132,6 +133,7 @@ class ColumnSorting extends BasePlugin {
       sortingOrder = loadedSortingState.sortOrder;
     }
     if (typeof sortingColumn === 'number') {
+      this.lastSortedColumn = sortingColumn;
       this.sortByColumn(sortingColumn, sortingOrder);
     }
   }
