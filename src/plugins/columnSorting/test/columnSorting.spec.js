@@ -1274,6 +1274,112 @@ describe('ColumnSorting', function() {
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
   });
 
+  it("should change sorting indicator state on every `hot.sort()` method call (continuously for the same column)", function() {
+    var hot = handsontable({
+      data: [
+        [1, "Ted", "Right"],
+        [2, "", "Honest"],
+        [3, "", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      columnSorting: true,
+      sortIndicator: true,
+    });
+
+    hot.sort(1);
+
+    // ascending
+    var sortedColumn = this.$container.find('th span.columnSorting')[1];
+    var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
+    hot.sort(1);
+
+    // descending
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
+
+    hot.sort(1);
+
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue === '' || afterValue === 'none').toBe(true);
+
+    hot.sort(1);
+
+    // ascending
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
+    hot.sort(1);
+
+    // descending
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
+  });
+
+  it("should change sorting indicator state on every `hot.sort()` method (calling for different columns)", function() {
+    var hot = handsontable({
+      data: [
+        [1, "Ted", "Right"],
+        [2, "", "Honest"],
+        [3, "", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      columnSorting: true,
+      sortIndicator: true,
+    });
+
+    hot.sort(1);
+
+    // ascending
+    var sortedColumn = this.$container.find('th span.columnSorting')[1];
+    var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
+    hot.sort(2);
+
+    // ascending
+    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
+    hot.sort(1);
+
+    // ascending
+    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+
+    hot.sort(2, false);
+
+    // descending
+    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
+
+    hot.sort(2, false);
+
+    // descending
+    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
+
+    hot.sort(2, true);
+
+    // ascending
+    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+  });
+
   it("should properly sort the table, when it's scrolled to the far right", function() {
     var data = [[ "Jasmine Ferguson" , "Britney Carey" , "Kelly Decker" , "Lacey Mcleod" , "Leona Shaffer" , "Kelli Ochoa" , "Adele Roberson" , "Viola Snow" , "Barron Cherry" , "Calhoun Lane" , "Elvia Andrews" , "Katheryn Dale" , "Dorthy Hale" , "Munoz Randall" , "Fields Morse" , "Hubbard Nichols" , "Chang Yang" , "Osborn Anthony" , "Owens Warner" , "Gloria Hampton"   ],  [ "Lane Hill" , "Belinda Mathews" , "York Gray" , "Celina Stone" , "Victoria Mays" , "Angelina Lott" , "Joyce Mason" , "Shawn Rodriguez" , "Susanna Mayo" , "Wolf Fuller" , "Long Hester" , "Dudley Doyle" , "Wilder Sutton" , "Oneal Avery" , "James Mclaughlin" , "Lenora Guzman" , "Mcmahon Sullivan" , "Abby Weeks" , "Beverly Joseph" , "Rosalind Church"   ],  [ "Myrtle Landry" , "Hays Huff" , "Hernandez Benjamin" , "Mclaughlin Garza" , "Franklin Barton" , "Lara Buchanan" , "Ratliff Beck" , "Rosario Munoz" , "Isabelle Dalton" , "Smith Woodard" , "Marjorie Marshall" , "Spears Stein" , "Brianna Bowman" , "Marci Clay" , "Palmer Harrell" , "Ball Levy" , "Shelley Mendoza" , "Morrow Glass" , "Baker Knox" , "Adrian Holman"   ],  [ "Trisha Howell" , "Brooke Harrison" , "Anthony Watkins" , "Ellis Cobb" , "Sheppard Dillon" , "Mathis Bray" , "Foreman Burns" , "Lina Glenn" , "Giles Pollard" , "Weiss Ballard" , "Lynnette Smith" , "Flores Kline" , "Graciela Singleton" , "Santiago Mcclure" , "Claudette Battle" , "Nita Holloway" , "Eula Wolfe" , "Pruitt Stokes" , "Felicia Briggs" , "Melba Bradshaw"   ]];
 
