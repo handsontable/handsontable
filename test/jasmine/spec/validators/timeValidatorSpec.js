@@ -21,6 +21,30 @@ describe('timeValidator', function () {
     ];
   };
 
+  it("should validate an empty string (default behavior)", function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'time', type: 'time'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, '');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time', undefined, undefined);
+    });
+  });
+
   it("should not positively validate a non-date format", function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -141,6 +165,80 @@ describe('timeValidator', function () {
     });
   });
 
+  describe("allowEmpty", function() {
+    it("should not validate an empty string when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time', undefined, undefined);
+      });
+    });
+
+    it("should not validate `null` when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, null);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time', undefined, undefined);
+      });
+    });
+
+    it("should not validate `undefined` when allowEmpty is set as `false`", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, void 0);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'time', undefined, undefined);
+      });
+    });
+  });
+
   describe("correctFormat", function () {
     it("should not make any changes to entered string if correctFormat is not set", function () {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
@@ -216,6 +314,93 @@ describe('timeValidator', function () {
 
       runs(function () {
         expect(getDataAtCell(1, 0)).toEqual("4:35:01 pm");
+      });
+    });
+
+    it("should rewrite the string to the correct format if a time in timestamp format is provided", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, 1455885493);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, 1455885493, 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("19:38:13");
+      });
+    });
+
+    it("should rewrite the string to the correct format if a time in micro-timestamp format is provided", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, 1455885493000);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, 1455885493000, 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("19:38:13");
+      });
+    });
+
+    it("should rewrite the string to the correct format if a time in ISO8601 format is provided", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '2016-02-19T12:40:04.983Z');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-02-19T12:40:04.983Z', 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("13:40:04");
       });
     });
 
