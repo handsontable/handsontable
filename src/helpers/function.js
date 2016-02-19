@@ -1,3 +1,5 @@
+import {arrayReduce} from './array';
+
 /**
  * Returns new function that, when called, has new context (`this` keyword).
  *
@@ -116,4 +118,118 @@ export function debounce(func, wait = 200) {
   }
 
   return _debounce;
+}
+
+/**
+ * Creates the function that returns the result of calling the given functions. Result of the first function is passed to
+ * the second as an argument and so on. Only first function in the chain can handle multiple arguments.
+ *
+ * @param {Function} functions Functions to compose.
+ * @returns {Function}
+ */
+export function pipe(...functions) {
+  const [firstFunc, ...restFunc] = functions;
+
+  return function _pipe() {
+    return arrayReduce(restFunc, (acc, fn) => fn(acc), firstFunc.apply(this, arguments));
+  };
+}
+
+/**
+ * Creates the function that returns the function with cached arguments.
+ *
+ * @param {Function} func Function to partialization.
+ * @param {Array} params Function arguments to cache.
+ * @returns {Function}
+ */
+export function partial(func, ...params) {
+  return function _partial(...restParams) {
+    return func.apply(this, params.concat(restParams));
+  };
+}
+
+/**
+ * Creates the functions that returns the function with cached arguments. If count if passed arguments will be matched
+ * to the arguments defined in `func` then function will be invoked.
+ * Arguments are added to the stack in direction from the left to the right.
+ *
+ * @example
+ * ```
+ * var replace = curry(function(find, replace, string) {
+ *   return string.replace(find, replace);
+ * });
+ *
+ * // returns function with bounded first argument
+ * var replace = replace('foo')
+ *
+ * // returns replaced string - all arguments was passed so function was invoked
+ * replace('bar', 'Some test with foo...');
+ *
+ * ```
+ *
+ * @param {Function} func Function to currying.
+ * @returns {Function}
+ */
+export function curry(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params);
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    }
+  }
+
+  return given([]);
+}
+
+/**
+ * Creates the functions that returns the function with cached arguments. If count if passed arguments will be matched
+ * to the arguments defined in `func` then function will be invoked.
+ * Arguments are added to the stack in direction from the right to the left.
+ *
+ * @example
+ * ```
+ * var replace = curry(function(find, replace, string) {
+ *   return string.replace(find, replace);
+ * });
+ *
+ * // returns function with bounded first argument
+ * var replace = replace('Some test with foo...')
+ *
+ * // returns replaced string - all arguments was passed so function was invoked
+ * replace('bar', 'foo');
+ *
+ * ```
+ *
+ * @param {Function} func Function to currying.
+ * @returns {Function}
+ */
+export function curryRight(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params.reverse());
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    }
+  }
+
+  return given([]);
 }
