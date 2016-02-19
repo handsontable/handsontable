@@ -81,6 +81,23 @@ class WalkontableOverlays {
       }
     };
 
+    this.pendingScrollCallbacks = {
+      master: {
+        top: 0,
+        left: 0,
+      },
+      top: {
+        left: 0,
+      },
+      bottom: {
+        left: 0,
+
+      },
+      left: {
+        top: 0,
+      }
+    };
+
     this.verticalScrolling = false;
     this.horizontalScrolling = false;
     this.delegatedScrollCallback = false;
@@ -315,29 +332,51 @@ class WalkontableOverlays {
       }
 
       // if scrolling the master table - populate the scroll values to both top and left overlays
-      if (this.overlayScrollPositions.master.left !== tempScrollValue) {
-        this.horizontalScrolling = true;
-        this.overlayScrollPositions.master.left = tempScrollValue;
-        scrollValueChanged = true;
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.master.left = tempScrollValue;
+      scrollValueChanged = true;
 
+      if (this.pendingScrollCallbacks.master.left > 0) {
+        this.pendingScrollCallbacks.master.left--;
+
+      } else {
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
+
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.top.left++;
+          }
+
           topOverlay.scrollLeft = tempScrollValue;
           delegatedScroll = (masterHorizontal !== window);
         }
 
         if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
+
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.bottom.left++;
+          }
+
           bottomOverlay.scrollLeft = tempScrollValue;
           delegatedScroll = (masterHorizontal !== window);
         }
       }
+
       tempScrollValue = getScrollTop(target);
 
-      if (this.overlayScrollPositions.master.top !== tempScrollValue) {
-        this.verticalScrolling = true;
-        this.overlayScrollPositions.master.top = tempScrollValue;
-        scrollValueChanged = true;
+      this.verticalScrolling = true;
+      this.overlayScrollPositions.master.top = tempScrollValue;
+      scrollValueChanged = true;
 
+      if (this.pendingScrollCallbacks.master.top > 0) {
+        this.pendingScrollCallbacks.master.top--;
+
+      } else {
         if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
+
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.left.top++;
+          }
+
           leftOverlay.scrollTop = tempScrollValue;
           delegatedScroll = (masterVertical !== window);
         }
@@ -347,14 +386,29 @@ class WalkontableOverlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the bottom overlay - populate the horizontal scroll to the master table
-      if (this.overlayScrollPositions.bottom.left !== tempScrollValue) {
-        this.horizontalScrolling = true;
-        this.overlayScrollPositions.bottom.left = tempScrollValue;
-        scrollValueChanged = true;
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.bottom.left = tempScrollValue;
+      scrollValueChanged = true;
 
-        if (masterHorizontal.scrollLeft !== tempScrollValue) {
-          masterHorizontal.scrollLeft = tempScrollValue;
+      if (this.pendingScrollCallbacks.bottom.left > 0) {
+        this.pendingScrollCallbacks.bottom.left--;
+
+      } else {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.master.left++;
         }
+
+        masterHorizontal.scrollLeft = tempScrollValue;
+
+        if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.top.left++;
+          }
+
+          topOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (masterVertical !== window);
+        }
+
       }
 
       // "fake" scroll value calculated from the mousewheel event
@@ -367,20 +421,35 @@ class WalkontableOverlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
-      if (this.overlayScrollPositions.top.left !== tempScrollValue) {
-        this.horizontalScrolling = true;
-        this.overlayScrollPositions.top.left = tempScrollValue;
-        scrollValueChanged = true;
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.top.left = tempScrollValue;
+      scrollValueChanged = true;
 
-        if (masterHorizontal.scrollLeft !== tempScrollValue) {
-          masterHorizontal.scrollLeft = tempScrollValue;
+      if (this.pendingScrollCallbacks.top.left > 0) {
+        this.pendingScrollCallbacks.top.left--;
+
+      } else {
+
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.master.left++;
         }
+
+        masterHorizontal.scrollLeft = tempScrollValue;
       }
 
       // "fake" scroll value calculated from the mousewheel event
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
         masterVertical.scrollTop += fakeScrollValue;
+      }
+
+      if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.bottom.left++;
+        }
+
+        bottomOverlay.scrollLeft = tempScrollValue;
+        delegatedScroll = (masterVertical !== window);
       }
 
     } else if (target === leftOverlay) {
@@ -392,7 +461,14 @@ class WalkontableOverlays {
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
 
-        if (masterVertical.scrollTop !== tempScrollValue) {
+        if (this.pendingScrollCallbacks.left.top > 0) {
+          this.pendingScrollCallbacks.left.top--;
+
+        } else {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.master.top++;
+          }
+
           masterVertical.scrollTop = tempScrollValue;
         }
       }

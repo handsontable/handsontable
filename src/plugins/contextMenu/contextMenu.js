@@ -150,6 +150,16 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
+   * Update the plugin according to Handsontable settings.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
+  }
+
+  /**
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {

@@ -5,7 +5,7 @@ import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
 import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
-import {arrayFlatten} from './helpers/array';
+import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
@@ -110,6 +110,25 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       amount = amount || 1;
 
+      function spliceWith(data, index, count, toInject) {
+        let valueFactory = () => {
+          let result;
+
+          if (toInject === 'array') {
+            result = [];
+
+          } else if (toInject === 'object') {
+            result = {};
+          }
+
+          return result;
+        };
+        let spliceArgs = arrayMap(new Array(count), () => valueFactory());
+
+        spliceArgs.unshift(index, 0);
+        data.splice.apply(data, spliceArgs);
+      }
+
       switch (action) {
         case 'insert_row':
 
@@ -117,6 +136,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             return;
           }
           delta = datamap.createRow(index, amount);
+          spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
@@ -133,8 +153,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // index = instance.runHooksAndReturn('modifyCol', index);
           delta = datamap.createCol(index, amount);
 
-          if (delta) {
+          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+            if (priv.cellSettings[row]) {
+              spliceWith(priv.cellSettings[row], index, amount);
+            }
+          }
 
+          if (delta) {
             if (Array.isArray(instance.getSettings().colHeaders)) {
               var spliceArray = [index, 0];
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
@@ -172,8 +197,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         case 'remove_col':
           datamap.removeCol(index, amount);
 
-          for (var row = 0, len = datamap.getAll().length; row < len; row++) {
-            if (row in priv.cellSettings) {  // if row hasn't been rendered it wouldn't have cellSettings
+          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+            if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(index, amount);
             }
           }
@@ -1521,7 +1546,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     clen = instance.countCols();
 
     // Clear cellSettings cache
-    priv.cellSettings.length = 0;
+    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+      priv.cellSettings.length = 0;
+    }
 
     if (clen > 0) {
       var proto, column;
@@ -3419,7 +3446,26 @@ DefaultSettings.prototype = {
    * Possible values: `true` (to enable in all directions), `'vertical'` or `'horizontal'` (to enable in one direction),
    * `false` (to disable completely). Setting to `true` enables the fillHandle plugin.
    *
-   * @type {Boolean|String}
+   * Since 0.23.0 you can pass object to plugin which allows you to add more options for this functionality. If `autoInsertRow`
+   * option is `true`, fill-handler will create new rows till it reaches the last row. It is enabled by default.
+   *
+   * @example
+   * ```js
+   * ...
+   * fillHandle: true // enable plugin in all directions and with autoInsertRow as true
+   * ...
+   * // or
+   * ...
+   * fillHandle: 'vertical' // enable plugin in vertical direction and with autoInsertRow as true
+   * ...
+   * // or
+   * ...
+   * fillHandle: { // enable plugin in both directions and with autoInsertRow as false
+   *   autoInsertRow: false,
+   * }
+   * ```
+   *
+   * @type {Boolean|String|Object}
    * @default true
    */
   fillHandle: true,
@@ -3603,7 +3649,7 @@ DefaultSettings.prototype = {
   currentColClassName: void 0,
 
   /**
-   * Class name for the Hadnstontable container element.
+   * Class name for the Handsontable container element.
    *
    * @type {String|Array}
    * @default undefined
@@ -3697,6 +3743,30 @@ DefaultSettings.prototype = {
    * @since 0.9.5
    */
   allowInvalid: true,
+
+  /**
+   * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`).
+   * If set to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
+   *
+   * @example
+   * ```js
+   * ...
+   * allowEmpty: true // allow empty values for all cells (whole table)
+   * ...
+   * // or
+   * ...
+   * columns: [
+   *   // allow empty values only for 'date' column
+   *   {data: 'date', dateFormat: 'DD/MM/YYYY', allowEmpty: true}
+   * ]
+   * ...
+   * ```
+   *
+   * @type {Boolean}
+   * @default true
+   * @since 0.23.0
+   */
+  allowEmpty: true,
 
   /**
    * CSS class name for cells that did not pass validation.
@@ -4545,7 +4615,7 @@ DefaultSettings.prototype = {
    * columns: [{
    *   type: 'date',
    *   dateFormat: 'YYYY-MM-DD',
-   *   correcrFormat: true
+   *   correctFormat: true
    * }]
    * ...
    * ```
@@ -4565,7 +4635,7 @@ DefaultSettings.prototype = {
    * ...
    * columns: [{
    *   type: 'date',
-   *   defautlData: '2015-02-02'
+   *   defaultData: '2015-02-02'
    * }]
    * ...
    * ```
@@ -4788,7 +4858,18 @@ DefaultSettings.prototype = {
    * @since 0.22.0
    * @type {Number|Array}
    */
-  columnHeaderHeight: void 0
+  columnHeaderHeight: void 0,
 
+  /**
+   * @description
+   * Enabling this plugin switches table into one-way data binding where changes are applied into data source (from outside table)
+   * will be automatically reflected in the table.
+   *
+   * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
+   *
+   * @type {Boolean}
+   * @default false
+   */
+  observeChanges: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;

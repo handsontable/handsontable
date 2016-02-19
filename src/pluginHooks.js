@@ -914,7 +914,7 @@ class Hooks {
    */
   add(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => (this.add(key, c, context)));
+      arrayEach(callback, (c) => this.add(key, c, context));
 
     } else {
       const bucket = this.getBucket(context);
@@ -939,7 +939,7 @@ class Hooks {
    *
    * @see Core#addHookOnce
    * @param {String} key Hook/Event name.
-   * @param {Function} callback Callback function.
+   * @param {Function|Array} callback Callback function.
    * @param {Object} [context=null] A Handsontable instance.
    *
    * @example
@@ -949,7 +949,7 @@ class Hooks {
    */
   once(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => (this.once(key, c, context)));
+      arrayEach(callback, (c) => this.once(key, c, context));
 
     } else {
       callback.runOnce = true;

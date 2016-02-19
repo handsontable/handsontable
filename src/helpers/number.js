@@ -19,8 +19,8 @@ export function isNumeric(n) {
  * A specialized version of `.forEach` defined by ranges.
  *
  * @param {Number} rangeFrom The number from start iterate.
- * @param {Number} rangeTo The number where finish iterate.
- * @param {Function} iteratee The function invoked per iteration.
+ * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
+ * @param {Function} [iteratee] The function invoked per iteration.
  */
 export function rangeEach(rangeFrom, rangeTo, iteratee) {
   let index = -1;
