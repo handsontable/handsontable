@@ -100,7 +100,6 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
  * @returns {Function}
  */
 export function debounce(func, wait = 200) {
-  let needCall = false;
   let lastTimer = null;
   let result;
 
