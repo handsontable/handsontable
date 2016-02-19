@@ -1,4 +1,4 @@
-describe('NumericValidator', function () {
+describe('numericValidator', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -27,6 +27,30 @@ describe('NumericValidator', function () {
     ];
   };
 
+  it('should validate an empty string (default behavior)', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate : onAfterValidate
+    });
+
+    setDataAtCell(2, 0, '');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id', undefined, undefined);
+    });
+  });
+
   it('should not validate non numeric string', function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -49,8 +73,6 @@ describe('NumericValidator', function () {
     runs(function () {
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
     });
-
-
   });
 
   it('should validate numeric string', function () {
@@ -102,28 +124,101 @@ describe('NumericValidator', function () {
     });
   });
 
-  it('should validate empty string', function () {
-    var out;
+  describe("allowEmpty", function() {
+    it('should not validate an empty string when allowEmpty is set as `false`', function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    Handsontable.NumericValidator('', function (result) {
-      out = result;
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : onAfterValidate
+      });
+
+      setDataAtCell(2, 0, '');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id', undefined, undefined);
+      });
     });
 
-    expect(out).toBe(true);
-  });
+    it('should not validate `null` when allowEmpty is set as `false`', function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-  //is this correct behavior is disputable, but at least it's consistent
-  it('should validate null with the same empty string', function () {
-    var out1, out2;
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : onAfterValidate
+      });
 
-    Handsontable.NumericValidator('', function (result) {
-      out1 = result;
+      setDataAtCell(2, 0, null);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id', undefined, undefined);
+      });
     });
 
-    Handsontable.NumericValidator(null, function (result) {
-      out2 = result;
+    it('should not validate `undefined` when allowEmpty is set as `false`', function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : onAfterValidate
+      });
+
+      setDataAtCell(2, 0, void 0);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 2, 'id', undefined, undefined);
+      });
     });
 
-    expect(out1).toBe(out2);
+    it('should validate 0 when allowEmpty is set as `false`', function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric', allowEmpty: false},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : onAfterValidate
+      });
+
+      setDataAtCell(2, 0, 0);
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id', undefined, undefined);
+      });
+    });
   });
 });

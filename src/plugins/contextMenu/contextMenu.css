@@ -53,6 +53,7 @@
   border-top: 1px solid #bbb;
   height: 0;
   padding: 0;
+  cursor: default;
 }
 
 .htContextMenu table tbody tr td.htDisabled {

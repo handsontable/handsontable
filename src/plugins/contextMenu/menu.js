@@ -11,7 +11,7 @@ import {
   isChildOf,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
+import {arrayEach, arrayReduce} from './../../helpers/array';
 import {Cursor} from './cursor';
 import {EventManager} from './../../eventManager';
 import {extend, isObject, objectEach, mixin} from './../../helpers/object';
@@ -27,9 +27,15 @@ import {stopPropagation, stopImmediatePropagation, pageX, pageY} from './../../h
  * @plugin ContextMenu
  */
 class Menu {
-  constructor(hotInstance, options = {parent: null, name: null, className: '', keepInViewport: true}) {
+  constructor(hotInstance, options) {
     this.hot = hotInstance;
-    this.options = options;
+    this.options = options || {
+      parent: null,
+      name: null,
+      className: '',
+      keepInViewport: true,
+      standalone: false,
+    };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
     this.hotMenu = null;
@@ -109,9 +115,6 @@ class Menu {
       fragmentSelection: 'cell',
       beforeKeyDown: (event) => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords, TD) => {
-        if (!TD.textContent) {
-          return;
-        }
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
         } else {
@@ -246,7 +249,7 @@ class Menu {
 
     this.runLocalHooks('select', selectedItem, event);
 
-    if (selectedItem.isCommand === false) {
+    if (selectedItem.isCommand === false || selectedItem.name === SEPARATOR) {
       return;
     }
     const selRange = this.hot.getSelectedRange();
@@ -257,7 +260,12 @@ class Menu {
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
-    this.close(true);
+    // Don't close context menu if item is disabled or it has submenu
+    if (!(selectedItem.disabled === true ||
+        typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true ||
+        selectedItem.submenu)) {
+      this.close(true);
+    }
   }
 
   /**
@@ -462,28 +470,28 @@ class Menu {
 
     } else if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
+      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
     } else if (itemIsSelectionDisabled(item)) {
       addClass(TD, 'htSelectionDisabled');
-      this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
+      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
 
     } else if (isSubMenu(item)) {
       addClass(TD, 'htSubmenu');
 
       if (itemIsSelectionDisabled(item)) {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
       }
     } else {
       removeClass(TD, 'htSubmenu');
       removeClass(TD, 'htDisabled');
 
       if (itemIsSelectionDisabled(item)) {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.deselectCell());
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(wrapper, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
       }
     }
   }
@@ -624,9 +632,11 @@ class Menu {
     const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
     let currentHiderWidth = parseInt(hiderStyle.width, 10);
-    let realHeight = 0;
 
-    arrayEach(data, (value) => realHeight += value.name === SEPARATOR ? 1 : 26);
+    let realHeight = arrayReduce(data, (accumulator, value) => {
+      return accumulator + (value.name === SEPARATOR ? 1 : 26);
+    }, 0);
+
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
   }
@@ -644,8 +654,12 @@ class Menu {
     if (this.container && isChildOf(event.target, this.container)) {
       this.executeCommand(event);
     }
-    // Automatically close menu when clicked element is not belongs to menu or submenu
-    if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
+    // Close menu when clicked element is not belongs to menu itself
+    if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
+      this.close(true);
+
+    // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
+    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, document))) {
       this.close(true);
     }

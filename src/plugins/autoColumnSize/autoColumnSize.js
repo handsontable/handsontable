@@ -339,7 +339,14 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    let force = this.hot.renderCall;
+    const force = this.hot.renderCall;
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
     this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
@@ -372,7 +379,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => this.widths[data[1]] = void 0);
+    arrayEach(changes, (data) => this.widths[this.hot.propToCol(data[1])] = void 0);
   }
 
   /**

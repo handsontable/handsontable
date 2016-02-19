@@ -12,6 +12,69 @@ describe('ContextMenu', function () {
     }
   });
 
+  it("should update context menu items by calling `updateSettings` method", function () {
+    var hot = handsontable({
+      contextMenu: ['row_above', 'row_below', '---------', 'remove_row'],
+      height: 100
+    });
+
+    contextMenu();
+
+    var items = $('.htContextMenu tbody td');
+    var actions = items.not('.htSeparator');
+    var separators = items.filter('.htSeparator');
+
+    expect(actions.length).toEqual(3);
+    expect(separators.length).toEqual(1);
+
+    expect(actions.text()).toEqual([
+      'Insert row above',
+      'Insert row below',
+      'Remove row',
+    ].join(''));
+
+    hot.updateSettings({
+      contextMenu: ['remove_row']
+    });
+
+    contextMenu();
+
+    var items = $('.htContextMenu tbody td');
+    var actions = items.not('.htSeparator');
+    var separators = items.filter('.htSeparator');
+
+    expect(actions.length).toEqual(1);
+    expect(separators.length).toEqual(0);
+
+    expect(actions.text()).toEqual([
+      'Remove row',
+    ].join(''));
+
+    hot.updateSettings({
+      contextMenu: {
+        items: {
+          remove_col: true,
+          hsep1: '---------',
+          custom: {name: 'My custom item'},
+        }
+      }
+    })
+
+    contextMenu();
+
+    var items = $('.htContextMenu tbody td');
+    var actions = items.not('.htSeparator');
+    var separators = items.filter('.htSeparator');
+
+    expect(actions.length).toEqual(2);
+    expect(separators.length).toEqual(1);
+
+    expect(actions.text()).toEqual([
+      'Remove column',
+      'My custom item',
+    ].join(''));
+  });
+
   describe("menu opening", function () {
     it("should open menu after right click on table cell", function () {
       var hot = handsontable({
@@ -1141,6 +1204,20 @@ describe('ContextMenu', function () {
       });
     });
 
+    it("should not close menu after clicking on submenu root item", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Alignment
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
     it("should add comment", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -1286,6 +1363,19 @@ describe('ContextMenu', function () {
   });
 
   describe("disabling actions", function () {
+    it("should not close menu after clicking on disabled item", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: ['undo', 'redo'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Undo
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
 
     it("should disable undo and redo action if undoRedo plugin is not enabled ", function () {
       var hot = handsontable({
