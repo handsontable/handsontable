@@ -124,7 +124,7 @@ function ManualColumnMove() {
             var col = instance.view.wt.wtTable.getCoords(th).col;
             if (col >= 0) { // not TH above row header
               endCol = col;
-              refreshHandlePosition(e.target, endCol - startCol);
+              refreshHandlePosition(th, endCol - startCol);
             }
           } else {
             setupHandlePosition.call(instance, th);
