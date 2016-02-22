@@ -1,4 +1,3 @@
-
 import {arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 
@@ -42,7 +41,23 @@ const stateSaver = {
    */
   hasSavedState(stateId) {
     return this._states[STATE_PREFIX + stateId] !== void 0;
-  }
+  },
+
+  /**
+   * Clear component state.
+   *
+   * @param {String|Number} stateId
+   */
+  clearState(stateId) {
+    this._states[STATE_PREFIX + stateId] = void 0;
+  },
+
+  /**
+   * Clear all previously saved state of this component.
+   */
+  clearStates() {
+    this._states = {};
+  },
 };
 
 defineGetter(stateSaver, 'MIXIN_NAME', MIXIN_NAME, {
