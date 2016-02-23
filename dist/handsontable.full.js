@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 02 2016 16:57:45 GMT+0800 (CST)
+ * Date: Tue Feb 23 2016 11:09:15 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Feb 02 2016 16:57:45 GMT+0800 (CST)',
+  buildDate: 'Tue Feb 23 2016 11:09:15 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2155,7 +2155,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
   },
   onTableScroll: function(event) {
-    if (Handsontable.mobileBrowser) {
+    if (Handsontable.virtualScroll) {
       this.syncScrollPositions(event);
       return;
     }
@@ -2204,7 +2204,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
-    if (Handsontable.mobileBrowser) {
+    if (Handsontable.virtualScroll) {
       event = {
         target: $('.ht_master .wtHolder')[0],
         type: 'scroll'
@@ -2242,7 +2242,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         this.overlayScrollPositions.master.left = tempScrollValue;
         scrollValueChanged = true;
         if (topOverlay) {
-          if (!Handsontable.mobileBrowser) {
+          if (!Handsontable.virtualScroll) {
             topOverlay.scrollLeft = tempScrollValue;
           }
         }
@@ -2255,7 +2255,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         this.overlayScrollPositions.master.top = tempScrollValue;
         scrollValueChanged = true;
         if (leftOverlay) {
-          if (!Handsontable.mobileBrowser) {
+          if (!Handsontable.virtualScroll) {
             leftOverlay.scrollTop = tempScrollValue;
           }
         }
@@ -8172,7 +8172,7 @@ function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
   } else {
-    if (Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+    if (Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
       return -window.myScroll.y;
     }
     return element.scrollTop;
@@ -8182,14 +8182,14 @@ function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
   } else {
-    if (Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+    if (Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
       return -window.myScroll.x;
     }
     return element.scrollLeft;
   }
 }
 function getScrollableElement(element) {
-  if (Handsontable.mobileBrowser) {
+  if (Handsontable.virtualScroll) {
     return $('.ht_master .wtHolder')[0];
   }
   var el = element.parentNode,

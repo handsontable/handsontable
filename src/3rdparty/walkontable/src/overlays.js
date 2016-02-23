@@ -164,7 +164,7 @@ class WalkontableOverlays {
   onTableScroll(event) {
 
     // 2016mobile#13
-    if (Handsontable.mobileBrowser) {
+    if (Handsontable.virtualScroll) {
       this.syncScrollPositions(event);
       return;
     }
@@ -247,7 +247,7 @@ class WalkontableOverlays {
   syncScrollPositions(event, fakeScrollValue = null) {
 
     // 2016mobile#14
-    if(Handsontable.mobileBrowser) {
+    if(Handsontable.virtualScroll) {
       event = {
         target: $('.ht_master .wtHolder')[0],
         type: 'scroll'
@@ -296,7 +296,7 @@ class WalkontableOverlays {
 
         if (topOverlay) {
           // 2016mobile#15
-          if(!Handsontable.mobileBrowser) {
+          if(!Handsontable.virtualScroll) {
             topOverlay.scrollLeft = tempScrollValue;
           }
         }
@@ -313,7 +313,7 @@ class WalkontableOverlays {
 
         if (leftOverlay) {
           // 2016mobile#16
-          if(!Handsontable.mobileBrowser) {
+          if(!Handsontable.virtualScroll) {
             leftOverlay.scrollTop = tempScrollValue;
           }
         }
