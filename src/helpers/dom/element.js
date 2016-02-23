@@ -503,7 +503,7 @@ export function getScrollTop(element) {
   } else {
 
     // 2016mobile#8
-    if(Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+    if(Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
       return -window.myScroll.y;
     }
     return element.scrollTop;
@@ -522,7 +522,7 @@ export function getScrollLeft(element) {
   } else {
 
     // 2016mobile#9
-    if(Handsontable.mobileBrowser && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
+    if(Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
       return -window.myScroll.x;
     }
     return element.scrollLeft;
@@ -538,7 +538,7 @@ export function getScrollLeft(element) {
 export function getScrollableElement(element) {
 
   // 2016mobile#10
-  if(Handsontable.mobileBrowser) {
+  if(Handsontable.virtualScroll) {
     return $('.ht_master .wtHolder')[0]
   }
   
