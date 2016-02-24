@@ -1588,14 +1588,19 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
 
-    if (typeof settings.height != 'undefined') {
-      var height = settings.height;
+    let currentHeight = instance.rootElement.style.height;
+    if (currentHeight !== '') {
+      currentHeight = parseInt(instance.rootElement.style.height, 10);
+    }
 
-      if (typeof height == 'function') {
-        height = height();
-      }
+    let height = settings.height;
+    if (typeof height == 'function') {
+      height = height();
+    }
 
+    if (height !== void 0) {
       instance.rootElement.style.height = height + 'px';
+      instance.rootElement.style.overflow = 'hidden';
     }
 
     if (typeof settings.width != 'undefined') {
@@ -1608,12 +1613,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
 
-    /* jshint ignore:start */
-    if (height) {
-      instance.rootElement.style.overflow = 'hidden';
-    }
-    /* jshint ignore:end */
-
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
@@ -1622,6 +1621,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
       selection.refreshBorders(null, true);
+    }
+
+    if (!init && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+      instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
 

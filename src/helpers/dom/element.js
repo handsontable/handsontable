@@ -901,10 +901,10 @@ export function getCssTransform(element) {
 }
 
 export function resetCssTransform(element) {
-  if (element.transform && element.transform !== '') {
-    element.transform = '';
-  } else if (element['-webkit-transform'] && element['-webkit-transform'] !== '') {
-    element['-webkit-transform'] = '';
+  if (element.style.transform && element.style.transform !== '') {
+    element.style.transform = '';
+  } else if (element.style['-webkit-transform'] && element.style['-webkit-transform'] !== '') {
+    element.style['-webkit-transform'] = '';
   }
 }
 
