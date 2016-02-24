@@ -1495,6 +1495,24 @@ describe('ContextMenu', function () {
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(true);
 
     });
+
+    it('should NOT disable Insert col in context menu when only one column exists', function () {
+      var hot = handsontable({
+        data: [['single col']],
+        contextMenu: true,
+        maxCols: 10,
+        height: 100
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
+    });
   });
 
   describe("custom options", function () {
