@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 23 2016 11:09:15 GMT+0800 (CST)
+ * Date: Wed Feb 24 2016 11:18:54 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Feb 23 2016 11:09:15 GMT+0800 (CST)',
+  buildDate: 'Wed Feb 24 2016 11:18:54 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -13624,16 +13624,16 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
   var shiftVector = [0, 0];
   switch (direction) {
     case 'right':
-      shiftVector[0] += 1;
+      shiftVector[0] += count;
       break;
     case 'left':
-      shiftVector[0] -= 1;
+      shiftVector[0] -= count;
       break;
     case 'down':
-      shiftVector[1] += 1;
+      shiftVector[1] += count;
       break;
     case 'up':
-      shiftVector[1] -= 1;
+      shiftVector[1] -= count;
       break;
   }
   for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
