@@ -317,19 +317,19 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
 
   switch (direction) {
     case 'right':
-      shiftVector[0] += 1;
+      shiftVector[0] += count;
 
       break;
     case 'left':
-      shiftVector[0] -= 1;
+      shiftVector[0] -= count;
 
       break;
     case 'down':
-      shiftVector[1] += 1;
+      shiftVector[1] += count;
 
       break;
     case 'up':
-      shiftVector[1] -= 1;
+      shiftVector[1] -= count;
 
       break;
   }
