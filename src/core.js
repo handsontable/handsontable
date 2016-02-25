@@ -1642,7 +1642,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
 
-    if (!init && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
       instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
