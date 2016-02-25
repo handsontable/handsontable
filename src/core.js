@@ -1598,7 +1598,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       height = height();
     }
 
-    if (height !== void 0) {
+    if (init) {
+      instance.rootElement.setAttribute('data-originalstyle', instance.rootElement.getAttribute('style'));
+    }
+
+    if (height === void 0) {
+      let originalStyle = instance.rootElement.getAttribute('data-originalstyle');
+
+      if (originalStyle && (originalStyle.indexOf('height') > -1 || originalStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', originalStyle);
+
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
+      }
+
+    } else {
       instance.rootElement.style.height = height + 'px';
       instance.rootElement.style.overflow = 'hidden';
     }
