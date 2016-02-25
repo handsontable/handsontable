@@ -239,4 +239,36 @@ describe('Core_updateSettings', function () {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
+  it("should allow updating the table height", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5
+    });
+
+    var initialHeight = parseInt(this.$container[0].style.height, 10);
+
+    updateSettings({
+      height: 300
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toEqual(300);
+    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(initialHeight);
+  });
+
+  it("should allow resetting the table height", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5,
+      height: 300
+    });
+
+    var initialHeight = this.$container[0].style.height;
+
+    updateSettings({
+      height: void 0
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(initialHeight);
+  });
+
 });

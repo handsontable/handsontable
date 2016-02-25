@@ -1599,14 +1599,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     if (init) {
-      instance.rootElement.setAttribute('data-originalstyle', instance.rootElement.getAttribute('style'));
+      let initialStyle = instance.rootElement.getAttribute('style');
+
+      if (initialStyle) {
+        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
     }
 
     if (height === void 0) {
-      let originalStyle = instance.rootElement.getAttribute('data-originalstyle');
+      let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
 
-      if (originalStyle && (originalStyle.indexOf('height') > -1 || originalStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', originalStyle);
+      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle);
 
       } else {
         instance.rootElement.style.height = '';
