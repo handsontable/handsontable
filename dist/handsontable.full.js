@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 24 2016 11:18:54 GMT+0800 (CST)
+ * Date: Tue Mar 01 2016 16:48:41 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Feb 24 2016 11:18:54 GMT+0800 (CST)',
+  buildDate: 'Tue Mar 01 2016 16:48:41 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -11553,6 +11553,7 @@ function CopyPastePlugin(instance) {
   function onPaste(str) {
     var input,
         inputArray,
+        tempArray = [],
         selected,
         coordsFrom,
         coordsTo,
@@ -11566,6 +11567,21 @@ function CopyPastePlugin(instance) {
     }
     input = str;
     inputArray = SheetClip.parse(input);
+    _.forEach(inputArray, function(value, key) {
+      tempArray.push([]);
+      _.forEach(value, function(item) {
+        if (isTdHtml(item)) {
+          tempArray[key].push(item);
+        } else {
+          tempArray[key].push(_.escape(item));
+        }
+      });
+    });
+    function isTdHtml(string) {
+      var ele = $('<div></div>').append(string).children();
+      return ele.length === 1 && ele[0].tagName.toLowerCase() === 'td';
+    }
+    inputArray = tempArray;
     selected = instance.getSelected();
     coordsFrom = new WalkontableCellCoords(selected[0], selected[1]);
     coordsTo = new WalkontableCellCoords(selected[2], selected[3]);
@@ -15916,7 +15932,7 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
   if (_this.pasteCallbacks) {
     setTimeout(function() {
-      var copiedVal = _this.elTextarea.htmlValue || _.escape(_this.elTextarea.value),
+      var copiedVal = _this.elTextarea.htmlValue || _this.elTextarea.value,
           val;
       val = string || copiedVal;
       for (var i = 0,
