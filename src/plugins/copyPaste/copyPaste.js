@@ -35,6 +35,7 @@ function CopyPastePlugin(instance) {
     var
       input,
       inputArray,
+      tempArray = [],
       selected,
       coordsFrom,
       coordsTo,
@@ -49,6 +50,23 @@ function CopyPastePlugin(instance) {
     }
     input = str;
     inputArray = SheetClip.parse(input);
+    _.forEach(inputArray, function(value, key){
+      tempArray.push([]);
+      _.forEach(value, function(item){
+        if(isTdHtml(item)){
+          tempArray[key].push(item);
+        } else {
+          tempArray[key].push(_.escape(item));
+        }
+      })
+    })
+
+    function isTdHtml(string) {
+      var ele = $('<div></div>').append(string).children();
+      return ele.length === 1 && ele[0].tagName.toLowerCase() === 'td';
+    }
+    
+    inputArray = tempArray;
     selected = instance.getSelected();
     coordsFrom = new WalkontableCellCoords(selected[0], selected[1]);
     coordsTo = new WalkontableCellCoords(selected[2], selected[3]);
