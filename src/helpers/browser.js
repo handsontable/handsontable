@@ -77,3 +77,36 @@ export function hasCaptionProblem() {
 
   return _hasCaptionProblem;
 }
+
+let comparisonFunction;
+
+/**
+ * Get string comparison function for sorting purposes. It supports multilingual string comparison base on Internationalization API.
+ *
+ * @param {String} [language]
+ * @param {Object} [options]
+ * @returns {*}
+ */
+export function getComparisonFunction(language, options = {}) {
+  if (comparisonFunction) {
+    return comparisonFunction;
+  }
+
+  if (typeof Intl === 'object') {
+    comparisonFunction = new Intl.Collator(language, options).compare;
+
+  } else if (typeof String.prototype.localeCompare === 'function') {
+    comparisonFunction = (a, b) => (a + '').localeCompare(b);
+
+  } else {
+    comparisonFunction = (a, b) => {
+      if (a === b) {
+        return 0;
+      }
+
+      return a > b ? -1 : 1;
+    };
+  }
+
+  return comparisonFunction;
+}

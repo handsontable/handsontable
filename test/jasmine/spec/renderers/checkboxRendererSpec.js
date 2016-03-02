@@ -55,6 +55,36 @@ describe('CheckboxRenderer', function () {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
+  it('should select cell after checkbox click', function () {
+    var hot = handsontable({
+      data: [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    hot.selectCell(0, 0);
+
+    this.$container.find(':checkbox').eq(2).simulate('mousedown');
+
+    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+  });
+
+  it('should select cell after label click', function () {
+    var hot = handsontable({
+      data: [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox', label: {position: 'before', value: 'Sure? '}}
+      ]
+    });
+
+    hot.selectCell(0, 0);
+
+    this.$container.find('td label').eq(2).simulate('mousedown');
+
+    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+  });
+
   it('should reverse selection in checkboxes', function () {
     handsontable({
       data  :  [[true],[false],[true]],
