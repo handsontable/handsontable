@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 02 2016 15:12:26 GMT+0800 (CST)
+ * Date: Wed Mar 02 2016 17:08:27 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Mar 02 2016 15:12:26 GMT+0800 (CST)',
+  buildDate: 'Wed Mar 02 2016 17:08:27 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2154,9 +2154,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       }));
     }
   },
-  onTableScroll: function(event, type) {
+  onTableScroll: function(event) {
     if (Handsontable.virtualScroll) {
-      this.syncScrollPositions(event, type);
+      this.syncScrollPositions(event);
       return;
     }
     if (this.keyPressed && this.mainTableScrollableElement !== window && !event.target.contains(this.mainTableScrollableElement)) {
@@ -2202,10 +2202,11 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
     return false;
   },
-  syncScrollPositions: function(event, type) {
+  syncScrollPositions: function(event) {
+    var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
     if (Handsontable.virtualScroll) {
       event = {
-        target: type === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
+        target: event === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
         type: 'scroll'
       };
     }
@@ -15236,7 +15237,7 @@ function TableView(instance) {
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
       instance.selection.setSelectedHeaders(false, false);
       if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection($.extend(true, {}, coords))) {
+        if (event.button === 2 && instance.selection.inInSelection($.extend(true, {}, coords)) && selectionSelected()) {
           var nothing = 1;
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
@@ -15264,6 +15265,18 @@ function TableView(instance) {
         }
         Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
         that.activeWt = that.wt;
+      }
+      function selectionSelected() {
+        var cellRange = instance.getSelectedRange();
+        var topLeftCorner = cellRange.getTopLeftCorner();
+        var bottomRightCorner = cellRange.getBottomRightCorner();
+        if (coords.row < 0) {
+          return topLeftCorner.row === 0 && bottomRightCorner.row === instance.countRows() - 1;
+        } else if (coords.col < 0) {
+          return topLeftCorner.col === 0 && bottomRightCorner.col === instance.countCols() - 1;
+        } else {
+          return true;
+        }
       }
       function isFormula(val) {
         val = val.trim();

@@ -293,7 +293,7 @@ function TableView(instance) {
       instance.selection.setSelectedHeaders(false, false);
 
       if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection($.extend(true, {}, coords))) { //right mouse button
+        if (event.button === 2 && instance.selection.inInSelection($.extend(true, {}, coords)) && selectionSelected()) { //right mouse button
           var nothing = 1; // do nothing
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
@@ -327,6 +327,20 @@ function TableView(instance) {
         Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
 
         that.activeWt = that.wt;
+      }
+
+      function selectionSelected(){
+        var cellRange = instance.getSelectedRange();
+        var topLeftCorner = cellRange.getTopLeftCorner();
+        var bottomRightCorner = cellRange.getBottomRightCorner();
+
+        if(coords.row < 0) {
+          return topLeftCorner.row === 0 && bottomRightCorner.row === instance.countRows() - 1;
+        } else if(coords.col < 0) {
+          return topLeftCorner.col === 0 && bottomRightCorner.col === instance.countCols() - 1;
+        } else {
+          return true;
+        }
       }
 
       function isFormula(val){
