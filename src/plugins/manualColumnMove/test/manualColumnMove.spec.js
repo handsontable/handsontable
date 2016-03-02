@@ -808,7 +808,7 @@ describe('manualColumnMove', function () {
     alter('remove_col', 2);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
-    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Toyota');
     expect(hot.manualColumnPositions).toEqual([0, 1, 2, 3]);
   });
