@@ -249,7 +249,7 @@ class WalkontableOverlays {
     // 2016mobile#14
     if(Handsontable.virtualScroll) {
       event = {
-        target: $('.ht_master .wtHolder')[0],
+        target: event === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
         type: 'scroll'
       }
     }
