@@ -82,6 +82,10 @@ Handsontable.UndoRedo = function(instance) {
     var action = new Handsontable.UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
     plugin.done(action);
   });
+
+  instance.addHook('beforeFilter', function(formulaStacks) {
+    plugin.done(new Handsontable.UndoRedo.FiltersAction(formulaStacks));
+  });
 };
 
 Handsontable.UndoRedo.prototype.done = function(action) {
@@ -166,10 +170,14 @@ Handsontable.UndoRedo.Action = function() {};
 Handsontable.UndoRedo.Action.prototype.undo = function() {};
 Handsontable.UndoRedo.Action.prototype.redo = function() {};
 
+/**
+ * Change action.
+ */
 Handsontable.UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
 };
 inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
+
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   var data = deepClone(this.changes),
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
@@ -212,11 +220,15 @@ Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishC
 
 };
 
+/**
+ * Create row action.
+ */
 Handsontable.UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
 };
 inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
+
 Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
   var rowCount = instance.countRows(),
     minSpareRows = instance.getSettings().minSpareRows;
@@ -232,11 +244,15 @@ Handsontable.UndoRedo.CreateRowAction.prototype.redo = function(instance, redone
   instance.alter('insert_row', this.index + 1, this.amount);
 };
 
+/**
+ * Remove row action.
+ */
 Handsontable.UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
   this.data = data;
 };
 inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
+
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   var spliceArgs = [this.index, 0];
   Array.prototype.push.apply(spliceArgs, this.data);
@@ -251,11 +267,15 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function(instance, redone
   instance.alter('remove_row', this.index, this.data.length);
 };
 
+/**
+ * Create column action.
+ */
 Handsontable.UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
 };
 inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
+
 Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) {
   instance.addHookOnce('afterRemoveCol', undoneCallback);
   instance.alter('remove_col', this.index, this.amount);
@@ -265,6 +285,9 @@ Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function(instance, red
   instance.alter('insert_col', this.index + 1, this.amount);
 };
 
+/**
+ * Cell alignment action.
+ */
 Handsontable.UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
   this.range = range;
@@ -295,6 +318,9 @@ Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, un
   instance.render();
 };
 
+/**
+ * Remove column action.
+ */
 Handsontable.UndoRedo.RemoveColumnAction = function(index, data, headers) {
   this.index = index;
   this.data = data;
@@ -302,6 +328,7 @@ Handsontable.UndoRedo.RemoveColumnAction = function(index, data, headers) {
   this.headers = headers;
 };
 inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
+
 Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
   var row, spliceArgs;
   for (var i = 0, len = instance.getSourceData().length; i < len; i++) {
@@ -326,6 +353,31 @@ Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, und
 Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveCol', redoneCallback);
   instance.alter('remove_col', this.index, this.amount);
+};
+
+/**
+ * Filters action.
+ */
+Handsontable.UndoRedo.FiltersAction = function(formulaStacks) {
+  this.formulaStacks = formulaStacks;
+};
+inherit(Handsontable.UndoRedo.FiltersAction, Handsontable.UndoRedo.Action);
+
+Handsontable.UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
+  let filters = instance.getPlugin('filters');
+
+  instance.addHookOnce('afterRender', undoneCallback);
+
+  filters.formulaCollection.importAllFormulas(this.formulaStacks.slice(0, this.formulaStacks.length - 1));
+  filters.filter();
+};
+Handsontable.UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
+  let filters = instance.getPlugin('filters');
+
+  instance.addHookOnce('afterRender', redoneCallback);
+
+  filters.formulaCollection.importAllFormulas(this.formulaStacks);
+  filters.filter();
 };
 
 function init() {
