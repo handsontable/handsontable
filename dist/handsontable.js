@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 02 2016 12:23:14 GMT+0800 (CST)
+ * Date: Wed Mar 02 2016 15:12:26 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Mar 02 2016 12:23:14 GMT+0800 (CST)',
+  buildDate: 'Wed Mar 02 2016 15:12:26 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2154,9 +2154,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       }));
     }
   },
-  onTableScroll: function(event) {
+  onTableScroll: function(event, type) {
     if (Handsontable.virtualScroll) {
-      this.syncScrollPositions(event);
+      this.syncScrollPositions(event, type);
       return;
     }
     if (this.keyPressed && this.mainTableScrollableElement !== window && !event.target.contains(this.mainTableScrollableElement)) {
@@ -2202,11 +2202,10 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
     return false;
   },
-  syncScrollPositions: function(event) {
-    var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
+  syncScrollPositions: function(event, type) {
     if (Handsontable.virtualScroll) {
       event = {
-        target: $('.ht_master .wtHolder')[0],
+        target: type === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
         type: 'scroll'
       };
     }

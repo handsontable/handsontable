@@ -161,11 +161,11 @@ class WalkontableOverlays {
    *
    * @param {Event} event
    */
-  onTableScroll(event) {
+  onTableScroll(event, type) {
 
     // 2016mobile#13
     if (Handsontable.virtualScroll) {
-      this.syncScrollPositions(event);
+      this.syncScrollPositions(event, type);
       return;
     }
 
@@ -242,14 +242,14 @@ class WalkontableOverlays {
    * Synchronize scroll position between master table and overlay table
    *
    * @param {Event|Object} event
-   * @param {Number} [fakeScrollValue=null]
+   * @param {String} for history iscroll
    */
-  syncScrollPositions(event, fakeScrollValue = null) {
+  syncScrollPositions(event, type) {
 
     // 2016mobile#14
     if(Handsontable.virtualScroll) {
       event = {
-        target: $('.ht_master .wtHolder')[0],
+        target: type === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
         type: 'scroll'
       }
     }
