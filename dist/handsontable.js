@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 01 2016 16:48:41 GMT+0800 (CST)
+ * Date: Wed Mar 02 2016 12:23:14 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Mar 01 2016 16:48:41 GMT+0800 (CST)',
+  buildDate: 'Wed Mar 02 2016 12:23:14 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -7809,6 +7809,9 @@ Object.defineProperties(exports, {
   getScrollLeft: {get: function() {
       return getScrollLeft;
     }},
+  getIscrollPositon: {get: function() {
+      return getIscrollPositon;
+    }},
   getScrollableElement: {get: function() {
       return getScrollableElement;
     }},
@@ -8172,25 +8175,34 @@ function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
   } else {
-    if (Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
-      return -window.myScroll.y;
-    }
-    return element.scrollTop;
+    var top = getIscrollPositon(element, 'y');
+    return typeof top === 'number' ? top : element.scrollTop;
   }
 }
 function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
   } else {
-    if (Handsontable.virtualScroll && element === $('.ht_master .wtHolder')[0] && window.myScroll) {
-      return -window.myScroll.x;
+    var left = getIscrollPositon(element, 'x');
+    return typeof left === 'number' ? left : element.scrollLeft;
+  }
+}
+function getIscrollPositon(element, dir) {
+  if (Handsontable.virtualScroll && $(element).hasClass('wtHolder') && $(element).parent('.ht_master').length) {
+    if ($(element).parents('.s-body').length) {
+      return window.myScroll && -window.myScroll[dir];
+    } else {
+      return window.historyScroll && -window.historyScroll[dir];
     }
-    return element.scrollLeft;
   }
 }
 function getScrollableElement(element) {
   if (Handsontable.virtualScroll) {
-    return $('.ht_master .wtHolder')[0];
+    if ($(element).parents('.s-body').length) {
+      return $('.ht_master .wtHolder')[0];
+    } else {
+      return $('.ht_master .wtHolder')[1];
+    }
   }
   var el = element.parentNode,
       props = ['auto', 'scroll'],
