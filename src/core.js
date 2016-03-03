@@ -1393,6 +1393,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.dataType = 'object';
     }
 
+    if (datamap) {
+      datamap.destroy();
+    }
     datamap = new DataMap(instance, priv, GridSettings);
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
@@ -2825,8 +2828,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-    priv = null;
+    if (datamap) {
+      datamap.destroy();
+    }
     datamap = null;
+    priv = null;
     grid = null;
     selection = null;
     editorManager = null;

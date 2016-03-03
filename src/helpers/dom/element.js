@@ -1,5 +1,5 @@
-
-import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser';
+import {isIE8, isIE9, isSafari} from '../browser';
+import {hasCaptionProblem} from '../feature';
 
 /**
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
@@ -930,53 +930,4 @@ export function isInput(element) {
  */
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
-}
-
-// https://gist.github.com/paulirish/1579671
-let lastTime = 0;
-let vendors = ['ms', 'moz', 'webkit', 'o'];
-let _requestAnimationFrame = window.requestAnimationFrame;
-let _cancelAnimationFrame = window.cancelAnimationFrame;
-
-for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
-  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-}
-
-if (!_requestAnimationFrame) {
-  _requestAnimationFrame = function(callback) {
-    let currTime = new Date().getTime();
-    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    let id = window.setTimeout(function() {
-      callback(currTime + timeToCall);
-    }, timeToCall);
-    lastTime = currTime + timeToCall;
-
-    return id;
-  };
-}
-
-if (!_cancelAnimationFrame) {
-  _cancelAnimationFrame = function(id) {
-    clearTimeout(id);
-  };
-}
-
-/**
- * Polyfill for requestAnimationFrame
- *
- * @param {Function} callback
- * @returns {Number}
- */
-export function requestAnimationFrame(callback) {
-  return _requestAnimationFrame.call(window, callback);
-}
-
-/**
- * Polyfill for cancelAnimationFrame
- *
- * @param {Number} id
- */
-export function cancelAnimationFrame(id) {
-  _cancelAnimationFrame.call(window, id);
 }
