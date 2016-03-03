@@ -6,11 +6,15 @@ import {registerPlugin} from './../../plugins';
  * You can turn it on by setting a `manualColumnFreeze` property to `true`.
  *
  * @plugin ManualColumnFreeze
+ * @dependencies ManualColumnMove
  */
 class ManualColumnFreeze extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
+
+    this.manualColumnMovePlugin = null;
+    this.manualColumnPositions = null;
   }
 
   /**
@@ -31,6 +35,10 @@ class ManualColumnFreeze extends BasePlugin {
     }
     this.addHook('modifyCol', (col) => this.onModifyCol(col));
     this.addHook('afterContextMenuDefaultOptions', (defaultOptions) => this.addContextMenuEntry(defaultOptions));
+    this.addHook('afterPluginsInitialized', () => {
+      this.manualColumnMovePlugin = this.hot.getPlugin('manualColumnMove');
+      this.manualColumnPositions = this.manualColumnMovePlugin.manualColumnPositions;
+    });
     super.enablePlugin();
   }
 
@@ -44,13 +52,6 @@ class ManualColumnFreeze extends BasePlugin {
   init() {
     super.init();
 
-    // update plugin usages count for manualColumnPositions
-    if (typeof this.hot.manualColumnPositionsPluginUsages === 'undefined') {
-      this.hot.manualColumnPositionsPluginUsages = ['manualColumnFreeze'];
-    } else {
-      this.hot.manualColumnPositionsPluginUsages.push('manualColumnFreeze');
-    }
-
     this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
   }
 
@@ -62,7 +63,7 @@ class ManualColumnFreeze extends BasePlugin {
    */
   onModifyCol(column) {
     // if another plugin is using manualColumnPositions to modify column order, do not double the translation
-    if (this.hot.manualColumnPositionsPluginUsages.length > 1) {
+    if (this.manualColumnMovePlugin.isEnabled()) {
       return column;
     }
 
@@ -70,7 +71,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   getModifiedColumnIndex(column) {
-    return this.hot.manualColumnPositions[column];
+    return this.manualColumnMovePlugin.manualColumnPositions[column];
   }
 
   /**
@@ -181,13 +182,13 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} [column] Column index.
    */
   checkPositionData(column) {
-    if (!this.hot.manualColumnPositions || this.hot.manualColumnPositions.length === 0) {
-      if (!this.hot.manualColumnPositions) {
-        this.hot.manualColumnPositions = [];
+    if (!this.manualColumnPositions || this.manualColumnPositions.length === 0) {
+      if (!this.manualColumnPositions) {
+        this.manualColumnPositions = [];
       }
     }
     if (column) {
-      if (!this.hot.manualColumnPositions[column]) {
+      if (!this.manualColumnPositions[column]) {
         this.createPositionData(column + 1);
       }
     } else {
@@ -201,9 +202,9 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} length Length for the array.
    */
   createPositionData(length) {
-    if (this.hot.manualColumnPositions.length < length) {
-      for (let i = this.hot.manualColumnPositions.length; i < length; i++) {
-        this.hot.manualColumnPositions[i] = i;
+    if (this.manualColumnPositions.length < length) {
+      for (let i = this.manualColumnPositions.length; i < length; i++) {
+        this.manualColumnPositions[i] = i;
       }
     }
   }
@@ -222,9 +223,9 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     if (action === 'freeze') {
-      this.hot.manualColumnPositions.splice(this.fixedColumnsCount, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
+      this.manualColumnPositions.splice(this.fixedColumnsCount, 0, this.manualColumnPositions.splice(actualColumn, 1)[0]);
     } else if (action === 'unfreeze') {
-      this.hot.manualColumnPositions.splice(returnColumn, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
+      this.manualColumnPositions.splice(returnColumn, 0, this.manualColumnPositions.splice(actualColumn, 1)[0]);
     }
   }
 
