@@ -33,7 +33,7 @@ function DataMap(instance, priv, GridSettings) {
     this.duckSchema = {};
   }
   this.createMap();
-  this.interval = Interval.create(() => this.clearLengthCache(), '5fps');
+  this.interval = Interval.create(() => this.clearLengthCache(), '10fps');
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -553,6 +553,8 @@ DataMap.prototype.getLength = function() {
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
     let reValidate = false;
 
+    this.interval.start();
+
     if (length !== this.latestSourceRowsCount) {
       reValidate = true;
     }
@@ -566,8 +568,13 @@ DataMap.prototype.getLength = function() {
           --length;
         }
       });
+      this.cachedLength = length;
+
+    } else {
+      length = this.cachedLength;
     }
-    this.cachedLength = length;
+  } else {
+    this.interval.stop();
   }
 
   return length;

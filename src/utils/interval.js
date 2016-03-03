@@ -75,9 +75,9 @@ class Interval {
    */
   stop() {
     if (!this.stopped) {
+      this.stopped = true;
       cancelAnimationFrame(this.timer);
       this.timer = null;
-      this.stopped = true;
     }
 
     return this;
@@ -90,10 +90,6 @@ class Interval {
    */
   __callback() {
     this.timer = requestAnimationFrame(this._callback);
-
-    if (this.stopped) {
-      cancelAnimationFrame(this.timer);
-    }
 
     if (this.delay) {
       const now = Date.now();
