@@ -4056,7 +4056,7 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Sat Feb 13 2016 19:40:39 GMT-0500 (EST)';
+Handsontable.buildDate = 'Fri Mar 04 2016 14:18:30 GMT-0500 (EST)';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.21.0';
 var baseVersion = '@@baseVersion';
@@ -12673,6 +12673,7 @@ var $ContextMenu = ContextMenu;
     }
     this.itemsFactory = new ItemsFactory(this.hot, $ContextMenu.DEFAULT_ITEMS);
     var settings = this.hot.getSettings().contextMenu;
+    console.log(settings);
     var predefinedItems = {items: this.itemsFactory.getVisibleItems(settings)};
     this.registerEvents();
     if (typeof settings.callback === 'function') {
@@ -12683,10 +12684,15 @@ var $ContextMenu = ContextMenu;
       $__12.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
       $__12.itemsFactory.setPredefinedItems(predefinedItems.items);
       var menuItems = $__12.itemsFactory.getVisibleItems(settings);
-      $__12.menu = new Menu($__12.hot, {
+      var options = {
         className: 'htContextMenu',
         keepInViewport: true
-      });
+      };
+      if (settings.options) {
+        Object.assign(options, settings.options);
+      }
+      console.log(options);
+      $__12.menu = new Menu($__12.hot, options);
       $__12.menu.setMenuItems(menuItems);
       $__12.menu.addLocalHook('beforeOpen', (function() {
         $__12.onBeforeContextMenuShow();
@@ -13120,6 +13126,7 @@ var Menu = function Menu(hotInstance) {
     left: 0,
     right: 0
   };
+  this.width = 200;
   this._afterScrollCallback = null;
   this.registerEvents();
 };
@@ -13149,10 +13156,11 @@ var $Menu = Menu;
     var delayedOpenSubMenu = debounce((function(row) {
       return $__11.openSubMenu(row);
     }), 300);
+    var width = this.options.width || this.width;
     var settings = {
       data: this.menuItems,
       colHeaders: false,
-      colWidths: [200],
+      colWidths: [width],
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,
@@ -21121,5 +21129,5 @@ if (typeof exports !== "undefined") {
 }).call(window);
 
 //# 
-},{}]},{},[23,59,60,61,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("numeral")
+},{}]},{},[23,59,61,60,62,83,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,100,101,102,90,91,92,93,94,95,31,35,32,33,40,34,36,37,38,39])("numeral")
 });
