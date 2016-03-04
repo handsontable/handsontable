@@ -1562,8 +1562,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          extend(proto, column);
-          extend(proto, expandType(column));
+
+          if (column) {
+            extend(proto, column);
+            extend(proto, expandType(column));
+          }
         }
       }
     }
