@@ -42,7 +42,7 @@ class ManualColumnMove extends BasePlugin {
      */
     this.guideElement = null;
     /**
-     * DOM element representing the vertical guide line.
+     * DOM element representing the move handle.
      *
      * @type {HTMLElement}
      */
