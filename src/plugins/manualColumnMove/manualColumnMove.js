@@ -6,8 +6,6 @@ import {registerPlugin} from './../../plugins';
 
 const privatePool = new WeakMap();
 
-// TODO: reloading the demo enables the manual column resize plugin
-
 /**
  * @description
  * Handsontable ManualColumnMove
@@ -18,7 +16,6 @@ const privatePool = new WeakMap();
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
- * @private
  * @class ManualColumnMove
  * @plugin ManualColumnMove
  */
@@ -201,6 +198,12 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * Refresh the moving handle position.
+   *
+   * @param {HTMLElement} TH TH element with the handle.
+   * @param {Number} delta Difference between the related columns.
+   */
   refreshHandlePosition(TH, delta) {
     let box = TH.getBoundingClientRect();
     let handleWidth = 6;
@@ -212,6 +215,9 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * Setup the moving handle position.
+   */
   setupGuidePosition() {
     let box = this.currentTH.getBoundingClientRect();
     let priv = privatePool.get(this);
@@ -226,17 +232,31 @@ class ManualColumnMove extends BasePlugin {
     this.hot.rootElement.appendChild(this.guideElement);
   }
 
+  /**
+   * Refresh the moving guide position.
+   *
+   * @param {Number} diff Difference between the starting and current cursor position.
+   */
   refreshGuidePosition(diff) {
     let priv = privatePool.get(this);
 
     this.guideElement.style.left = priv.startOffset + diff + 'px';
   }
 
+  /**
+   * Hide both the moving handle and the moving guide.
+   */
   hideHandleAndGuide() {
     removeClass(this.handleElement, 'active');
     removeClass(this.guideElement, 'active');
   }
 
+  /**
+   * Check if the provided element is in the column header.
+   *
+   * @param {HTMLElement} element The DOM element to be checked.
+   * @returns {Boolean}
+   */
   checkColumnHeader(element) {
     if (element != this.hot.rootElement) {
       let parent = element.parentNode;
@@ -251,6 +271,27 @@ class ManualColumnMove extends BasePlugin {
     return false;
   }
 
+  /**
+   * Create the initial column position data.
+   *
+   * @param {Number} len The desired length of the array.
+   */
+  createPositionData(len) {
+    let positionArr = this.manualColumnPositions;
+
+    if (positionArr.length < len) {
+      for (var i = positionArr.length; i < len; i++) {
+        positionArr[i] = i;
+      }
+    }
+  }
+
+  /**
+   * Get the TH parent element from the provided DOM element.
+   *
+   * @param {HTMLElement} element The DOM element to work on.
+   * @returns {HTMLElement|null} The TH element or null, if element has no TH parents.
+   */
   getTHFromTargetElement(element) {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
@@ -263,14 +304,52 @@ class ManualColumnMove extends BasePlugin {
     return null;
   }
 
-  createPositionData(positionArr, len) {
-    if (positionArr.length < len) {
-      for (var i = positionArr.length; i < len; i++) {
-        positionArr[i] = i;
-      }
+  /**
+   * Change the column position. It puts the `columnIndex` column after the `destinationIndex` column.
+   *
+   * @param {Number} columnIndex Index of the column to move.
+   * @param {Number} destinationIndex Index of the destination column.
+   */
+  changeColumnPositions(columnIndex, destinationIndex) {
+    let maxLength = Math.max(columnIndex, destinationIndex);
+
+    if (maxLength > this.manualColumnPositions.length - 1) {
+      this.createPositionData(maxLength + 1);
     }
+
+    this.manualColumnPositions.splice(destinationIndex, 0, this.manualColumnPositions.splice(columnIndex, 1)[0]);
   }
 
+  /**
+   * Get the visible column index from the provided logical index.
+   *
+   * @param {Number} column Logical column index.
+   * @returns {Number} Visible column index.
+   */
+  getVisibleColumnIndex(column) {
+    if (column > this.manualColumnPositions.length - 1) {
+      this.createPositionData(column);
+    }
+
+    return this.manualColumnPositions.indexOf(column);
+  }
+
+  /**
+   * Get the logical column index from the provided visible index.
+   *
+   * @param {Number} column Visible column index.
+   * @returns {Number|undefined} Logical column index.
+   */
+  getLogicalColumnIndex(column) {
+    return this.manualColumnPositions[column];
+  }
+
+  /**
+   * 'mouseover' event callback.
+   *
+   * @private
+   * @param {MouseEvent} event The event object.
+   */
   onMouseOver(event) {
     let priv = privatePool.get(this);
 
@@ -293,6 +372,12 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * 'mousedown' event callback.
+   *
+   * @private
+   * @param {MouseEvent} event The event object.
+   */
   onMouseDown(event) {
     let priv = privatePool.get(this);
 
@@ -306,6 +391,12 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * 'mousemove' event callback.
+   *
+   * @private
+   * @param {MouseEvent} event The event object.
+   */
   onMouseMove(event) {
     let priv = privatePool.get(this);
 
@@ -314,6 +405,12 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * 'mouseup' event callback.
+   *
+   * @private
+   * @param {MouseEvent} event The event object.
+   */
   onMouseUp(event) {
     let priv = privatePool.get(this);
 
@@ -321,8 +418,8 @@ class ManualColumnMove extends BasePlugin {
       this.hideHandleAndGuide();
       priv.pressed = false;
 
-      this.createPositionData(this.manualColumnPositions, this.hot.countCols());
-      this.manualColumnPositions.splice(priv.endCol, 0, this.manualColumnPositions.splice(priv.startCol, 1)[0]);
+      this.createPositionData(this.hot.countCols());
+      this.changeColumnPositions(priv.startCol, priv.endCol);
 
       Handsontable.hooks.run(this.hot, 'beforeColumnMove', priv.startCol, priv.endCol);
 
@@ -337,16 +434,28 @@ class ManualColumnMove extends BasePlugin {
     }
   }
 
+  /**
+   * 'modifyCol' hook callback.
+   *
+   * @private
+   * @param {Number} col Column index.
+   * @returns {Number} Modified column index.
+   */
   onModifyCol(col) {
-    // TODO test performance: http://jsperf.com/object-wrapper-vs-primitive/2
-
-    if (typeof this.manualColumnPositions[col] === 'undefined') {
-      this.createPositionData(this.manualColumnPositions, col + 1);
+    if (typeof this.getVisibleColumnIndex(col) === 'undefined') {
+      this.createPositionData(col + 1);
     }
 
-    return this.manualColumnPositions[col];
+    return this.getLogicalColumnIndex(col);
   }
 
+  /**
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {Number} index Index of the removed column.
+   * @param {Number} amount Amount of removed columns.
+   */
   afterRemoveCol(index, amount) {
     if (!this.isEnabled()) {
       return;
@@ -374,6 +483,13 @@ class ManualColumnMove extends BasePlugin {
     this.manualColumnPositions = colpos;
   }
 
+  /**
+   * `afterCreateCol` hook callback.
+   *
+   * @private
+   * @param {Number} index Index of the created column.
+   * @param {Number} amount Amount of created columns.
+   */
   afterCreateCol(index, amount) {
     if (!this.isEnabled()) {
       return;

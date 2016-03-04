@@ -48,68 +48,6 @@ describe("ManualColumnFreeze plugin:", function () {
     });
   });
 
-  describe("checkPositionData", function () {
-    xit("should check whether 'manualColumnPositions' array needs creating and/or initializing, and if so, do it", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true,
-        fixedColumnsLeft: 2
-      });
-
-      var plugin = hot.getPlugin('manualColumnFreeze');
-      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
-      var positionsArray = manualColumnMovePlugin.manualColumnPositions;
-
-      expect(typeof positionsArray).toEqual("object");
-      expect(positionsArray.length).toEqual(0);
-
-      plugin.checkPositionData();
-      expect(positionsArray.length).toEqual(10);
-
-      positionsArray = void 0;
-      plugin.checkPositionData();
-      expect(positionsArray.length).toEqual(10);
-
-      positionsArray = [];
-      plugin.checkPositionData(5);
-      expect(positionsArray.length).toEqual(6);
-
-      for (var i = 0; i < 6; i++) {
-        expect(positionsArray[i]).toEqual(i);
-      }
-
-    });
-  });
-
-  describe("modifyColumnOrder", function () {
-    it("should update 'manualColumnPositions' array order, accordingly to provided parameters", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true,
-        fixedColumnsLeft: 2
-      });
-
-      var plugin = hot.getPlugin('manualColumnFreeze');
-      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
-      var positionsArray = manualColumnMovePlugin.manualColumnPositions;
-
-      plugin.checkPositionData(5);
-
-      plugin.modifyColumnOrder(4, 4, null, 'freeze');
-      expect(positionsArray[2]).toEqual(4);
-      expect(positionsArray[4]).toEqual(3);
-
-      plugin.modifyColumnOrder(4, 2, null, 'unfreeze');
-      expect(positionsArray[2]).toEqual(2);
-      expect(positionsArray[4]).toEqual(4);
-
-      plugin.modifyColumnOrder(1, 1, 3, 'unfreeze');
-      expect(positionsArray[1]).toEqual(2);
-      expect(positionsArray[3]).toEqual(1);
-
-    });
-  });
-
   describe("getBestColumnReturnPosition", function () {
     it("should calculate/estimate the best return position for already fixed column", function () {
       var hot = handsontable({
@@ -120,8 +58,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       var plugin = hot.getPlugin('manualColumnFreeze');
 
-      plugin.checkPositionData(5);
-      plugin.modifyColumnOrder(4, 4, null, 'freeze');
+      plugin.changeColumnPositions(4, hot.getSettings().fixedColumnsLeft);
       plugin.addFixedColumn();
       // here manualColumnPositions looks like [0, 1, 4, 2, 3, 5] with 3 fixed columns
 
@@ -173,8 +110,8 @@ describe("ManualColumnFreeze plugin:", function () {
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(positionsArray[0]).toEqual(1);
+      expect(positionsArray[1]).toEqual(2);
       expect(positionsArray[2]).toEqual(0);
-      expect(positionsArray[3]).toEqual(3);
     });
   });
 
