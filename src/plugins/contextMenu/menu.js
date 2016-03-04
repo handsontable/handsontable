@@ -43,6 +43,7 @@ class Menu {
       left: 0,
       right: 0,
     };
+    this.width = 200;
     this._afterScrollCallback = null;
 
     this.registerEvents();
@@ -95,10 +96,12 @@ class Menu {
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
 
+    let width = this.options.width || this.width;
+
     let settings = {
       data: this.menuItems,
       colHeaders: false,
-      colWidths: [200],
+      colWidths: [width],
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,

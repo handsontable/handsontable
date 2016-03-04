@@ -121,6 +121,9 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
+
+    console.log(settings);
+
     let predefinedItems = {
       items: this.itemsFactory.getVisibleItems(settings)
     };
@@ -137,7 +140,13 @@ class ContextMenu extends BasePlugin {
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
       let menuItems = this.itemsFactory.getVisibleItems(settings);
 
-      this.menu = new Menu(this.hot, {className: 'htContextMenu', keepInViewport: true});
+      let options = {className: 'htContextMenu', keepInViewport: true}
+
+      if(settings.options){
+        Object.assign(options, settings.options);
+      }
+
+      this.menu = new Menu(this.hot, options );
       this.menu.setMenuItems(menuItems);
 
       this.menu.addLocalHook('beforeOpen', () => {
