@@ -1092,8 +1092,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     } else {
       // resolve callback even if validator function was not found
-      cellProperties.valid = true;
-      done(cellProperties.valid);
+      instance._registerTimeout(setTimeout(function() {
+        cellProperties.valid = true;
+        done(cellProperties.valid);
+      }, 0));
     }
   };
 

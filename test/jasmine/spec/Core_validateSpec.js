@@ -1402,4 +1402,39 @@ describe('Core_validate', function () {
 
   });
 
+  it("should call the validation callback only once, when using the validateCells method on a mixed set of data", function () {
+    var onValidate = jasmine.createSpy('onValidate');
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    var hot = handsontable({
+      data: [
+        {id: 'sth', name: 'Steve'},
+        {id: 'sth else', name: 'Bob'}
+      ],
+      columns: [
+        {
+          data: 'id',
+          validator: function (value, cb) {
+            cb(value == parseInt(value, 10));
+          }
+        },
+        {data: 'name'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    hot.validateCells(onValidate);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0
+    }, 'cell validation', 1000);
+
+    runs(function() {
+
+      expect(onValidate).toHaveBeenCalledWith(false);
+      expect(onValidate.callCount).toEqual(1);
+
+    });
+  });
+
 });
