@@ -189,7 +189,8 @@ describe("ManualColumnFreeze plugin:", function () {
         manualColumnFreeze: true,
         fixedColumnsLeft: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
-        contextMenu: true
+        contextMenu: true,
+        rowHeaders: true
       });
 
       var dataAtCell = hot.getDataAtCell(1, 0);
@@ -237,6 +238,39 @@ describe("ManualColumnFreeze plugin:", function () {
 
       dataAtCell = hot.getDataAtCell(1, 5);
       expect(dataAtCell).toEqual("F2");
+
+      // Use the modified columns position.
+      hot.updateSettings({
+        fixedColumnsLeft: 0,
+        manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
+      });
+
+      hot.getPlugin('manualColumnFreeze').fixedColumnsCount = 0;
+
+      selectCell(1, 2);
+      contextMenu();
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
+        return $(this).text() === "Freeze this column";
+      });
+
+      freezeEntry.eq(0).simulate("mousedown");
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      dataAtCell = hot.getDataAtCell(1, 0);
+      expect(dataAtCell).toEqual("F2");
+
+      selectCell(1, 0);
+      contextMenu();
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
+        return $(this).text() === "Unfreeze this column";
+      });
+
+      freezeEntry.eq(0).simulate("mousedown");
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+      dataAtCell = hot.getDataAtCell(1, 2);
+      expect(dataAtCell).toEqual("F2");
+
     });
 
   });

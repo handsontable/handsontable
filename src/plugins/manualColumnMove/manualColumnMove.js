@@ -94,6 +94,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('modifyCol', (col) => this.onModifyCol(col));
     this.addHook('afterRemoveCol', (index, amount) => this.afterRemoveCol(index, amount));
     this.addHook('afterCreateCol', (index, amount) => this.afterCreateCol(index, amount));
+    this.addHook('init', () => this.onInit());
 
     this.bindEvents();
 
@@ -175,6 +176,23 @@ class ManualColumnMove extends BasePlugin {
     Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnPositions', storedState);
 
     return storedState.value;
+  }
+
+  /**
+   * Complete the manual column positions array to match its length to the column count.
+   */
+  completeSettingsArray() {
+    let columnCount = this.hot.countCols();
+
+    if (this.manualColumnPositions.length === columnCount) {
+      return;
+    }
+
+    for (let i = 0; i < columnCount; i++) {
+      if (this.manualColumnPositions.indexOf(i) === -1) {
+        this.manualColumnPositions.push(i);
+      }
+    }
   }
 
   /**
@@ -521,6 +539,13 @@ class ManualColumnMove extends BasePlugin {
     }
 
     this.manualColumnPositions = colpos;
+  }
+
+  /**
+   * `init` hook callback.
+   */
+  onInit() {
+    this.completeSettingsArray();
   }
 
 }
