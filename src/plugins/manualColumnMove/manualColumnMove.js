@@ -483,7 +483,7 @@ class ManualColumnMove extends BasePlugin {
     let colpos = this.manualColumnPositions;
 
     // We have removed columns, we also need to remove the indicies from manual column array
-    rmindx = colpos.splice(index, amount);
+    rmindx = colpos.splice(this.getVisibleColumnIndex(index), amount);
 
     // We need to remap manualColPositions so it remains constant linear from 0->ncols
     colpos = colpos.map(function(colpos) {

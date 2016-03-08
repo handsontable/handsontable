@@ -479,7 +479,7 @@ class ManualRowMove extends BasePlugin {
     let rowpos = this.manualRowPositions;
 
     // We have removed rows, we also need to remove the indicies from manual row array
-    rmindx = rowpos.splice(index, amount);
+    rmindx = rowpos.splice(this.getVisibleRowIndex(index), amount);
 
     // We need to remap manualRowPositions so it remains constant linear from 0->nrows
     rowpos = rowpos.map(function(rowpos) {
