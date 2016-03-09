@@ -33,7 +33,7 @@ function DataMap(instance, priv, GridSettings) {
     this.duckSchema = {};
   }
   this.createMap();
-  this.interval = Interval.create(() => this.clearLengthCache(), '10fps');
+  this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
