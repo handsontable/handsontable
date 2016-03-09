@@ -238,8 +238,10 @@ WalkontableEvent.prototype.parentCell = function(elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
   var TD = closest(elem, ['TD', 'TH'], TABLE);
+  var referenceTABLE = closest(TD, ['TABLE']);
 
-  if (TD && isChildOf(TD, TABLE)) {
+  // Don't return cell when TD is not belong to the right table element (situations when table cell contain another hot instance)
+  if (TD && isChildOf(TD, TABLE) && referenceTABLE == TABLE) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
 

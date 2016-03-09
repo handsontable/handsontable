@@ -1,4 +1,4 @@
-describe('String unicode', function () {
+describe('Unicode helper', function () {
   //
   // Handsontable.helper.isKey
   //

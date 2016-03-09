@@ -77,8 +77,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (cellProperties.readOnly) {
     eventManager.addEventListener(input, 'click', preventDefault);
   } else {
-    eventManager.addEventListener(input, 'mousedown', stopPropagation);
-    eventManager.addEventListener(input, 'mouseup', stopPropagation);
+    eventManager.addEventListener(input, 'mouseup', () => setTimeout(instance.listen, 10));
     eventManager.addEventListener(input, 'change', (event) => {
       instance.setDataAtRowProp(row, prop, event.target.checked ? cellProperties.checkedTemplate : cellProperties.uncheckedTemplate);
     });
@@ -191,6 +190,7 @@ function createInput() {
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
   input.setAttribute('autocomplete', 'off');
+  input.setAttribute('tabindex', '-1');
 
   return input.cloneNode(false);
 }
