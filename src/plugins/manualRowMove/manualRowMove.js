@@ -1,5 +1,7 @@
 import BasePlugin from './../_base.js';
 import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {arrayEach, arrayMap} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
@@ -58,8 +60,7 @@ class ManualRowMove extends BasePlugin {
      *
      * @type {Array}
      */
-    this.manualRowPositions = [];
-    this.pluginUsages = [];
+    this.rowPositions = [];
     /**
      * Event Manager object.
      *
@@ -92,23 +93,21 @@ class ManualRowMove extends BasePlugin {
     this.guideElement.className = priv.guideClassName;
 
     this.addHook('modifyRow', (row) => this.onModifyRow(row));
-    this.addHook('afterRemoveRow', (index, amount) => this.afterRemoveRow(index, amount));
-    this.addHook('afterCreateRow', (index, amount) => this.afterCreateRow(index, amount));
+    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
+    this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('init', () => this.onInit());
 
-    this.bindEvents();
+    this.registerEvents();
 
     if (typeof loadedManualRowPositions != 'undefined') {
-      this.manualRowPositions = loadedManualRowPositions;
+      this.rowPositions = loadedManualRowPositions;
 
     } else if (Array.isArray(initialSettings)) {
-      this.manualRowPositions = initialSettings;
+      this.rowPositions = initialSettings;
 
-    } else if (!initialSettings || this.manualRowPositions === void 0) {
-      this.manualRowPositions = [];
+    } else if (!initialSettings || this.rowPositions === void 0) {
+      this.rowPositions = [];
     }
-
-    this.pluginUsages.push('ManualRowMove');
 
     super.enablePlugin();
   }
@@ -127,13 +126,11 @@ class ManualRowMove extends BasePlugin {
    * Disable the plugin.
    */
   disablePlugin() {
-    let otherPluginsInUse = this.pluginUsages.length > 1;
-    let pluginSetting = this.hot.getSettings().ManualRowMove;
+    let pluginSetting = this.hot.getSettings().manualRowMove;
 
-    if (!otherPluginsInUse && Array.isArray(pluginSetting)) {
-      this.unbindEvents();
-      this.manualRowPositions = [];
-      this.pluginUsages = [];
+    if (Array.isArray(pluginSetting)) {
+      this.unregisterEvents();
+      this.rowPositions = [];
     }
 
     super.disablePlugin();
@@ -142,9 +139,7 @@ class ManualRowMove extends BasePlugin {
   /**
    * Bind the events used by the plugin.
    */
-  bindEvents() {
-    let priv = privatePool.get(this);
-
+  registerEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (event) => this.onMouseDown(event));
     this.eventManager.addEventListener(window, 'mousemove', (event) => this.onMouseMove(event));
@@ -154,7 +149,7 @@ class ManualRowMove extends BasePlugin {
   /**
    * Unbind the events used by the plugin.
    */
-  unbindEvents() {
+  unregisterEvents() {
     this.eventManager.clear();
   }
 
@@ -162,7 +157,7 @@ class ManualRowMove extends BasePlugin {
    * Save the manual row positions.
    */
   saveManualRowPositions() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowPositions', this.manualRowPositions);
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowPositions', this.rowPositions);
   }
 
   /**
@@ -184,15 +179,15 @@ class ManualRowMove extends BasePlugin {
   completeSettingsArray() {
     let rowCount = this.hot.countRows();
 
-    if (this.manualRowPositions.length === rowCount) {
+    if (this.rowPositions.length === rowCount) {
       return;
     }
 
-    for (let i = 0; i < rowCount; i++) {
-      if (this.manualRowPositions.indexOf(i) === -1) {
-        this.manualRowPositions.push(i);
+    rangeEach(0, rowCount - 1, (i) => {
+      if (this.rowPositions.indexOf(i) === -1) {
+        this.rowPositions.push(i);
       }
-    }
+    });
   }
 
   /**
@@ -295,12 +290,12 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} len The desired length of the array.
    */
   createPositionData(len) {
-    let positionArr = this.manualRowPositions;
+    let positionArr = this.rowPositions;
 
     if (positionArr.length < len) {
-      for (var i = positionArr.length; i < len; i++) {
+      rangeEach(positionArr.length, len - 1, (i) => {
         positionArr[i] = i;
-      }
+      });
     }
   }
 
@@ -331,11 +326,11 @@ class ManualRowMove extends BasePlugin {
   changeRowPositions(rowIndex, destinationIndex) {
     let maxLength = Math.max(rowIndex, destinationIndex);
 
-    if (maxLength > this.manualRowPositions.length - 1) {
+    if (maxLength > this.rowPositions.length - 1) {
       this.createPositionData(maxLength + 1);
     }
 
-    this.manualRowPositions.splice(destinationIndex, 0, this.manualRowPositions.splice(rowIndex, 1)[0]);
+    this.rowPositions.splice(destinationIndex, 0, this.rowPositions.splice(rowIndex, 1)[0]);
   }
 
   /**
@@ -345,11 +340,11 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Visible row index.
    */
   getVisibleRowIndex(row) {
-    if (row > this.manualRowPositions.length - 1) {
+    if (row > this.rowPositions.length - 1) {
       this.createPositionData(row);
     }
 
-    return this.manualRowPositions.indexOf(row);
+    return this.rowPositions.indexOf(row);
   }
 
   /**
@@ -359,7 +354,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number|undefined} Logical row index.
    */
   getLogicalRowIndex(row) {
-    return this.manualRowPositions[row];
+    return this.rowPositions[row];
   }
 
   /**
@@ -470,31 +465,31 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} index Index of the removed row.
    * @param {Number} amount Amount of removed rows.
    */
-  afterRemoveRow(index, amount) {
+  onAfterRemoveRow(index, amount) {
     if (!this.isEnabled()) {
       return;
     }
 
     let rmindx;
-    let rowpos = this.manualRowPositions;
+    let rowpos = this.rowPositions;
 
     // We have removed rows, we also need to remove the indicies from manual row array
-    rmindx = rowpos.splice(this.getVisibleRowIndex(index), amount);
+    rmindx = rowpos.splice(index, amount);
 
-    // We need to remap manualRowPositions so it remains constant linear from 0->nrows
-    rowpos = rowpos.map(function(rowpos) {
-      let i, newpos = rowpos;
+    // We need to remap rowPositions so it remains constant linear from 0->nrows
+    rowpos = arrayMap(rowpos, function(value, index) {
+      let newpos = value;
 
-      for (i = 0; i < rmindx.length; i++) {
-        if (rowpos > rmindx[i]) {
+      arrayEach(rmindx, (elem, index) => {
+        if (value > elem) {
           newpos--;
         }
-      }
+      });
 
       return newpos;
     });
 
-    this.manualRowPositions = rowpos;
+    this.rowPositions = rowpos;
   }
 
   /**
@@ -504,12 +499,12 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} index Index of the created row.
    * @param {Number} amount Amount of created rows.
    */
-  afterCreateRow(index, amount) {
+  onAfterCreateRow(index, amount) {
     if (!this.isEnabled()) {
       return;
     }
 
-    let rowpos = this.manualRowPositions;
+    let rowpos = this.rowPositions;
 
     if (!rowpos.length) {
       return;
@@ -525,16 +520,16 @@ class ManualRowMove extends BasePlugin {
       rowpos.concat(addindx);
 
     } else {
-      // We need to remap manualRowPositions so it remains constant linear from 0->nrows
-      rowpos = rowpos.map(function(rowpos) {
-        return (rowpos >= index) ? (rowpos + amount) : rowpos;
+      // We need to remap rowPositions so it remains constant linear from 0->nrows
+      rowpos = arrayMap(rowpos, function(value, ind) {
+        return (value >= index) ? (value + amount) : value;
       });
 
       // We have added rows, we also need to add new indicies to manualrow position array
       rowpos.splice.apply(rowpos, [index, 0].concat(addindx));
     }
 
-    this.manualRowPositions = rowpos;
+    this.rowPositions = rowpos;
   }
 
   /**

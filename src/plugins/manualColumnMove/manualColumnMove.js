@@ -1,5 +1,7 @@
 import BasePlugin from './../_base.js';
 import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {arrayEach, arrayMap} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
@@ -58,14 +60,16 @@ class ManualColumnMove extends BasePlugin {
      *
      * @type {Array}
      */
-    this.manualColumnPositions = [];
-    this.pluginUsages = [];
+    this.columnPositions = [];
     /**
      * Event Manager object.
      *
      * @type {Object}
      */
     this.eventManager = eventManagerObject(this);
+
+    // Needs to be in the constructor instead of enablePlugin, because the position array needs to be filled regardless of the plugin state.
+    this.addHook('init', () => this.onInit());
   }
 
   /**
@@ -92,23 +96,20 @@ class ManualColumnMove extends BasePlugin {
     this.guideElement.className = priv.guideClassName;
 
     this.addHook('modifyCol', (col) => this.onModifyCol(col));
-    this.addHook('afterRemoveCol', (index, amount) => this.afterRemoveCol(index, amount));
-    this.addHook('afterCreateCol', (index, amount) => this.afterCreateCol(index, amount));
-    this.addHook('init', () => this.onInit());
+    this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
+    this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
 
-    this.bindEvents();
+    this.registerEvents();
 
     if (typeof loadedManualColumnPositions != 'undefined') {
-      this.manualColumnPositions = loadedManualColumnPositions;
+      this.columnPositions = loadedManualColumnPositions;
 
     } else if (Array.isArray(initialSettings)) {
-      this.manualColumnPositions = initialSettings;
+      this.columnPositions = initialSettings;
 
-    } else if (!initialSettings || this.manualColumnPositions === void 0) {
-      this.manualColumnPositions = [];
+    } else if (!initialSettings || this.columnPositions === void 0) {
+      this.columnPositions = [];
     }
-
-    this.pluginUsages.push('manualColumnMove');
 
     super.enablePlugin();
   }
@@ -127,13 +128,11 @@ class ManualColumnMove extends BasePlugin {
    * Disable the plugin.
    */
   disablePlugin() {
-    let otherPluginsInUse = this.pluginUsages.length > 1;
     let pluginSetting = this.hot.getSettings().manualColumnMove;
 
-    if (!otherPluginsInUse && Array.isArray(pluginSetting)) {
-      this.unbindEvents();
-      this.manualColumnPositions = [];
-      this.pluginUsages = [];
+    if (Array.isArray(pluginSetting)) {
+      this.unregisterEvents();
+      this.columnPositions = [];
     }
 
     super.disablePlugin();
@@ -142,9 +141,7 @@ class ManualColumnMove extends BasePlugin {
   /**
    * Bind the events used by the plugin.
    */
-  bindEvents() {
-    let priv = privatePool.get(this);
-
+  registerEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (event) => this.onMouseDown(event));
     this.eventManager.addEventListener(window, 'mousemove', (event) => this.onMouseMove(event));
@@ -154,7 +151,7 @@ class ManualColumnMove extends BasePlugin {
   /**
    * Unbind the events used by the plugin.
    */
-  unbindEvents() {
+  unregisterEvents() {
     this.eventManager.clear();
   }
 
@@ -162,7 +159,7 @@ class ManualColumnMove extends BasePlugin {
    * Save the manual column positions.
    */
   saveManualColumnPositions() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnPositions', this.manualColumnPositions);
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnPositions', this.columnPositions);
   }
 
   /**
@@ -184,15 +181,15 @@ class ManualColumnMove extends BasePlugin {
   completeSettingsArray() {
     let columnCount = this.hot.countCols();
 
-    if (this.manualColumnPositions.length === columnCount) {
+    if (this.columnPositions.length === columnCount) {
       return;
     }
 
-    for (let i = 0; i < columnCount; i++) {
-      if (this.manualColumnPositions.indexOf(i) === -1) {
-        this.manualColumnPositions.push(i);
+    rangeEach(0, columnCount - 1, (i) => {
+      if (this.columnPositions.indexOf(i) === -1) {
+        this.columnPositions.push(i);
       }
-    }
+    });
   }
 
   /**
@@ -295,12 +292,13 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} len The desired length of the array.
    */
   createPositionData(len) {
-    let positionArr = this.manualColumnPositions;
+    let positionArr = this.columnPositions;
 
     if (positionArr.length < len) {
-      for (var i = positionArr.length; i < len; i++) {
+
+      rangeEach(positionArr.length, len - 1, (i) => {
         positionArr[i] = i;
-      }
+      });
     }
   }
 
@@ -316,6 +314,7 @@ class ManualColumnMove extends BasePlugin {
         return element;
 
       } else {
+
         return this.getTHFromTargetElement(element.parentNode);
       }
     }
@@ -331,11 +330,11 @@ class ManualColumnMove extends BasePlugin {
   changeColumnPositions(columnIndex, destinationIndex) {
     let maxLength = Math.max(columnIndex, destinationIndex);
 
-    if (maxLength > this.manualColumnPositions.length - 1) {
+    if (maxLength > this.columnPositions.length - 1) {
       this.createPositionData(maxLength + 1);
     }
 
-    this.manualColumnPositions.splice(destinationIndex, 0, this.manualColumnPositions.splice(columnIndex, 1)[0]);
+    this.columnPositions.splice(destinationIndex, 0, this.columnPositions.splice(columnIndex, 1)[0]);
   }
 
   /**
@@ -345,11 +344,11 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Visible column index.
    */
   getVisibleColumnIndex(column) {
-    if (column > this.manualColumnPositions.length - 1) {
+    if (column > this.columnPositions.length - 1) {
       this.createPositionData(column);
     }
 
-    return this.manualColumnPositions.indexOf(column);
+    return this.columnPositions.indexOf(column);
   }
 
   /**
@@ -359,7 +358,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number|undefined} Logical column index.
    */
   getLogicalColumnIndex(column) {
-    return this.manualColumnPositions[column];
+    return this.columnPositions[column];
   }
 
   /**
@@ -474,31 +473,31 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} index Index of the removed column.
    * @param {Number} amount Amount of removed columns.
    */
-  afterRemoveCol(index, amount) {
+  onAfterRemoveCol(index, amount) {
     if (!this.isEnabled()) {
       return;
     }
 
     let rmindx;
-    let colpos = this.manualColumnPositions;
+    let colpos = this.columnPositions;
 
     // We have removed columns, we also need to remove the indicies from manual column array
-    rmindx = colpos.splice(this.getVisibleColumnIndex(index), amount);
+    rmindx = colpos.splice(index, amount);
 
     // We need to remap manualColPositions so it remains constant linear from 0->ncols
-    colpos = colpos.map(function(colpos) {
-      let i, newpos = colpos;
+    colpos = arrayMap(colpos, function(value, index) {
+      let i, newpos = value;
 
-      for (i = 0; i < rmindx.length; i++) {
-        if (colpos > rmindx[i]) {
+      arrayEach(rmindx, (elem, index) => {
+        if (value > elem) {
           newpos--;
         }
-      }
+      });
 
       return newpos;
     });
 
-    this.manualColumnPositions = colpos;
+    this.columnPositions = colpos;
   }
 
   /**
@@ -508,12 +507,12 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} index Index of the created column.
    * @param {Number} amount Amount of created columns.
    */
-  afterCreateCol(index, amount) {
+  onAfterCreateCol(index, amount) {
     if (!this.isEnabled()) {
       return;
     }
 
-    let colpos = this.manualColumnPositions;
+    let colpos = this.columnPositions;
 
     if (!colpos.length) {
       return;
@@ -521,24 +520,24 @@ class ManualColumnMove extends BasePlugin {
 
     let addindx = [];
 
-    for (var i = 0; i < amount; i++) {
+    rangeEach(0, amount - 1, (i) => {
       addindx.push(index + i);
-    }
+    });
 
     if (index >= colpos.length) {
       colpos.concat(addindx);
 
     } else {
       // We need to remap manualColPositions so it remains constant linear from 0->ncols
-      colpos = colpos.map(function(colpos) {
-        return (colpos >= index) ? (colpos + amount) : colpos;
+      colpos = arrayMap(colpos, function(value, ind) {
+        return (value >= index) ? (value + amount) : value;
       });
 
-      // We have added columns, we also need to add new indicies to manualcolumn position array
+      // We have added columns, we also need to add new indicies to column position array
       colpos.splice.apply(colpos, [index, 0].concat(addindx));
     }
 
-    this.manualColumnPositions = colpos;
+    this.columnPositions = colpos;
   }
 
   /**

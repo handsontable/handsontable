@@ -39,16 +39,8 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Init settings.
    */
-  disablePlugin() {
-    super.disablePlugin();
-  }
-
-  updatePlugin() {
-    super.updatePlugin();
-  }
-
   init() {
     super.init();
 
@@ -131,7 +123,10 @@ class ManualColumnFreeze extends BasePlugin {
       return; // already fixed
     }
 
-    this.frozenColumnsBasePositions[this.fixedColumnsCount] = column;
+    if (column !== this.getLogicalColumnIndex(column)) {
+      this.frozenColumnsBasePositions[this.fixedColumnsCount] = column;
+    }
+
     this.changeColumnPositions(column, this.fixedColumnsCount);
     this.addFixedColumn();
 
@@ -187,12 +182,25 @@ class ManualColumnFreeze extends BasePlugin {
   getBestColumnReturnPosition(column) {
     let i = this.fixedColumnsCount;
     let j = this.getLogicalColumnIndex(i);
-    let initialCol = this.frozenColumnsBasePositions[column] || this.getLogicalColumnIndex(column);
-    this.frozenColumnsBasePositions[column] = void 0;
+    let initialCol;
 
-    while (j <= initialCol) {
-      i++;
-      j = this.getLogicalColumnIndex(i);
+    if (this.frozenColumnsBasePositions[column] == null) {
+      initialCol = this.getLogicalColumnIndex(column);
+
+      while (j < initialCol) {
+        i++;
+        j = this.getLogicalColumnIndex(i);
+      }
+
+    } else {
+      initialCol = this.frozenColumnsBasePositions[column];
+      this.frozenColumnsBasePositions[column] = void 0;
+
+      while (j <= initialCol) {
+        i++;
+        j = this.getLogicalColumnIndex(i);
+      }
+      i = j;
     }
 
     return i - 1;

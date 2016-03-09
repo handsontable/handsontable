@@ -83,7 +83,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       var plugin = hot.getPlugin('manualColumnFreeze');
       var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
-      var positionsArray = manualColumnMovePlugin.manualColumnPositions;
+      var positionsArray = manualColumnMovePlugin.columnPositions;
 
       plugin.freezeColumn(5);
 
@@ -104,7 +104,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       var plugin = hot.getPlugin('manualColumnFreeze');
       var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
-      var positionsArray = manualColumnMovePlugin.manualColumnPositions;
+      var positionsArray = manualColumnMovePlugin.columnPositions;
 
       plugin.unfreezeColumn(0);
 

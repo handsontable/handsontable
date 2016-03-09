@@ -767,14 +767,14 @@ describe('manualColumnMove', function () {
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Kia');
-    expect(plugin.manualColumnPositions).toEqual([0, 2, 1, 3, 4]);
+    expect(plugin.columnPositions).toEqual([0, 2, 1, 3, 4]);
 
     alter('insert_col', 2);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('');
-    expect(plugin.manualColumnPositions).toEqual([0, 3, 2, 1, 4, 5]);
+    expect(plugin.columnPositions).toEqual([0, 3, 2, 1, 4, 5]);
   });
 
   it("should reconstruct manualcolpositions after removing columns", function () {
@@ -805,14 +805,14 @@ describe('manualColumnMove', function () {
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Kia');
-    expect(plugin.manualColumnPositions).toEqual([0, 2, 1, 3, 4]);
+    expect(plugin.columnPositions).toEqual([0, 2, 1, 3, 4]);
 
     alter('remove_col', 2);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Toyota');
-    expect(plugin.manualColumnPositions).toEqual([0, 1, 2, 3]);
+    expect(plugin.columnPositions).toEqual([0, 1, 2, 3]);
   });
 
   it("should remove a proper column, after the column positions were changed", function () {
@@ -851,5 +851,27 @@ describe('manualColumnMove', function () {
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Toyota');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Honda');
 
+  });
+
+  it("should remove multiple column properly, after the column positions were changed", function () {
+    var hot = handsontable({
+      data: [
+        ["", "Kia", "Nissan", "Toyota", "Honda"],
+        ["2008", 10, 11, 12, 13],
+        ["2009", 20, 11, 14, 13],
+        ["2010", 30, 15, 12, 13]
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: [3, 2, 0, 1, 4],
+    });
+
+    var htCore = getHtCore();
+
+    alter('remove_col', 1, 2);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Honda');
   });
 });
