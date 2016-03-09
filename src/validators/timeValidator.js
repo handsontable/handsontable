@@ -39,6 +39,10 @@ Handsontable.TimeValidator = function(value, callback) {
   // is it in the specified format
   let isValidFormat = moment(value, timeFormat, true).isValid();
 
+  if (this.allowEmpty && value === '') {
+    isValidTime = true;
+    isValidFormat = true;
+  }
   if (!isValidTime) {
     valid = false;
   }
