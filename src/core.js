@@ -1593,14 +1593,38 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
 
-    if (typeof settings.height != 'undefined') {
-      var height = settings.height;
+    let currentHeight = instance.rootElement.style.height;
+    if (currentHeight !== '') {
+      currentHeight = parseInt(instance.rootElement.style.height, 10);
+    }
 
-      if (typeof height == 'function') {
-        height = height();
+    let height = settings.height;
+    if (typeof height == 'function') {
+      height = height();
+    }
+
+    if (init) {
+      let initialStyle = instance.rootElement.getAttribute('style');
+
+      if (initialStyle) {
+        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
+    }
+
+    if (height === void 0) {
+      let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle);
+
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
       }
 
+    } else {
       instance.rootElement.style.height = height + 'px';
+      instance.rootElement.style.overflow = 'hidden';
     }
 
     if (typeof settings.width != 'undefined') {
@@ -1613,12 +1637,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
 
-    /* jshint ignore:start */
-    if (height) {
-      instance.rootElement.style.overflow = 'hidden';
-    }
-    /* jshint ignore:end */
-
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
@@ -1627,6 +1645,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
       selection.refreshBorders(null, true);
+    }
+
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+      instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
