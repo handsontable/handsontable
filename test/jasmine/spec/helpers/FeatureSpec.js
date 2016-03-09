@@ -1,4 +1,4 @@
-describe('Browser helper', function () {
+describe('Feature helper', function () {
   //
   // Handsontable.helper.getComparisonFunction
   //

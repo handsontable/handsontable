@@ -22,6 +22,7 @@ import './../plugins/jqueryHandsontable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
+import * as featureHelpers from './helpers/feature';
 import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
 import * as numberHelpers from './helpers/number';
@@ -36,6 +37,7 @@ const HELPERS = [
   arrayHelpers,
   browserHelpers,
   dataHelpers,
+  featureHelpers,
   functionHelpers,
   mixedHelpers,
   numberHelpers,
