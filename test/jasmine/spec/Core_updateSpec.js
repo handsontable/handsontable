@@ -239,4 +239,30 @@ describe('Core_updateSettings', function () {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
+  it("should allow updating the stretching type", function() {
+    var hot = handsontable({
+      stretchH: 'last'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+
+    updateSettings({
+      stretchH: 'all'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
+
+    updateSettings({
+      stretchH: 'none'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
+
+    updateSettings({
+      stretchH: 'last'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+  });
+
 });
