@@ -1,9 +1,9 @@
-
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
 import {duckSchema, deepExtend} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
+import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
 import {MultiMap} from './multiMap';
 
@@ -24,6 +24,8 @@ function DataMap(instance, priv, GridSettings) {
   this.priv = priv;
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
+  this.cachedLength = null;
+  this.latestSourceRowsCount = 0;
 
   if (this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
@@ -31,6 +33,7 @@ function DataMap(instance, priv, GridSettings) {
     this.duckSchema = {};
   }
   this.createMap();
+  this.interval = Interval.create(() => this.clearLengthCache(), '10fps');
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -533,6 +536,13 @@ DataMap.prototype.clear = function() {
 };
 
 /**
+ * Clear cached data length.
+ */
+DataMap.prototype.clearLengthCache = function() {
+  this.cachedLength = null;
+};
+
+/**
  * Get data length.
  *
  * @returns {Number}
@@ -541,13 +551,30 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    rangeEach(this.instance.countSourceRows() - 1, (row) => {
-      row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+    let reValidate = false;
 
-      if (row === null) {
-        length--;
-      }
-    });
+    this.interval.start();
+
+    if (length !== this.latestSourceRowsCount) {
+      reValidate = true;
+    }
+    this.latestSourceRowsCount = length;
+
+    if (this.cachedLength === null || reValidate) {
+      rangeEach(length - 1, (row) => {
+        row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+
+        if (row === null) {
+          --length;
+        }
+      });
+      this.cachedLength = length;
+
+    } else {
+      length = this.cachedLength;
+    }
+  } else {
+    this.interval.stop();
   }
 
   return length;
@@ -632,6 +659,21 @@ DataMap.prototype.getText = function(start, end) {
  */
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+};
+
+/**
+ * Destroy instance.
+ */
+DataMap.prototype.destroy = function() {
+  this.interval.stop();
+
+  this.interval = null;
+  this.instance = null;
+  this.priv = null;
+  this.GridSettings = null;
+  this.dataSource = null;
+  this.cachedLength = null;
+  this.duckSchema = null;
 };
 
 export {DataMap};
