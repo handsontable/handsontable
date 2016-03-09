@@ -238,6 +238,18 @@ function ManualColumnMove() {
     }
   };
 
+  this.unmodifyCol = function(col) {
+    if (this.getSettings().manualColumnMove) {
+      if (typeof this.manualColumnPositions.indexOf(col) == -1) {
+        createPositionData(this.manualColumnPositions, col + 1);
+      }
+
+      return this.manualColumnPositions.indexOf(col);
+    }
+
+    return col;
+  };
+
   this.modifyCol = function(col) {
     // TODO test performance: http://jsperf.com/object-wrapper-vs-primitive/2
     if (this.getSettings().manualColumnMove) {
@@ -320,6 +332,7 @@ Handsontable.hooks.add('afterUpdateSettings', function() {
   htManualColumnMove.init.call(this, 'afterUpdateSettings');
 });
 Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
+Handsontable.hooks.add('unmodifyCol', htManualColumnMove.unmodifyCol);
 
 Handsontable.hooks.add('afterRemoveCol', htManualColumnMove.afterRemoveCol);
 Handsontable.hooks.add('afterCreateCol', htManualColumnMove.afterCreateCol);

@@ -128,7 +128,7 @@ DataMap.prototype.propToCol = function(prop) {
   } else {
     col = this.propToColCache.get(prop);
   }
-  col = Handsontable.hooks.run(this.instance, 'modifyCol', col);
+  col = Handsontable.hooks.run(this.instance, 'unmodifyCol', col);
 
   return col;
 };
