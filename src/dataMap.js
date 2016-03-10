@@ -279,17 +279,17 @@ DataMap.prototype.removeRow = function(index, amount) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
-  var logicRows = this.physicalRowsToLogical(index, amount);
-
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
-
+  let logicRows = this.physicalRowsToLogical(index, amount);
+  let descendingLogicRows = logicRows.slice(0).sort(function(a, b) {return b - a;});
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
   if (actionWasNotCancelled === false) {
     return;
   }
 
-  var data = this.dataSource;
-  var newData = data.filter(function(row, index) {
+  let data = this.dataSource;
+  let newData;
+
+  newData = data.filter(function(row, index) {
     return logicRows.indexOf(index) == -1;
   });
 
@@ -322,19 +322,42 @@ DataMap.prototype.removeCol = function(index, amount) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount);
-
+  let logicColumns = this.physicalColumnsToLogical(index, amount);
+  let descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {return b - a;});
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns);
   if (actionWasNotCancelled === false) {
     return;
   }
 
-  var data = this.dataSource;
-  for (var r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
-    data[r].splice(index, amount);
+  let isTableUniform = true;
+  let removedColumnsCount = descendingLogicColumns.length;
+  let data = this.dataSource;
+
+  for (let c = 0; c < removedColumnsCount; c++) {
+    if (isTableUniform && descendingLogicColumns[0] !== descendingLogicColumns[c] + c) {
+      isTableUniform = false;
+    }
   }
-  this.priv.columnSettings.splice(index, amount);
+
+  if (isTableUniform) {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      data[r].splice(logicColumns[0], amount);
+    }
+
+  } else {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      for (let c = 0; c < removedColumnsCount; c++) {
+        data[r].splice(descendingLogicColumns[c], 1);
+      }
+    }
+
+    for (let c = 0; c < removedColumnsCount; c++) {
+      this.priv.columnSettings.splice(logicColumns[c], 1);
+    }
+  }
 
   Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+
   this.instance.forceFullRender = true; // used when data was changed
 };
 
@@ -522,6 +545,30 @@ DataMap.prototype.physicalRowsToLogical = function(index, amount) {
   }
 
   return logicRows;
+};
+
+/**
+ *
+ * @param index
+ * @param amount
+ * @returns {Array}
+ */
+DataMap.prototype.physicalColumnsToLogical = function(index, amount) {
+  let totalCols = this.instance.countCols();
+  let physicalCol = (totalCols + index) % totalCols;
+  let logicalCols = [];
+  let colsToRemove = amount;
+
+  while (physicalCol < totalCols && colsToRemove) {
+    let col = Handsontable.hooks.run(this.instance, 'modifyCol', physicalCol);
+
+    logicalCols.push(col);
+
+    colsToRemove--;
+    physicalCol++;
+  }
+
+  return logicalCols;
 };
 
 /**

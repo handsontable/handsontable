@@ -526,6 +526,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRemoveCol
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
+   * @param {Array} [logicalCols] Consists of logical indexes of processed columns.
    */
   'beforeRemoveCol',
 
@@ -535,6 +536,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRemoveRow
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
+   * @param {Array} [logicalRows] Consists of logical indexes of processed rows.
    */
   'beforeRemoveRow',
 

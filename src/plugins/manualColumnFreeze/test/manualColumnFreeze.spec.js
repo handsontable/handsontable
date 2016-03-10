@@ -48,64 +48,6 @@ describe("ManualColumnFreeze plugin:", function () {
     });
   });
 
-  describe("checkPositionData", function () {
-    it("should check whether 'manualColumnPositions' array needs creating and/or initializing, and if so, do it", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true,
-        fixedColumnsLeft: 2
-      });
-
-      var plugin = hot.getPlugin('manualColumnFreeze');
-
-      expect(typeof hot.manualColumnPositions).toEqual("object");
-      expect(hot.manualColumnPositions.length).toEqual(0);
-
-      plugin.checkPositionData();
-      expect(hot.manualColumnPositions.length).toEqual(10);
-
-      hot.manualColumnPositions = void 0;
-      plugin.checkPositionData();
-      expect(hot.manualColumnPositions.length).toEqual(10);
-
-      hot.manualColumnPositions = [];
-      plugin.checkPositionData(5);
-      expect(hot.manualColumnPositions.length).toEqual(6);
-
-      for (var i = 0; i < 6; i++) {
-        expect(hot.manualColumnPositions[i]).toEqual(i);
-      }
-
-    });
-  });
-
-  describe("modifyColumnOrder", function () {
-    it("should update 'manualColumnPositions' array order, accordingly to provided parameters", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true,
-        fixedColumnsLeft: 2
-      });
-
-      var plugin = hot.getPlugin('manualColumnFreeze');
-
-      plugin.checkPositionData(5);
-
-      plugin.modifyColumnOrder(4, 4, null, 'freeze');
-      expect(hot.manualColumnPositions[2]).toEqual(4);
-      expect(hot.manualColumnPositions[4]).toEqual(3);
-
-      plugin.modifyColumnOrder(4, 2, null, 'unfreeze');
-      expect(hot.manualColumnPositions[2]).toEqual(2);
-      expect(hot.manualColumnPositions[4]).toEqual(4);
-
-      plugin.modifyColumnOrder(1, 1, 3, 'unfreeze');
-      expect(hot.manualColumnPositions[1]).toEqual(2);
-      expect(hot.manualColumnPositions[3]).toEqual(1);
-
-    });
-  });
-
   describe("getBestColumnReturnPosition", function () {
     it("should calculate/estimate the best return position for already fixed column", function () {
       var hot = handsontable({
@@ -116,8 +58,7 @@ describe("ManualColumnFreeze plugin:", function () {
 
       var plugin = hot.getPlugin('manualColumnFreeze');
 
-      plugin.checkPositionData(5);
-      plugin.modifyColumnOrder(4, 4, null, 'freeze');
+      plugin.changeColumnPositions(4, hot.getSettings().fixedColumnsLeft);
       plugin.addFixedColumn();
       // here manualColumnPositions looks like [0, 1, 4, 2, 3, 5] with 3 fixed columns
 
@@ -141,13 +82,15 @@ describe("ManualColumnFreeze plugin:", function () {
       });
 
       var plugin = hot.getPlugin('manualColumnFreeze');
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+      var positionsArray = manualColumnMovePlugin.columnPositions;
 
       plugin.freezeColumn(5);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
-      expect(hot.manualColumnPositions[2]).toEqual(5);
-      expect(hot.manualColumnPositions[3]).toEqual(2);
-      expect(hot.manualColumnPositions[4]).toEqual(3);
+      expect(positionsArray[2]).toEqual(5);
+      expect(positionsArray[3]).toEqual(2);
+      expect(positionsArray[4]).toEqual(3);
     });
   });
 
@@ -160,13 +103,15 @@ describe("ManualColumnFreeze plugin:", function () {
       });
 
       var plugin = hot.getPlugin('manualColumnFreeze');
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+      var positionsArray = manualColumnMovePlugin.columnPositions;
 
       plugin.unfreezeColumn(0);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
-      expect(hot.manualColumnPositions[0]).toEqual(1);
-      expect(hot.manualColumnPositions[2]).toEqual(0);
-      expect(hot.manualColumnPositions[3]).toEqual(3);
+      expect(positionsArray[0]).toEqual(1);
+      expect(positionsArray[1]).toEqual(2);
+      expect(positionsArray[2]).toEqual(0);
     });
   });
 
@@ -244,7 +189,8 @@ describe("ManualColumnFreeze plugin:", function () {
         manualColumnFreeze: true,
         fixedColumnsLeft: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
-        contextMenu: true
+        contextMenu: true,
+        rowHeaders: true
       });
 
       var dataAtCell = hot.getDataAtCell(1, 0);
@@ -292,6 +238,39 @@ describe("ManualColumnFreeze plugin:", function () {
 
       dataAtCell = hot.getDataAtCell(1, 5);
       expect(dataAtCell).toEqual("F2");
+
+      // Use the modified columns position.
+      hot.updateSettings({
+        fixedColumnsLeft: 0,
+        manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
+      });
+
+      hot.getPlugin('manualColumnFreeze').fixedColumnsCount = 0;
+
+      selectCell(1, 2);
+      contextMenu();
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
+        return $(this).text() === "Freeze this column";
+      });
+
+      freezeEntry.eq(0).simulate("mousedown");
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      dataAtCell = hot.getDataAtCell(1, 0);
+      expect(dataAtCell).toEqual("F2");
+
+      selectCell(1, 0);
+      contextMenu();
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
+        return $(this).text() === "Unfreeze this column";
+      });
+
+      freezeEntry.eq(0).simulate("mousedown");
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+      dataAtCell = hot.getDataAtCell(1, 2);
+      expect(dataAtCell).toEqual("F2");
+
     });
 
   });

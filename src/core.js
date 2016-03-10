@@ -195,11 +195,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_col':
+          let logicalColumnIndex = translateColIndex(index);
+
           datamap.removeCol(index, amount);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[row].splice(index, amount);
+              priv.cellSettings[row].splice(logicalColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -209,22 +211,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
 
           if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof index == 'undefined') {
-              index = -1;
+            if (typeof logicalColumnIndex == 'undefined') {
+              logicalColumnIndex = -1;
             }
-            instance.getSettings().colHeaders.splice(index, amount);
+            instance.getSettings().colHeaders.splice(logicalColumnIndex, amount);
           }
-          // priv.columnSettings.splice(index, amount);
 
           grid.adjustRowsAndCols();
           selection.refreshBorders(); // it will call render and prepare methods
-          break;
 
-        /* jshint ignore:start */
+          break;
         default:
           throw new Error('There is no such action "' + action + '"');
-          break;
-        /* jshint ignore:end */
       }
 
       if (!keepEmptyRows) {
