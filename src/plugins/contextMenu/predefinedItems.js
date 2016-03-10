@@ -112,8 +112,9 @@ const _predefinedItems = {
       }
       let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       let rowSelected = entireRowSelection.join(',') == selected.join(',');
+      let onlyOneColumn = this.countCols() == 1;
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
     hidden: function() {
       return !this.getSettings().allowInsertColumn;
@@ -137,8 +138,9 @@ const _predefinedItems = {
       }
       let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       let rowSelected = entireRowSelection.join(',') == selected.join(',');
+      let onlyOneColumn = this.countCols() == 1;
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
     hidden: function() {
       return !this.getSettings().allowInsertColumn;
