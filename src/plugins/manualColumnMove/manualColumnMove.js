@@ -141,6 +141,8 @@ class ManualColumnMove extends BasePlugin {
 
   /**
    * Bind the events used by the plugin.
+   *
+   * @private
    */
   registerEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
@@ -151,6 +153,8 @@ class ManualColumnMove extends BasePlugin {
 
   /**
    * Unbind the events used by the plugin.
+   *
+   * @private
    */
   unregisterEvents() {
     this.eventManager.clear();
@@ -469,6 +473,7 @@ class ManualColumnMove extends BasePlugin {
   /**
    * 'unmodifyCol' hook callback.
    *
+   * @private
    * @param {Number} col Column index.
    * @returns {Number} Unmodified column index.
    */

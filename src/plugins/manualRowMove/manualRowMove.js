@@ -17,7 +17,6 @@ const privatePool = new WeakMap();
  *
  * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
  *
- * @private
  * @class ManualRowMove
  * @plugin ManualRowMove
  */
@@ -138,6 +137,8 @@ class ManualRowMove extends BasePlugin {
 
   /**
    * Bind the events used by the plugin.
+   *
+   * @private
    */
   registerEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
@@ -148,6 +149,8 @@ class ManualRowMove extends BasePlugin {
 
   /**
    * Unbind the events used by the plugin.
+   *
+   * @private
    */
   unregisterEvents() {
     this.eventManager.clear();
