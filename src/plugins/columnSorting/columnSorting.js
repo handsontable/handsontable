@@ -378,12 +378,17 @@ class ColumnSorting extends BasePlugin {
 
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
 
-    switch (colMeta.type) {
-      case 'date':
-        sortFunction = this.dateSort;
-        break;
-      default:
-        sortFunction = this.defaultSort;
+    if (colMeta.sortFunction) {
+      sortFunction = colMeta.sortFunction;
+
+    } else {
+      switch (colMeta.type) {
+        case 'date':
+          sortFunction = this.dateSort;
+          break;
+        default:
+          sortFunction = this.defaultSort;
+      }
     }
 
     this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));

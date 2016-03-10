@@ -4899,5 +4899,30 @@ DefaultSettings.prototype = {
    * @default false
    */
   observeChanges: void 0,
+
+  /**
+   * @description
+   * When passed to the `column` property, allows specifying a custom sorting function for the desired column.
+   *
+   * @since 0.24.0
+   * @type {Function}
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     sortFunction: function(sortOrder) {
+   *        return function(a, b) {
+   *          // sorting function body.
+   *          //
+   *          // Function parameters:
+   *          // sortOrder: If true, the order is ascending, if false - descending. undefined = original order
+   *          // a, b: Two compared elements. These are 2-element arrays, with the first element being the row index, the second - cell value.
+   *        }
+   *     }
+   *   }
+   * ]
+   * ```
+   */
+  sortFunction: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;

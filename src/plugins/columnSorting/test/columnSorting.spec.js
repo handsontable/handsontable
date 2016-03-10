@@ -1464,4 +1464,80 @@ describe('ColumnSorting', function() {
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
   });
 
+  it("should allow specifiyng a custom sorting function", function() {
+    var data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
+    var hot = handsontable({
+      data: data,
+      colHeaders: true,
+      columnSorting: true,
+      columns: [
+        {
+          sortFunction: function(sortOrder) {
+            return function(a, b) {
+              var unitsRatios = {
+                'inch': 1,
+                'yard': 36,
+                'feet': 12,
+                'miles': 63360
+              };
+
+              var newA = a[1], newB = b[1];
+
+              Handsontable.helper.objectEach(unitsRatios, function(val, prop) {
+                if (a[1].indexOf(prop) > -1) {
+                  newA = parseFloat(a[1].replace(prop, '')) * val;
+
+                  return false;
+                }
+              });
+
+              Handsontable.helper.objectEach(unitsRatios, function(val, prop) {
+                if (b[1].indexOf(prop) > -1) {
+                  newB = parseFloat(b[1].replace(prop, '')) * val;
+
+                  return false;
+                }
+              });
+
+              if (newA < newB) {
+                return sortOrder ? -1 : 1;
+              }
+              if (newA > newB) {
+                return sortOrder ? 1 : -1;
+              }
+              return 0;
+            }
+          }
+        }
+      ]
+    });
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('2 feet');
+    expect(getDataAtCell(2, 0)).toEqual('1 yard');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('0.2 miles');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('1 inch');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
+  });
+
 });
