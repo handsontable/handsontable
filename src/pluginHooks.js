@@ -368,7 +368,7 @@ const REGISTERED_HOOKS = [
    * A plugin hook executed after validator function, only if validator function is defined.
    * Validation result is the first parameter. This can be used to determinate if validation passed successfully or not.
    *
-   * __You can cancel current change by returning false.__
+   * __Returning false from the callback will mark the cell as invalid.__
    *
    * @event Hooks#afterValidate
    * @since 0.9.5
