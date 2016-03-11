@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import {addClass, removeClass} from './../../helpers/dom/element';
 import {registerRenderer, getRenderer} from './../../renderers';
 

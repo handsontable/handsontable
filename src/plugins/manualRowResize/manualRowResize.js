@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import BasePlugin from './../_base.js';
 import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';

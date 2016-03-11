@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import moment from 'moment';
 import {getEditor} from './../editors';
 

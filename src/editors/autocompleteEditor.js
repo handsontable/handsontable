@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
 import {pivot} from './../helpers/array';

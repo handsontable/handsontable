@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {
     addClass,
     getCaretPosition,

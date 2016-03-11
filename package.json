@@ -9,6 +9,7 @@
   "bugs": {
     "url": "https://github.com/handsontable/handsontable/issues"
   },
+  "main": "./dist/handsontable.js",
   "author": "Handsoncode <hello@handsontable.com>",
   "version": "0.23.0",
   "keywords": [
@@ -47,7 +48,6 @@
   "scripts": {
     "test": "grunt test -v"
   },
-  "browser": "./src/browser.js",
   "license": "MIT",
   "builderDependencies": {
     "moment": {

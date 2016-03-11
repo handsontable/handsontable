@@ -1,4 +1,5 @@
 import BasePlugin from './../_base.js';
+import Handsontable from './../../browser';
 import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
 import {arrayEach, arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';

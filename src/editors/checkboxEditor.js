@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {registerEditor} from './../editors';
 import {BaseEditor} from './_baseEditor';
 import {hasClass} from './../helpers/dom/element';

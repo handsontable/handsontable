@@ -1,4 +1,5 @@
-import {getEditor, registerEditor} from './../editors';
+import Handsontable from './../browser';
+import {getEditor, registerEditor, getEditorConstructor} from './../editors';
 import {AutocompleteEditor} from './autocompleteEditor';
 
 /**

@@ -1,3 +1,4 @@
+import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
@@ -724,6 +725,3 @@ DataMap.prototype.destroy = function() {
 };
 
 export {DataMap};
-
-// Support for older hot versions
-Handsontable.DataMap = DataMap;

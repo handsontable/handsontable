@@ -1,4 +1,3 @@
-
 import {fastInnerHTML} from './../helpers/dom/element';
 import {getRenderer, registerRenderer} from './../renderers';
 

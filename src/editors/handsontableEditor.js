@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {KEY_CODES} from './../helpers/unicode';
 import {extend} from './../helpers/object';
 import {setCaretPosition} from './../helpers/dom/element';

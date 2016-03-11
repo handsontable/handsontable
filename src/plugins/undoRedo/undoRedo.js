@@ -1,7 +1,7 @@
 /**
  * Handsontable UndoRedo class
  */
-
+import Handsontable from './../../browser';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 

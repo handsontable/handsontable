@@ -1,6 +1,8 @@
+import Handsontable from './browser';
 import numeral from 'numeral';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
+import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
@@ -885,7 +887,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       addClass(instance.rootElement, 'mobile');
     }
 

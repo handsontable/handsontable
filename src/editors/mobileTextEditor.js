@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {KEY_CODES} from './../helpers/unicode';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 import {

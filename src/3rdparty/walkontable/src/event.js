@@ -4,6 +4,7 @@ import {
   hasClass,
   isChildOf,
 } from './../../../helpers/dom/element';
+import {isMobileBrowser} from './../../../helpers/browser';
 import {eventManager as eventManagerObject} from './../../../eventManager';
 
 /**
@@ -183,7 +184,7 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
   // check if full HOT instance, or detached WOT AND run on mobile device
-  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+  if (this.instance.wtTable.holder.parentNode.parentNode && isMobileBrowser() && !that.instance.wtTable.isWorkingOnClone()) {
     var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
 
     eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
