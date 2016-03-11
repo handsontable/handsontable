@@ -357,6 +357,40 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Numeric sorting algorithm.
+   *
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @returns {Function} The compare function.
+   */
+  numericSort(sortOrder) {
+    return function(a, b) {
+      let parsedA = parseFloat(a[1]);
+      let parsedB = parseFloat(b[1]);
+
+      if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
+        return 0;
+      }
+
+      if (isNaN(parsedA)) {
+        return 1;
+      }
+
+      if (isNaN(parsedB)) {
+        return -1;
+      }
+
+      if (parsedA < parsedB) {
+        return sortOrder ? -1 : 1;
+
+      } else if (parsedA > parsedB) {
+        return sortOrder ? 1 : -1;
+      }
+
+      return 0;
+    };
+  }
+
+  /**
    * Perform the sorting.
    */
   sort() {
@@ -385,6 +419,9 @@ class ColumnSorting extends BasePlugin {
       switch (colMeta.type) {
         case 'date':
           sortFunction = this.dateSort;
+          break;
+        case 'numeric':
+          sortFunction = this.numericSort;
           break;
         default:
           sortFunction = this.defaultSort;
