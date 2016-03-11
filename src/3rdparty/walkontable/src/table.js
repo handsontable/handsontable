@@ -230,9 +230,9 @@ class WalkontableTable {
       }
       this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
       this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
-      this._doDraw(); //creates calculator after draw
 
       this.alignOverlaysWithTrimmingContainer();
+      this._doDraw(); //creates calculator after draw
     }
     this.refreshSelections(fastDraw);
 
