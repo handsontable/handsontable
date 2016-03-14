@@ -1926,6 +1926,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if(isHtml(value) && $(value)[0].tagName == 'TD'){
       return value;
     } else {
+
+      // fix copypaste null
+      if(value === null) {
+        value = '';
+      }
       tempContainer = $('<div></div>');
       var td = $('<td>' + value + '</td>');
       var i, key;
