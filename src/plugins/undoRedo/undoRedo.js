@@ -2,6 +2,8 @@
  * Handsontable UndoRedo class
  */
 
+import {arrayMap} from './../../helpers/array';
+import {rangeEach, rangeEachReverse} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 
@@ -61,20 +63,30 @@ Handsontable.UndoRedo = function(instance) {
   });
 
   instance.addHook('beforeRemoveCol', function(index, amount) {
-    var originalData = plugin.instance.getSourceData();
+    let originalData = plugin.instance.getData();
     index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
-    var removedData = [];
+    let removedData = [];
+    let headers = [];
+    let indexes = [];
 
-    for (var i = 0, len = originalData.length; i < len; i++) {
+    rangeEach(0, originalData.length - 1, (i) => {
       removedData[i] = originalData[i].slice(index, index + amount);
-    }
+    });
 
-    var headers;
+    rangeEach(0, amount - 1, (i) => {
+      indexes.push(instance.runHooks('modifyCol', index + i));
+    });
+
     if (Array.isArray(instance.getSettings().colHeaders)) {
-      headers = instance.getSettings().colHeaders.slice(index, index + removedData.length);
+      rangeEach(0, amount - 1, (i) => {
+        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
+      });
     }
 
-    var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData, headers);
+    let manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
+
+    var action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
+
     plugin.done(action);
   });
 
@@ -321,38 +333,55 @@ Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, un
 /**
  * Remove column action.
  */
-Handsontable.UndoRedo.RemoveColumnAction = function(index, data, headers) {
-  this.index = index;
+Handsontable.UndoRedo.RemoveColumnAction = function(indexes, data, headers, columnPositions) {
+  this.indexes = indexes;
   this.data = data;
   this.amount = this.data[0].length;
   this.headers = headers;
+  this.columnPositions = columnPositions.slice(0);
 };
 inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
 
 Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
-  var row, spliceArgs;
-  for (var i = 0, len = instance.getSourceData().length; i < len; i++) {
+  let row;
+  let ascendingIndexes = this.indexes.slice(0).sort();
+  let sortByIndexes = (elem, j, arr) => {
+    return arr[this.indexes.indexOf(ascendingIndexes[j])];
+  };
+
+  let sortedData = [];
+  rangeEach(0, this.data.length - 1, (i) => {
+    sortedData[i] = arrayMap(this.data[i], sortByIndexes);
+  });
+
+  let sortedHeaders = [];
+  sortedHeaders = arrayMap(this.headers, sortByIndexes);
+
+  rangeEach(0, this.data.length - 1, (i) => {
     row = instance.getSourceDataAtRow(i);
 
-    spliceArgs = [this.index, 0];
-    Array.prototype.push.apply(spliceArgs, this.data[i]);
-
-    Array.prototype.splice.apply(row, spliceArgs);
-
-  }
+    rangeEach(0, ascendingIndexes.length - 1, (j) => {
+      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
+    });
+  });
 
   if (typeof this.headers != 'undefined') {
-    spliceArgs = [this.index, 0];
-    Array.prototype.push.apply(spliceArgs, this.headers);
-    Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
+    rangeEach(0, sortedHeaders.length - 1, (j) => {
+      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
+    });
+  }
+
+  if (instance.getPlugin('manualColumnMove')) {
+    instance.getPlugin('manualColumnMove').columnPositions = this.columnPositions;
   }
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
+
 Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveCol', redoneCallback);
-  instance.alter('remove_col', this.index, this.amount);
+  instance.alter('remove_col', instance.runHooks('unmodifyCol', this.indexes[0]), this.amount);
 };
 
 /**
