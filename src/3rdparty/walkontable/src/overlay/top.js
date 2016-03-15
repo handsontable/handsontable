@@ -8,6 +8,7 @@ import {
   innerWidth,
   removeClass,
   setOverlayPosition,
+  resetCssTransform
 } from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
 
@@ -66,7 +67,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
     } else {
       headerPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
     }
+
     this.adjustHeaderBordersPosition(headerPosition);
 
     this.adjustElementsSize();
@@ -120,6 +123,8 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
+    this.updateTrimmingContainer();
+
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
@@ -147,7 +152,11 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
 
       overlayRootStyle.width = width + 'px';
+
+    } else {
+      overlayRootStyle.width = '';
     }
+
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);

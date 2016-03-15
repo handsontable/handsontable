@@ -280,6 +280,29 @@ describe('Core_alter', function () {
       expect(hot.getSettings().fixedRowsTop).toEqual(1);
     });
 
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 3,
+        startRows: 4
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('remove_row', 1, 1);
+
+      expect(getCellMeta(1, 1).className).toEqual('test');
+    });
+
+    it("should shift the cell meta according to the new rows (>1) layout", function () {
+      var hot = handsontable({
+        startCols: 3,
+        startRows: 4
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('remove_row', 0, 2);
+
+      expect(getCellMeta(0, 1).className).toEqual('test');
+    });
   });
 
   describe("remove column", function () {
@@ -358,7 +381,7 @@ describe('Core_alter', function () {
       });
       alter('remove_col');
 
-      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined, undefined);
+      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4], undefined, undefined, undefined);
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', function () {
@@ -480,6 +503,29 @@ describe('Core_alter', function () {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
     });
 
+    it("should shift the cell meta according to the new column layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('remove_col', 1, 1);
+
+      expect(getCellMeta(1, 1).className).toEqual('test');
+    });
+
+    it("should shift the cell meta according to the new columns (>1) layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('remove_col', 0, 2);
+
+      expect(getCellMeta(1, 0).className).toEqual('test');
+    });
   });
 
   describe("insert row", function () {
@@ -621,6 +667,29 @@ describe('Core_alter', function () {
       expect(selected[2]).toEqual(3);
     });
 
+    it("should shift the cell meta according to the new row layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('insert_row', 1, 1);
+
+      expect(getCellMeta(3, 1).className).toEqual('test');
+    });
+
+    it("should shift the cell meta according to the new rows (>1) layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(2, 1, 'className', 'test');
+      alter('insert_row', 0, 3);
+
+      expect(getCellMeta(5, 1).className).toEqual('test');
+    });
   });
 
   describe("insert column", function () {
@@ -780,6 +849,29 @@ describe('Core_alter', function () {
       expect(Handsontable.Dom.outerWidth(hot.view.TBODY)).toEqual(500);
     });
 
+    it("should shift the cell meta according to the new column layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('insert_col', 1, 1);
+
+      expect(getCellMeta(1, 3).className).toEqual('test');
+    });
+
+    it("should shift the cell meta according to the new columns (>1) layout", function () {
+      var hot = handsontable({
+        startCols: 4,
+        startRows: 3
+      });
+
+      setCellMeta(1, 2, 'className', 'test');
+      alter('insert_col', 0, 3);
+
+      expect(getCellMeta(1, 5).className).toEqual('test');
+    });
   });
 
 });

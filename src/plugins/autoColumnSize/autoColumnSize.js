@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
+import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
+import {isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
@@ -339,7 +340,14 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    let force = this.hot.renderCall;
+    const force = this.hot.renderCall;
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
     this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
@@ -372,7 +380,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => this.widths[data[1]] = void 0);
+    arrayEach(changes, (data) => this.widths[this.hot.propToCol(data[1])] = void 0);
   }
 
   /**

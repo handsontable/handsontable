@@ -2,7 +2,8 @@
 import {
   outerHeight,
   outerWidth,
-  setOverlayPosition
+  setOverlayPosition,
+  resetCssTransform
 } from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
 
@@ -32,6 +33,8 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
    * Updates the corner overlay position
    */
   resetFixedPosition() {
+    this.updateTrimmingContainer();
+
     if (!this.wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
@@ -62,6 +65,8 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
         }
       }
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
+    } else {
+      resetCssTransform(overlayRoot);
     }
     overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
     overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';

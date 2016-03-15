@@ -7,8 +7,16 @@
  * @param {*} callback - Callback called with validation result
  */
 Handsontable.NumericValidator = function(value, callback) {
-  if (value === null) {
+  if (value == null) {
     value = '';
   }
-  callback(/^-?\d*(\.|\,)?\d*$/.test(value));
+  if (this.allowEmpty && value === '') {
+    callback(true);
+
+  } else if (value === '') {
+    callback(false);
+
+  } else {
+    callback(/^-?\d*(\.|\,)?\d*$/.test(value));
+  }
 };

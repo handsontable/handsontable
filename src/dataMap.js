@@ -1,9 +1,9 @@
-
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
 import {duckSchema, deepExtend} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
+import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
 import {MultiMap} from './multiMap';
 
@@ -24,6 +24,8 @@ function DataMap(instance, priv, GridSettings) {
   this.priv = priv;
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
+  this.cachedLength = null;
+  this.latestSourceRowsCount = 0;
 
   if (this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
@@ -31,6 +33,7 @@ function DataMap(instance, priv, GridSettings) {
     this.duckSchema = {};
   }
   this.createMap();
+  this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -125,7 +128,7 @@ DataMap.prototype.propToCol = function(prop) {
   } else {
     col = this.propToColCache.get(prop);
   }
-  col = Handsontable.hooks.run(this.instance, 'modifyCol', col);
+  col = Handsontable.hooks.run(this.instance, 'unmodifyCol', col);
 
   return col;
 };
@@ -276,17 +279,17 @@ DataMap.prototype.removeRow = function(index, amount) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
-  var logicRows = this.physicalRowsToLogical(index, amount);
-
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
-
+  let logicRows = this.physicalRowsToLogical(index, amount);
+  let descendingLogicRows = logicRows.slice(0).sort(function(a, b) {return b - a;});
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
   if (actionWasNotCancelled === false) {
     return;
   }
 
-  var data = this.dataSource;
-  var newData = data.filter(function(row, index) {
+  let data = this.dataSource;
+  let newData;
+
+  newData = data.filter(function(row, index) {
     return logicRows.indexOf(index) == -1;
   });
 
@@ -319,19 +322,42 @@ DataMap.prototype.removeCol = function(index, amount) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount);
-
+  let logicColumns = this.physicalColumnsToLogical(index, amount);
+  let descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {return b - a;});
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns);
   if (actionWasNotCancelled === false) {
     return;
   }
 
-  var data = this.dataSource;
-  for (var r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
-    data[r].splice(index, amount);
+  let isTableUniform = true;
+  let removedColumnsCount = descendingLogicColumns.length;
+  let data = this.dataSource;
+
+  for (let c = 0; c < removedColumnsCount; c++) {
+    if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
+      isTableUniform = false;
+    }
   }
-  this.priv.columnSettings.splice(index, amount);
+
+  if (isTableUniform) {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      data[r].splice(logicColumns[0], amount);
+    }
+
+  } else {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+      for (let c = 0; c < removedColumnsCount; c++) {
+        data[r].splice(descendingLogicColumns[c], 1);
+      }
+    }
+
+    for (let c = 0; c < removedColumnsCount; c++) {
+      this.priv.columnSettings.splice(logicColumns[c], 1);
+    }
+  }
 
   Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+
   this.instance.forceFullRender = true; // used when data was changed
 };
 
@@ -397,14 +423,20 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
 
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    var sliced = prop.split('.');
-    var out = this.dataSource[row];
+  const dataRow = this.dataSource[row];
+
+  // try to get value under property `prop` (includes dot)
+  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+    return dataRow[prop];
+
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+    let sliced = prop.split('.');
+    let out = dataRow;
 
     if (!out) {
       return null;
     }
-    for (var i = 0, ilen = sliced.length; i < ilen; i++) {
+    for (let i = 0, ilen = sliced.length; i < ilen; i++) {
       out = out[sliced[i]];
 
       if (typeof out === 'undefined') {
@@ -428,10 +460,6 @@ DataMap.prototype.get = function(row, prop) {
      *    }]}
      */
     return prop(this.dataSource.slice(row, row + 1)[0]);
-
-  }
-  if (this.dataSource[row] && this.dataSource[row].hasOwnProperty && this.dataSource[row].hasOwnProperty(prop)) {
-    return this.dataSource[row][prop];
   }
 
   return null;
@@ -464,11 +492,17 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
 
-  if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    var sliced = prop.split('.');
-    var out = this.dataSource[row];
-    for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+  const dataRow = this.dataSource[row];
 
+  // try to set value under property `prop` (includes dot)
+  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+    dataRow[prop] = value;
+
+  } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+    let sliced = prop.split('.');
+    let out = dataRow;
+
+    for (let i = 0, ilen = sliced.length - 1; i < ilen; i++) {
       if (typeof out[sliced[i]] === 'undefined') {
         out[sliced[i]] = {};
       }
@@ -481,7 +515,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
     prop(this.dataSource.slice(row, row + 1)[0], value);
 
   } else {
-    this.dataSource[row][prop] = value;
+    dataRow[prop] = value;
   }
 };
 
@@ -514,6 +548,30 @@ DataMap.prototype.physicalRowsToLogical = function(index, amount) {
 };
 
 /**
+ *
+ * @param index
+ * @param amount
+ * @returns {Array}
+ */
+DataMap.prototype.physicalColumnsToLogical = function(index, amount) {
+  let totalCols = this.instance.countCols();
+  let physicalCol = (totalCols + index) % totalCols;
+  let logicalCols = [];
+  let colsToRemove = amount;
+
+  while (physicalCol < totalCols && colsToRemove) {
+    let col = Handsontable.hooks.run(this.instance, 'modifyCol', physicalCol);
+
+    logicalCols.push(col);
+
+    colsToRemove--;
+    physicalCol++;
+  }
+
+  return logicalCols;
+};
+
+/**
  * Clears the data array.
  */
 DataMap.prototype.clear = function() {
@@ -525,6 +583,13 @@ DataMap.prototype.clear = function() {
 };
 
 /**
+ * Clear cached data length.
+ */
+DataMap.prototype.clearLengthCache = function() {
+  this.cachedLength = null;
+};
+
+/**
  * Get data length.
  *
  * @returns {Number}
@@ -533,13 +598,30 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    rangeEach(this.instance.countSourceRows() - 1, (row) => {
-      row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+    let reValidate = false;
 
-      if (row === null) {
-        length--;
-      }
-    });
+    this.interval.start();
+
+    if (length !== this.latestSourceRowsCount) {
+      reValidate = true;
+    }
+    this.latestSourceRowsCount = length;
+
+    if (this.cachedLength === null || reValidate) {
+      rangeEach(length - 1, (row) => {
+        row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
+
+        if (row === null) {
+          --length;
+        }
+      });
+      this.cachedLength = length;
+
+    } else {
+      length = this.cachedLength;
+    }
+  } else {
+    this.interval.stop();
   }
 
   return length;
@@ -624,6 +706,21 @@ DataMap.prototype.getText = function(start, end) {
  */
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+};
+
+/**
+ * Destroy instance.
+ */
+DataMap.prototype.destroy = function() {
+  this.interval.stop();
+
+  this.interval = null;
+  this.instance = null;
+  this.priv = null;
+  this.GridSettings = null;
+  this.dataSource = null;
+  this.cachedLength = null;
+  this.duckSchema = null;
 };
 
 export {DataMap};

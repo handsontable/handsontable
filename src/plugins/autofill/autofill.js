@@ -109,7 +109,7 @@ function Autofill(instance) {
       _this.instance.mouseDragOutside = false;
     }
 
-    if (_this.instance.mouseDragOutside) {
+    if (_this.instance.mouseDragOutside && settings('autoInsertRow')) {
       setTimeout(function() {
         _this.addingStarted = false;
         _this.instance.alter('insert_row');
@@ -281,10 +281,10 @@ Autofill.prototype.showBorder = function(coords) {
   var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),
     bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
 
-  if (this.instance.getSettings().fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+  if (settings('direction') !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
     coords = new WalkontableCellCoords(coords.row, bottomRight.col);
 
-  } else if (this.instance.getSettings().fillHandle !== 'vertical') { // jscs:ignore disallowNotOperatorsInConditionals
+  } else if (settings('direction') !== 'vertical') { // jscs:ignore disallowNotOperatorsInConditionals
     coords = new WalkontableCellCoords(bottomRight.row, coords.col);
 
   } else {
@@ -309,7 +309,7 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
     tableRows = this.instance.countRows(),
     that = this;
 
-  if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+  if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false && settings('autoInsertRow')) {
     selection = this.instance.getSelected();
     fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
@@ -327,11 +327,13 @@ Autofill.prototype.checkIfNewRowNeeded = function() {
 Handsontable.hooks.add('afterInit', function() {
   var autofill = new Autofill(this);
 
-  if (typeof this.getSettings().fillHandle !== 'undefined') {
-    if (autofill.handle && this.getSettings().fillHandle === false) {
+  settings = settingsFactory(this.getSettings().fillHandle);
+
+  if (settings('fillHandle') !== void 0) {
+    if (autofill.handle && settings('fillHandle') === false) {
       autofill.disable();
 
-    } else if (!autofill.handle && this.getSettings().fillHandle !== false) {
+    } else if (!autofill.handle && settings('fillHandle') !== false) {
       /**
        * Instance of Autofill Plugin {@link Handsontable.Autofill}
        *
@@ -344,5 +346,38 @@ Handsontable.hooks.add('afterInit', function() {
     }
   }
 });
+
+let settings;
+
+function settingsFactory(settings) {
+  return function(key) {
+    let result;
+
+    if (key === 'direction') {
+      if (typeof settings === 'string') {
+        result = settings;
+
+      } else if (typeof settings === 'object' && settings[key] !== void 0) {
+        result = settings[key];
+
+      } else {
+        result = true;
+      }
+
+    } else if (key === 'autoInsertRow') {
+      if (typeof settings === 'object' && settings[key] !== void 0) {
+        result = settings[key];
+
+      } else {
+        result = true;
+      }
+
+    } else if (key === 'fillHandle') {
+      result = settings ? true : false;
+    }
+
+    return result;
+  };
+}
 
 Handsontable.Autofill = Autofill;

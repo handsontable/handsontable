@@ -282,7 +282,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(105); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
 
-    moveSecondDisplayedColumnBeforeFirstColumn(getHtCore(), 2);
+    swapDisplayedColumns(getHtCore(), 2, 1);
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);

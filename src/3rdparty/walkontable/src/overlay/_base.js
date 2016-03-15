@@ -144,6 +144,20 @@ class WalkontableOverlay {
   }
 
   /**
+   * Update the trimming container.
+   */
+  updateTrimmingContainer() {
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+  }
+
+  /**
+   * Update the main scrollable element.
+   */
+  updateMainScrollableElement() {
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+  }
+
+  /**
    * Make a clone of table for overlay
    *
    * @param {String} direction Can be `WalkontableOverlay.CLONE_TOP`, `WalkontableOverlay.CLONE_LEFT`,

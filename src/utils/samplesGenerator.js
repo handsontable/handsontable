@@ -1,6 +1,6 @@
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
-import {objectEach} from './../helpers/object';
+import {objectEach, isObject} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
 import {stringify} from './../helpers/mixed';
 
@@ -109,6 +109,7 @@ class SamplesGenerator {
   generateSample(type, range, specifierValue) {
     const samples = new Map();
     let sampledValues = [];
+    let length;
 
     rangeEach(range.from, range.to, (index) => {
       let value;
@@ -122,18 +123,24 @@ class SamplesGenerator {
       } else {
         throw new Error('Unsupported sample type');
       }
-      if (!Array.isArray(value)) {
-        value = stringify(value);
-      }
-      let len = value.length;
 
-      if (!samples.has(len)) {
-        samples.set(len, {
+      if (isObject(value)) {
+        length = Object.keys(value).length;
+
+      } else if (Array.isArray(value)) {
+        length = value.length;
+
+      } else {
+        length = stringify(value).length;
+      }
+
+      if (!samples.has(length)) {
+        samples.set(length, {
           needed: this.getSampleCount(),
           strings: [],
         });
       }
-      let sample = samples.get(len);
+      let sample = samples.get(length);
 
       if (sample.needed) {
         let duplicate = sampledValues.indexOf(value) > -1;

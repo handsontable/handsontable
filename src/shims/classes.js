@@ -265,10 +265,30 @@
       iterResult;
     for (var i = 0; i < arguments.length; i++) {
       var valueToSpread = $traceurRuntime.checkObjectCoercible(arguments[i]);
+
       if (typeof valueToSpread[$toProperty(Symbol.iterator)] !== 'function') {
-        throw new TypeError('Cannot spread non-iterable object.');
+        valueToSpread[$toProperty(Symbol.iterator)] = function() {
+          var value = this;
+          var length = value.length;
+          var index = 0;
+
+          return {
+            next: function() {
+              var result = {done: true};
+
+              if (index < length) {
+                result.done = false;
+                result.value = value[index];
+                ++index;
+              }
+
+              return result;
+            }
+          }
+        };
       }
       var iter = valueToSpread[$toProperty(Symbol.iterator)]();
+
       while (!(iterResult = iter.next()).done) {
         rv[j++] = iterResult.value;
       }

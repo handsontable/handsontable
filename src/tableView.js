@@ -215,7 +215,9 @@ function TableView(instance) {
     externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     preventOverflow: () => this.settings.preventOverflow,
-    stretchH: this.settings.stretchH,
+    stretchH: function() {
+      return that.settings.stretchH;
+    },
     data: instance.getDataAtCell,
     totalRows: () => instance.countRows(),
     totalColumns: () => instance.countCols(),
