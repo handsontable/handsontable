@@ -158,6 +158,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    */
   function eachSelectedCheckboxCell(callback) {
     const selRange = instance.getSelectedRange();
+
+    if (!selRange) {
+      return;
+    }
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
 
