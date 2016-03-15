@@ -334,7 +334,7 @@ DataMap.prototype.removeCol = function(index, amount) {
   let data = this.dataSource;
 
   for (let c = 0; c < removedColumnsCount; c++) {
-    if (isTableUniform && descendingLogicColumns[0] !== descendingLogicColumns[c] + c) {
+    if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
       isTableUniform = false;
     }
   }
