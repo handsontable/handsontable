@@ -381,7 +381,7 @@ describe('Core_alter', function () {
       });
       alter('remove_col');
 
-      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined, undefined);
+      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4], undefined, undefined, undefined);
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', function () {

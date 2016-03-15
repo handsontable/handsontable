@@ -1,6 +1,5 @@
-
 import {polymerWrap, closest} from './helpers/dom/element';
-import {isWebComponentSupportedNatively} from './helpers/browser';
+import {isWebComponentSupportedNatively} from './helpers/feature';
 import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
 
 /**

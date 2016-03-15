@@ -6,11 +6,15 @@ import {registerPlugin} from './../../plugins';
  * You can turn it on by setting a `manualColumnFreeze` property to `true`.
  *
  * @plugin ManualColumnFreeze
+ * @dependencies ManualColumnMove
  */
 class ManualColumnFreeze extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
+
+    this.manualColumnMovePlugin = null;
+    this.frozenColumnsBasePositions = [];
   }
 
   /**
@@ -35,23 +39,25 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Init settings.
    */
-  disablePlugin() {
-    super.disablePlugin();
-  }
-
   init() {
     super.init();
 
-    // update plugin usages count for manualColumnPositions
-    if (typeof this.hot.manualColumnPositionsPluginUsages === 'undefined') {
-      this.hot.manualColumnPositionsPluginUsages = ['manualColumnFreeze'];
-    } else {
-      this.hot.manualColumnPositionsPluginUsages.push('manualColumnFreeze');
+    this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
+  }
+
+  /**
+   * Get the reference to the ManualColumnMove plugin.
+   *
+   * @returns {Object}
+   */
+  getManualColumnMovePlugin() {
+    if (!this.manualColumnMovePlugin) {
+      this.manualColumnMovePlugin = this.hot.getPlugin('manualColumnMove');
     }
 
-    this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
+    return this.manualColumnMovePlugin;
   }
 
   /**
@@ -62,15 +68,11 @@ class ManualColumnFreeze extends BasePlugin {
    */
   onModifyCol(column) {
     // if another plugin is using manualColumnPositions to modify column order, do not double the translation
-    if (this.hot.manualColumnPositionsPluginUsages.length > 1) {
+    if (this.getManualColumnMovePlugin().isEnabled()) {
       return column;
     }
 
-    return this.getModifiedColumnIndex(column);
-  }
-
-  getModifiedColumnIndex(column) {
-    return this.hot.manualColumnPositions[column];
+    return this.getLogicalColumnIndex(column);
   }
 
   /**
@@ -121,11 +123,11 @@ class ManualColumnFreeze extends BasePlugin {
       return; // already fixed
     }
 
-    let modifiedColumn = this.getModifiedColumnIndex(column) || column;
+    if (column !== this.getLogicalColumnIndex(column)) {
+      this.frozenColumnsBasePositions[this.fixedColumnsCount] = column;
+    }
 
-    this.checkPositionData(modifiedColumn);
-    this.modifyColumnOrder(modifiedColumn, column, null, 'freeze');
-
+    this.changeColumnPositions(column, this.fixedColumnsCount);
     this.addFixedColumn();
 
     this.hot.view.wt.wtOverlays.leftOverlay.refresh();
@@ -143,10 +145,7 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     let returnCol = this.getBestColumnReturnPosition(column);
-    let modifiedColumn = this.getModifiedColumnIndex(column) || column;
-
-    this.checkPositionData(modifiedColumn);
-    this.modifyColumnOrder(modifiedColumn, column, returnCol, 'unfreeze');
+    this.changeColumnPositions(column, returnCol);
     this.removeFixedColumn();
 
     this.hot.view.wt.wtOverlays.leftOverlay.refresh();
@@ -176,74 +175,63 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Checks whether 'manualColumnPositions' array needs creating and/or initializing.
-   *
-   * @param {Number} [column] Column index.
-   */
-  checkPositionData(column) {
-    if (!this.hot.manualColumnPositions || this.hot.manualColumnPositions.length === 0) {
-      if (!this.hot.manualColumnPositions) {
-        this.hot.manualColumnPositions = [];
-      }
-    }
-    if (column) {
-      if (!this.hot.manualColumnPositions[column]) {
-        this.createPositionData(column + 1);
-      }
-    } else {
-      this.createPositionData(this.hot.countCols());
-    }
-  }
-
-  /**
-   * Fills the 'manualColumnPositions' array with consecutive column indexes.
-   *
-   * @param {Number} length Length for the array.
-   */
-  createPositionData(length) {
-    if (this.hot.manualColumnPositions.length < length) {
-      for (let i = this.hot.manualColumnPositions.length; i < length; i++) {
-        this.hot.manualColumnPositions[i] = i;
-      }
-    }
-  }
-
-  /**
-   * Updates the column order array used by modifyCol callback.
-   *
-   * @param {Number} column Column index.
-   * @param {Number} actualColumn Column index of the currently selected cell.
-   * @param {Number|null} returnColumn suggested return slot for the unfrozen column (can be `null`).
-   * @param {String} action 'freeze' or 'unfreeze'.
-   */
-  modifyColumnOrder(column, actualColumn, returnColumn, action) {
-    if (returnColumn == null) {
-      returnColumn = column;
-    }
-
-    if (action === 'freeze') {
-      this.hot.manualColumnPositions.splice(this.fixedColumnsCount, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
-    } else if (action === 'unfreeze') {
-      this.hot.manualColumnPositions.splice(returnColumn, 0, this.hot.manualColumnPositions.splice(actualColumn, 1)[0]);
-    }
-  }
-
-  /**
    * Estimates the most fitting return position for unfrozen column.
    *
    * @param {Number} column Column index.
    */
   getBestColumnReturnPosition(column) {
     let i = this.fixedColumnsCount;
-    let j = this.getModifiedColumnIndex(i);
-    let initialCol = this.getModifiedColumnIndex(column);
+    let j = this.getLogicalColumnIndex(i);
+    let initialCol;
 
-    while (j < initialCol) {
-      i++;
-      j = this.getModifiedColumnIndex(i);
+    if (this.frozenColumnsBasePositions[column] == null) {
+      initialCol = this.getLogicalColumnIndex(column);
+
+      while (j < initialCol) {
+        i++;
+        j = this.getLogicalColumnIndex(i);
+      }
+
+    } else {
+      initialCol = this.frozenColumnsBasePositions[column];
+      this.frozenColumnsBasePositions[column] = void 0;
+
+      while (j <= initialCol) {
+        i++;
+        j = this.getLogicalColumnIndex(i);
+      }
+      i = j;
     }
 
     return i - 1;
+  }
+
+  /**
+   * Get the visible column index by the provided logical column.
+   *
+   * @param {Number} column Logical column index.
+   */
+  getVisibleColumnIndex(column) {
+    return this.getManualColumnMovePlugin().getVisibleColumnIndex(column);
+  }
+
+  /**
+   * Get the logical column index by the provided visible column.
+   *
+   * @param {Number} column Visible column index.
+   */
+  getLogicalColumnIndex(column) {
+    return this.getManualColumnMovePlugin().getLogicalColumnIndex(column);
+  }
+
+  /**
+   * Move the `sourceColumn` after the `destinationColumn`.
+   *
+   * @param {Number} sourceColumn Index of the source column.
+   * @param {Number} destinationColumn Index of the destination column.
+   */
+  changeColumnPositions(sourceColumn, destinationColumn) {
+    this.getManualColumnMovePlugin().changeColumnPositions(sourceColumn, destinationColumn);
   }
 }
 

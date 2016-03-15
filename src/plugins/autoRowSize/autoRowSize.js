@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
+import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
+import {isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';

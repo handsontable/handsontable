@@ -292,6 +292,45 @@ describe('ColumnSorting', function() {
 
   });
 
+  it('should properly sort numeric data', function() {
+    var hot = handsontable({
+      data: [
+        ["Mercedes", "A 160", "01/14/2006", '6999.9999'],
+        ["Citroen", "C4 Coupe", "12/01/2008", 8330],
+        ["Citroen", "C4 Coupe null", null, '8330'],
+        ["Citroen", "C4 Coupe empty", "", 8333],
+        ["Audi", "A4 Avant", "11/19/2011", '33900'],
+        ["Opel", "Astra", "02/02/2004", '7000'],
+        ["BMW", "320i Coupe", "07/24/2011", 30500]
+      ],
+      columns: [
+        {},
+        {},
+        {},
+        {
+          type: 'numeric'
+        }
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    var htCore = getHtCore();
+
+    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+
+    expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
+
+    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+
+    expect(hot.getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
+
+    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+
+    expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
+
+  });
+
   it('should sort table with multiple row headers', function() {
 
     var hot = handsontable({
@@ -1462,6 +1501,82 @@ describe('ColumnSorting', function() {
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(2, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
+  });
+
+  it("should allow specifiyng a custom sorting function", function() {
+    var data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
+    var hot = handsontable({
+      data: data,
+      colHeaders: true,
+      columnSorting: true,
+      columns: [
+        {
+          sortFunction: function(sortOrder) {
+            return function(a, b) {
+              var unitsRatios = {
+                'inch': 1,
+                'yard': 36,
+                'feet': 12,
+                'miles': 63360
+              };
+
+              var newA = a[1], newB = b[1];
+
+              Handsontable.helper.objectEach(unitsRatios, function(val, prop) {
+                if (a[1].indexOf(prop) > -1) {
+                  newA = parseFloat(a[1].replace(prop, '')) * val;
+
+                  return false;
+                }
+              });
+
+              Handsontable.helper.objectEach(unitsRatios, function(val, prop) {
+                if (b[1].indexOf(prop) > -1) {
+                  newB = parseFloat(b[1].replace(prop, '')) * val;
+
+                  return false;
+                }
+              });
+
+              if (newA < newB) {
+                return sortOrder ? -1 : 1;
+              }
+              if (newA > newB) {
+                return sortOrder ? 1 : -1;
+              }
+              return 0;
+            }
+          }
+        }
+      ]
+    });
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('2 feet');
+    expect(getDataAtCell(2, 0)).toEqual('1 yard');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('0.2 miles');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('1 inch');
+
+    hot.sort(0);
+
+    expect(getDataAtCell(0, 0)).toEqual('1 inch');
+    expect(getDataAtCell(1, 0)).toEqual('1 yard');
+    expect(getDataAtCell(2, 0)).toEqual('2 feet');
+    expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
+
   });
 
 });

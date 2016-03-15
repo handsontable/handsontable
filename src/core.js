@@ -195,11 +195,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_col':
+          let logicalColumnIndex = translateColIndex(index);
+
           datamap.removeCol(index, amount);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[row].splice(index, amount);
+              priv.cellSettings[row].splice(logicalColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -209,22 +211,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
 
           if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof index == 'undefined') {
-              index = -1;
+            if (typeof logicalColumnIndex == 'undefined') {
+              logicalColumnIndex = -1;
             }
-            instance.getSettings().colHeaders.splice(index, amount);
+            instance.getSettings().colHeaders.splice(logicalColumnIndex, amount);
           }
-          // priv.columnSettings.splice(index, amount);
 
           grid.adjustRowsAndCols();
           selection.refreshBorders(); // it will call render and prepare methods
-          break;
 
-        /* jshint ignore:start */
+          break;
         default:
           throw new Error('There is no such action "' + action + '"');
-          break;
-        /* jshint ignore:end */
       }
 
       if (!keepEmptyRows) {
@@ -945,9 +943,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       } else {
         var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
-        // column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
-        var logicalCol = instance.runHooks('modifyCol', col);
-        var cellProperties = instance.getCellMeta(row, logicalCol);
+
+        var cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
@@ -1092,8 +1089,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     } else {
       // resolve callback even if validator function was not found
-      cellProperties.valid = true;
-      done(cellProperties.valid);
+      instance._registerTimeout(setTimeout(function() {
+        cellProperties.valid = true;
+        done(cellProperties.valid);
+      }, 0));
     }
   };
 
@@ -1393,6 +1392,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.dataType = 'object';
     }
 
+    if (datamap) {
+      datamap.destroy();
+    }
     datamap = new DataMap(instance, priv, GridSettings);
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
@@ -1562,8 +1564,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          extend(proto, column);
-          extend(proto, expandType(column));
+
+          if (column) {
+            extend(proto, column);
+            extend(proto, expandType(column));
+          }
         }
       }
     }
@@ -1588,14 +1593,38 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
 
-    if (typeof settings.height != 'undefined') {
-      var height = settings.height;
+    let currentHeight = instance.rootElement.style.height;
+    if (currentHeight !== '') {
+      currentHeight = parseInt(instance.rootElement.style.height, 10);
+    }
 
-      if (typeof height == 'function') {
-        height = height();
+    let height = settings.height;
+    if (typeof height == 'function') {
+      height = height();
+    }
+
+    if (init) {
+      let initialStyle = instance.rootElement.getAttribute('style');
+
+      if (initialStyle) {
+        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
+    }
+
+    if (height === void 0) {
+      let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle);
+
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
       }
 
+    } else {
       instance.rootElement.style.height = height + 'px';
+      instance.rootElement.style.overflow = 'hidden';
     }
 
     if (typeof settings.width != 'undefined') {
@@ -1608,12 +1637,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
 
-    /* jshint ignore:start */
-    if (height) {
-      instance.rootElement.style.overflow = 'hidden';
-    }
-    /* jshint ignore:end */
-
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
@@ -1622,6 +1645,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
       selection.refreshBorders(null, true);
+    }
+
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+      instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
@@ -2825,8 +2852,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-    priv = null;
+    if (datamap) {
+      datamap.destroy();
+    }
     datamap = null;
+    priv = null;
     grid = null;
     selection = null;
     editorManager = null;
@@ -4871,5 +4901,30 @@ DefaultSettings.prototype = {
    * @default false
    */
   observeChanges: void 0,
+
+  /**
+   * @description
+   * When passed to the `column` property, allows specifying a custom sorting function for the desired column.
+   *
+   * @since 0.24.0
+   * @type {Function}
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     sortFunction: function(sortOrder) {
+   *        return function(a, b) {
+   *          // sorting function body.
+   *          //
+   *          // Function parameters:
+   *          // sortOrder: If true, the order is ascending, if false - descending. undefined = original order
+   *          // a, b: Two compared elements. These are 2-element arrays, with the first element being the row index, the second - cell value.
+   *        }
+   *     }
+   *   }
+   * ]
+   * ```
+   */
+  sortFunction: void 0,
 };
 Handsontable.DefaultSettings = DefaultSettings;

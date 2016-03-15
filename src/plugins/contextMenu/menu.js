@@ -113,6 +113,7 @@ class Menu {
       }],
       renderAllRows: true,
       fragmentSelection: 'cell',
+      disableVisualSelection: 'area',
       beforeKeyDown: (event) => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords, TD) => {
         if (this.isAllSubMenusClosed()) {
@@ -162,7 +163,7 @@ class Menu {
    */
   openSubMenu(row) {
     if (!this.hotMenu) {
-      return;
+      return false;
     }
     let cell = this.hotMenu.getCell(row, 0);
 

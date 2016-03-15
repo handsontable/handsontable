@@ -368,7 +368,7 @@ const REGISTERED_HOOKS = [
    * A plugin hook executed after validator function, only if validator function is defined.
    * Validation result is the first parameter. This can be used to determinate if validation passed successfully or not.
    *
-   * __You can cancel current change by returning false.__
+   * __Returning false from the callback will mark the cell as invalid.__
    *
    * @event Hooks#afterValidate
    * @since 0.9.5
@@ -526,6 +526,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRemoveCol
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
+   * @param {Array} [logicalCols] Consists of logical indexes of processed columns.
    */
   'beforeRemoveCol',
 
@@ -535,6 +536,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRemoveRow
    * @param {Number} index Index of starter column.
    * @param {Number} amount Amount of columns to be removed.
+   * @param {Array} [logicalRows] Consists of logical indexes of processed rows.
    */
   'beforeRemoveRow',
 
@@ -602,6 +604,15 @@ const REGISTERED_HOOKS = [
    * @param {Number} col Column index.
    */
   'modifyCol',
+
+  /**
+   * Fired when a column index is about to be de-modified by a callback function.
+   *
+   * @event Hooks#unmodifyCol
+   * @since 0.23.0
+   * @param {Number} col Column index.
+   */
+    'unmodifyCol',
 
   /**
    * Fired when a column header index is about to be modified by a callback function.
