@@ -255,6 +255,22 @@ describe('Core_updateSettings', function () {
     expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(initialHeight);
   });
 
+  it("should not reset the table height, when the updateSettings config object doesn't have any height specified", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5,
+      height: 300
+    });
+
+    var initialHeight = this.$container[0].style.height;
+
+    updateSettings({
+      rowHeaders: true
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
+  });
+
   it("should allow resetting the table height", function () {
     var hot = handsontable({
       startRows: 22,
@@ -265,10 +281,10 @@ describe('Core_updateSettings', function () {
     var initialHeight = this.$container[0].style.height;
 
     updateSettings({
-      height: void 0
+      height: null
     });
 
-    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(initialHeight);
+    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(parseInt(initialHeight, 10));
   });
 
   it("should allow updating the stretching type", function() {
