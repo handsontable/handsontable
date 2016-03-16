@@ -4210,9 +4210,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Tue Mar 15 2016 11:27:35 GMT+0100 (CET)';
+Handsontable.buildDate = 'Wed Mar 16 2016 12:23:01 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.24.0';
+Handsontable.version = '0.24.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -5405,7 +5405,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
       }
     }
-    if (height === void 0) {
+    if (height === null) {
       var initialStyle$__22 = instance.rootElement.getAttribute('data-initialstyle');
       if (initialStyle$__22 && (initialStyle$__22.indexOf('height') > -1 || initialStyle$__22.indexOf('overflow') > -1)) {
         instance.rootElement.setAttribute('style', initialStyle$__22);
@@ -5413,7 +5413,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.rootElement.style.height = '';
         instance.rootElement.style.overflow = '';
       }
-    } else {
+    } else if (height !== void 0) {
       instance.rootElement.style.height = height + 'px';
       instance.rootElement.style.overflow = 'hidden';
     }
