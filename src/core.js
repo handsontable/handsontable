@@ -1611,7 +1611,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
 
-    if (height === void 0) {
+    if (height === null) {
       let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
 
       if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
@@ -1622,7 +1622,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.rootElement.style.overflow = '';
       }
 
-    } else {
+    } else if (height !== void 0) {
       instance.rootElement.style.height = height + 'px';
       instance.rootElement.style.overflow = 'hidden';
     }
