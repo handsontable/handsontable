@@ -55,7 +55,7 @@ Handsontable.DateValidator = function(value, callback) {
  * @returns {String}
  */
 let correctFormat = function correctFormat(value, dateFormat) {
-  let date = moment(new Date(value));
+  let date = moment(value);
   let year = date.format('YYYY');
   let yearNow = moment().format('YYYY');
 
@@ -72,4 +72,3 @@ let correctFormat = function correctFormat(value, dateFormat) {
 
   return date.format(dateFormat);
 };
-
