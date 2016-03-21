@@ -29,7 +29,7 @@ import {DateValidator} from './validators/dateValidator';
 import {TimeValidator} from './validators/timeValidator';
 import {NumericValidator} from './validators/numericValidator';
 
-Handsontable.mobileBrowser = isMobileBrowser();
+import Handsontable from './browser';
 
 Handsontable.AutocompleteCell = {
   editor: getEditorConstructor('autocomplete'),
@@ -43,7 +43,7 @@ Handsontable.CheckboxCell = {
 };
 
 Handsontable.TextCell = {
-  editor: Handsontable.mobileBrowser ? getEditorConstructor('mobile') : getEditorConstructor('text'),
+  editor: isMobileBrowser() ? getEditorConstructor('mobile') : getEditorConstructor('text'),
   renderer: getRenderer('text'),
 };
 

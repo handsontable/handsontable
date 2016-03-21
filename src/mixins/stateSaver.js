@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 
@@ -97,5 +98,4 @@ defineGetter(stateSaver, 'MIXIN_NAME', MIXIN_NAME, {
 export {stateSaver};
 
 // For tests only!
-Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.stateSaver = stateSaver;

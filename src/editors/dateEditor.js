@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {addClass, outerHeight} from './../helpers/dom/element';
 import {deepExtend} from './../helpers/object';
 import {EventManager} from './../eventManager';

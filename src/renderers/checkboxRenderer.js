@@ -1,4 +1,3 @@
-
 import {empty, addClass, hasClass} from './../helpers/dom/element';
 import {equalsIgnoreCase} from './../helpers/string';
 import {EventManager} from './../eventManager';

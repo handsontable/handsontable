@@ -1177,7 +1177,3 @@ class Hooks {
 }
 
 export {Hooks};
-
-// temp for tests only!
-Handsontable.utils = Handsontable.utils || {};
-Handsontable.utils.Hooks = Hooks;
