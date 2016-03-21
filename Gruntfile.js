@@ -99,9 +99,9 @@ module.exports = function(grunt) {
           }
         },
       },
-      handsontable: {
+      handsontableStandalone: {
         src: [
-          'dist/handsontable.min.js',
+          'dist/handsontable.js',
           'demo/js/numeral.de-de.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
@@ -130,6 +130,46 @@ module.exports = function(grunt) {
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',
+            'test/jasmine/lib/jasmine-extensions.js'
+          ],
+          helpers: [
+            'test/jasmine/spec/SpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
+            'test/jasmine/spec/test-init.js'
+          ],
+          outfile: 'test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
+          keepRunner: true
+        }
+      },
+      handsontableFull: {
+        src: [
+          'dist/handsontable.full.min.js',
+          'demo/js/numeral.de-de.js',
+          'demo/js/backbone/lodash.underscore.js',
+          'demo/js/backbone/backbone.js',
+          'demo/js/backbone/backbone-relational/backbone-relational.js',
+          'demo/js/jquery-ui/js/jquery-ui.custom.js',
+          'plugins/removeRow/handsontable.removeRow.js'
+        ],
+        options: {
+          specs: [
+            'test/jasmine/spec/*Spec.js',
+            'test/jasmine/spec/!(mobile)*/*Spec.js',
+            'src/plugins/*/test/*.spec.js',
+            'plugins/*/test/*.spec.js',
+            'test/jasmine/spec/MemoryLeakTest.js'
+          ],
+          styles: [
+            'test/jasmine/css/SpecRunner.css',
+            'dist/handsontable.min.css',
+            'plugins/removeRow/handsontable.removeRow.css',
+            'demo/js/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
+            'demo/js/pikaday/css/pikaday.css'
+          ],
+          vendor: [
+            'demo/js/jquery.min.js',
+            'demo/js/moment/moment.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
@@ -311,13 +351,19 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['hotBuilder:handsontable']);
   grunt.registerTask('build-dev', ['hotBuilder:handsontableDev']);
   grunt.registerTask('build-custom', ['hotBuilder:handsontableCustom']);
-  grunt.registerTask('test', ['default', 'jasmine:handsontable', 'jasmine:walkontable', 'jasmine:mobile:build']);
-  grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
+  grunt.registerTask('test', ['default', 'jasmine:handsontableStandalone', 'jasmine:handsontableFull', 'jasmine:walkontable', 'jasmine:mobile:build']);
+  grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontableStandalone']);
+  grunt.registerTask('test:handsontableStandalone', ['test:handsontable']);
+  grunt.registerTask('test:handsontableFull', ['default', 'jasmine:handsontableFull']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
   grunt.registerTask('test:mobile', ['default', 'jasmine:mobile:build']);
   grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
+
+  grunt.registerTask('test-handsontable-standalone', ['default', 'jasmine:handsontableStandalone']);
+  grunt.registerTask('test-handsontable-full', ['default', 'jasmine:handsontableFull']);
+  grunt.registerTask('test-handsontable', ['test-handsontable-standalone']);
 
   grunt.loadTasks('tasks');
   grunt.loadNpmTasks('hot-builder');
