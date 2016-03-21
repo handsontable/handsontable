@@ -7,8 +7,9 @@ dev.html
 
 !dist/README.md
 node_modules/
-demo/
+
 # this directories are necessary for build PRO package
+#demo/
 #src/
 #lib/
 #test/
