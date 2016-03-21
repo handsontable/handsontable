@@ -11,5 +11,5 @@ demo/
 # this directories are necessary for build PRO package
 #src/
 #lib/
-test/
-tasks/
+#test/
+#tasks/
