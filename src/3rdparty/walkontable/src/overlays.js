@@ -211,7 +211,7 @@ class WalkontableOverlays {
     let master = this.mainTableScrollableElement;
     let target = event.target;
     let tempScrollValue = 0;
-    let scrollValueChanged = false;
+    let scrollValueChanged = true;// JMD/TTC fix: on focus blur/focus, was not showing all rows
     let topOverlay;
     let leftOverlay;
 
@@ -284,9 +284,12 @@ class WalkontableOverlays {
       }
     }
 
-    if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
+    // JMD/TTC fix: on focus blur/focus, was not showing all rows
+    //if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
+    if (scrollValueChanged && event.type === 'scroll') {
       this.refreshAll();
     }
+
   }
 
   /**

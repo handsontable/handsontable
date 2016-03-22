@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Jan 02 2016 16:59:14 GMT+0700 (WIT)
+ * Date: Wed Mar 23 2016 07:26:23 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Sat Jan 02 2016 16:59:14 GMT+0700 (WIT)'
+  buildDate: 'Wed Mar 23 2016 07:26:23 GMT+0800 (CST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2121,7 +2121,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var master = this.mainTableScrollableElement;
     var target = event.target;
     var tempScrollValue = 0;
-    var scrollValueChanged = false;
+    var scrollValueChanged = true;
     var topOverlay;
     var leftOverlay;
     if (this.topOverlay.needFullRender) {
@@ -2173,7 +2173,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         master.scrollLeft += fakeScrollValue;
       }
     }
-    if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
+    if (scrollValueChanged && event.type === 'scroll') {
       this.refreshAll();
     }
   },
