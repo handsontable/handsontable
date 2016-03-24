@@ -96,4 +96,17 @@ describe('DropdownEditor', function() {
 
   });
 
+  it("should convert property to column in beforeValidate hook", function() {
+    var cellsSpy = jasmine.createSpy('cellsSpy');
+    handsontable({
+      columns: [
+        {data: 'id', type: 'numeric'}
+      ],
+      cells: cellsSpy
+    });
+
+    setDataAtCell(0, 0, 'foo');
+    expect(cellsSpy).not.toHaveBeenCalledWith(0,'id','id')
+  })
+
 });
