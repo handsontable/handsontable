@@ -2,7 +2,7 @@ import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend} from './helpers/object';
+import {duckSchema, deepExtend, deepClone} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
@@ -176,12 +176,12 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
     if (this.instance.dataType === 'array') {
       if (this.instance.getSettings().dataSchema) {
-        row = JSON.parse(JSON.stringify(this.getSchema()));  // Clone template array
-      } else {        
+        // Clone template array
+        row = deepClone(this.getSchema());
+
+      } else {
         row = [];
-        for (var c = 0; c < colCount; c++) {
-          row.push(null);
-        }
+        rangeEach(colCount - 1, () => row.push(null));
       }
 
     } else if (this.instance.dataType === 'function') {
