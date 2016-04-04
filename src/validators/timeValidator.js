@@ -1,5 +1,6 @@
 import Handsontable from './../browser';
 import moment from 'moment';
+import {getNormalizedDate} from '../helpers/object';
 import {getEditor} from './../editors';
 
 // Formats which are correctly parsed to time (supported by momentjs)
@@ -34,7 +35,7 @@ Handsontable.TimeValidator = function(value, callback) {
     value = new Date(parseInt(value, 10));
   }
 
-  let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(new Date(value)) : moment(value, timeFormat);
+  let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(getNormalizedDate(value)) : moment(value, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format
