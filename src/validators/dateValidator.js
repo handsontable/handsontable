@@ -1,6 +1,6 @@
 import Handsontable from './../browser';
 import moment from 'moment';
-import {getNormalizedDate} from '../helpers/object';
+import {getNormalizedDate} from '../helpers/date';
 import {getEditor} from './../editors';
 
 /**
