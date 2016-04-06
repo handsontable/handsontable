@@ -3,6 +3,8 @@ import BasePlugin from './../_base.js';
 import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
+import {arrayEach} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
@@ -24,6 +26,7 @@ class ManualRowResize extends BasePlugin {
 
     this.currentTH = null;
     this.currentRow = null;
+    this.selectedRows = [];
     this.currentHeight = null;
     this.newSize = null;
     this.startY = null;
@@ -128,13 +131,37 @@ class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
+
     this.currentTH = TH;
+
     let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
 
     if (row >= 0) { // if not col header
       let box = this.currentTH.getBoundingClientRect();
 
       this.currentRow = row;
+      this.selectedRows = [];
+
+      if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.rows) {
+        let {from, to} = this.hot.getSelectedRange();
+        let start = from.row;
+        let end = to.row;
+
+        if (start >= end) {
+          start = to.row;
+          end = from.row;
+        }
+
+        if (this.currentRow >= start && this.currentRow <= end) {
+          rangeEach(start, end, (i) => this.selectedRows.push(i));
+
+        } else {
+          this.selectedRows.push(this.currentRow);
+        }
+      } else {
+        this.selectedRows.push(this.currentRow);
+      }
+
       this.startOffset = box.top - 6;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
@@ -240,20 +267,40 @@ class ManualRowResize extends BasePlugin {
    * @private
    */
   afterMouseDownTimeout() {
-    if (this.dblclick >= 2) {
-      let hookNewSize = this.hot.runHooks('beforeRowResize', this.currentRow, this.newSize, true);
+    const render = () => {
+      this.hot.forceFullRender = true;
+      this.hot.view.render(); // updates all
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    };
+    const resize = (selectedRow, forceRender) => {
+      let hookNewSize = this.hot.runHooks('beforeRowResize', selectedRow, this.newSize, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
       }
 
-      this.setManualSize(this.currentRow, this.newSize); // double click sets auto row size
+      this.setManualSize(selectedRow, this.newSize); // double click sets auto row size
 
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      if (forceRender) {
+        render();
+      }
 
-      this.hot.runHooks('afterRowResize', this.currentRow, this.newSize, true);
+      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, true);
+    };
+
+    if (this.dblclick >= 2) {
+      let selectedRowsLength = this.selectedRows.length;
+
+      if (selectedRowsLength > 1) {
+        arrayEach(this.selectedRows, (selectedRow) => {
+          resize(selectedRow);
+        });
+        render();
+      } else {
+        arrayEach(this.selectedRows, (selectedRow) => {
+          resize(selectedRow, true);
+        });
+      }
     }
     this.dblclick = 0;
     this.autoresizeTimeout = null;
@@ -291,7 +338,11 @@ class ManualRowResize extends BasePlugin {
   onMouseMove(event) {
     if (this.pressed) {
       this.currentHeight = this.startHeight + (pageY(event) - this.startY);
-      this.newSize = this.setManualSize(this.currentRow, this.currentHeight);
+
+      arrayEach(this.selectedRows, (selectedRow) => {
+        this.newSize = this.setManualSize(selectedRow, this.currentHeight);
+      });
+
       this.refreshHandlePosition();
       this.refreshGuidePosition();
     }
@@ -304,20 +355,39 @@ class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event
    */
   onMouseUp(event) {
+    const render = () => {
+      this.hot.forceFullRender = true;
+      this.hot.view.render(); // updates all
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    };
+    const runHooks = (selectedRow, forceRender) => {
+      this.hot.runHooks('beforeRowResize', selectedRow, this.newSize);
+
+      if (forceRender) {
+        render();
+      }
+
+      this.saveManualRowHeights();
+
+      this.hot.runHooks('afterRowResize', selectedRow, this.newSize);
+    };
     if (this.pressed) {
       this.hideHandleAndGuide();
       this.pressed = false;
 
       if (this.newSize != this.startHeight) {
-        this.hot.runHooks('beforeRowResize', this.currentRow, this.newSize);
+        let selectedRowsLength = this.selectedRows.length;
 
-        this.hot.forceFullRender = true;
-        this.hot.view.render(); // updates all
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
-
-        this.saveManualRowHeights();
-
-        this.hot.runHooks('afterRowResize', this.currentRow, this.newSize);
+        if (selectedRowsLength > 1) {
+          arrayEach(this.selectedRows, (selectedRow) => {
+            runHooks(selectedRow);
+          });
+          render();
+        } else {
+          arrayEach(this.selectedRows, (selectedRow) => {
+            runHooks(selectedRow, true);
+          });
+        }
       }
 
       this.setupHandlePosition(this.currentTH);
