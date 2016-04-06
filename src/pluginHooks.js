@@ -838,6 +838,25 @@ const REGISTERED_HOOKS = [
    * @returns {Number} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
+
+  /**
+   * Fired before applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}.
+   *
+   * @pro
+   * @event Hooks#beforeFilter
+   * @param {Array} formulasStack An array of objects with added formulas.
+   * @returns {Boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
+   */
+  'beforeFilter',
+
+  /**
+   * Fired after applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}.
+   *
+   * @pro
+   * @event Hooks#afterFilter
+   * @param {Array} formulasStack An array of objects with added formulas.
+   */
+  'afterFilter',
 ];
 
 import {arrayEach} from './helpers/array';

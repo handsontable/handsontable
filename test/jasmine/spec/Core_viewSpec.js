@@ -386,7 +386,30 @@ describe('Core_view', function () {
     waitsFor(function(){
       return afterRenderCallback.calls.length > 0;
     }, 'afterRender event to fire', 1000);
+  });
 
+  it("should fire afterRender event after table physically rendered", function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
+    this.$container[0].style.overflow = 'hidden';
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 3)
+    });
+
+    hot.addHook('afterRender', function() {
+      hot.view.wt.wtTable.holder.style.overflow = 'scroll';
+      hot.view.wt.wtTable.holder.style.width = '220px';
+    });
+
+    this.$container.find(".ht_master .wtHolder").first().scrollTop(1000);
+
+    waits(100);
+    runs(function() {
+      // after afterRender hook triggered element style shouldn't changed
+      expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
+      expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
+    })
   });
 
   //TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
