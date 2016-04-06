@@ -153,7 +153,6 @@ class ManualRowResize extends BasePlugin {
         }
 
         if (this.currentRow >= start && this.currentRow <= end) {
-
           rangeEach(start, end, (i) => this.selectedRows.push(i));
 
         } else {

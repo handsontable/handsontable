@@ -150,6 +150,7 @@ describe('manualColumnResize', function () {
     expect($columnHeaders.eq(3).width()).toEqual(127);
     expect($columnHeaders.eq(4).width()).toEqual(126);
   });
+  
   it("should resize (narrowing) selected columns", function() {
 
     var hot = handsontable({
@@ -183,6 +184,7 @@ describe('manualColumnResize', function () {
       expect($columnHeaders.eq(3).width()).toEqual(29);
     });
   });
+  
   it("should resize (expanding) selected columns", function() {
 
     var hot = handsontable({
@@ -216,6 +218,7 @@ describe('manualColumnResize', function () {
       expect($columnHeaders.eq(3).width()).toEqual(150);
     });
   });
+  
   it("should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`", function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
@@ -478,6 +481,7 @@ describe('manualColumnResize', function () {
       expect(colWidth(this.$container, 2)).toBeAroundValue(26);
     }.bind(this));
   });
+  
   it("should autosize selected columns after double click on handler", function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -513,6 +517,7 @@ describe('manualColumnResize', function () {
       expect(colWidth(this.$container, 3)).toBeAroundValue(26);
     }.bind(this));
   });
+  
   it("should adjust resize handles position after table size changed", function(){
     var maxed = false;
 
