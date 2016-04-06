@@ -389,4 +389,31 @@ describe('DateEditor', function () {
     }
     expect(cellOffset.left === datePickerOffset.left).toBe(true);
   });
+
+  it("should not modify the edited date and time, when opening the editor", function() {
+    var hot = handsontable({
+        data: [['02/02/2015 8:00 AM']],
+        columns: [
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY h:mm A',
+            correctFormat: true,
+            defaultDate: '01/01/1900',
+            allowEmpty: false,
+          }
+        ]
+      }),
+      editor,
+      cellValue;
+
+    // setDataAtCell(0, 0, '02/02/2015 8:00 AM');
+    cellValue = getDataAtCell(0,0);
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    editor = hot.getActiveEditor();
+
+    expect(editor.TEXTAREA.value).toEqual(cellValue);
+  });
 });
