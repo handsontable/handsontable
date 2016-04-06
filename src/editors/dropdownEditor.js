@@ -17,7 +17,7 @@ class DropdownEditor extends AutocompleteEditor {
 }
 
 Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
-  let cellMeta = this.getCellMeta(row, col);
+  let cellMeta = this.getCellMeta(row, this.propToCol(col));
 
   if (cellMeta.editor === Handsontable.editors.DropdownEditor) {
     if (cellMeta.strict === void 0) {
