@@ -4484,7 +4484,7 @@ DefaultSettings.prototype = {
    *  * `property` - Defines the property name of the data object, which will to be used as a label.
    *  (eg. `label: {property: 'name.last'}`). This option works only if data was passed as an array of objects.
    *  * `position` - String which describes where to place the label text (before or after checkbox element).
-   * Valid value are `'before'` and '`after`' (efaults to `'after'`).
+   * Valid values are `'before'` and '`after`' (defaults to `'after'`).
    *  * `value` - String or a Function which will be used as label text.
    *
    * @example
@@ -4928,5 +4928,28 @@ DefaultSettings.prototype = {
    * ```
    */
   sortFunction: void 0,
+  /**
+   * If defined as 'true', the Autocomplete's suggestion list would by sorted by relevance (the closer to the left the match is, the higher the suggestion).
+   *
+   * Option desired for cells of the `'autocomplete'` type.
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  sortByRelevance: true,
+  /**
+   * If defined as 'true', the Autocomplete's suggestion list would be updated after each change in the input area.
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  filter: true,
+  /**
+   * If defined as 'true', filtering in the Autocomplete Editor will be case-sensitive.
+   *
+   * @type {Boolean}
+   * @default: false
+   */
+  filteringCaseSensitive: false,
 };
 Handsontable.DefaultSettings = DefaultSettings;
