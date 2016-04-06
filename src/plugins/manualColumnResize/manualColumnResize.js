@@ -157,7 +157,7 @@ class ManualColumnResize extends BasePlugin {
 
         if (this.currentCol >= start && this.currentCol <= end) {
           rangeEach(start, end, (i) => this.selectedCols.push(i));
-          
+
         } else {
           this.selectedCols.push(this.currentCol);
         }
