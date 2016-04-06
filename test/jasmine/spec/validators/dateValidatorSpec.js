@@ -45,6 +45,35 @@ describe('dateValidator', function () {
     });
   });
 
+  it("should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided", function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'date', type: 'date', dateFormat: "MM/DD/YYYY", correctFormat: true},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(1, 0, '2016-03-18');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
+    });
+
+    waits(30);
+
+    runs(function () {
+      expect(getDataAtCell(1, 0)).toEqual("03/18/2016");
+    });
+  });
+
   it("should not positively validate a non-date string", function () {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 

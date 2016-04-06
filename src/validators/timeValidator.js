@@ -25,6 +25,16 @@ Handsontable.TimeValidator = function(value, callback) {
     value = '';
   }
 
+  if (typeof value === 'number') {
+    value = `${value}`;
+  }
+  if (/^\d{9,10}$/.test(value)) { // timestamp
+    value = new Date(parseInt(`${value}000`, 10));
+
+  } else if (/^\d{13}$/.test(value)) { // micro timestamp
+    value = new Date(parseInt(value, 10));
+  }
+
   let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
   let isValidTime = date.isValid();
 
