@@ -580,6 +580,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      */
     begin: function() {
       instance.selection.inProgress = true;
+      Handsontable.allSelected = false;
     },
 
     /**
@@ -590,7 +591,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, 'afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
       Handsontable.hooks.run(instance, 'afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
-      Handsontable.allSelected = false;
     },
 
     /**
