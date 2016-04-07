@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Apr 07 2016 17:28:39 GMT+0800 (CST)
+ * Date: Thu Apr 07 2016 17:55:16 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Apr 07 2016 17:28:39 GMT+0800 (CST)',
+  buildDate: 'Thu Apr 07 2016 17:55:16 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4316,13 +4316,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
     begin: function() {
       instance.selection.inProgress = true;
+      Handsontable.allSelected = false;
     },
     finish: function() {
       var sel = instance.getSelected();
       Handsontable.hooks.run(instance, 'afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
       Handsontable.hooks.run(instance, 'afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
-      Handsontable.allSelected = false;
     },
     isInProgress: function() {
       return instance.selection.inProgress;
