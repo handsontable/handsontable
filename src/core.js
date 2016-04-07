@@ -434,7 +434,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
-          if (end) {
+          // 如果是全选，则取最小区域（只复制一次）
+          if (Handsontable.allSelected) {
+            rlen = Math.min(rowInputLength, rowSelectionLength)
+          } else if (end) {
             rlen = rowSelectionLength;
           } else {
             rlen = Math.max(rowInputLength, rowSelectionLength);
@@ -449,7 +452,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             let colInputLength = getInputValue(logicalRow).length;
             let colSelectionLength = end ? end.col - start.col + 1 : 0;
 
-            if (end) {
+            // 如果是全选，则取最小区域（只复制一次）
+            if(Handsontable.allSelected) {
+              clen = Math.min(colInputLength, colSelectionLength)
+            } else if (end) {
               clen = colSelectionLength;
             } else {
               clen = Math.max(colInputLength, colSelectionLength);
@@ -541,6 +547,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             current.row++;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
+
+          // 如果是全选，粘贴之后选中当前粘贴的选区
+          if(Handsontable.allSelected) {
+            instance.selection.setRangeStart(new WalkontableCellCoords(0, 0));
+            instance.selection.setRangeEnd(new WalkontableCellCoords(rlen - 1, clen - 1), false);
+          }
           break;
       }
     },
@@ -578,6 +590,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, 'afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
       Handsontable.hooks.run(instance, 'afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
+      Handsontable.allSelected = false;
     },
 
     /**
@@ -915,6 +928,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
+      Handsontable.allSelected = true;
       selection.setRangeStart(new WalkontableCellCoords(0, 0));
       selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
