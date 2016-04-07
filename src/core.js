@@ -928,7 +928,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
-      Handsontable.allSelected = true;
+      setTimeout(function(){
+        Handsontable.allSelected = true;
+      }, 0)
       selection.setRangeStart(new WalkontableCellCoords(0, 0));
       selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
