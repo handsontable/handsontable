@@ -434,9 +434,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let rowInputLength = input.length;
           let rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
-          // 如果是全选，则取最小区域（只复制一次）
+          // 如果是全选，只复制一次
           if (Handsontable.allSelected) {
-            rlen = Math.min(rowInputLength, rowSelectionLength)
+            rlen = rowInputLength;
           } else if (end) {
             rlen = rowSelectionLength;
           } else {
@@ -452,9 +452,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             let colInputLength = getInputValue(logicalRow).length;
             let colSelectionLength = end ? end.col - start.col + 1 : 0;
 
-            // 如果是全选，则取最小区域（只复制一次）
+            // 如果是全选，只复制一次
             if(Handsontable.allSelected) {
-              clen = Math.min(colInputLength, colSelectionLength)
+              clen = colInputLength;
             } else if (end) {
               clen = colSelectionLength;
             } else {
