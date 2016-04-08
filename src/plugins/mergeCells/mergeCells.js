@@ -396,6 +396,10 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
 
 var afterRenderer = function(TD, row, col, prop, value, cellProperties) {
   if (this.mergeCells) {
+    var originalCoordinates = this.getCoords(TD);
+    if (originalCoordinates.col != col || originalCoordinates.row != row) {
+      return;
+    }
     this.mergeCells.applySpanProperties(TD, row, col);
   }
 };
