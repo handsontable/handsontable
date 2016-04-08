@@ -1060,7 +1060,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           row = cellProperties.visualRow,
           td = instance.getCell(row, col, true);
 
-      if (td) {
+      if (td && td.nodeName != 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);
