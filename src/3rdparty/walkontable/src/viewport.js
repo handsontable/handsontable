@@ -1,4 +1,4 @@
-
+import Handsontable from './../../../browser';
 import {
   getScrollbarWidth,
   getScrollTop,

@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import {objectEach, isObject} from './../helpers/object';
@@ -162,5 +163,4 @@ class SamplesGenerator {
 export {SamplesGenerator};
 
 // temp for tests only!
-Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.SamplesGenerator = SamplesGenerator;

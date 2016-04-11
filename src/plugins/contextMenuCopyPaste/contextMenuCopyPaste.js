@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import {removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {EventManager} from './../../eventManager';

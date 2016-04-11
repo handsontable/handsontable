@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {KEY_CODES} from './../helpers/unicode';
 import {extend} from './../helpers/object';
 import {setCaretPosition} from './../helpers/dom/element';
@@ -69,22 +69,34 @@ var onBeforeKeyDown = function(event) {
   var rowToSelect;
 
   if (event.keyCode == KEY_CODES.ARROW_DOWN) {
-    if (innerHOT.getSelected()) {
-      var selectedRow = innerHOT.getSelected()[0];
-      var lastRow = innerHOT.countRows() - 1;
-      rowToSelect = Math.min(lastRow, selectedRow + 1);
-    } else {
+    if (!innerHOT.getSelected() && !innerHOT.flipped) {
       rowToSelect = 0;
+    } else if (innerHOT.getSelected()) {
+      if (innerHOT.flipped) {
+        rowToSelect = innerHOT.getSelected()[0] + 1;
+      } else if (!innerHOT.flipped) {
+        var selectedRow = innerHOT.getSelected()[0];
+        var lastRow = innerHOT.countRows() - 1;
+        rowToSelect = Math.min(lastRow, selectedRow + 1);
+      }
     }
   } else if (event.keyCode == KEY_CODES.ARROW_UP) {
-    if (innerHOT.getSelected()) {
-      var selectedRow = innerHOT.getSelected()[0];
-      rowToSelect = selectedRow - 1;
+    if (!innerHOT.getSelected() && innerHOT.flipped) {
+      rowToSelect = innerHOT.countRows() - 1;
+
+    } else if (innerHOT.getSelected()) {
+      if (innerHOT.flipped) {
+        var selectedRow = innerHOT.getSelected()[0];
+        rowToSelect = Math.max(0, selectedRow - 1);
+      } else {
+        var selectedRow = innerHOT.getSelected()[0];
+        rowToSelect = selectedRow - 1;
+      }
     }
   }
 
   if (rowToSelect !== void 0) {
-    if (rowToSelect < 0) {
+    if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
       innerHOT.deselectCell();
     } else {
       innerHOT.selectCell(rowToSelect, 0);

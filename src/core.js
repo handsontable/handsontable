@@ -1,6 +1,8 @@
+import Handsontable from './browser';
 import numeral from 'numeral';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
+import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
@@ -885,7 +887,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     dataSource.setData(priv.settings.data);
     Handsontable.hooks.run(instance, 'beforeInit');
 
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       addClass(instance.rootElement, 'mobile');
     }
 
@@ -1058,7 +1060,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           row = cellProperties.visualRow,
           td = instance.getCell(row, col, true);
 
-      if (td) {
+      if (td && td.nodeName != 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);
@@ -2199,8 +2201,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellRenderer
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number|Object} row Row index or cell meta object.
+   * @param {Number} [col] Column index.
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function(row, col) {
@@ -4482,7 +4484,7 @@ DefaultSettings.prototype = {
    *  * `property` - Defines the property name of the data object, which will to be used as a label.
    *  (eg. `label: {property: 'name.last'}`). This option works only if data was passed as an array of objects.
    *  * `position` - String which describes where to place the label text (before or after checkbox element).
-   * Valid value are `'before'` and '`after`' (efaults to `'after'`).
+   * Valid values are `'before'` and '`after`' (defaults to `'after'`).
    *  * `value` - String or a Function which will be used as label text.
    *
    * @example
@@ -4926,5 +4928,28 @@ DefaultSettings.prototype = {
    * ```
    */
   sortFunction: void 0,
+  /**
+   * If defined as 'true', the Autocomplete's suggestion list would by sorted by relevance (the closer to the left the match is, the higher the suggestion).
+   *
+   * Option desired for cells of the `'autocomplete'` type.
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  sortByRelevance: true,
+  /**
+   * If defined as 'true', the Autocomplete's suggestion list would be updated after each change in the input area.
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  filter: true,
+  /**
+   * If defined as 'true', filtering in the Autocomplete Editor will be case-sensitive.
+   *
+   * @type {Boolean}
+   * @default: false
+   */
+  filteringCaseSensitive: false,
 };
 Handsontable.DefaultSettings = DefaultSettings;

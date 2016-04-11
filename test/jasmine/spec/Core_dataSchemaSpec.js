@@ -171,4 +171,27 @@ describe('Core_dataSchema', function () {
     expect(hot.propToCol(idAccessor)).toEqual(0);
     expect(hot.propToCol(nameAccessor)).toEqual(1);
   });
+
+  it('should create new row data matched to dataSchema (data type as `array`)', function () {
+    var spy = jasmine.createSpy();
+    var hot = handsontable({
+      data: [[{id: 1}]],
+      dataSchema: [{id: null}],
+      columns: [
+        {data: '0', renderer: spy}
+      ],
+      autoColumnSize: false,
+      autoRowSize: false,
+    });
+
+    expect(spy.calls.length).toBe(1);
+    expect(spy.calls[0].args[5]).toEqual({id: 1});
+
+    spy.reset();
+    hot.alter('insert_row', 0);
+
+    expect(spy.calls.length).toBe(2);
+    expect(spy.calls[0].args[5]).toEqual({id: null});
+    expect(spy.calls[1].args[5]).toEqual({id: 1});
+  });
 });

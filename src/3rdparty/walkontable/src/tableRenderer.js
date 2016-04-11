@@ -8,6 +8,8 @@ import {
   outerWidth
 } from './../../../helpers/dom/element';
 
+let performanceWarningAppeared = false;
+
 /**
  * @class WalkontableTableRenderer
  */
@@ -162,8 +164,10 @@ class WalkontableTableRenderer {
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
-      if (visibleRowIndex > 1000) {
-        console.error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+      if (!performanceWarningAppeared && visibleRowIndex > 1000) {
+        performanceWarningAppeared = true;
+        console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' +
+                     'of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.');
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone

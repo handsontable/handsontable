@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import {addClass, removeClass} from './../../helpers/dom/element';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';

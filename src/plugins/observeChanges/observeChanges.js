@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import BasePlugin from './../_base';
 import jsonpatch from 'jsonpatch';
 import {DataObserver} from './dataObserver';

@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {stringify} from './../helpers/mixed';
 import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
 

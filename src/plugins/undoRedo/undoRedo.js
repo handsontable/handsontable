@@ -1,9 +1,9 @@
 /**
  * Handsontable UndoRedo class
  */
-
+import Handsontable from './../../browser';
 import {arrayMap} from './../../helpers/array';
-import {rangeEach, rangeEachReverse} from './../../helpers/number';
+import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 
