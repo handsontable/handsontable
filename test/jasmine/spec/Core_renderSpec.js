@@ -83,10 +83,11 @@ describe('Core_render', function () {
     var lastCellProperties;
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
+      data : [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       afterRenderer: function (td, row, col, prop, value, cellProperties) {
         td.innerHTML = 'Changed by plugin';
-        if(!cellProperties) {
+
+        if (!cellProperties) {
           throw new Error();
         }
         lastCellProperties = cellProperties;
@@ -96,5 +97,42 @@ describe('Core_render', function () {
     expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
     expect(lastCellProperties.row).toEqual(1);
     expect(lastCellProperties.col).toEqual(4);
+  });
+
+  it('should run beforeRenderer hook', function () {
+    var lastCellProperties;
+
+    handsontable({
+      data : [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeRenderer: function (td, row, col, prop, value, cellProperties) {
+        td.innerHTML = 'Changed by plugin';
+        lastCellProperties = cellProperties;
+      }
+    });
+
+    // Value is overwritten by text renderer
+    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('1');
+    expect(lastCellProperties.row).toEqual(1);
+    expect(lastCellProperties.col).toEqual(4);
+  });
+
+  it('should reflect changes applied in beforeRenderer into afterRenderer', function () {
+    var afterRenderer = jasmine.createSpy();
+
+    handsontable({
+      data : [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeRenderer: function (td, row, col, prop, value, cellProperties) {
+        cellProperties.foo = 'bar';
+      },
+      afterRenderer: afterRenderer,
+    });
+
+    expect(afterRenderer.calls.length).toBe(10);
+    expect(afterRenderer.calls[0].args[0] instanceof HTMLTableCellElement).toBe(true);
+    expect(afterRenderer.calls[0].args[1]).toBe(0);
+    expect(afterRenderer.calls[0].args[2]).toBe(0);
+    expect(afterRenderer.calls[0].args[3]).toBe(0);
+    expect(afterRenderer.calls[0].args[4]).toBe(1);
+    expect(afterRenderer.calls[0].args[5].foo).toBe('bar');
   });
 });

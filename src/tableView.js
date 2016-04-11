@@ -262,14 +262,12 @@ function TableView(instance) {
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
     cellRenderer: function(row, col, TD) {
+      const cellProperties = that.instance.getCellMeta(row, col);
+      const prop = that.instance.colToProp(col);
+      const value = that.instance.getDataAtRowProp(row, prop);
 
-      var prop = that.instance.colToProp(col),
-        cellProperties = that.instance.getCellMeta(row, col),
-        renderer = that.instance.getCellRenderer(cellProperties);
-
-      var value = that.instance.getDataAtRowProp(row, prop);
-
-      renderer(that.instance, TD, row, col, prop, value, cellProperties);
+      Handsontable.hooks.run(that.instance, 'beforeRenderer', TD, row, col, prop, value, cellProperties);
+      that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
