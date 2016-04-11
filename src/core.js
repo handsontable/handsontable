@@ -1023,7 +1023,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       
 
       // insert new col items
-      if(action === 'insert_col'){
+      if(action === 'insert_col' && rowItem){
         for(var n=0;n<amount;n++){
           rowItem.splice(index, 0, columnFactory(GridSettings, priv.columnsSettingConflicts)());
         }
