@@ -270,10 +270,24 @@ const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * Fired before starting rendering the cell.
+   *
+   * @event Hooks#beforeRenderer
+   * @since 0.24.2
+   * @param {Element} TD Currently rendered cell's TD element.
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
+   * @param {String} value Value of the rendered cell.
+   * @param {Object} cellProperties Object containing the cell's properties.
+   */
+  'beforeRenderer',
+
+  /**
    * Fired after finishing rendering the cell (after the renderer finishes).
    *
    * @event Hooks#afterRenderer
-   * @since 0.11
+   * @since 0.11.0
    * @param {Element} TD Currently rendered cell's TD element.
    * @param {Number} row Row index.
    * @param {Number} col Column index.

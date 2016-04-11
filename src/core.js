@@ -2201,8 +2201,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellRenderer
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number|Object} row Row index or cell meta object.
+   * @param {Number} [col] Column index.
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function(row, col) {
