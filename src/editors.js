@@ -2,6 +2,7 @@
  * Utility to register editors and common namespace for keeping reference to all editor classes
  */
 
+import Handsontable from './browser';
 import {toUpperCaseFirst} from './helpers/string';
 
 export {registerEditor, getEditor, hasEditor, getEditorConstructor};

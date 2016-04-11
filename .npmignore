@@ -1,0 +1,16 @@
+.DS_Store
+.grunt
+.idea
+_SpecRunner.html
+cars.sqlite
+dev.html
+
+!dist/README.md
+node_modules/
+
+# this directories are necessary for build PRO package
+#demo/
+#src/
+#lib/
+#test/
+#tasks/

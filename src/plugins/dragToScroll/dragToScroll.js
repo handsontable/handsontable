@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 

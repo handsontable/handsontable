@@ -5,6 +5,7 @@ import {
   getScrollTop,
 } from './../../../helpers/dom/element';
 import {isKey} from './../../../helpers/unicode';
+import {isMobileBrowser} from './../../../helpers/browser';
 import {EventManager} from './../../../eventManager';
 
 /**
@@ -219,7 +220,7 @@ class WalkontableOverlays {
    */
   onTableScroll(event) {
     // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       return;
     }
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;

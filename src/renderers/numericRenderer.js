@@ -1,4 +1,3 @@
-
 import numeral from 'numeral';
 import {addClass} from './../helpers/dom/element';
 import {getRenderer, registerRenderer} from './../renderers';

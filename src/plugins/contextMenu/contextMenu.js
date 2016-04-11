@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import BasePlugin from './../_base';
 import {arrayEach} from './../../helpers/array';
 import {CommandExecutor} from './commandExecutor';

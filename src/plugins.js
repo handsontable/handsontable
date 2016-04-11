@@ -1,7 +1,7 @@
 /**
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
-
+import Handsontable from './browser';
 import {objectEach} from './helpers/object';
 import {toUpperCaseFirst} from './helpers/string';
 

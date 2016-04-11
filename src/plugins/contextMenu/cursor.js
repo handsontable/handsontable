@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
 import {pageX, pageY} from './../../helpers/dom/event';
 
