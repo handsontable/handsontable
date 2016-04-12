@@ -503,7 +503,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 // if(index.row == input.length){
                 //   index.row = 0;
                 // }
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected),
+                  meta;
                 iterators = result.iterators;
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
@@ -516,7 +517,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                     renderer: void 0
                   });
                 }else{
-                  value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);  
+                  meta = inputAttr[index.row][index.col];
+                  if(meta.dataAttrs && meta.dataAttrs.format){
+                    instance.setCellMetaObject(current.row, current.col, {
+                      format: meta.dataAttrs.format
+                    });
+                  }
+                  value = instance.generateCellHtml(value, meta);  
                 }
               }
               if (value !== null && typeof value === 'object') {
