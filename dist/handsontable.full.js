@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Apr 11 2016 16:47:35 GMT+0800 (CST)
+ * Date: Tue Apr 12 2016 15:23:01 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Apr 11 2016 16:47:35 GMT+0800 (CST)',
+  buildDate: 'Tue Apr 12 2016 15:23:01 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4257,7 +4257,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (source === 'autofill') {
                 index.row = index.row % input.length;
                 index.col = index.col % input[0].length;
-                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected);
+                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected),
+                    meta;
                 iterators = result.iterators;
                 if (result) {
                   value = typeof(result.value) === 'undefined' ? value : result.value;
@@ -4269,7 +4270,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                     renderer: void 0
                   });
                 } else {
-                  value = instance.generateCellHtml(value, inputAttr[index.row][index.col]);
+                  meta = inputAttr[index.row][index.col];
+                  if (meta.dataAttrs && meta.dataAttrs.format) {
+                    instance.setCellMetaObject(current.row, current.col, {format: meta.dataAttrs.format});
+                  }
+                  value = instance.generateCellHtml(value, meta);
                 }
               }
               if (value !== null && typeof value === 'object') {
