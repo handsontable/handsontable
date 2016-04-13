@@ -936,6 +936,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   function validateChanges(changes, source, callback) {
+    verifyChanges();
+
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -989,6 +991,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     waitingForValidator.checkIfQueueIsEmpty();
 
     function resolve() {
+      callback(); // called when async validators are resolved and beforeChange was not async
+    }
+
+    function verifyChanges() {
       var beforeChangeResult;
 
       if (changes.length) {
@@ -999,7 +1005,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
         }
       }
-      callback(); // called when async validators are resolved and beforeChange was not async
     }
   }
 
