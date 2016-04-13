@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import numeral from 'numeral';
 import {getEditor, registerEditor} from './../editors';
 import {TextEditor} from './textEditor';

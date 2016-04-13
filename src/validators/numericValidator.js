@@ -1,3 +1,5 @@
+import Handsontable from './../browser';
+
 /**
  * Numeric cell validator
  *

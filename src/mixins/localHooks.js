@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 
@@ -56,5 +56,4 @@ defineGetter(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
 export {localHooks};
 
 // For tests only!
-Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.localHooks = localHooks;

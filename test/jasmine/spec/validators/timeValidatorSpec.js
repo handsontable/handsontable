@@ -317,35 +317,6 @@ describe('timeValidator', function () {
       });
     });
 
-    it("should rewrite the string to the correct format if a time in timestamp format is provided", function () {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
-          {data: 'lastName'}
-        ],
-        afterValidate: onAfterValidate
-      });
-
-      setDataAtCell(1, 0, 1455885493);
-
-      waitsFor(function () {
-        return onAfterValidate.calls.length > 0;
-      }, 'Cell validation', 1000);
-
-      runs(function () {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, 1455885493, 1, 'time', undefined, undefined);
-      });
-
-      waits(30);
-
-      runs(function () {
-        expect(getDataAtCell(1, 0)).toEqual("19:38:13");
-      });
-    });
-
     it("should rewrite the string to the correct format if a time in micro-timestamp format is provided", function () {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -371,7 +342,7 @@ describe('timeValidator', function () {
       waits(30);
 
       runs(function () {
-        expect(getDataAtCell(1, 0)).toEqual("19:38:13");
+        expect(getDataAtCell(1, 0)).toEqual("13:38:13");
       });
     });
 

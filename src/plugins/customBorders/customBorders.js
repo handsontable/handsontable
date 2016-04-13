@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection';

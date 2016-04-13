@@ -270,10 +270,24 @@ const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * Fired before starting rendering the cell.
+   *
+   * @event Hooks#beforeRenderer
+   * @since 0.24.2
+   * @param {Element} TD Currently rendered cell's TD element.
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
+   * @param {String} value Value of the rendered cell.
+   * @param {Object} cellProperties Object containing the cell's properties.
+   */
+  'beforeRenderer',
+
+  /**
    * Fired after finishing rendering the cell (after the renderer finishes).
    *
    * @event Hooks#afterRenderer
-   * @since 0.11
+   * @since 0.11.0
    * @param {Element} TD Currently rendered cell's TD element.
    * @param {Number} row Row index.
    * @param {Number} col Column index.
@@ -838,6 +852,25 @@ const REGISTERED_HOOKS = [
    * @returns {Number} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
+
+  /**
+   * Fired before applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}.
+   *
+   * @pro
+   * @event Hooks#beforeFilter
+   * @param {Array} formulasStack An array of objects with added formulas.
+   * @returns {Boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
+   */
+  'beforeFilter',
+
+  /**
+   * Fired after applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}.
+   *
+   * @pro
+   * @event Hooks#afterFilter
+   * @param {Array} formulasStack An array of objects with added formulas.
+   */
+  'afterFilter',
 ];
 
 import {arrayEach} from './helpers/array';
@@ -1177,7 +1210,3 @@ class Hooks {
 }
 
 export {Hooks};
-
-// temp for tests only!
-Handsontable.utils = Handsontable.utils || {};
-Handsontable.utils.Hooks = Hooks;

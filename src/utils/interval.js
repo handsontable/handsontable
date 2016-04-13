@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
 import {arrayEach} from './../helpers/array';
 import {objectEach} from './../helpers/object';
@@ -116,5 +117,4 @@ function parseDelay(delay) {
 }
 
 // temp for tests only!
-Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.Interval = Interval;

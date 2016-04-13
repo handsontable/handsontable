@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {addClass, outerHeight} from './../helpers/dom/element';
 import {deepExtend} from './../helpers/object';
 import {EventManager} from './../eventManager';
@@ -163,6 +163,12 @@ class DateEditor extends TextEditor {
       if (moment(dateStr, dateFormat, true).isValid()) {
         this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
       }
+
+      // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
+      if (this.getValue() !== this.originalValue) {
+        this.setValue(this.originalValue);
+      }
+
       if (!isMeta && !isMouseDown) {
         this.setValue('');
       }

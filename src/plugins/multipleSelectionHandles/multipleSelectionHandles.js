@@ -1,5 +1,6 @@
-
+import Handsontable from './../../browser';
 import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
+import {isMobileBrowser} from './../../helpers/browser';
 import BasePlugin from './../_base';
 import {EventManager} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
@@ -36,7 +37,7 @@ class MultipleSelectionHandles extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return Handsontable.mobileBrowser;
+    return isMobileBrowser();
   }
 
   /**

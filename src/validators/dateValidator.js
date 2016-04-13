@@ -1,5 +1,6 @@
-
+import Handsontable from './../browser';
 import moment from 'moment';
+import {getNormalizedDate} from '../helpers/date';
 import {getEditor} from './../editors';
 
 /**
@@ -55,7 +56,7 @@ Handsontable.DateValidator = function(value, callback) {
  * @returns {String}
  */
 let correctFormat = function correctFormat(value, dateFormat) {
-  let date = moment(new Date(value));
+  let date = moment(getNormalizedDate(value));
   let year = date.format('YYYY');
   let yearNow = moment().format('YYYY');
 

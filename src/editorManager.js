@@ -1,4 +1,4 @@
-
+import Handsontable from './browser';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';

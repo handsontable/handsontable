@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import copyPaste from 'copyPaste';
 import SheetClip from 'SheetClip';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';

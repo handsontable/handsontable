@@ -26,7 +26,7 @@ describe("MultipleSelectionHandles", function () {
         , selected = null
         , overlay = null;
 
-      if(!Handsontable.mobileBrowser) {
+      if(!Handsontable.helper.isMobileBrowser()) {
         return true;
       }
 
@@ -72,7 +72,7 @@ describe("MultipleSelectionHandles", function () {
         , selected = null
         , overlay = null;
 
-      if(!Handsontable.mobileBrowser) {
+      if(!Handsontable.helper.isMobileBrowser()) {
         return true;
       }
 
@@ -116,7 +116,7 @@ describe("MultipleSelectionHandles", function () {
         , selected = null
         , overlay = null;
 
-      if(Handsontable.mobileBrowser) {
+      if(Handsontable.helper.isMobileBrowser()) {
         return true;
       }
 
@@ -161,7 +161,7 @@ describe("MultipleSelectionHandles", function () {
         , firstOverlay = null
         , secondOverlay = null;
 
-      if(!Handsontable.mobileBrowser) {
+      if(!Handsontable.helper.isMobileBrowser()) {
         return true;
       }
 
