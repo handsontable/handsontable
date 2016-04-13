@@ -135,20 +135,23 @@ class WalkontableBorder {
   createBorders(settings) {
     this.main = document.createElement('div');
 
-    let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    let borderDivs = ['top', 'left', 'bottom', 'right', 'corner', 'background'];
     let style = this.main.style;
     let _customBorderStyle = settings.customBorderStyle;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       let position = borderDivs[i];
       let div = document.createElement('div');
       div.className = 'wtBorder ' + (this.settings.className || ''); // + borderDivs[i];
 
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
+      }
+      if (position === 'background') {
+        div.className += ' selection-background';
       }
       style = div.style;
       style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
@@ -172,11 +175,13 @@ class WalkontableBorder {
     this.left = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
     this.right = this.main.childNodes[3];
+    this.background = this.main.childNodes[5];
 
     this.topStyle = this.top.style;
     this.leftStyle = this.left.style;
     this.bottomStyle = this.bottom.style;
     this.rightStyle = this.right.style;
+    this.backStyle = this.background.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -444,6 +449,17 @@ class WalkontableBorder {
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
 
+    this.backStyle.top = top + delta + 'px';
+    this.backStyle.left = left + delta + 'px';
+    this.backStyle.width = width - delta + 'px';
+    this.backStyle.height = height - delta + 'px';
+    this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    if (isMultiple) {
+      this.backStyle.display = 'block'
+    } else {
+      this.backStyle.display = 'none'
+    }
+
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       
       // hide selectionHandles in mobile 2016mobile#5
@@ -494,6 +510,7 @@ class WalkontableBorder {
     this.bottomStyle.display = 'none';
     this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
+    this.backStyle.display = 'none';
 
     if (Handsontable.mobileBrowser) {
       // hide selectionHandles in mobile 2016mobile#6

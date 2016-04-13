@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Apr 11 2016 16:47:35 GMT+0800 (CST)
+ * Date: Wed Apr 13 2016 16:53:20 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Apr 11 2016 16:47:35 GMT+0800 (CST)',
+  buildDate: 'Wed Apr 13 2016 16:53:20 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -175,18 +175,21 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
   },
   createBorders: function(settings) {
     this.main = document.createElement('div');
-    var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    var borderDivs = ['top', 'left', 'bottom', 'right', 'corner', 'background'];
     var style = this.main.style;
     var _customBorderStyle = settings.customBorderStyle;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 6; i++) {
       var position = borderDivs[i];
       var div = document.createElement('div');
       div.className = 'wtBorder ' + (this.settings.className || '');
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
+      }
+      if (position === 'background') {
+        div.className += ' selection-background';
       }
       style = div.style;
       style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
@@ -210,10 +213,12 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.left = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
     this.right = this.main.childNodes[3];
+    this.background = this.main.childNodes[5];
     this.topStyle = this.top.style;
     this.leftStyle = this.left.style;
     this.bottomStyle = this.bottom.style;
     this.rightStyle = this.right.style;
+    this.backStyle = this.background.style;
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
@@ -423,6 +428,16 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.rightStyle.left = left + width - delta + 'px';
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
+    this.backStyle.top = top + delta + 'px';
+    this.backStyle.left = left + delta + 'px';
+    this.backStyle.width = width - delta + 'px';
+    this.backStyle.height = height - delta + 'px';
+    this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    if (isMultiple) {
+      this.backStyle.display = 'block';
+    } else {
+      this.backStyle.display = 'none';
+    }
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       if (!Handsontable.mobileBrowser) {
         this.cornerStyle.display = 'none';
@@ -457,6 +472,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.bottomStyle.display = 'none';
     this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
+    this.backStyle.display = 'none';
     if (Handsontable.mobileBrowser) {}
   },
   hasSetting: function(setting) {
@@ -4351,7 +4367,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         isSetFormulaRange = true;
         keepEditorOpened = true;
       }
-      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords);
+      var endRange = {};
+      if (coords.row === instance.countRows() - 1) {
+        endRange.endRow = true;
+      } else if (coords.col === instance.countCols() - 1) {
+        endRange.endCol = true;
+      }
+      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords, endRange);
       instance.selection.begin();
       newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
       newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
@@ -13803,11 +13825,15 @@ var modifyTransformFactory = function(hook) {
     }
   };
 };
-var beforeSetRangeEnd = function(coords) {
+var beforeSetRangeEnd = function(coords, endRange) {
   this.lastDesiredCoords = null;
   var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var selRange = this.getSelectedRange();
+  var selectRowOrCol = false;
+  var selRange = this.getSelectedRange();
+  if (endRange && endRange.endRow && selRange.to.row === 0 || endRange && endRange.endCol && selRange.to.col == 0) {
+    selectRowOrCol = true;
+  }
+  if (mergeCellsSetting && !selectRowOrCol) {
     selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col);
     selRange.to = coords;
     var rangeExpanded = false;

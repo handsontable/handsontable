@@ -484,12 +484,18 @@ var modifyTransformFactory = function(hook) {
  * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
  * @param coords
  */
-var beforeSetRangeEnd = function(coords) {
+var beforeSetRangeEnd = function(coords, endRange) {
 
   this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
   var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var selRange = this.getSelectedRange();
+  var selectRowOrCol = false;
+  var selRange = this.getSelectedRange();
+
+  if (endRange && endRange.endRow && selRange.to.row === 0 || endRange && endRange.endCol && selRange.to.col == 0) {
+    selectRowOrCol = true;
+  }
+
+  if (mergeCellsSetting && !selectRowOrCol) {
     selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col); //clone in case we will modify its reference
     selRange.to = coords;
 
