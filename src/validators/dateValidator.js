@@ -73,3 +73,4 @@ let correctFormat = function correctFormat(value, dateFormat) {
 
   return date.format(dateFormat);
 };
+
