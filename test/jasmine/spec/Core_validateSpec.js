@@ -328,8 +328,93 @@ describe('Core_validate', function () {
       expect(this.$container.find('td.htInvalid').length).toEqual(1);
       expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
     });
+  });
 
+  it('should not add class name `htInvalid` for cancelled changes - on edit', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'test') {
+          callb(false);
+        }
+        else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: function() {
+        return false;
+      }
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    var elapsed = false;
+    waitsFor(function () {
+      return elapsed;
+    }, 'Cell validation', 1000);
+    setTimeout(function(){ elapsed = true; }, 500)
+
+    runs(function () {
+      expect(onAfterValidate).not.toHaveBeenCalled();
+      expect(getDataAtCell(0, 0)).not.toEqual('test');
+      expect(this.$container.find('td.htInvalid').length).toEqual(0);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    });
+  });
+
+  it('should not remove class name `htInvalid` for cancelled changes - on edit', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var allowChange = true;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'test') {
+          callb(false);
+        }
+        else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: function() {
+        return allowChange;
+      }
+    });
+
+    runs(function(){
+      setDataAtCell(0, 0, 'test');
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getDataAtCell(0, 0)).toEqual('test');
+      expect(onAfterValidate.callCount).toEqual(1);
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+      allowChange = false;
+      setDataAtCell(0, 0, 'test2');
+    });
+
+    var elapsed = false;
+    waitsFor(function () {
+      return elapsed;
+    }, 'Cell validation', 1000);
+    setTimeout(function(){ elapsed = true; }, 500)
+
+    runs(function () {
+      expect(getDataAtCell(0, 0)).toEqual('test');
+      expect(onAfterValidate.callCount).toEqual(1);
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    });
   });
 
   it('should add class name `htInvalid` to a cell without removing other classes', function () {
