@@ -236,14 +236,15 @@ describe('ContextMenu', function () {
         });
         selectCell(0, 0);
         contextMenu();
+
 				$('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0).simulate('mousedown');
         expect(getData().length).toEqual(4);
       };
       test();
 
-      destroy();
-
-      test();
+      // destroy();
+      //
+      // test();
     });
 
   });
@@ -1513,6 +1514,50 @@ describe('ContextMenu', function () {
       expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
     });
+
+    it('should disable Remove col in context menu when rows are selected by headers', function() {
+      var hot = handsontable({
+        contextMenu: ["remove_col", "remove_row"],
+        height: 100,
+        colHeaders: true,
+        rowHeaders: true
+      });
+      var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(2).simulate('mouseover');
+      $rowsHeaders.eq(3).simulate('mouseover');
+      $rowsHeaders.eq(3).simulate('mousemove');
+      $rowsHeaders.eq(3).simulate('mouseup');
+
+      contextMenu();
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(0)').text()).toEqual('Remove column');
+      expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should disable Remove row in context menu when columns are selected by headers', function() {
+      var hot = handsontable({
+        contextMenu: ["remove_col", "remove_row"],
+        height: 100,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      this.$container.find('thead tr:eq(0) th:eq(1)').simulate('mousedown');
+      this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseover');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mousemove');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+
+      contextMenu();
+      var $menu = $('.htContextMenu .ht_master .htCore');
+
+      expect($menu.find('tbody td:eq(1)').text()).toEqual('Remove row');
+      expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
+    });
+
   });
 
   describe("custom options", function () {
