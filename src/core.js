@@ -2502,7 +2502,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Number} Total number in rows in data source.
    */
   this.countSourceRows = function() {
-    return instance.getSourceData() ? instance.getSourceData().length : 0;
+    let sourceLength = Handsontable.hooks.run(instance, 'modifySourceLength');
+    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
   };
 
   /**

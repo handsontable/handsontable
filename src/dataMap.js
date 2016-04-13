@@ -428,7 +428,9 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
 
-  const dataRow = this.dataSource[row];
+  let dataRow = this.dataSource[row];
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
 
   // try to get value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
@@ -497,7 +499,9 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
 
-  const dataRow = this.dataSource[row];
+  let dataRow = this.dataSource[row];
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
 
   // try to set value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
