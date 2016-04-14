@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Apr 13 2016 20:21:18 GMT+0800 (CST)
+ * Date: Thu Apr 14 2016 12:16:05 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Apr 13 2016 20:21:18 GMT+0800 (CST)',
+  buildDate: 'Thu Apr 14 2016 12:16:05 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -398,7 +398,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     if (isMultiple) {
       if (fromRow === 0) {
         var columnHeader = this.wot.wtTable.getColumnHeader(fromColumn);
-        borderOffset.left = offset(columnHeader).left;
+        borderOffset.left = offset(columnHeader).left - 1;
         borderOffset.top = offset(columnHeader).top + $(columnHeader).outerHeight();
       } else if (fromColumn === 0) {
         var rowHeader = this.wot.wtTable.getRowHeader(fromRow);
@@ -410,6 +410,9 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
       left: borderOffset.left - fromOffset.left,
       top: borderOffset.top - fromOffset.top
     };
+    if (backOffset.left < 5) {
+      backOffset.left = 0;
+    }
     toOffset = isMultiple ? offset(toTD) : fromOffset;
     containerOffset = offset(this.wot.wtTable.TABLE);
     minTop = fromOffset.top;
@@ -4383,7 +4386,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         isSetFormulaRange = true;
         keepEditorOpened = true;
       }
-      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords, this.selectedHeader);
+      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords);
       instance.selection.begin();
       newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
       newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
@@ -13873,7 +13876,7 @@ var beforeDrawAreaBorders = function(corners, className) {
     if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
       selectRowOrCol = true;
     }
-    if (mergeCellsSetting && !selectRowOrCol) {
+    if (false) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);

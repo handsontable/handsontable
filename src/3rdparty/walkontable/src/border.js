@@ -412,7 +412,7 @@ class WalkontableBorder {
     if (isMultiple) {
       if (fromRow === 0) {
         var columnHeader = this.wot.wtTable.getColumnHeader(fromColumn)
-        borderOffset.left = offset(columnHeader).left;
+        borderOffset.left = offset(columnHeader).left - 1;
         borderOffset.top = offset(columnHeader).top + $(columnHeader).outerHeight();
       } else if (fromColumn === 0) {
         var rowHeader = this.wot.wtTable.getRowHeader(fromRow);
@@ -424,6 +424,9 @@ class WalkontableBorder {
     var backOffset = {
       left: borderOffset.left - fromOffset.left,
       top: borderOffset.top - fromOffset.top
+    }
+    if (backOffset.left < 5) {
+      backOffset.left = 0;
     }
 
     toOffset = isMultiple ? offset(toTD) : fromOffset;

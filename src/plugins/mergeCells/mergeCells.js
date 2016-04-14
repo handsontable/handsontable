@@ -534,7 +534,7 @@ var beforeDrawAreaBorders = function(corners, className) {
     if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
       selectRowOrCol = true;
     }
-    if (mergeCellsSetting && !selectRowOrCol) {
+    if (false) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
