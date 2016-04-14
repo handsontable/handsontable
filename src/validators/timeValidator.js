@@ -20,16 +20,26 @@ const STRICT_FORMATS = [
 Handsontable.TimeValidator = function(value, callback) {
   let valid = true;
   let timeFormat = this.timeFormat || 'h:mm:ss a';
+  let date;
+  let isValidTime;
 
   if (value === null) {
     value = '';
   }
 
-  let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
-  let isValidTime = date.isValid();
+  value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
+
+  let twoDigitValue = /^\d{1,2}$/.test(value);
+
+  if (twoDigitValue) {
+    value = value + ':00';
+  }
+
+  date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
+  isValidTime = date.isValid();
 
   // is it in the specified format
-  let isValidFormat = moment(value, timeFormat, true).isValid();
+  let isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
 
   if (this.allowEmpty && value === '') {
     isValidTime = true;
@@ -41,7 +51,6 @@ Handsontable.TimeValidator = function(value, callback) {
   if (!isValidTime && isValidFormat) {
     valid = true;
   }
-
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
 

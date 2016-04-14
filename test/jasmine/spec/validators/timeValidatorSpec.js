@@ -375,6 +375,64 @@ describe('timeValidator', function () {
       });
     });
 
+    it("should rewrite one and two-digit number to the correct format at hours", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "hh:mm:ss a", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '19');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("07:00:00 pm");
+      });
+    });
+
+    it("should rewrite one and two-digit number to the correct format at minutes", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "mm:ss", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '57');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("57:00");
+      });
+    });
+
     it("should not try to correct format of non-date strings", function () {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
