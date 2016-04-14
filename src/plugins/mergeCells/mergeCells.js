@@ -527,6 +527,7 @@ var beforeSetRangeEnd = function(coords) {
  * @param className
  */
 var beforeDrawAreaBorders = function(corners, className) {
+  return;
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     var selectRowOrCol = false;
@@ -534,7 +535,7 @@ var beforeDrawAreaBorders = function(corners, className) {
     if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
       selectRowOrCol = true;
     }
-    if (false) {
+    if (mergeCellsSetting && !selectRowOrCol) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);

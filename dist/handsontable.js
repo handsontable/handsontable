@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Apr 14 2016 12:16:05 GMT+0800 (CST)
+ * Date: Thu Apr 14 2016 13:48:05 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Apr 14 2016 12:16:05 GMT+0800 (CST)',
+  buildDate: 'Thu Apr 14 2016 13:48:05 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -395,6 +395,11 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
     var borderOffset = $.extend({}, fromOffset);
+    var isFormula = ($(toTD).attr('class') || '').indexOf('formula-selected') > -1;
+    var formulaOffset = {
+      left: 0,
+      top: 0
+    };
     if (isMultiple) {
       if (fromRow === 0) {
         var columnHeader = this.wot.wtTable.getColumnHeader(fromColumn);
@@ -412,6 +417,9 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     };
     if (backOffset.left < 5) {
       backOffset.left = 0;
+    }
+    if (isFormula) {
+      formulaOffset = backOffset;
     }
     toOffset = isMultiple ? offset(toTD) : fromOffset;
     containerOffset = offset(this.wot.wtTable.TABLE);
@@ -431,12 +439,12 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
       width = width > 0 ? width - 1 : 0;
     }
     this.topStyle.top = top + backOffset.top + 'px';
-    this.topStyle.left = left + 'px';
-    this.topStyle.width = width + 'px';
+    this.topStyle.left = left + formulaOffset.left + 'px';
+    this.topStyle.width = width - formulaOffset.left + 'px';
     this.topStyle.display = 'block';
-    this.leftStyle.top = top + 'px';
+    this.leftStyle.top = top + formulaOffset.top + 'px';
     this.leftStyle.left = left + backOffset.left + 'px';
-    this.leftStyle.height = height + 'px';
+    this.leftStyle.height = height - formulaOffset.top + 'px';
     this.leftStyle.display = 'block';
     var delta = Math.floor(this.settings.border.width / 2);
     this.bottomStyle.top = top + height - delta + 'px';
@@ -451,8 +459,12 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.backStyle.left = left + backOffset.left + delta + 'px';
     this.backStyle.width = width - backOffset.left - delta + 'px';
     this.backStyle.height = height - backOffset.top - delta + 'px';
-    this.backStyle.background = 'rgba(115, 165, 225, .1)';
-    if (isMultiple) {
+    if (isFormula) {
+      this.backStyle.background = 'rgba(24, 157, 236, 0.3)';
+    } else {
+      this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    }
+    if (isMultiple || isFormula) {
       this.backStyle.display = 'block';
     } else {
       this.backStyle.display = 'none';
@@ -13869,6 +13881,7 @@ var beforeSetRangeEnd = function(coords) {
   }
 };
 var beforeDrawAreaBorders = function(corners, className) {
+  return;
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     var selectRowOrCol = false;
@@ -13876,7 +13889,7 @@ var beforeDrawAreaBorders = function(corners, className) {
     if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
       selectRowOrCol = true;
     }
-    if (false) {
+    if (mergeCellsSetting && !selectRowOrCol) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);

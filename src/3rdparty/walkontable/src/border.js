@@ -408,6 +408,11 @@ class WalkontableBorder {
     fromOffset = offset(fromTD);
 
     var borderOffset = $.extend({}, fromOffset);
+    var isFormula = ($(toTD).attr('class') || '').indexOf('formula-selected') > -1;
+    var formulaOffset = {
+      left: 0,
+      top: 0
+    };
 
     if (isMultiple) {
       if (fromRow === 0) {
@@ -427,6 +432,9 @@ class WalkontableBorder {
     }
     if (backOffset.left < 5) {
       backOffset.left = 0;
+    }
+    if (isFormula) {
+      formulaOffset = backOffset;
     }
 
     toOffset = isMultiple ? offset(toTD) : fromOffset;
@@ -451,13 +459,13 @@ class WalkontableBorder {
     }
 
     this.topStyle.top = top + backOffset.top + 'px';
-    this.topStyle.left = left + 'px';
-    this.topStyle.width = width + 'px';
+    this.topStyle.left = left + formulaOffset.left + 'px';
+    this.topStyle.width = width - formulaOffset.left + 'px';
     this.topStyle.display = 'block';
 
-    this.leftStyle.top = top + 'px';
+    this.leftStyle.top = top + formulaOffset.top + 'px';
     this.leftStyle.left = left + backOffset.left + 'px';
-    this.leftStyle.height = height + 'px';
+    this.leftStyle.height = height - formulaOffset.top + 'px';
     this.leftStyle.display = 'block';
 
     let delta = Math.floor(this.settings.border.width / 2);
@@ -476,11 +484,17 @@ class WalkontableBorder {
     this.backStyle.left = left + backOffset.left + delta + 'px';
     this.backStyle.width = width - backOffset.left - delta + 'px';
     this.backStyle.height = height - backOffset.top - delta + 'px';
-    this.backStyle.background = 'rgba(115, 165, 225, .1)';
-    if (isMultiple) {
-      this.backStyle.display = 'block'
+
+    if (isFormula) {
+      this.backStyle.background = 'rgba(24, 157, 236, 0.3)';
     } else {
-      this.backStyle.display = 'none'
+      this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    }
+    
+    if (isMultiple || isFormula) {
+      this.backStyle.display = 'block';
+    } else {
+      this.backStyle.display = 'none';
     }
 
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
