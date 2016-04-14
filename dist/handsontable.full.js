@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Apr 12 2016 15:23:01 GMT+0800 (CST)
+ * Date: Thu Apr 14 2016 14:17:12 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Apr 12 2016 15:23:01 GMT+0800 (CST)',
+  buildDate: 'Thu Apr 14 2016 14:17:12 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -175,18 +175,21 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
   },
   createBorders: function(settings) {
     this.main = document.createElement('div');
-    var borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    var borderDivs = ['top', 'left', 'bottom', 'right', 'corner', 'background'];
     var style = this.main.style;
     var _customBorderStyle = settings.customBorderStyle;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 6; i++) {
       var position = borderDivs[i];
       var div = document.createElement('div');
       div.className = 'wtBorder ' + (this.settings.className || '');
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
+      }
+      if (position === 'background') {
+        div.className += ' selection-background';
       }
       style = div.style;
       style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
@@ -210,10 +213,12 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.left = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
     this.right = this.main.childNodes[3];
+    this.background = this.main.childNodes[5];
     this.topStyle = this.top.style;
     this.leftStyle = this.left.style;
     this.bottomStyle = this.bottom.style;
     this.rightStyle = this.right.style;
+    this.backStyle = this.background.style;
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
@@ -389,6 +394,33 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
+    var borderOffset = $.extend({}, fromOffset);
+    var isFormula = ($(toTD).attr('class') || '').indexOf('formula-selected') > -1;
+    var formulaOffset = {
+      left: 0,
+      top: 0
+    };
+    if (isMultiple) {
+      if (fromRow === 0) {
+        var columnHeader = this.wot.wtTable.getColumnHeader(fromColumn);
+        borderOffset.left = offset(columnHeader).left - 1;
+        borderOffset.top = offset(columnHeader).top + $(columnHeader).outerHeight();
+      } else if (fromColumn === 0) {
+        var rowHeader = this.wot.wtTable.getRowHeader(fromRow);
+        borderOffset.left = offset(rowHeader).left + $(rowHeader).outerWidth();
+        borderOffset.top = offset(rowHeader).top;
+      }
+    }
+    var backOffset = {
+      left: borderOffset.left - fromOffset.left,
+      top: borderOffset.top - fromOffset.top
+    };
+    if (backOffset.left < 5) {
+      backOffset.left = 0;
+    }
+    if (isFormula) {
+      formulaOffset = backOffset;
+    }
     toOffset = isMultiple ? offset(toTD) : fromOffset;
     containerOffset = offset(this.wot.wtTable.TABLE);
     minTop = fromOffset.top;
@@ -406,13 +438,13 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
       left += 1;
       width = width > 0 ? width - 1 : 0;
     }
-    this.topStyle.top = top + 'px';
-    this.topStyle.left = left + 'px';
-    this.topStyle.width = width + 'px';
+    this.topStyle.top = top + backOffset.top + 'px';
+    this.topStyle.left = left + formulaOffset.left + 'px';
+    this.topStyle.width = width - formulaOffset.left + 'px';
     this.topStyle.display = 'block';
-    this.leftStyle.top = top + 'px';
-    this.leftStyle.left = left + 'px';
-    this.leftStyle.height = height + 'px';
+    this.leftStyle.top = top + formulaOffset.top + 'px';
+    this.leftStyle.left = left + backOffset.left + 'px';
+    this.leftStyle.height = height - formulaOffset.top + 'px';
     this.leftStyle.display = 'block';
     var delta = Math.floor(this.settings.border.width / 2);
     this.bottomStyle.top = top + height - delta + 'px';
@@ -423,6 +455,16 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.rightStyle.left = left + width - delta + 'px';
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
+    this.backStyle.top = top + backOffset.top + delta + 'px';
+    this.backStyle.left = left + backOffset.left + delta + 'px';
+    this.backStyle.width = width - backOffset.left - delta + 'px';
+    this.backStyle.height = height - backOffset.top - delta + 'px';
+    this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    if (isMultiple && !isFormula) {
+      this.backStyle.display = 'block';
+    } else {
+      this.backStyle.display = 'none';
+    }
     if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       if (!Handsontable.mobileBrowser) {
         this.cornerStyle.display = 'none';
@@ -457,6 +499,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.bottomStyle.display = 'none';
     this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
+    this.backStyle.display = 'none';
     if (Handsontable.mobileBrowser) {}
   },
   hasSetting: function(setting) {
@@ -13811,7 +13854,12 @@ var modifyTransformFactory = function(hook) {
 var beforeSetRangeEnd = function(coords) {
   this.lastDesiredCoords = null;
   var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
+  var selectRowOrCol = false;
+  var selectedHeader = this.selection.selectedHeader;
+  if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
+    selectRowOrCol = true;
+  }
+  if (mergeCellsSetting && !selectRowOrCol) {
     var selRange = this.getSelectedRange();
     selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col);
     selRange.to = coords;
@@ -13834,9 +13882,15 @@ var beforeSetRangeEnd = function(coords) {
   }
 };
 var beforeDrawAreaBorders = function(corners, className) {
+  return;
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
-    if (mergeCellsSetting) {
+    var selectRowOrCol = false;
+    var selectedHeader = this.selection.selectedHeader;
+    if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
+      selectRowOrCol = true;
+    }
+    if (mergeCellsSetting && !selectRowOrCol) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
