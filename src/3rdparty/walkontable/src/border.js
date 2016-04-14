@@ -406,6 +406,26 @@ class WalkontableBorder {
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
+
+    var borderOffset = $.extend({}, fromOffset);
+
+    if (isMultiple) {
+      if (fromRow === 0) {
+        var columnHeader = this.wot.wtTable.getColumnHeader(fromColumn)
+        borderOffset.left = offset(columnHeader).left;
+        borderOffset.top = offset(columnHeader).top + $(columnHeader).outerHeight();
+      } else if (fromColumn === 0) {
+        var rowHeader = this.wot.wtTable.getRowHeader(fromRow);
+        borderOffset.left = offset(rowHeader).left + $(rowHeader).outerWidth();
+        borderOffset.top = offset(rowHeader).top;
+      }
+    }
+    
+    var backOffset = {
+      left: borderOffset.left - fromOffset.left,
+      top: borderOffset.top - fromOffset.top
+    }
+
     toOffset = isMultiple ? offset(toTD) : fromOffset;
     containerOffset = offset(this.wot.wtTable.TABLE);
 
@@ -427,13 +447,13 @@ class WalkontableBorder {
       width = width > 0 ? width - 1 : 0;
     }
 
-    this.topStyle.top = top + 'px';
+    this.topStyle.top = top + backOffset.top + 'px';
     this.topStyle.left = left + 'px';
     this.topStyle.width = width + 'px';
     this.topStyle.display = 'block';
 
     this.leftStyle.top = top + 'px';
-    this.leftStyle.left = left + 'px';
+    this.leftStyle.left = left + backOffset.left + 'px';
     this.leftStyle.height = height + 'px';
     this.leftStyle.display = 'block';
 
@@ -449,10 +469,10 @@ class WalkontableBorder {
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
 
-    this.backStyle.top = top + delta + 'px';
-    this.backStyle.left = left + delta + 'px';
-    this.backStyle.width = width - delta + 'px';
-    this.backStyle.height = height - delta + 'px';
+    this.backStyle.top = top + backOffset.top + delta + 'px';
+    this.backStyle.left = left + backOffset.left + delta + 'px';
+    this.backStyle.width = width - backOffset.left - delta + 'px';
+    this.backStyle.height = height - backOffset.top - delta + 'px';
     this.backStyle.background = 'rgba(115, 165, 225, .1)';
     if (isMultiple) {
       this.backStyle.display = 'block'

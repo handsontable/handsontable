@@ -640,16 +640,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         isSetFormulaRange = true;
         keepEditorOpened = true;  //当需要选择公式选区时，不要调用destoryEditor
       }
-
-      var endRange = {};
-      if (coords.row === instance.countRows() - 1) {
-        endRange.endRow = true;
-      } else if (coords.col === instance.countCols() - 1) {
-        endRange.endCol = true;
-      }
-
+      
       // trigger handlers
-      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords, endRange);
+      Handsontable.hooks.run(instance, 'beforeSetRangeEnd', coords, this.selectedHeader);
       instance.selection.begin();
 
       newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;

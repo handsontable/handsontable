@@ -484,18 +484,18 @@ var modifyTransformFactory = function(hook) {
  * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
  * @param coords
  */
-var beforeSetRangeEnd = function(coords, endRange) {
+var beforeSetRangeEnd = function(coords) {
 
   this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
   var mergeCellsSetting = this.getSettings().mergeCells;
   var selectRowOrCol = false;
-  var selRange = this.getSelectedRange();
-
-  if (endRange && endRange.endRow && selRange.to.row === 0 || endRange && endRange.endCol && selRange.to.col == 0) {
+  var selectedHeader = this.selection.selectedHeader;
+  if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
     selectRowOrCol = true;
   }
 
   if (mergeCellsSetting && !selectRowOrCol) {
+    var selRange = this.getSelectedRange();
     selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col); //clone in case we will modify its reference
     selRange.to = coords;
 
@@ -529,7 +529,12 @@ var beforeSetRangeEnd = function(coords, endRange) {
 var beforeDrawAreaBorders = function(corners, className) {
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
-    if (mergeCellsSetting) {
+    var selectRowOrCol = false;
+    var selectedHeader = this.selection.selectedHeader;
+    if (selectedHeader && selectedHeader.rows || selectedHeader && selectedHeader.cols) {
+      selectRowOrCol = true;
+    }
+    if (mergeCellsSetting && !selectRowOrCol) {
       var selRange = this.getSelectedRange();
       var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
