@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Apr 14 2016 13:48:05 GMT+0800 (CST)
+ * Date: Thu Apr 14 2016 14:08:36 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Apr 14 2016 13:48:05 GMT+0800 (CST)',
+  buildDate: 'Thu Apr 14 2016 14:08:36 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -459,12 +459,8 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     this.backStyle.left = left + backOffset.left + delta + 'px';
     this.backStyle.width = width - backOffset.left - delta + 'px';
     this.backStyle.height = height - backOffset.top - delta + 'px';
-    if (isFormula) {
-      this.backStyle.background = 'rgba(24, 157, 236, 0.3)';
-    } else {
-      this.backStyle.background = 'rgba(115, 165, 225, .1)';
-    }
-    if (isMultiple || isFormula) {
+    this.backStyle.background = 'rgba(115, 165, 225, .1)';
+    if (isMultiple && !isFormula) {
       this.backStyle.display = 'block';
     } else {
       this.backStyle.display = 'none';

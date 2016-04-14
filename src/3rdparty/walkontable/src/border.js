@@ -484,14 +484,9 @@ class WalkontableBorder {
     this.backStyle.left = left + backOffset.left + delta + 'px';
     this.backStyle.width = width - backOffset.left - delta + 'px';
     this.backStyle.height = height - backOffset.top - delta + 'px';
-
-    if (isFormula) {
-      this.backStyle.background = 'rgba(24, 157, 236, 0.3)';
-    } else {
-      this.backStyle.background = 'rgba(115, 165, 225, .1)';
-    }
+    this.backStyle.background = 'rgba(115, 165, 225, .1)';
     
-    if (isMultiple || isFormula) {
+    if (isMultiple && !isFormula) {
       this.backStyle.display = 'block';
     } else {
       this.backStyle.display = 'none';
