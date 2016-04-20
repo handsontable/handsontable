@@ -289,7 +289,6 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      // instance.selection.setSelectedHeaders(false, false);
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
           var nothing = 1;

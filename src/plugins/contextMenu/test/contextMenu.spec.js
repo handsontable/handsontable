@@ -237,14 +237,14 @@ describe('ContextMenu', function () {
         selectCell(0, 0);
         contextMenu();
 
-				$('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0).simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0).simulate('mousedown');
         expect(getData().length).toEqual(4);
       };
       test();
 
-      // destroy();
-      //
-      // test();
+      destroy();
+
+      test();
     });
 
   });
