@@ -1035,7 +1035,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
       }
 
-      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
