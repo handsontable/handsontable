@@ -6,7 +6,6 @@ import {EventManager} from './../../eventManager';
 import {hasClass} from './../../helpers/dom/element';
 import {ItemsFactory} from './itemsFactory';
 import {Menu} from './menu';
-import {objectEach, mixin} from './../../helpers/object';
 import {registerPlugin} from './../../plugins';
 import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
 import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
@@ -21,8 +20,7 @@ import {
   REDO,
   READ_ONLY,
   ALIGNMENT,
-  SEPARATOR,
-  predefinedItems
+  SEPARATOR
 } from './predefinedItems';
 
 /**
@@ -122,7 +120,7 @@ class ContextMenu extends BasePlugin {
 
     const settings = this.hot.getSettings().contextMenu;
     let predefinedItems = {
-      items: this.itemsFactory.getVisibleItems(settings)
+      items: this.itemsFactory.getItems(settings)
     };
     this.registerEvents();
 
@@ -135,7 +133,7 @@ class ContextMenu extends BasePlugin {
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getVisibleItems(settings);
+      let menuItems = this.itemsFactory.getItems(settings);
 
       this.menu = new Menu(this.hot, {className: 'htContextMenu', keepInViewport: true});
       this.menu.setMenuItems(menuItems);

@@ -58,7 +58,7 @@ describe('ContextMenu', function () {
           custom: {name: 'My custom item'},
         }
       }
-    })
+    });
 
     contextMenu();
 
@@ -245,6 +245,67 @@ describe('ContextMenu', function () {
       destroy();
 
       test();
+    });
+
+  });
+
+  describe("menu hidden items", function() {
+    it("should remove separators from top, bottom and duplicated", function() {
+      var hot = handsontable({
+        contextMenu: [
+          '---------',
+          '---------',
+          'row_above',
+          '---------',
+          '---------',
+          'row_below',
+          '---------',
+          'remove_row'
+        ],
+        height: 100
+      });
+
+      contextMenu();
+
+      var items = $('.htContextMenu tbody td');
+      var actions = items.not('.htSeparator');
+      var separators = items.filter('.htSeparator');
+
+      expect(actions.length).toEqual(3);
+      expect(separators.length).toEqual(2);
+    });
+
+    it("should hide option if hidden function return true", function() {
+
+      var hot = handsontable({
+        startCols: 5,
+        colHeaders: true,
+        contextMenu: [
+          {
+            key: '',
+            name: "Custom option",
+            hidden: function () {
+              return !this.selection.selectedHeader.cols;
+            }
+          }
+        ]
+      });
+
+      contextMenu();
+      var items = $('.htContextMenu tbody td');
+      var actions = items.not('.htSeparator');
+
+      expect(actions.length).toEqual(0);
+
+      var header = $('.ht_clone_top thead th').eq(1);
+
+      header.simulate('mousedown');
+      contextMenu();
+
+      items = $('.htContextMenu tbody td');
+      actions = items.not('.htSeparator');
+      expect(actions.length).toEqual(1);
+
     });
 
   });

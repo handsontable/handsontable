@@ -1,5 +1,7 @@
 
+import {arrayEach} from './../../helpers/array';
 import {hasClass} from './../../helpers/dom/element';
+import {SEPARATOR} from './predefinedItems';
 
 export function normalizeSelection(selRange) {
   return {
@@ -128,4 +130,57 @@ export function checkSelectionConsistency(range, comparator) {
 export function markLabelAsSelected(label) {
   // workaround for https://github.com/handsontable/handsontable/issues/1946
   return '<span class="selected">' + String.fromCharCode(10003) + '</span>' + label;
+}
+
+export function isItemHidden(item, instance) {
+  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+}
+
+function shiftSeparators(items, separator) {
+  let result = items.slice(0);
+
+  for (let i = 0; i < result.length;) {
+    if (result[i].name === separator) {
+      result.shift();
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+
+function popSeparators(items, separator) {
+  let result = items.slice(0);
+
+  result.reverse();
+  result = shiftSeparators(result, separator);
+  result.reverse();
+
+  return result;
+}
+
+function removeDuplicatedSeparators(items) {
+  let result = [];
+
+  arrayEach(items, (value, index) => {
+    if (index > 0) {
+      if (result[result.length - 1].name !== value.name) {
+        result.push(value);
+      }
+    } else {
+      result.push(value);
+    }
+  });
+
+  return result;
+}
+
+export function filterSeparators(items, separator = SEPARATOR) {
+  let result = items.slice(0);
+
+  result = shiftSeparators(result, separator);
+  result = popSeparators(result, separator);
+  result = removeDuplicatedSeparators(result);
+
+  return result;
 }
