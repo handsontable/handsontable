@@ -2817,35 +2817,38 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Scroll viewport to coords specified by the `row` and `column` arguments.
    *
-   * @param {Number} row
-   * @param {Number} column
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
-     */
+   */
   this.scrollViewportTo = function(row, column) {
-    if (typeof row !== 'undefined' && (row < 0 || row >= instance.countRows())) {
+    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
-    if (typeof column !== 'undefined' && (column < 0 || column >= instance.countCols())) {
+    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
       return false;
     }
-    if (typeof row !== 'undefined' && typeof column !== 'undefined') {
+
+    let result = false;
+
+    if (row !== void 0 && column !== void 0) {
       instance.view.wt.scrollVertical(row);
       instance.view.wt.scrollHorizontal(column);
 
-      return true;
+      result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
       instance.view.wt.scrollVertical(row);
 
-      return true;
+      result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
       instance.view.wt.scrollHorizontal(column);
 
-      return true;
+      result = true;
     }
 
-    return false;
+    return result;
   };
 
   /**
