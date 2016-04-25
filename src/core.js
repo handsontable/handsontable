@@ -2815,6 +2815,43 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Scroll viewport to coords specified by the `row` and `column` arguments.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
+   */
+  this.scrollViewportTo = function(row, column) {
+    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
+      return false;
+    }
+    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
+      return false;
+    }
+
+    let result = false;
+
+    if (row !== void 0 && column !== void 0) {
+      instance.view.wt.scrollVertical(row);
+      instance.view.wt.scrollHorizontal(column);
+
+      result = true;
+    }
+    if (typeof row === 'number' && typeof column !== 'number') {
+      instance.view.wt.scrollVertical(row);
+
+      result = true;
+    }
+    if (typeof column === 'number' && typeof row !== 'number') {
+      instance.view.wt.scrollHorizontal(column);
+
+      result = true;
+    }
+
+    return result;
+  };
+
+  /**
    * Removes grid from the DOM.
    *
    * @memberof Core#
