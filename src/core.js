@@ -1640,6 +1640,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     if (!init) {
+      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
 
