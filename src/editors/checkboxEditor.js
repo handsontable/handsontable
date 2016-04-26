@@ -9,9 +9,9 @@ import {hasClass} from './../helpers/dom/element';
  * @class CheckboxEditor
  */
 class CheckboxEditor extends BaseEditor {
-  beginEditing() {
-    // editorManager return in second argument double click event as undefined
-    if (arguments[1] === void 0) {
+  beginEditing(initialValue, event) {
+    // editorManager return double click event as undefined
+    if (event === void 0) {
       let checkbox = this.TD.querySelector('input[type="checkbox"]');
 
       if (!hasClass(checkbox, 'htBadValue')) {
