@@ -196,7 +196,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
       this.dataSource.push(row);
 
     } else {
-      this.dataSource.splice(index, 0, row);
+      this.spliceData(index, 0, row);
     }
 
     numberOfCreatedRows++;
@@ -417,6 +417,21 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
 
   return removed;
+};
+
+/**
+ * Add/remove row(s) to/from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @param {Object} element Row to add.
+ */
+DataMap.prototype.spliceData = function(index, amount, element) {
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataSplice', index, amount, element);
+
+  if (continueSplicing !== false) {
+    this.dataSource.splice(index, amount, element);
+  }
 };
 
 /**

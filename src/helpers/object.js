@@ -16,6 +16,10 @@ export function duckSchema(object) {
     schema = {};
 
     objectEach(object, function(value, key) {
+      if (key === '__children') {
+        return;
+      }
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         schema[key] = duckSchema(value);
 
