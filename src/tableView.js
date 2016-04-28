@@ -289,11 +289,9 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      instance.selection.setSelectedHeaders(false, false);
-
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
-          var nothing = 1; // do nothing
+          var nothing = 1;
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
             instance.selection.setRangeEnd(coords);
@@ -315,6 +313,7 @@ function TableView(instance) {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
 
+            instance.selection.setSelectedHeaders(false, false);
             instance.selection.setRangeStart(coords);
           }
         }

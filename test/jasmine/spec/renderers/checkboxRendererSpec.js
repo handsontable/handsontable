@@ -505,6 +505,29 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls.length).toEqual(0);
   });
 
+  it("shouldn't change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE", function () {
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(true);
+
+    selectCell(0, 0);
+    keyDown('c');
+
+    expect(getDataAtCell(0, 0)).toBe(true);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+  });
+
   it("should add label on the beginning of a checkbox element", function () {
     handsontable({
       data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],

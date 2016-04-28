@@ -177,11 +177,12 @@ const _predefinedItems = {
       let amount = selection.end.row - selection.start.row + 1;
 
       this.alter('remove_row', selection.start.row, amount);
+
     },
     disabled: function() {
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.cols) {
         return true;
       }
       let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
@@ -200,11 +201,13 @@ const _predefinedItems = {
       let amount = selection.end.col - selection.start.col + 1;
 
       this.alter('remove_col', selection.start.col, amount);
+
     },
     disabled: function() {
+
       let selected = getValidSelection(this);
 
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.rows) {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {

@@ -49,6 +49,31 @@ Check out the demos at http://handsontable.com/examples.html or fork the example
 - [Options](http://docs.handsontable.com/Options.html)
 - [Hooks](http://docs.handsontable.com/Hooks.html)
 
+## AMD support
+
+If you use a modular script loader than Handsontable is not bound to the global object and will fit nicely in your build process. You can require Handsontable just like any other module.
+
+```javascript
+require(['handsontable'], function(Handsontable) {
+    var hot = new Handsontable(document.getElementById('example'), {
+      data: [[1, 2, 3, 4], [1, 2, 3, 4]]
+    });
+});
+```
+
+## CommonJS module support
+
+If you use a CommonJS compatible environment you can use the require function to import Handsontable.
+
+
+```javascript
+var handsontable = require('handsontable');
+```
+
+To bundle handsontable with [Browserify](http://browserify.org) you must specify the module names of all required modules by Handsontable:
+
+`browserify main.js -o bundle.js -r moment -r pikaday -r zeroclipboard`
+
 ### Troubleshooting
 
 Please follow this guidelines when reporting bugs and feature requests:

@@ -33,6 +33,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (typeof cellProperties.uncheckedTemplate === 'undefined') {
     cellProperties.uncheckedTemplate = false;
   }
+
   empty(TD); // TODO identify under what circumstances this line can be removed
 
   if (value === cellProperties.checkedTemplate || equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
@@ -51,7 +52,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
 
   input.setAttribute('data-row', row);
-  input.setAttribute('data-prop', prop);
+  input.setAttribute('data-col', col);
 
   if (!badValue && labelOptions) {
     let labelText = '';
@@ -84,6 +85,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     } else {
       eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
       eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
+
     }
 
     isCheckboxListenerAdded.set(instance, true);
@@ -114,10 +116,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         event.preventDefault();
       });
     }
-    if (event.keyCode == KEY_CODES.SPACE || event.keyCode == KEY_CODES.ENTER) {
+    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
       toggleSelected();
     }
-    if (event.keyCode == KEY_CODES.DELETE || event.keyCode == KEY_CODES.BACKSPACE) {
+    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
       toggleSelected(false);
     }
   }
@@ -245,6 +247,7 @@ function onMouseUp(event, instance) {
  *
  * @param {Event} event `change` event.
  * @param {Object} instance Handsontable instance.
+ * @param {Object} cellProperties Reference to cell properties.
  * @returns {Boolean}
  */
 function onChange(event, instance) {
@@ -253,14 +256,10 @@ function onChange(event, instance) {
   }
 
   let row = parseInt(event.target.getAttribute('data-row'), 10);
-  let prop = event.target.getAttribute('data-prop');
-  let cellProperties = instance.getCellMeta(row, prop);
+  let col = parseInt(event.target.getAttribute('data-col'), 10);
+  let cellProperties = instance.getCellMeta(row, col);
 
-  if (!isNaN(prop)) {
-    prop = parseInt(prop, 10);
-  }
-
-  instance.setDataAtRowProp(row, prop, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
 }
 
 /**
