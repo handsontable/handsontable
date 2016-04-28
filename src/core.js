@@ -2818,8 +2818,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Scroll viewport to coords specified by the `row` and `column` arguments.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @since 0.24.3
+   * @memberof Core#
+   * @function scrollViewportTo
+   * @param {Number|null} row Row index.
+   * @param {Number|null} column Column index.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
   this.scrollViewportTo = function(row, column) {
