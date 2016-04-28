@@ -1035,7 +1035,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
       }
 
-      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -1640,6 +1640,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     if (!init) {
+      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
 
@@ -2812,6 +2813,43 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.deselectCell = function() {
     selection.deselect();
+  };
+
+  /**
+   * Scroll viewport to coords specified by the `row` and `column` arguments.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
+   */
+  this.scrollViewportTo = function(row, column) {
+    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
+      return false;
+    }
+    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
+      return false;
+    }
+
+    let result = false;
+
+    if (row !== void 0 && column !== void 0) {
+      instance.view.wt.scrollVertical(row);
+      instance.view.wt.scrollHorizontal(column);
+
+      result = true;
+    }
+    if (typeof row === 'number' && typeof column !== 'number') {
+      instance.view.wt.scrollVertical(row);
+
+      result = true;
+    }
+    if (typeof column === 'number' && typeof row !== 'number') {
+      instance.view.wt.scrollHorizontal(column);
+
+      result = true;
+    }
+
+    return result;
   };
 
   /**

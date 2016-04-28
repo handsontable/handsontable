@@ -329,20 +329,25 @@ describe('timeValidator', function () {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, 1455885493000);
+      var currentDateTime = new Date();
+
+      setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
 
       waitsFor(function () {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
       runs(function () {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, 1455885493000, 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.getTime(), 1, 'time', undefined, undefined);
       });
 
       waits(30);
 
       runs(function () {
-        expect(getDataAtCell(1, 0)).toEqual("13:38:13");
+        var addLeadingZero = function(number) {
+          return number < 10 ? '0' + number : number;
+        };
+        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) +':' + addLeadingZero(currentDateTime.getSeconds()));
       });
     });
 
@@ -358,20 +363,83 @@ describe('timeValidator', function () {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '2016-02-19T12:40:04.983Z');
+      var currentDateTime = new Date();
+
+      setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
 
       waitsFor(function () {
         return onAfterValidate.calls.length > 0;
       }, 'Cell validation', 1000);
 
       runs(function () {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-02-19T12:40:04.983Z', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time', undefined, undefined);
       });
 
       waits(30);
 
       runs(function () {
-        expect(getDataAtCell(1, 0)).toEqual("13:40:04");
+        var addLeadingZero = function(number) {
+          return number < 10 ? '0' + number : number;
+        };
+        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) +':' + addLeadingZero(currentDateTime.getSeconds()));
+      });
+    });
+
+    it("should rewrite one and two-digit number to the correct format at hours", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "hh:mm:ss a", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '19');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("07:00:00 pm");
+      });
+    });
+
+    it("should rewrite one and two-digit number to the correct format at minutes", function () {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'time', type: 'time', timeFormat: "mm:ss", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '57');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
+      });
+
+      waits(30);
+
+      runs(function () {
+        expect(getDataAtCell(1, 0)).toEqual("57:00");
       });
     });
 
