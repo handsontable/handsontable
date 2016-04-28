@@ -4228,9 +4228,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Mon Apr 11 2016 14:03:53 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Thu Apr 28 2016 15:03:36 GMT+0200 (CEST)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.24.2';
+Handsontable.version = '0.24.3';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -5143,7 +5143,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           datamap.createRow();
         }
       }
-      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -5448,6 +5448,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
     if (!init) {
+      datamap.clearLengthCache();
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
     grid.adjustRowsAndCols();
@@ -5948,6 +5949,29 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.deselectCell = function() {
     selection.deselect();
   };
+  this.scrollViewportTo = function(row, column) {
+    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
+      return false;
+    }
+    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
+      return false;
+    }
+    var result = false;
+    if (row !== void 0 && column !== void 0) {
+      instance.view.wt.scrollVertical(row);
+      instance.view.wt.scrollHorizontal(column);
+      result = true;
+    }
+    if (typeof row === 'number' && typeof column !== 'number') {
+      instance.view.wt.scrollVertical(row);
+      result = true;
+    }
+    if (typeof column === 'number' && typeof row !== 'number') {
+      instance.view.wt.scrollHorizontal(column);
+      result = true;
+    }
+    return result;
+  };
   this.destroy = function() {
     instance._clearTimeouts();
     if (instance.view) {
@@ -6358,6 +6382,9 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
       currentIndex;
   if (!amount) {
     amount = 1;
+  }
+  if (typeof index !== 'number' || index >= this.instance.countCols()) {
+    index = this.instance.countCols();
   }
   currentIndex = index;
   var maxCols = this.instance.getSettings().maxCols;
@@ -7686,10 +7713,12 @@ var CheckboxEditor = function CheckboxEditor() {
 };
 var $CheckboxEditor = CheckboxEditor;
 ($traceurRuntime.createClass)(CheckboxEditor, {
-  beginEditing: function() {
-    var checkbox = this.TD.querySelector('input[type="checkbox"]');
-    if (!hasClass(checkbox, 'htBadValue')) {
-      checkbox.click();
+  beginEditing: function(initialValue, event) {
+    if (event === void 0) {
+      var checkbox = this.TD.querySelector('input[type="checkbox"]');
+      if (!hasClass(checkbox, 'htBadValue')) {
+        checkbox.click();
+      }
     }
   },
   finishEditing: function() {},
@@ -9013,24 +9042,6 @@ var EventManager = function EventManager() {
     var $__4 = this;
     var context = this.context;
     function callbackProxy(event) {
-      if (event.target == void 0 && event.srcElement != void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('target', {value: event.srcElement});
-        } else {
-          event.target = event.srcElement;
-        }
-      }
-      if (event.preventDefault == void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('preventDefault', {value: function() {
-              this.returnValue = false;
-            }});
-        } else {
-          event.preventDefault = function() {
-            this.returnValue = false;
-          };
-        }
-      }
       event = extendEvent(context, event);
       callback.call(this, event);
     }
@@ -13288,7 +13299,6 @@ var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $__itemsFactory__,
     $__menu__,
-    $___46__46__47__46__46__47_helpers_47_object__,
     $___46__46__47__46__46__47_plugins__,
     $___46__46__47__46__46__47_helpers_47_dom_47_event__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
@@ -13301,30 +13311,26 @@ var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventMa
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
 var ItemsFactory = ($__itemsFactory__ = _dereq_("itemsFactory"), $__itemsFactory__ && $__itemsFactory__.__esModule && $__itemsFactory__ || {default: $__itemsFactory__}).ItemsFactory;
 var Menu = ($__menu__ = _dereq_("menu"), $__menu__ && $__menu__.__esModule && $__menu__ || {default: $__menu__}).Menu;
-var $__8 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    objectEach = $__8.objectEach,
-    mixin = $__8.mixin;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-var $__10 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__10.stopPropagation,
-    pageX = $__10.pageX,
-    pageY = $__10.pageY;
-var $__11 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    getWindowScrollLeft = $__11.getWindowScrollLeft,
-    getWindowScrollTop = $__11.getWindowScrollTop;
-var $__12 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
-    ROW_ABOVE = $__12.ROW_ABOVE,
-    ROW_BELOW = $__12.ROW_BELOW,
-    COLUMN_LEFT = $__12.COLUMN_LEFT,
-    COLUMN_RIGHT = $__12.COLUMN_RIGHT,
-    REMOVE_ROW = $__12.REMOVE_ROW,
-    REMOVE_COLUMN = $__12.REMOVE_COLUMN,
-    UNDO = $__12.UNDO,
-    REDO = $__12.REDO,
-    READ_ONLY = $__12.READ_ONLY,
-    ALIGNMENT = $__12.ALIGNMENT,
-    SEPARATOR = $__12.SEPARATOR,
-    predefinedItems = $__12.predefinedItems;
+var $__9 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
+    stopPropagation = $__9.stopPropagation,
+    pageX = $__9.pageX,
+    pageY = $__9.pageY;
+var $__10 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    getWindowScrollLeft = $__10.getWindowScrollLeft,
+    getWindowScrollTop = $__10.getWindowScrollTop;
+var $__11 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
+    ROW_ABOVE = $__11.ROW_ABOVE,
+    ROW_BELOW = $__11.ROW_BELOW,
+    COLUMN_LEFT = $__11.COLUMN_LEFT,
+    COLUMN_RIGHT = $__11.COLUMN_RIGHT,
+    REMOVE_ROW = $__11.REMOVE_ROW,
+    REMOVE_COLUMN = $__11.REMOVE_COLUMN,
+    UNDO = $__11.UNDO,
+    REDO = $__11.REDO,
+    READ_ONLY = $__11.READ_ONLY,
+    ALIGNMENT = $__11.ALIGNMENT,
+    SEPARATOR = $__11.SEPARATOR;
 var ContextMenu = function ContextMenu(hotInstance) {
   $traceurRuntime.superConstructor($ContextMenu).call(this, hotInstance);
   this.eventManager = new EventManager(this);
@@ -13338,41 +13344,41 @@ var $ContextMenu = ContextMenu;
     return this.hot.getSettings().contextMenu;
   },
   enablePlugin: function() {
-    var $__13 = this;
+    var $__12 = this;
     if (this.enabled) {
       return;
     }
     this.itemsFactory = new ItemsFactory(this.hot, $ContextMenu.DEFAULT_ITEMS);
     var settings = this.hot.getSettings().contextMenu;
-    var predefinedItems = {items: this.itemsFactory.getVisibleItems(settings)};
+    var predefinedItems = {items: this.itemsFactory.getItems(settings)};
     this.registerEvents();
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
     }
     $traceurRuntime.superGet(this, $ContextMenu.prototype, "enablePlugin").call(this);
     this.callOnPluginsReady((function() {
-      $__13.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
-      $__13.itemsFactory.setPredefinedItems(predefinedItems.items);
-      var menuItems = $__13.itemsFactory.getVisibleItems(settings);
-      $__13.menu = new Menu($__13.hot, {
+      $__12.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
+      $__12.itemsFactory.setPredefinedItems(predefinedItems.items);
+      var menuItems = $__12.itemsFactory.getItems(settings);
+      $__12.menu = new Menu($__12.hot, {
         className: 'htContextMenu',
         keepInViewport: true
       });
-      $__13.menu.setMenuItems(menuItems);
-      $__13.menu.addLocalHook('afterOpen', (function() {
-        return $__13.onMenuAfterOpen();
+      $__12.menu.setMenuItems(menuItems);
+      $__12.menu.addLocalHook('afterOpen', (function() {
+        return $__12.onMenuAfterOpen();
       }));
-      $__13.menu.addLocalHook('afterClose', (function() {
-        return $__13.onMenuAfterClose();
+      $__12.menu.addLocalHook('afterClose', (function() {
+        return $__12.onMenuAfterClose();
       }));
-      $__13.menu.addLocalHook('executeCommand', (function() {
+      $__12.menu.addLocalHook('executeCommand', (function() {
         for (var params = [],
-            $__15 = 0; $__15 < arguments.length; $__15++)
-          params[$__15] = arguments[$__15];
-        return $__13.executeCommand.apply($__13, params);
+            $__14 = 0; $__14 < arguments.length; $__14++)
+          params[$__14] = arguments[$__14];
+        return $__12.executeCommand.apply($__12, params);
       }));
       arrayEach(menuItems, (function(command) {
-        return $__13.commandExecutor.registerCommand(command.key, command);
+        return $__12.commandExecutor.registerCommand(command.key, command);
       }));
     }));
   },
@@ -13390,9 +13396,9 @@ var $ContextMenu = ContextMenu;
     $traceurRuntime.superGet(this, $ContextMenu.prototype, "disablePlugin").call(this);
   },
   registerEvents: function() {
-    var $__13 = this;
+    var $__12 = this;
     this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', (function(event) {
-      return $__13.onContextMenu(event);
+      return $__12.onContextMenu(event);
     }));
   },
   open: function(event) {
@@ -13415,8 +13421,8 @@ var $ContextMenu = ContextMenu;
   },
   executeCommand: function() {
     for (var params = [],
-        $__15 = 0; $__15 < arguments.length; $__15++)
-      params[$__15] = arguments[$__15];
+        $__14 = 0; $__14 < arguments.length; $__14++)
+      params[$__14] = arguments[$__14];
     this.commandExecutor.execute.apply(this.commandExecutor, params);
   },
   onContextMenu: function(event) {
@@ -13468,7 +13474,7 @@ Handsontable.hooks.register('afterContextMenuExecute');
 registerPlugin('contextMenu', ContextMenu);
 
 //# 
-},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/object":52,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
+},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Cursor: {get: function() {
@@ -13598,17 +13604,6 @@ var ItemsFactory = function ItemsFactory(hotInstance) {
     }));
     this.predefinedItems = items;
   },
-  getVisibleItems: function() {
-    var pattern = arguments[0] !== (void 0) ? arguments[0] : null;
-    var $__3 = this;
-    var visibleItems = {};
-    objectEach(this.predefinedItems, (function(value, key) {
-      if (!value.hidden || value.hidden && !value.hidden.apply($__3.hot)) {
-        visibleItems[key] = value;
-      }
-    }));
-    return getItems(pattern, this.defaultOrderPattern, visibleItems);
-  },
   getItems: function() {
     var pattern = arguments[0] !== (void 0) ? arguments[0] : null;
     return getItems(pattern, this.defaultOrderPattern, this.predefinedItems);
@@ -13661,9 +13656,6 @@ function getItems() {
       result.push(item);
     }));
   }
-  if (result[0].name === SEPARATOR) {
-    result.shift();
-  }
   return result;
 }
 ;
@@ -13694,40 +13686,29 @@ var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("he
     addClass = $__1.addClass,
     empty = $__1.empty,
     fastInnerHTML = $__1.fastInnerHTML,
-    getComputedStyle = $__1.getComputedStyle,
     getScrollbarWidth = $__1.getScrollbarWidth,
-    getWindowScrollLeft = $__1.getWindowScrollLeft,
-    getWindowScrollTop = $__1.getWindowScrollTop,
-    hasClass = $__1.hasClass,
     isChildOf = $__1.isChildOf,
     removeClass = $__1.removeClass;
 var $__2 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
     arrayEach = $__2.arrayEach,
+    arrayFilter = $__2.arrayFilter,
     arrayReduce = $__2.arrayReduce;
 var Cursor = ($__cursor__ = _dereq_("cursor"), $__cursor__ && $__cursor__.__esModule && $__cursor__ || {default: $__cursor__}).Cursor;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
-var $__5 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    extend = $__5.extend,
-    isObject = $__5.isObject,
-    objectEach = $__5.objectEach,
-    mixin = $__5.mixin;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
 var debounce = ($___46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47_helpers_47_function__}).debounce;
 var $__7 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    isSeparator = $__7.isSeparator,
-    isDisabled = $__7.isDisabled,
-    isSelectionDisabled = $__7.isSelectionDisabled,
+    filterSeparators = $__7.filterSeparators,
     hasSubMenu = $__7.hasSubMenu,
+    isDisabled = $__7.isDisabled,
+    isItemHidden = $__7.isItemHidden,
+    isSeparator = $__7.isSeparator,
+    isSelectionDisabled = $__7.isSelectionDisabled,
     normalizeSelection = $__7.normalizeSelection;
 var KEY_CODES = ($___46__46__47__46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47_helpers_47_unicode__}).KEY_CODES;
 var localHooks = ($___46__46__47__46__46__47_mixins_47_localHooks__ = _dereq_("mixins/localHooks"), $___46__46__47__46__46__47_mixins_47_localHooks__ && $___46__46__47__46__46__47_mixins_47_localHooks__.__esModule && $___46__46__47__46__46__47_mixins_47_localHooks__ || {default: $___46__46__47__46__46__47_mixins_47_localHooks__}).localHooks;
-var $__10 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
-    SEPARATOR = $__10.SEPARATOR,
-    predefinedItems = $__10.predefinedItems;
-var $__11 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__11.stopPropagation,
-    stopImmediatePropagation = $__11.stopImmediatePropagation,
-    pageX = $__11.pageX,
-    pageY = $__11.pageY;
+var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
+var stopImmediatePropagation = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}).stopImmediatePropagation;
 var Menu = function Menu(hotInstance, options) {
   this.hot = hotInstance;
   this.options = options || {
@@ -13778,8 +13759,12 @@ var $Menu = Menu;
     var delayedOpenSubMenu = debounce((function(row) {
       return $__12.openSubMenu(row);
     }), 300);
+    var filteredItems = arrayFilter(this.menuItems, (function(item) {
+      return isItemHidden(item, $__12.hot);
+    }));
+    filteredItems = filterSeparators(filteredItems, SEPARATOR);
     var settings = {
-      data: this.menuItems,
+      data: filteredItems,
       colHeaders: false,
       colWidths: [200],
       autoRowSize: false,
@@ -14001,13 +13986,9 @@ var $Menu = Menu;
     var itemIsDisabled = (function(item) {
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call($__12.hot) === true);
     });
-    var itemIsHidden = (function(item) {
-      return typeof item.hidden == 'function' && item.hidden.call($__12.hot) === true;
-    });
     var itemIsSelectionDisabled = (function(item) {
       return item.disableSelection;
     });
-    var isHidden = itemIsHidden(item);
     if (typeof value === 'function') {
       value = value.call(this.hot);
     }
@@ -14016,17 +13997,13 @@ var $Menu = Menu;
     TD.appendChild(wrapper);
     if (itemIsSeparator(item)) {
       addClass(TD, 'htSeparator');
-    } else if (!isHidden && typeof item.renderer === 'function') {
+    } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
       TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
     } else {
       fastInnerHTML(wrapper, value);
     }
-    if (isHidden) {
-      if (TD.parentNode) {
-        addClass(TD.parentNode, 'htHidden');
-      }
-    } else if (itemIsDisabled(item)) {
+    if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', (function() {
         return hot.deselectCell();
@@ -14409,7 +14386,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.cols) {
         return true;
       }
       var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
@@ -14432,7 +14409,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.rows) {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
@@ -14780,10 +14757,20 @@ Object.defineProperties(exports, {
   markLabelAsSelected: {get: function() {
       return markLabelAsSelected;
     }},
+  isItemHidden: {get: function() {
+      return isItemHidden;
+    }},
+  filterSeparators: {get: function() {
+      return filterSeparators;
+    }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_helpers_47_dom_47_element__;
+var $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $__predefinedItems__;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
+var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
 function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
@@ -14878,9 +14865,51 @@ function checkSelectionConsistency(range, comparator) {
 function markLabelAsSelected(label) {
   return '<span class="selected">' + String.fromCharCode(10003) + '</span>' + label;
 }
+function isItemHidden(item, instance) {
+  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+}
+function shiftSeparators(items, separator) {
+  var result = items.slice(0);
+  for (var i = 0; i < result.length; ) {
+    if (result[i].name === separator) {
+      result.shift();
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+function popSeparators(items, separator) {
+  var result = items.slice(0);
+  result.reverse();
+  result = shiftSeparators(result, separator);
+  result.reverse();
+  return result;
+}
+function removeDuplicatedSeparators(items) {
+  var result = [];
+  arrayEach(items, (function(value, index) {
+    if (index > 0) {
+      if (result[result.length - 1].name !== value.name) {
+        result.push(value);
+      }
+    } else {
+      result.push(value);
+    }
+  }));
+  return result;
+}
+function filterSeparators(items) {
+  var separator = arguments[1] !== (void 0) ? arguments[1] : SEPARATOR;
+  var result = items.slice(0);
+  result = shiftSeparators(result, separator);
+  result = popSeparators(result, separator);
+  result = removeDuplicatedSeparators(result);
+  return result;
+}
 
 //# 
-},{"helpers/dom/element":46}],74:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/dom/element":46,"predefinedItems":72}],74:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenuCopyPaste: {get: function() {
@@ -19084,7 +19113,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     badValue = true;
   }
   input.setAttribute('data-row', row);
-  input.setAttribute('data-prop', prop);
+  input.setAttribute('data-col', col);
   if (!badValue && labelOptions) {
     var labelText = '';
     if (labelOptions.value) {
@@ -19129,10 +19158,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         event.preventDefault();
       });
     }
-    if (event.keyCode == KEY_CODES.SPACE || event.keyCode == KEY_CODES.ENTER) {
+    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
       toggleSelected();
     }
-    if (event.keyCode == KEY_CODES.DELETE || event.keyCode == KEY_CODES.BACKSPACE) {
+    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
       toggleSelected(false);
     }
   }
@@ -19205,12 +19234,9 @@ function onChange(event, instance) {
     return false;
   }
   var row = parseInt(event.target.getAttribute('data-row'), 10);
-  var prop = event.target.getAttribute('data-prop');
-  var cellProperties = instance.getCellMeta(row, prop);
-  if (!isNaN(prop)) {
-    prop = parseInt(prop, 10);
-  }
-  instance.setDataAtRowProp(row, prop, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  var col = parseInt(event.target.getAttribute('data-col'), 10);
+  var cellProperties = instance.getCellMeta(row, col);
+  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
 }
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
@@ -20007,7 +20033,6 @@ function TableView(instance) {
       that.activeWt = wt;
       isMouseDown = true;
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-      instance.selection.setSelectedHeaders(false, false);
       if (!isImmediatePropagationStopped(event)) {
         if (event.button === 2 && instance.selection.inInSelection(coords)) {
           var nothing = 1;
@@ -20030,6 +20055,7 @@ function TableView(instance) {
           } else {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
+            instance.selection.setSelectedHeaders(false, false);
             instance.selection.setRangeStart(coords);
           }
         }
@@ -20840,9 +20866,14 @@ Handsontable.TimeValidator = function(value, callback) {
   if (value === null) {
     value = '';
   }
+  value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
+  var twoDigitValue = /^\d{1,2}$/.test(value);
+  if (twoDigitValue) {
+    value = value + ':00';
+  }
   var date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
   var isValidTime = date.isValid();
-  var isValidFormat = moment(value, timeFormat, true).isValid();
+  var isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
   if (this.allowEmpty && value === '') {
     isValidTime = true;
     isValidFormat = true;
