@@ -11,7 +11,7 @@
   },
   "main": "./dist/handsontable.js",
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "0.24.2",
+  "version": "0.24.3",
   "keywords": [
     "data",
     "grid",
