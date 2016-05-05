@@ -325,7 +325,7 @@ function TableView(instance) {
         row: false,
         col: false
       };
-      
+
       that.activeWt = wt;
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
@@ -348,7 +348,6 @@ function TableView(instance) {
             } else {
               instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
             }
-
           }
 
           // multi select rows
