@@ -170,5 +170,48 @@ describe('autocompleteValidator', function () {
 
     });
 
+    it('should work for null and undefined values in cells', function() {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      var hot = handsontable({
+        data: [
+          ['some', 'sample', 'data']
+        ],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['some', 'sample', 'data'],
+            strict: true
+          },
+          {
+            type: 'autocomplete',
+            source: ['some', 'sample', 'data'],
+            strict: true,
+          },
+          {
+            type: 'autocomplete',
+            source: ['some', 'sample', 'data'],
+            strict: true
+          }
+        ],
+        allowEmpty: false,
+        afterValidate : onAfterValidate
+      });
+
+      setDataAtCell(0, 0, null);
+      setDataAtCell(0, 1, void 0);
+      setDataAtCell(0, 2, '');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 2;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onAfterValidate.calls[0].args).toEqual([false, null, 0, 0, undefined, undefined]);
+        expect(onAfterValidate.calls[1].args).toEqual([false, void 0, 0, 1, undefined, undefined]);
+        expect(onAfterValidate.calls[2].args).toEqual([false, '', 0, 2, undefined, undefined]);
+      });
+
+    });
+
   });
 });
