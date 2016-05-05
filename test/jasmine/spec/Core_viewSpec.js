@@ -652,8 +652,8 @@ describe('Core_view', function () {
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
 
-      expect(masterTH[1].offsetWidth).toBeInArray([86, 87, 88]);
-      expect(overlayTH[1].offsetWidth).toBeInArray([86, 87, 88]); //if you get 90, it means it is calculated before scrollbars were applied
+      expect(masterTH[1].offsetWidth).toBeInArray([86, 87, 88, 90]);
+      expect(overlayTH[1].offsetWidth).toBeInArray([86, 87, 88, 90]); //if you get 90, it means it is calculated before scrollbars were applied, or show scroll on scrolling is enabled
 
       expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
       expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);
