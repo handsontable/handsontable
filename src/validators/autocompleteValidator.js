@@ -10,6 +10,12 @@ import {stringify} from './../helpers/mixed';
  * @param {Function} callback - Callback called with validation result
  */
 Handsontable.AutocompleteValidator = function(value, callback) {
+  if (this.allowEmpty && value === '') {
+    callback(true);
+
+    return;
+  }
+
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
       this.source(value, process(value, callback));
