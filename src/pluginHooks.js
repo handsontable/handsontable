@@ -541,8 +541,9 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mouseover` event object.
    * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the clicked cell.
    * @param {Element} TD TD element.
+   * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
    */
-  'beforeOnCellMouseDown',
+  'beforeOnCellMouseOver',
 
   /**
    * Callback is fired when one or more columns are about to be removed.

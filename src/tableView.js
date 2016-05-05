@@ -323,7 +323,7 @@ function TableView(instance) {
     onCellMouseOver: function(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,
-        col: false
+        column: false
       };
 
       that.activeWt = wt;
@@ -340,7 +340,7 @@ function TableView(instance) {
       } else {
         if (isMouseDown) {
           // multi select columns
-          if (coords.row < 0 && !blockCalculations.col) {
+          if (coords.row < 0 && !blockCalculations.column) {
             if (instance.selection.selectedHeader.cols) {
               instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
               instance.selection.setSelectedHeaders(false, true);
