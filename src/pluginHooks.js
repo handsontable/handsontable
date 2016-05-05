@@ -535,6 +535,17 @@ const REGISTERED_HOOKS = [
   'beforeOnCellMouseDown',
 
   /**
+   * Fired after the user moved cursor over a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellMouseOver
+   * @param {Event} event The `mouseover` event object.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the clicked cell.
+   * @param {Element} TD TD element.
+   * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
+   */
+  'beforeOnCellMouseOver',
+
+  /**
    * Callback is fired when one or more columns are about to be removed.
    *
    * @event Hooks#beforeRemoveCol

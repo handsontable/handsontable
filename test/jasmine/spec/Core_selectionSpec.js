@@ -495,6 +495,26 @@ describe('Core_selection', function () {
     expect(getSelected()).toEqual([0, 0, 49, 0]);
   });
 
+  it("should select the entire fixed column after column header is clicked, after scroll horizontally", function(){
+    var hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 50,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsLeft: 2
+    });
+
+    hot.render();
+
+    hot.view.wt.scrollHorizontal(20);
+
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    expect(getSelected()).toEqual([0, 1, 49, 1]);
+  });
+
   it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function () {
     var hot = handsontable({
       width: 200,

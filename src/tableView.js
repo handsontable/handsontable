@@ -276,12 +276,6 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      var colspanOffset;
-      var TR = TD.parentNode;
-      var THEAD = TR.parentNode;
-      var headerLevel;
-      var headerColspan;
-
       instance.listen();
       that.activeWt = wt;
 
@@ -298,12 +292,10 @@ function TableView(instance) {
           }
         } else {
           if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-            if (coords.row < 0) {
-              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
 
+            if (coords.row < 0) {
               instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
             }
             if (coords.col < 0) {
               instance.selection.setSelectedHeaders(true, false);
@@ -329,7 +321,15 @@ function TableView(instance) {
      }
      },*/
     onCellMouseOver: function(event, coords, TD, wt) {
+      let blockCalculations = {
+        row: false,
+        column: false
+      };
+
       that.activeWt = wt;
+
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+
       if (coords.row >= 0 && coords.col >= 0) { //is not a header
         if (isMouseDown) {
           /*if (that.settings.fragmentSelection === 'single') {
@@ -340,7 +340,7 @@ function TableView(instance) {
       } else {
         if (isMouseDown) {
           // multi select columns
-          if (coords.row < 0) {
+          if (coords.row < 0 && !blockCalculations.column) {
             if (instance.selection.selectedHeader.cols) {
               instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
               instance.selection.setSelectedHeaders(false, true);
@@ -348,11 +348,10 @@ function TableView(instance) {
             } else {
               instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
             }
-
           }
 
           // multi select rows
-          if (coords.col < 0) {
+          if (coords.col < 0 && !blockCalculations.row) {
             if (instance.selection.selectedHeader.rows) {
               instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
               instance.selection.setSelectedHeaders(true, false);
