@@ -83,6 +83,12 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollLeft = pos;
     }
+
+    if (window.myScroll) {
+      pos = pos >= 0 ? pos : 0;
+      window.myScroll.scrollTable(-pos);
+    }
+
   }
 
   /**

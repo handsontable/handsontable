@@ -83,6 +83,12 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollTop = pos;
     }
+
+    if (window.myScroll && window.myScroll.scrollTable) {
+      pos = pos >= 0 ? pos : 0;
+      window.myScroll.scrollTable(0, -pos);
+    }
+
   }
 
   /**
@@ -223,7 +229,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
-      newY += 1;
+      newY += 50;
 
     } else {
       newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
