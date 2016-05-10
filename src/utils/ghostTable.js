@@ -48,6 +48,15 @@ class GhostTable {
      * @default {null}
      */
     this.samples = null;
+    /**
+     * Ghost table settings.
+     *
+     * @type {Object}
+     * @default {Object}
+     */
+    this.settings = {
+      useHeaders: true
+    };
   }
 
   /**
@@ -94,7 +103,7 @@ class GhostTable {
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
 
-    if (this.hot.getColHeader(column) !== null) {
+    if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -130,6 +139,52 @@ class GhostTable {
     arrayEach(this.columns, (column) => {
       callback(column.col, outerWidth(column.table));
     });
+  }
+
+  /**
+   * Set the Ghost Table settings to the provided object.
+   *
+   * @param {Object} settings New Ghost Table Settings
+   */
+  setSettings(settings) {
+    this.settings = settings;
+  }
+
+  /**
+   * Set a single setting of the Ghost Table.
+   *
+   * @param {String} name Setting name.
+   * @param {*} value Setting value.
+   */
+  setSetting(name, value) {
+    if (!this.settings) {
+      this.settings = {};
+    }
+
+    this.settings[name] = value;
+  }
+
+  /**
+   * Get the Ghost Table settings.
+   *
+   * @returns {Object|null}
+   */
+  getSettings() {
+    return this.settings;
+  }
+
+  /**
+   * Get a single Ghost Table setting.
+   *
+   * @param {String} name
+   * @returns {Boolean|null}
+   */
+  getSetting(name) {
+    if (this.settings) {
+      return this.settings[name];
+    } else {
+      return null;
+    }
   }
 
   /**
