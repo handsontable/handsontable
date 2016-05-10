@@ -1,4 +1,5 @@
 
+import {clone} from './../../../../helpers/object';
 import {WalkontableCellCoords} from './../cell/coords';
 
 /**
@@ -64,18 +65,19 @@ class WalkontableCellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
+    let coords = clone(cellCoords);
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
 
-    if (cellCoords.row < 0) {
-      cellCoords.row = 0;
+    if (coords.row < 0) {
+      coords.row = 0;
     }
-    if (cellCoords.col < 0) {
-      cellCoords.col = 0;
+    if (coords.col < 0) {
+      coords.col = 0;
     }
 
-    return topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row &&
-        topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col;
+    return topLeft.row <= coords.row && bottomRight.row >= coords.row &&
+        topLeft.col <= coords.col && bottomRight.col >= coords.col;
   }
 
   /**
