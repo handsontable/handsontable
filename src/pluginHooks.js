@@ -882,6 +882,15 @@ const REGISTERED_HOOKS = [
    * @param {Array} formulasStack An array of objects with added formulas.
    */
   'afterFilter',
+
+  /**
+   * Used to modify the column header height.
+   *
+   * @event Hooks#modifyColumnHeaderHeight
+   * @since 0.24.4
+   * @param {Number} col Column index.
+   */
+  'modifyColumnHeaderHeight',
 ];
 
 import {arrayEach} from './helpers/array';

@@ -86,7 +86,17 @@ class AutoRowSize extends BasePlugin {
      *
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    this.samplesGenerator = new SamplesGenerator((row, col) => {
+      if (row >= 0) {
+        return this.hot.getDataAtCell(row, col);
+
+      } else if (row === -1) {
+        return this.hot.getColHeader(col);
+
+      } else {
+        return null;
+      }
+    });
     /**
      * `true` if only the first calculation was performed.
      *
@@ -136,6 +146,7 @@ class AutoRowSize extends BasePlugin {
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
+    this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
     super.enablePlugin();
   }
 
@@ -160,6 +171,13 @@ class AutoRowSize extends BasePlugin {
     if (typeof colRange === 'number') {
       colRange = {from: colRange, to: colRange};
     }
+
+    if (this.hot.getColHeader(0) !== null) {
+      const samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+
+      this.ghostTable.addColumnHeadersRow(samples.get(-1));
+    }
+
     rangeEach(rowRange.from, rowRange.to, (row) => {
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
@@ -277,6 +295,15 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Get the calculated column header height.
+   *
+   * @returns {Number|undefined}
+   */
+  getColumnHeaderHeight() {
+    return this.heights[-1];
+  }
+
+  /**
    * Get first visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
@@ -317,6 +344,7 @@ class AutoRowSize extends BasePlugin {
    */
   clearCache() {
     this.heights.length = 0;
+    this.heights[-1] = void 0;
   }
 
   /**

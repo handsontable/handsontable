@@ -9,6 +9,7 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
+  closest
 } from './helpers/dom/element';
 import {eventManager as eventManagerObject} from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
@@ -438,7 +439,8 @@ function TableView(instance) {
       return that.settings.rowHeaderWidth;
     },
     columnHeaderHeight: function() {
-      return that.settings.columnHeaderHeight;
+      const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
+      return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
   };
 
@@ -619,7 +621,19 @@ TableView.prototype.appendColHeader = function(col, TH) {
  * @param {Function} content Function which should be returns content for this cell
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
-  if (index > -1) {
+  let renderedIndex = index;
+  let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+
+  // prevent wrong calculations from SampleGenerator
+  if (element.parentNode) {
+    if (hasClass(element, 'colHeader')) {
+      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+    } else if (hasClass(element, 'rowHeader')) {
+      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+    }
+  }
+
+  if (renderedIndex > -1) {
     fastInnerHTML(element, content(index));
 
   } else {
