@@ -153,6 +153,8 @@ TextEditor.prototype.close = function(tdOutside) {
     this.instance.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
   }
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+
+  this.TEXTAREA.blur();
 };
 
 TextEditor.prototype.focus = function() {
