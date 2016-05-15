@@ -296,6 +296,28 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
 
 };
 
+MergeCells.prototype.removeMergedCells = function(type, index, count) {
+
+  var isColspanInScope = function(mergeInfo) {
+    return mergeInfo.col >= index && mergeInfo.col + mergeInfo.colspan <= index + count;
+  };
+
+  var isRowSpanInScope = function(mergeInfo) {
+    return mergeInfo.row >= index && mergeInfo.row + mergeInfo.rowspan <= index + count;
+  };
+
+  var isMergeInfoInScope = type === 'col' ? isColspanInScope : isRowSpanInScope;
+
+  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) {
+    var currentMerge = this.mergedCellInfoCollection[i];
+
+    if (isMergeInfoInScope(currentMerge)) {
+      this.mergedCellInfoCollection.splice(i, 1);
+    }
+
+  }
+};
+
 var beforeInit = function() {
   var instance = this;
   var mergeCellsSetting = instance.getSettings().mergeCells;
@@ -598,6 +620,7 @@ function onAfterCreateCol(col, count) {
 
 function onAfterRemoveCol(col, count) {
   if (this.mergeCells) {
+    this.mergeCells.removeMergedCells('col', col, count);
     this.mergeCells.shiftCollection('left', col, count);
   }
 }
@@ -610,6 +633,7 @@ function onAfterCreateRow(row, count) {
 
 function onAfterRemoveRow(row, count) {
   if (this.mergeCells) {
+    this.mergeCells.removeMergedCells('row', row, count);
     this.mergeCells.shiftCollection('up', row, count);
   }
 }
