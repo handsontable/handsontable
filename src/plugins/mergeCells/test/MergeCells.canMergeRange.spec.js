@@ -641,7 +641,75 @@ describe("handsontable.MergeCells", function() {
       expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(4);
 
     });
+    
+    it("should remove first two columns, when removing column 0 which contains colspan of length 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 0, rowspan: 1, colspan: 2}          
+        ],
+        height: 400,
+        width: 400
+      });
 
+      hot.alter('remove_col', 0, 2);
+      
+      expect(hot.countCols()).toEqual(18);
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(0);
+    });
+
+    it("should remove first two rows, when removing row 0 which contains rowspan of length 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 0, col: 1, rowspan: 2, colspan: 1}          
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 0, 2);
+      
+      expect(hot.countRows()).toEqual(18);
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(0);
+    });
+
+    it("should remove colspan info, when removing columns containing the colspan", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 1, colspan: 2},
+          {row: 10, col: 1, rowspan: 1, colspan: 2},
+          {row: 10, col: 5, rowspan: 1, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 1, 2);
+      
+      expect(hot.countCols()).toEqual(18);
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+    });
+    
+    it("should remove colspan info, when removing rows containing the rowspan", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 1},
+          {row: 1, col: 5, rowspan: 2, colspan: 1},
+          {row: 10, col: 5, rowspan: 2, colspan: 2}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 1, 2);
+      
+      expect(hot.countRows()).toEqual(18);
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+    });
+    
   });
 
 });
