@@ -315,7 +315,7 @@ function TableView(instance) {
               coords.col = coords.col < 0 ? 0 : coords.col;
 
               instance.selection.setSelectedHeaders(false, false);
-              instance.selection.setRangeStart(coords); //selectCell(coords.row, coords.col, coords.row, coords.col);
+              instance.selection.setRangeStart(coords);
             }
           }
         }
