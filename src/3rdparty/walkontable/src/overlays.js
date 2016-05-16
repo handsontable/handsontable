@@ -492,7 +492,15 @@ class WalkontableOverlays {
       // "fake" scroll value calculated from the mousewheel event
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
-        masterVertical.scrollLeft += fakeScrollValue;
+
+        // 如果是iscroll的话，重新计算滚动条位置
+        if (Handsontable.virtualScroll) {
+          var minScrollX = masterHorizontal.style.width.replace('px', '') - masterHorizontal.childNodes[0].style.width.replace('px', '');
+          var maxScrollX = 0;
+          window.myScroll.x  = Math.max(Math.min(maxScrollX, window.myScroll.x - fakeScrollValue), minScrollX);
+        } else {
+          masterVertical.scrollLeft += fakeScrollValue;
+        }
       }
     }
 
