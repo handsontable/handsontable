@@ -123,13 +123,13 @@ class WalkontableOverlay {
     this.instance = this.wot;
 
     this.type = '';
+    this.mainTableScrollableElement = null;
     this.TABLE = this.wot.wtTable.TABLE;
     this.hider = this.wot.wtTable.hider;
     this.spreader = this.wot.wtTable.spreader;
     this.holder = this.wot.wtTable.holder;
     this.wtRootElement = this.wot.wtTable.wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
     this.needFullRender = this.shouldBeRendered();
     this.areElementSizesAdjusted = false;
   }
@@ -141,6 +141,20 @@ class WalkontableOverlay {
    */
   shouldBeRendered() {
     return true;
+  }
+
+  /**
+   * Update the trimming container.
+   */
+  updateTrimmingContainer() {
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+  }
+
+  /**
+   * Update the main scrollable element.
+   */
+  updateMainScrollableElement() {
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
   }
 
   /**
@@ -168,6 +182,17 @@ class WalkontableOverlay {
 
     this.type = direction;
     this.wot.wtTable.wtRootElement.parentNode.appendChild(clone);
+
+    let preventOverflow = this.wot.getSetting('preventOverflow');
+
+    if (preventOverflow === true ||
+        preventOverflow === 'horizontal' && this.type === WalkontableOverlay.CLONE_TOP ||
+        preventOverflow === 'vertical' && this.type === WalkontableOverlay.CLONE_LEFT) {
+      this.mainTableScrollableElement = window;
+
+    } else {
+      this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    }
 
     return new Walkontable({
       cloneSource: this.wot,

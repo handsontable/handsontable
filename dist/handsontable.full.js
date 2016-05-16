@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri May 13 2016 14:57:29 GMT+0800 (CST)
+ * Date: Mon May 16 2016 12:46:02 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Fri May 13 2016 14:57:29 GMT+0800 (CST)',
+  buildDate: 'Mon May 16 2016 12:46:02 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1179,7 +1179,7 @@ var Walkontable = function Walkontable(settings) {
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
-    } else if (coords.row >= totalRows - fixedRowsBottom) {
+    } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -1208,6 +1208,12 @@ var Walkontable = function Walkontable(settings) {
   },
   getOverlayName: function() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
+  },
+  isOverlayName: function(name) {
+    if (this.cloneOverlay) {
+      return this.cloneOverlay.type === name;
+    }
+    return false;
   },
   exportSettingsAsClassNames: function() {
     var $__14 = this;
@@ -1499,13 +1505,13 @@ var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
   defineGetter(this, 'wot', wotInstance, {writable: false});
   this.instance = this.wot;
   this.type = '';
+  this.mainTableScrollableElement = null;
   this.TABLE = this.wot.wtTable.TABLE;
   this.hider = this.wot.wtTable.hider;
   this.spreader = this.wot.wtTable.spreader;
   this.holder = this.wot.wtTable.holder;
   this.wtRootElement = this.wot.wtTable.wtRootElement;
   this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-  this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
   this.needFullRender = this.shouldBeRendered();
   this.areElementSizesAdjusted = false;
 };
@@ -1513,6 +1519,12 @@ var $WalkontableOverlay = WalkontableOverlay;
 ($traceurRuntime.createClass)(WalkontableOverlay, {
   shouldBeRendered: function() {
     return true;
+  },
+  updateTrimmingContainer: function() {
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+  },
+  updateMainScrollableElement: function() {
+    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
   },
   makeClone: function(direction) {
     if ($WalkontableOverlay.CLONE_TYPES.indexOf(direction) === -1) {
@@ -1529,6 +1541,12 @@ var $WalkontableOverlay = WalkontableOverlay;
     clone.appendChild(clonedTable);
     this.type = direction;
     this.wot.wtTable.wtRootElement.parentNode.appendChild(clone);
+    var preventOverflow = this.wot.getSetting('preventOverflow');
+    if (preventOverflow === true || preventOverflow === 'horizontal' && this.type === $WalkontableOverlay.CLONE_TOP || preventOverflow === 'vertical' && this.type === $WalkontableOverlay.CLONE_LEFT) {
+      this.mainTableScrollableElement = window;
+    } else {
+      this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    }
     return new Walkontable({
       cloneSource: this.wot,
       cloneOverlay: this,
@@ -1631,8 +1649,10 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47
     getWindowScrollTop = $__0.getWindowScrollTop,
     hasClass = $__0.hasClass,
     outerWidth = $__0.outerWidth,
+    innerHeight = $__0.innerHeight,
     removeClass = $__0.removeClass,
-    setOverlayPosition = $__0.setOverlayPosition;
+    setOverlayPosition = $__0.setOverlayPosition,
+    resetCssTransform = $__0.resetCssTransform;
 var WalkontableOverlay = ($___95_base__ = require("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).WalkontableOverlay;
 var WalkontableLeftOverlay = function WalkontableLeftOverlay(wotInstance) {
   $traceurRuntime.superConstructor($WalkontableLeftOverlay).call(this, wotInstance);
@@ -1649,7 +1669,8 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     }
     var overlayRoot = this.clone.wtTable.holder.parentNode;
     var headerPosition = 0;
-    if (this.trimmingContainer === window) {
+    var preventOverflow = this.wot.getSetting('preventOverflow');
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
       var box = this.wot.wtTable.hider.getBoundingClientRect();
       var left = Math.ceil(box.left);
       var right = Math.ceil(box.right);
@@ -1667,6 +1688,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
     } else {
       headerPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
     }
     this.adjustHeaderBordersPosition(headerPosition);
     this.adjustElementsSize();
@@ -1677,13 +1699,9 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     } else {
       this.mainTableScrollableElement.scrollLeft = pos;
     }
-    if (window.myScroll) {
-      pos = pos >= 0 ? pos : 0;
-      window.myScroll.scrollTable(-pos);
-    }
   },
   onScroll: function() {
-    this.wot.getSetting('onScrollHorizontally');
+    this.wot.getSetting('onScrollVertically');
   },
   sumCellSizes: function(from, to) {
     var sum = 0;
@@ -1696,6 +1714,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
   },
   adjustElementsSize: function() {
     var force = arguments[0] !== (void 0) ? arguments[0] : false;
+    this.updateTrimmingContainer();
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
@@ -1709,9 +1728,14 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     var scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     var overlayRoot = this.clone.wtTable.holder.parentNode;
     var overlayRootStyle = overlayRoot.style;
+    var preventOverflow = this.wot.getSetting('preventOverflow');
     var tableWidth;
-    if (this.trimmingContainer !== window) {
-      overlayRootStyle.height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
+    if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
+      var height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
+      height = Math.min(height, innerHeight(this.wot.wtTable.wtRootElement));
+      overlayRootStyle.height = height + 'px';
+    } else {
+      overlayRootStyle.height = '';
     }
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
     tableWidth = outerWidth(this.clone.wtTable.TABLE);
@@ -1750,7 +1774,7 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
       this.clone.wtTable.spreader.style.top = '';
     }
   },
-  scrollTo: function(sourceCol, beyondRendered, justCalc) {
+  scrollTo: function(sourceCol, beyondRendered) {
     var newX = this.getTableParentOffset();
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
@@ -1766,18 +1790,14 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     }
     newX += scrollbarCompensation;
     this.setScrollPosition(newX);
-    if (justCalc) {
-      return newX;
-    } else {
-      this.setScrollPosition(newX);
-    }
   },
   getTableParentOffset: function() {
-    if (this.trimmingContainer === window) {
-      return this.wot.wtTable.holderOffset.left;
-    } else {
-      return 0;
+    var preventOverflow = this.wot.getSetting('preventOverflow');
+    var offset = 0;
+    if (!preventOverflow && this.trimmingContainer === window) {
+      offset = this.wot.wtTable.holderOffset.left;
     }
+    return offset;
   },
   getScrollPosition: function() {
     return getScrollLeft(this.mainTableScrollableElement);
@@ -1823,8 +1843,10 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47
     getWindowScrollLeft = $__0.getWindowScrollLeft,
     hasClass = $__0.hasClass,
     outerHeight = $__0.outerHeight,
+    innerWidth = $__0.innerWidth,
     removeClass = $__0.removeClass,
-    setOverlayPosition = $__0.setOverlayPosition;
+    setOverlayPosition = $__0.setOverlayPosition,
+    resetCssTransform = $__0.resetCssTransform;
 var WalkontableOverlay = ($___95_base__ = require("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).WalkontableOverlay;
 var WalkontableTopOverlay = function WalkontableTopOverlay(wotInstance) {
   $traceurRuntime.superConstructor($WalkontableTopOverlay).call(this, wotInstance);
@@ -1841,7 +1863,8 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     }
     var overlayRoot = this.clone.wtTable.holder.parentNode;
     var headerPosition = 0;
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
+    var preventOverflow = this.wot.getSetting('preventOverflow');
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'vertical')) {
       var box = this.wot.wtTable.hider.getBoundingClientRect();
       var top = Math.ceil(box.top);
       var bottom = Math.ceil(box.bottom);
@@ -1859,6 +1882,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
     } else {
       headerPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
     }
     this.adjustHeaderBordersPosition(headerPosition);
     this.adjustElementsSize();
@@ -1869,25 +1893,23 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     } else {
       this.mainTableScrollableElement.scrollTop = pos;
     }
-    if (window.myScroll && window.myScroll.scrollTable) {
-      pos = pos >= 0 ? pos : 0;
-      window.myScroll.scrollTable(0, -pos);
-    }
   },
   onScroll: function() {
-    this.wot.getSetting('onScrollVertically');
+    this.wot.getSetting('onScrollHorizontally');
   },
   sumCellSizes: function(from, to) {
     var sum = 0;
     var defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
     while (from < to) {
-      sum += this.wot.wtTable.getRowHeight(from) || defaultRowHeight;
+      var height = this.wot.wtTable.getRowHeight(from);
+      sum += height === void 0 ? defaultRowHeight : height;
       from++;
     }
     return sum;
   },
   adjustElementsSize: function() {
     var force = arguments[0] !== (void 0) ? arguments[0] : false;
+    this.updateTrimmingContainer();
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
@@ -1901,9 +1923,14 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     var scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth();
     var overlayRoot = this.clone.wtTable.holder.parentNode;
     var overlayRootStyle = overlayRoot.style;
+    var preventOverflow = this.wot.getSetting('preventOverflow');
     var tableHeight;
-    if (this.trimmingContainer !== window) {
-      overlayRootStyle.width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
+    if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
+      var width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
+      width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
+      overlayRootStyle.width = width + 'px';
+    } else {
+      overlayRootStyle.width = '';
     }
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
@@ -1942,7 +1969,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       this.clone.wtTable.spreader.style.left = '';
     }
   },
-  scrollTo: function(sourceRow, bottomEdge, justCalc) {
+  scrollTo: function(sourceRow, bottomEdge) {
     var newY = this.getTableParentOffset();
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
@@ -1956,16 +1983,12 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
       var totalRows = this.wot.getSetting('totalRows');
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
-      newY += 50;
+      newY += 1;
     } else {
       newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
     }
     newY += scrollbarCompensation;
-    if (justCalc) {
-      return newY;
-    } else {
-      this.setScrollPosition(newY);
-    }
+    this.setScrollPosition(newY);
   },
   getTableParentOffset: function() {
     if (this.mainTableScrollableElement === window) {
@@ -1981,7 +2004,7 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
       var masterParent = this.wot.wtTable.holder.parentNode;
       var previousState = hasClass(masterParent, 'innerBorderTop');
-      if (position) {
+      if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
       } else {
         removeClass(masterParent, 'innerBorderTop');
@@ -2018,7 +2041,8 @@ var $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element
 var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     outerHeight = $__0.outerHeight,
     outerWidth = $__0.outerWidth,
-    setOverlayPosition = $__0.setOverlayPosition;
+    setOverlayPosition = $__0.setOverlayPosition,
+    resetCssTransform = $__0.resetCssTransform;
 var WalkontableOverlay = ($___95_base__ = require("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).WalkontableOverlay;
 var WalkontableTopLeftCornerOverlay = function WalkontableTopLeftCornerOverlay(wotInstance) {
   $traceurRuntime.superConstructor($WalkontableTopLeftCornerOverlay).call(this, wotInstance);
@@ -2030,31 +2054,35 @@ var $WalkontableTopLeftCornerOverlay = WalkontableTopLeftCornerOverlay;
     return (this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length) && (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length) ? true : false;
   },
   resetFixedPosition: function() {
+    this.updateTrimmingContainer();
     if (!this.wot.wtTable.holder.parentNode) {
       return;
     }
     var overlayRoot = this.clone.wtTable.holder.parentNode;
     var tableHeight = outerHeight(this.clone.wtTable.TABLE);
     var tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    var preventOverflow = this.wot.getSetting('preventOverflow');
     if (this.trimmingContainer === window) {
       var box = this.wot.wtTable.hider.getBoundingClientRect();
       var top = Math.ceil(box.top);
       var left = Math.ceil(box.left);
       var bottom = Math.ceil(box.bottom);
       var right = Math.ceil(box.right);
-      var finalLeft;
-      var finalTop;
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left + 'px';
-      } else {
-        finalLeft = '0';
+      var finalLeft = '0';
+      var finalTop = '0';
+      if (!preventOverflow || preventOverflow === 'vertical') {
+        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+          finalLeft = -left + 'px';
+        }
       }
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-        finalTop = -top + 'px';
-      } else {
-        finalTop = '0';
+      if (!preventOverflow || preventOverflow === 'horizontal') {
+        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+          finalTop = -top + 'px';
+        }
       }
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
+    } else {
+      resetCssTransform(overlayRoot);
     }
     overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
     overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
@@ -2075,6 +2103,7 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     getScrollableElement = $__0.getScrollableElement,
@@ -2082,6 +2111,7 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     getScrollLeft = $__0.getScrollLeft,
     getScrollTop = $__0.getScrollTop;
 var isKey = ($___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ = require("helpers/unicode"), $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__}).isKey;
+var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = require("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager__ = require("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).EventManager;
 var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.wot = wotInstance;
@@ -2089,7 +2119,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.eventManager = new EventManager(this.wot);
   this.wot.update('scrollbarWidth', getScrollbarWidth());
   this.wot.update('scrollbarHeight', getScrollbarWidth());
-  this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+  this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
   this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
   if (typeof WalkontableBottomOverlay === 'undefined') {
     this.bottomOverlay = {needFullRender: false};
@@ -2132,6 +2162,19 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       left: null
     }
   };
+  this.pendingScrollCallbacks = {
+    master: {
+      top: 0,
+      left: 0
+    },
+    top: {left: 0},
+    bottom: {left: 0},
+    left: {top: 0}
+  };
+  this.verticalScrolling = false;
+  this.horizontalScrolling = false;
+  this.delegatedScrollCallback = false;
+  this.registeredListeners = [];
   this.registerListeners();
 };
 ($traceurRuntime.createClass)(WalkontableOverlays, {
@@ -2144,57 +2187,71 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       return;
     }
     this.wot.draw(true);
-    this.topOverlay.onScroll();
-    this.leftOverlay.onScroll();
+    if (this.verticalScrolling) {
+      this.leftOverlay.onScroll();
+    }
+    if (this.horizontalScrolling) {
+      this.topOverlay.onScroll();
+    }
+    this.verticalScrolling = false;
+    this.horizontalScrolling = false;
   },
   registerListeners: function() {
-    var $__3 = this;
-    this.eventManager.addEventListener(document.documentElement, 'keydown', (function(event) {
-      return $__3.onKeyDown(event);
-    }));
-    this.eventManager.addEventListener(document.documentElement, 'keyup', (function() {
-      return $__3.onKeyUp();
-    }));
-    this.eventManager.addEventListener(document, 'visibilitychange', (function() {
-      return $__3.onKeyUp();
-    }));
-    this.eventManager.addEventListener(this.mainTableScrollableElement, 'scroll', (function(event) {
-      return $__3.onTableScroll(event);
-    }));
+    var $__4 = this;
+    var topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
+    var leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
+    var listenersToRegister = [];
+    listenersToRegister.push([document.documentElement, 'keydown', (function(event) {
+      return $__4.onKeyDown(event);
+    })]);
+    listenersToRegister.push([document.documentElement, 'keyup', (function() {
+      return $__4.onKeyUp();
+    })]);
+    listenersToRegister.push([document, 'visibilitychange', (function() {
+      return $__4.onKeyUp();
+    })]);
+    listenersToRegister.push([topOverlayScrollable, 'scroll', (function(event) {
+      return $__4.onTableScroll(event);
+    })]);
+    if (topOverlayScrollable !== leftOverlayScrollable) {
+      listenersToRegister.push([leftOverlayScrollable, 'scroll', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
+    }
     if (this.topOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
-      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
+      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
+      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
     }
     if (this.bottomOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
-      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
+      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
+      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
     }
     if (this.leftOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
-      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__3.onTableScroll(event);
-      }));
+      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
+      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__4.onTableScroll(event);
+      })]);
     }
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
-      this.eventManager.addEventListener(window, 'wheel', (function(event) {
+      listenersToRegister.push([window, 'wheel', (function(event) {
         var overlay;
         var deltaY = event.wheelDeltaY || event.deltaY;
         var deltaX = event.wheelDeltaX || event.deltaX;
-        if ($__3.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        if ($__4.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
-        } else if ($__3.bottomOverlay.clone && $__3.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__4.bottomOverlay.clone && $__4.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
-        } else if ($__3.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__4.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
         }
         if (overlay == 'top' && deltaY !== 0) {
@@ -2204,21 +2261,31 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         } else if (overlay == 'bottom' && deltaY !== 0) {
           event.preventDefault();
         }
-      }));
+      })]);
+    }
+    while (listenersToRegister.length) {
+      var listener = listenersToRegister.pop();
+      this.eventManager.addEventListener(listener[0], listener[1], listener[2]);
+      this.registeredListeners.push(listener);
+    }
+  },
+  deregisterListeners: function() {
+    while (this.registeredListeners.length) {
+      var listener = this.registeredListeners.pop();
+      this.eventManager.removeEventListener(listener[0], listener[1], listener[2]);
     }
   },
   onTableScroll: function(event) {
-    if (Handsontable.virtualScroll) {
-      this.syncScrollPositions(event);
-      return;
-    }
-    if (this.keyPressed && this.mainTableScrollableElement !== window && !event.target.contains(this.mainTableScrollableElement)) {
-      return;
+    var masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    var masterVertical = this.topOverlay.mainTableScrollableElement;
+    var target = event.target;
+    if (this.keyPressed) {
+      if ((masterVertical !== window && target !== window && !event.target.contains(masterVertical)) || (masterHorizontal !== window && target !== window && !event.target.contains(masterHorizontal))) {
+        return;
+      }
     }
     if (event.type === 'scroll') {
       this.syncScrollPositions(event);
-      var wtRenderer = new WalkontableTableRenderer(this.instance.wtTable);
-      wtRenderer.refreshRowHeaders();
     } else {
       this.translateMouseWheelToScroll(event);
     }
@@ -2238,6 +2305,10 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     var deltaX = event.wheelDeltaX || (-1) * event.deltaX;
     var parentHolder;
+    if (event.deltaMode === 1) {
+      deltaY = deltaY * 120;
+      deltaX = deltaX * 120;
+    }
     while (tempElem != document && tempElem != null) {
       if (tempElem.className.indexOf('wtHolder') > -1) {
         parentHolder = tempElem;
@@ -2257,12 +2328,6 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
-    if (Handsontable.virtualScroll) {
-      event = {
-        target: event === 'history' ? $('.ht_master .wtHolder')[1] : $('.ht_master .wtHolder')[0],
-        type: 'scroll'
-      };
-    }
     if (this.destroyed) {
       return;
     }
@@ -2270,13 +2335,16 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       this.syncScrollWithMaster();
       return;
     }
-    var master = this.mainTableScrollableElement;
+    var masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    var masterVertical = this.topOverlay.mainTableScrollableElement;
     var target = event.target;
     var tempScrollValue = 0;
     var scrollValueChanged = false;
     var topOverlay;
     var leftOverlay;
     var bottomOverlay;
+    var delegatedScroll = false;
+    var preventOverflow = this.wot.getSetting('preventOverflow');
     if (this.topOverlay.needFullRender) {
       topOverlay = this.topOverlay.clone.wtTable.holder;
     }
@@ -2289,66 +2357,129 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     if (target === document) {
       target = window;
     }
-    if (target === master) {
-      tempScrollValue = getScrollLeft(target);
-      if (this.overlayScrollPositions.master.left !== tempScrollValue) {
-        this.overlayScrollPositions.master.left = tempScrollValue;
-        scrollValueChanged = true;
-        if (topOverlay) {
-          if (!Handsontable.virtualScroll) {
-            topOverlay.scrollLeft = tempScrollValue;
+    if (target === masterHorizontal || target === masterVertical) {
+      if (preventOverflow) {
+        tempScrollValue = getScrollLeft(this.scrollableElement);
+      } else {
+        tempScrollValue = getScrollLeft(target);
+      }
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.master.left = tempScrollValue;
+      scrollValueChanged = true;
+      if (this.pendingScrollCallbacks.master.left > 0) {
+        this.pendingScrollCallbacks.master.left--;
+      } else {
+        if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.top.left++;
           }
+          topOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (masterHorizontal !== window);
         }
-        if (bottomOverlay) {
+        if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.bottom.left++;
+          }
           bottomOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (masterHorizontal !== window);
         }
       }
       tempScrollValue = getScrollTop(target);
-      if (this.overlayScrollPositions.master.top !== tempScrollValue) {
-        this.overlayScrollPositions.master.top = tempScrollValue;
-        scrollValueChanged = true;
-        if (leftOverlay) {
-          if (!Handsontable.virtualScroll) {
-            leftOverlay.scrollTop = tempScrollValue;
+      this.verticalScrolling = true;
+      this.overlayScrollPositions.master.top = tempScrollValue;
+      scrollValueChanged = true;
+      if (this.pendingScrollCallbacks.master.top > 0) {
+        this.pendingScrollCallbacks.master.top--;
+      } else {
+        if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.left.top++;
           }
+          leftOverlay.scrollTop = tempScrollValue;
+          delegatedScroll = (masterVertical !== window);
         }
       }
     } else if (target === bottomOverlay) {
       tempScrollValue = getScrollLeft(target);
-      if (this.overlayScrollPositions.bottom.left !== tempScrollValue) {
-        this.overlayScrollPositions.bottom.left = tempScrollValue;
-        scrollValueChanged = true;
-        master.scrollLeft = tempScrollValue;
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.bottom.left = tempScrollValue;
+      scrollValueChanged = true;
+      if (this.pendingScrollCallbacks.bottom.left > 0) {
+        this.pendingScrollCallbacks.bottom.left--;
+      } else {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.master.left++;
+        }
+        masterHorizontal.scrollLeft = tempScrollValue;
+        if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.top.left++;
+          }
+          topOverlay.scrollLeft = tempScrollValue;
+          delegatedScroll = (masterVertical !== window);
+        }
       }
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
-        master.scrollTop += fakeScrollValue;
+        masterVertical.scrollTop += fakeScrollValue;
       }
     } else if (target === topOverlay) {
       tempScrollValue = getScrollLeft(target);
-      if (this.overlayScrollPositions.top.left !== tempScrollValue) {
-        this.overlayScrollPositions.top.left = tempScrollValue;
-        scrollValueChanged = true;
-        master.scrollLeft = tempScrollValue;
+      this.horizontalScrolling = true;
+      this.overlayScrollPositions.top.left = tempScrollValue;
+      scrollValueChanged = true;
+      if (this.pendingScrollCallbacks.top.left > 0) {
+        this.pendingScrollCallbacks.top.left--;
+      } else {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.master.left++;
+        }
+        masterHorizontal.scrollLeft = tempScrollValue;
       }
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
-        master.scrollTop += fakeScrollValue;
+        masterVertical.scrollTop += fakeScrollValue;
+      }
+      if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.bottom.left++;
+        }
+        bottomOverlay.scrollLeft = tempScrollValue;
+        delegatedScroll = (masterVertical !== window);
       }
     } else if (target === leftOverlay) {
       tempScrollValue = getScrollTop(target);
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
+        this.verticalScrolling = true;
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
-        master.scrollTop = tempScrollValue;
+        if (this.pendingScrollCallbacks.left.top > 0) {
+          this.pendingScrollCallbacks.left.top--;
+        } else {
+          if (fakeScrollValue == null) {
+            this.pendingScrollCallbacks.master.top++;
+          }
+          masterVertical.scrollTop = tempScrollValue;
+        }
       }
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
-        master.scrollLeft += fakeScrollValue;
+        masterVertical.scrollLeft += fakeScrollValue;
       }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
-      this.refreshAll();
+      if (Handsontable.virtualScroll) {
+        this.refreshAll();
+      } else {
+        if (this.delegatedScrollCallback) {
+          this.delegatedScrollCallback = false;
+        } else {
+          this.refreshAll();
+        }
+        if (delegatedScroll) {
+          this.delegatedScrollCallback = true;
+        }
+      }
     }
   },
   syncScrollWithMaster: function() {
@@ -2359,6 +2490,16 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     if (this.leftOverlay.needFullRender) {
       this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
     }
+  },
+  updateMainScrollableElements: function() {
+    this.deregisterListeners();
+    this.leftOverlay.updateMainScrollableElement();
+    this.topOverlay.updateMainScrollableElement();
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.updateMainScrollableElement();
+    }
+    this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    this.registerListeners();
   },
   destroy: function() {
     this.eventManager.destroy();
@@ -2435,7 +2576,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
 window.WalkontableOverlays = WalkontableOverlays;
 
 //# 
-},{"eventManager":32,"helpers/dom/element":36,"helpers/unicode":44}],16:[function(require,module,exports){
+},{"eventManager":32,"helpers/browser":34,"helpers/dom/element":36,"helpers/unicode":44}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableScroll: {get: function() {
@@ -3109,7 +3250,9 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     empty = $__0.empty,
     getScrollbarWidth = $__0.getScrollbarWidth,
     hasClass = $__0.hasClass,
-    innerHeight = $__0.innerHeight;
+    innerHeight = $__0.innerHeight,
+    outerWidth = $__0.outerWidth;
+var performanceWarningAppeared = false;
 var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
   this.wtTable = wtTable;
   this.wot = wtTable.instance;
@@ -3151,10 +3294,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (totalColumns > 0) {
       this.adjustAvailableNodes();
       adjusted = true;
-      if (!Handsontable.noRefresh) {
-        this.renderColumnHeaders();
-        this.renderRows(totalRows, rowsToRender, columnsToRender);
-      }
+      this.renderColumnHeaders();
+      this.renderRows(totalRows, rowsToRender, columnsToRender);
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
@@ -3167,52 +3308,43 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.adjustAvailableNodes();
     }
     this.removeRedundantRows(rowsToRender);
-    if (!this.wtTable.isWorkingOnClone()) {
+    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
+    }
+    if (!this.wtTable.isWorkingOnClone()) {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
+      var hiderWidth = outerWidth(this.wtTable.hider);
+      var tableWidth = outerWidth(this.wtTable.TABLE);
+      if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+        this.adjustColumnWidths(columnsToRender);
+      }
       this.wot.wtOverlays.applyToDOM();
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         this.wot.wtViewport.containerWidth = null;
         var firstRendered = this.wtTable.getFirstRenderedColumn();
         var lastRendered = this.wtTable.getLastRenderedColumn();
-        for (var i = firstRendered; i < lastRendered; i++) {
-          var width = this.wtTable.getStretchedColumnWidth(i);
-          var renderedIndex = this.columnFilter.sourceToRendered(i);
+        var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        if (rowHeaderWidthSetting != null) {
+          for (var i = 0; i < this.rowHeaderCount; i++) {
+            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+          }
+        }
+        for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
+          var width = this.wtTable.getStretchedColumnWidth(i$__2);
+          var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
           this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
         }
       }
       this.wot.getSetting('onDraw', true);
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
-      var masterOverlay = this.wot.cloneOverlay.instance;
-      this.wot.cloneOverlay.markOversizedFixedBottomRows();
-      masterOverlay.wtOverlays.adjustElementsSize();
+    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+      this.wot.cloneSource.wtOverlays.adjustElementsSize();
     }
   },
   removeRedundantRows: function(renderedRowsCount) {
     while (this.wtTable.tbodyChildrenLength > renderedRowsCount) {
       this.TBODY.removeChild(this.TBODY.lastChild);
       this.wtTable.tbodyChildrenLength--;
-    }
-  },
-  refreshRowHeaders: function() {
-    var totalRows = this.wot.getSetting('totalRows');
-    var TR;
-    var visibleRowIndex = 1;
-    var $leftTr = $('.ht_clone_left tr');
-    var masterTr;
-    while (visibleRowIndex < totalRows) {
-      TR = $leftTr[visibleRowIndex];
-      masterTr = this.wot.wtTable.TBODY.childNodes[visibleRowIndex - 1];
-      if (TR && TR.firstChild && masterTr) {
-        var height = $(masterTr.firstChild).outerHeight();
-        if (height) {
-          TR.firstChild.style.height = height + 'px';
-        } else {
-          TR.firstChild.style.height = '';
-        }
-      }
-      visibleRowIndex++;
     }
   },
   renderRows: function(totalRows, rowsToRender, columnsToRender) {
@@ -3222,8 +3354,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     var isWorkingOnClone = this.wtTable.isWorkingOnClone();
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
-      if (visibleRowIndex > 1000) {
-        throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+      if (!performanceWarningAppeared && visibleRowIndex > 1000) {
+        performanceWarningAppeared = true;
+        console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' + 'of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.');
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         break;
@@ -3232,16 +3365,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.renderRowHeaders(sourceRowIndex, TR);
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
-      if (!isWorkingOnClone || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM)) {
+      if (!isWorkingOnClone || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
         this.resetOversizedRow(sourceRowIndex);
       }
       if (TR.firstChild) {
         var height = this.wot.wtTable.getRowHeight(sourceRowIndex);
         if (height) {
-          height++;
-          if (sourceRowIndex === 0) {
-            height++;
-          }
+          height--;
           TR.firstChild.style.height = height + 'px';
         } else {
           TR.firstChild.style.height = '';
@@ -3287,7 +3417,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         rowInnerHeight = innerHeight(currentTr) - 1;
       }
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight || previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
       }
     }
   },
@@ -3325,6 +3455,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var previousColHeaderHeight;
     var currentHeader;
     var currentHeaderHeight;
+    var columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
     while (level) {
       level--;
       previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
@@ -3336,13 +3467,14 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
       }
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
+      }
     }
   },
   renderCells: function(sourceRowIndex, TR, columnsToRender) {
-    var TD,
-        objectTD;
+    var TD;
     var sourceColIndex;
-    var temp = TR.firstChild.outerHTML;
     for (var visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
       sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
       if (visibleColIndex === 0) {
@@ -3357,23 +3489,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         TD.className = '';
       }
       TD.removeAttribute('style');
-      if (Handsontable.mobileBrowser && TR.isCreated) {
-        objectTD = this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, true);
-        if (objectTD) {
-          temp += '<' + objectTD.tagName + ' class="' + objectTD.class + '" style="' + objectTD.style + '"';
-          _.map(objectTD.attributes, function(attr) {
-            temp += ' ' + attr[0] + '="' + attr[1] + '"';
-          });
-          temp += '>' + objectTD.value + '</' + objectTD.tagName + '>';
-        } else {
-          temp += TD.outerHTML;
-        }
-      } else {
-        this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
-      }
-    }
-    if (Handsontable.mobileBrowser && TR.isCreated) {
-      TR.innerHTML = temp;
+      this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
     }
     return TD;
   },
@@ -3385,6 +3501,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
+    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    if (rowHeaderWidthSetting != null) {
+      for (var i = 0; i < this.rowHeaderCount; i++) {
+        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+      }
+    }
     for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       var width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
       this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
@@ -3399,13 +3521,10 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (rowIndex >= this.wtTable.tbodyChildrenLength) {
       TR = this.createRow();
       this.appendToTbody(TR);
-      TR.isCreated = true;
     } else if (rowIndex === 0) {
       TR = this.TBODY.firstChild;
-      TR.isCreated = false;
     } else {
       TR = currentTr.nextSibling;
-      TR.isCreated = false;
     }
     if (TR.className) {
       TR.removeAttribute('class');
@@ -3492,7 +3611,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__2 = this.columnHeaders.length; i$__2 < theadChildrenLength; i$__2++) {
+        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -3551,22 +3670,24 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+var $___46__46__47__46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47__46__46__47_eventManager__,
     $__calculator_47_viewportColumns__,
     $__calculator_47_viewportRows__;
-var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    getScrollbarWidth = $__0.getScrollbarWidth,
-    getScrollTop = $__0.getScrollTop,
-    getStyle = $__0.getStyle,
-    offset = $__0.offset,
-    outerHeight = $__0.outerHeight,
-    outerWidth = $__0.outerWidth;
+var Handsontable = ($___46__46__47__46__46__47__46__46__47_browser__ = require("browser"), $___46__46__47__46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_browser__}).default;
+var $__1 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    getScrollbarWidth = $__1.getScrollbarWidth,
+    getScrollTop = $__1.getScrollTop,
+    getStyle = $__1.getStyle,
+    offset = $__1.offset,
+    outerHeight = $__1.outerHeight,
+    outerWidth = $__1.outerWidth;
 var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager__ = require("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).EventManager;
 var WalkontableViewportColumnsCalculator = ($__calculator_47_viewportColumns__ = require("calculator/viewportColumns"), $__calculator_47_viewportColumns__ && $__calculator_47_viewportColumns__.__esModule && $__calculator_47_viewportColumns__ || {default: $__calculator_47_viewportColumns__}).WalkontableViewportColumnsCalculator;
 var WalkontableViewportRowsCalculator = ($__calculator_47_viewportRows__ = require("calculator/viewportRows"), $__calculator_47_viewportRows__ && $__calculator_47_viewportRows__.__esModule && $__calculator_47_viewportRows__ || {default: $__calculator_47_viewportRows__}).WalkontableViewportRowsCalculator;
 var WalkontableViewport = function WalkontableViewport(wotInstance) {
-  var $__4 = this;
+  var $__5 = this;
   this.wot = wotInstance;
   this.instance = this.wot;
   this.oversizedRows = [];
@@ -3579,7 +3700,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.columnsVisibleCalculator = null;
   this.eventManager = new EventManager(this.wot);
   this.eventManager.addEventListener(window, 'resize', (function() {
-    $__4.clientHeight = $__4.getWorkspaceHeight();
+    $__5.clientHeight = $__5.getWorkspaceHeight();
   }));
 };
 ($traceurRuntime.createClass)(WalkontableViewport, {
@@ -3597,11 +3718,15 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   },
   getWorkspaceWidth: function() {
     var width;
-    var totalColumns = this.instance.getSetting('totalColumns');
+    var totalColumns = this.wot.getSetting('totalColumns');
     var trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     var overflow;
-    var stretchSetting = this.instance.getSetting('stretchH');
+    var stretchSetting = this.wot.getSetting('stretchH');
     var docOffsetWidth = document.documentElement.offsetWidth;
+    var preventOverflow = this.wot.getSetting('preventOverflow');
+    if (preventOverflow) {
+      return outerWidth(this.instance.wtTable.wtRootElement);
+    }
     if (Handsontable.freezeOverlays) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     } else {
@@ -3680,16 +3805,24 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     return containerHeight;
   },
   getRowHeaderWidth: function() {
+    var rowHeadersHeightSetting = this.instance.getSetting('rowHeaderWidth');
+    var rowHeaders = this.instance.getSetting('rowHeaders');
+    if (rowHeadersHeightSetting) {
+      this.rowHeaderWidth = 0;
+      for (var i = 0,
+          len = rowHeaders.length; i < len; i++) {
+        this.rowHeaderWidth += rowHeadersHeightSetting[i] || rowHeadersHeightSetting;
+      }
+    }
     if (this.wot.cloneSource) {
       return this.wot.cloneSource.wtViewport.getRowHeaderWidth();
     }
     if (isNaN(this.rowHeaderWidth)) {
-      var rowHeaders = this.instance.getSetting('rowHeaders');
       if (rowHeaders.length) {
         var TH = this.instance.wtTable.TABLE.querySelector('TH');
         this.rowHeaderWidth = 0;
-        for (var i = 0,
-            len = rowHeaders.length; i < len; i++) {
+        for (var i$__7 = 0,
+            len$__8 = rowHeaders.length; i$__7 < len$__8; i$__7++) {
           if (TH) {
             this.rowHeaderWidth += outerWidth(TH);
             TH = TH.nextSibling;
@@ -3717,7 +3850,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   },
   createRowsCalculator: function() {
     var visible = arguments[0] !== (void 0) ? arguments[0] : false;
-    var $__4 = this;
+    var $__5 = this;
     var height;
     var pos;
     var fixedRowsTop;
@@ -3731,7 +3864,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     } else {
       height = this.getViewportHeight();
     }
-    pos = getScrollTop(this.wot.wtOverlays.mainTableScrollableElement) - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+    pos = this.wot.wtOverlays.topOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
     if (pos < 0) {
       pos = 0;
     }
@@ -3753,12 +3886,12 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
       scrollbarHeight = getScrollbarWidth();
     }
     return new WalkontableViewportRowsCalculator(height, pos, this.wot.getSetting('totalRows'), (function(sourceRow) {
-      return $__4.wot.wtTable.getRowHeight(sourceRow);
+      return $__5.wot.wtTable.getRowHeight(sourceRow);
     }), visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride, visible, scrollbarHeight);
   },
   createColumnsCalculator: function() {
     var visible = arguments[0] !== (void 0) ? arguments[0] : false;
-    var $__4 = this;
+    var $__5 = this;
     var width = this.getViewportWidth();
     var pos;
     var fixedColumnsLeft;
@@ -3777,8 +3910,10 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
       width -= getScrollbarWidth();
     }
     return new WalkontableViewportColumnsCalculator(width, pos, this.wot.getSetting('totalColumns'), (function(sourceCol) {
-      return $__4.wot.wtTable.getColumnWidth(sourceCol);
-    }), visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride, visible, this.wot.getSetting('stretchH'));
+      return $__5.wot.wtTable.getColumnWidth(sourceCol);
+    }), visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride, visible, this.wot.getSetting('stretchH'), (function(stretchedWidth, column) {
+      return $__5.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+    }));
   },
   createRenderCalculators: function() {
     var fastDraw = arguments[0] !== (void 0) ? arguments[0] : false;
@@ -3830,7 +3965,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
 window.WalkontableViewport = WalkontableViewport;
 
 //# 
-},{"calculator/viewportColumns":2,"calculator/viewportRows":3,"eventManager":32,"helpers/dom/element":36}],22:[function(require,module,exports){
+},{"browser":23,"calculator/viewportColumns":2,"calculator/viewportRows":3,"eventManager":32,"helpers/dom/element":36}],22:[function(require,module,exports){
 "use strict";
 var $__helpers_47_browser__,
     $__editors__,
@@ -4470,7 +4605,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (noRerender) {
         instance.forceFullRender = false;
-        instance.runHooks('menuRowChange');
+        instance.runHooks('refreshRowHeaders');
       }
       instance.view.render();
       if (selection.isSelected() && !keepEditor) {

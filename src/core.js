@@ -743,14 +743,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!keepEditor) {
         editorManager.destroyEditor(revertOriginal);
       }
-
-      // if noRerender is true then do not render full table
       if (noRerender) {
         instance.forceFullRender = false;
-
-        // render table-left-head, edit by xp 2015.10.30
-        instance.runHooks('menuRowChange');
-
+        instance.runHooks('refreshRowHeaders');
       }
       instance.view.render();
 
