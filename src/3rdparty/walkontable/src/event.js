@@ -172,7 +172,9 @@ function WalkontableEvent(instance) {
     //that.instance.longTouch == void 0;
 
     event.preventDefault();
-    onMouseUp(event);
+    setTimeout(function(){
+      onMouseUp(event);
+    }, 30);
 
     //eventManager.removeEventListener(that.instance.wtTable.holder, "mouseup", onMouseUp);
   };

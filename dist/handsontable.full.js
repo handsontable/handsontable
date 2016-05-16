@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon May 16 2016 12:44:13 GMT+0800 (CST)
+ * Date: Mon May 16 2016 12:46:02 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon May 16 2016 12:44:13 GMT+0800 (CST)',
+  buildDate: 'Mon May 16 2016 12:46:02 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1340,7 +1340,9 @@ function WalkontableEvent(instance) {
   var onTouchEnd = function(event) {
     clearTimeout(longTouchTimeout);
     event.preventDefault();
-    onMouseUp(event);
+    setTimeout(function() {
+      onMouseUp(event);
+    }, 30);
   };
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
