@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon May 16 2016 12:46:02 GMT+0800 (CST)
+ * Date: Mon May 16 2016 16:48:16 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon May 16 2016 12:46:02 GMT+0800 (CST)',
+  buildDate: 'Mon May 16 2016 16:48:16 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2464,7 +2464,13 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       }
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
-        masterVertical.scrollLeft += fakeScrollValue;
+        if (Handsontable.virtualScroll) {
+          var minScrollX = masterHorizontal.style.width.replace('px', '') - masterHorizontal.childNodes[0].style.width.replace('px', '');
+          var maxScrollX = 0;
+          window.myScroll.x = Math.max(Math.min(maxScrollX, window.myScroll.x - fakeScrollValue), minScrollX);
+        } else {
+          masterVertical.scrollLeft += fakeScrollValue;
+        }
       }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
