@@ -122,7 +122,7 @@ class Walkontable {
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row >= totalRows - fixedRowsBottom) {
+    } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -198,6 +198,20 @@ class Walkontable {
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
+  }
+
+  /**
+   * Check overlay type of this Walkontable instance.
+   *
+   * @param {String} name Clone type @see {WalkontableOverlay.CLONE_TYPES}.
+   * @returns {Boolean}
+   */
+  isOverlayName(name) {
+    if (this.cloneOverlay) {
+      return this.cloneOverlay.type === name;
+    }
+
+    return false;
   }
 
   /**

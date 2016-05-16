@@ -1,4 +1,3 @@
-
 import {
   addClass,
   getScrollbarWidth,
@@ -6,8 +5,10 @@ import {
   getWindowScrollLeft,
   hasClass,
   outerHeight,
+  innerWidth,
   removeClass,
   setOverlayPosition,
+  resetCssTransform
 } from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
 
@@ -42,8 +43,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'vertical')) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let top = Math.ceil(box.top);
       let bottom = Math.ceil(box.bottom);
@@ -65,7 +67,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
     } else {
       headerPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
     }
+
     this.adjustHeaderBordersPosition(headerPosition);
 
     this.adjustElementsSize();
@@ -83,19 +87,13 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollTop = pos;
     }
-
-    if (window.myScroll && window.myScroll.scrollTable) {
-      pos = pos >= 0 ? pos : 0;
-      window.myScroll.scrollTable(0, -pos);
-    }
-
   }
 
   /**
    * Triggers onScroll hook callback
    */
   onScroll() {
-    this.wot.getSetting('onScrollVertically');
+    this.wot.getSetting('onScrollHorizontally');
   }
 
   /**
@@ -110,7 +108,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
 
     while (from < to) {
-      sum += this.wot.wtTable.getRowHeight(from) || defaultRowHeight;
+      let height = this.wot.wtTable.getRowHeight(from);
+
+      sum += height === void 0 ? defaultRowHeight : height;
       from++;
     }
 
@@ -123,6 +123,8 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
+    this.updateTrimmingContainer();
+
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
@@ -141,11 +143,20 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     let scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableHeight;
 
-    if (this.trimmingContainer !== window) {
-      overlayRootStyle.width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth + 'px';
+    if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
+      let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
+
+      width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
+
+      overlayRootStyle.width = width + 'px';
+
+    } else {
+      overlayRootStyle.width = '';
     }
+
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
@@ -211,7 +222,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @param sourceRow {Number} Row index which you want to scroll to
    * @param [bottomEdge=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
    */
-  scrollTo(sourceRow, bottomEdge, justCalc) {
+  scrollTo(sourceRow, bottomEdge) {
     let newY = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     let mainHolder = sourceInstance.wtTable.holder;
@@ -229,18 +240,14 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
-      newY += 50;
+      newY += 1;
 
     } else {
       newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
     }
     newY += scrollbarCompensation;
 
-    if(justCalc) {
-      return newY;
-    } else {
-      this.setScrollPosition(newY);
-    }
+    this.setScrollPosition(newY);
   }
 
   /**
@@ -276,7 +283,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       let masterParent = this.wot.wtTable.holder.parentNode;
       let previousState = hasClass(masterParent, 'innerBorderTop');
 
-      if (position) {
+      if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
       } else {
         removeClass(masterParent, 'innerBorderTop');

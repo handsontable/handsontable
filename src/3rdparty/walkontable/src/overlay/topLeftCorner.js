@@ -2,7 +2,8 @@
 import {
   outerHeight,
   outerWidth,
-  setOverlayPosition
+  setOverlayPosition,
+  resetCssTransform
 } from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
 
@@ -32,6 +33,8 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
    * Updates the corner overlay position
    */
   resetFixedPosition() {
+    this.updateTrimmingContainer();
+
     if (!this.wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
@@ -39,6 +42,7 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
     let tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === window) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
@@ -46,21 +50,23 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
       let left = Math.ceil(box.left);
       let bottom = Math.ceil(box.bottom);
       let right = Math.ceil(box.right);
-      let finalLeft;
-      let finalTop;
+      let finalLeft = '0';
+      let finalTop = '0';
 
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left + 'px';
-      } else {
-        finalLeft = '0';
+      if (!preventOverflow || preventOverflow === 'vertical') {
+        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+          finalLeft = -left + 'px';
+        }
       }
 
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-        finalTop = -top + 'px';
-      } else {
-        finalTop = '0';
+      if (!preventOverflow || preventOverflow === 'horizontal') {
+        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+          finalTop = -top + 'px';
+        }
       }
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
+    } else {
+      resetCssTransform(overlayRoot);
     }
     overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
     overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';

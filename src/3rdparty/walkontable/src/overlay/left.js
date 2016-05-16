@@ -6,8 +6,10 @@ import {
   getWindowScrollTop,
   hasClass,
   outerWidth,
+  innerHeight,
   removeClass,
   setOverlayPosition,
+  resetCssTransform
 } from './../../../../helpers/dom/element';
 import {WalkontableOverlay} from './_base';
 
@@ -42,8 +44,9 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     }
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
       let box = this.wot.wtTable.hider.getBoundingClientRect();
       let left = Math.ceil(box.left);
       let right = Math.ceil(box.right);
@@ -65,6 +68,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
 
     } else {
       headerPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
     }
     this.adjustHeaderBordersPosition(headerPosition);
 
@@ -83,19 +87,13 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollLeft = pos;
     }
-
-    if (window.myScroll) {
-      pos = pos >= 0 ? pos : 0;
-      window.myScroll.scrollTable(-pos);
-    }
-
   }
 
   /**
    * Triggers onScroll hook callback
    */
   onScroll() {
-    this.wot.getSetting('onScrollHorizontally');
+    this.wot.getSetting('onScrollVertically');
   }
 
   /**
@@ -123,6 +121,8 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
+    this.updateTrimmingContainer();
+
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
@@ -141,11 +141,20 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableWidth;
 
-    if (this.trimmingContainer !== window) {
-      overlayRootStyle.height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight + 'px';
+    if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
+      let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
+
+      height = Math.min(height, innerHeight(this.wot.wtTable.wtRootElement));
+
+      overlayRootStyle.height = height + 'px';
+
+    } else {
+      overlayRootStyle.height = '';
     }
+
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     tableWidth = outerWidth(this.clone.wtTable.TABLE);
@@ -210,7 +219,7 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @param sourceCol {Number} Column index which you want to scroll to
    * @param [beyondRendered=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
    */
-  scrollTo(sourceCol, beyondRendered, justCalc) {
+  scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     let mainHolder = sourceInstance.wtTable.holder;
@@ -229,11 +238,6 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
     newX += scrollbarCompensation;
 
     this.setScrollPosition(newX);
-    if(justCalc) {
-      return newX;
-    } else {
-      this.setScrollPosition(newX);
-    }
   }
 
   /**
@@ -242,12 +246,14 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    if (this.trimmingContainer === window) {
-      return this.wot.wtTable.holderOffset.left;
+    let preventOverflow = this.wot.getSetting('preventOverflow');
+    let offset = 0;
 
-    } else {
-      return 0;
+    if (!preventOverflow && this.trimmingContainer === window) {
+      offset = this.wot.wtTable.holderOffset.left;
     }
+
+    return offset;
   }
 
   /**
