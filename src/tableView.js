@@ -494,6 +494,9 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
     return true;
   }
+  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
+    return true;
+  }
 
   return false;
 };
