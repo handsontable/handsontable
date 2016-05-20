@@ -131,14 +131,14 @@ AutocompleteEditor.prototype.close = function() {
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
 
-  let source = this.cellProperties.source;
-  let hasFilter = this.cellProperties.filter;
-  let filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  const source = this.cellProperties.source;
+  const hasFilter = this.cellProperties.filter;
+  const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
 
   if (typeof source == 'function') {
     var _this = this;
 
-    source(query, function(choices) {
+    source.call(this.cellProperties, query, function(choices) {
       _this.updateChoicesList(choices);
     });
 
