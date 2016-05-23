@@ -105,6 +105,37 @@ describe('AutocompleteEditor', function() {
       });
     });
 
+    it("should call source function with context set as cellProperties", function() {
+      var source = jasmine.createSpy('source');
+      var context;
+
+      source.plan = function(query, process) {
+        process(choices);
+        context = this;
+      };
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: source
+          }
+        ]
+      });
+      selectCell(0, 0);
+      source.reset();
+      keyDownUp('enter');
+
+      waitsFor(function() {
+        return source.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function() {
+        expect(context.instance).toBe(hot);
+        expect(context.row).toBe(0);
+        expect(context.col).toBe(0);
+      });
+    });
+
     it("should display given choices (sync function)", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
