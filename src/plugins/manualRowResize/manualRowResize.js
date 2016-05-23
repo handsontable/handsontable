@@ -1,6 +1,6 @@
 import Handsontable from './../../browser';
 import BasePlugin from './../_base.js';
-import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {arrayEach} from './../../helpers/array';
@@ -131,10 +131,9 @@ class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
-
     this.currentTH = TH;
-
     let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
+    let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
       let box = this.currentTH.getBoundingClientRect();
@@ -166,6 +165,7 @@ class ManualRowResize extends BasePlugin {
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
+      this.handle.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   }
@@ -181,12 +181,15 @@ class ManualRowResize extends BasePlugin {
    * Set the resize guide position.
    */
   setupGuidePosition() {
+    let handleWidth = parseInt(outerWidth(this.handle), 10);
+    let handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    let maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
-    this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guide.style.left = handleRightPosition + 'px';
+    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   }
 
