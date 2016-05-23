@@ -14,9 +14,6 @@
   var $getOwnPropertyDescriptor = $Object.getOwnPropertyDescriptor;
   var $getOwnPropertyNames = $Object.getOwnPropertyNames;
   var $keys = $Object.keys;
-  var $hasOwnProperty = $Object.prototype.hasOwnProperty;
-  var $preventExtensions = Object.preventExtensions;
-  var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
   function nonEnum(value) {
     return {
@@ -119,14 +116,6 @@
     getOwnHashObject(object);
     return $freeze.apply(this, arguments);
   }
-  function preventExtensions(object) {
-    getOwnHashObject(object);
-    return $preventExtensions.apply(this, arguments);
-  }
-  function seal(object) {
-    getOwnHashObject(object);
-    return $seal.apply(this, arguments);
-  }
   freeze(SymbolValue.prototype);
   function isSymbolString(s) {
     return symbolValues[s] || privateNames[s];
@@ -135,21 +124,6 @@
     if (isShimSymbol(name))
       return name[symbolInternalProperty];
     return name;
-  }
-  function removeSymbolKeys(array) {
-    var rv = [];
-    for (var i = 0; i < array.length; i++) {
-      if (!isSymbolString(array[i])) {
-        rv.push(array[i]);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyNames(object) {
-    return removeSymbolKeys($getOwnPropertyNames(object));
-  }
-  function keys(object) {
-    return removeSymbolKeys($keys(object));
   }
   function getOwnPropertySymbols(object) {
     var rv = [];
@@ -162,31 +136,8 @@
     }
     return rv;
   }
-  function getOwnPropertyDescriptor(object, name) {
-    return $getOwnPropertyDescriptor(object, toProperty(name));
-  }
-  function hasOwnProperty(name) {
-    return $hasOwnProperty.call(this, toProperty(name));
-  }
   function getOption(name) {
     return global.traceur && global.traceur.options[name];
-  }
-  function defineProperty(object, name, descriptor) {
-    if (isShimSymbol(name)) {
-      name = name[symbolInternalProperty];
-    }
-    $defineProperty(object, name, descriptor);
-    return object;
-  }
-  function polyfillObject(Object) {
-    $defineProperty(Object, 'defineProperty', {value: defineProperty});
-    $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
-    $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
-    $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
-    $defineProperty(Object, 'freeze', {value: freeze});
-    $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
-    $defineProperty(Object, 'seal', {value: seal});
-    $defineProperty(Object, 'keys', {value: keys});
   }
   function exportStar(object) {
     for (var i = 1; i < arguments.length; i++) {
@@ -234,7 +185,6 @@
     polyfillSymbol(global, Symbol);
     global.Reflect = global.Reflect || {};
     global.Reflect.global = global.Reflect.global || global;
-    polyfillObject(global.Object);
   }
   setupGlobals(global);
   global.$traceurRuntime = {
