@@ -67,6 +67,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
+    this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
 
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
@@ -496,6 +497,19 @@ class ManualColumnResize extends BasePlugin {
     }
 
     return width;
+  }
+
+  /**
+   * `beforeColumnResize` hook callback.
+   *
+   * @private
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  onBeforeColumnResize() {
+    // clear the header height cache information
+    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
   }
 }
 
