@@ -1,6 +1,6 @@
 import Handsontable from './../../browser';
 import BasePlugin from './../_base.js';
-import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {addClass, hasClass, removeClass, outerHeight} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {arrayEach} from './../../helpers/array';
@@ -67,6 +67,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
+    this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
 
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
@@ -138,6 +139,7 @@ class ManualColumnResize extends BasePlugin {
     this.currentTH = TH;
 
     let col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns WalkontableCellCoords
+    let headerHeight = outerHeight(this.currentTH);
 
     if (col >= 0) { // if not col header
       let box = this.currentTH.getBoundingClientRect();
@@ -169,6 +171,7 @@ class ManualColumnResize extends BasePlugin {
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
+      this.handle.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   }
@@ -184,12 +187,16 @@ class ManualColumnResize extends BasePlugin {
    * Set the resize guide position.
    */
   setupGuidePosition() {
+    let handleHeight = parseInt(outerHeight(this.handle), 10);
+    let handleBottomPosition = parseInt(this.handle.style.top, 10) + handleHeight;
+    let maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
+
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = handleBottomPosition + 'px';
     this.guide.style.left = this.handle.style.left;
-    this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
+    this.guide.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   }
 
@@ -490,6 +497,19 @@ class ManualColumnResize extends BasePlugin {
     }
 
     return width;
+  }
+
+  /**
+   * `beforeColumnResize` hook callback.
+   *
+   * @private
+   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} newSize Calculated new column width.
+   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
+   */
+  onBeforeColumnResize() {
+    // clear the header height cache information
+    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
   }
 }
 

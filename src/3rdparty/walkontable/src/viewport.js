@@ -25,7 +25,7 @@ class WalkontableViewport {
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
-    this.isMarkedOversizedColumn = {};
+    this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
@@ -42,7 +42,6 @@ class WalkontableViewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    // var scrollHandler = this.instance.wtOverlays.topOverlay.scrollHandler;
     let trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let elemHeight;
     let height = 0;

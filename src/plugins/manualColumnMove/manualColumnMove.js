@@ -1,6 +1,6 @@
 import BasePlugin from './../_base.js';
 import Handsontable from './../../browser';
-import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {addClass, hasClass, removeClass, outerHeight} from './../../helpers/dom/element';
 import {arrayEach, arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
@@ -204,9 +204,10 @@ class ManualColumnMove extends BasePlugin {
    * @param {HTMLElement} TH Currently processed TH element.
    */
   setupHandlePosition(TH) {
+    this.currentTH = TH;
     let priv = privatePool.get(this);
     let col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns WalkontableCellCoords
-    this.currentTH = TH;
+    let headerHeight = outerHeight(this.currentTH);
 
     if (col >= 0) { // if not row header
       let box = this.currentTH.getBoundingClientRect();
@@ -215,6 +216,7 @@ class ManualColumnMove extends BasePlugin {
       priv.startOffset = box.left;
       this.handleElement.style.top = box.top + 'px';
       this.handleElement.style.left = priv.startOffset + 'px';
+      this.handleElement.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handleElement);
     }
   }
@@ -242,13 +244,16 @@ class ManualColumnMove extends BasePlugin {
   setupGuidePosition() {
     let box = this.currentTH.getBoundingClientRect();
     let priv = privatePool.get(this);
+    let handleHeight = parseInt(outerHeight(this.handleElement), 10);
+    let handleBottomPosition = parseInt(this.handleElement.style.top, 10) + handleHeight;
+    let maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
 
     addClass(this.handleElement, 'active');
     addClass(this.guideElement, 'active');
 
     this.guideElement.style.width = box.width + 'px';
-    this.guideElement.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
-    this.guideElement.style.top = this.handleElement.style.top;
+    this.guideElement.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
+    this.guideElement.style.top = handleBottomPosition + 'px';
     this.guideElement.style.left = priv.startOffset + 'px';
     this.hot.rootElement.appendChild(this.guideElement);
   }

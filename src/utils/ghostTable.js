@@ -76,6 +76,26 @@ class GhostTable {
   }
 
   /**
+   * Add a row consisting of the column headers.
+   */
+  addColumnHeadersRow(samples) {
+    if (this.hot.getColHeader(0) != null) {
+      const rowObject = {row: -1};
+      this.rows.push(rowObject);
+
+      this.container = this.createContainer(this.hot.rootElement.className);
+
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tHead.appendChild(this.createColumnHeadersRow());
+      this.container.container.appendChild(this.table.fragment);
+
+      rowObject.table = this.table.table;
+    }
+  }
+
+  /**
    * Add column.
    *
    * @param {Number} column Column index.
@@ -141,7 +161,9 @@ class GhostTable {
     const d = document;
     const fragment = d.createDocumentFragment();
 
-    fragment.appendChild(this.createColElement(-1));
+    if (this.hot.hasRowHeaders()) {
+      fragment.appendChild(this.createColElement(-1));
+    }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
@@ -163,10 +185,11 @@ class GhostTable {
     const fragment = d.createDocumentFragment();
     const th = d.createElement('th');
 
-    if (this.hot.getRowHeader(row) !== null) {
+    if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
+
+      fragment.appendChild(th);
     }
-    fragment.appendChild(th);
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
@@ -181,6 +204,30 @@ class GhostTable {
 
         renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
+      });
+    });
+
+    return fragment;
+  }
+
+  createColumnHeadersRow() {
+    const d = document;
+    const fragment = d.createDocumentFragment();
+
+    if (this.hot.hasRowHeaders()) {
+      const th = d.createElement('th');
+      this.hot.view.appendColHeader(-1, th);
+      fragment.appendChild(th);
+    }
+
+    this.samples.forEach((sample) => {
+      arrayEach(sample.strings, (string) => {
+        let column = string.col;
+
+        const th = d.createElement('th');
+
+        this.hot.view.appendColHeader(column, th);
+        fragment.appendChild(th);
       });
     });
 
@@ -223,6 +270,7 @@ class GhostTable {
    */
   clean() {
     this.rows.length = 0;
+    this.rows[-1] = void 0;
     this.columns.length = 0;
 
     if (this.samples) {
