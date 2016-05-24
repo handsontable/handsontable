@@ -22,9 +22,13 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language);
     }
+    if (cellProperties.className === void 0) {
+      addClass(TD, 'htNumeric htRight');
+    }
+
     value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
-    addClass(TD, 'htNumeric');
   }
+
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
 
