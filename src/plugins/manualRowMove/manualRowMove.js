@@ -1,6 +1,6 @@
 import BasePlugin from './../_base.js';
 import Handsontable from './../../browser';
-import {addClass, hasClass, removeClass} from './../../helpers/dom/element';
+import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
 import {arrayEach, arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
@@ -200,9 +200,10 @@ class ManualRowMove extends BasePlugin {
    * @param {HTMLElement} TH Currently processed TH element.
    */
   setupHandlePosition(TH) {
+    this.currentTH = TH;
     let priv = privatePool.get(this);
     let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
-    this.currentTH = TH;
+    let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not row header
       let box = this.currentTH.getBoundingClientRect();
@@ -211,6 +212,7 @@ class ManualRowMove extends BasePlugin {
       priv.startOffset = box.top;
       this.handleElement.style.top = priv.startOffset + 'px';
       this.handleElement.style.left = box.left + 'px';
+      this.handleElement.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handleElement);
     }
   }
@@ -238,14 +240,17 @@ class ManualRowMove extends BasePlugin {
   setupGuidePosition() {
     let box = this.currentTH.getBoundingClientRect();
     let priv = privatePool.get(this);
+    let handleWidth = parseInt(outerWidth(this.handleElement), 10);
+    let handleRightPosition = parseInt(this.handleElement.style.left, 10) + handleWidth;
+    let maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
 
     addClass(this.handleElement, 'active');
     addClass(this.guideElement, 'active');
 
     this.guideElement.style.height = box.height + 'px';
-    this.guideElement.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guideElement.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.guideElement.style.top = priv.startOffset + 'px';
-    this.guideElement.style.left = this.handleElement.style.left;
+    this.guideElement.style.left = handleRightPosition + 'px';
     this.hot.rootElement.appendChild(this.guideElement);
   }
 

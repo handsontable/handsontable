@@ -369,4 +369,29 @@ describe('manualRowResize', function () {
       expect($rowsHeaders.eq(3).height()).toEqual(35);
     });
   });
+
+  describe('handle and guide', function() {
+    it('should display the resize handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      var $headerTH = this.$container.find('tbody tr:eq(1) th:eq(0)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualRowResizer');
+
+      expect($handle.offset().top).toEqual($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1);
+      expect($handle.width()).toEqual($headerTH.outerWidth());
+    });
+  });
+
 });

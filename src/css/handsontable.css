@@ -202,6 +202,7 @@
 .handsontable .manualColumnMoverGuide.active,
 .handsontable .manualRowMoverGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .manualColumnMover:hover,
@@ -263,6 +264,7 @@
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .columnSorting {
