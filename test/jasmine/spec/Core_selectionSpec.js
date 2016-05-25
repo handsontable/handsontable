@@ -224,6 +224,80 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
+  it('should deselect on outside click if outsideClickDeselects is a function that returns true', function() {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed;
+    handsontable({
+      outsideClickDeselects: function() { return true }
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Foo';
+
+    textarea.focus();
+    textarea.simulate('mousedown');
+    textarea.simulate('mouseup');
+
+    textarea.on('keydown', function (event) {
+      keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+//    var event = $.Event('keydown');
+//    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).simulate('keydown',{
+      keyCode: LETTER_a_KEY
+    });
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
+
+    //should NOT preserve selection
+    expect(getSelected()).toEqual(undefined);
+    expect(getDataAtCell(0, 0)).toEqual('Foo');
+
+    textarea.remove();
+  });
+
+it('should not deselect on outside click if outsideClickDeselects is a function that returns false', function() {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed;
+    handsontable({
+      outsideClickDeselects: function() { return false }
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Foo';
+
+    textarea.focus();
+    textarea.simulate('mousedown');
+    textarea.simulate('mouseup');
+
+    textarea.on('keydown', function (event) {
+      keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+//    var event = $.Event('keydown');
+//    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).simulate('keydown',{
+      keyCode: LETTER_a_KEY
+    });
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
+
+    //should preserve selection, close editor and save changes
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getDataAtCell(0, 0)).toEqual('Foo');
+
+    textarea.remove();
+  });
+
   it('should fix start range if provided is out of bounds (to the left)', function () {
     handsontable({
       startRows: 5,
