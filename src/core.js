@@ -4573,6 +4573,9 @@ DefaultSettings.prototype = {
    *
    * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
    * `syncLimit` option is available since 0.16.0.
+   *
+   * You can also use the `useHeaders` option to take the column headers with into calculation.
+   *
    * @example
    * ```js
    * ...
@@ -4584,6 +4587,12 @@ DefaultSettings.prototype = {
    * // as a string (percent)
    * autoColumnSize: {syncLimit: '40%'},
    * ...
+   *
+   * ...
+   * // use headers width while calculation the column width
+   * autoColumnSize: {useHeaders: true},
+   * ...
+   *
    * ```
    *
    * @type {Object|Boolean}
