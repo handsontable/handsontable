@@ -887,7 +887,7 @@ const REGISTERED_HOOKS = [
    * Used to modify the column header height.
    *
    * @event Hooks#modifyColumnHeaderHeight
-   * @since 0.24.4
+   * @since 0.25.0
    * @param {Number} col Column index.
    */
   'modifyColumnHeaderHeight',
