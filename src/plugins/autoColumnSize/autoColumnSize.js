@@ -128,6 +128,10 @@ class AutoColumnSize extends BasePlugin {
       this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
     }
 
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
+    }
+
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
 

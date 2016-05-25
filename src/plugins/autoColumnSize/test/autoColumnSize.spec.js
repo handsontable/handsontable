@@ -58,13 +58,30 @@ describe('AutoColumnSize', function () {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
+      colHeaders: ['Identifier Longer text'],
+      columns: [
+        {data: 'id'}
+      ]
+    });
+
+    expect(colWidth(this.$container, 0)).toBeAroundValue(119);
+  });
+
+  it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function () {
+    handsontable({
+      data: [
+        {id: 'ab'}
+      ],
+      autoColumnSize: {
+        useHeaders: false
+      },
       colHeaders: ['Identifier'],
       columns: [
         {data: 'id'}
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(56);
+    expect(colWidth(this.$container, 0)).toEqual(50);
   });
 
   it('should correctly detect column width with columns.title', function () {
