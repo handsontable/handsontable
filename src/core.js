@@ -3544,8 +3544,9 @@ DefaultSettings.prototype = {
 
   /**
    * If `true`, mouse click outside the grid will deselect the current selection.
+   * Can be a function that takes the click event target and returns a boolean.
    *
-   * @type {Boolean}
+   * @type {Boolean|Function}
    * @default true
    */
   outsideClickDeselects: true,
