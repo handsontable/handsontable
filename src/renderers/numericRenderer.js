@@ -23,8 +23,10 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
       numeral.language(cellProperties.language);
     }
     if (cellProperties.className === void 0) {
-      addClass(TD, 'htNumeric htRight');
+      addClass(TD, 'htRight');
     }
+
+    addClass(TD, 'htNumeric');
 
     value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
   }

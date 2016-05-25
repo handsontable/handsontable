@@ -89,7 +89,7 @@ describe('NumericRenderer', function () {
     var TD = document.createElement('TD');
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
-    expect(TD.className).toEqual('someClass htNumeric htRight');
+    expect(TD.className).toEqual('someClass htRight htNumeric');
     instance.destroy();
   });
 
@@ -99,7 +99,7 @@ describe('NumericRenderer', function () {
     var TD = document.createElement('TD');
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
-    expect(TD.className).toEqual('someClass htNumeric htRight');
+    expect(TD.className).toEqual('someClass htRight htNumeric');
     instance.destroy();
   });
 
