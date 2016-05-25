@@ -68,13 +68,6 @@ class WalkontableCellRange {
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
 
-    if (row < 0) {
-      row = 0;
-    }
-    if (col < 0) {
-      col = 0;
-    }
-
     return topLeft.row <= row && bottomRight.row >= row &&
         topLeft.col <= col && bottomRight.col >= col;
   }
