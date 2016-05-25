@@ -72,7 +72,7 @@ describe('GhostTable', function () {
       expect(gt.rows[0].row).toBe(0);
       expect(gt.rows[0].table.className).toBe('htCore');
       expect(gt.rows[0].table.nodeName).toBe('TABLE');
-      expect(gt.rows[0].table.querySelectorAll('colgroup > col').length).toBe(3);
+      expect(gt.rows[0].table.querySelectorAll('colgroup > col').length).toBe(2);
       expect(gt.rows[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
 
       samples.clear();
@@ -84,7 +84,7 @@ describe('GhostTable', function () {
       expect(gt.rows[1].row).toBe(1);
       expect(gt.rows[1].table.className).toBe('htCore');
       expect(gt.rows[1].table.nodeName).toBe('TABLE');
-      expect(gt.rows[1].table.querySelectorAll('colgroup > col').length).toBe(3);
+      expect(gt.rows[1].table.querySelectorAll('colgroup > col').length).toBe(2);
       expect(gt.rows[1].table.querySelector('tbody > tr > td').innerHTML).toBe('Bar');
     });
 

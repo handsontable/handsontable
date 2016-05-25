@@ -383,6 +383,40 @@ describe('Core_selection', function () {
     expect(tick).toEqual(2);
   });
 
+  it('should select columns by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+  it('should select rows by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true
+    });
+
+    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
+    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([1, 0, 4, 4]);
+
+  });
+
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
     var tick = 0, tickEnd = 0;
     handsontable({
@@ -493,6 +527,26 @@ describe('Core_selection', function () {
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
     expect(getSelected()).toEqual([0, 0, 49, 0]);
+  });
+
+  it("should select the entire fixed column after column header is clicked, after scroll horizontally", function(){
+    var hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 50,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsLeft: 2
+    });
+
+    hot.render();
+
+    hot.view.wt.scrollHorizontal(20);
+
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    expect(getSelected()).toEqual([0, 1, 49, 1]);
   });
 
   it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function () {

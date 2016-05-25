@@ -150,7 +150,7 @@ describe('manualColumnResize', function () {
     expect($columnHeaders.eq(3).width()).toEqual(127);
     expect($columnHeaders.eq(4).width()).toEqual(126);
   });
-  
+
   it("should resize (narrowing) selected columns", function() {
 
     var hot = handsontable({
@@ -184,7 +184,7 @@ describe('manualColumnResize', function () {
       expect($columnHeaders.eq(3).width()).toEqual(29);
     });
   });
-  
+
   it("should resize (expanding) selected columns", function() {
 
     var hot = handsontable({
@@ -218,7 +218,7 @@ describe('manualColumnResize', function () {
       expect($columnHeaders.eq(3).width()).toEqual(150);
     });
   });
-  
+
   it("should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`", function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
@@ -481,7 +481,7 @@ describe('manualColumnResize', function () {
       expect(colWidth(this.$container, 2)).toBeAroundValue(26);
     }.bind(this));
   });
-  
+
   it("should autosize selected columns after double click on handler", function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -517,7 +517,7 @@ describe('manualColumnResize', function () {
       expect(colWidth(this.$container, 3)).toBeAroundValue(26);
     }.bind(this));
   });
-  
+
   it("should adjust resize handles position after table size changed", function(){
     var maxed = false;
 
@@ -576,4 +576,29 @@ describe('manualColumnResize', function () {
     expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
     expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
+
+  describe('handle and guide', function() {
+    it('should display the resize handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualColumnResizer');
+
+      expect($handle.offset().left).toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.height()).toEqual($headerTH.outerHeight());
+    });
+  });
+
 });

@@ -11,7 +11,7 @@
   },
   "main": "./dist/handsontable.js",
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "0.24.3",
+  "version": "0.25.0",
   "keywords": [
     "data",
     "grid",
@@ -28,7 +28,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "moment": "^2.12.0",
+    "moment": "^2.13.0",
     "pikaday": "^1.4.0",
     "zeroclipboard": "^2.2.0"
   },

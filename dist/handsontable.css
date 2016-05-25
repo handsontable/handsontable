@@ -228,6 +228,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .handsontable .manualColumnMoverGuide.active,
 .handsontable .manualRowMoverGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .manualColumnMover:hover,
@@ -289,6 +290,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .columnSorting {
