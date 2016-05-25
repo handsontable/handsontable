@@ -465,4 +465,28 @@ describe('manualRowMove', function () {
     expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
   });
 
+  describe('handle and guide', function() {
+    it('should display the move handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      var $headerTH = this.$container.find('tbody tr:eq(0) th:eq(0)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualRowMover');
+
+      expect($handle.offset().top).toEqual($headerTH.offset().top);
+      expect($handle.width()).toEqual($headerTH.outerWidth());
+    });
+  });
+
 });

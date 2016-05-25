@@ -899,4 +899,28 @@ describe('manualColumnMove', function () {
     });
   });
 
+  describe('handle and guide', function() {
+    it('should display the move handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        colHeaders: true,
+        manualColumnMove: true
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualColumnMover');
+
+      expect($handle.offset().left).toEqual($headerTH.offset().left);
+      expect($handle.height()).toEqual($headerTH.outerHeight());
+    });
+  });
+
 });

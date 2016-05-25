@@ -2545,44 +2545,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
 
-  this.getColspanOffset = function(col, level) {
-    var colspanSum = 0;
-
-    if (instance.colspanArray) {
-      for (var i = 0; i < col; i++) {
-        colspanSum += instance.colspanArray[level][i] - 1 || 0;
-      }
-
-      return colspanSum;
-    }
-
-    var colspanSum = 0;
-
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-
-    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
-      if (TR.childNodes[i].hasAttribute('colspan')) {
-        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
-      }
-    }
-
-    return colspanSum;
-  };
-
-  this.getHeaderColspan = function(col, level) {
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
-
-    if (TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
-      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
-    }
-    return 0;
-  };
-
   /**
    * Returns an index of the first rendered row.
    *
@@ -2818,8 +2780,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Scroll viewport to coords specified by the `row` and `column` arguments.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @since 0.24.3
+   * @memberof Core#
+   * @function scrollViewportTo
+   * @param {Number|null} row Row index.
+   * @param {Number|null} column Column index.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
   this.scrollViewportTo = function(row, column) {
@@ -4608,6 +4573,9 @@ DefaultSettings.prototype = {
    *
    * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
    * `syncLimit` option is available since 0.16.0.
+   *
+   * You can also use the `useHeaders` option to take the column headers with into calculation.
+   *
    * @example
    * ```js
    * ...
@@ -4619,6 +4587,12 @@ DefaultSettings.prototype = {
    * // as a string (percent)
    * autoColumnSize: {syncLimit: '40%'},
    * ...
+   *
+   * ...
+   * // use headers width while calculation the column width
+   * autoColumnSize: {useHeaders: true},
+   * ...
+   *
    * ```
    *
    * @type {Object|Boolean}
