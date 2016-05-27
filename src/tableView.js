@@ -291,46 +291,64 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
-            instance.selection.setRangeEnd(coords);
-          }
-
-          if (instance.selection.selectedHeader.cols && coords.col >= 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-          }
-
-          if (instance.selection.selectedHeader.rows && coords.row >= 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-          }
-        } else {
-          if (event.button === 0 || (event.button === 2 && !instance.selection.inInSelection(coords))) {
-            if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-              if (coords.row < 0) {
-                instance.selection.setSelectedHeaders(false, true);
-                instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
-              }
-
-              if (coords.col < 0) {
-                instance.selection.setSelectedHeaders(true, false);
-                instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-              }
-
-            } else {
-              coords.row = coords.row < 0 ? 0 : coords.row;
-              coords.col = coords.col < 0 ? 0 : coords.col;
-
-              instance.selection.setSelectedHeaders(false, false);
-              instance.selection.setRangeStart(coords);
-            }
-          }
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      if (event.shiftKey) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          instance.selection.setRangeEnd(coords);
         }
 
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+        if (instance.selection.selectedHeader.cols && coords.col >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        }
 
-        that.activeWt = that.wt;
+        if (instance.selection.selectedHeader.rows && coords.row >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        }
+      } else {
+        let doNewSelection = false;
+        let coordsNotInSelection = !instance.selection.inInSelection(coords);
+
+        if (coords.row < 0) {
+          let lastRowCell = new WalkontableCellCoords(instance.countRows() - 1, coords.col);
+
+          doNewSelection = coordsNotInSelection && !instance.selection.inInSelection(lastRowCell);
+
+        } else if (coords.col < 0) {
+          let lastColCell = new WalkontableCellCoords(coords.row, instance.countCols() - 1);
+
+          doNewSelection = coordsNotInSelection && !instance.selection.inInSelection(lastColCell);
+
+        } else {
+          doNewSelection = coordsNotInSelection;
+        }
+
+        if (event.button === 0 || (event.button === 2 && doNewSelection)) {
+          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
+            if (coords.row < 0) {
+              instance.selection.setSelectedHeaders(false, true);
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+            }
+
+            if (coords.col < 0) {
+              instance.selection.setSelectedHeaders(true, false);
+              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+            }
+
+          } else {
+            coords.row = coords.row < 0 ? 0 : coords.row;
+            coords.col = coords.col < 0 ? 0 : coords.col;
+
+            instance.selection.setSelectedHeaders(false, false);
+            instance.selection.setRangeStart(coords);
+          }
+        }
       }
+
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+
+      that.activeWt = that.wt;
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {

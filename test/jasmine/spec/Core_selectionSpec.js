@@ -953,4 +953,25 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(spy.mostRecentCall.args[1]).toBe(-1);
     expect(spy.mostRecentCall.args[2]).toBe(0);
   });
+
+  it('should change selection after left mouse button on one of selected cell', function () {
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    var cells = $('.ht_master.handsontable td');
+
+    cells.eq(6).simulate('mousedown');
+    cells.eq(18).simulate('mouseover');
+    cells.eq(18).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([1, 1, 3, 3]);
+
+    cells.eq(16).simulate('mousedown');
+    cells.eq(16).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
+  });
+
 });
