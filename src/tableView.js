@@ -307,33 +307,52 @@ function TableView(instance) {
           instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
         }
       } else {
-        let doNewSelection = false;
-        let coordsNotInSelection = !instance.selection.inInSelection(coords);
+        let doNewSelection = true;
 
-        if (coords.row < 0) {
-          let lastRowCell = new WalkontableCellCoords(instance.countRows() - 1, coords.col);
+        if (instance.getSelectedRange()) {
+          let {from, to} = instance.getSelectedRange();
+          let coordsNotInSelection = !instance.selection.inInSelection(coords);
 
-          doNewSelection = coordsNotInSelection && !instance.selection.inInSelection(lastRowCell);
+          if (coords.row < 0 && instance.selection.selectedHeader.cols) {
 
-        } else if (coords.col < 0) {
-          let lastColCell = new WalkontableCellCoords(coords.row, instance.countCols() - 1);
+            let start = from.col;
+            let end = to.col;
 
-          doNewSelection = coordsNotInSelection && !instance.selection.inInSelection(lastColCell);
+            if (end < start) {
+              start = to.col;
+              end = from.col;
+            }
 
-        } else {
-          doNewSelection = coordsNotInSelection;
+            doNewSelection = coordsNotInSelection && (coords.col < start || coords.col > end);
+
+          } else if (coords.col < 0 && instance.selection.selectedHeader.rows) {
+            let start = from.row;
+            let end = to.row;
+
+            if (end < start) {
+              start = to.row;
+              end = from.row;
+            }
+
+            doNewSelection = coordsNotInSelection && (coords.row < start || coords.row > end);
+
+          } else {
+            doNewSelection = coordsNotInSelection;
+          }
         }
 
         if (event.button === 0 || (event.button === 2 && doNewSelection)) {
           if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
               instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+              instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col));
+              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
             }
 
             if (coords.col < 0) {
               instance.selection.setSelectedHeaders(true, false);
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+              instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0));
+              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
             }
 
           } else {
@@ -375,22 +394,22 @@ function TableView(instance) {
             // multi select columns
             if (coords.row < 0 && !blockCalculations.column) {
               if (instance.selection.selectedHeader.cols) {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
                 instance.selection.setSelectedHeaders(false, true);
 
               } else {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
               }
             }
 
             // multi select rows
             if (coords.col < 0 && !blockCalculations.row) {
               if (instance.selection.selectedHeader.rows) {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
                 instance.selection.setSelectedHeaders(true, false);
 
               } else {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
               }
             }
           }
