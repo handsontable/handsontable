@@ -43,7 +43,14 @@ function WalkontableEvent(instance) {
   };
 
   var onTouchMove = function(event) {
-    that.instance.touchMoving = true;
+    var touch = event.changedTouches[0];
+    var boundary = 10;
+
+    if (Math.abs(touch.pageX - that.instance.touchStartX) > 10 || 
+      Math.abs(touch.pageY - that.instance.touchStartY) > 10) {
+      that.instance.touchMoving = true;
+      console.log('on touch move');
+    }  
   };
 
   var longTouchTimeout;
@@ -76,43 +83,22 @@ function WalkontableEvent(instance) {
 
   var onTouchStart = function(event) {
     var container = this;
-
+    var touch = event.changedTouches[0];
+    that.instance.touchStartX = touch.pageX;
+    that.instance.touchStartY = touch.pageY;
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
 
-    //this.addEventListener("touchmove", onTouchMove, false);
-
-    // touch-and-hold event
-    //longTouchTimeout = setTimeout(function () {
-    //  if(!that.instance.touchMoving) {
-    //    that.instance.longTouch = true;
-    //
-    //    var targetCoords = offset(event.target);
-    //    var contextMenuEvent = new MouseEvent('contextmenu', {
-    //      clientX: targetCoords.left + event.target.offsetWidth,
-    //      clientY: targetCoords.top + event.target.offsetHeight,
-    //      button: 2
-    //    });
-    //
-    //    that.instance.wtTable.holder.parentNode.parentNode.dispatchEvent(contextMenuEvent);
-    //  }
-    //},200);
-
-    // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
     that.checkIfTouchMove = setTimeout(function() {
-      if (that.instance.touchMoving === true) {
-        that.instance.touchMoving = void 0;
-
-        eventManager.removeEventListener('touchmove', onTouchMove, false);
-
-        return;
-      } else {
-        //event = adjustTapTarget(event);
-
+      
+      if (that.instance.touchMoving !== true) {
         onMouseDown(event);
       }
+
+      that.instance.touchMoving = void 0;
+      eventManager.removeEventListener('touchmove', onTouchMove, false);
+
     }, 30);
 
-    //eventManager.removeEventListener(that.instance.wtTable.holder, "mousedown", onMouseDown);
   };
 
   var lastMouseOver;
@@ -172,9 +158,13 @@ function WalkontableEvent(instance) {
     //that.instance.longTouch == void 0;
 
     event.preventDefault();
-    setTimeout(function(){
+    if (window.cow && window.cow.iOS) {
+      setTimeout(function() {
+        onMouseUp(event);
+      }, 30);
+    } else {
       onMouseUp(event);
-    }, 30);
+    }
 
     //eventManager.removeEventListener(that.instance.wtTable.holder, "mouseup", onMouseUp);
   };

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon May 16 2016 16:48:16 GMT+0800 (CST)
+ * Date: Tue May 31 2016 21:28:03 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon May 16 2016 16:48:16 GMT+0800 (CST)',
+  buildDate: 'Tue May 31 2016 21:28:03 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1288,20 +1288,26 @@ function WalkontableEvent(instance) {
     }
   };
   var onTouchMove = function(event) {
-    that.instance.touchMoving = true;
+    var touch = event.changedTouches[0];
+    var boundary = 10;
+    if (Math.abs(touch.pageX - that.instance.touchStartX) > 10 || Math.abs(touch.pageY - that.instance.touchStartY) > 10) {
+      that.instance.touchMoving = true;
+      console.log('on touch move');
+    }
   };
   var longTouchTimeout;
   var onTouchStart = function(event) {
     var container = this;
+    var touch = event.changedTouches[0];
+    that.instance.touchStartX = touch.pageX;
+    that.instance.touchStartY = touch.pageY;
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
     that.checkIfTouchMove = setTimeout(function() {
-      if (that.instance.touchMoving === true) {
-        that.instance.touchMoving = void 0;
-        eventManager.removeEventListener('touchmove', onTouchMove, false);
-        return;
-      } else {
+      if (that.instance.touchMoving !== true) {
         onMouseDown(event);
       }
+      that.instance.touchMoving = void 0;
+      eventManager.removeEventListener('touchmove', onTouchMove, false);
     }, 30);
   };
   var lastMouseOver;
@@ -1340,9 +1346,13 @@ function WalkontableEvent(instance) {
   var onTouchEnd = function(event) {
     clearTimeout(longTouchTimeout);
     event.preventDefault();
-    setTimeout(function() {
+    if (window.cow && window.cow.iOS) {
+      setTimeout(function() {
+        onMouseUp(event);
+      }, 30);
+    } else {
       onMouseUp(event);
-    }, 30);
+    }
   };
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
