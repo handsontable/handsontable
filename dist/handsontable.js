@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue May 31 2016 21:28:03 GMT+0800 (CST)
+ * Date: Wed Jun 01 2016 12:07:20 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue May 31 2016 21:28:03 GMT+0800 (CST)',
+  buildDate: 'Wed Jun 01 2016 12:07:20 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -16193,7 +16193,7 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
   if (_this.pasteCallbacks) {
     setTimeout(function() {
-      var copiedVal = _this.elTextarea.htmlValue || _this.elTextarea.value,
+      var copiedVal = _this.elTextarea.htmlValue || _.escape(_this.elTextarea.value),
           val;
       val = string || copiedVal;
       for (var i = 0,
