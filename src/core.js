@@ -582,6 +582,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
 
     /**
+     * Starts selection range on given td object.
+     *
+     * @param {WalkontableCellCoords} coords
+     * @param keepEditorOpened
+     */
+    setRangeStartOnly: function(coords) {
+      Handsontable.hooks.run(instance, 'beforeSetRangeStartOnly', coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
+    },
+
+    /**
      * Ends selection range on given td object.
      *
      * @param {WalkontableCellCoords} coords

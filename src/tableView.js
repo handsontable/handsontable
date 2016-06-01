@@ -8,10 +8,8 @@ import {
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput,
-  closest
+  isOutsideInput
 } from './helpers/dom/element';
-import {clone} from './helpers/object';
 import {eventManager as eventManagerObject} from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
@@ -291,46 +289,89 @@ function TableView(instance) {
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
-            instance.selection.setRangeEnd(coords);
-          }
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
 
-          if (instance.selection.selectedHeader.cols && coords.col >= 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-          }
+      let actualSelection = instance.getSelectedRange();
+      let selection = instance.selection;
+      let selectedHeader = selection.selectedHeader;
 
-          if (instance.selection.selectedHeader.rows && coords.row >= 0) {
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-          }
-        } else {
-          if (event.button === 0 || (event.button === 2 && !instance.selection.inInSelection(coords))) {
-            if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-              if (coords.row < 0) {
-                instance.selection.setSelectedHeaders(false, true);
-                instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
-              }
+      if (event.shiftKey && actualSelection) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(coords);
+          selection.setSelectedHeaders(false, false);
 
-              if (coords.col < 0) {
-                instance.selection.setSelectedHeaders(true, false);
-                instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-              }
+        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+          selection.setSelectedHeaders(false, false);
 
-            } else {
-              coords.row = coords.row < 0 ? 0 : coords.row;
-              coords.col = coords.col < 0 ? 0 : coords.col;
+        } else if (selectedHeader.cols && coords.row < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(actualSelection.to.row, coords.col));
 
-              instance.selection.setSelectedHeaders(false, false);
-              instance.selection.setRangeStart(coords);
-            }
+        } else if (selectedHeader.rows && coords.col < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, actualSelection.to.col));
+
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
+                   (selectedHeader.cols && coords.col < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(actualSelection.from.row, 0));
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          selection.setSelectedHeaders(true, false);
+
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
+                   (selectedHeader.rows && coords.row < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(0, actualSelection.from.col));
+          selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          selection.setSelectedHeaders(false, true);
+        }
+      } else {
+        let doNewSelection = true;
+
+        if (actualSelection) {
+          let {from, to} = actualSelection;
+          let coordsNotInSelection = !selection.inInSelection(coords);
+
+          if (coords.row < 0 && selectedHeader.cols) {
+            let start = Math.min(from.col, to.col);
+            let end = Math.max(from.col, to.col);
+
+            doNewSelection = (coords.col < start || coords.col > end);
+
+          } else if (coords.col < 0 && selectedHeader.rows) {
+            let start = Math.min(from.row, to.row);
+            let end = Math.max(from.row, to.row);
+
+            doNewSelection = (coords.row < start || coords.row > end);
+
+          } else {
+            doNewSelection = coordsNotInSelection;
           }
         }
 
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+        if (event.button === 0 || (event.button === 2 && doNewSelection)) {
+          if (coords.row < 0 && coords.col >= 0) {
+            selection.setSelectedHeaders(false, true);
+            selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
+            selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
 
-        that.activeWt = that.wt;
+          } else if (coords.col < 0 && coords.row >= 0) {
+            selection.setSelectedHeaders(true, false);
+            selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+
+          } else {
+            coords.row = coords.row < 0 ? 0 : coords.row;
+            coords.col = coords.col < 0 ? 0 : coords.col;
+
+            selection.setSelectedHeaders(false, false);
+            selection.setRangeStart(coords);
+          }
+        }
       }
+
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+
+      that.activeWt = that.wt;
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {
@@ -357,22 +398,22 @@ function TableView(instance) {
             // multi select columns
             if (coords.row < 0 && !blockCalculations.column) {
               if (instance.selection.selectedHeader.cols) {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
                 instance.selection.setSelectedHeaders(false, true);
 
               } else {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
               }
             }
 
             // multi select rows
             if (coords.col < 0 && !blockCalculations.row) {
               if (instance.selection.selectedHeader.rows) {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
                 instance.selection.setSelectedHeaders(true, false);
 
               } else {
-                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
               }
             }
           }

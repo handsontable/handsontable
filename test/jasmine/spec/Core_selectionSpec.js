@@ -491,6 +491,56 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
+  it('should select columns by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+  it('should change selection after click on row header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([1, 0, 4, 4]);
+
+  });
+
+  it('should change selection after click on column header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
     var tick = 0, tickEnd = 0;
     handsontable({
@@ -953,4 +1003,25 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(spy.mostRecentCall.args[1]).toBe(-1);
     expect(spy.mostRecentCall.args[2]).toBe(0);
   });
+
+  it('should change selection after left mouse button on one of selected cell', function () {
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    var cells = $('.ht_master.handsontable td');
+
+    cells.eq(6).simulate('mousedown');
+    cells.eq(18).simulate('mouseover');
+    cells.eq(18).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([1, 1, 3, 3]);
+
+    cells.eq(16).simulate('mousedown');
+    cells.eq(16).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
+  });
+
 });
