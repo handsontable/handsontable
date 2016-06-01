@@ -491,6 +491,56 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
+  it('should select columns by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+  it('should change selection after click on row header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([1, 0, 4, 4]);
+
+  });
+
+  it('should change selection after click on column header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
     var tick = 0, tickEnd = 0;
     handsontable({
