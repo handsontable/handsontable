@@ -293,7 +293,7 @@ function TableView(instance) {
         return;
       }
 
-      let actualSelection = instance.getSelectedRange() || false;
+      let actualSelection = instance.getSelectedRange();
       let selection = instance.selection;
       let selectedHeader = selection.selectedHeader;
 
