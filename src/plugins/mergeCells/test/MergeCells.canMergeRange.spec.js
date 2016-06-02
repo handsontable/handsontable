@@ -641,7 +641,11 @@ describe("handsontable.MergeCells", function() {
       expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(4);
 
     });
-    
+
+  });
+  
+  describe("remove row/column with merged cells ", function() {
+
     it("should remove first two columns, when removing column 0 which contains colspan of length 2", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -692,7 +696,7 @@ describe("handsontable.MergeCells", function() {
       expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
     });
     
-    it("should remove colspan info, when removing rows containing the rowspan", function() {
+    it("should remove rowspan info, when removing rows containing the rowspan", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
@@ -708,6 +712,142 @@ describe("handsontable.MergeCells", function() {
       
       expect(hot.countRows()).toEqual(18);
       expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+    });
+    
+    it("should remove two colspan info, when removing 4 out of 5 columns of the colspan and whole colspan", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 1, colspan: 5},
+          {row: 1, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 2, colspan: 2}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 1, 4);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+    });
+    
+    it("should not remove colspan info, when removing 4 out of 5 columns of the colspan which also has rowspan of 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 5},
+          {row: 1, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 1, colspan: 10}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 1, 4);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(3);
+    });
+    
+      it("should remove two rowspan info, when removing 4 out of 5 rows of the rowspan and a whole rowspan", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 5, colspan: 1},
+          {row: 6, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 2, colspan: 2}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 1, 4);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+    });
+    
+    it("should not remove rowspan info, when removing 4 out of 5 rows of the rowspan which also has colspan of 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 5, colspan: 2},
+          {row: 6, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 10, colspan: 1}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 1, 4);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(3);
+    });
+    
+    it("should reduce colspan info to 1, when removing 4 out of 5 columns of the colspan which also has rowspan of 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 5},
+          {row: 1, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 1, colspan: 10}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 1, 4);
+      
+      expect(hot.mergeCells.getInfo(1,1).colspan).toEqual(1);
+    });
+    
+    it("should reduce colspan info to 8, when removing 2 out of 10 columns of a colspan ", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 5},
+          {row: 1, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 1, colspan: 10}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 1, 4);
+      
+      expect(hot.mergeCells.getInfo(3,3).colspan).toEqual(8);
+    });
+    
+    it("should reduce rowspan info to 1, when removing 4 out of 5 rows of the rowspan which also has colspan of 2", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 5, colspan: 2},
+          {row: 6, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 10, colspan: 1}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 1, 4);
+      
+      expect(hot.mergeCells.getInfo(1,1).rowspan).toEqual(1);
+    });
+    
+    it("should reduce rowspan info to 8, when removing 2 out of 10 rows of the rowspan", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 5, colspan: 2},
+          {row: 6, col: 6, rowspan: 2, colspan: 2},
+          {row: 3, col: 3, rowspan: 10, colspan: 1}   
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 1, 4);
+      
+      expect(hot.mergeCells.getInfo(3,3).rowspan).toEqual(8);
     });
     
   });
