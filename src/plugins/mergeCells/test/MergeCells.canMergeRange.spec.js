@@ -796,7 +796,7 @@ describe("handsontable.MergeCells", function() {
 
       hot.alter('remove_col', 1, 4);
       
-      expect(hot.mergeCells.getInfo(1,1).colspan).toEqual(1);
+      expect(hot.mergeCells.mergedCellInfoCollection.getInfo(1,1).colspan).toEqual(1);
     });
     
     it("should reduce colspan info to 8, when removing 2 out of 10 columns of a colspan ", function() {
@@ -813,7 +813,7 @@ describe("handsontable.MergeCells", function() {
 
       hot.alter('remove_col', 1, 4);
       
-      expect(hot.mergeCells.getInfo(3,3).colspan).toEqual(8);
+      expect(hot.mergeCells.mergedCellInfoCollection.getInfo(3,3).colspan).toEqual(8);
     });
     
     it("should reduce rowspan info to 1, when removing 4 out of 5 rows of the rowspan which also has colspan of 2", function() {
@@ -830,7 +830,7 @@ describe("handsontable.MergeCells", function() {
 
       hot.alter('remove_row', 1, 4);
       
-      expect(hot.mergeCells.getInfo(1,1).rowspan).toEqual(1);
+      expect(hot.mergeCells.mergedCellInfoCollection.getInfo(1,1).rowspan).toEqual(1);
     });
     
     it("should reduce rowspan info to 8, when removing 2 out of 10 rows of the rowspan", function() {
@@ -847,7 +847,7 @@ describe("handsontable.MergeCells", function() {
 
       hot.alter('remove_row', 1, 4);
       
-      expect(hot.mergeCells.getInfo(3,3).rowspan).toEqual(8);
+      expect(hot.mergeCells.mergedCellInfoCollection.getInfo(3,3).rowspan).toEqual(8);
     });
     
   });

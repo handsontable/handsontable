@@ -296,25 +296,44 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
 
 };
 
+MergeCells.prototype.calculateColIntersection = function(mergeInfo, index, count){
+  var intersection = Math.min(mergeInfo.col + mergeInfo.colspan, index + count) - Math.max(mergeInfo.col, index);
+  
+  return Math.max(0, intersection);
+};
+
+MergeCells.prototype.calculateRowIntersection = function(mergeInfo, index, count){
+  var intersection = Math.min(mergeInfo.row + mergeInfo.rowspan, index + count) - Math.max(mergeInfo.row, index);
+  
+  return Math.max(0, intersection);
+};
+
 MergeCells.prototype.removeMergedCells = function(type, index, count) {
+  var calculateInstersection = type === 'col' ? this.calculateColIntersection : this.calculateRowIntersection;
 
-  var isColspanInScope = function(mergeInfo) {
-    return mergeInfo.col >= index && mergeInfo.col + mergeInfo.colspan <= index + count;
-  };
-
-  var isRowSpanInScope = function(mergeInfo) {
-    return mergeInfo.row >= index && mergeInfo.row + mergeInfo.rowspan <= index + count;
-  };
-
-  var isMergeInfoInScope = type === 'col' ? isColspanInScope : isRowSpanInScope;
-
-  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) {
-    var currentMerge = this.mergedCellInfoCollection[i];
-
-    if (isMergeInfoInScope(currentMerge)) {
-      this.mergedCellInfoCollection.splice(i, 1);
+  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) { //Starting from end will let us remove elements from array in one go
+    
+    var currentMergeInfo = this.mergedCellInfoCollection[i];
+    var intersection = calculateInstersection(currentMergeInfo, index, count);
+    
+    if(intersection == 0){
+      continue;
     }
-
+    
+    if((type === 'col' && currentMergeInfo.colspan == intersection) || (type == 'row' && currentMergeInfo.rowspan == intersection)){
+      this.mergedCellInfoCollection.splice(i, 1);
+    } else {
+      
+      if(type === 'col'){
+        currentMergeInfo.colspan -= intersection;
+      } else if(type === 'row'){
+        currentMergeInfo.rowspan -= intersection;
+      }
+      
+      if(currentMergeInfo.rowspan === 1 && currentMergeInfo.colspan === 1){
+        this.mergedCellInfoCollection.splice(i, 1);
+      }
+    }
   }
 };
 
