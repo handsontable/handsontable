@@ -584,7 +584,7 @@ describe("handsontable.MergeCells", function() {
       hot.alter('insert_col', 3, 2);
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(6);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(7);
 
     });
 
@@ -638,7 +638,7 @@ describe("handsontable.MergeCells", function() {
       hot.alter('insert_row', 3, 2);
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(6);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(7);
 
     });
 
