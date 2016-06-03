@@ -38,6 +38,10 @@ function CellInfoCollection() {
     }
   };
 
+  collection.removeInfoByIndex = function(index) {
+    this.splice(index, 1);
+  };
+
   return collection;
 }
 
@@ -296,43 +300,62 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
 
 };
 
-MergeCells.prototype.calculateColIntersection = function(mergeInfo, index, count){
+MergeCells.prototype.calculateColIntersection = function(mergeInfo, index, count) {
   var intersection = Math.min(mergeInfo.col + mergeInfo.colspan, index + count) - Math.max(mergeInfo.col, index);
-  
+
   return Math.max(0, intersection);
 };
 
-MergeCells.prototype.calculateRowIntersection = function(mergeInfo, index, count){
+MergeCells.prototype.calculateRowIntersection = function(mergeInfo, index, count) {
   var intersection = Math.min(mergeInfo.row + mergeInfo.rowspan, index + count) - Math.max(mergeInfo.row, index);
-  
+
   return Math.max(0, intersection);
 };
 
-MergeCells.prototype.removeMergedCells = function(type, index, count) {
-  var calculateInstersection = type === 'col' ? this.calculateColIntersection : this.calculateRowIntersection;
+MergeCells.prototype.isMergedCellInsideRemovedRange = function(span, intersection, otherSpan) {
+  return span == intersection || (span - 1 == intersection && otherSpan === 1);
+};
 
-  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) { //Starting from end will let us remove elements from array in one go
-    
+MergeCells.prototype.adjustMergedCellInfoAfterRowRemoval = function(index, count) {
+  //Starting from end will let us remove elements from array in one go
+  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) {
+
     var currentMergeInfo = this.mergedCellInfoCollection[i];
-    var intersection = calculateInstersection(currentMergeInfo, index, count);
-    
-    if(intersection == 0){
-      continue;
-    }
-    
-    if((type === 'col' && currentMergeInfo.colspan == intersection) || (type == 'row' && currentMergeInfo.rowspan == intersection)){
-      this.mergedCellInfoCollection.splice(i, 1);
+    var intersection = this.calculateRowIntersection(currentMergeInfo, index, count);
+
+    //Remove merged cell info if is contained within the removed row range
+    if (this.isMergedCellInsideRemovedRange(currentMergeInfo.rowspan, intersection, currentMergeInfo.colspan)) {
+      this.mergedCellInfoCollection.removeInfoByIndex(i);
     } else {
-      
-      if(type === 'col'){
-        currentMergeInfo.colspan -= intersection;
-      } else if(type === 'row'){
-        currentMergeInfo.rowspan -= intersection;
-      }
-      
-      if(currentMergeInfo.rowspan === 1 && currentMergeInfo.colspan === 1){
-        this.mergedCellInfoCollection.splice(i, 1);
-      }
+      //If the removed range is before the merged cell then row should be shifted upwords by the count of removed rows
+      var rowShift = index < currentMergeInfo.row ? count : 0;
+      //If the removed range intersects with the merged cell then we need to shift it upwords only by the difference in starting indices
+      rowShift = intersection > 0 ? Math.max(currentMergeInfo.row - index, 0) : rowShift;
+
+      currentMergeInfo.row -= rowShift;
+      currentMergeInfo.rowspan -= intersection;
+    }
+  }
+};
+
+MergeCells.prototype.adjustMergedCellInfoAfterColRemoval = function(index, count) {
+  //Starting from end will let us remove elements from array in one go
+  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) {
+
+    var currentMergeInfo = this.mergedCellInfoCollection[i];
+    var intersection = this.calculateColIntersection(currentMergeInfo, index, count);
+
+    //Remove merged cell info if is contained within the removed column range
+    if (this.isMergedCellInsideRemovedRange(currentMergeInfo.colspan, intersection, currentMergeInfo.rowspan)) {
+      this.mergedCellInfoCollection.removeInfoByIndex(i);
+    } else {
+      //If the removed range is before the merged cell then col should be shifted upwords by the count of removed columns
+      var colShift = index < currentMergeInfo.col ? count : 0;
+      //If the removed range intersects with the merged cell then we need to shift it upwords only by the difference in starting indices
+      colShift = intersection > 0 ? Math.max(currentMergeInfo.col - index, 0) : colShift;
+
+      currentMergeInfo.col -= colShift;
+      currentMergeInfo.colspan -= intersection;
     }
   }
 };
@@ -639,8 +662,7 @@ function onAfterCreateCol(col, count) {
 
 function onAfterRemoveCol(col, count) {
   if (this.mergeCells) {
-    this.mergeCells.removeMergedCells('col', col, count);
-    this.mergeCells.shiftCollection('left', col, count);
+    this.mergeCells.adjustMergedCellInfoAfterColRemoval(col, count);
   }
 }
 
@@ -652,8 +674,7 @@ function onAfterCreateRow(row, count) {
 
 function onAfterRemoveRow(row, count) {
   if (this.mergeCells) {
-    this.mergeCells.removeMergedCells('row', row, count);
-    this.mergeCells.shiftCollection('up', row, count);
+    this.mergeCells.adjustMergedCellInfoAfterRowRemoval(row, count);
   }
 }
 
