@@ -588,7 +588,7 @@ describe("handsontable.MergeCells", function() {
 
     });
 
-    it("should shift the merged cells left, when removing a column on the left side of them", function() {
+    it("should shift the merged cells left, when removing two columns on the left side of them", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
@@ -602,7 +602,7 @@ describe("handsontable.MergeCells", function() {
       hot.alter('remove_col', 3, 2);
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(4);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(3);
 
     });
 
@@ -624,7 +624,7 @@ describe("handsontable.MergeCells", function() {
 
     });
 
-    it("should shift the merged cells down, when inserting a row above them", function() {
+    it("should shift the merged cells up, when removing two rows above them", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
@@ -638,7 +638,7 @@ describe("handsontable.MergeCells", function() {
       hot.alter('remove_row', 3, 2);
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(4);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(3);
 
     });
 
