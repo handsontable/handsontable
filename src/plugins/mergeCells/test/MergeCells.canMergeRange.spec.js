@@ -605,6 +605,24 @@ describe("handsontable.MergeCells", function() {
       expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(3);
 
     });
+    
+    it("should not shift the merged cells, when removing two columns from the colspan end", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 3, rowspan: 2, colspan: 10},
+          {row: 5, col: 5, rowspan: 2, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 6, 2);
+
+      expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(3);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(5);
+
+    });
 
     it("should shift the merged cells down, when inserting a row above them", function() {
       var hot = handsontable({
@@ -642,6 +660,23 @@ describe("handsontable.MergeCells", function() {
 
     });
 
+    it("should not shift the merged cells, when removing two rows from the rowspan end", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 2},
+          {row: 5, col: 5, rowspan: 10, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 6, 2);
+
+      expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(5);
+
+    });
   });
   
   describe("remove row/column with merged cells ", function() {
