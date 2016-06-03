@@ -85,6 +85,9 @@ MergeCells.prototype.mergeRange = function(cellRange) {
   // TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
   mergeParent.rowspan = bottomRight.row - topLeft.row + 1;
   mergeParent.colspan = bottomRight.col - topLeft.col + 1;
+
+  this.removeIntersectingMergedCells(mergeParent);
+
   this.mergedCellInfoCollection.setInfo(mergeParent);
 };
 
@@ -347,6 +350,24 @@ MergeCells.prototype.adjustMergedCellInfoAfterColAddition = function(index, coun
     currentMergeInfo.colspan += colspanDiff;
   }
 
+};
+
+MergeCells.prototype.removeIntersectingMergedCells = function(mergeInfo) {
+  //Starting from end will let us remove elements from array in one go
+  for (var i = this.mergedCellInfoCollection.length - 1; i >= 0; i--) {
+
+    var currentMergeInfo = this.mergedCellInfoCollection[i];
+
+    //Remove merged cell info if it interects in any way with the given merge info
+    if (currentMergeInfo.row < mergeInfo.row + mergeInfo.rowspan &&
+          mergeInfo.row < currentMergeInfo.row + currentMergeInfo.rowspan &&
+          currentMergeInfo.col  < mergeInfo.col + mergeInfo.colspan &&
+          mergeInfo.col < currentMergeInfo.col + currentMergeInfo.colspan) {
+
+      this.mergedCellInfoCollection.removeInfoByIndex(i);
+
+    }
+  }
 };
 
 var beforeInit = function() {

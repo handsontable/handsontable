@@ -1060,7 +1060,31 @@ describe("handsontable.MergeCells", function() {
       expect(hot.mergeCells.mergedCellInfoCollection[0].colspan).toEqual(2);
     });
     
-     it("should not remove a merged cell info, when creating a new merged cell not intersecting with the old cell", function(){
+    it("should remove a merged cell info, when creating a new merged cell originiating from old cell bottom right corner", function(){
+      
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      var coordsFrom = new WalkontableCellCoords(3, 3);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
+      
+      hot.mergeCells.mergeOrUnmergeSelection(cellRange);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
+      expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
+      expect(hot.mergeCells.mergedCellInfoCollection[0].rowspan).toEqual(3);
+      expect(hot.mergeCells.mergedCellInfoCollection[0].colspan).toEqual(3);
+    });
+    
+    it("should not remove a merged cell info, when creating a new merged cell not intersecting with the old cell", function(){
       
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -1077,6 +1101,44 @@ describe("handsontable.MergeCells", function() {
       hot.mergeCells.mergeOrUnmergeSelection(cellRange);
       
       expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(2);
+    });
+    
+    it("should not remove a merged cell info, when creating a new merged cell not intersecting with the old cell bottom right corner", function(){
+      
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      var coordsFrom = new WalkontableCellCoords(3, 3);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(3, 4));
+      
+      hot.mergeCells.mergeOrUnmergeSelection(cellRange);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(2);
+    });
+    
+    it("should not remove a merged cell info, when creating a new merged cell starting from the old cell top left corner", function(){
+      
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 2}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      var coordsFrom = new WalkontableCellCoords(3, 4);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
+      
+      hot.mergeCells.mergeOrUnmergeSelection(cellRange);
+      
+      expect(hot.mergeCells.mergedCellInfoCollection.length).toEqual(1);
     });
     
   });
