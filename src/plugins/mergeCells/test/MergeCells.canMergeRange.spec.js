@@ -1004,9 +1004,9 @@ describe("handsontable.MergeCells", function() {
 
       hot.alter('insert_col', 5, 4);
       
-      expect(hot.mergeCells.mergedCellInfoCollection[0].rowspan).toEqual(9);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].rowspan).toEqual(2);
-      expect(hot.mergeCells.mergedCellInfoCollection[2].rowspan).toEqual(14);
+      expect(hot.mergeCells.mergedCellInfoCollection[0].colspan).toEqual(9);
+      expect(hot.mergeCells.mergedCellInfoCollection[1].colspan).toEqual(2);
+      expect(hot.mergeCells.mergedCellInfoCollection[2].colspan).toEqual(14);
     });
   });
 });

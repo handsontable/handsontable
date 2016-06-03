@@ -261,45 +261,6 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
   }
 };
 
-MergeCells.prototype.shiftCollection = function(direction, index, count) {
-  var shiftVector = [0, 0];
-
-  switch (direction) {
-    case 'right':
-      shiftVector[0] += 1;
-
-      break;
-    case 'left':
-      shiftVector[0] -= 1;
-
-      break;
-    case 'down':
-      shiftVector[1] += 1;
-
-      break;
-    case 'up':
-      shiftVector[1] -= 1;
-
-      break;
-  }
-
-  for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
-    var currentMerge = this.mergedCellInfoCollection[i];
-
-    if (direction === 'right' || direction === 'left') {
-      if (index <= currentMerge.col) {
-        currentMerge.col += shiftVector[0];
-      }
-    } else {
-      if (index <= currentMerge.row) {
-        currentMerge.row += shiftVector[1];
-      }
-    }
-
-  }
-
-};
-
 MergeCells.prototype.calculateColIntersection = function(mergeInfo, index, count) {
   var intersection = Math.min(mergeInfo.col + mergeInfo.colspan, index + count) - Math.max(mergeInfo.col, index);
 
@@ -358,6 +319,34 @@ MergeCells.prototype.adjustMergedCellInfoAfterColRemoval = function(index, count
       currentMergeInfo.colspan -= intersection;
     }
   }
+};
+
+MergeCells.prototype.adjustMergedCellInfoAfterRowAddition = function(index, count) {
+
+  for (var i = 0, ilen = this.mergedCellInfoCollection.length; i < ilen; i++) {
+    var currentMergeInfo = this.mergedCellInfoCollection[i];
+
+    var rowspanDiff = index > currentMergeInfo.row && index < currentMergeInfo.row + currentMergeInfo.rowspan ? count : 0;
+    var rowShift = index < currentMergeInfo.row ? count : 0;
+
+    currentMergeInfo.row += rowShift;
+    currentMergeInfo.rowspan += rowspanDiff;
+  }
+
+};
+
+MergeCells.prototype.adjustMergedCellInfoAfterColAddition = function(index, count) {
+
+  for (var i = 0, ilen = this.mergedCellInfoCollection.length; i < ilen; i++) {
+    var currentMergeInfo = this.mergedCellInfoCollection[i];
+
+    var colspanDiff = index > currentMergeInfo.col && index < currentMergeInfo.col + currentMergeInfo.colspan ? count : 0;
+    var colShift = index < currentMergeInfo.col ? count : 0;
+
+    currentMergeInfo.col += colShift;
+    currentMergeInfo.colspan += colspanDiff;
+  }
+
 };
 
 var beforeInit = function() {
@@ -656,7 +645,7 @@ function afterAutofillApplyValues(select, drag) {
 
 function onAfterCreateCol(col, count) {
   if (this.mergeCells) {
-    this.mergeCells.shiftCollection('right', col, count);
+    this.mergeCells.adjustMergedCellInfoAfterColAddition(col, count);
   }
 }
 
@@ -668,7 +657,7 @@ function onAfterRemoveCol(col, count) {
 
 function onAfterCreateRow(row, count) {
   if (this.mergeCells) {
-    this.mergeCells.shiftCollection('down', row, count);
+    this.mergeCells.adjustMergedCellInfoAfterRowAddition(row, count);
   }
 }
 
