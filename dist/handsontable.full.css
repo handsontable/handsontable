@@ -494,7 +494,10 @@ AutocompleteRenderer down arrow
 /*
 CheckboxRenderer
 */
-
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+  vertical-align: middle;
+}
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -502,14 +505,6 @@ CheckboxRenderer
   cursor: pointer;
   display: inline-block;
   width: 100%;
-}
-
-/*
-NumericRenderer
-*/
-
-.handsontable .htNumeric {
-  text-align: right;
 }
 
 /*

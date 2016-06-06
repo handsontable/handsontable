@@ -345,13 +345,13 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      var contextSubMenu = $('.htContextMenuSub_' + item.text()).find('tbody td');
 
       expect(contextSubMenu.length).toEqual(0);
 
       waits(250);
       runs(function() {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $('.htContextMenuSub_' + item.text()).find('tbody td');
 
         expect(contextSubMenu.length).toEqual(0);
       })

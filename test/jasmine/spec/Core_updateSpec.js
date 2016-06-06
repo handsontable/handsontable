@@ -144,7 +144,7 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
 
     expect(getCellMeta(0, 1).readOnly).toBe(true);
-    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
       columns: [
@@ -159,7 +159,7 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
 
     expect(getCellMeta(0, 1).readOnly).toBe(true);
-    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
   });
 
   it("should not alter the columns object during init", function () {
