@@ -240,7 +240,8 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
-      newY += 1;
+      // super_xp change it to 50 to fix bug 2016.6.6
+      newY += 50;
 
     } else {
       newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
