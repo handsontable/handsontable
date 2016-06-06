@@ -1,5 +1,5 @@
 if (window.jQuery) {
-  jQuery(function ($) {
+  (function ($) {
     $.fn.handsontable = function (action) {
       var i,
         ilen,
@@ -49,7 +49,7 @@ if (window.jQuery) {
         return output;
       }
     };
-  });
+  })(jQuery);
 }
 
 
