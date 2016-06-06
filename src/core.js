@@ -582,6 +582,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
 
     /**
+     * Starts selection range on given td object.
+     *
+     * @param {WalkontableCellCoords} coords
+     * @param keepEditorOpened
+     */
+    setRangeStartOnly: function(coords) {
+      Handsontable.hooks.run(instance, 'beforeSetRangeStartOnly', coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
+    },
+
+    /**
      * Ends selection range on given td object.
      *
      * @param {WalkontableCellCoords} coords
@@ -3544,8 +3555,9 @@ DefaultSettings.prototype = {
 
   /**
    * If `true`, mouse click outside the grid will deselect the current selection.
+   * Can be a function that takes the click event target and returns a boolean.
    *
-   * @type {Boolean}
+   * @type {Boolean|Function}
    * @default true
    */
   outsideClickDeselects: true,

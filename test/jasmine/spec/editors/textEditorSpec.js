@@ -990,8 +990,12 @@ describe('TextEditor', function () {
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     var $editorInput = $('.handsontableInput');
+    
+    waits(150);
 
-    expect($editorInput.height()).toEqual(84);
+    runs(function() {
+      expect($editorInput.height()).toEqual(84);
+    });
   });
 
 });

@@ -575,6 +575,14 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Callback fired before setting range is started.
+   *
+   * @event Hooks#beforeSetRangeStart
+   * @param {Array} coords WalkontableCellCoords array.
+   */
+  'beforeSetRangeStart',
+
+  /**
    * Callback fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
