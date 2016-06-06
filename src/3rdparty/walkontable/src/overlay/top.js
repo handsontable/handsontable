@@ -87,6 +87,12 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     } else {
       this.mainTableScrollableElement.scrollTop = pos;
     }
+
+    if (window.myScroll && window.myScroll.scrollVirtual) {
+      pos = pos >= 0 ? pos : 0;
+      window.myScroll.scrollVirtual(0, -pos);
+    }
+
   }
 
   /**
