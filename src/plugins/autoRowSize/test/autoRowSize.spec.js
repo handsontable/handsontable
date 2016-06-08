@@ -346,8 +346,5 @@ describe('AutoRowSize', function () {
       width: 300,
       height: 300
     });
-
-    debugger;
-
   });
 });

@@ -59,6 +59,28 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
+  it("should call `onCellMouseOver` callback with correctly passed TD element when cell contains another table", function () {
+    var fn = jasmine.createSpy();
+    var wt = new Walkontable({
+      table: $table[0],
+      data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
+      totalRows: 1,
+      totalColumns: 1,
+      onCellMouseOver: fn,
+      cellRenderer: function(row, column, TD) {
+        TD.innerHTML = wt.wtSettings.getSetting('data', row, column);
+      },
+    });
+    wt.draw();
+
+    var outerTD = $table.find('tbody td:not(td.test)');
+    var innerTD = $table.find('tbody td.test');
+
+    innerTD.simulate('mouseover');
+
+    expect(fn.calls[0].args[2]).toBe(outerTD[0]);
+  });
+
   it("should call `onCellDblClick` callback", function () {
     var myCoords = null
       , myTD = null

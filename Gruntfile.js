@@ -113,6 +113,7 @@ module.exports = function(grunt) {
           specs: [
             'test/jasmine/spec/*Spec.js',
             'test/jasmine/spec/!(mobile)*/*Spec.js',
+            'test/jasmine/spec/helpers/dom/*Spec.js',
             'src/plugins/*/test/*.spec.js',
             'plugins/*/test/*.spec.js',
             'test/jasmine/spec/MemoryLeakTest.js'
@@ -156,6 +157,7 @@ module.exports = function(grunt) {
           specs: [
             'test/jasmine/spec/*Spec.js',
             'test/jasmine/spec/!(mobile)*/*Spec.js',
+            'test/jasmine/spec/helpers/dom/*Spec.js',
             'src/plugins/*/test/*.spec.js',
             'plugins/*/test/*.spec.js',
             'test/jasmine/spec/MemoryLeakTest.js'
