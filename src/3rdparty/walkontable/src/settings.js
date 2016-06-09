@@ -83,6 +83,7 @@ class WalkontableSettings {
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: (width) => width,
+      onModifyRowHeaderWidth: null,
 
       //constants
       scrollbarWidth: 10,

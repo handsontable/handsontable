@@ -871,6 +871,14 @@ const REGISTERED_HOOKS = [
    * @param {Array} formulasStack An array of objects with added formulas.
    */
   'afterFilter',
+
+  /**
+   * Used to modify the row header width.
+   *
+   * @event Hooks#modifyRowHeaderWidth
+   * @param {Number} rowHeaderWidth Row header width.
+   */
+  'modifyRowHeaderWidth',
 ];
 
 import {arrayEach} from './helpers/array';

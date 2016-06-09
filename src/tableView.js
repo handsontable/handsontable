@@ -396,6 +396,9 @@ function TableView(instance) {
     onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
       return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
     },
+    onModifyRowHeaderWidth: function(rowHeaderWidth) {
+      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
+    },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;

@@ -153,9 +153,12 @@ DataMap.prototype.getSchema = function() {
 /**
  * Creates row at the bottom of the data array.
  *
- * @param {Number} [index] Index of the row before which the new row will be inserted
+ * @param {Number} [index] Index of the row before which the new row will be inserted.
+ * @param {Number} amount Amount items to be created.
+ * @param {Boolean} createdAutomatically `true` if rows were created automatically.
+ *
  * @fires Hooks#afterCreateRow
- * @returns {Number} Returns number of created rows
+ * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
   var row, colCount = this.instance.countCols(),
@@ -294,12 +297,12 @@ DataMap.prototype.removeRow = function(index, amount) {
   let data = this.dataSource;
   let newData;
 
-  newData = data.filter(function(row, index) {
-    return logicRows.indexOf(index) == -1;
-  });
+  newData = this.filterData(index, amount);
 
-  data.length = 0;
-  Array.prototype.push.apply(data, newData);
+  if (newData) {
+    data.length = 0;
+    Array.prototype.push.apply(data, newData);
+  }
 
   Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
 
@@ -431,6 +434,26 @@ DataMap.prototype.spliceData = function(index, amount, element) {
 
   if (continueSplicing !== false) {
     this.dataSource.splice(index, amount, element);
+  }
+};
+
+/**
+ * Filter unwanted data elements from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @returns {Array}
+ */
+DataMap.prototype.filterData = function(index, amount) {
+  let logicRows = this.physicalRowsToLogical(index, amount);
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataFilter', index, amount, logicRows);
+
+  if (continueSplicing !== false) {
+    let newData = this.dataSource.filter(function(row, index) {
+      return logicRows.indexOf(index) == -1;
+    });
+
+    return newData;
   }
 };
 

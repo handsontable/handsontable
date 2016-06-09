@@ -120,6 +120,7 @@ class WalkontableTableRenderer {
         let lastRendered = this.wtTable.getLastRenderedColumn();
 
         let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
         if (rowHeaderWidthSetting != null) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
@@ -381,6 +382,7 @@ class WalkontableTableRenderer {
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting != null) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
