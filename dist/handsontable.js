@@ -70,55 +70,57 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 })
 ({1:[function(_dereq_,module,exports){
 if (window.jQuery) {
-  $.fn.handsontable = function (action) {
-    var i,
-      ilen,
-      args,
-      output,
-      userSettings,
-      $this = this.first(), // Use only first element from list
-      instance = $this.data('handsontable');
+  (function ($) {
+    $.fn.handsontable = function (action) {
+      var i,
+        ilen,
+        args,
+        output,
+        userSettings,
+        $this = this.first(), // Use only first element from list
+        instance = $this.data('handsontable');
 
-    // Init case
-    if (typeof action !== 'string') {
-      userSettings = action || {};
+      // Init case
+      if (typeof action !== 'string') {
+        userSettings = action || {};
 
-      if (instance) {
-        instance.updateSettings(userSettings);
-
-      } else {
-        instance = new Handsontable.Core($this[0], userSettings);
-        $this.data('handsontable', instance);
-        instance.init();
-      }
-
-      return $this;
-
-    } else { // Action case
-      args = [];
-
-      if (arguments.length > 1) {
-        for (i = 1, ilen = arguments.length; i < ilen; i++) {
-          args.push(arguments[i]);
-        }
-      }
-
-      if (instance) {
-        if (typeof instance[action] !== 'undefined') {
-          output = instance[action].apply(instance, args);
-
-          if (action === 'destroy'){
-            $this.removeData();
-          }
+        if (instance) {
+          instance.updateSettings(userSettings);
 
         } else {
-          throw new Error('Handsontable do not provide action: ' + action);
+          instance = new Handsontable.Core($this[0], userSettings);
+          $this.data('handsontable', instance);
+          instance.init();
         }
-      }
 
-      return output;
-    }
-  };
+        return $this;
+
+      } else { // Action case
+        args = [];
+
+        if (arguments.length > 1) {
+          for (i = 1, ilen = arguments.length; i < ilen; i++) {
+            args.push(arguments[i]);
+          }
+        }
+
+        if (instance) {
+          if (typeof instance[action] !== 'undefined') {
+            output = instance[action].apply(instance, args);
+
+            if (action === 'destroy') {
+              $this.removeData();
+            }
+
+          } else {
+            throw new Error('Handsontable do not provide action: ' + action);
+          }
+        }
+
+        return output;
+      }
+    };
+  })(window.jQuery);
 }
 
 
@@ -865,15 +867,12 @@ var $WalkontableCellRange = WalkontableCellRange;
     return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
   },
   includes: function(cellCoords) {
+    var $__2 = cellCoords,
+        row = $__2.row,
+        col = $__2.col;
     var topLeft = this.getTopLeftCorner();
     var bottomRight = this.getBottomRightCorner();
-    if (cellCoords.row < 0) {
-      cellCoords.row = 0;
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = 0;
-    }
-    return topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col;
+    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
   },
   includesRange: function(testedRange) {
     return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
@@ -2139,6 +2138,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
@@ -2147,6 +2147,7 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     getScrollbarWidth = $__0.getScrollbarWidth,
     getScrollLeft = $__0.getScrollLeft,
     getScrollTop = $__0.getScrollTop;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var isKey = ($___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__}).isKey;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).EventManager;
@@ -2234,49 +2235,49 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     this.horizontalScrolling = false;
   },
   registerListeners: function() {
-    var $__4 = this;
+    var $__5 = this;
     var topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     var leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
     var listenersToRegister = [];
     listenersToRegister.push([document.documentElement, 'keydown', (function(event) {
-      return $__4.onKeyDown(event);
+      return $__5.onKeyDown(event);
     })]);
     listenersToRegister.push([document.documentElement, 'keyup', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([document, 'visibilitychange', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([topOverlayScrollable, 'scroll', (function(event) {
-      return $__4.onTableScroll(event);
+      return $__5.onTableScroll(event);
     })]);
     if (topOverlayScrollable !== leftOverlayScrollable) {
       listenersToRegister.push([leftOverlayScrollable, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.needFullRender) {
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.bottomOverlay.needFullRender) {
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.leftOverlay.needFullRender) {
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -2284,11 +2285,11 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         var overlay;
         var deltaY = event.wheelDeltaY || event.deltaY;
         var deltaX = event.wheelDeltaX || event.deltaX;
-        if ($__4.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        if ($__5.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
-        } else if ($__4.bottomOverlay.clone && $__4.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.bottomOverlay.clone && $__5.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
-        } else if ($__4.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
         }
         if (overlay == 'top' && deltaY !== 0) {
@@ -2606,13 +2607,29 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       this.bottomOverlay.applyToDOM();
     }
     this.leftOverlay.applyToDOM();
+  },
+  getParentOverlay: function(element) {
+    if (!element) {
+      return null;
+    }
+    var overlays = [this.topOverlay, this.leftOverlay, this.bottomOverlay, this.topLeftCornerOverlay, this.bottomLeftCornerOverlay];
+    var result = null;
+    arrayEach(overlays, (function(elem, i) {
+      if (!elem) {
+        return;
+      }
+      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) {
+        result = elem.clone;
+      }
+    }));
+    return result;
   }
 }, {});
 ;
 window.WalkontableOverlays = WalkontableOverlays;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/unicode":55}],17:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/dom/element":46,"helpers/unicode":55}],17:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableScroll: {get: function() {
@@ -3505,9 +3522,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
       }
-      this.adjustColumnHeaderHeights();
       this.adjustColumnWidths(columnsToRender);
-      this.markOversizedColumns();
+      this.markOversizedColumnHeaders();
+      this.adjustColumnHeaderHeights();
     }
     if (!adjusted) {
       this.adjustAvailableNodes();
@@ -3626,9 +3643,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
     }
   },
-  markOversizedColumns: function() {
+  markOversizedColumnHeaders: function() {
     var overlayName = this.wot.getOverlayName();
-    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     var columnCount = this.wtTable.getRenderedColumnsCount();
@@ -3637,19 +3654,19 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
   },
   adjustColumnHeaderHeights: function() {
     var columnHeaders = this.wot.getSetting('columnHeaders');
-    var childs = this.wot.wtTable.THEAD.childNodes;
-    var oversizedCols = this.wot.wtViewport.oversizedColumnHeaders;
+    var children = this.wot.wtTable.THEAD.childNodes;
+    var oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
     for (var i = 0,
         len = columnHeaders.length; i < len; i++) {
-      if (oversizedCols[i]) {
-        if (childs[i].childNodes.length === 0) {
+      if (oversizedColumnHeaders[i]) {
+        if (children[i].childNodes.length === 0) {
           return;
         }
-        childs[i].childNodes[0].style.height = oversizedCols[i] + 'px';
+        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
       }
     }
   },
@@ -3671,6 +3688,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       currentHeaderHeight = innerHeight(currentHeader);
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+      if (Array.isArray(columnHeaderHeightSetting)) {
+        if (columnHeaderHeightSetting[level] != null) {
+          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+        }
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
@@ -3897,7 +3921,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.instance = this.wot;
   this.oversizedRows = [];
   this.oversizedColumnHeaders = [];
-  this.isMarkedOversizedColumn = {};
+  this.hasOversizedColumnHeadersMarked = {};
   this.clientHeight = 0;
   this.containerWidth = NaN;
   this.rowHeaderWidth = NaN;
@@ -4228,9 +4252,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Mon Apr 11 2016 14:03:53 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Mon Jun 06 2016 13:30:03 GMT+0200 (CEST)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.24.2';
+Handsontable.version = '0.25.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -4824,6 +4848,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
       selection.setRangeEnd(coords, null, keepEditorOpened);
     },
+    setRangeStartOnly: function(coords) {
+      Handsontable.hooks.run(instance, 'beforeSetRangeStartOnly', coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
+    },
     setRangeEnd: function(coords, scrollToCell, keepEditorOpened) {
       if (priv.selRange === null) {
         return;
@@ -5143,7 +5171,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           datamap.createRow();
         }
       }
-      if (instance.dataType === 'array' && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           datamap.createCol();
         }
@@ -5448,6 +5476,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.rootElement.style.width = width + 'px';
     }
     if (!init) {
+      datamap.clearLengthCache();
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
     grid.adjustRowsAndCols();
@@ -5824,35 +5853,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
   };
-  this.getColspanOffset = function(col, level) {
-    var colspanSum = 0;
-    if (instance.colspanArray) {
-      for (var i = 0; i < col; i++) {
-        colspanSum += instance.colspanArray[level][i] - 1 || 0;
-      }
-      return colspanSum;
-    }
-    var colspanSum = 0;
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
-      if (TR.childNodes[i].hasAttribute('colspan')) {
-        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
-      }
-    }
-    return colspanSum;
-  };
-  this.getHeaderColspan = function(col, level) {
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
-    if (TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
-      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
-    }
-    return 0;
-  };
   this.rowOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedRow();
   };
@@ -5947,6 +5947,29 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.deselectCell = function() {
     selection.deselect();
+  };
+  this.scrollViewportTo = function(row, column) {
+    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
+      return false;
+    }
+    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
+      return false;
+    }
+    var result = false;
+    if (row !== void 0 && column !== void 0) {
+      instance.view.wt.scrollVertical(row);
+      instance.view.wt.scrollHorizontal(column);
+      result = true;
+    }
+    if (typeof row === 'number' && typeof column !== 'number') {
+      instance.view.wt.scrollVertical(row);
+      result = true;
+    }
+    if (typeof column === 'number' && typeof row !== 'number') {
+      instance.view.wt.scrollHorizontal(column);
+      result = true;
+    }
+    return result;
   };
   this.destroy = function() {
     instance._clearTimeouts();
@@ -6358,6 +6381,9 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
       currentIndex;
   if (!amount) {
     amount = 1;
+  }
+  if (typeof index !== 'number' || index >= this.instance.countCols()) {
+    index = this.instance.countCols();
   }
   currentIndex = index;
   var maxCols = this.instance.getSettings().maxCols;
@@ -7467,7 +7493,7 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
   var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
   if (typeof source == 'function') {
     var _this = this;
-    source(query, function(choices) {
+    source.call(this.cellProperties, query, function(choices) {
       _this.updateChoicesList(choices);
     });
   } else if (Array.isArray(source)) {
@@ -7673,11 +7699,9 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $___46__46__47_editors__,
+var $___46__46__47_editors__,
     $___95_baseEditor__,
     $___46__46__47_helpers_47_dom_47_element__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var BaseEditor = ($___95_baseEditor__ = _dereq_("_baseEditor"), $___95_baseEditor__ && $___95_baseEditor__.__esModule && $___95_baseEditor__ || {default: $___95_baseEditor__}).BaseEditor;
 var hasClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).hasClass;
@@ -7686,10 +7710,12 @@ var CheckboxEditor = function CheckboxEditor() {
 };
 var $CheckboxEditor = CheckboxEditor;
 ($traceurRuntime.createClass)(CheckboxEditor, {
-  beginEditing: function() {
-    var checkbox = this.TD.querySelector('input[type="checkbox"]');
-    if (!hasClass(checkbox, 'htBadValue')) {
-      checkbox.click();
+  beginEditing: function(initialValue, event) {
+    if (event === void 0) {
+      var checkbox = this.TD.querySelector('input[type="checkbox"]');
+      if (!hasClass(checkbox, 'htBadValue')) {
+        checkbox.click();
+      }
     }
   },
   finishEditing: function() {},
@@ -7704,7 +7730,7 @@ var $CheckboxEditor = CheckboxEditor;
 registerEditor('checkbox', CheckboxEditor);
 
 //# 
-},{"_baseEditor":30,"browser":23,"editors":29,"helpers/dom/element":46}],33:[function(_dereq_,module,exports){
+},{"_baseEditor":30,"editors":29,"helpers/dom/element":46}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DateEditor: {get: function() {
@@ -8368,15 +8394,11 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $__numeral__,
+var $__numeral__,
     $___46__46__47_editors__,
     $__textEditor__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var $__2 = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}),
-    getEditor = $__2.getEditor,
-    registerEditor = $__2.registerEditor;
+var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var NumericEditor = function NumericEditor() {
   $traceurRuntime.superConstructor($NumericEditor).apply(this, arguments);
@@ -8396,7 +8418,7 @@ var $NumericEditor = NumericEditor;
 registerEditor('numeric', NumericEditor);
 
 //# 
-},{"browser":23,"editors":29,"numeral":"numeral","textEditor":40}],38:[function(_dereq_,module,exports){
+},{"editors":29,"numeral":"numeral","textEditor":40}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   PasswordEditor: {get: function() {
@@ -9013,24 +9035,6 @@ var EventManager = function EventManager() {
     var $__4 = this;
     var context = this.context;
     function callbackProxy(event) {
-      if (event.target == void 0 && event.srcElement != void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('target', {value: event.srcElement});
-        } else {
-          event.target = event.srcElement;
-        }
-      }
-      if (event.preventDefault == void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('preventDefault', {value: function() {
-              this.returnValue = false;
-            }});
-        } else {
-          event.preventDefault = function() {
-            this.returnValue = false;
-          };
-        }
-      }
       event = extendEvent(context, event);
       callback.call(this, event);
     }
@@ -11178,7 +11182,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeOnCellMouseOver', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeStart', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter', 'modifyColumnHeaderHeight'];
 var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -11593,6 +11597,9 @@ var $AutoColumnSize = AutoColumnSize;
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
     }
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
+    }
     this.addHook('afterLoadData', (function() {
       return $__11.onAfterLoadData();
     }));
@@ -11850,7 +11857,13 @@ var AutoRowSize = function AutoRowSize(hotInstance) {
   this.heights = [];
   this.ghostTable = new GhostTable(this.hot);
   this.samplesGenerator = new SamplesGenerator((function(row, col) {
-    return $__10.hot.getDataAtCell(row, col);
+    if (row >= 0) {
+      return $__10.hot.getDataAtCell(row, col);
+    } else if (row === -1) {
+      return $__10.hot.getColHeader(col);
+    } else {
+      return null;
+    }
   }));
   this.firstCalculation = true;
   this.inProgress = false;
@@ -11897,6 +11910,9 @@ var $AutoRowSize = AutoRowSize;
     this.addHook('modifyRowHeight', (function(height, row) {
       return $__10.getRowHeight(row, height);
     }));
+    this.addHook('modifyColumnHeaderHeight', (function() {
+      return $__10.getColumnHeaderHeight();
+    }));
     $traceurRuntime.superGet(this, $AutoRowSize.prototype, "enablePlugin").call(this);
   },
   disablePlugin: function() {
@@ -11924,6 +11940,10 @@ var $AutoRowSize = AutoRowSize;
         from: colRange,
         to: colRange
       };
+    }
+    if (this.hot.getColHeader(0) !== null) {
+      var samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+      this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
     rangeEach(rowRange.from, rowRange.to, (function(row) {
       if (force || $__10.heights[row] === void 0) {
@@ -12013,6 +12033,9 @@ var $AutoRowSize = AutoRowSize;
     }
     return height;
   },
+  getColumnHeaderHeight: function() {
+    return this.heights[-1];
+  },
   getFirstVisibleRow: function() {
     var wot = this.hot.view.wt;
     if (wot.wtViewport.rowsVisibleCalculator) {
@@ -12035,6 +12058,7 @@ var $AutoRowSize = AutoRowSize;
   },
   clearCache: function() {
     this.heights.length = 0;
+    this.heights[-1] = void 0;
   },
   clearCacheByRange: function(range) {
     var $__10 = this;
@@ -13288,7 +13312,6 @@ var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $__itemsFactory__,
     $__menu__,
-    $___46__46__47__46__46__47_helpers_47_object__,
     $___46__46__47__46__46__47_plugins__,
     $___46__46__47__46__46__47_helpers_47_dom_47_event__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
@@ -13301,30 +13324,26 @@ var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventMa
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
 var ItemsFactory = ($__itemsFactory__ = _dereq_("itemsFactory"), $__itemsFactory__ && $__itemsFactory__.__esModule && $__itemsFactory__ || {default: $__itemsFactory__}).ItemsFactory;
 var Menu = ($__menu__ = _dereq_("menu"), $__menu__ && $__menu__.__esModule && $__menu__ || {default: $__menu__}).Menu;
-var $__8 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    objectEach = $__8.objectEach,
-    mixin = $__8.mixin;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-var $__10 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__10.stopPropagation,
-    pageX = $__10.pageX,
-    pageY = $__10.pageY;
-var $__11 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    getWindowScrollLeft = $__11.getWindowScrollLeft,
-    getWindowScrollTop = $__11.getWindowScrollTop;
-var $__12 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
-    ROW_ABOVE = $__12.ROW_ABOVE,
-    ROW_BELOW = $__12.ROW_BELOW,
-    COLUMN_LEFT = $__12.COLUMN_LEFT,
-    COLUMN_RIGHT = $__12.COLUMN_RIGHT,
-    REMOVE_ROW = $__12.REMOVE_ROW,
-    REMOVE_COLUMN = $__12.REMOVE_COLUMN,
-    UNDO = $__12.UNDO,
-    REDO = $__12.REDO,
-    READ_ONLY = $__12.READ_ONLY,
-    ALIGNMENT = $__12.ALIGNMENT,
-    SEPARATOR = $__12.SEPARATOR,
-    predefinedItems = $__12.predefinedItems;
+var $__9 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
+    stopPropagation = $__9.stopPropagation,
+    pageX = $__9.pageX,
+    pageY = $__9.pageY;
+var $__10 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    getWindowScrollLeft = $__10.getWindowScrollLeft,
+    getWindowScrollTop = $__10.getWindowScrollTop;
+var $__11 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
+    ROW_ABOVE = $__11.ROW_ABOVE,
+    ROW_BELOW = $__11.ROW_BELOW,
+    COLUMN_LEFT = $__11.COLUMN_LEFT,
+    COLUMN_RIGHT = $__11.COLUMN_RIGHT,
+    REMOVE_ROW = $__11.REMOVE_ROW,
+    REMOVE_COLUMN = $__11.REMOVE_COLUMN,
+    UNDO = $__11.UNDO,
+    REDO = $__11.REDO,
+    READ_ONLY = $__11.READ_ONLY,
+    ALIGNMENT = $__11.ALIGNMENT,
+    SEPARATOR = $__11.SEPARATOR;
 var ContextMenu = function ContextMenu(hotInstance) {
   $traceurRuntime.superConstructor($ContextMenu).call(this, hotInstance);
   this.eventManager = new EventManager(this);
@@ -13338,41 +13357,41 @@ var $ContextMenu = ContextMenu;
     return this.hot.getSettings().contextMenu;
   },
   enablePlugin: function() {
-    var $__13 = this;
+    var $__12 = this;
     if (this.enabled) {
       return;
     }
     this.itemsFactory = new ItemsFactory(this.hot, $ContextMenu.DEFAULT_ITEMS);
     var settings = this.hot.getSettings().contextMenu;
-    var predefinedItems = {items: this.itemsFactory.getVisibleItems(settings)};
+    var predefinedItems = {items: this.itemsFactory.getItems(settings)};
     this.registerEvents();
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
     }
     $traceurRuntime.superGet(this, $ContextMenu.prototype, "enablePlugin").call(this);
     this.callOnPluginsReady((function() {
-      $__13.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
-      $__13.itemsFactory.setPredefinedItems(predefinedItems.items);
-      var menuItems = $__13.itemsFactory.getVisibleItems(settings);
-      $__13.menu = new Menu($__13.hot, {
+      $__12.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
+      $__12.itemsFactory.setPredefinedItems(predefinedItems.items);
+      var menuItems = $__12.itemsFactory.getItems(settings);
+      $__12.menu = new Menu($__12.hot, {
         className: 'htContextMenu',
         keepInViewport: true
       });
-      $__13.menu.setMenuItems(menuItems);
-      $__13.menu.addLocalHook('afterOpen', (function() {
-        return $__13.onMenuAfterOpen();
+      $__12.menu.setMenuItems(menuItems);
+      $__12.menu.addLocalHook('afterOpen', (function() {
+        return $__12.onMenuAfterOpen();
       }));
-      $__13.menu.addLocalHook('afterClose', (function() {
-        return $__13.onMenuAfterClose();
+      $__12.menu.addLocalHook('afterClose', (function() {
+        return $__12.onMenuAfterClose();
       }));
-      $__13.menu.addLocalHook('executeCommand', (function() {
+      $__12.menu.addLocalHook('executeCommand', (function() {
         for (var params = [],
-            $__15 = 0; $__15 < arguments.length; $__15++)
-          params[$__15] = arguments[$__15];
-        return $__13.executeCommand.apply($__13, params);
+            $__14 = 0; $__14 < arguments.length; $__14++)
+          params[$__14] = arguments[$__14];
+        return $__12.executeCommand.apply($__12, params);
       }));
       arrayEach(menuItems, (function(command) {
-        return $__13.commandExecutor.registerCommand(command.key, command);
+        return $__12.commandExecutor.registerCommand(command.key, command);
       }));
     }));
   },
@@ -13390,9 +13409,9 @@ var $ContextMenu = ContextMenu;
     $traceurRuntime.superGet(this, $ContextMenu.prototype, "disablePlugin").call(this);
   },
   registerEvents: function() {
-    var $__13 = this;
+    var $__12 = this;
     this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', (function(event) {
-      return $__13.onContextMenu(event);
+      return $__12.onContextMenu(event);
     }));
   },
   open: function(event) {
@@ -13415,8 +13434,8 @@ var $ContextMenu = ContextMenu;
   },
   executeCommand: function() {
     for (var params = [],
-        $__15 = 0; $__15 < arguments.length; $__15++)
-      params[$__15] = arguments[$__15];
+        $__14 = 0; $__14 < arguments.length; $__14++)
+      params[$__14] = arguments[$__14];
     this.commandExecutor.execute.apply(this.commandExecutor, params);
   },
   onContextMenu: function(event) {
@@ -13468,7 +13487,7 @@ Handsontable.hooks.register('afterContextMenuExecute');
 registerPlugin('contextMenu', ContextMenu);
 
 //# 
-},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/object":52,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
+},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Cursor: {get: function() {
@@ -13598,17 +13617,6 @@ var ItemsFactory = function ItemsFactory(hotInstance) {
     }));
     this.predefinedItems = items;
   },
-  getVisibleItems: function() {
-    var pattern = arguments[0] !== (void 0) ? arguments[0] : null;
-    var $__3 = this;
-    var visibleItems = {};
-    objectEach(this.predefinedItems, (function(value, key) {
-      if (!value.hidden || value.hidden && !value.hidden.apply($__3.hot)) {
-        visibleItems[key] = value;
-      }
-    }));
-    return getItems(pattern, this.defaultOrderPattern, visibleItems);
-  },
   getItems: function() {
     var pattern = arguments[0] !== (void 0) ? arguments[0] : null;
     return getItems(pattern, this.defaultOrderPattern, this.predefinedItems);
@@ -13661,9 +13669,6 @@ function getItems() {
       result.push(item);
     }));
   }
-  if (result[0].name === SEPARATOR) {
-    result.shift();
-  }
   return result;
 }
 ;
@@ -13694,40 +13699,29 @@ var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("he
     addClass = $__1.addClass,
     empty = $__1.empty,
     fastInnerHTML = $__1.fastInnerHTML,
-    getComputedStyle = $__1.getComputedStyle,
     getScrollbarWidth = $__1.getScrollbarWidth,
-    getWindowScrollLeft = $__1.getWindowScrollLeft,
-    getWindowScrollTop = $__1.getWindowScrollTop,
-    hasClass = $__1.hasClass,
     isChildOf = $__1.isChildOf,
     removeClass = $__1.removeClass;
 var $__2 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
     arrayEach = $__2.arrayEach,
+    arrayFilter = $__2.arrayFilter,
     arrayReduce = $__2.arrayReduce;
 var Cursor = ($__cursor__ = _dereq_("cursor"), $__cursor__ && $__cursor__.__esModule && $__cursor__ || {default: $__cursor__}).Cursor;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
-var $__5 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    extend = $__5.extend,
-    isObject = $__5.isObject,
-    objectEach = $__5.objectEach,
-    mixin = $__5.mixin;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
 var debounce = ($___46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47_helpers_47_function__}).debounce;
 var $__7 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    isSeparator = $__7.isSeparator,
-    isDisabled = $__7.isDisabled,
-    isSelectionDisabled = $__7.isSelectionDisabled,
+    filterSeparators = $__7.filterSeparators,
     hasSubMenu = $__7.hasSubMenu,
+    isDisabled = $__7.isDisabled,
+    isItemHidden = $__7.isItemHidden,
+    isSeparator = $__7.isSeparator,
+    isSelectionDisabled = $__7.isSelectionDisabled,
     normalizeSelection = $__7.normalizeSelection;
 var KEY_CODES = ($___46__46__47__46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47_helpers_47_unicode__}).KEY_CODES;
 var localHooks = ($___46__46__47__46__46__47_mixins_47_localHooks__ = _dereq_("mixins/localHooks"), $___46__46__47__46__46__47_mixins_47_localHooks__ && $___46__46__47__46__46__47_mixins_47_localHooks__.__esModule && $___46__46__47__46__46__47_mixins_47_localHooks__ || {default: $___46__46__47__46__46__47_mixins_47_localHooks__}).localHooks;
-var $__10 = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}),
-    SEPARATOR = $__10.SEPARATOR,
-    predefinedItems = $__10.predefinedItems;
-var $__11 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__11.stopPropagation,
-    stopImmediatePropagation = $__11.stopImmediatePropagation,
-    pageX = $__11.pageX,
-    pageY = $__11.pageY;
+var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
+var stopImmediatePropagation = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}).stopImmediatePropagation;
 var Menu = function Menu(hotInstance, options) {
   this.hot = hotInstance;
   this.options = options || {
@@ -13778,8 +13772,12 @@ var $Menu = Menu;
     var delayedOpenSubMenu = debounce((function(row) {
       return $__12.openSubMenu(row);
     }), 300);
+    var filteredItems = arrayFilter(this.menuItems, (function(item) {
+      return isItemHidden(item, $__12.hot);
+    }));
+    filteredItems = filterSeparators(filteredItems, SEPARATOR);
     var settings = {
-      data: this.menuItems,
+      data: filteredItems,
       colHeaders: false,
       colWidths: [200],
       autoRowSize: false,
@@ -14001,13 +13999,9 @@ var $Menu = Menu;
     var itemIsDisabled = (function(item) {
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call($__12.hot) === true);
     });
-    var itemIsHidden = (function(item) {
-      return typeof item.hidden == 'function' && item.hidden.call($__12.hot) === true;
-    });
     var itemIsSelectionDisabled = (function(item) {
       return item.disableSelection;
     });
-    var isHidden = itemIsHidden(item);
     if (typeof value === 'function') {
       value = value.call(this.hot);
     }
@@ -14016,17 +14010,13 @@ var $Menu = Menu;
     TD.appendChild(wrapper);
     if (itemIsSeparator(item)) {
       addClass(TD, 'htSeparator');
-    } else if (!isHidden && typeof item.renderer === 'function') {
+    } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
       TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
     } else {
       fastInnerHTML(wrapper, value);
     }
-    if (isHidden) {
-      if (TD.parentNode) {
-        addClass(TD.parentNode, 'htHidden');
-      }
-    } else if (itemIsDisabled(item)) {
+    if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
       this.eventManager.addEventListener(TD, 'mouseenter', (function() {
         return hot.deselectCell();
@@ -14409,7 +14399,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.cols) {
         return true;
       }
       var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
@@ -14432,7 +14422,7 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected) {
+      if (!selected || this.selection.selectedHeader.rows) {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
@@ -14780,10 +14770,20 @@ Object.defineProperties(exports, {
   markLabelAsSelected: {get: function() {
       return markLabelAsSelected;
     }},
+  isItemHidden: {get: function() {
+      return isItemHidden;
+    }},
+  filterSeparators: {get: function() {
+      return filterSeparators;
+    }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_helpers_47_dom_47_element__;
+var $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $__predefinedItems__;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
+var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
 function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
@@ -14878,9 +14878,51 @@ function checkSelectionConsistency(range, comparator) {
 function markLabelAsSelected(label) {
   return '<span class="selected">' + String.fromCharCode(10003) + '</span>' + label;
 }
+function isItemHidden(item, instance) {
+  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+}
+function shiftSeparators(items, separator) {
+  var result = items.slice(0);
+  for (var i = 0; i < result.length; ) {
+    if (result[i].name === separator) {
+      result.shift();
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+function popSeparators(items, separator) {
+  var result = items.slice(0);
+  result.reverse();
+  result = shiftSeparators(result, separator);
+  result.reverse();
+  return result;
+}
+function removeDuplicatedSeparators(items) {
+  var result = [];
+  arrayEach(items, (function(value, index) {
+    if (index > 0) {
+      if (result[result.length - 1].name !== value.name) {
+        result.push(value);
+      }
+    } else {
+      result.push(value);
+    }
+  }));
+  return result;
+}
+function filterSeparators(items) {
+  var separator = arguments[1] !== (void 0) ? arguments[1] : SEPARATOR;
+  var result = items.slice(0);
+  result = shiftSeparators(result, separator);
+  result = popSeparators(result, separator);
+  result = removeDuplicatedSeparators(result);
+  return result;
+}
 
 //# 
-},{"helpers/dom/element":46}],74:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/dom/element":46,"predefinedItems":72}],74:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenuCopyPaste: {get: function() {
@@ -15813,7 +15855,8 @@ var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerHeight = $__2.outerHeight;
 var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
     arrayEach = $__3.arrayEach,
     arrayMap = $__3.arrayMap;
@@ -15935,15 +15978,17 @@ var $ManualColumnMove = ManualColumnMove;
     }));
   },
   setupHandlePosition: function(TH) {
+    this.currentTH = TH;
     var priv = privatePool.get(this);
     var col = this.hot.view.wt.wtTable.getCoords(TH).col;
-    this.currentTH = TH;
+    var headerHeight = outerHeight(this.currentTH);
     if (col >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       priv.currentCol = col;
       priv.startOffset = box.left;
       this.handleElement.style.top = box.top + 'px';
       this.handleElement.style.left = priv.startOffset + 'px';
+      this.handleElement.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handleElement);
     }
   },
@@ -15959,11 +16004,14 @@ var $ManualColumnMove = ManualColumnMove;
   setupGuidePosition: function() {
     var box = this.currentTH.getBoundingClientRect();
     var priv = privatePool.get(this);
+    var handleHeight = parseInt(outerHeight(this.handleElement), 10);
+    var handleBottomPosition = parseInt(this.handleElement.style.top, 10) + handleHeight;
+    var maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
     addClass(this.handleElement, 'active');
     addClass(this.guideElement, 'active');
     this.guideElement.style.width = box.width + 'px';
-    this.guideElement.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
-    this.guideElement.style.top = this.handleElement.style.top;
+    this.guideElement.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
+    this.guideElement.style.top = handleBottomPosition + 'px';
     this.guideElement.style.left = priv.startOffset + 'px';
     this.hot.rootElement.appendChild(this.guideElement);
   },
@@ -16152,7 +16200,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerHeight = $__2.outerHeight;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16199,6 +16248,9 @@ var $ManualColumnResize = ManualColumnResize;
     this.addHook('beforeStretchingColumnWidth', (function(stretchedWidth, column) {
       return $__8.onBeforeStretchingColumnWidth(stretchedWidth, column);
     }));
+    this.addHook('beforeColumnResize', (function(currentColumn, newSize, isDoubleClick) {
+      return $__8.onBeforeColumnResize(currentColumn, newSize, isDoubleClick);
+    }));
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -16237,6 +16289,7 @@ var $ManualColumnResize = ManualColumnResize;
     }
     this.currentTH = TH;
     var col = this.hot.view.wt.wtTable.getCoords(TH).col;
+    var headerHeight = outerHeight(this.currentTH);
     if (col >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentCol = col;
@@ -16265,6 +16318,7 @@ var $ManualColumnResize = ManualColumnResize;
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
+      this.handle.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16272,11 +16326,14 @@ var $ManualColumnResize = ManualColumnResize;
     this.handle.style.left = this.startOffset + this.currentWidth + 'px';
   },
   setupGuidePosition: function() {
+    var handleHeight = parseInt(outerHeight(this.handle), 10);
+    var handleBottomPosition = parseInt(this.handle.style.top, 10) + handleHeight;
+    var maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = handleBottomPosition + 'px';
     this.guide.style.left = this.handle.style.left;
-    this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
+    this.guide.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -16460,6 +16517,9 @@ var $ManualColumnResize = ManualColumnResize;
       width = stretchedWidth;
     }
     return width;
+  },
+  onBeforeColumnResize: function() {
+    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
   }
 }, {}, BasePlugin);
 ;
@@ -16487,7 +16547,8 @@ var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerWidth = $__2.outerWidth;
 var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
     arrayEach = $__3.arrayEach,
     arrayMap = $__3.arrayMap;
@@ -16605,15 +16666,17 @@ var $ManualRowMove = ManualRowMove;
     }));
   },
   setupHandlePosition: function(TH) {
+    this.currentTH = TH;
     var priv = privatePool.get(this);
     var row = this.hot.view.wt.wtTable.getCoords(TH).row;
-    this.currentTH = TH;
+    var headerWidth = outerWidth(this.currentTH);
     if (row >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       priv.currentRow = row;
       priv.startOffset = box.top;
       this.handleElement.style.top = priv.startOffset + 'px';
       this.handleElement.style.left = box.left + 'px';
+      this.handleElement.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handleElement);
     }
   },
@@ -16629,12 +16692,15 @@ var $ManualRowMove = ManualRowMove;
   setupGuidePosition: function() {
     var box = this.currentTH.getBoundingClientRect();
     var priv = privatePool.get(this);
+    var handleWidth = parseInt(outerWidth(this.handleElement), 10);
+    var handleRightPosition = parseInt(this.handleElement.style.left, 10) + handleWidth;
+    var maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handleElement, 'active');
     addClass(this.guideElement, 'active');
     this.guideElement.style.height = box.height + 'px';
-    this.guideElement.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guideElement.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.guideElement.style.top = priv.startOffset + 'px';
-    this.guideElement.style.left = this.handleElement.style.left;
+    this.guideElement.style.left = handleRightPosition + 'px';
     this.hot.rootElement.appendChild(this.guideElement);
   },
   refreshGuidePosition: function(diff) {
@@ -16811,7 +16877,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerWidth = $__2.outerWidth;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16890,6 +16957,7 @@ var $ManualRowResize = ManualRowResize;
     var $__8 = this;
     this.currentTH = TH;
     var row = this.hot.view.wt.wtTable.getCoords(TH).row;
+    var headerWidth = outerWidth(this.currentTH);
     if (row >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentRow = row;
@@ -16918,6 +16986,7 @@ var $ManualRowResize = ManualRowResize;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
+      this.handle.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16925,11 +16994,14 @@ var $ManualRowResize = ManualRowResize;
     this.handle.style.top = this.startOffset + this.currentHeight + 'px';
   },
   setupGuidePosition: function() {
+    var handleWidth = parseInt(outerWidth(this.handle), 10);
+    var handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    var maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
-    this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guide.style.left = handleRightPosition + 'px';
+    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -19061,6 +19133,7 @@ var isListeningKeyDownEvent = new WeakMap();
 var isCheckboxListenerAdded = new WeakMap();
 var BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('base').apply(this, arguments);
   var eventManager = new EventManager(instance);
   var input = createInput();
   var labelOptions = cellProperties.label;
@@ -19084,7 +19157,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     badValue = true;
   }
   input.setAttribute('data-row', row);
-  input.setAttribute('data-prop', prop);
+  input.setAttribute('data-col', col);
   if (!badValue && labelOptions) {
     var labelText = '';
     if (labelOptions.value) {
@@ -19129,10 +19202,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         event.preventDefault();
       });
     }
-    if (event.keyCode == KEY_CODES.SPACE || event.keyCode == KEY_CODES.ENTER) {
+    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
       toggleSelected();
     }
-    if (event.keyCode == KEY_CODES.DELETE || event.keyCode == KEY_CODES.BACKSPACE) {
+    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
       toggleSelected(false);
     }
   }
@@ -19205,12 +19278,9 @@ function onChange(event, instance) {
     return false;
   }
   var row = parseInt(event.target.getAttribute('data-row'), 10);
-  var prop = event.target.getAttribute('data-prop');
-  var cellProperties = instance.getCellMeta(row, prop);
-  if (!isNaN(prop)) {
-    prop = parseInt(prop, 10);
-  }
-  instance.setDataAtRowProp(row, prop, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  var col = parseInt(event.target.getAttribute('data-col'), 10);
+  var cellProperties = instance.getCellMeta(row, col);
+  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
 }
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
@@ -19253,14 +19323,12 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__numeral__,
-    $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_renderers__,
     $___46__46__47_helpers_47_number__;
 var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var addClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).addClass;
-var $__2 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
-    getRenderer = $__2.getRenderer,
-    registerRenderer = $__2.registerRenderer;
+var $__1 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
+    getRenderer = $__1.getRenderer,
+    registerRenderer = $__1.registerRenderer;
 var isNumeric = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).isNumeric;
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (isNumeric(value)) {
@@ -19268,7 +19336,15 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
       numeral.language(cellProperties.language);
     }
     value = numeral(value).format(cellProperties.format || '0');
-    addClass(TD, 'htNumeric');
+    var className = cellProperties.className || '';
+    var classArr = className.length ? className.split(' ') : [];
+    if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+      classArr.push('htRight');
+    }
+    if (classArr.indexOf('htNumeric') < 0) {
+      classArr.push('htNumeric');
+    }
+    cellProperties.className = classArr.join(' ');
   }
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
@@ -19276,7 +19352,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('numeric', numericRenderer);
 
 //# 
-},{"helpers/dom/element":46,"helpers/number":51,"numeral":"numeral","renderers":92}],98:[function(_dereq_,module,exports){
+},{"helpers/number":51,"numeral":"numeral","renderers":92}],98:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   passwordRenderer: {get: function() {
@@ -19363,9 +19439,6 @@ registerRenderer('text', textRenderer);
   var $getOwnPropertyDescriptor = $Object.getOwnPropertyDescriptor;
   var $getOwnPropertyNames = $Object.getOwnPropertyNames;
   var $keys = $Object.keys;
-  var $hasOwnProperty = $Object.prototype.hasOwnProperty;
-  var $preventExtensions = Object.preventExtensions;
-  var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
   function nonEnum(value) {
     return {
@@ -19468,14 +19541,6 @@ registerRenderer('text', textRenderer);
     getOwnHashObject(object);
     return $freeze.apply(this, arguments);
   }
-  function preventExtensions(object) {
-    getOwnHashObject(object);
-    return $preventExtensions.apply(this, arguments);
-  }
-  function seal(object) {
-    getOwnHashObject(object);
-    return $seal.apply(this, arguments);
-  }
   freeze(SymbolValue.prototype);
   function isSymbolString(s) {
     return symbolValues[s] || privateNames[s];
@@ -19484,21 +19549,6 @@ registerRenderer('text', textRenderer);
     if (isShimSymbol(name))
       return name[symbolInternalProperty];
     return name;
-  }
-  function removeSymbolKeys(array) {
-    var rv = [];
-    for (var i = 0; i < array.length; i++) {
-      if (!isSymbolString(array[i])) {
-        rv.push(array[i]);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyNames(object) {
-    return removeSymbolKeys($getOwnPropertyNames(object));
-  }
-  function keys(object) {
-    return removeSymbolKeys($keys(object));
   }
   function getOwnPropertySymbols(object) {
     var rv = [];
@@ -19511,31 +19561,8 @@ registerRenderer('text', textRenderer);
     }
     return rv;
   }
-  function getOwnPropertyDescriptor(object, name) {
-    return $getOwnPropertyDescriptor(object, toProperty(name));
-  }
-  function hasOwnProperty(name) {
-    return $hasOwnProperty.call(this, toProperty(name));
-  }
   function getOption(name) {
     return global.traceur && global.traceur.options[name];
-  }
-  function defineProperty(object, name, descriptor) {
-    if (isShimSymbol(name)) {
-      name = name[symbolInternalProperty];
-    }
-    $defineProperty(object, name, descriptor);
-    return object;
-  }
-  function polyfillObject(Object) {
-    $defineProperty(Object, 'defineProperty', {value: defineProperty});
-    $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
-    $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
-    $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
-    $defineProperty(Object, 'freeze', {value: freeze});
-    $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
-    $defineProperty(Object, 'seal', {value: seal});
-    $defineProperty(Object, 'keys', {value: keys});
   }
   function exportStar(object) {
     for (var i = 1; i < arguments.length; i++) {
@@ -19583,7 +19610,6 @@ registerRenderer('text', textRenderer);
     polyfillSymbol(global, Symbol);
     global.Reflect = global.Reflect || {};
     global.Reflect.global = global.Reflect.global || global;
-    polyfillObject(global.Object);
   }
   setupGlobals(global);
   global.$traceurRuntime = {
@@ -19844,6 +19870,7 @@ function TableView(instance) {
     }
   });
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -19869,7 +19896,8 @@ function TableView(instance) {
         next = next.parentNode;
       }
     }
-    if (that.settings.outsideClickDeselects) {
+    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ? that.settings.outsideClickDeselects(originalTarget) : that.settings.outsideClickDeselects;
+    if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
@@ -19998,67 +20026,104 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      var colspanOffset;
-      var TR = TD.parentNode;
-      var THEAD = TR.parentNode;
-      var headerLevel;
-      var headerColspan;
       instance.listen();
       that.activeWt = wt;
       isMouseDown = true;
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-      instance.selection.setSelectedHeaders(false, false);
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection(coords)) {
-          var nothing = 1;
-        } else if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
-            instance.selection.setRangeEnd(coords);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      var actualSelection = instance.getSelectedRange();
+      var selection = instance.selection;
+      var selectedHeader = selection.selectedHeader;
+      if (event.shiftKey && actualSelection) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(coords);
+          selection.setSelectedHeaders(false, false);
+        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+          selection.setSelectedHeaders(false, false);
+        } else if (selectedHeader.cols && coords.row < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(actualSelection.to.row, coords.col));
+        } else if (selectedHeader.rows && coords.col < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, actualSelection.to.col));
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) || (selectedHeader.cols && coords.col < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(actualSelection.from.row, 0));
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          selection.setSelectedHeaders(true, false);
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) || (selectedHeader.rows && coords.row < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(0, actualSelection.from.col));
+          selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          selection.setSelectedHeaders(false, true);
+        }
+      } else {
+        var doNewSelection = true;
+        if (actualSelection) {
+          var $__8 = actualSelection,
+              from = $__8.from,
+              to = $__8.to;
+          var coordsNotInSelection = !selection.inInSelection(coords);
+          if (coords.row < 0 && selectedHeader.cols) {
+            var start = Math.min(from.col, to.col);
+            var end = Math.max(from.col, to.col);
+            doNewSelection = (coords.col < start || coords.col > end);
+          } else if (coords.col < 0 && selectedHeader.rows) {
+            var start$__9 = Math.min(from.row, to.row);
+            var end$__10 = Math.max(from.row, to.row);
+            doNewSelection = (coords.row < start$__9 || coords.row > end$__10);
+          } else {
+            doNewSelection = coordsNotInSelection;
           }
-        } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-            if (coords.row < 0) {
-              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
-              instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
-            }
-            if (coords.col < 0) {
-              instance.selection.setSelectedHeaders(true, false);
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-            }
+        }
+        if (event.button === 0 || (event.button === 2 && doNewSelection)) {
+          if (coords.row < 0 && coords.col >= 0) {
+            selection.setSelectedHeaders(false, true);
+            selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
+            selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+          } else if (coords.col < 0 && coords.row >= 0) {
+            selection.setSelectedHeaders(true, false);
+            selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
           } else {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
-            instance.selection.setRangeStart(coords);
+            selection.setSelectedHeaders(false, false);
+            selection.setRangeStart(coords);
           }
         }
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
-        that.activeWt = that.wt;
       }
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+      that.activeWt = that.wt;
     },
     onCellMouseOver: function(event, coords, TD, wt) {
+      var blockCalculations = {
+        row: false,
+        column: false
+      };
       that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) {
-        if (isMouseDown) {
-          instance.selection.setRangeEnd(coords);
-        }
-      } else {
-        if (isMouseDown) {
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+      if (event.button === 0) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          if (isMouseDown) {
+            instance.selection.setRangeEnd(coords);
           }
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+        } else {
+          if (isMouseDown) {
+            if (coords.row < 0 && !blockCalculations.column) {
+              if (instance.selection.selectedHeader.cols) {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+                instance.selection.setSelectedHeaders(false, true);
+              } else {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
+              }
+            }
+            if (coords.col < 0 && !blockCalculations.row) {
+              if (instance.selection.selectedHeader.rows) {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+                instance.selection.setSelectedHeaders(true, false);
+              } else {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
+              }
             }
           }
         }
@@ -20134,7 +20199,8 @@ function TableView(instance) {
       return that.settings.rowHeaderWidth;
     },
     columnHeaderHeight: function() {
-      return that.settings.columnHeaderHeight;
+      var columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
+      return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
   };
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);
@@ -20168,6 +20234,9 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
     return true;
   }
   if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
+    return true;
+  }
+  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
     return true;
   }
   return false;
@@ -20251,7 +20320,16 @@ TableView.prototype.appendColHeader = function(col, TH) {
   Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };
 TableView.prototype.updateCellHeader = function(element, index, content) {
-  if (index > -1) {
+  var renderedIndex = index;
+  var parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+  if (element.parentNode) {
+    if (hasClass(element, 'colHeader')) {
+      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+    } else if (hasClass(element, 'rowHeader')) {
+      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+    }
+  }
+  if (renderedIndex > -1) {
     fastInnerHTML(element, content(index));
   } else {
     fastInnerText(element, String.fromCharCode(160));
@@ -20308,6 +20386,7 @@ var GhostTable = function GhostTable(hotInstance) {
   this.rows = [];
   this.columns = [];
   this.samples = null;
+  this.settings = {useHeaders: true};
 };
 ($traceurRuntime.createClass)(GhostTable, {
   addRow: function(row, samples) {
@@ -20326,6 +20405,19 @@ var GhostTable = function GhostTable(hotInstance) {
     this.container.container.appendChild(this.table.fragment);
     rowObject.table = this.table.table;
   },
+  addColumnHeadersRow: function(samples) {
+    if (this.hot.getColHeader(0) != null) {
+      var rowObject = {row: -1};
+      this.rows.push(rowObject);
+      this.container = this.createContainer(this.hot.rootElement.className);
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tHead.appendChild(this.createColumnHeadersRow());
+      this.container.container.appendChild(this.table.fragment);
+      rowObject.table = this.table.table;
+    }
+  },
   addColumn: function(column, samples) {
     if (this.rows.length) {
       throw new Error('Doesn\'t support multi-dimensional table');
@@ -20337,7 +20429,7 @@ var GhostTable = function GhostTable(hotInstance) {
     this.columns.push(columnObject);
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
-    if (this.hot.getColHeader(column) !== null) {
+    if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -20360,11 +20452,32 @@ var GhostTable = function GhostTable(hotInstance) {
       callback(column.col, outerWidth(column.table));
     }));
   },
+  setSettings: function(settings) {
+    this.settings = settings;
+  },
+  setSetting: function(name, value) {
+    if (!this.settings) {
+      this.settings = {};
+    }
+    this.settings[name] = value;
+  },
+  getSettings: function() {
+    return this.settings;
+  },
+  getSetting: function(name) {
+    if (this.settings) {
+      return this.settings[name];
+    } else {
+      return null;
+    }
+  },
   createColGroupsCol: function() {
     var $__6 = this;
     var d = document;
     var fragment = d.createDocumentFragment();
-    fragment.appendChild(this.createColElement(-1));
+    if (this.hot.hasRowHeaders()) {
+      fragment.appendChild(this.createColElement(-1));
+    }
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         fragment.appendChild($__6.createColElement(string.col));
@@ -20377,10 +20490,10 @@ var GhostTable = function GhostTable(hotInstance) {
     var d = document;
     var fragment = d.createDocumentFragment();
     var th = d.createElement('th');
-    if (this.hot.getRowHeader(row) !== null) {
+    if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
+      fragment.appendChild(th);
     }
-    fragment.appendChild(th);
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         var column = string.col;
@@ -20391,6 +20504,25 @@ var GhostTable = function GhostTable(hotInstance) {
         var td = d.createElement('td');
         renderer($__6.hot, td, row, column, $__6.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
+      }));
+    }));
+    return fragment;
+  },
+  createColumnHeadersRow: function() {
+    var $__6 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    if (this.hot.hasRowHeaders()) {
+      var th = d.createElement('th');
+      this.hot.view.appendColHeader(-1, th);
+      fragment.appendChild(th);
+    }
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        var column = string.col;
+        var th = d.createElement('th');
+        $__6.hot.view.appendColHeader(column, th);
+        fragment.appendChild(th);
       }));
     }));
     return fragment;
@@ -20417,6 +20549,7 @@ var GhostTable = function GhostTable(hotInstance) {
   },
   clean: function() {
     this.rows.length = 0;
+    this.rows[-1] = void 0;
     this.columns.length = 0;
     if (this.samples) {
       this.samples.clear();
@@ -20725,6 +20858,13 @@ var $___46__46__47_browser__,
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
 Handsontable.AutocompleteValidator = function(value, callback) {
+  if (value == null) {
+    value = '';
+  }
+  if (this.allowEmpty && value === '') {
+    callback(true);
+    return;
+  }
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
       this.source(value, process(value, callback));
@@ -20840,9 +20980,14 @@ Handsontable.TimeValidator = function(value, callback) {
   if (value === null) {
     value = '';
   }
+  value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
+  var twoDigitValue = /^\d{1,2}$/.test(value);
+  if (twoDigitValue) {
+    value = value + ':00';
+  }
   var date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
   var isValidTime = date.isValid();
-  var isValidFormat = moment(value, timeFormat, true).isValid();
+  var isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
   if (this.allowEmpty && value === '') {
     isValidTime = true;
     isValidFormat = true;
@@ -21140,6 +21285,7 @@ function autoResize() {
         observe(el, 'paste', delayedResize);
         observe(el, 'drop', delayedResize);
         observe(el, 'keydown', delayedResize);
+        observe(el, 'focus', resize);
       }
 
       resize();
@@ -21159,6 +21305,7 @@ function autoResize() {
       unObserve(el, 'paste', delayedResize);
       unObserve(el, 'drop', delayedResize);
       unObserve(el, 'keydown', delayedResize);
+      unObserve(el, 'focus', resize);
     },
     resize: resize
   };
@@ -21740,11 +21887,76 @@ CopyPasteClass.prototype.hasBeenDestroyed = function() {
 })(typeof exports != 'undefined' && typeof global != 'undefined' ? global : window);
 
 },{}],"jsonpatch":[function(_dereq_,module,exports){
-// json-patch-duplex.js 0.3.6
-// (c) 2013 Joachim Wester
-// MIT license
+/*!
+ * https://github.com/Starcounter-Jack/JSON-Patch
+ * json-patch-duplex.js version: 0.5.7
+ * (c) 2013 Joachim Wester
+ * MIT license
+ */
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var OriginalError = Error;
 var jsonpatch;
 (function (jsonpatch) {
+    var _objectKeys = function (obj) {
+        if (_isArray(obj)) {
+            var keys = new Array(obj.length);
+            for (var k = 0; k < keys.length; k++) {
+                keys[k] = "" + k;
+            }
+            return keys;
+        }
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
+            }
+        }
+        return keys;
+    };
+    function _equals(a, b) {
+        switch (typeof a) {
+            case 'undefined': //backward compatibility, but really I think we should return false
+            case 'boolean':
+            case 'string':
+            case 'number':
+                return a === b;
+            case 'object':
+                if (a === null)
+                    return b === null;
+                if (_isArray(a)) {
+                    if (!_isArray(b) || a.length !== b.length)
+                        return false;
+                    for (var i = 0, l = a.length; i < l; i++)
+                        if (!_equals(a[i], b[i]))
+                            return false;
+                    return true;
+                }
+                var bKeys = _objectKeys(b);
+                var bLength = bKeys.length;
+                if (_objectKeys(a).length !== bLength)
+                    return false;
+                for (var i = 0; i < bLength; i++)
+                    if (!_equals(a[i], b[i]))
+                        return false;
+                return true;
+            default:
+                return false;
+        }
+    }
+    /* We use a Javascript hash to store each
+     function. Each hash entry (property) uses
+     the operation identifiers specified in rfc6902.
+     In this way, we can map each patch operation
+     to its dedicated function in efficient way.
+     */
+    /* The operations applicable to an object */
     var objOps = {
         add: function (obj, key) {
             obj[key] = this.value;
@@ -21778,13 +21990,13 @@ var jsonpatch;
             return true;
         },
         test: function (obj, key) {
-            return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+            return _equals(obj[key], this.value);
         },
         _get: function (obj, key) {
             this.value = obj[key];
         }
     };
-
+    /* The operations applicable to an array. Many are the same as for the object */
     var arrOps = {
         add: function (arr, i) {
             arr.splice(i, 0, this.value);
@@ -21803,14 +22015,49 @@ var jsonpatch;
         test: objOps.test,
         _get: objOps._get
     };
-
+    /* The operations applicable to object root. Many are the same as for the object */
+    var rootOps = {
+        add: function (obj) {
+            rootOps.remove.call(this, obj);
+            for (var key in this.value) {
+                if (this.value.hasOwnProperty(key)) {
+                    obj[key] = this.value[key];
+                }
+            }
+            return true;
+        },
+        remove: function (obj) {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    objOps.remove.call(this, obj, key);
+                }
+            }
+            return true;
+        },
+        replace: function (obj) {
+            apply(obj, [
+                { op: "remove", path: this.path }
+            ]);
+            apply(obj, [
+                { op: "add", path: this.path, value: this.value }
+            ]);
+            return true;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: function (obj) {
+            return (JSON.stringify(obj) === JSON.stringify(this.value));
+        },
+        _get: function (obj) {
+            this.value = obj;
+        }
+    };
     var observeOps = {
         add: function (patches, path) {
             var patch = {
                 op: "add",
                 path: path + escapePathComponent(this.name),
-                value: this.object[this.name]
-            };
+                value: this.object[this.name] };
             patches.push(patch);
         },
         'delete': function (patches, path) {
@@ -21829,49 +22076,39 @@ var jsonpatch;
             patches.push(patch);
         }
     };
-
     function escapePathComponent(str) {
-        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) {
+        if (str.indexOf('/') === -1 && str.indexOf('~') === -1)
             return str;
-        }
-
         return str.replace(/~/g, '~0').replace(/\//g, '~1');
     }
-
     function _getPathRecursive(root, obj) {
         var found;
         for (var key in root) {
             if (root.hasOwnProperty(key)) {
                 if (root[key] === obj) {
                     return escapePathComponent(key) + '/';
-                } else if (typeof root[key] === 'object') {
+                }
+                else if (typeof root[key] === 'object') {
                     found = _getPathRecursive(root[key], obj);
-                    /* jshint ignore:start */
                     if (found != '') {
                         return escapePathComponent(key) + '/' + found;
                     }
-                    /* jshint ignore:end */
                 }
             }
         }
         return '';
     }
-
     function getPath(root, obj) {
         if (root === obj) {
             return '/';
         }
         var path = _getPathRecursive(root, obj);
         if (path === '') {
-            throw new Error("Object not found in root");
+            throw new OriginalError("Object not found in root");
         }
         return '/' + path;
     }
-
     var beforeDict = [];
-    /* jshint ignore:start */
-    jsonpatch.intervals;
-    /* jshint ignore:end */
     var Mirror = (function () {
         function Mirror(obj) {
             this.observers = [];
@@ -21879,7 +22116,6 @@ var jsonpatch;
         }
         return Mirror;
     })();
-
     var ObserverInfo = (function () {
         function ObserverInfo(callback, observer) {
             this.callback = callback;
@@ -21887,7 +22123,6 @@ var jsonpatch;
         }
         return ObserverInfo;
     })();
-
     function getMirror(obj) {
         for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
             if (beforeDict[i].obj === obj) {
@@ -21895,14 +22130,6 @@ var jsonpatch;
             }
         }
     }
-    function removeMirror(obj) {
-        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-            if (beforeDict[i] === obj) {
-              beforeDict.splice(i, 1);
-            }
-        }
-    }
-
     function getObserverFromMirror(mirror, callback) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].callback === callback) {
@@ -21910,188 +22137,116 @@ var jsonpatch;
             }
         }
     }
-
     function removeObserverFromMirror(mirror, observer) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].observer === observer) {
                 mirror.observers.splice(j, 1);
-
-                if (!mirror.observers.length) {
-                    removeMirror(mirror);
-                }
                 return;
             }
         }
     }
-
     function unobserve(root, observer) {
-        generate(observer);
-        if (Object.observe) {
-            _unobserve(observer, root);
-        } else {
-            clearTimeout(observer.next);
-        }
-
-        var mirror = getMirror(root);
-        removeObserverFromMirror(mirror, observer);
+        observer.unobserve();
     }
     jsonpatch.unobserve = unobserve;
-
+    function deepClone(obj) {
+        if (typeof obj === "object") {
+            return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+        }
+        else {
+            return obj; //no need to clone primitives
+        }
+    }
     function observe(obj, callback) {
         var patches = [];
         var root = obj;
         var observer;
         var mirror = getMirror(obj);
-
         if (!mirror) {
             mirror = new Mirror(obj);
             beforeDict.push(mirror);
-        } else {
+        }
+        else {
             observer = getObserverFromMirror(mirror, callback);
         }
-
         if (observer) {
             return observer;
         }
-
-        if (Object.observe) {
-            observer = function (arr) {
-                //This "refresh" is needed to begin observing new object properties
-                _unobserve(observer, obj);
-                _observe(observer, obj);
-
-                var a = 0, alen = arr.length;
-                /* jshint ignore:start */
-                while (a < alen) {
-                    if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
-                        var type = arr[a].type;
-
-                        switch (type) {
-                            case 'new':
-                                type = 'add';
-                                break;
-
-                            case 'deleted':
-                                type = 'delete';
-                                break;
-
-                            case 'updated':
-                                type = 'update';
-                                break;
-                        }
-
-                        observeOps[type].call(arr[a], patches, getPath(root, arr[a].object));
-                    }
-                    a++;
-                }
-                /* jshint ignore:end */
-
-                if (patches) {
-                    if (callback) {
-                        callback(patches);
-                    }
-                }
-                observer.patches = patches;
-                patches = [];
-            };
-        } else {
-            observer = {};
-
-            mirror.value = JSON.parse(JSON.stringify(obj));
-
-            if (callback) {
-                //callbacks.push(callback); this has no purpose
-                observer.callback = callback;
-                observer.next = null;
-                var intervals = this.intervals || [100, 1000, 10000, 60000];
-                var currentInterval = 0;
-
-                var dirtyCheck = function () {
-                    generate(observer);
-                };
-                var fastCheck = function () {
-                    clearTimeout(observer.next);
-                    observer.next = setTimeout(function () {
-                        dirtyCheck();
-                        currentInterval = 0;
-                        observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                    }, 0);
-                };
-                var slowCheck = function () {
-                    dirtyCheck();
-                    if (currentInterval == intervals.length) {
-                        currentInterval = intervals.length - 1;
-                    }
-                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                };
-                if (typeof window !== 'undefined') {
-                    if (window.addEventListener) {
-                        window.addEventListener('mousedown', fastCheck);
-                        window.addEventListener('mouseup', fastCheck);
-                        window.addEventListener('keydown', fastCheck);
-                    } else {
-                        window.attachEvent('onmousedown', fastCheck);
-                        window.attachEvent('onmouseup', fastCheck);
-                        window.attachEvent('onkeydown', fastCheck);
-                    }
-                }
-                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        observer = {};
+        mirror.value = deepClone(obj);
+        if (callback) {
+            observer.callback = callback;
+            observer.next = null;
+            var intervals = this.intervals || [100, 1000, 10000, 60000];
+            if (intervals.push === void 0) {
+                throw new OriginalError("jsonpatch.intervals must be an array");
             }
+            var currentInterval = 0;
+            var dirtyCheck = function () {
+                generate(observer);
+            };
+            var fastCheck = function () {
+                clearTimeout(observer.next);
+                observer.next = setTimeout(function () {
+                    dirtyCheck();
+                    currentInterval = 0;
+                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+                }, 0);
+            };
+            var slowCheck = function () {
+                dirtyCheck();
+                if (currentInterval == intervals.length)
+                    currentInterval = intervals.length - 1;
+                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+            };
+            if (typeof window !== 'undefined') {
+                if (window.addEventListener) {
+                    window.addEventListener('mousedown', fastCheck);
+                    window.addEventListener('mouseup', fastCheck);
+                    window.addEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.attachEvent('onmousedown', fastCheck);
+                    document.documentElement.attachEvent('onmouseup', fastCheck);
+                    document.documentElement.attachEvent('onkeydown', fastCheck);
+                }
+            }
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
         }
         observer.patches = patches;
         observer.object = obj;
-
+        observer.unobserve = function () {
+            generate(observer);
+            clearTimeout(observer.next);
+            removeObserverFromMirror(mirror, observer);
+            if (typeof window !== 'undefined') {
+                if (window.removeEventListener) {
+                    window.removeEventListener('mousedown', fastCheck);
+                    window.removeEventListener('mouseup', fastCheck);
+                    window.removeEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.detachEvent('onmousedown', fastCheck);
+                    document.documentElement.detachEvent('onmouseup', fastCheck);
+                    document.documentElement.detachEvent('onkeydown', fastCheck);
+                }
+            }
+        };
         mirror.observers.push(new ObserverInfo(callback, observer));
-
-        return _observe(observer, obj);
+        return observer;
     }
     jsonpatch.observe = observe;
-
-    /// Listen to changes on an object tree, accumulate patches
-    function _observe(observer, obj) {
-        if (Object.observe) {
-            Object.observe(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _observe(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
-    function _unobserve(observer, obj) {
-        if (Object.observe) {
-            Object.unobserve(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _unobserve(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
     function generate(observer) {
-        if (Object.observe) {
-            Object.deliverChangeRecords(observer);
-        } else {
-            var mirror;
-            for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if (beforeDict[i].obj === observer.object) {
-                    mirror = beforeDict[i];
-                    break;
-                }
+        var mirror;
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === observer.object) {
+                mirror = beforeDict[i];
+                break;
             }
-            if (mirror) {
-                _generate(mirror.value, observer.object, observer.patches, "");
-            }
+        }
+        _generate(mirror.value, observer.object, observer.patches, "");
+        if (observer.patches.length) {
+            apply(mirror.value, observer.patches);
         }
         var temp = observer.patches;
         if (temp.length > 0) {
@@ -22103,117 +22258,262 @@ var jsonpatch;
         return temp;
     }
     jsonpatch.generate = generate;
-
-    var _objectKeys;
-    if (Object.keys) {
-        _objectKeys = Object.keys;
-    } else {
-        _objectKeys = function (obj) {
-            var keys = [];
-            for (var o in obj) {
-                if (obj.hasOwnProperty(o)) {
-                    keys.push(o);
-                }
-            }
-            return keys;
-        };
-    }
-
     // Dirty check if obj is different from mirror, generate patches and update mirror
     function _generate(mirror, obj, patches, path) {
         var newKeys = _objectKeys(obj);
         var oldKeys = _objectKeys(mirror);
         var changed = false;
         var deleted = false;
-
+        //if ever "move" operation is implemented here, make sure this test runs OK: "should not generate the same patch twice (move)"
         for (var t = oldKeys.length - 1; t >= 0; t--) {
             var key = oldKeys[t];
             var oldVal = mirror[key];
             if (obj.hasOwnProperty(key)) {
                 var newVal = obj[key];
-                if (oldVal instanceof Object) {
+                if (typeof oldVal == "object" && oldVal != null && typeof newVal == "object" && newVal != null) {
                     _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
-                } else {
+                }
+                else {
                     if (oldVal != newVal) {
                         changed = true;
-                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: newVal });
-                        mirror[key] = newVal;
+                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal) });
                     }
                 }
-            } else {
+            }
+            else {
                 patches.push({ op: "remove", path: path + "/" + escapePathComponent(key) });
-                delete mirror[key];
-                deleted = true;
+                deleted = true; // property has been deleted
             }
         }
-
         if (!deleted && newKeys.length == oldKeys.length) {
             return;
         }
-
         for (var t = 0; t < newKeys.length; t++) {
             var key = newKeys[t];
             if (!mirror.hasOwnProperty(key)) {
-                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: obj[key] });
-                mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key]) });
             }
         }
     }
-
     var _isArray;
     if (Array.isArray) {
         _isArray = Array.isArray;
-    } else {
+    }
+    else {
         _isArray = function (obj) {
             return obj.push && typeof obj.length === 'number';
         };
     }
-
+    //3x faster than cached /^\d+$/.test(str)
+    function isInteger(str) {
+        var i = 0;
+        var len = str.length;
+        var charCode;
+        while (i < len) {
+            charCode = str.charCodeAt(i);
+            if (charCode >= 48 && charCode <= 57) {
+                i++;
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
     /// Apply a json-patch operation on an object tree
-    function apply(tree, patches) {
-        var result = false, p = 0, plen = patches.length, patch;
+    function apply(tree, patches, validate) {
+        var result = false, p = 0, plen = patches.length, patch, key;
         while (p < plen) {
             patch = patches[p];
-
-            // Find the object
-            var keys = patch.path.split('/');
-            var obj = tree;
-            var t = 1;
-            var len = keys.length;
-            while (true) {
-                if (_isArray(obj)) {
-                    var index = parseInt(keys[t], 10);
-                    t++;
-                    if (t >= len) {
-                        result = arrOps[patch.op].call(patch, obj, index, tree);
-                        break;
-                    }
-                    obj = obj[index];
-                } else {
-                    var key = keys[t];
-                    if (key.indexOf('~') != -1) {
-                        key = key.replace(/~1/g, '/').replace(/~0/g, '~');
-                    }
-                    t++;
-                    if (t >= len) {
-                        result = objOps[patch.op].call(patch, obj, key, tree);
-                        break;
-                    }
-                    obj = obj[key];
-                }
-            }
             p++;
+            // Find the object
+            var path = patch.path || "";
+            var keys = path.split('/');
+            var obj = tree;
+            var t = 1; //skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+            var len = keys.length;
+            var existingPathFragment = undefined;
+            while (true) {
+                key = keys[t];
+                if (validate) {
+                    if (existingPathFragment === undefined) {
+                        if (obj[key] === undefined) {
+                            existingPathFragment = keys.slice(0, t).join('/');
+                        }
+                        else if (t == len - 1) {
+                            existingPathFragment = patch.path;
+                        }
+                        if (existingPathFragment !== undefined) {
+                            this.validator(patch, p - 1, tree, existingPathFragment);
+                        }
+                    }
+                }
+                t++;
+                if (key === undefined) {
+                    if (t >= len) {
+                        result = rootOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                if (_isArray(obj)) {
+                    if (key === '-') {
+                        key = obj.length;
+                    }
+                    else {
+                        if (validate && !isInteger(key)) {
+                            throw new JsonPatchError("Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index", "OPERATION_PATH_ILLEGAL_ARRAY_INDEX", p - 1, patch.path, patch);
+                        }
+                        key = parseInt(key, 10);
+                    }
+                    if (t >= len) {
+                        if (validate && patch.op === "add" && key > obj.length) {
+                            throw new JsonPatchError("The specified index MUST NOT be greater than the number of elements in the array", "OPERATION_VALUE_OUT_OF_BOUNDS", p - 1, patch.path, patch);
+                        }
+                        result = arrOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                else {
+                    if (key && key.indexOf('~') != -1)
+                        key = key.replace(/~1/g, '/').replace(/~0/g, '~'); // escape chars
+                    if (t >= len) {
+                        result = objOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                obj = obj[key];
+            }
         }
         return result;
     }
     jsonpatch.apply = apply;
+    function compare(tree1, tree2) {
+        var patches = [];
+        _generate(tree1, tree2, patches, '');
+        return patches;
+    }
+    jsonpatch.compare = compare;
+    var JsonPatchError = (function (_super) {
+        __extends(JsonPatchError, _super);
+        function JsonPatchError(message, name, index, operation, tree) {
+            _super.call(this, message);
+            this.message = message;
+            this.name = name;
+            this.index = index;
+            this.operation = operation;
+            this.tree = tree;
+        }
+        return JsonPatchError;
+    })(OriginalError);
+    jsonpatch.JsonPatchError = JsonPatchError;
+    jsonpatch.Error = JsonPatchError;
+    /**
+     * Recursively checks whether an object has any undefined values inside.
+     */
+    function hasUndefined(obj) {
+        if (obj === undefined) {
+            return true;
+        }
+        if (typeof obj == "array" || typeof obj == "object") {
+            for (var i in obj) {
+                if (hasUndefined(obj[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Validates a single operation. Called from `jsonpatch.validate`. Throws `JsonPatchError` in case of an error.
+     * @param {object} operation - operation object (patch)
+     * @param {number} index - index of operation in the sequence
+     * @param {object} [tree] - object where the operation is supposed to be applied
+     * @param {string} [existingPathFragment] - comes along with `tree`
+     */
+    function validator(operation, index, tree, existingPathFragment) {
+        if (typeof operation !== 'object' || operation === null || _isArray(operation)) {
+            throw new JsonPatchError('Operation is not an object', 'OPERATION_NOT_AN_OBJECT', index, operation, tree);
+        }
+        else if (!objOps[operation.op]) {
+            throw new JsonPatchError('Operation `op` property is not one of operations defined in RFC-6902', 'OPERATION_OP_INVALID', index, operation, tree);
+        }
+        else if (typeof operation.path !== 'string') {
+            throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
+        }
+        else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
+            throw new JsonPatchError('Operation `from` property is not present (applicable in `move` and `copy` operations)', 'OPERATION_FROM_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && operation.value === undefined) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && hasUndefined(operation.value)) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED', index, operation, tree);
+        }
+        else if (tree) {
+            if (operation.op == "add") {
+                var pathLen = operation.path.split("/").length;
+                var existingPathLen = existingPathFragment.split("/").length;
+                if (pathLen !== existingPathLen + 1 && pathLen !== existingPathLen) {
+                    throw new JsonPatchError('Cannot perform an `add` operation at the desired path', 'OPERATION_PATH_CANNOT_ADD', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'replace' || operation.op === 'remove' || operation.op === '_get') {
+                if (operation.path !== existingPathFragment) {
+                    throw new JsonPatchError('Cannot perform the operation at a path that does not exist', 'OPERATION_PATH_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'move' || operation.op === 'copy') {
+                var existingValue = { op: "_get", path: operation.from, value: undefined };
+                var error = jsonpatch.validate([existingValue], tree);
+                if (error && error.name === 'OPERATION_PATH_UNRESOLVABLE') {
+                    throw new JsonPatchError('Cannot perform the operation from a path that does not exist', 'OPERATION_FROM_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+        }
+    }
+    jsonpatch.validator = validator;
+    /**
+     * Validates a sequence of operations. If `tree` parameter is provided, the sequence is additionally validated against the object tree.
+     * If error is encountered, returns a JsonPatchError object
+     * @param sequence
+     * @param tree
+     * @returns {JsonPatchError|undefined}
+     */
+    function validate(sequence, tree) {
+        try {
+            if (!_isArray(sequence)) {
+                throw new JsonPatchError('Patch sequence must be an array', 'SEQUENCE_NOT_AN_ARRAY');
+            }
+            if (tree) {
+                tree = JSON.parse(JSON.stringify(tree)); //clone tree so that we can safely try applying operations
+                apply.call(this, tree, sequence, true);
+            }
+            else {
+                for (var i = 0; i < sequence.length; i++) {
+                    this.validator(sequence[i], i);
+                }
+            }
+        }
+        catch (e) {
+            if (e instanceof JsonPatchError) {
+                return e;
+            }
+            else {
+                throw e;
+            }
+        }
+    }
+    jsonpatch.validate = validate;
 })(jsonpatch || (jsonpatch = {}));
-
 if (typeof exports !== "undefined") {
     exports.apply = jsonpatch.apply;
     exports.observe = jsonpatch.observe;
     exports.unobserve = jsonpatch.unobserve;
     exports.generate = jsonpatch.generate;
+    exports.compare = jsonpatch.compare;
+    exports.validate = jsonpatch.validate;
+    exports.validator = jsonpatch.validator;
+    exports.JsonPatchError = jsonpatch.JsonPatchError;
+    exports.Error = jsonpatch.Error;
 }
 
 },{}],"numeral":[function(_dereq_,module,exports){

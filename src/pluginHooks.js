@@ -535,6 +535,17 @@ const REGISTERED_HOOKS = [
   'beforeOnCellMouseDown',
 
   /**
+   * Fired after the user moved cursor over a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellMouseOver
+   * @param {Event} event The `mouseover` event object.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the clicked cell.
+   * @param {Element} TD TD element.
+   * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
+   */
+  'beforeOnCellMouseOver',
+
+  /**
    * Callback is fired when one or more columns are about to be removed.
    *
    * @event Hooks#beforeRemoveCol
@@ -562,6 +573,14 @@ const REGISTERED_HOOKS = [
    *                           rendering was triggered by scrolling or moving selection.
    */
   'beforeRender',
+
+  /**
+   * Callback fired before setting range is started.
+   *
+   * @event Hooks#beforeSetRangeStart
+   * @param {Array} coords WalkontableCellCoords array.
+   */
+  'beforeSetRangeStart',
 
   /**
    * Callback fired before setting range is ended.
@@ -871,6 +890,15 @@ const REGISTERED_HOOKS = [
    * @param {Array} formulasStack An array of objects with added formulas.
    */
   'afterFilter',
+
+  /**
+   * Used to modify the column header height.
+   *
+   * @event Hooks#modifyColumnHeaderHeight
+   * @since 0.25.0
+   * @param {Number} col Column index.
+   */
+  'modifyColumnHeaderHeight',
 
   /**
    * Used to modify the row header width.

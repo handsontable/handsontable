@@ -4,6 +4,7 @@ import {
   getScrollLeft,
   getScrollTop,
 } from './../../../helpers/dom/element';
+import {arrayEach} from './../../../helpers/array';
 import {isKey} from './../../../helpers/unicode';
 import {isMobileBrowser} from './../../../helpers/browser';
 import {EventManager} from './../../../eventManager';
@@ -644,6 +645,39 @@ class WalkontableOverlays {
     }
 
     this.leftOverlay.applyToDOM();
+  }
+
+  /**
+   * Get the parent overlay of the provided element.
+   *
+   * @param {HTMLElement} element
+   * @returns {Object|null}
+   */
+  getParentOverlay(element) {
+    if (!element) {
+      return null;
+    }
+
+    let overlays = [
+      this.topOverlay,
+      this.leftOverlay,
+      this.bottomOverlay,
+      this.topLeftCornerOverlay,
+      this.bottomLeftCornerOverlay
+    ];
+    let result = null;
+
+    arrayEach(overlays, (elem, i) => {
+      if (!elem) {
+        return;
+      }
+
+      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) {
+        result = elem.clone;
+      }
+    });
+
+    return result;
   }
 }
 

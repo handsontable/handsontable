@@ -8,7 +8,7 @@ import {
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput,
+  isOutsideInput
 } from './helpers/dom/element';
 import {eventManager as eventManagerObject} from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
@@ -98,6 +98,7 @@ function TableView(instance) {
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -132,7 +133,12 @@ function TableView(instance) {
     }
 
     // function did not return until here, we have an outside click!
-    if (that.settings.outsideClickDeselects) {
+
+    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ?
+      that.settings.outsideClickDeselects(originalTarget) :
+      that.settings.outsideClickDeselects;
+
+    if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
@@ -276,53 +282,96 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      var colspanOffset;
-      var TR = TD.parentNode;
-      var THEAD = TR.parentNode;
-      var headerLevel;
-      var headerColspan;
-
       instance.listen();
-      that.activeWt = wt;
 
+      that.activeWt = wt;
       isMouseDown = true;
 
       Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
 
-      instance.selection.setSelectedHeaders(false, false);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
 
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
-          var nothing = 1; // do nothing
-        } else if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
-            instance.selection.setRangeEnd(coords);
+      let actualSelection = instance.getSelectedRange();
+      let selection = instance.selection;
+      let selectedHeader = selection.selectedHeader;
+
+      if (event.shiftKey && actualSelection) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(coords);
+          selection.setSelectedHeaders(false, false);
+
+        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+          selection.setSelectedHeaders(false, false);
+
+        } else if (selectedHeader.cols && coords.row < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(actualSelection.to.row, coords.col));
+
+        } else if (selectedHeader.rows && coords.col < 0) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, actualSelection.to.col));
+
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
+                   (selectedHeader.cols && coords.col < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(actualSelection.from.row, 0));
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          selection.setSelectedHeaders(true, false);
+
+        } else if ((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
+                   (selectedHeader.rows && coords.row < 0)) {
+          selection.setRangeStartOnly(new WalkontableCellCoords(0, actualSelection.from.col));
+          selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          selection.setSelectedHeaders(false, true);
+        }
+      } else {
+        let doNewSelection = true;
+
+        if (actualSelection) {
+          let {from, to} = actualSelection;
+          let coordsNotInSelection = !selection.inInSelection(coords);
+
+          if (coords.row < 0 && selectedHeader.cols) {
+            let start = Math.min(from.col, to.col);
+            let end = Math.max(from.col, to.col);
+
+            doNewSelection = (coords.col < start || coords.col > end);
+
+          } else if (coords.col < 0 && selectedHeader.rows) {
+            let start = Math.min(from.row, to.row);
+            let end = Math.max(from.row, to.row);
+
+            doNewSelection = (coords.row < start || coords.row > end);
+
+          } else {
+            doNewSelection = coordsNotInSelection;
           }
-        } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-            if (coords.row < 0) {
-              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
+        }
 
-              instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
-            }
-            if (coords.col < 0) {
-              instance.selection.setSelectedHeaders(true, false);
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-            }
+        if (event.button === 0 || (event.button === 2 && doNewSelection)) {
+          if (coords.row < 0 && coords.col >= 0) {
+            selection.setSelectedHeaders(false, true);
+            selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
+            selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+
+          } else if (coords.col < 0 && coords.row >= 0) {
+            selection.setSelectedHeaders(true, false);
+            selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+
           } else {
             coords.row = coords.row < 0 ? 0 : coords.row;
             coords.col = coords.col < 0 ? 0 : coords.col;
 
-            instance.selection.setRangeStart(coords);
+            selection.setSelectedHeaders(false, false);
+            selection.setRangeStart(coords);
           }
         }
-
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
-
-        that.activeWt = that.wt;
       }
+
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+
+      that.activeWt = that.wt;
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {
@@ -330,36 +379,42 @@ function TableView(instance) {
      }
      },*/
     onCellMouseOver: function(event, coords, TD, wt) {
-      that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) { //is not a header
-        if (isMouseDown) {
-          /*if (that.settings.fragmentSelection === 'single') {
-           clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-           }*/
-          instance.selection.setRangeEnd(coords);
-        }
-      } else {
-        if (isMouseDown) {
-          // multi select columns
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
+      let blockCalculations = {
+        row: false,
+        column: false
+      };
 
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+      that.activeWt = wt;
+
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+
+      if (event.button === 0) {
+        if (coords.row >= 0 && coords.col >= 0) { //is not a header
+          if (isMouseDown) {
+            instance.selection.setRangeEnd(coords);
+          }
+        } else {
+          if (isMouseDown) {
+            // multi select columns
+            if (coords.row < 0 && !blockCalculations.column) {
+              if (instance.selection.selectedHeader.cols) {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+                instance.selection.setSelectedHeaders(false, true);
+
+              } else {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
+              }
             }
 
-          }
+            // multi select rows
+            if (coords.col < 0 && !blockCalculations.row) {
+              if (instance.selection.selectedHeader.rows) {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+                instance.selection.setSelectedHeaders(true, false);
 
-          // multi select rows
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+              } else {
+                instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col), false);
+              }
             }
           }
         }
@@ -443,7 +498,8 @@ function TableView(instance) {
       return that.settings.rowHeaderWidth;
     },
     columnHeaderHeight: function() {
-      return that.settings.columnHeaderHeight;
+      const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
+      return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
   };
 
@@ -488,6 +544,9 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
     return true;
   }
   if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
+    return true;
+  }
+  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
     return true;
   }
 
@@ -624,7 +683,19 @@ TableView.prototype.appendColHeader = function(col, TH) {
  * @param {Function} content Function which should be returns content for this cell
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
-  if (index > -1) {
+  let renderedIndex = index;
+  let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+
+  // prevent wrong calculations from SampleGenerator
+  if (element.parentNode) {
+    if (hasClass(element, 'colHeader')) {
+      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+    } else if (hasClass(element, 'rowHeader')) {
+      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+    }
+  }
+
+  if (renderedIndex > -1) {
     fastInnerHTML(element, content(index));
 
   } else {

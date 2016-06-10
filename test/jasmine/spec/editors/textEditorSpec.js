@@ -964,4 +964,38 @@ describe('TextEditor', function () {
 
     expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
+
+  it("should resize editor to properly size after focus", function() {
+    var data = [
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', 'sadiasdoadoajdoasjdoijdoiajdoiasjdasoidasoid'],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
+    ];
+    var hot = handsontable({
+      data: data,
+      colWidths: 40,
+      rowHeights: 25,
+      width: 500,
+      height: 220
+    });
+
+    selectCell(4, 10);
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
+
+    var $editorInput = $('.handsontableInput');
+    
+    waits(150);
+
+    runs(function() {
+      expect($editorInput.height()).toEqual(84);
+    });
+  });
+
 });

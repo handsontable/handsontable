@@ -770,7 +770,6 @@ describe('manualColumnMove', function () {
     expect(plugin.columnPositions).toEqual([0, 2, 1, 3, 4]);
 
     alter('insert_col', 2);
-
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Nissan');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('');
@@ -874,4 +873,54 @@ describe('manualColumnMove', function () {
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Kia');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Honda');
   });
+
+  it('should reconstruct manualcolpositions after paste data', function () {
+    var hot = handsontable({
+      data: [
+        ["1", "2"],
+        ["3", "4"]
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnMove: true
+    });
+
+    var htCore = getHtCore();
+    var plugin = hot.getPlugin('manualColumnMove');
+
+    selectCell(1, 0, 1, 0);
+    triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t');
+
+    waits(500);
+
+    runs( function() {
+      swapDisplayedColumns(htCore, 8, 6);
+      expect(htCore.find('tbody tr:eq(1) td:eq(5)').text()).toEqual('8');
+    });
+  });
+
+  describe('handle and guide', function() {
+    it('should display the move handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        colHeaders: true,
+        manualColumnMove: true
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualColumnMover');
+
+      expect($handle.offset().left).toEqual($headerTH.offset().left);
+      expect($handle.height()).toEqual($headerTH.outerHeight());
+    });
+  });
+
 });

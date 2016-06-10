@@ -236,6 +236,10 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
     amount = 1;
   }
 
+  if (typeof index !== 'number' || index >= this.instance.countCols()) {
+    index = this.instance.countCols();
+  }
+
   currentIndex = index;
 
   var maxCols = this.instance.getSettings().maxCols;

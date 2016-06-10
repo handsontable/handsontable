@@ -505,6 +505,29 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls.length).toEqual(0);
   });
 
+  it("shouldn't change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE", function () {
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        {type: 'checkbox'}
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(true);
+
+    selectCell(0, 0);
+    keyDown('c');
+
+    expect(getDataAtCell(0, 0)).toBe(true);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+  });
+
   it("should add label on the beginning of a checkbox element", function () {
     handsontable({
       data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
@@ -596,4 +619,39 @@ describe('CheckboxRenderer', function () {
     expect(labelFunction.calls[1].args).toEqual([1, 0, 'checked', false]);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
   });
+
+  describe('CheckboxRenderer with ContextMenu', function () {
+    it('should add class name `htRight` after set align in contextMenu', function () {
+      handsontable({
+        startRows: 1,
+        startCols: 1,
+        contextMenu: ['alignment'],
+        cells: function () {
+          return {
+            type: 'checkbox'
+          }
+        },
+        height: 100
+      });
+
+      selectCell(0, 0);
+
+      contextMenu();
+
+      var menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
+
+      menu.simulate('mouseover');
+
+      waits(500);
+
+      runs(function() {
+        var contextSubMenu = $('.htContextMenuSub_' + menu.text()).find('tbody td').eq(2);
+        contextSubMenu.simulate('mousedown');
+        contextSubMenu.simulate('mouseup');
+
+        expect($('.handsontable.ht_master .htRight').length).toBe(1);
+      });
+    });
+  });
+
 });

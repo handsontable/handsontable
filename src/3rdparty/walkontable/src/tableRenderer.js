@@ -85,9 +85,10 @@ class WalkontableTableRenderer {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
       }
-      this.adjustColumnHeaderHeights();
+
       this.adjustColumnWidths(columnsToRender);
-      this.markOversizedColumns();
+      this.markOversizedColumnHeaders();
+      this.adjustColumnHeaderHeights();
     }
 
     if (!adjusted) {
@@ -265,12 +266,12 @@ class WalkontableTableRenderer {
   }
 
   /**
-   * Check if any of the rendered columns is wider than expected, and if so, cache them.
+   * Check if any of the rendered columns is higher than expected, and if so, cache them.
    */
-  markOversizedColumns() {
+  markOversizedColumnHeaders() {
     let overlayName = this.wot.getOverlayName();
 
-    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     let columnCount = this.wtTable.getRenderedColumnsCount();
@@ -280,7 +281,7 @@ class WalkontableTableRenderer {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
   }
 
   /**
@@ -288,15 +289,15 @@ class WalkontableTableRenderer {
    */
   adjustColumnHeaderHeights() {
     let columnHeaders = this.wot.getSetting('columnHeaders');
-    let childs = this.wot.wtTable.THEAD.childNodes;
-    let oversizedCols = this.wot.wtViewport.oversizedColumnHeaders;
+    let children = this.wot.wtTable.THEAD.childNodes;
+    let oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
-      if (oversizedCols[i]) {
-        if (childs[i].childNodes.length === 0) {
+      if (oversizedColumnHeaders[i]) {
+        if (children[i].childNodes.length === 0) {
           return;
         }
-        childs[i].childNodes[0].style.height = oversizedCols[i] + 'px';
+        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
       }
     }
   }
@@ -328,6 +329,15 @@ class WalkontableTableRenderer {
 
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+
+      if (Array.isArray(columnHeaderHeightSetting)) {
+        if (columnHeaderHeightSetting[level] != null) {
+          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+        }
+
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {

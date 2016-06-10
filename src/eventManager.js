@@ -34,28 +34,6 @@ class EventManager {
     let context = this.context;
 
     function callbackProxy(event) {
-      if (event.target == void 0 && event.srcElement != void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('target', {
-            value: event.srcElement
-          });
-        } else {
-          event.target = event.srcElement;
-        }
-      }
-      if (event.preventDefault == void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('preventDefault', {
-            value: function() {
-              this.returnValue = false;
-            }
-          });
-        } else {
-          event.preventDefault = function() {
-            this.returnValue = false;
-          };
-        }
-      }
       event = extendEvent(context, event);
 
       /* jshint validthis:true */

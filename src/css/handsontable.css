@@ -202,6 +202,7 @@
 .handsontable .manualColumnMoverGuide.active,
 .handsontable .manualRowMoverGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .manualColumnMover:hover,
@@ -263,6 +264,7 @@
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
+  z-index: 199;
 }
 
 .handsontable .columnSorting {
@@ -466,7 +468,10 @@ AutocompleteRenderer down arrow
 /*
 CheckboxRenderer
 */
-
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+  vertical-align: middle;
+}
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -474,14 +479,6 @@ CheckboxRenderer
   cursor: pointer;
   display: inline-block;
   width: 100%;
-}
-
-/*
-NumericRenderer
-*/
-
-.handsontable .htNumeric {
-  text-align: right;
 }
 
 /*
