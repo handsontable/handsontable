@@ -2,8 +2,9 @@ import {empty, addClass, hasClass} from './../helpers/dom/element';
 import {equalsIgnoreCase} from './../helpers/string';
 import {EventManager} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
-import {KEY_CODES} from './../helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import {isKey} from './../helpers/unicode';
+import {partial} from './../helpers/function';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -24,7 +25,7 @@ const BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('base').apply(this, arguments);
 
-  const eventManager = new EventManager(instance);
+  const eventManager = registerEvents(instance);
   let input = createInput();
   const labelOptions = cellProperties.label;
   let badValue = false;
@@ -81,18 +82,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
 
-  if (!isCheckboxListenerAdded.has(instance)) {
-    if (cellProperties.readOnly) {
-      eventManager.addEventListener(instance.rootElement, 'click', preventDefault);
-    } else {
-      eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
-      eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
-
-    }
-
-    isCheckboxListenerAdded.set(instance, true);
-  }
-
   if (!isListeningKeyDownEvent.has(instance)) {
     isListeningKeyDownEvent.set(instance, true);
     instance.addHook('beforeKeyDown', onBeforeKeyDown);
@@ -105,23 +94,20 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Event} event
    */
   function onBeforeKeyDown(event) {
-    const allowedKeys = [
-      KEY_CODES.SPACE,
-      KEY_CODES.ENTER,
-      KEY_CODES.DELETE,
-      KEY_CODES.BACKSPACE,
-    ];
+    const toggleKeys = 'SPACE|ENTER';
+    const switchOffKeys = 'DELETE|BACKSPACE';
+    const isKeyCode = partial(isKey, event.keyCode);
 
-    if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
+    if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(function() {
         stopImmediatePropagation(event);
         event.preventDefault();
       });
     }
-    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
+    if (isKeyCode(toggleKeys)) {
       toggleSelected();
     }
-    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
+    if (isKeyCode(switchOffKeys)) {
       toggleSelected(false);
     }
   }
@@ -190,6 +176,27 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 /**
+ * Register checkbox listeners.
+ *
+ * @param {Handsontable} instance Handsontable instance.
+ * @returns {EventManager}
+ */
+function registerEvents(instance) {
+  let eventManager = isCheckboxListenerAdded.get(instance);
+
+  if (!eventManager) {
+    eventManager = new EventManager(instance);
+    eventManager.addEventListener(instance.rootElement, 'click', (event) => onClick(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
+
+    isCheckboxListenerAdded.set(instance, eventManager);
+  }
+
+  return eventManager;
+}
+
+/**
  * Create input element.
  *
  * @returns {Node}
@@ -220,18 +227,6 @@ function createLabel(text) {
 }
 
 /**
- * If the event target matches the checkbox selector, prevent the default event action.
- *
- * @private
- * @param event
- */
-function preventDefault(event) {
-  if (isCheckboxInput(event.target)) {
-    event.preventDefault();
-  }
-}
-
-/**
  * `mouseup` callback.
  *
  * @private
@@ -239,8 +234,30 @@ function preventDefault(event) {
  * @param {Object} instance Handsontable instance.
  */
 function onMouseUp(event, instance) {
-  if (isCheckboxInput(event.target)) {
-    setTimeout(instance.listen, 10);
+  if (!isCheckboxInput(event.target)) {
+    return;
+  }
+  setTimeout(instance.listen, 10);
+}
+
+/**
+ * `click` callback.
+ *
+ * @private
+ * @param {Event} event `click` event.
+ * @param {Object} instance Handsontable instance.
+ */
+function onClick(event, instance) {
+  if (!isCheckboxInput(event.target)) {
+    return false;
+  }
+
+  const row = parseInt(event.target.getAttribute('data-row'), 10);
+  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  const cellProperties = instance.getCellMeta(row, col);
+
+  if (cellProperties.readOnly) {
+    event.preventDefault();
   }
 }
 
@@ -257,11 +274,13 @@ function onChange(event, instance) {
     return false;
   }
 
-  let row = parseInt(event.target.getAttribute('data-row'), 10);
-  let col = parseInt(event.target.getAttribute('data-col'), 10);
-  let cellProperties = instance.getCellMeta(row, col);
+  const row = parseInt(event.target.getAttribute('data-row'), 10);
+  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  const cellProperties = instance.getCellMeta(row, col);
 
-  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  if (!cellProperties.readOnly) {
+    instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  }
 }
 
 /**
