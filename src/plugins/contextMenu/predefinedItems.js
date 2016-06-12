@@ -185,6 +185,11 @@ const _predefinedItems = {
       if (!selected || this.selection.selectedHeader.cols) {
         return true;
       }
+      
+      if(selected[2] == this.countRows()-1){
+        return true;
+      }
+      
       let entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
 
       return entireColumnSelection.join(',') === selected.join(',');
@@ -211,6 +216,9 @@ const _predefinedItems = {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+      if(selected[3] == this.countCols()-1){
         return true;
       }
       let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
