@@ -1064,17 +1064,30 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   }
 
   this.validateCell = function(value, cellProperties, callback, source) {
+    var col = cellProperties.visualCol,
+      row = cellProperties.visualRow,
+      td = instance.getCell(row, col, true);
+
+    if (td) {
+      var originalCoordinates = this.getCoords(td);
+      if (originalCoordinates.col != col || originalCoordinates.row != row) {
+        setAsValid();
+        return;
+      }
+    }
     var validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.visualCol,
-          row = cellProperties.visualRow,
-          td = instance.getCell(row, col, true);
-
       if (td && td.nodeName != 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);
+    }
+    function setAsValid() {
+      instance._registerTimeout(setTimeout(function() {
+        cellProperties.valid = true;
+        done(cellProperties.valid);
+      }, 0));
     }
 
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
@@ -1102,10 +1115,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(function() {
-        cellProperties.valid = true;
-        done(cellProperties.valid);
-      }, 0));
+      setAsValid();
     }
   };
 

@@ -644,4 +644,52 @@ describe("handsontable.MergeCells", function() {
 
   });
 
+  describe("merged cells visibility", function() {
+    var id = 'testContainer';
+
+
+    beforeEach(function () {
+      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    });
+
+    afterEach(function () {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+    });
+
+    it("should show merged cells after validation", function() {
+      var onValidate = jasmine.createSpy('onValidate');
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 2, colspan: 2},
+          {row: 2, col: 5, rowspan: 7, colspan: 2}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      hot.validateCells(onValidate);
+
+      waitsFor(function () {
+        return onValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+        expect(onValidate.callCount).toEqual(1);
+        var cell1 = hot.getCell(1, 1);
+        expect(cell1.rowSpan).toEqual(2);
+        expect(cell1.colSpan).toEqual(2);
+        expect($(cell1).is(':visible')).toEqual(true);
+        var cell2 = hot.getCell(2, 5);
+        expect(cell2.rowSpan).toEqual(7);
+        expect(cell2.colSpan).toEqual(2);
+        expect($(cell2).is(':visible')).toEqual(true);
+      });
+    });
+  });
+
+
 });
