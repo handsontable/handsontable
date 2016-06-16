@@ -21,7 +21,6 @@ describe('CustomBorders', function () {
   });
 
   it('should draw custom borders for single td', function () {
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(7, 7),
       colHeaders: true,
@@ -286,5 +285,30 @@ describe('CustomBorders', function () {
 
       expect(getCellMeta(0,0).borders).toBeUndefined();
     });
+  });
+
+  it("should disable `Borders` context menu item when menu was triggered from corner header", function () {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      contextMenu: true,
+      customBorders: true,
+    });
+
+    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+    contextMenu();
+
+    expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+      'Insert column on the left',
+      'Insert column on the right',
+      'Remove row',
+      'Remove column',
+      'Undo',
+      'Redo',
+      'Read only',
+      'Alignment',
+      'Borders',
+    ].join(''));
   });
 });

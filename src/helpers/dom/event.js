@@ -62,3 +62,23 @@ export function pageY(event) {
 
   return event.clientY + getWindowScrollTop();
 }
+
+/**
+ * Check if provided event was triggered by clicking the right mouse button. 
+ *
+ * @param {Event} event DOM Event.
+ * @returns {Boolean}
+ */
+export function isRightClick(event) {
+  return event.button === 2;
+}
+
+/**
+ * Check if provided event was triggered by clicking the left mouse button.
+ *
+ * @param {Event} event DOM Event.
+ * @returns {Boolean}
+ */
+export function isLeftClick(event) {
+  return event.button === 0;
+}

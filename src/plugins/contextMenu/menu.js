@@ -255,16 +255,22 @@ class Menu {
     }
     const selRange = this.hot.getSelectedRange();
     const normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    let autoClose = true;
+
+    // Don't close context menu if item is disabled or it has submenu
+    if (selectedItem.disabled === true ||
+        (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) ||
+        selectedItem.submenu) {
+      autoClose = false;
+    }
 
     this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
 
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
-    // Don't close context menu if item is disabled or it has submenu
-    if (!(selectedItem.disabled === true ||
-        typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true ||
-        selectedItem.submenu)) {
+
+    if (autoClose) {
       this.close(true);
     }
   }

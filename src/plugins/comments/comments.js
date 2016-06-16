@@ -9,7 +9,7 @@ import {
     } from './../../helpers/dom/element';
 import {EventManager} from './../../eventManager';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {registerPlugin, getPlugin} from './../../plugins';
+import {registerPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import {CommentEditor} from './commentEditor';
 
@@ -429,6 +429,8 @@ class Comments extends BasePlugin {
   checkSelectionCommentsConsistency() {
     const selected = this.hot.getSelectedRange();
 
+    console.log('selected', selected);
+
     if (!selected) {
       return false;
     }
@@ -491,7 +493,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: function() {
-          return this.getSelected() ? false : true;
+          return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
         }
       },
       {
@@ -501,7 +503,7 @@ class Comments extends BasePlugin {
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(key, selection),
         disabled: () => {
-          return !this.checkSelectionCommentsConsistency();
+          return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
         }
       }
     );

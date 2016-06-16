@@ -625,7 +625,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
   });
 
   it("should select the entire column after column header is clicked", function(){
-    handsontable({
+    var hot = handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -634,11 +634,15 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     });
 
     this.$container.find('thead th:eq(0)').simulate('mousedown');
+
     expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should select the entire column after column header is clicked (in fixed rows/cols corner)", function(){
-    handsontable({
+    var hot = handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -650,7 +654,11 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     });
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
+
     expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should select the entire fixed column after column header is clicked, after scroll horizontally", function(){
@@ -665,12 +673,15 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     });
 
     hot.render();
-
     hot.view.wt.scrollHorizontal(20);
 
     this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+
     expect(getSelected()).toEqual([0, 1, 49, 1]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function () {
@@ -821,7 +832,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
   });
 
   it("should select the entire row after row header is clicked", function(){
-    handsontable({
+    var hot = handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true,
@@ -829,8 +840,27 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     });
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
 
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(hot.selection.selectedHeader.rows).toBe(true);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
+  });
+
+  it("should select the entire row after row header is clicked", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(hot.selection.selectedHeader.rows).toBe(true);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should select the entire row of a partially fixed table after row header is clicked", function(){
@@ -847,7 +877,6 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([1, 0, 1, 4]);
     this.$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([2, 0, 2, 4]);
-
   });
 
   it("should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, " +
@@ -1024,4 +1053,19 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
   });
 
+  it("should select the first row after corner header is clicked", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('thead').find('th').eq(0).simulate('mousedown');
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(true);
+  });
 });
