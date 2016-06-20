@@ -495,6 +495,10 @@ class ColumnSorting extends BasePlugin {
    * @param {Element} TH TH HTML element.
    */
   getColHeader(col, TH) {
+    if (col < 0 || !TH.parentNode) {
+      return false;
+    }
+
     let headerLink = TH.querySelector('.colHeader');
     let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;

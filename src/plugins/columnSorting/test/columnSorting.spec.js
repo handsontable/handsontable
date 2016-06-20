@@ -59,6 +59,22 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', function () {
+    var errors = 0;
+
+    try {
+      handsontable({
+        data: arrayOfObjects(),
+        autoRowSize: true,
+        columnSorting: true
+      });
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(0);
+  });
 
   it('should sort numbers descending after 2 clicks on table header', function() {
     handsontable({
