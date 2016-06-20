@@ -2354,8 +2354,23 @@ describe('ContextMenu', function () {
     });
   });
 
-  describe("working with multiple tables", function () {
+  describe('mouse navigation', function () {
+    it('should not scroll window position after fireing mouseenter on menu item', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1000, 5),
+        contextMenu: true,
+      });
 
+      hot.selectCell(100, 0);
+      contextMenu();
+      window.scrollTo(0, 0);
+      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
+
+      expect(window.scrollY).toBe(0);
+    });
+  });
+
+  describe("working with multiple tables", function () {
     beforeEach(function () {
       this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
     });
