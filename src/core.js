@@ -537,12 +537,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     },
 
     /**
-     * @param {Boolean} rows
-     * @param {Boolean} cols
+     * @param {Boolean} [rows=false]
+     * @param {Boolean} [cols=false]
+     * @param {Boolean} [corner=false]
      */
-    setSelectedHeaders: function(rows, cols) {
+    setSelectedHeaders: function(rows = false, cols = false, corner = false) {
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
+      instance.selection.selectedHeader.corner = corner;
     },
 
     /**
