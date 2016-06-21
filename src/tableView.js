@@ -385,8 +385,11 @@ function TableView(instance) {
       };
 
       that.activeWt = wt;
-
       Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
 
       if (event.button === 0) {
         if (coords.row >= 0 && coords.col >= 0) { //is not a header
