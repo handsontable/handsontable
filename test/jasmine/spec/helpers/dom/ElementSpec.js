@@ -20,8 +20,8 @@ describe('DomElement helper', function () {
   // Handsontable.helper.closestDown
   //
   describe('closestDown', function () {
-    var test1 = '<div><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
-    var test2 = '<div><table><tbody><tr><td class="test2">test2' + test1 + '</td></tr></tbody></table></div>';
+    var test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
+    var test2 = '<div class="wrapper2"><table><tbody><tr><td class="test2">test2' + test1 + '</td></tr></tbody></table></div>';
 
     it("should return last TD element (starting from last child element)", function () {
       var closestDown = Handsontable.dom.closestDown;
@@ -32,6 +32,17 @@ describe('DomElement helper', function () {
       var td2 = wrapper.querySelector('.test2');
 
       expect(closestDown(td1, ['TD'])).toBe(td2);
+    });
+
+    it("should return proper value depends on passed `until` element", function () {
+      var closestDown = Handsontable.dom.closestDown;
+
+      var td = document.createElement('td');
+      td.innerHTML = test2;
+      var wrapper2 = td.querySelector('.wrapper2');
+
+      expect(closestDown(wrapper2, ['TD'])).toBe(td);
+      expect(closestDown(wrapper2, ['TD'], wrapper2.firstChild)).toBe(null);
     });
   });
 });

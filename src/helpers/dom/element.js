@@ -40,7 +40,7 @@ export function closestDown(element, nodes, until) {
   while (element) {
     element = closest(element, nodes, until);
 
-    if (!element) {
+    if (!element || (until && !until.contains(element))) {
       break;
     }
     matched.push(element);
@@ -62,7 +62,7 @@ export function closestDown(element, nodes, until) {
  *
  * @param child Child element
  * @param {Object|String} parent Parent element OR selector of the parent element.
- *                               If string provided, function returns `true` for the first occurance of element with that class.
+ *                               If string provided, function returns `true` for the first occurrence of element with that class.
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
