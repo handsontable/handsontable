@@ -1,5 +1,5 @@
 import Handsontable from './browser';
-import numeral from 'numeral';
+import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isMobileBrowser} from './helpers/browser';
@@ -26,7 +26,7 @@ Handsontable.activeGuid = null;
  * Handsontable constructor
  *
  * @core
- * @dependencies numeral
+ * @dependencies numbro
  * @constructor Core
  * @description
  *
@@ -964,17 +964,24 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
+            if (typeof cellProperties.language === 'undefined') {
+              numbro.culture('en-US');
             }
             // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
             else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              numeral.language('en');
+              numbro.culture('en-US');
             } else {
-              numeral.language(cellProperties.language);
+              numbro.culture(cellProperties.language);
             }
-            if (numeral.validate(changes[i][3])) {
-              changes[i][3] = numeral().unformat(changes[i][3]);
+            const {delimiters} = numbro.cultureData(numbro.culture());
+
+            // add leading zero for numbers without it (for numbro validation) - https://github.com/foretagsplatsen/numbro/pull/182
+            if (new RegExp('^\\' + delimiters.decimal + '[0-9]+$').test(changes[i][3] + '')) {
+              changes[i][3] = '0' + changes[i][3];
+            }
+            // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
+            if (numbro.validate(changes[i][3]) || !isNaN(parseFloat(changes[i][3]))) {
+              changes[i][3] = numbro().unformat(changes[i][3]);
             }
           }
         }
@@ -4521,9 +4528,10 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. See [numericjs](http://numericjs.com).
+   * Display format. See [numbrojs](http://numbrojs.com). This option is desired for
+   * [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
    *
-   * Option desired for `'numeric'`-typed cells.
+   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
    * @example
    * ```js
@@ -4536,26 +4544,28 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {String}
-   * @default undefined
+   * @default '0'
    */
   format: void 0,
 
   /**
-   * @description
-   * Language display format. See [numericjs](http://numericjs.com). Option desired for [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
+   * Language display format. See [numbrojs](http://numbrojs.com/languages.html#supported-languages). This option is desired for
+   * [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
+   *
+   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
    * @example
    * ```js
    * ...
    * columns: [{
    *   type: 'numeric',
-   *   language: 'uk'
+   *   language: 'en-US'
    * }]
    * ...
    * ```
    *
    * @type {String}
-   * @default 'en'
+   * @default 'en-US'
    */
   language: void 0,
 

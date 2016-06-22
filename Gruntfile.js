@@ -72,9 +72,6 @@ module.exports = function(grunt) {
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/**/*.js'
-      ],
-      vendor: [
-        'lib/numeral/numeral.js'
       ]
     },
 
@@ -102,7 +99,7 @@ module.exports = function(grunt) {
       handsontableStandalone: {
         src: [
           'dist/handsontable.js',
-          'demo/js/numeral.de-de.js',
+          'dist/numbro/languages.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -127,7 +124,7 @@ module.exports = function(grunt) {
           ],
           vendor: [
             'demo/js/jquery.min.js',
-            'lib/numeral/numeral.js',
+            'dist/numbro/numbro.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',
@@ -146,7 +143,7 @@ module.exports = function(grunt) {
       handsontableFull: {
         src: [
           'dist/handsontable.full.min.js',
-          'demo/js/numeral.de-de.js',
+          'dist/numbro/languages.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -197,11 +194,11 @@ module.exports = function(grunt) {
           ],
           vendor: [
             'demo/js/jquery.min.js',
-            'lib/numeral/numeral.js',
+            'dist/numbro/numbro.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
             'demo/js/ZeroClipboard.js',
-            'demo/js/numeral.de-de.js'
+            'dist/numbro/languages.js',
           ],
           helpers: [
             'src/3rdparty/walkontable/test/jasmine/SpecHelper.js',
@@ -217,7 +214,7 @@ module.exports = function(grunt) {
       mobile: {
         src: [
           'dist/handsontable.min.js',
-          'demo/js/numeral.de-de.js',
+          'dist/numbro/languages.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -238,7 +235,7 @@ module.exports = function(grunt) {
           ],
           vendor: [
             'demo/js/jquery.min.js',
-            'lib/numeral/numeral.js',
+            'dist/numbro/numbro.js',
             'demo/js/ZeroClipboard.js',
             'demo/js/moment/moment.js',
             'demo/js/pikaday/pikaday.js',
