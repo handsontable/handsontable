@@ -4528,9 +4528,10 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. See [numericjs](http://numericjs.com).
+   * Display format. See [numbrojs](http://numbrojs.com). This option is desired for
+   * [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
    *
-   * Option desired for `'numeric'`-typed cells.
+   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
    * @example
    * ```js
@@ -4543,15 +4544,15 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {String}
-   * @default undefined
+   * @default '0'
    */
   format: void 0,
 
   /**
-   * @description
-   * Language display format ([supported languages](http://numbrojs.com/languages.html#supported-languages)).
-   * See [numericjs](http://numericjs.com). Option desired for [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
-   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for number formatting.
+   * Language display format. See [numbrojs](http://numbrojs.com/languages.html#supported-languages). This option is desired for
+   * [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
+   *
+   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
    * @example
    * ```js
