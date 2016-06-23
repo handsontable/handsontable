@@ -289,10 +289,11 @@ DataMap.prototype.removeRow = function(index, amount) {
     index = -amount;
   }
 
+  amount = Handsontable.hooks.run(this.instance, 'modifyRemovedAmount', amount, index);
+
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
   let logicRows = this.physicalRowsToLogical(index, amount);
-  let descendingLogicRows = logicRows.slice(0).sort(function(a, b) {return b - a;});
   let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
   if (actionWasNotCancelled === false) {
     return;
