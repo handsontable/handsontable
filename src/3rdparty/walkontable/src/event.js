@@ -34,10 +34,12 @@ function WalkontableEvent(instance) {
     if (event.button !== 2) { //if not right mouse button
       if (cell.TD) {
         dblClickOrigin[0] = cell.TD;
-        clearTimeout(that.dblClickTimeout[0]);
-        that.dblClickTimeout[0] = setTimeout(function() {
-          dblClickOrigin[0] = null;
-        }, 1000);
+        if (!Handsontable.mobileBrowser) {
+          clearTimeout(that.dblClickTimeout[0]);
+          that.dblClickTimeout[0] = setTimeout(function() {
+            dblClickOrigin[0] = null;
+          }, 1000);
+        }
       }
     }
   };
@@ -140,15 +142,17 @@ function WalkontableEvent(instance) {
         } else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
-
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {
         dblClickOrigin[1] = cell.TD;
-        clearTimeout(that.dblClickTimeout[1]);
-        that.dblClickTimeout[1] = setTimeout(function() {
-          dblClickOrigin[1] = null;
-        }, 500);
+
+        if (!Handsontable.mobileBrowser) {
+          clearTimeout(that.dblClickTimeout[1]);
+          that.dblClickTimeout[1] = setTimeout(function() {
+            dblClickOrigin[1] = null;
+          }, 500);
+        }
       }
     }
   };

@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jun 06 2016 17:17:40 GMT+0800 (CST)
+ * Date: Thu Jun 23 2016 21:32:11 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Mon Jun 06 2016 17:17:40 GMT+0800 (CST)',
+  buildDate: 'Thu Jun 23 2016 21:32:11 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1280,10 +1280,12 @@ function WalkontableEvent(instance) {
     if (event.button !== 2) {
       if (cell.TD) {
         dblClickOrigin[0] = cell.TD;
-        clearTimeout(that.dblClickTimeout[0]);
-        that.dblClickTimeout[0] = setTimeout(function() {
-          dblClickOrigin[0] = null;
-        }, 1000);
+        if (!Handsontable.mobileBrowser) {
+          clearTimeout(that.dblClickTimeout[0]);
+          that.dblClickTimeout[0] = setTimeout(function() {
+            dblClickOrigin[0] = null;
+          }, 1000);
+        }
       }
     }
   };
@@ -1336,10 +1338,12 @@ function WalkontableEvent(instance) {
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {
         dblClickOrigin[1] = cell.TD;
-        clearTimeout(that.dblClickTimeout[1]);
-        that.dblClickTimeout[1] = setTimeout(function() {
-          dblClickOrigin[1] = null;
-        }, 500);
+        if (!Handsontable.mobileBrowser) {
+          clearTimeout(that.dblClickTimeout[1]);
+          that.dblClickTimeout[1] = setTimeout(function() {
+            dblClickOrigin[1] = null;
+          }, 500);
+        }
       }
     }
   };
