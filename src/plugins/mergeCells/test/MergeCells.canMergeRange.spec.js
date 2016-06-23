@@ -1,4 +1,4 @@
-describe("handsontable.MergeCells", function() {
+describe("MergeCells", function() {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -644,4 +644,30 @@ describe("handsontable.MergeCells", function() {
 
   });
 
+  describe('ContextMenu', function() {
+    it("should disable `Merge cells` context menu item when context menu was triggered from corner header", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        mergeCells: true,
+      });
+
+      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+      contextMenu();
+
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'Insert column on the left',
+        'Insert column on the right',
+        'Remove row',
+        'Remove column',
+        'Undo',
+        'Redo',
+        'Read only',
+        'Alignment',
+        'Merge cells',
+      ].join(''));
+    });
+  });
 });

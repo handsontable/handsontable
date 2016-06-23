@@ -94,6 +94,38 @@ describe('Core_view', function () {
 
   });
 
+  it('should not throw error while scrolling viewport to 0, 0 (empty data)', function() {
+    this.$container[0].style.width = '400px';
+
+    var hot1 = handsontable({
+      data: [],
+      height: 100
+    });
+
+    expect(function() {
+      hot1.view.scrollViewport({row: 0, col: 0});
+    }).not.toThrow();
+  });
+
+  it('should throw error while scrolling viewport below 0 (empty data)', function() {
+    this.$container[0].style.width = '400px';
+
+    var hot1 = handsontable({
+      data: [],
+      height: 100
+    });
+
+    expect(function() {
+      hot1.view.scrollViewport({row: -1, col: 0});
+    }).toThrow();
+    expect(function() {
+      hot1.view.scrollViewport({row: 0, col: -1});
+    }).toThrow();
+    expect(function() {
+      hot1.view.scrollViewport({row: -1, col: -1});
+    }).toThrow();
+  });
+
   xit('should scroll viewport, respecting fixed rows', function () {
     this.$container[0].style.width = '200px';
     this.$container[0].style.height = '100px';

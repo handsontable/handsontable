@@ -70,7 +70,7 @@ class WalkontableTableRenderer {
       this.columnHeaderCount = 0;
     }
 
-    if (totalColumns > 0) {
+    if (totalColumns >= 0) {
       // prepare COL and TH elements for rendering
       this.adjustAvailableNodes();
       adjusted = true;
@@ -496,8 +496,6 @@ class WalkontableTableRenderer {
    * Renders the column headers
    */
   renderColumnHeaders() {
-    let overlayName = this.wot.getOverlayName();
-
     if (!this.columnHeaderCount) {
       return;
     }

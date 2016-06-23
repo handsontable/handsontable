@@ -59,6 +59,22 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', function () {
+    var errors = 0;
+
+    try {
+      handsontable({
+        data: arrayOfObjects(),
+        autoRowSize: true,
+        columnSorting: true
+      });
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(0);
+  });
 
   it('should sort numbers descending after 2 clicks on table header', function() {
     handsontable({
@@ -1577,6 +1593,96 @@ describe('ColumnSorting', function() {
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
+  });
+
+  it("should properly sort integers with nulls", function() {
+    var hot = handsontable({
+      data: [
+        ["12"],
+        [null],
+        ["10"],
+        ["-5"],
+        [null],
+        ["1000"]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["-5", "10", "12", "1000", null, null]);
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["1000", "12", "10", "-5", null, null]);
+  });
+
+  it("should properly sort floating points", function() {
+    var hot = handsontable({
+      data: [
+        ["0.0561"],
+        ["-10.67"],
+        ["-4.1"],
+        ["-0.01"],
+        ["-127"],
+        ["1000"]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["-127", "-10.67", "-4.1", "-0.01", "0.0561", "1000"]);
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["1000", "0.0561", "-0.01", "-4.1", "-10.67", "-127"]);
+  });
+
+  it("should properly sort floating points with nulls", function() {
+    var hot = handsontable({
+      data: [
+        ["0.0561"],
+        ["-10.67"],
+        [null],
+        ["-4.1"],
+        ["-0.01"],
+        [null],
+        ["-127"],
+        ["1000"],
+        [null]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["-127", "-10.67", "-4.1", "-0.01", "0.0561", "1000", null, null, null]);
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["1000", "0.0561", "-0.01", "-4.1", "-10.67", "-127", null, null, null]);
+  });
+
+  it("should properly sort floating points with non-numerical values", function() {
+    var hot = handsontable({
+      data: [
+        ["0.0561"],
+        ["-10.67"],
+        ["a"],
+        ["-4.1"],
+        ["-0.01"],
+        ["b"],
+        ["-127"],
+        ["1000"],
+        ["hello"]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["-127", "-10.67", "-4.1", "-0.01", "0.0561", "1000", "a", "b", "hello"]);
+
+    this.sortByColumn(0);
+    expect(getDataAtCol(0)).toEqual(["hello", "b", "a", "1000", "0.0561", "-0.01", "-4.1", "-10.67", "-127"]);
   });
 
 });

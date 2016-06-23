@@ -255,16 +255,22 @@ class Menu {
     }
     const selRange = this.hot.getSelectedRange();
     const normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    let autoClose = true;
+
+    // Don't close context menu if item is disabled or it has submenu
+    if (selectedItem.disabled === true ||
+        (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) ||
+        selectedItem.submenu) {
+      autoClose = false;
+    }
 
     this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
 
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
-    // Don't close context menu if item is disabled or it has submenu
-    if (!(selectedItem.disabled === true ||
-        typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true ||
-        selectedItem.submenu)) {
+
+    if (autoClose) {
       this.close(true);
     }
   }
@@ -474,7 +480,7 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     } else {
       removeClass(TD, 'htSubmenu');
@@ -483,7 +489,7 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, void 0, false));
+        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     }
   }

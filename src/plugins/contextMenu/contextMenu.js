@@ -264,13 +264,6 @@ class ContextMenu extends BasePlugin {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {
         return;
       }
-    } else if (showRowHeaders && showColHeaders) {
-      // do nothing after right-click on corner header
-      let containsCornerHeader = element.parentNode.querySelectorAll('.cornerHeader').length > 0;
-
-      if (containsCornerHeader) {
-        return;
-      }
     }
     this.open(event);
   }

@@ -11,7 +11,7 @@ import {
   isOutsideInput
 } from './helpers/dom/element';
 import {eventManager as eventManagerObject} from './eventManager';
-import {stopPropagation, isImmediatePropagationStopped} from './helpers/dom/event';
+import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
 import {Walkontable} from './3rdparty/walkontable/src/core';
@@ -348,22 +348,34 @@ function TableView(instance) {
           }
         }
 
-        if (event.button === 0 || (event.button === 2 && doNewSelection)) {
-          if (coords.row < 0 && coords.col >= 0) {
-            selection.setSelectedHeaders(false, true);
+        const rightClick = isRightClick(event);
+        const leftClick = isLeftClick(event);
+
+        // clicked row header and when some column was selected
+        if (coords.row < 0 && coords.col >= 0) {
+          selection.setSelectedHeaders(false, true);
+
+          if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
-            selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+            selection.setRangeEnd(new WalkontableCellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+          }
 
-          } else if (coords.col < 0 && coords.row >= 0) {
-            selection.setSelectedHeaders(true, false);
+        // clicked column header and when some row was selected
+        } else if (coords.col < 0 && coords.row >= 0) {
+          selection.setSelectedHeaders(true, false);
+
+          if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
-            selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
+          }
 
-          } else {
-            coords.row = coords.row < 0 ? 0 : coords.row;
-            coords.col = coords.col < 0 ? 0 : coords.col;
+        } else {
+          selection.setSelectedHeaders(false, false, coords.col < 0 && coords.row < 0);
 
-            selection.setSelectedHeaders(false, false);
+          coords.row = coords.row < 0 ? 0 : coords.row;
+          coords.col = coords.col < 0 ? 0 : coords.col;
+
+          if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStart(coords);
           }
         }
@@ -385,8 +397,11 @@ function TableView(instance) {
       };
 
       that.activeWt = wt;
-
       Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
 
       if (event.button === 0) {
         if (coords.row >= 0 && coords.col >= 0) { //is not a header

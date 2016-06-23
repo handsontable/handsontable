@@ -271,9 +271,16 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
    * @param {Number} position Header X position if trimming container is window or scroll top if not
    */
   adjustHeaderBordersPosition(position) {
-    let masterParent = this.wot.wtTable.holder.parentNode;
-    let rowHeaders = this.wot.getSetting('rowHeaders');
-    let fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    const masterParent = this.wot.wtTable.holder.parentNode;
+    const rowHeaders = this.wot.getSetting('rowHeaders');
+    const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    const totalRows = this.wot.getSetting('totalRows');
+
+    if (totalRows) {
+      removeClass(masterParent, 'emptyRows');
+    } else {
+      addClass(masterParent, 'emptyRows');
+    }
 
     if (fixedColumnsLeft && !rowHeaders.length) {
       addClass(masterParent, 'innerBorderLeft');

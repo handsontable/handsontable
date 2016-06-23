@@ -434,6 +434,9 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   defaultOptions.items.push({
     key: 'borders',
     name: 'Borders',
+    disabled: function() {
+      return this.selection.selectedHeader.corner;
+    },
     submenu: {
       items: [
         {
@@ -451,7 +454,6 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
             var hasBorder = checkSelectionBorders(this, 'top');
             prepareBorder.call(this, this.getSelectedRange(), 'top', hasBorder);
           },
-          disabled: false
         },
         {
           key: 'borders:right',
@@ -467,7 +469,6 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
             var hasBorder = checkSelectionBorders(this, 'right');
             prepareBorder.call(this, this.getSelectedRange(), 'right', hasBorder);
           },
-          disabled: false
         },
         {
           key: 'borders:bottom',
@@ -483,7 +484,6 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
             var hasBorder = checkSelectionBorders(this, 'bottom');
             prepareBorder.call(this, this.getSelectedRange(), 'bottom', hasBorder);
           },
-          disabled: false
         },
         {
           key: 'borders:left',
@@ -500,7 +500,6 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
             var hasBorder = checkSelectionBorders(this, 'left');
             prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
           },
-          disabled: false
         },
         {
           key: 'borders:no_borders',

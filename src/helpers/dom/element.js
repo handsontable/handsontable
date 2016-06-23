@@ -12,8 +12,7 @@ import {hasCaptionProblem} from '../feature';
  */
 export function closest(element, nodes, until) {
   while (element != null && element !== until) {
-    if (element.nodeType === Node.ELEMENT_NODE &&
-      (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
+    if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
       return element;
     }
     if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -28,11 +27,42 @@ export function closest(element, nodes, until) {
 }
 
 /**
+ * Goes "down" the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ *
+ * @param {HTMLElement} element Element from which traversing is started
+ * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} [until]
+ * @returns {HTMLElement|null}
+ */
+export function closestDown(element, nodes, until) {
+  const matched = [];
+
+  while (element) {
+    element = closest(element, nodes, until);
+
+    if (!element || (until && !until.contains(element))) {
+      break;
+    }
+    matched.push(element);
+
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      element = element.parentNode;
+    }
+  }
+  const length = matched.length;
+
+  return length ? matched[length - 1] : null;
+}
+
+/**
  * Goes up the DOM tree and checks if element is child of another element.
  *
  * @param child Child element
  * @param {Object|String} parent Parent element OR selector of the parent element.
- *                               If string provided, function returns `true` for the first occurance of element with that class.
+ *                               If string provided, function returns `true` for the first occurrence of element with that class.
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
