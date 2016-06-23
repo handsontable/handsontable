@@ -3518,6 +3518,12 @@ DefaultSettings.prototype = {
    * fillHandle: { // enable plugin in both directions and with autoInsertRow as false
    *   autoInsertRow: false,
    * }
+   * // or
+   * ...
+   * fillHandle: { // enable plugin in vertical direction and with autoInsertRow as false
+   *   autoInsertRow: false,
+   *   direction: 'vertical' // 'vertical' or 'horizontal'
+   * }
    * ```
    *
    * @type {Boolean|String|Object}
