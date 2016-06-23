@@ -142,7 +142,6 @@ function WalkontableEvent(instance) {
         } else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
-        that.dbclickTime = (new Date()).getTime(); 
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {

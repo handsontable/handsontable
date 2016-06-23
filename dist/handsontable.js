@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 23 2016 21:29:36 GMT+0800 (CST)
+ * Date: Thu Jun 23 2016 21:32:11 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jun 23 2016 21:29:36 GMT+0800 (CST)',
+  buildDate: 'Thu Jun 23 2016 21:32:11 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1334,7 +1334,6 @@ function WalkontableEvent(instance) {
         } else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
-        that.dbclickTime = (new Date()).getTime();
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {
