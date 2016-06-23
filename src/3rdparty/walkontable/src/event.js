@@ -84,16 +84,6 @@ function WalkontableEvent(instance) {
    };*/
 
   var onTouchStart = function(event) {
-
-    if (!Handsontable.mobileBrowser) {
-      that.dbclickTime = that.dbclickTime || 0;
-      var curTime = (new Date()).getTime();
-      if (curTime - that.dbclickTime < 1000) {
-        event.preventDefault();
-        return false;
-      }
-    }
-
     var container = this;
     var touch = event.changedTouches[0];
     that.instance.touchStartX = touch.pageX;
