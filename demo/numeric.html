@@ -12,8 +12,9 @@
   <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
   <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
   <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/numbro.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/languages.js"></script>
   <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
-  <script data-jsfiddle="common" src="js/numeral.de-de.js"></script>
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -85,12 +86,12 @@
             or
             <code>cells</code> function.</p>
 
-          <p>Numeric cell type uses <a href="http://numeraljs.com/">Numeral.js</a> as the formatting library. Head over
+          <p>Numeric cell type uses <a href="http://numbrojs.com/">Numbro.js</a> as the formatting library. Head over
             to
             their website to learn about the formatting syntax.</p>
 
-          <p>To use number formatting style valid for your language (i18n), load language definition to Numeral.js. See
-            "Languages" section in <a href="http://numeraljs.com/">Numeral.js docs</a> for more info.</p>
+          <p>To use number formatting style valid for your language (i18n), load language definition to Numbro.js. See
+            "Languages" section in <a href="http://numbrojs.com/">Numbro.js docs</a> for more info.</p>
 
           <div id="example1"></div>
 
@@ -132,13 +133,13 @@
                   data: 'price_usd',
                   type: 'numeric',
                   format: '$0,0.00',
-                  language: 'en' // this is the default locale, set up for USD
+                  language: 'en-US' // this is the default locale, set up for USD
                 },
                 {
                   data: 'price_eur',
                   type: 'numeric',
                   format: '0,0.00 $',
-                  language: 'de' // i18n: use this for EUR (German)
+                  language: 'de-DE' // i18n: use this for EUR (German)
                   // more locales available on numeraljs.com
                 }
               ]

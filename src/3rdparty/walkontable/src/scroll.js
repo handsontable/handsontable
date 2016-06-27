@@ -41,11 +41,11 @@ class WalkontableScroll {
       fixedColumnsLeft,
       } = this._getVariables();
 
-    if (coords.row < 0 || coords.row > totalRows - 1) {
+    if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
       throw new Error(`row ${coords.row} does not exist`);
     }
 
-    if (coords.col < 0 || coords.col > totalColumns - 1) {
+    if (coords.col < 0 || coords.col > Math.max(totalColumns - 1, 0)) {
       throw new Error(`column ${coords.col} does not exist`);
     }
 

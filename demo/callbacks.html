@@ -13,6 +13,8 @@
   <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
   <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
   <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/numbro.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/languages.js"></script>
   <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
 
   <!--
@@ -161,7 +163,7 @@
 
                 vals = [
                   i,
-                  "@" + numeral(diff / 1000).format('0.000'),
+                  "@" + numbro(diff / 1000).format('0.000'),
                   "[" + event + "]"
                 ];
 
@@ -188,7 +190,7 @@
 
                 if (window.console) {
                   console.log(i,
-                    "@" + numeral(diff / 1000).format('0.000'),
+                    "@" + numbro(diff / 1000).format('0.000'),
                     "[" + event + "]",
                     data);
                 }
