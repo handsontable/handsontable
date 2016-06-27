@@ -14,8 +14,8 @@ describe('CheckboxRenderer', function () {
 
   it('should render values as checkboxes', function () {
     handsontable({
-      data  :  [[true],[false],[true]],
-      columns : [
+      data:  [[true],[false],[true]],
+      columns: [
         { type: 'checkbox' }
       ]
     });
@@ -121,8 +121,6 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
-
-
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
     addHook('afterChange', afterChangeCallback);
 
@@ -147,8 +145,6 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.length).toEqual(1);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
-
-
   });
 
   it("should not check single box after hitting space, if cell is readOnly", function () {
@@ -178,8 +174,38 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(getData()).toEqual([[true], [true], [true]]);
     expect(afterChangeCallback).not.toHaveBeenCalled();
+  });
 
+  it("should not check single box after hitting space, if last column is readOnly (#3562)", function () {
+    handsontable({
+      data: [[true, true],[false, false],[true, true]],
+      columns: [
+        {type: 'checkbox'},
+        {type: 'checkbox', readOnly: true}
+      ]
+    });
 
+    selectCell(0, 0);
+    keyDown('space');
+    selectCell(0, 1);
+    keyDown('space');
+    selectCell(1, 0);
+    keyDown('space');
+    selectCell(1, 1);
+    keyDown('space');
+
+    var checkboxes = this.$container.find(':checkbox');
+
+    // column 0
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(checkboxes.eq(4).prop('checked')).toBe(true);
+
+    // column 1
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(3).prop('checked')).toBe(false);
+    expect(checkboxes.eq(5).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false, true],[true, false],[true, true]]);
   });
 
   it("should reverse checkboxes state after hitting space, when multiple cells are selected", function () {
@@ -214,8 +240,6 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls[0].args[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
     expect(afterChangeCallback.calls[1].args[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
     expect(afterChangeCallback.calls[2].args[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
-
-
   });
 
   it("should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd", function () {
@@ -225,7 +249,6 @@ describe('CheckboxRenderer', function () {
         { type: 'checkbox'}
       ]
     });
-
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
     addHook('afterChange', afterChangeCallback);
@@ -251,8 +274,6 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls[0].args[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
     expect(afterChangeCallback.calls[1].args[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
     expect(afterChangeCallback.calls[2].args[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
-
-
   });
 
   it("should open cell editors of cell that does not have checkboxRenderer (#1199)", function () {
@@ -325,7 +346,6 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.length).toEqual(1);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
-
   });
 
   it("should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates", function () {
@@ -360,7 +380,6 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([['no'], ['yes'], ['no']]);
     expect(afterChangeCallback.calls.length).toEqual(1);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
-
   });
 
   it("should change checkbox state to unchecked after hitting DELETE", function () {

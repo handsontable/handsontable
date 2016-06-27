@@ -16,6 +16,19 @@ import './shims/runtime';
 import 'es6collections';
 import {Hooks} from './pluginHooks';
 
+// Export internal libraries for possibility for adding new languages
+import numbro from 'numbro';
+import moment from 'moment';
+
+if (typeof window === 'object') {
+  if (typeof window.numbro === 'undefined') {
+    window.numbro = numbro;
+  }
+  if (typeof window.moment === 'undefined') {
+    window.moment = moment;
+  }
+}
+
 if (!Handsontable.hooks) {
   Handsontable.hooks = new Hooks();
 }

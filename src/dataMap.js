@@ -243,11 +243,15 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
-      for (var r = 0; r < rlen; r++) {
-        if (typeof data[r] === 'undefined') {
-          data[r] = [];
+      if (rlen > 0) {
+        for (var r = 0; r < rlen; r++) {
+          if (typeof data[r] === 'undefined') {
+            data[r] = [];
+          }
+          data[r].push(null);
         }
-        data[r].push(null);
+      } else {
+        data.push([null]);
       }
       // Add new column constructor
       this.priv.columnSettings.push(constructor);

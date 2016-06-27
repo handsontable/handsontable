@@ -4,7 +4,7 @@ import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/e
 import {arrayEach, arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
-import {pageX, pageY} from './../../helpers/dom/event';
+import {pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 
 const privatePool = new WeakMap();
@@ -346,14 +346,12 @@ class ManualRowMove extends BasePlugin {
    * Get the visible row index from the provided logical index.
    *
    * @param {Number} row Logical row index.
-   * @returns {Number} Visible row index.
+   * @returns {Number|undefined} Visible row index.
    */
   getVisibleRowIndex(row) {
-    if (row > this.rowPositions.length - 1) {
-      this.createPositionData(row);
-    }
+    const position = this.rowPositions.indexOf(row);
 
-    return this.rowPositions.indexOf(row);
+    return position === -1 ? void 0 : position;
   }
 
   /**
@@ -460,10 +458,6 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Modified row index.
    */
   onModifyRow(row) {
-    if (typeof this.getVisibleRowIndex(row) === 'undefined') {
-      this.createPositionData(row + 1);
-    }
-
     return this.getLogicalRowIndex(row);
   }
 
@@ -526,7 +520,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (index >= rowpos.length) {
-      rowpos.concat(addindx);
+      rowpos = rowpos.concat(addindx);
 
     } else {
       // We need to remap rowPositions so it remains constant linear from 0->nrows

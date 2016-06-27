@@ -390,8 +390,8 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
       this.render();
     },
     disabled: function() {
-      return false;
-    }
+      return this.selection.selectedHeader.corner;
+    },
   });
 };
 

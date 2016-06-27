@@ -1,7 +1,6 @@
-
 import {arrayEach} from './../../helpers/array';
 import {hasClass} from './../../helpers/dom/element';
-import {SEPARATOR} from './predefinedItems';
+import {KEY as SEPARATOR} from './predefinedItems/separator';
 
 export function normalizeSelection(selRange) {
   return {

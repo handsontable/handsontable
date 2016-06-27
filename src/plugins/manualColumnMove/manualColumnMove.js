@@ -4,7 +4,7 @@ import {addClass, hasClass, removeClass, outerHeight} from './../../helpers/dom/
 import {arrayEach, arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
-import {pageX, pageY} from './../../helpers/dom/event';
+import {pageX} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 
 const privatePool = new WeakMap();
@@ -306,7 +306,6 @@ class ManualColumnMove extends BasePlugin {
     let positionArr = this.columnPositions;
 
     if (positionArr.length < len) {
-
       rangeEach(positionArr.length, len - 1, (i) => {
         positionArr[i] = i;
       });
@@ -352,14 +351,12 @@ class ManualColumnMove extends BasePlugin {
    * Get the visible column index from the provided logical index.
    *
    * @param {Number} column Logical column index.
-   * @returns {Number} Visible column index.
+   * @returns {Number|undefined} Visible column index.
    */
   getVisibleColumnIndex(column) {
-    if (column > this.columnPositions.length - 1) {
-      this.createPositionData(column);
-    }
+    const position = this.columnPositions.indexOf(column);
 
-    return this.columnPositions.indexOf(column);
+    return position === -1 ? void 0 : position;
   }
 
   /**
@@ -470,9 +467,6 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Modified column index.
    */
   onModifyCol(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
     return this.getLogicalColumnIndex(col);
   }
 
@@ -484,10 +478,6 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Unmodified column index.
    */
   onUnmodifyCol(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
-
     return this.getVisibleColumnIndex(col);
   }
 
@@ -550,7 +540,7 @@ class ManualColumnMove extends BasePlugin {
     });
 
     if (index >= colpos.length) {
-      colpos.concat(addindx);
+      colpos = colpos.concat(addindx);
 
     } else {
       // We need to remap manualColPositions so it remains constant linear from 0->ncols
