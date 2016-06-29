@@ -97,9 +97,6 @@
         "LICENSE"
       ],
       "global": "ZeroClipboard"
-    },
-    "numeral": {
-      "global": "numeral"
     }
   }
 }
