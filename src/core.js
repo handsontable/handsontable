@@ -1532,6 +1532,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.updateSettings = function(settings, init) {
     var i, clen;
+    var settingName;
 
     if (typeof settings.rows !== 'undefined') {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
@@ -1553,6 +1554,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           if (!init && settings.hasOwnProperty(i)) {
             GridSettings.prototype[i] = settings[i];
           }
+        }
+      }
+    }
+
+    // Some settings like `stretch` effective only when saved in walkontable instance
+    // so update it there
+    // allso update only settings which has `string` class
+    if (init !== true) {
+      for (settingName in settings) {
+        if (typeof instance.view.wt.wtSettings.defaults[settingName] === 'string') {
+          instance.view.wt.update(settingName, settings[settingName]);
         }
       }
     }
