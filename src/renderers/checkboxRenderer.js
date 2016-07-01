@@ -141,6 +141,11 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     for (let row = topLeft.row; row <= bottomRight.row; row++) {
       for (let col = topLeft.col; col <= bottomRight.col; col++) {
         let cell = instance.getCell(row, col);
+        if(cell===null) {
+          //juliend: bugfix delete doesn't work on many rows at once if a checkbox column is present because
+          //instance.getCell(row, col) returns null for out of DOM cells
+          continue;
+        }
         let cellProperties = instance.getCellMeta(row, col);
         let checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
