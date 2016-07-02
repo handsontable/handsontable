@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 23 2016 21:32:11 GMT+0800 (CST)
+ * Date: Sat Jul 02 2016 15:14:17 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Jun 23 2016 21:32:11 GMT+0800 (CST)',
+  buildDate: 'Sat Jul 02 2016 15:14:17 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -11829,13 +11829,13 @@ function CopyPastePlugin(instance) {
         if (isTdHtml(item)) {
           tempArray[key].push(item);
         } else {
-          tempArray[key].push(_.escape(item));
+          tempArray[key].push(item);
         }
       });
     });
     function isTdHtml(string) {
-      var ele = $('<div></div>').append(string).children();
-      return ele.length === 1 && ele[0].tagName.toLowerCase() === 'td';
+      var tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/;
+      return tdRegex.test(str);
     }
     inputArray = tempArray;
     selected = instance.getSelected();

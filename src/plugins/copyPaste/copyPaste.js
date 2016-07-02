@@ -56,14 +56,14 @@ function CopyPastePlugin(instance) {
         if(isTdHtml(item)){
           tempArray[key].push(item);
         } else {
-          tempArray[key].push(_.escape(item));
+          tempArray[key].push(item);
         }
       })
     })
 
     function isTdHtml(string) {
-      var ele = $('<div></div>').append(string).children();
-      return ele.length === 1 && ele[0].tagName.toLowerCase() === 'td';
+      var tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/;
+      return tdRegex.test(str);
     }
     
     inputArray = tempArray;
