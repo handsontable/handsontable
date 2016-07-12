@@ -4,7 +4,7 @@
 
 [![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](https://travis-ci.org/handsontable/handsontable)
 [![npm](https://img.shields.io/github/contributors/handsontable/handsontable.svg)](https://github.com/handsontable/handsontable/graphs/contributors)
-[![npm](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/handsontable/handsontable/blob/develop/LICENSE)
+[![npm](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/handsontable/handsontable/blob/master/LICENSE)
 
 ## What to use it for?
 We have seen Handsontable being used in many different, sometimes completely unexpected fields. The list below is just to give you a rough idea on what you can do with Handsontable, but it doesn't limit you in any way.
