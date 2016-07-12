@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Jul 02 2016 15:14:17 GMT+0800 (CST)
+ * Date: Tue Jul 12 2016 16:32:21 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Sat Jul 02 2016 15:14:17 GMT+0800 (CST)',
+  buildDate: 'Tue Jul 12 2016 16:32:21 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -16213,7 +16213,7 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
   var _this = this;
   if (_this.pasteCallbacks) {
     setTimeout(function() {
-      var copiedVal = _this.elTextarea.htmlValue || _.escape(_this.elTextarea.value),
+      var copiedVal = _this.elTextarea.htmlValue || _escapeStr(_this.elTextarea.value),
           val;
       val = string || copiedVal;
       for (var i = 0,
@@ -16221,6 +16221,15 @@ CopyPasteClass.prototype.triggerPaste = function(event, string) {
         _this.pasteCallbacks[i](val, event);
       }
     }, 50);
+  }
+  function _escapeStr(str) {
+    var escapedStr = '';
+    if (str.substr(0, 1) === '"' && str.substr(-1) === '"') {
+      escapedStr = '"' + _.escape(str.substr(1, str.length - 1)) + '"';
+    } else {
+      escapedStr = _.escape(str);
+    }
+    return escapedStr;
   }
 };
 CopyPasteClass.prototype.destroy = function() {
