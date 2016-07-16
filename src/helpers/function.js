@@ -1,6 +1,16 @@
 import {arrayReduce} from './array';
 
 /**
+ * Checks if func is function.
+ *
+ * @param func
+ * @returns {boolean}
+ */
+export function isFunction(func) {
+  return typeof func === 'function';
+}
+
+/**
  * Returns new function that, when called, has new context (`this` keyword).
  *
  * @param func Function to proxy.

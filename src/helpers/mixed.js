@@ -26,3 +26,23 @@ export function stringify(value) {
       return value.toString();
   }
 }
+
+/**
+ * Checks if variable is defined.
+ *
+ * @param variable
+ * @returns {boolean}
+ */
+export function isDefined(variable) {
+  return typeof variable !== 'undefined';
+}
+
+/**
+ * Checks if variable is undefined.
+ *
+ * @param variable
+ * @returns {boolean}
+ */
+export function isUndefined(variable) {
+  return typeof variable === 'undefined';
+}
