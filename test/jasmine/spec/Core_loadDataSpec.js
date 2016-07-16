@@ -87,6 +87,28 @@ describe('Core_loadData', function () {
     expect(getDataAtCell(0, 2)).toEqual("Ted");
   });
 
+  it('should allow array of objects when columns as a function', function () {
+    handsontable({
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.data = 'id';
+        } else if (column === 1) {
+          colMeta.data = 'lastName';
+        } else if (column === 2) {
+          colMeta.data = 'name';
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+    loadData(arrayOfObjects());
+    expect(getDataAtCell(0, 2)).toEqual("Ted");
+  });
+
   it('should allow array of nested objects', function () {
     handsontable({
       data: arrayOfNestedObjects(),
@@ -97,6 +119,33 @@ describe('Core_loadData', function () {
         {data: "name.first"},
         {data: "full.street"},
       ]
+    });
+    expect(getDataAtCell(0, 2)).toEqual("Ted");
+    expect(getDataAtCell(1, 3)).toEqual("Street II");
+    expect(getDataAtRowProp(2, 'full.street')).toEqual("Street III");
+  });
+
+  it('should allow array of nested objects when columns as a function', function () {
+    handsontable({
+      data: arrayOfNestedObjects(),
+      colHeaders: true,
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.data = 'id';
+        } else if (column === 1) {
+          colMeta.data = 'name.last';
+        } else if (column === 2) {
+          colMeta.data = 'name.first';
+        } else if (column === 3) {
+          colMeta.data = 'full.street';
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
     expect(getDataAtCell(0, 2)).toEqual("Ted");
     expect(getDataAtCell(1, 3)).toEqual("Street II");

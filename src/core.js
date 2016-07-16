@@ -1620,9 +1620,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     if (isDefined(settings.cell)) {
-      for (i in settings.cell) {
-        if (settings.cell.hasOwnProperty(i)) {
-          let cell = settings.cell[i];
+      for (let key in settings.cell) {
+        if (settings.cell.hasOwnProperty(key)) {
+          let cell = settings.cell[key];
 
           instance.setCellMetaObject(cell.row, cell.col, cell);
         }
@@ -2587,10 +2587,20 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let len = 0;
     let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
+    let recursObjLen = function(obj) {
+      let result = 0;
+
+      if (isObject(obj)) {
+        objectEach(obj, (key) => {
+          result += recursObjLen(key);
+        });
+      }
+
+      return result > 0 ? result : 1;
+    };
+
     if (isObject(obj)) {
-      objectEach(obj, () => {
-        len++;
-      });
+      len += recursObjLen(obj);
     } else {
       len = obj.length || 0;
     }
@@ -2631,18 +2641,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (priv.settings.columns) {
       let columnsIsFunction = isFunction(priv.settings.columns);
 
-      if (columnsIsFunction && dataHasLength) {
-        let columnLen = 0;
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          let columnLen = 0;
 
-        for (let i = 0; i < dataLen; i++) {
-          if (priv.settings.columns(i)) {
-            columnLen++;
+          for (let i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
           }
+
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
         }
 
-        dataLen = columnLen;
-
-      } else if (!columnsIsFunction) {
+      } else {
         dataLen = priv.settings.columns.length;
       }
 
