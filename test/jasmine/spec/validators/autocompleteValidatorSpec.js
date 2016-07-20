@@ -48,7 +48,6 @@ describe('autocompleteValidator', function () {
       runs(function () {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0, undefined, undefined);
       });
-
     });
 
     it('should validate empty cells positively when allowEmpty is set to true', function() {
@@ -210,8 +209,6 @@ describe('autocompleteValidator', function () {
         expect(onAfterValidate.calls[1].args).toEqual([false, void 0, 0, 1, undefined, undefined]);
         expect(onAfterValidate.calls[2].args).toEqual([false, '', 0, 2, undefined, undefined]);
       });
-
     });
-
   });
 });

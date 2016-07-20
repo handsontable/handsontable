@@ -2,7 +2,7 @@ import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend, deepClone, isObject} from './helpers/object';
+import {duckSchema, deepExtend, deepClone, isObject, objectSize} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
@@ -96,9 +96,10 @@ DataMap.prototype.createMap = function() {
     let columnsLen = columns.length;
     let filteredIndex = 0;
     let columnsAsFunc = false;
+    let schemaLen = objectSize(schema);
 
     if (typeof columns === 'function') {
-      columnsLen = this.instance.countSourceCols();
+      columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
       columnsAsFunc = true;
     }
 

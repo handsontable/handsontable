@@ -373,6 +373,27 @@ describe('Core_loadData', function () {
     expect(countCols()).toBe(2);
   });
 
+  it('should only have as many columns as in settings when columns is a function', function () {
+    var data1 = arrayOfArrays();
+
+    handsontable({
+      data: data1,
+      columns: function(column) {
+        var colMeta = {
+          data: column
+        };
+
+        if ([1, 3].indexOf(column) < 0) {
+          colMeta = null
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(countCols()).toBe(2);
+  });
+
   it('should throw error when trying to load a string (constructor)', function () {
     var errors = 0;
 
@@ -452,6 +473,64 @@ describe('Core_loadData', function () {
     expect(countRows()).toBe(3);
   });
 
+  it('should load Backbone Collection as data source when columns is a function', function () {
+    // code borrowed from demo/backbone.js
+
+    var CarModel = Backbone.Model.extend({});
+
+    var CarCollection = Backbone.Collection.extend({
+      model: CarModel,
+      // Backbone.Collection doesn't support `splice`, yet! Easy to add.
+      splice: hacked_splice
+    });
+    var cars = new CarCollection();
+
+    cars.add([
+      {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
+      {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
+      {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+    ]);
+
+    handsontable({
+      data: cars,
+      columns: function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = attr("make");
+        } else if (column === 1) {
+          colMeta = attr("model");
+        } else if (column === 2) {
+          colMeta = attr("year");
+        }
+
+        return colMeta;
+      }
+    });
+
+    // use the "good" Collection methods to emulate Array.splice
+    function hacked_splice(index, howMany /* model1, ... modelN */) {
+      var args = _.toArray(arguments).slice(2).concat({at: index}),
+        removed = this.models.slice(index, index + howMany);
+      this.remove(removed).add.apply(this, args);
+
+      return removed;
+    }
+
+    // normally, you'd get these from the server with .fetch()
+    function attr(attr) {
+      // this lets us remember `attr` for when when it is get/set
+      return {data: function (car, value) {
+        if (_.isUndefined(value)) {
+          return car.get(attr);
+        }
+        car.set(attr, value);
+      }};
+    }
+
+    expect(countRows()).toBe(3);
+  });
+
   it('should clear cell properties after loadData', function () {
     handsontable();
     loadData(arrayOfArrays());
@@ -497,6 +576,43 @@ describe('Core_loadData', function () {
         {data: 'user.name.first'},
         {data: 'user.name.last'}
       ]
+    });
+
+    mouseDoubleClick(getCell(1, 1));
+    document.activeElement.value = 'Harry';
+    deselectCell();
+    expect(objectData[1].user.name.first).toEqual('Harry');
+
+    mouseDoubleClick(getCell(2, 1));
+    document.activeElement.value = 'Barry';
+    deselectCell();
+    expect(objectData[2].user.name.first).toEqual('Barry');
+  });
+
+  it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', function () {
+
+    var objectData = [
+      {id: 1, user: {name: {first: "Ted", last: "Right"}}},
+      {id: 2, user: {name: {}}},
+      {id: 3}
+    ];
+
+    handsontable({
+      data: objectData,
+      columns: function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = {data: 'id'}
+
+        } else if (column === 1) {
+          colMeta = {data: 'user.name.first'};
+        } else if (column === 2) {
+          colMeta = {data: 'user.name.last'};
+        }
+
+        return colMeta;
+      }
     });
 
     mouseDoubleClick(getCell(1, 1));

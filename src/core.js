@@ -8,7 +8,7 @@ import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, objectEach} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, objectSize} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -2587,20 +2587,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let len = 0;
     let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
-    let recursObjLen = function(obj) {
-      let result = 0;
-
-      if (isObject(obj)) {
-        objectEach(obj, (key) => {
-          result += recursObjLen(key);
-        });
-      }
-
-      return result > 0 ? result : 1;
-    };
-
     if (isObject(obj)) {
-      len += recursObjLen(obj);
+      len = objectSize(obj);
+
     } else {
       len = obj.length || 0;
     }

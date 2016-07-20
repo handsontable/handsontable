@@ -28,12 +28,53 @@ describe('ColHeader', function() {
     expect(that.$container.find('thead th').length).toBeGreaterThan(0);
   });
 
-  it('should show col headers numbered 1-10 by default', function() {
+  it('should show default columns headers labelled A-(Z * n)', function() {
     var that = this;
     var startCols = 5;
+
     handsontable({
       startCols: startCols,
       colHeaders: true
+    });
+
+    var ths = getHtCore().find('thead th');
+    expect(ths.length).toEqual(startCols);
+    expect($.trim(ths.eq(0).text())).toEqual('A');
+    expect($.trim(ths.eq(1).text())).toEqual('B');
+    expect($.trim(ths.eq(2).text())).toEqual('C');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
+  });
+
+  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', function() {
+    var that = this;
+    var startCols = 5;
+
+    handsontable({
+      startCols: startCols,
+      colHeaders: true,
+      columns: [{}, {}, {}, {}, {}]
+    });
+
+    var ths = getHtCore().find('thead th');
+    expect(ths.length).toEqual(startCols);
+    expect($.trim(ths.eq(0).text())).toEqual('A');
+    expect($.trim(ths.eq(1).text())).toEqual('B');
+    expect($.trim(ths.eq(2).text())).toEqual('C');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
+  });
+
+  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', function() {
+    var that = this;
+    var startCols = 5;
+
+    handsontable({
+      startCols: startCols,
+      colHeaders: true,
+      columns: function (column) {
+        return {};
+      }
     });
 
     var ths = getHtCore().find('thead th');
@@ -201,6 +242,27 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
+  it('should be possible to set colHeaders when columns function is present', function() {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: ['One', 'Two'],
+      columns: function(column) {
+        var colMeta = {type: 'text'};
+
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
+  });
+
   it('should be possible to set colHeaders using columns title property', function() {
     var hot = handsontable({
       startCols: 2,
@@ -209,6 +271,30 @@ describe('ColHeader', function() {
         {type: 'text', title: 'Special title'},
         {type: 'text'}
       ]
+    });
+
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('Special title');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
+  });
+
+  it('should be possible to set colHeaders using columns title property when columns is a function', function() {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: ['One', 'Two'],
+      columns: function(column) {
+        var colMeta = {type: 'text'};
+
+        if (column === 0) {
+          colMeta.title = 'Special title';
+        }
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
 
     var htCore = getHtCore();
