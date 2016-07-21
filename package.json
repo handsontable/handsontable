@@ -42,7 +42,7 @@
     "grunt-gitinfo": "~0.1.6",
     "grunt-jscs": "^2.5.0",
     "grunt-saucelabs": "~8.3.3",
-    "hot-builder": "^0.5.0",
+    "hot-builder": "^0.5.2",
     "load-grunt-tasks": "^3.3.0",
     "time-grunt": "^1.2.2"
   },
@@ -65,6 +65,9 @@
     "numbro": {
       "include": [
         "dist/numbro.js"
+      ],
+      "ignore": [
+        "dist/languages.js"
       ],
       "copyable": [
         "dist/numbro.js",
@@ -97,9 +100,6 @@
         "LICENSE"
       ],
       "global": "ZeroClipboard"
-    },
-    "numeral": {
-      "global": "numeral"
     }
   }
 }
