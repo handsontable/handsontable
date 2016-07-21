@@ -282,7 +282,7 @@ describe("MergeCells", function() {
       expect(hot.getSelectedRange().getDirection()).toEqual("NE-SW");
     });
 
-    it("should not add an area class to the selected cell if a single merged cell is seqelected", function() {
+    it("should not add an area class to the selected cell if a single merged cell is selected", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(6, 6),
         mergeCells: [

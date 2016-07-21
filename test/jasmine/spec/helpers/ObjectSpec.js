@@ -208,16 +208,16 @@ describe('Object helper', function () {
     });
   });
 
-  describe('objectSize', function () {
+  describe('deepObjectSize', function () {
     it('should return false if a variable is not an object', function () {
-      var objectSize = Handsontable.helper.objectSize;
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
       var toCount = [1, 2, 3];
 
-      expect(objectSize(toCount)).toBeFalsy();
+      expect(deepObjectSize(toCount)).toBeFalsy();
     });
 
     it('should return an object keys length (recursively and only these keys, which contain value)', function () {
-      var objectSize = Handsontable.helper.objectSize;
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
       var toCount = {
         prop1: 1,
         prop2: 2,
@@ -233,7 +233,7 @@ describe('Object helper', function () {
         prop5: 5
       };
 
-      expect(objectSize(toCount)).toEqual(8);
+      expect(deepObjectSize(toCount)).toEqual(8);
     });
   });
 });

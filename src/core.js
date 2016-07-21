@@ -8,7 +8,7 @@ import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, objectSize} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -1855,20 +1855,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return datamap.colToProp(col);
   };
 
-  this.getColIndexFromColumns = function(col) {
-    let arr = [];
-    let columnsLen = this.countSourceCols();
-    let index = 0;
-
-    for (; index < columnsLen; index++) {
-      if (isFunction(this.getSettings().columns) && this.getSettings().columns(index)) {
-        arr.push(index);
-      }
-    }
-
-    return arr[col];
-  };
-
   /**
    * Returns column index that corresponds with the given property. {@link DataMap#propToCol}
    *
@@ -2428,9 +2414,23 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       result = out;
 
     } else {
+      let translateVisualIndexToColumns = function(col) {
+        let arr = [];
+        let columnsLen = instance.countSourceCols();
+        let index = 0;
+
+        for (; index < columnsLen; index++) {
+          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+
+        return arr[col];
+      };
       let baseCol = col;
       col = Handsontable.hooks.run(instance, 'modifyCol', col);
-      let prop = instance.getColIndexFromColumns(col);
+
+      let prop = translateVisualIndexToColumns(col);
 
       if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
@@ -2588,7 +2588,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
     if (isObject(obj)) {
-      len = objectSize(obj);
+      len = deepObjectSize(obj);
 
     } else {
       len = obj.length || 0;

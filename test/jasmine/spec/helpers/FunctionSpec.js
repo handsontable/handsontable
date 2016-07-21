@@ -225,66 +225,30 @@ describe('Function helper', function() {
   // Handsontable.helper.isFunction
   //
   describe('isFunction', function() {
-    it('should check if variable assignment is a function', function() {
+    it('should correctly detect function', function() {
       var isFunction = Handsontable.helper.isFunction;
-      var toCheck = function() {};
+      var toCheck = [
+        function() {},
+        {id: function() {}},
+        1,
+        'text',
+        /^\d+$/,
+        true
+      ];
 
-      expect(isFunction(toCheck)).toBeTruthy();
-    });
-
-    it('should check if named function is a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
       function namedFunc() {}
 
+      expect(isFunction(toCheck[0])).toBeTruthy();
+      expect(isFunction(toCheck[1].id)).toBeTruthy();
       expect(isFunction(namedFunc)).toBeTruthy();
-    });
-
-    it('should check if anonymous function is a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-
       expect(isFunction(function() {})).toBeTruthy();
-    });
-
-    it('should check if `Object` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = {id: function() {}};
 
       expect(isFunction(toCheck)).toBeFalsy();
-    });
-
-    it('should check if `Number` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = 1;
-
-      expect(isFunction(toCheck)).toBeFalsy();
-    });
-
-    it('should check if `String` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = 'text';
-
-      expect(isFunction(toCheck)).toBeFalsy();
-    });
-
-    it('should check if `RegExp` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = /^\d+$/;
-
-      expect(isFunction(toCheck)).toBeFalsy();
-    });
-
-    it('should check if `Boolean` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = true;
-
-      expect(isFunction(toCheck)).toBeFalsy();
-    });
-
-    it('should check if `Array` is not a function', function() {
-      var isFunction = Handsontable.helper.isFunction;
-      var toCheck = [];
-
-      expect(isFunction(toCheck)).toBeFalsy();
+      expect(isFunction(toCheck[1])).toBeFalsy();
+      expect(isFunction(toCheck[2])).toBeFalsy();
+      expect(isFunction(toCheck[3])).toBeFalsy();
+      expect(isFunction(toCheck[4])).toBeFalsy();
+      expect(isFunction(toCheck[5])).toBeFalsy();
     });
   });
 });

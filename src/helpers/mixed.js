@@ -28,20 +28,20 @@ export function stringify(value) {
 }
 
 /**
- * Checks if variable is defined.
+ * Checks if given variable is defined.
  *
- * @param variable
- * @returns {boolean}
+ * @param {*} variable Variable to check.
+ * @returns {Boolean}
  */
 export function isDefined(variable) {
   return typeof variable !== 'undefined';
 }
 
 /**
- * Checks if variable is undefined.
+ * Checks if given variable is undefined.
  *
- * @param variable
- * @returns {boolean}
+ * @param variable Variable to check.
+ * @returns {Boolean}
  */
 export function isUndefined(variable) {
   return typeof variable === 'undefined';

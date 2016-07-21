@@ -1,10 +1,10 @@
 import {arrayReduce} from './array';
 
 /**
- * Checks if func is function.
+ * Checks if given variable is function.
  *
- * @param func
- * @returns {boolean}
+ * @param {*} func Variable to check.
+ * @returns {Boolean}
  */
 export function isFunction(func) {
   return typeof func === 'function';
