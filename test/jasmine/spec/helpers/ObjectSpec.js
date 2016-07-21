@@ -207,4 +207,33 @@ describe('Object helper', function () {
       expect(baseObject.prop5).toEqual(date);
     });
   });
+
+  describe('deepObjectSize', function () {
+    it('should return false if a variable is not an object', function () {
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
+      var toCount = [1, 2, 3];
+
+      expect(deepObjectSize(toCount)).toBeFalsy();
+    });
+
+    it('should return an object keys length (recursively and only these keys, which contain value)', function () {
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
+      var toCount = {
+        prop1: 1,
+        prop2: 2,
+        prop3: {
+          prop31: {
+            prop311: 311,
+            prop312: 312
+          },
+          prop32: 32,
+          prop33: 33
+        },
+        prop4: 4,
+        prop5: 5
+      };
+
+      expect(deepObjectSize(toCount)).toEqual(8);
+    });
+  });
 });

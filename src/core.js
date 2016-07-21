@@ -2,11 +2,13 @@ import Handsontable from './browser';
 import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
+import {isFunction} from './helpers/function';
+import {isDefined, isUndefined} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {extend, duckSchema, isObjectEquals, deepClone} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -17,7 +19,6 @@ import {DataSource} from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range';
-import {WalkontableSelection} from './3rdparty/walkontable/src/selection';
 import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns';
 
 Handsontable.activeGuid = null;
@@ -492,7 +493,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
-                  value = typeof (result.value) === 'undefined' ? value : result.value;
+                  value = isUndefined(result.value) ? value : result.value;
                 }
               }
               if (value !== null && typeof value === 'object') {
@@ -964,7 +965,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language === 'undefined') {
+            if (isUndefined(cellProperties.language)) {
               numbro.culture('en-US');
             }
             // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
@@ -1013,7 +1014,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.run(instance, 'beforeChange', changes, source);
-        if (typeof beforeChangeResult === 'function') {
+        if (isFunction(beforeChangeResult)) {
           console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
@@ -1094,7 +1095,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       })(validator);
     }
 
-    if (typeof validator == 'function') {
+    if (isFunction(validator)) {
 
       value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
@@ -1408,7 +1409,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
       instance.dataType = 'array';
-    } else if (typeof priv.settings.dataSchema === 'function') {
+    } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -1458,7 +1459,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Array} Array with the data.
    */
   this.getData = function(r, c, r2, c2) {
-    if (typeof r === 'undefined') {
+    if (isUndefined(r)) {
       return datamap.getAll();
     } else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
@@ -1531,23 +1532,28 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init) {
-    var i, clen;
+    let columnsAsFunc = false;
+    let i;
+    let j;
+    let clen;
 
-    if (typeof settings.rows !== 'undefined') {
+    if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
     }
-    if (typeof settings.cols !== 'undefined') {
+    if (isDefined(settings.cols)) {
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
     for (i in settings) {
       if (i === 'data') {
         continue; // loadData will be triggered later
+
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
-          if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
+          if (isFunction(settings[i]) || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
+
         } else {
           // Update settings
           if (!init && settings.hasOwnProperty(i)) {
@@ -1560,14 +1566,21 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
       instance.loadData(null); // data source created just now
+
     } else if (settings.data !== void 0) {
       instance.loadData(settings.data); // data source given as option
+
     } else if (settings.columns !== void 0) {
       datamap.createMap();
     }
 
-    // Init columns constructors configuration
     clen = instance.countCols();
+
+    // Init columns constructors configuration
+    if (settings.columns && isFunction(settings.columns)) {
+      clen = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
 
     // Clear cellSettings cache
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
@@ -1575,30 +1588,42 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     if (clen > 0) {
-      var proto, column;
+      let proto;
+      let column;
 
-      for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+      for (i = 0, j = 0; i < clen; i++) {
+        if (columnsAsFunc && !settings.columns(i)) {
+          continue;
+        }
+        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
-        proto = priv.columnSettings[i].prototype;
+        proto = priv.columnSettings[j].prototype;
 
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
-          column = GridSettings.prototype.columns[i];
+          if (columnsAsFunc) {
+            column = GridSettings.prototype.columns(i);
+
+          } else {
+            column = GridSettings.prototype.columns[j];
+          }
 
           if (column) {
             extend(proto, column);
             extend(proto, expandType(column));
           }
         }
+
+        j++;
       }
     }
 
-    if (typeof settings.cell !== 'undefined') {
-      for (i in settings.cell) {
-        if (settings.cell.hasOwnProperty(i)) {
-          var cell = settings.cell[i];
+    if (isDefined(settings.cell)) {
+      for (let key in settings.cell) {
+        if (settings.cell.hasOwnProperty(key)) {
+          let cell = settings.cell[key];
+
           instance.setCellMetaObject(cell.row, cell.col, cell);
         }
       }
@@ -1606,7 +1631,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     Handsontable.hooks.run(instance, 'afterCellMetaReset');
 
-    if (typeof settings.className !== 'undefined') {
+    if (isDefined(settings.className)) {
       if (GridSettings.prototype.className) {
         removeClass(instance.rootElement, GridSettings.prototype.className);
       }
@@ -1621,7 +1646,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     let height = settings.height;
-    if (typeof height == 'function') {
+    if (isFunction(height)) {
       height = height();
     }
 
@@ -1652,7 +1677,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (typeof settings.width != 'undefined') {
       var width = settings.width;
 
-      if (typeof width == 'function') {
+      if (isFunction(width)) {
         width = width();
       }
 
@@ -1686,7 +1711,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getValue = function() {
     var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
-      if (typeof GridSettings.prototype.getValue === 'function') {
+      if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
@@ -2320,7 +2345,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
       rowHeader = rowHeader[row];
 
-    } else if (typeof rowHeader === 'function') {
+    } else if (isFunction(rowHeader)) {
       rowHeader = rowHeader(row);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
@@ -2373,35 +2398,59 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Array|String} The column header(s).
    */
   this.getColHeader = function(col) {
+    let columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    let result = priv.settings.colHeaders;
+
     col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
 
     if (col === void 0) {
-      var out = [];
-      for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+      let out = [];
+      let ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+
+      for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
       }
-      return out;
+
+      result = out;
 
     } else {
-      var baseCol = col;
+      let translateVisualIndexToColumns = function(col) {
+        let arr = [];
+        let columnsLen = instance.countSourceCols();
+        let index = 0;
 
+        for (; index < columnsLen; index++) {
+          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+
+        return arr[col];
+      };
+      let baseCol = col;
       col = Handsontable.hooks.run(instance, 'modifyCol', col);
 
-      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-        return priv.settings.columns[col].title;
+      let prop = translateVisualIndexToColumns(col);
+
+      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+        result = priv.settings.columns(prop).title;
+
+      } else if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        result = priv.settings.columns[col].title;
+
       } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[col] !== void 0) {
+        result = priv.settings.colHeaders[col];
 
-        return priv.settings.colHeaders[col];
-      } else if (typeof priv.settings.colHeaders === 'function') {
+      } else if (isFunction(priv.settings.colHeaders)) {
+        result = priv.settings.colHeaders(col);
 
-        return priv.settings.colHeaders(col);
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+        result = spreadsheetColumnLabel(baseCol); // see #1458
 
-        return spreadsheetColumnLabel(baseCol); // see #1458
-      } else {
-        return priv.settings.colHeaders;
       }
     }
+
+    return result;
   };
 
   /**
@@ -2527,6 +2576,28 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Returns total number of columns in the data source.
+   *
+   * @memberof Core#
+   * @function countSourceCols
+   * @since 0.26.1
+   * @returns {Number} Total number in columns in data source.
+   */
+  this.countSourceCols = function() {
+    let len = 0;
+    let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+
+    if (isObject(obj)) {
+      len = deepObjectSize(obj);
+
+    } else {
+      len = obj.length || 0;
+    }
+
+    return len;
+  };
+
+  /**
    * Returns total number of rows in the grid.
    *
    * @memberof Core#
@@ -2545,24 +2616,47 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
-    if (instance.dataType === 'object' || instance.dataType === 'function') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
+    let dataHasLength = false;
+    let dataLen = 0;
+
+    if (instance.dataType === 'array') {
+      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    }
+
+    if (dataHasLength) {
+      dataLen = priv.settings.data[0].length;
+    }
+
+    if (priv.settings.columns) {
+      let columnsIsFunction = isFunction(priv.settings.columns);
+
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          let columnLen = 0;
+
+          for (let i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
+          }
+
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
+        }
 
       } else {
-        return datamap.colToPropCache.length;
+        dataLen = priv.settings.columns.length;
       }
-    } else if (instance.dataType === 'array') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
 
-      } else if (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
-        return priv.settings.data[0].length;
+    } else {
+      if (instance.dataType === 'object' || instance.dataType === 'function') {
+        dataLen = datamap.colToPropCache.length;
 
-      } else {
-        return 0;
       }
     }
+
+    return dataLen;
   };
 
   /**
@@ -2731,7 +2825,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
     var coords;
 
-    changeListener = typeof changeListener === 'undefined' || changeListener === true;
+    changeListener = isUndefined(changeListener) || changeListener === true;
 
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
@@ -2739,7 +2833,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
       return false;
     }
-    if (typeof endRow !== 'undefined') {
+    if (isDefined(endRow)) {
       if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
         return false;
       }
@@ -2754,7 +2848,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.listen();
     }
 
-    if (typeof endRow === 'undefined') {
+    if (isUndefined(endRow)) {
       selection.setRangeEnd(priv.selRange.from, scrollToCell);
 
     } else {
@@ -2780,7 +2874,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
     /* jshint ignore:start */
     arguments[1] = datamap.propToCol(arguments[1]);
-    if (typeof arguments[3] !== 'undefined') {
+    if (isDefined(arguments[3])) {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
     return instance.selectCell.apply(instance, arguments);
@@ -2864,7 +2958,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     for (var i in instance) {
       if (instance.hasOwnProperty(i)) {
         // replace instance methods with post mortem
-        if (typeof instance[i] === 'function') {
+        if (isFunction(instance[i])) {
           instance[i] = postMortem;
         }
         // replace instance properties with null (restores memory)
@@ -3753,7 +3847,7 @@ DefaultSettings.prototype = {
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
 
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
 
@@ -3779,7 +3873,7 @@ DefaultSettings.prototype = {
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
 
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         return false;
       }
     }

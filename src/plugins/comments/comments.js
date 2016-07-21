@@ -429,8 +429,6 @@ class Comments extends BasePlugin {
   checkSelectionCommentsConsistency() {
     const selected = this.hot.getSelectedRange();
 
-    console.log('selected', selected);
-
     if (!selected) {
       return false;
     }
