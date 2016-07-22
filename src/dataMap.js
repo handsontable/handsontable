@@ -157,7 +157,7 @@ DataMap.prototype.getSchema = function() {
  * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows
  */
-DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
+DataMap.prototype.createRow = function(index, amount, source) {
   var row, colCount = this.instance.countCols(),
     numberOfCreatedRows = 0,
     currentIndex;
@@ -203,7 +203,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
     currentIndex++;
   }
 
-  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
@@ -218,7 +218,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
-DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
+DataMap.prototype.createCol = function(index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' +
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -268,7 +268,7 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
     currentIndex++;
   }
 
-  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedCols;
@@ -282,7 +282,7 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
-DataMap.prototype.removeRow = function(index, amount) {
+DataMap.prototype.removeRow = function(index, amount, source) {
   if (!amount) {
     amount = 1;
   }
@@ -309,7 +309,7 @@ DataMap.prototype.removeRow = function(index, amount) {
   data.length = 0;
   Array.prototype.push.apply(data, newData);
 
-  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
+  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -322,7 +322,7 @@ DataMap.prototype.removeRow = function(index, amount) {
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
  */
-DataMap.prototype.removeCol = function(index, amount) {
+DataMap.prototype.removeCol = function(index, amount, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
@@ -369,7 +369,7 @@ DataMap.prototype.removeCol = function(index, amount) {
     }
   }
 
-  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
