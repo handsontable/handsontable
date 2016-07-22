@@ -1,12 +1,12 @@
 {
-  "name": "handsontable",
+  "name": "handsontable-pz-fork",
   "description": "Spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "main": ["./dist/handsontable.js", "./dist/handsontable.css"],
   "homepage": "http://handsontable.com/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/handsontable/handsontable.git"
+    "url": "https://github.com/PaulZadorozhniy/handsontable.git"
   },
   "authors": [
     "Handsoncode", "Handsoncode <hello@handsontable.com>"

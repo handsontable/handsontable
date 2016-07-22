@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <title>Pikaday alignment example</title>
+    <meta name="author" content="Maxime Thirouin">
+    <link rel="stylesheet" href="../css/pikaday.css">
+    <link rel="stylesheet" href="../css/site.css">
+</head>
+<body>
+    <a href="https://github.com/dbushell/Pikaday"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+
+    <h1>Pikaday alignement example</h1>
+
+    <p class="large">A refreshing JavaScript Datepicker — lightweight, no dependencies, modular CSS.</p>
+
+    <label for="datepicker">Dates:</label>
+
+    <br />
+    <input type="text" id="datepicker" value="Default (bottom left)">
+    <br />
+    <input type="text" id="datepicker-topleft" value="Top left (waat?)"> <b>not really (too close from top)</b>
+    <br />
+    <input type="text" id="datepicker-topleft-forreal" value="Top left"> for real this time (same code as above)
+    <br />
+    <input type="text" id="datepicker-topright" value="Top right (waat?)"> <b>not really (too close from right)</b>
+    <br />
+    Here is the top right position with content before (no automatic adjustment used, same code as above) <input type="text" id="datepicker-topright-forreal" value="Top right">
+    <br />
+    <input type="text" id="datepicker-bottomright" value="Bottom right (waat?)">
+    <br />
+    <input type="text" id="datepicker-bottomright-forced" value="forced to position outside viewport">
+    <br />
+    Here is the bottom right position with content before (no automatic adjustment used, , same code as above) <input type="text" id="datepicker-bottomright-forreal" value="Bottom right">
+
+    <p><i>Also, take a look to the bottom right of this page to see an example with position automatically adjusted.</i></p>
+    <input type="text" id="datepicker-auto" style="position: absolute; bottom: 0; right: 0;" value="Automatic position">
+
+    <h2>What is this?</h2>
+
+    <p>Since version 1.0 Pikaday is a stable and battle tested date-picker. Feel free to use it however you like but please report any bugs or feature requests to the <a href="https://github.com/dbushell/Pikaday/issues">GitHub issue tracker</a>, thanks!</p>
+
+    <p class="small">Copyright © 2014 <a href="http://dbushell.com/">David Bushell</a> | BSD &amp; MIT license | Example by <a href="https://github.com/MoOx">MoOx</a></p>
+
+
+    <script src="../pikaday.js"></script>
+    <script>
+
+    // default: bottom left
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker')
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-topleft'),
+        position: 'top left'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-topleft-forreal'),
+        position: 'top left'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-topright'),
+        position: 'top right'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-topright-forreal'),
+        position: 'top right'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-bottomright'),
+        position: 'bottom right'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-bottomright-forced'),
+        position: 'bottom right',
+        reposition: false
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-bottomright-forreal'),
+        position: 'bottom right'
+    });
+
+    new Pikaday(
+    {
+        field: document.getElementById('datepicker-auto'),
+    });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+html { margin: 0; padding: 0; }
+body { font-size: 100%; margin: 0; padding: 1.75em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+
+h1 { font-size: 1.75em; margin: 0 0 0.6em 0; }
+h2 { font-size: 1.25em; margin: 0 0 0.6em 0; }
+
+a { color: #2996cc; }
+a:hover { text-decoration: none; }
+
+p { line-height: 1.5em; }
+.small { color: #666; font-size: 0.875em; }
+.large { font-size: 1.25em; }
+
+
+label {
+    font-weight: bold;
+}
+
+input[type="text"] {
+    margin: 0.5em 0 3em 0;
+    padding: 0.5em;
+}
+
+button#datepicker-button {
+    margin-bottom: 3em;
+}
+
+.flow-element {
+    display: inline-block;
+    margin-right: 3em;
+    vertical-align: top;
+}
+.flow-element:last-child {
+    margin-right: 0;
+}
+.flow-element input {
+    margin-top: 0;
+}
+
+#container {
+    min-height: 15em;
+}
