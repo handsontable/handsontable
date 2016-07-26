@@ -1179,8 +1179,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * @description
    * Set new value to a cell. To change many cells at once, pass an array of `changes` in format `[[row, prop, value], ...]` as
-   * the only parameter. `prop` is the name of the object property (e.g. `first.name`). `source` is a flag for before/afterChange events. If you pass only array of
-   * changes then `source` could be set as second parameter.
+   * the only parameter. `prop` is the name of the object property (e.g. `first.name`). `source` is a flag for before/afterChange events.
+   * If you pass only array of changes then `source` could be set as second parameter.
    *
    * @memberof Core#
    * @function setDataAtRowProp
@@ -1214,7 +1214,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Listen to keyboard input on document body.
+   * Listen to the keyboard input on document body.
    *
    * @memberof Core#
    * @function listen
@@ -1443,7 +1443,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns the current data object (the same that was passed by `data` configuration option or `loadData` method,
+   * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
    * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
    * Optionally you can provide cell range by defining `row`, `col`, `row2`, `col2` to get only a fragment of grid data.
    *
@@ -1498,8 +1498,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns schema provided by constructor settings or if it doesn't exist return schema based on data
-   * structure on the first row.
+   * Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
+   * structure in the first row.
    *
    * @memberof Core#
    * @function getSchema
@@ -1843,7 +1843,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns property name that corresponds with the given column index. {@link DataMap#colToProp}
+   * Returns the property name that corresponds with the given column index. {@link DataMap#colToProp}
    * If the data source is an array of arrays, it returns the columns index.
    *
    * @memberof Core#
@@ -1913,7 +1913,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Given the object property name (e.g. `'first.name'`), returns array of column's values from the data source.
+   * Given the object property name (e.g. `'first.name'`), returns an array of column's values from the data source.
    * You can also provide a column index as the first argument.
    *
    * @memberof Core#
@@ -2269,7 +2269,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getCellEditor = cellMethodLookupFactory('editor');
 
   /**
-   * Returns the cell validator by `row` and `col`, if a validator is defined. If not - it doesn't return anything.
+   * Returns the cell validator by `row` and `col`, provided a validator is defined. If not - it doesn't return anything.
    *
    * @memberof Core#
    * @function getCellValidator
@@ -2280,9 +2280,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getCellValidator = cellMethodLookupFactory('validator');
 
   /**
-   * Validates all cells using their validator functions and calls callback when finished. Does not render the view.
+   * Validates all cells using their validator functions and calls callback when finished.
    *
-   * If one of cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
    *
    * @memberof Core#
    * @function validateCells
@@ -2356,7 +2356,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns information if this table is configured to display row headers.
+   * Returns information about if this table is configured to display row headers.
    *
    * @memberof Core#
    * @function hasRowHeaders
@@ -2368,7 +2368,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns information if this table is configured to display column headers.
+   * Returns information about if this table is configured to display column headers.
    *
    * @memberof Core#
    * @function hasColHeaders
@@ -2564,7 +2564,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns total number of rows in the data source.
+   * Returns the total number of rows in the data source.
    *
    * @memberof Core#
    * @function countSourceRows
@@ -2576,7 +2576,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns total number of columns in the data source.
+   * Returns the total number of columns in the data source.
    *
    * @memberof Core#
    * @function countSourceCols
@@ -2598,7 +2598,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns total number of rows in the grid.
+   * Returns the total number of rows in the grid.
    *
    * @memberof Core#
    * @function countRows
@@ -2609,7 +2609,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns total number of columns in the grid.
+   * Returns the total number of columns in the grid.
    *
    * @memberof Core#
    * @function countCols
@@ -2726,7 +2726,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty rows. If the optional ending parameter is `true`, returns
+   * Returns the number of empty rows. If the optional ending parameter is `true`, returns the
    * number of empty rows at the bottom of the table.
    *
    * @memberof Core#
@@ -2756,7 +2756,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns number of empty columns. If the optional ending parameter is `true`, returns number of empty
+   * Returns the number of empty columns. If the optional ending parameter is `true`, returns the number of empty
    * columns at right hand edge of the table.
    *
    * @memberof Core#
@@ -2784,7 +2784,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Check if all cells in the the row declared by the `row` argument are empty.
+   * Check if all cells in the row declared by the `row` argument are empty.
    *
    * @memberof Core#
    * @function isEmptyRow
@@ -2860,7 +2860,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Select cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`. By default, viewport will be scrolled to selection.
+   * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
+   * By default, viewport will be scrolled to selection.
    *
    * @memberof Core#
    * @function selectCellByProp
@@ -3004,7 +3005,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns plugin instance by the provided plugin name.
+   * Returns plugin instance using the plugin name provided.
    *
    * @memberof Core#
    * @function getPlugin
@@ -3046,7 +3047,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
-   * Check if for specified hook name added some listeners (only for this Handsontable instance).
+   * Check if for a specified hook name there are added listeners (only for this Handsontable instance).
    *
    * @memberof Core#
    * @function hasHook
@@ -3065,7 +3066,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
   /**
    * Adds listener to specified hook name (only for this Handsontable instance).
-   * After the listener was triggered, it will be automatically removed.
+   * After the listener is triggered, it will be automatically removed.
    *
    * @memberof Core#
    * @function addHookOnce
@@ -3177,8 +3178,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
  * ---
  * ## Cascading configuration
  *
- * Handsontable 0.9 and newer is using *Cascading Configuration*, which is fast way to provide configuration options
- * for whole table, its columns and particular cells.
+ * Handsontable 0.9 and newer is using *Cascading Configuration*, which is a fast way to provide configuration options
+ * for the entire table, including its columns and particular cells.
  *
  * Consider the following example:
  * ```js
@@ -3253,7 +3254,7 @@ DefaultSettings.prototype = {
   dataSchema: void 0,
 
   /**
-   * Width of the grid. Can be a number or a function that returns a number.
+   * Width of the grid. Can be a value or a function that returns a value.
    *
    * @type {Number|Function}
    * @default undefined
@@ -3322,7 +3323,7 @@ DefaultSettings.prototype = {
   /**
    * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
    * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
-   * If a function is set the index of the column is passed as a parameter.
+   * If a function is set, then the index of the column is passed as a parameter.
    *
    * @type {Boolean|Array|Function}
    * @default null
@@ -3349,7 +3350,7 @@ DefaultSettings.prototype = {
   colHeaders: null,
 
   /**
-   * Defines column widths in pixels. Accepts number, string (that will be converted to number),
+   * Defines column widths in pixels. Accepts number, string (that will be converted to a number),
    * array of numbers (if you want to define column width separately for each column) or a
    * function (if you want to set column width dynamically on each render).
    *
@@ -3359,7 +3360,7 @@ DefaultSettings.prototype = {
   colWidths: void 0,
 
   /**
-   * Defines row heights in pixels. Accepts number, string (that will be converted to number),
+   * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number),
    * array of numbers (if you want to define row height separately for each row) or a
    * function (if you want to set row height dynamically on each render).
    *
@@ -3499,7 +3500,7 @@ DefaultSettings.prototype = {
   customBorders: false,
 
   /**
-   * Minimum number of rows. At least that amount of rows will be created during initialization.
+   * Minimum number of rows. At least that number of rows will be created during initialization.
    *
    * @type {Number}
    * @default 0
@@ -3507,7 +3508,7 @@ DefaultSettings.prototype = {
   minRows: 0,
 
   /**
-   * Minimum number of columns. At least that many of columns will be created during initialization.
+   * Minimum number of columns. At least that number of columns will be created during initialization.
    *
    * @type {Number}
    * @default 0
@@ -3711,7 +3712,7 @@ DefaultSettings.prototype = {
   autoWrapRow: false,
 
   /**
-   * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to first row in next column.
+   * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
    *
    * @type {Boolean}
    * @default false
@@ -3781,7 +3782,7 @@ DefaultSettings.prototype = {
   persistentState: void 0,
 
   /**
-   * Class name for all visible rows in current selection.
+   * Class name for all visible rows in the current selection.
    *
    * @type {String}
    * @default undefined
@@ -3793,7 +3794,7 @@ DefaultSettings.prototype = {
   currentRowClassName: void 0,
 
   /**
-   * Class name for all visible columns in current selection.
+   * Class name for all visible columns in the current selection.
    *
    * @type {String}
    * @default undefined
@@ -3997,7 +3998,7 @@ DefaultSettings.prototype = {
   renderer: void 0,
 
   /**
-   * CSS class name added to commented cells.
+   * CSS class name added to the commented cells.
    *
    * @type {String}
    * @default 'htCommentCell'
@@ -4042,7 +4043,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Shortcut to define combination of cell renderer and editor for the column.
+   * Shortcut to define the combination of the cell renderer and editor for the column.
    *
    * Possible values:
    *  * text
@@ -4205,8 +4206,8 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Defines new actions copy/paste for context menu. This functionality is depends on ZeroClipboard from that you
-   * should pass swf file path under `swfPath` object key.
+   * Defines new actions copy/paste for context menu. This functionality is dependent on ZeroClipboard from which you
+   * should pass the swf file path under `swfPath` object key.
    *
    * @example
    * ```js
@@ -4218,21 +4219,6 @@ DefaultSettings.prototype = {
    * @type {Object}
    */
   contextMenuCopyPaste: void 0,
-
-  /**
-   * @description
-   * Defines if the dropdown menu in headers should be enabled. Dropdown menu allows to put custom or predefined actions
-   * which can interact with selected column.
-   * Possible values: `true` (to enable default options), `false` (to disable completely)
-   * or array of any available strings: `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "undo", "redo", "---------", "clear_column"]`.
-   *
-   * See [demo/dropdownmenu.html](http://handsontable.com/demo/dropdownmenu.html) for examples.
-   *
-   * @type {Boolean|Array|Object}
-   * @default undefined
-   */
-  //dropdownMenu: void 0,
 
   /**
    * @description
@@ -4392,9 +4378,9 @@ DefaultSettings.prototype = {
 
   /**
    * Number of rows to be rendered outside of the visible part of the table.
-   * By default, it's set to `'auto'`, which makes Handsontable try calculating the best offset performance-wise.
+   * By default, it's set to `'auto'`, which makes Handsontable to attempt to calculate the best offset performance-wise.
    *
-   * You may experiment with the value to find the one that works best for your specific implementation.
+   * You may test out different values to find the best one that works for your specific implementation.
    *
    * @type {Number|String}
    * @default 'auto'
@@ -4411,16 +4397,6 @@ DefaultSettings.prototype = {
    * @default 'auto'
    */
   viewportColumnRenderingOffset: 'auto',
-
-  /**
-   * Configuration of the plugin, allowing the user to show/hide certain columns
-   *
-   * @type {Object}
-   * @default undefined
-   * @since 0.19.0
-   */
-  //hiddenColumns: void 0,
-  //hiddenRows: void 0,
 
   /**
    * A function or a regular expression, which will be used in the process of cell validation.
@@ -4505,7 +4481,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Defines whether Handsontable should trim the whitespace at the begging and the end of the cell contents.
+   * Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
    *
    * @type {Boolean}
    * @default true
@@ -4726,9 +4702,9 @@ DefaultSettings.prototype = {
 
   /**
    * Enables or disables autoRowSize plugin. Default value is `undefined`, which has the same effect as `true`.
-   * Disabling this plugin can increase performance, as no size-related calculations would be done.
+   * Disabling this plugin can increase performance, as no size-related calculations would be performed.
    *
-   * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and
+   * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
    * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
    * block the browser UI.
    *
@@ -4755,7 +4731,7 @@ DefaultSettings.prototype = {
   /**
    * Date validation format.
    *
-   * Option desired for `'date'`-typed cells.
+   * Option desired for `'date'` - typed cells.
    *
    * @example
    * ```js
@@ -5064,8 +5040,9 @@ DefaultSettings.prototype = {
    * ```
    */
   sortFunction: void 0,
+
   /**
-   * If defined as 'true', the Autocomplete's suggestion list would by sorted by relevance (the closer to the left the match is, the higher the suggestion).
+   * If defined as 'true', the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the match is, the higher the suggestion).
    *
    * Option desired for cells of the `'autocomplete'` type.
    *
@@ -5073,6 +5050,7 @@ DefaultSettings.prototype = {
    * @default true
    */
   sortByRelevance: true,
+
   /**
    * If defined as 'true', the Autocomplete's suggestion list would be updated after each change in the input area.
    *
@@ -5080,6 +5058,7 @@ DefaultSettings.prototype = {
    * @default true
    */
   filter: true,
+
   /**
    * If defined as 'true', filtering in the Autocomplete Editor will be case-sensitive.
    *

@@ -113,7 +113,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Update the plugin.
+   * Updates the plugin to use the latest options you have specified.
    */
   updatePlugin() {
     this.disablePlugin();

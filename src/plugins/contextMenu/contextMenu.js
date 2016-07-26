@@ -25,7 +25,7 @@ import {
 
 /**
  * @description
- * This plugin creates the Handsontable Context Menu. It allows to create new row or
+ * This plugin creates the Handsontable Context Menu. It allows to create a new row or
  * column at any place in the grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
@@ -148,7 +148,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Update the plugin according to Handsontable settings.
+   * Updates the plugin to use the latest options you have specified.
    */
   updatePlugin() {
     this.disablePlugin();

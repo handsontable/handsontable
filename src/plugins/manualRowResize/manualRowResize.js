@@ -85,7 +85,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Update the plugin settings based on handsontable settings.
+   * Updates the plugin to use the latest options you have specified.
    */
   updatePlugin() {
     let initialRowHeights = this.hot.getSettings().manualRowResize;
@@ -209,7 +209,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if provided element is considered a row header.
+   * Check if provided element is considered as a row header.
    *
    * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
