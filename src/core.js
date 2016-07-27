@@ -3448,7 +3448,7 @@ DefaultSettings.prototype = {
    *
    * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of an array.
    *
-   * See [Comments](http://docs.handsontable.com/demo-cell-comments.html) demo for examples.
+   * See [Comments](http://docs.handsontable.com/demo-comments_.html) demo for examples.
    *
    * @since 0.11.0
    * @type {Boolean|Array}
