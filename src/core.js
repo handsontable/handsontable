@@ -5052,7 +5052,9 @@ DefaultSettings.prototype = {
   sortByRelevance: true,
 
   /**
-   * If defined as 'true', the Autocomplete's suggestion list would be updated after each change in the input area.
+   * If defined as 'true', when the user types into the input area the Autocomplete's suggestion list is updated to only
+   * include those choices starting with what has been typed; if defined as 'false' all suggestions remain shown, with
+   * those matching what has been typed marked in bold.
    *
    * @type {Boolean}
    * @default true
