@@ -4051,6 +4051,7 @@ DefaultSettings.prototype = {
    *  * [date](http://docs.handsontable.com/demo-date.html)
    *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
    *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
+   *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
    *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
    *
    * @example
