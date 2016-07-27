@@ -3246,7 +3246,7 @@ DefaultSettings.prototype = {
    * @description
    * Defines the structure of a new row when data source is an array of objects.
    *
-   * See [http://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
+   * See [data-schema](http://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
    *
    * @type {Object}
    * @default undefined
