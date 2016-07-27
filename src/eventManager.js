@@ -1,17 +1,18 @@
-
+import Handsontable from './browser';
 import {polymerWrap, closest} from './helpers/dom/element';
-import {isWebComponentSupportedNatively} from './helpers/browser';
+import {isWebComponentSupportedNatively} from './helpers/feature';
+import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
 
 /**
  * Event DOM manager for internal use in Handsontable.
  *
  * @class EventManager
- * @private
  * @util
  */
 class EventManager {
   /**
    * @param {Object} [context=null]
+   * @private
    */
   constructor(context = null) {
     this.context = context || this;
@@ -22,39 +23,17 @@ class EventManager {
   }
 
   /**
-   * Add event
+   * Register specified listener (`eventName`) to the element.
    *
-   * @param {Element} element
-   * @param {String} eventName
-   * @param {Function} callback
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
+   * @param {Function} callback Function which will be called after event occur.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback) {
     let context = this.context;
 
     function callbackProxy(event) {
-      if (event.target == void 0 && event.srcElement != void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('target', {
-            value: event.srcElement
-          });
-        } else {
-          event.target = event.srcElement;
-        }
-      }
-      if (event.preventDefault == void 0) {
-        if (event.definePoperty) {
-          event.definePoperty('preventDefault', {
-            value: function() {
-              this.returnValue = false;
-            }
-          });
-        } else {
-          event.preventDefault = function() {
-            this.returnValue = false;
-          };
-        }
-      }
       event = extendEvent(context, event);
 
       /* jshint validthis:true */
@@ -80,11 +59,11 @@ class EventManager {
   }
 
   /**
-   * Remove event
+   * Remove the event listener previously registered.
    *
-   * @param {Element} element
-   * @param {String} eventName
-   * @param {Function} callback
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
+   * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
    */
   removeEventListener(element, eventName, callback) {
     let len = this.context.eventListeners.length;
@@ -110,8 +89,9 @@ class EventManager {
   }
 
   /**
-   * Clear all events
+   * Clear all previously registered events.
    *
+   * @private
    * @since 0.15.0-beta3
    */
   clearEvents() {
@@ -130,14 +110,14 @@ class EventManager {
   }
 
   /**
-   * Clear all events
+   * Clear all previously registered events.
    */
   clear() {
     this.clearEvents();
   }
 
   /**
-   * Destroy instance
+   * Destroy instance of EventManager.
    */
   destroy() {
     this.clearEvents();
@@ -145,10 +125,10 @@ class EventManager {
   }
 
   /**
-   * Trigger event
+   * Trigger event at the specified target element.
    *
-   * @param {Element} element
-   * @param {String} eventName
+   * @param {Element} element Target element.
+   * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
     let options = {
@@ -202,9 +182,16 @@ function extendEvent(context, event) {
   let realTarget;
   let target;
   let len;
+  let nativeStopImmediatePropagation;
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
+
+  nativeStopImmediatePropagation = event.stopImmediatePropagation;
+  event.stopImmediatePropagation = function() {
+    nativeStopImmediatePropagation.apply(this);
+    _stopImmediatePropagation(this);
+  };
 
   if (!Handsontable.eventManager.isHotTableEnv) {
     return event;
@@ -264,7 +251,6 @@ function extendEvent(context, event) {
 
 export {EventManager, eventManager};
 
-window.Handsontable = window.Handsontable || {};
 // used to debug memory leaks
 Handsontable.countEventManagerListeners = 0;
 // support for older versions of Handsontable, deprecated

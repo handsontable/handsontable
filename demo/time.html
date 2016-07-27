@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Time cell type - Handsontable</title>
+
+  <!--
+  Loading Handsontable
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/pikaday/pikaday.css">
+  <script data-jsfiddle="common" src="../dist/pikaday/pikaday.js"></script>
+  <script data-jsfiddle="common" src="../dist/moment/moment.js"></script>
+  <script data-jsfiddle="common" src="../dist/zeroclipboard/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/numbro.js"></script>
+  <script data-jsfiddle="common" src="../dist/numbro/languages.js"></script>
+  <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Date cell type">
+  <meta property="og:description"
+        content="Time cell type uses the Pikaday Datepicker with Moment.js">
+  <meta property="og:url" content="http://handsontable.com/demo/numeric.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/numeric.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function getCarData() {
+      return [
+        ["Mercedes", "A 160", 1332284400000, 6999.9999],
+        ["Citroen", "C4 Coupe", '10 30', 8330],
+        ["Audi", "A4 Avant", "8:00 PM", 33900],
+        ["Opel", "Astra", 1332284400000, 7000],
+        ["BMW", "320i Coupe", 1332284400000, 30500]
+      ];
+    }
+  </script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Time cell type</h2>
+
+              <p>To trigger the Time cell type, use the option <code>type: 'time'</code> in <code>columns</code> array
+                or <code>cells</code> function.</p>
+
+              <p>The Time cell uses <a href="https://github.com/moment/moment">Moment.js</a> as a date formatter.
+
+              <p>Note that Time cell requires additional files in your <code>&lt;head&gt;</code>:
+
+              <ul>
+                <li><code>demo/js/moment/moment.js</code></li>
+              </ul>
+
+              <p>If you enable the <code>correctFormat</code> config item, the dates will be automatically formatted to
+                match the desired format.</p>
+
+              <div id="example1"></div>
+
+              <p>
+                <button name="dump" data-instance="hot" data-dump="#example1"
+                        title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example1">
+                var container = document.getElementById('example1'),
+                  hot;
+
+                hot = new Handsontable(container, {
+                  data: getCarData(),
+                  startRows: 7,
+                  startCols: 4,
+                  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+                  columnSorting: true,
+                  contextMenu: true,
+                  minSpareRows: 1,
+                  columns: [
+                    {
+                      type: 'autocomplete',
+                      source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
+                      strict: false
+                    },
+                    {
+                      // 2nd cell is simple text, no special options here
+                    },
+                    {
+                      type: 'time',
+                      timeFormat: 'h:mm:ss a',
+                      correctFormat: true
+                    },
+                    {
+                      type: 'numeric',
+                      format: '$ 0,0.00'
+                    }
+                  ]
+                });
+
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-text">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>

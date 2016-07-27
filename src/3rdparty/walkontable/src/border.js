@@ -8,6 +8,7 @@ import {
     outerWidth,
 } from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
+import {isMobileBrowser} from './../../../helpers/browser';
 import {EventManager} from './../../../eventManager';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableOverlay} from './overlay/_base.js';
@@ -63,7 +64,7 @@ class WalkontableBorder {
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event));
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 
@@ -86,12 +87,13 @@ class WalkontableBorder {
   }
 
   /**
-   * Mouse enter listener
+   * Mouse enter listener for fragment selection functionality.
    *
    * @private
    * @param {Event} event Dom event
+   * @param {HTMLElement} parentElement Part of border element.
    */
-  onMouseEnter(event) {
+  onMouseEnter(event, parentElement) {
     if (!this.mouseDown || !this.wot.getSetting('hideBorderOnMouseDownOver')) {
       return;
     }
@@ -99,8 +101,9 @@ class WalkontableBorder {
     stopImmediatePropagation(event);
 
     let _this = this;
-    let bounds = this.getBoundingClientRect();
-    this.style.display = 'none';
+    let bounds = parentElement.getBoundingClientRect();
+    // Hide border to prevents selection jumping when fragmentSelection is enabled.
+    parentElement.style.display = 'none';
 
     function isOutside(event) {
       if (event.clientY < Math.floor(bounds.top)) {
@@ -120,7 +123,7 @@ class WalkontableBorder {
     function handler(event) {
       if (isOutside(event)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
-        _this.style.display = 'block';
+        parentElement.style.display = 'block';
       }
     }
 
@@ -177,7 +180,7 @@ class WalkontableBorder {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       this.createMultipleSelectorHandles();
     }
     this.disappear();
@@ -332,15 +335,7 @@ class WalkontableBorder {
         cornerOverlappingContainer,
         ilen;
 
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
-      ilen = this.wot.getSetting('fixedRowsTop');
-    } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      ilen = this.wot.getSetting('fixedRowsBottom');
-    } else {
-      ilen = this.wot.wtTable.getRenderedRowsCount();
-    }
+    ilen = this.wot.wtTable.getRenderedRowsCount();
 
     for (let i = 0; i < ilen; i++) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
@@ -431,7 +426,7 @@ class WalkontableBorder {
     this.rightStyle.height = height + 1 + 'px';
     this.rightStyle.display = 'block';
 
-    if (Handsontable.mobileBrowser || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+    if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       this.cornerStyle.display = 'none';
     } else {
       this.cornerStyle.top = top + height - 4 + 'px';
@@ -462,7 +457,7 @@ class WalkontableBorder {
 
     }
 
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
     }
   }
@@ -477,7 +472,7 @@ class WalkontableBorder {
     this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
-    if (Handsontable.mobileBrowser) {
+    if (isMobileBrowser()) {
       this.selectionHandles.styles.topLeft.display = 'none';
       this.selectionHandles.styles.bottomRight.display = 'none';
     }

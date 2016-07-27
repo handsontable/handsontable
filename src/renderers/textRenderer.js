@@ -1,4 +1,3 @@
-
 import {empty, fastInnerText} from './../helpers/dom/element';
 import {stringify} from './../helpers/mixed';
 import {getRenderer, registerRenderer} from './../renderers';

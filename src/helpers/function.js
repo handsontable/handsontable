@@ -1,15 +1,33 @@
+import {arrayReduce} from './array';
 
-export function proxy(fun, context) {
+/**
+ * Checks if given variable is function.
+ *
+ * @param {*} func Variable to check.
+ * @returns {Boolean}
+ */
+export function isFunction(func) {
+  return typeof func === 'function';
+}
+
+/**
+ * Returns new function that, when called, has new context (`this` keyword).
+ *
+ * @param func Function to proxy.
+ * @param context Value passed as the `this` to the function.
+ * @returns {Function}
+ */
+export function proxy(func, context) {
   return function() {
-    return fun.apply(context, arguments);
+    return func.apply(context, arguments);
   };
 }
 
 /**
- * Creates throttle function that invokes `func` only once per `wait` (in miliseconds).
+ * Creates throttle function that enforces a maximum number of times a function (`func`) can be called over time (`wait`).
  *
- * @param {Function} func
- * @param {Number} wait
+ * @param {Function} func Function to invoke.
+ * @param {Number} wait Delay in miliseconds.
  * @returns {Function}
  */
 export function throttle(func, wait = 200) {
@@ -54,11 +72,12 @@ export function throttle(func, wait = 200) {
 }
 
 /**
- * Creates throttle function that invokes `func` only once per `wait` (in miliseconds) after hits.
+ * Creates throttle function that enforces a maximum number of times a function (`func`) can be called over
+ * time (`wait`) after specified hits.
  *
- * @param {Function} func
- * @param {Number} wait
- * @param {Number} hits
+ * @param {Function} func Function to invoke.
+ * @param {Number} wait Delay in miliseconds.
+ * @param {Number} hits Number of hits after throttling will be applied.
  * @returns {Function}
  */
 export function throttleAfterHits(func, wait = 200, hits = 10) {
@@ -80,4 +99,146 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
   _throttleAfterHits.clearHits = _clearHits;
 
   return _throttleAfterHits;
+}
+
+/**
+ * Creates debounce function that enforces a function (`func`) not be called again until a certain amount of time (`wait`)
+ * has passed without it being called.
+ *
+ * @param {Function} func Function to invoke.
+ * @param {Number} wait Delay in miliseconds.
+ * @returns {Function}
+ */
+export function debounce(func, wait = 200) {
+  let lastTimer = null;
+  let result;
+
+  function _debounce() {
+    const args = arguments;
+
+    if (lastTimer) {
+      clearTimeout(lastTimer);
+    }
+    lastTimer = setTimeout(() => {
+      result = func.apply(this, args);
+    }, wait);
+
+    return result;
+  }
+
+  return _debounce;
+}
+
+/**
+ * Creates the function that returns the result of calling the given functions. Result of the first function is passed to
+ * the second as an argument and so on. Only first function in the chain can handle multiple arguments.
+ *
+ * @param {Function} functions Functions to compose.
+ * @returns {Function}
+ */
+export function pipe(...functions) {
+  const [firstFunc, ...restFunc] = functions;
+
+  return function _pipe() {
+    return arrayReduce(restFunc, (acc, fn) => fn(acc), firstFunc.apply(this, arguments));
+  };
+}
+
+/**
+ * Creates the function that returns the function with cached arguments.
+ *
+ * @param {Function} func Function to partialization.
+ * @param {Array} params Function arguments to cache.
+ * @returns {Function}
+ */
+export function partial(func, ...params) {
+  return function _partial(...restParams) {
+    return func.apply(this, params.concat(restParams));
+  };
+}
+
+/**
+ * Creates the functions that returns the function with cached arguments. If count if passed arguments will be matched
+ * to the arguments defined in `func` then function will be invoked.
+ * Arguments are added to the stack in direction from the left to the right.
+ *
+ * @example
+ * ```
+ * var replace = curry(function(find, replace, string) {
+ *   return string.replace(find, replace);
+ * });
+ *
+ * // returns function with bounded first argument
+ * var replace = replace('foo')
+ *
+ * // returns replaced string - all arguments was passed so function was invoked
+ * replace('bar', 'Some test with foo...');
+ *
+ * ```
+ *
+ * @param {Function} func Function to currying.
+ * @returns {Function}
+ */
+export function curry(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params);
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    }
+  }
+
+  return given([]);
+}
+
+/**
+ * Creates the functions that returns the function with cached arguments. If count if passed arguments will be matched
+ * to the arguments defined in `func` then function will be invoked.
+ * Arguments are added to the stack in direction from the right to the left.
+ *
+ * @example
+ * ```
+ * var replace = curry(function(find, replace, string) {
+ *   return string.replace(find, replace);
+ * });
+ *
+ * // returns function with bounded first argument
+ * var replace = replace('Some test with foo...')
+ *
+ * // returns replaced string - all arguments was passed so function was invoked
+ * replace('bar', 'foo');
+ *
+ * ```
+ *
+ * @param {Function} func Function to currying.
+ * @returns {Function}
+ */
+export function curryRight(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params.reverse());
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    }
+  }
+
+  return given([]);
 }

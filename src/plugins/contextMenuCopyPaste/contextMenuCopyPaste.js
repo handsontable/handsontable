@@ -1,4 +1,4 @@
-
+import Handsontable from './../../browser';
 import {removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {EventManager} from './../../eventManager';
@@ -7,6 +7,10 @@ import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 
 /**
+ * @description
+ * This plugin adds a copy/paste functionality to the context menu. Due to browser restrictions, it uses ZeroClipboard to allow
+ * copying data with a click.
+ *
  * @plugin ContextMenuCopyPaste
  * @dependencies ContextMenu zeroclipboard
  */
@@ -93,7 +97,7 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * Get value to copy.
+   * Get a value to copy.
    *
    * @returns {String}
    */
@@ -104,7 +108,7 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 
   /**
-   * Add Copy and Paste functionality to context menu.
+   * Add Copy and Paste functionality to the context menu.
    *
    * @private
    * @param {Object} defaultOptions
@@ -112,13 +116,19 @@ class ContextMenuCopyPaste extends BasePlugin {
   onAfterContextMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.unshift({
         key: 'copy',
-        name: 'Copy'
+        name: 'Copy',
+        disabled: function() {
+          return this.selection.selectedHeader.corner;
+        },
       }, {
         key: 'paste',
         name: 'Paste',
         callback: function() {
           this.copyPaste.triggerPaste();
-        }
+        },
+        disabled: function() {
+          return this.selection.selectedHeader.corner;
+        },
       },
       Handsontable.plugins.ContextMenu.SEPARATOR
     );
@@ -131,7 +141,7 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   onAfterContextMenuShow() {
     const contextMenu = this.hot.getPlugin('contextMenu');
-    const data = contextMenu.menu.hotMenu.getData();
+    const data = contextMenu.menu.hotMenu.getSourceData();
 
     // find position of 'copy' option.
     arrayEach(data, (item, index) => {

@@ -258,6 +258,13 @@ describe('HandsontableObserveChanges', function () {
         });
       });
 
+      it('should not break with undefined data properties', function () {
+        var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+        data[0].prop0 = undefined;
+        var hot = createHOT(data, true);
+        var htCore = getHtCore();
+      });
+
       it('should not render cell change when turned off (`observeChanges: false`)', function () {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         createHOT(data, false);
@@ -505,7 +512,6 @@ describe('HandsontableObserveChanges', function () {
         waitsFor(function () {
           return afterRemoveRowCallback.calls.length > 0;
         }, 'afterRemoveRow event fire', 1000);
-
 
         runs(function () {
           expect(afterRemoveRowCallback.calls.length).toEqual(2);

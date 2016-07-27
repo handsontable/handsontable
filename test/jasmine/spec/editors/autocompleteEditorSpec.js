@@ -105,6 +105,37 @@ describe('AutocompleteEditor', function() {
       });
     });
 
+    it("should call source function with context set as cellProperties", function() {
+      var source = jasmine.createSpy('source');
+      var context;
+
+      source.plan = function(query, process) {
+        process(choices);
+        context = this;
+      };
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: source
+          }
+        ]
+      });
+      selectCell(0, 0);
+      source.reset();
+      keyDownUp('enter');
+
+      waitsFor(function() {
+        return source.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function() {
+        expect(context.instance).toBe(hot);
+        expect(context.row).toBe(0);
+        expect(context.col).toBe(0);
+      });
+    });
+
     it("should display given choices (sync function)", function() {
       var syncSources = jasmine.createSpy('syncSources');
 
@@ -471,6 +502,73 @@ describe('AutocompleteEditor', function() {
         expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
       });
     });
+
+    it("should display the dropdown above the editor, when there is not enough space below the cell AND there is more space above the cell", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30,30),
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          },{}, {},{},{},{},{},{},{},{},{},{},{},{},{},{}
+        ],
+        width: 400,
+        height: 400
+      });
+
+      setDataAtCell(29, 0, '');
+      selectCell(29, 0);
+
+      mouseDoubleClick($(getCell(29, 0)));
+
+      waits(20);
+
+      runs(function() {
+        var autocompleteEditor = $('.autocompleteEditor');
+
+        expect(autocompleteEditor.css('position')).toEqual('absolute');
+        expect(autocompleteEditor.css('top')).toEqual((-1) * autocompleteEditor.height() + 'px');
+      });
+    });
+
+    it("should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30,30),
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          },{}, {},{},{},{},{},{},{},{},{},{},{},{},{},{}
+        ],
+        width: 400,
+        height: 400
+      });
+
+      setDataAtCell(26, 0, 'b');
+      selectCell(26, 0);
+
+      hot.view.wt.wtTable.holder.scrollTop = 999;
+
+      mouseDoubleClick($(getCell(26, 0)));
+
+      var autocompleteEditor = $('.autocompleteEditor');
+
+      waits(20);
+
+      runs(function() {
+        expect(autocompleteEditor.css('position')).toEqual('relative');
+
+        autocompleteEditor.siblings('textarea').first().val('');
+        keyDownUp('backspace');
+      });
+
+      waits(20);
+
+      runs(function() {
+        expect(autocompleteEditor.css('position')).toEqual('absolute');
+        expect(autocompleteEditor.css('top')).toEqual((-1) * autocompleteEditor.height() + 'px');
+      });
+    });
   });
 
   describe("closing editor", function() {
@@ -662,53 +760,54 @@ describe('AutocompleteEditor', function() {
       });
     });
 
-    it('finish editing should move the focus aways from textarea to table cell', function() {
-      var last;
-      var finishEdit = false;
-
-      var syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.plan = function(query, process) {
-        process(choices);
-      };
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
-      });
-      setDataAtCell(0, 0, 'black');
-      selectCell(0, 0);
-      last = document.activeElement;
-
-      keyDownUp('enter');
-
-      waitsFor(function() {
-        return syncSources.calls.length > 0;
-      }, 'Source function call', 1000);
-
-      runs(function() {
-        autocomplete().siblings('.handsontableInput').val("ye");
-        keyDownUp(69); //e
-        deselectCell();
-
-        setTimeout(function() {
-          keyDownUp('enter');
-          finishEdit = true;
-        });
-      });
-
-      waitsFor(function() {
-        return finishEdit;
-      }, 'Edition finish', 1000);
-
-      runs(function() {
-        expect(document.activeElement.nodeName).toEqual(last.nodeName);
-      });
-    });
+    // Is this test have necessary value?
+    //it('finish editing should move the focus aways from textarea to table cell', function() {
+    //  var last;
+    //  var finishEdit = false;
+    //
+    //  var syncSources = jasmine.createSpy('syncSources');
+    //
+    //  syncSources.plan = function(query, process) {
+    //    process(choices);
+    //  };
+    //
+    //  handsontable({
+    //    columns: [
+    //      {
+    //        editor: 'autocomplete',
+    //        source: syncSources
+    //      }
+    //    ]
+    //  });
+    //  setDataAtCell(0, 0, 'black');
+    //  selectCell(0, 0);
+    //  last = document.activeElement;
+    //
+    //  keyDownUp('enter');
+    //
+    //  waitsFor(function() {
+    //    return syncSources.calls.length > 0;
+    //  }, 'Source function call', 1000);
+    //
+    //  runs(function() {
+    //    autocomplete().siblings('.handsontableInput').val("ye");
+    //    keyDownUp(69); //e
+    //    deselectCell();
+    //
+    //    setTimeout(function() {
+    //      keyDownUp('enter');
+    //      finishEdit = true;
+    //    });
+    //  });
+    //
+    //  waitsFor(function() {
+    //    return finishEdit;
+    //  }, 'Edition finish', 1000);
+    //
+    //  runs(function() {
+    //    expect(document.activeElement.nodeName).toEqual(last.nodeName);
+    //  });
+    //});
   });
 
   describe("non strict mode", function() {
@@ -1432,6 +1531,7 @@ describe('AutocompleteEditor', function() {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
+        expect(innerHot.getSourceData()).toEqual([]);
       });
     });
 
@@ -1829,6 +1929,38 @@ describe('AutocompleteEditor', function() {
 
         expect(sorted).toEqual([2, 4]);
       });
+    });
+  });
+
+  it("should not modify the suggestion lists' order, when the sortByRelevance option is set to false", function() {
+    var choices = [
+      'Wayne','Draven','Banner','Stark','Parker','Kent','Gordon','Kyle','Simmons'
+    ];
+    var hot = handsontable({
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+          sortByRelevance: false
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    var $editorInput = $('.handsontableInput');
+    $editorInput.val("a");
+    keyDownUp(65); //a
+    Handsontable.Dom.setCaretPosition($editorInput[0], 1);
+
+    waits(30);
+
+    runs(function() {
+      var dropdownList = $('.autocompleteEditor tbody').first();
+
+      for(var i = 1; i <= dropdownList.find('tr').size(); i++) {
+        expect(dropdownList.find('tr:nth-child(' + i + ') td').text()).toEqual(choices[i - 1]);
+      }
     });
   });
 

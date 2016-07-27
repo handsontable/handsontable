@@ -1,3 +1,4 @@
+import Handsontable from './../browser';
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
 import {getRegistredPluginNames, getPluginName} from './../plugins';
@@ -24,9 +25,9 @@ class BasePlugin {
     privatePool.set(this, {hooks: {}});
     initializedPlugins = null;
 
+    this.pluginName = null;
     this.pluginsInitializedCallbacks = [];
     this.isPluginsReady = false;
-    this.pluginName = null;
     this.enabled = false;
     this.initialized = false;
 
@@ -144,17 +145,13 @@ class BasePlugin {
         this.enablePlugin();
       }
       if (this.enabled && this.isEnabled()) {
-
-        if (this.updatePlugin) {
-          this.updatePlugin();
-        }
-
+        this.updatePlugin();
       }
     }
   }
 
   /**
-   * Update the plugin's settings
+   * Updates the plugin to use the latest options you have specified.
    *
    * @private
    */
@@ -163,15 +160,23 @@ class BasePlugin {
   }
 
   /**
-   * Destroy plugin
+   * Destroy plugin.
    */
   destroy() {
     if (this.eventManager) {
       this.eventManager.destroy();
     }
     this.clearHooks();
+
+    objectEach(this, (value, property) => {
+      if (property !== 'hot') {
+        this[property] = null;
+      }
+    });
     delete this.hot;
   }
 }
 
 export default BasePlugin;
+
+Handsontable.plugins.BasePlugin = BasePlugin;

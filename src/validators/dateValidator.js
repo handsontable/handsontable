@@ -1,5 +1,6 @@
-
+import Handsontable from './../browser';
 import moment from 'moment';
+import {getNormalizedDate} from '../helpers/date';
 import {getEditor} from './../editors';
 
 /**
@@ -15,13 +16,17 @@ Handsontable.DateValidator = function(value, callback) {
   let valid = true;
   let dateEditor = getEditor('date', this.instance);
 
-  if (value === null) {
+  if (value == null) {
     value = '';
   }
   let isValidDate = moment(new Date(value)).isValid();
   // is it in the specified format
   let isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
+  if (this.allowEmpty && value === '') {
+    isValidDate = true;
+    isValidFormat = true;
+  }
   if (!isValidDate) {
     valid = false;
   }
@@ -51,7 +56,7 @@ Handsontable.DateValidator = function(value, callback) {
  * @returns {String}
  */
 let correctFormat = function correctFormat(value, dateFormat) {
-  let date = moment(new Date(value));
+  let date = moment(getNormalizedDate(value));
   let year = date.format('YYYY');
   let yearNow = moment().format('YYYY');
 

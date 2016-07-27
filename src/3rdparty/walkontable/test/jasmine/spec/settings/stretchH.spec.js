@@ -108,7 +108,7 @@ describe("stretchH option", function () {
     expect(wtHider.find('col:eq(1)').width() - expectedColWidth).toBeInArray([0, 1]); //fix differences between Mac and Linux PhantomJS
   });
 
-  it("should stretch last visible column when stretchH equals 'last'", function () {
+  it("should stretch last visible column when stretchH equals 'last' (vertical scroll)", function () {
     createDataArray(20, 2);
 
     $wrapper.width(300).height(201);
@@ -130,7 +130,35 @@ describe("stretchH option", function () {
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
 
-  it("should stretch last visible column when stretchH equals 'last' (and no vertical scroll)", function () {
+  it("should stretch last column when stretchH equals 'last' (horizontal scroll)", function () {
+    createDataArray(5, 20);
+
+    $wrapper.width(400).height(201);
+    spec().data[0][19] = 'longer text';
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      stretchH: 'last',
+      columnHeaders: [function (index, TH) {
+        TH.innerHTML = index + 1;
+      }],
+      columnWidth: function(index) {
+        return index === 19 ? 100 : 50;
+      }
+    });
+    wt.draw();
+    wt.scrollHorizontal(19);
+    wt.draw();
+
+    var wtHider = $table.parents('.wtHider');
+
+    expect(wtHider.find('col:eq(6)').width()).toBe(100);
+  });
+
+  it("should stretch last visible column when stretchH equals 'last' (no scrolls)", function () {
     createDataArray(2, 2);
 
     $wrapper.width(300).height(201);

@@ -14,20 +14,51 @@ describe('CopyPaste', function () {
 
   it("should remove additional new line from copied text (only safari)", function () {
     var getData = jasmine.createSpy().andReturn('a\nb\n\n');
+    var preventDefault = jasmine.createSpy();
     var hot = handsontable();
 
-    $('.copyPaste')[0].onpaste({clipboardData: {getData: getData}});
+    $('.copyPaste')[0].onpaste(
+      {clipboardData: {getData: getData},
+      preventDefault: preventDefault
+    });
 
     if (Handsontable.helper.isSafari()) {
       expect($('.copyPaste')[0].value).toEqual('a\nb\n');
       expect(getData).toHaveBeenCalledWith('Text');
+      expect(preventDefault).toHaveBeenCalled();
 
     } else if (Handsontable.helper.isChrome()) {
       expect($('.copyPaste')[0].value).toBe('a\nb\n\n');
       expect(getData).toHaveBeenCalledWith('Text');
+      expect(preventDefault).toHaveBeenCalled();
     }
   });
 
+  it("should allow blocking cutting cells by stopping the immediate propagation", function() {
+    var onCut = jasmine.createSpy();
+    var hot = handsontable({
+      data: [
+        ['2012', 10, 11, 12, 13, 15, 16],
+        ['2013', 10, 11, 12, 13, 15, 16]
+      ],
+      beforeKeyDown: function(event) {
+        if (event.ctrlKey && event.keyCode === Handsontable.helper.KEY_CODES.X) {
+          event.isImmediatePropagationEnabled = false;
+        }
+      }
+    });
+
+    hot.copyPaste.copyPasteInstance.cutCallbacks.push(onCut);
+
+    selectCell(0, 0);
+    keyDown('ctrl+x');
+
+    waits(100);
+
+    runs(function() {
+      expect(onCut).not.toHaveBeenCalled();
+    });
+  });
 
   describe("enabling/disabing plugin", function () {
     it("should enable copyPaste by default", function () {

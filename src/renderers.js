@@ -1,7 +1,7 @@
 /**
  * Utility to register renderers and common namespace for keeping reference to all renderers classes
  */
-
+import Handsontable from './browser';
 import {toUpperCaseFirst} from './helpers/string';
 
 var registeredRenderers = {};
@@ -25,6 +25,11 @@ function registerRenderer(rendererName, rendererFunction) {
   // support for older versions of Handsontable
   Handsontable.renderers[registerName] = rendererFunction;
   Handsontable[registerName] = rendererFunction;
+
+  // support for older versions of Handsontable
+  if (rendererName === 'base') {
+    Handsontable.renderers.cellDecorator = rendererFunction;
+  }
 }
 
 /**

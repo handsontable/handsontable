@@ -12,7 +12,6 @@ describe("ContextMenuCopyPaste", function () {
     } catch (err) {
       $('head').append('<script src="../../../../node_modules/hot-builder/node_modules/handsontable/demo/js/ZeroClipboard.js"></script>');
     }
-    
 
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     var wrapper = $('<div></div>').css({
@@ -61,7 +60,6 @@ describe("ContextMenuCopyPaste", function () {
 
     expect($contextMenuEntries.index($copyButton)).toEqual(0);
     expect($contextMenuEntries.index($pasteButton)).toEqual(1);
-
   });
 
   it("should add Copy and Paste context menu options at the provided index", function () {
@@ -92,6 +90,34 @@ describe("ContextMenuCopyPaste", function () {
     expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(2);
   });
 
+  it("should disable `Copy` and `Paste` items when context menu was triggered from corner header", function () {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      minSpareRows: 1,
+      contextMenu: true,
+      contextMenuCopyPaste: {
+        swfPath: "../../demo/swf/ZeroClipboard.swf"
+      }
+    });
+
+    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+    contextMenu();
+
+    expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+      'Copy',
+      'Paste',
+      'Insert column on the left',
+      'Insert column on the right',
+      'Remove row',
+      'Remove column',
+      'Undo',
+      'Redo',
+      'Read only',
+      'Alignment',
+    ].join(''));
+  });
 
   // currently not needed - cannot trigger copy action programically
   xdescribe("Copy context menu option", function () {

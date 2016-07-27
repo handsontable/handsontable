@@ -174,7 +174,7 @@ describe('NumericEditor', function () {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', language: 'de'},
+        {data: 'id', type: 'numeric', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -205,7 +205,7 @@ describe('NumericEditor', function () {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '$0,0.00', language: 'en'},
+        {data: 'id', type: 'numeric', format: '$0,0.00', language: 'en-US'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -230,13 +230,13 @@ describe('NumericEditor', function () {
 
   });
 
-  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX,XX' as an input string (that comes from manual input)", function() {
+  it("should display a string in a format 'X.XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX,XX' as an input string (that comes from manual input)", function() {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -256,18 +256,18 @@ describe('NumericEditor', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(getCell(2, 0).innerHTML).toEqual('2 456,22 €');
+      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
     });
 
   });
 
-  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX.XX' as an input string (that comes from paste)", function() {
+  it("should display a string in a format 'X.XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX.XX' as an input string (that comes from paste)", function() {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -287,7 +287,7 @@ describe('NumericEditor', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(getCell(2, 0).innerHTML).toEqual('2 456,22 €');
+      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
     });
 
   });
@@ -369,7 +369,7 @@ describe('NumericEditor', function () {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -411,10 +411,10 @@ describe('NumericEditor', function () {
         {id: 10, name: "Eve", lastName: "Branson", money: 0}
       ],
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'},
-        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en'}
+        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
       ],
       afterValidate: onAfterValidate
     });
@@ -437,7 +437,7 @@ describe('NumericEditor', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(getCell(2, 0).innerHTML).toEqual('2 456,22 €');
+      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
     });
 
     runs(function () {
@@ -453,6 +453,30 @@ describe('NumericEditor', function () {
     runs(function () {
       expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
     });
+  });
+
+  it("should not throw error on closing editor when column data is defined as 'length'", function() {
+    hot = handsontable({
+      data: [
+        {length: 4},
+        {length: 5},
+      ],
+      columns: [
+        {
+          data: 'length', type: 'numeric'
+        },
+        {},
+        {}
+      ]
+    });
+
+    selectCell(1, 0);
+    keyDown('enter');
+    document.activeElement.value = '999';
+
+    expect(function() {
+      destroyEditor();
+    }).not.toThrow();
   });
 
 });

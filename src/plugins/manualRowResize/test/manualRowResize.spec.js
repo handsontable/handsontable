@@ -79,6 +79,42 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
+  it("should not change the row height when `true` is passing", function () {
+    handsontable({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+
+    updateSettings({
+      manualRowResize: true
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+  });
+
+  it("should change the row height to defaults when undefined is passed", function () {
+    handsontable({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(61);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
+
+    updateSettings({
+      manualRowResize: void 0
+    });
+
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
+  });
+
   it("should reset row height", function () {
     handsontable({
       manualRowResize: true
@@ -201,7 +237,6 @@ describe('manualRowResize', function () {
       expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
     });
   });
-
   it("should not trigger afterRowResize event after if row height does not change (no dblclick event)", function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -227,8 +262,7 @@ describe('manualRowResize', function () {
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
-  })
-
+  });
   it("should display the resize handle in the correct place after the table has been scrolled", function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -256,4 +290,108 @@ describe('manualRowResize', function () {
     expect($rowHeader.offset().left).toEqual($handle.offset().left);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
   });
+
+  it("should autosize selected rows after double click on handler", function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(9, 9),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    resizeRow(2, 300);
+
+    var $resizer = this.$container.find('.manualRowResizer');
+    var resizerPosition = $resizer.position();
+
+    this.$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate('mousedown');
+    this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mousemove');
+    this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mouseup');
+
+    waits(600);
+    runs(function() {
+      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+      $resizer.simulate('mouseup');
+      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+      $resizer.simulate('mouseup');
+    });
+
+    waits(1000);
+
+    runs(function() {
+      expect(rowHeight(this.$container, 1)).toBeAroundValue(24);
+      expect(rowHeight(this.$container, 2)).toBeAroundValue(24);
+      expect(rowHeight(this.$container, 3)).toBeAroundValue(24);
+    }.bind(this));
+  });
+  it("should resize (expanding and narrowing) selected rows", function() {
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      rowHeaders: true,
+      manualRowResize: true
+    });
+
+    resizeRow(2, 60);
+
+    var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+    this.$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate("mouseover");
+
+    $rowsHeaders.eq(1).simulate('mousedown');
+    $rowsHeaders.eq(2).simulate('mouseover');
+    $rowsHeaders.eq(3).simulate('mouseover');
+    $rowsHeaders.eq(3).simulate('mousemove');
+    $rowsHeaders.eq(3).simulate('mouseup');
+
+    var $resizer = this.$container.find('.manualRowResizer');
+    var resizerPosition = $resizer.position();
+
+    waits(600);
+    runs(function() {
+      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+      $resizer.simulate('mousemove',{clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
+      $resizer.simulate('mouseup');
+
+      expect($rowsHeaders.eq(1).height()).toEqual(80);
+      expect($rowsHeaders.eq(2).height()).toEqual(80);
+      expect($rowsHeaders.eq(3).height()).toEqual(80);
+    });
+
+    waits(1200);
+    runs(function() {
+      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+      $resizer.simulate('mousemove',{clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
+      $resizer.simulate('mouseup');
+
+      expect($rowsHeaders.eq(1).height()).toEqual(35);
+      expect($rowsHeaders.eq(2).height()).toEqual(35);
+      expect($rowsHeaders.eq(3).height()).toEqual(35);
+    });
+  });
+
+  describe('handle and guide', function() {
+    it('should display the resize handle in the proper position and with a proper size', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"}
+        ],
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      var $headerTH = this.$container.find('tbody tr:eq(1) th:eq(0)');
+      $headerTH.simulate('mouseover');
+
+      var $handle = $('.manualRowResizer');
+
+      expect($handle.offset().top).toEqual($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1);
+      expect($handle.width()).toEqual($headerTH.outerWidth());
+    });
+  });
+
 });

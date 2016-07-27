@@ -1,5 +1,5 @@
-
-import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser';
+import {isIE8, isIE9, isSafari} from '../browser';
+import {hasCaptionProblem} from '../feature';
 
 /**
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
@@ -12,8 +12,7 @@ import {isIE8, isIE9, isSafari, hasCaptionProblem} from '../browser';
  */
 export function closest(element, nodes, until) {
   while (element != null && element !== until) {
-    if (element.nodeType === Node.ELEMENT_NODE &&
-      (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
+    if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
       return element;
     }
     if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -28,11 +27,42 @@ export function closest(element, nodes, until) {
 }
 
 /**
+ * Goes "down" the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ *
+ * @param {HTMLElement} element Element from which traversing is started
+ * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} [until]
+ * @returns {HTMLElement|null}
+ */
+export function closestDown(element, nodes, until) {
+  const matched = [];
+
+  while (element) {
+    element = closest(element, nodes, until);
+
+    if (!element || (until && !until.contains(element))) {
+      break;
+    }
+    matched.push(element);
+
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      element = element.parentNode;
+    }
+  }
+  const length = matched.length;
+
+  return length ? matched[length - 1] : null;
+}
+
+/**
  * Goes up the DOM tree and checks if element is child of another element.
  *
  * @param child Child element
  * @param {Object|String} parent Parent element OR selector of the parent element.
- *                               If string provided, function returns `true` for the first occurance of element with that class.
+ *                               If string provided, function returns `true` for the first occurrence of element with that class.
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
@@ -757,6 +787,23 @@ export function getSelectionEndPosition(el) {
 }
 
 /**
+ * Returns text under selection.
+ *
+ * @returns {String}
+ */
+export function getSelectionText() {
+  let text = '';
+
+  if (window.getSelection) {
+    text = window.getSelection().toString();
+  } else if (document.selection && document.selection.type !== 'Control') {
+    text = document.selection.createRange().text;
+  }
+
+  return text;
+}
+
+/**
  * Sets caret position in text input.
  *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
@@ -834,6 +881,26 @@ export function getScrollbarWidth() {
 }
 
 /**
+ * Checks if the provided element has a vertical scrollbar.
+ *
+ * @param {HTMLElement} element
+ * @returns {Boolean}
+ */
+export function hasVerticalScrollbar(element) {
+  return element.offsetWidth !== element.clientWidth;
+}
+
+/**
+ * Checks if the provided element has a vertical scrollbar.
+ *
+ * @param {HTMLElement} element
+ * @returns {Boolean}
+ */
+export function hasHorizontalScrollbar(element) {
+  return element.offsetHeight !== element.clientHeight;
+}
+
+/**
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {
@@ -864,80 +931,33 @@ export function getCssTransform(element) {
 }
 
 export function resetCssTransform(element) {
-  if (element.transform && element.transform !== '') {
-    element.transform = '';
-  } else if (element['-webkit-transform'] && element['-webkit-transform'] !== '') {
-    element['-webkit-transform'] = '';
+  if (element.style.transform && element.style.transform !== '') {
+    element.style.transform = '';
+  } else if (element.style['-webkit-transform'] && element.style['-webkit-transform'] !== '') {
+    element.style['-webkit-transform'] = '';
   }
 }
 
 /**
  * Determines if the given DOM element is an input field.
  * Notice: By 'input' we mean input, textarea and select nodes
- * @param element - DOM element
- * @returns {boolean}
+ *
+ * @param {HTMLElement} element - DOM element
+ * @returns {Boolean}
  */
 export function isInput(element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
-  return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
+  return element && (inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true');
 }
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
  * Notice: By 'input' we mean input, textarea and select nodes
- * @param element - DOM element
- * @returns {boolean}
+ *
+ * @param {HTMLElement} element - DOM element
+ * @returns {Boolean}
  */
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
-}
-
-// https://gist.github.com/paulirish/1579671
-let lastTime = 0;
-let vendors = ['ms', 'moz', 'webkit', 'o'];
-let _requestAnimationFrame = window.requestAnimationFrame;
-let _cancelAnimationFrame = window.cancelAnimationFrame;
-
-for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
-  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-}
-
-if (!_requestAnimationFrame) {
-  _requestAnimationFrame = function(callback) {
-    let currTime = new Date().getTime();
-    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    let id = window.setTimeout(function() {
-      callback(currTime + timeToCall);
-    }, timeToCall);
-    lastTime = currTime + timeToCall;
-
-    return id;
-  };
-}
-
-if (!_cancelAnimationFrame) {
-  _cancelAnimationFrame = function(id) {
-    clearTimeout(id);
-  };
-}
-
-/**
- * Polyfill for requestAnimationFrame
- *
- * @param {Function} callback
- * @returns {Number}
- */
-export function requestAnimationFrame(callback) {
-  return _requestAnimationFrame.call(window, callback);
-}
-
-/**
- * Polyfill for cancelAnimationFrame
- *
- * @param {Number} id
- */
-export function cancelAnimationFrame(id) {
-  _cancelAnimationFrame.call(window, id);
 }

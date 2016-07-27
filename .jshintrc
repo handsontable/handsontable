@@ -16,7 +16,7 @@
   "indent": 2,
   "latedef": false,
   "laxbreak": false,
-  "laxcomma": true, // Should be false
+  "laxcomma": false,
   "loopfunc": false,
   "maxdepth": 5,
   "maxlen": 190,

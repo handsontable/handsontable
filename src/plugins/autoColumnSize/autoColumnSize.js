@@ -1,7 +1,7 @@
-
 import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame, isVisible} from './../../helpers/dom/element';
+import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
+import {isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
@@ -14,19 +14,33 @@ import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable
  * @plugin AutoColumnSize
  *
  * @description
- * This plugin allows to set columns width related to the widest cell in column.
+ * This plugin allows to set column widths based on their widest cells.
  *
- * Default value is `undefined` which is the same effect as `true`. Enable this plugin can decrease performance.
+ * By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `true`).
+ * Enabling this plugin may decrease the overall table performance, as it needs to calculate the widths of all cells to
+ * resize the columns accordingly.
+ * If you experience problems with the performance, try turning this feature off and declaring the column widths manually.
  *
- * Column width calculations are divided into sync and async part. Each of this part has own advantages and
- * disadvantages. Synchronous counting is faster but it blocks browser UI and asynchronous is slower but it does not
- * block Browser UI.
+ * Column width calculations are divided into sync and async part. Each of this parts has their own advantages and
+ * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
+ * block the browser UI.
+ *
+ * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+ * ```js
+ * ...
+ * // as a number (300 columns in sync, rest async)
+ * autoColumnSize: {syncLimit: 300},
+ * ...
+ *
+ * ...
+ * // as a string (percent)
+ * autoColumnSize: {syncLimit: '40%'},
+ * ...
+ * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
- *
  * @example
- *
  * ```js
  * ...
  * var hot = new Handsontable(document.getElementById('example'), {
@@ -48,6 +62,7 @@ class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
   }
+
   static get SYNC_CALCULATION_LIMIT() {
     return 50;
   }
@@ -61,22 +76,26 @@ class AutoColumnSize extends BasePlugin {
      */
     this.widths = [];
     /**
-     * Instance of GhostTable for rows and columns size calculations.
+     * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of SamplesGenerator for generating samples necessary for columns width calculations.
+     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
      *
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
     /**
+     * `true` only if the first calculation was performed
+     *
      * @type {Boolean}
      */
     this.firstCalculation = true;
     /**
+     * `true` if the size calculation is in progress.
+     *
      * @type {Boolean}
      */
     this.inProgress = false;
@@ -101,6 +120,18 @@ class AutoColumnSize extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    let setting = this.hot.getSettings().autoColumnSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    }
+
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
+    }
+
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
 
@@ -117,7 +148,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate columns width.
+   * Calculate a columns width.
    *
    * @param {Number|Object} colRange Column range object.
    * @param {Number|Object} rowRange Row range object.
@@ -164,7 +195,12 @@ class AutoColumnSize extends BasePlugin {
 
         return;
       }
-      this.calculateColumnsWidth({from: current, to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)}, rowRange);
+
+      this.calculateColumnsWidth({
+        from: current,
+        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
+      }, rowRange);
+
       current = current + AutoColumnSize.CALCULATION_STEP + 1;
 
       if (current < length) {
@@ -206,7 +242,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get value which tells how much columns will be calculated synchronously. Rest columns will be calculated asynchronously.
+   * Get value which tells how many columns should be calculated synchronously. Rest of the columns will be calculated asynchronously.
    *
    * @returns {Number}
    */
@@ -229,10 +265,10 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get calculated column height.
+   * Get the calculated column width.
    *
    * @param {Number} col Column index.
-   * @param {Number} [defaultWidth] Default column width. It will be pick up if no calculated width found.
+   * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
    */
@@ -251,7 +287,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get first visible column.
+   * Get the first visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -269,7 +305,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get last visible column.
+   * Get the last visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -308,7 +344,14 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    let force = this.hot.renderCall;
+    const force = this.hot.renderCall;
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
     this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
@@ -341,7 +384,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => this.widths[data[1]] = void 0);
+    arrayEach(changes, (data) => this.widths[this.hot.propToCol(data[1])] = void 0);
   }
 
   /**

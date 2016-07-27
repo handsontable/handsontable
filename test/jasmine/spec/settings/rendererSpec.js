@@ -51,6 +51,29 @@ describe('settings', function () {
         Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
+      it('should use renderer from predefined string when columns is a function', function () {
+
+        var originalTextRenderer = Handsontable.renderers.TextRenderer;
+        spyOn(Handsontable.renderers, 'TextRenderer');
+        Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
+
+        var originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+        spyOn(Handsontable.renderers, 'CheckboxRenderer');
+        Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
+
+
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {renderer: 'checkbox'} : null;
+          }
+        });
+        expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
+        expect(Handsontable.renderers.CheckboxRenderer).toHaveBeenCalled();
+
+        Handsontable.renderers.registerRenderer('text', originalTextRenderer);
+        Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
+      });
+
       it('should use renderer from custom function', function () {
         var called = false;
 
@@ -69,6 +92,22 @@ describe('settings', function () {
         expect(called).toBe(true);
       });
 
+      it('should use renderer from custom function when columns is a function', function () {
+        var called = false;
+
+        function myRenderer() {
+          called = true;
+        }
+
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {renderer: myRenderer} : null;
+          }
+        });
+
+        expect(called).toBe(true);
+      });
+
       it('should use renderer from custom string', function () {
         var myRenderer = jasmine.createSpy('myRenderer');
 
@@ -80,6 +119,20 @@ describe('settings', function () {
               renderer: 'myRenderer'
             }
           ]
+        });
+
+        expect(myRenderer).toHaveBeenCalled();
+      });
+
+      it('should use renderer from custom string when columns is a function', function () {
+        var myRenderer = jasmine.createSpy('myRenderer');
+
+        Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
+
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {renderer: 'myRenderer'} : null;
+          }
         });
 
         expect(myRenderer).toHaveBeenCalled();

@@ -1,4 +1,3 @@
-
 import {addClass, hasClass, empty} from './../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';

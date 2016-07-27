@@ -26,9 +26,10 @@ import {TextRenderer} from './renderers/textRenderer';
 
 import {AutocompleteValidator} from './validators/autocompleteValidator';
 import {DateValidator} from './validators/dateValidator';
+import {TimeValidator} from './validators/timeValidator';
 import {NumericValidator} from './validators/numericValidator';
 
-Handsontable.mobileBrowser = isMobileBrowser();
+import Handsontable from './browser';
 
 Handsontable.AutocompleteCell = {
   editor: getEditorConstructor('autocomplete'),
@@ -42,7 +43,7 @@ Handsontable.CheckboxCell = {
 };
 
 Handsontable.TextCell = {
-  editor: Handsontable.mobileBrowser ? getEditorConstructor('mobile') : getEditorConstructor('text'),
+  editor: isMobileBrowser() ? getEditorConstructor('mobile') : getEditorConstructor('text'),
   renderer: getRenderer('text'),
 };
 
@@ -58,6 +59,13 @@ Handsontable.DateCell = {
   validator: Handsontable.DateValidator,
   // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
+};
+
+Handsontable.TimeCell = {
+  editor: getEditorConstructor('text'),
+  validator: Handsontable.TimeValidator,
+  // displays small gray arrow on right side of the cell
+  renderer: getRenderer('text'),
 };
 
 Handsontable.HandsontableCell = {
@@ -83,6 +91,7 @@ Handsontable.DropdownCell = {
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
   date: Handsontable.DateCell,
+  time: Handsontable.TimeCell,
   numeric: Handsontable.NumericCell,
   checkbox: Handsontable.CheckboxCell,
   autocomplete: Handsontable.AutocompleteCell,

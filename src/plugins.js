@@ -1,13 +1,11 @@
 /**
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
-
+import Handsontable from './browser';
 import {objectEach} from './helpers/object';
 import {toUpperCaseFirst} from './helpers/string';
 
 const registeredPlugins = new WeakMap();
-
-Handsontable.plugins = Handsontable.plugins || {};
 
 /**
  * Registers plugin under given name

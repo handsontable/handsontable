@@ -25,15 +25,18 @@ class WalkontableViewportColumnsCalculator {
    * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
    * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
    * @param {Boolean} stretchH
+   * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
-  constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+  constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH,
+              stretchingColumnWidthFn = (width) => width) {
     privatePool.set(this, {
       viewportWidth,
       scrollOffset,
       totalColumns,
       columnWidthFn,
       overrideFn,
-      onlyFullyVisible
+      onlyFullyVisible,
+      stretchingColumnWidthFn,
     });
 
     /**
@@ -152,27 +155,34 @@ class WalkontableViewportColumnsCalculator {
     if (this.stretch === 'none') {
       return;
     }
-    let sumAll = 0;
-    let columnWidth;
-    let remainingSize;
+    this.totalTargetWidth = totalWidth;
 
     let priv = privatePool.get(this);
     let totalColumns = priv.totalColumns;
+    let sumAll = 0;
 
     for (let i = 0; i < totalColumns; i++) {
-      columnWidth = this._getColumnWidth(i);
-      sumAll += columnWidth;
-    }
-    this.totalTargetWidth = totalWidth;
-    remainingSize = sumAll - totalWidth;
+      let columnWidth = this._getColumnWidth(i);
+      let permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
 
-    if (this.stretch === 'all' && remainingSize < 0) {
+      if (typeof permanentColumnWidth === 'number') {
+        totalWidth -= permanentColumnWidth;
+      } else {
+        sumAll += columnWidth;
+      }
+    }
+    let remainingSize = totalWidth - sumAll;
+
+    if (this.stretch === 'all' && remainingSize > 0) {
       this.stretchAllRatio = totalWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.needVerifyLastColumnWidth = true;
 
     } else if (this.stretch === 'last' && totalWidth !== Infinity) {
-      this.stretchLastWidth = -remainingSize + this._getColumnWidth(totalColumns - 1);
+      let columnWidth = this._getColumnWidth(totalColumns - 1);
+      let lastColumnWidth = remainingSize + columnWidth;
+
+      this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : columnWidth;
     }
   }
 
@@ -208,7 +218,14 @@ class WalkontableViewportColumnsCalculator {
     let totalColumns = priv.totalColumns;
 
     if (!this.stretchAllColumnsWidth[column]) {
-      this.stretchAllColumnsWidth[column] = Math.round(baseWidth * this.stretchAllRatio);
+      let stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
+      let newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
+
+      if (newStretchedWidth === void 0) {
+        this.stretchAllColumnsWidth[column] = stretchedWidth;
+      } else {
+        this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
+      }
     }
 
     if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
@@ -242,14 +259,14 @@ class WalkontableViewportColumnsCalculator {
   }
 
   /**
-   * @param {Number} column
+   * @param {Number} column Column index.
    * @returns {Number}
    * @private
    */
   _getColumnWidth(column) {
     let width = privatePool.get(this).columnWidthFn(column);
 
-    if (width === undefined) {
+    if (width === void 0) {
       width = WalkontableViewportColumnsCalculator.DEFAULT_WIDTH;
     }
 

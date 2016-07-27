@@ -25,6 +25,9 @@ class WalkontableSettings {
       stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,
+      preventOverflow: function() {
+        return false;
+      },
 
       //data source
       data: void 0,
@@ -79,6 +82,7 @@ class WalkontableSettings {
       onScrollHorizontally: null,
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
+      onBeforeStretchingColumnWidth: (width) => width,
 
       //constants
       scrollbarWidth: 10,
@@ -86,6 +90,8 @@ class WalkontableSettings {
 
       renderAllRows: false,
       groups: false,
+      rowHeaderWidth: null,
+      columnHeaderHeight: null
     };
 
     // reference to settings

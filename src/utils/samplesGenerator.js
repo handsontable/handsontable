@@ -1,12 +1,13 @@
-
+import Handsontable from './../browser';
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
-import {objectEach} from './../helpers/object';
+import {objectEach, isObject} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
 import {stringify} from './../helpers/mixed';
 
 /**
- * @private
+ * @class SamplesGenerator
+ * @util
  */
 class SamplesGenerator {
   /**
@@ -18,9 +19,6 @@ class SamplesGenerator {
     return 3;
   }
 
-  /**
-   * @param {Function} dataFactory Function which gave data to collect samples.
-   */
   constructor(dataFactory) {
     /**
      * Samples prepared for calculations.
@@ -35,7 +33,26 @@ class SamplesGenerator {
      * @type {Function}
      */
     this.dataFactory = dataFactory;
+    /**
+     * Custom number of samples to take of each value length.
+     *
+     * @type {Number}
+     * @default {null}
+     */
+    this.customSampleCount = null;
   }
+
+  /**
+   * Get the sample count for this instance.
+   *
+   * @returns {Number}
+   */
+  getSampleCount() {
+    if (this.customSampleCount) {
+      return this.customSampleCount;
+    }
+    return SamplesGenerator.SAMPLE_COUNT;
+  };
 
   /**
    * Generate samples for row. You can control which area should be sampled by passing `rowRange` object and `colRange` object.
@@ -92,6 +109,8 @@ class SamplesGenerator {
    */
   generateSample(type, range, specifierValue) {
     const samples = new Map();
+    let sampledValues = [];
+    let length;
 
     rangeEach(range.from, range.to, (index) => {
       let value;
@@ -105,24 +124,35 @@ class SamplesGenerator {
       } else {
         throw new Error('Unsupported sample type');
       }
-      if (!Array.isArray(value)) {
-        value = stringify(value);
-      }
-      let len = value.length;
 
-      if (!samples.has(len)) {
-        samples.set(len, {
-          needed: SamplesGenerator.SAMPLE_COUNT,
+      if (isObject(value)) {
+        length = Object.keys(value).length;
+
+      } else if (Array.isArray(value)) {
+        length = value.length;
+
+      } else {
+        length = stringify(value).length;
+      }
+
+      if (!samples.has(length)) {
+        samples.set(length, {
+          needed: this.getSampleCount(),
           strings: [],
         });
       }
-      let sample = samples.get(len);
+      let sample = samples.get(length);
 
       if (sample.needed) {
-        let computedKey = type === 'row' ? 'col' : 'row';
+        let duplicate = sampledValues.indexOf(value) > -1;
 
-        sample.strings.push({value, [computedKey]: index});
-        sample.needed--;
+        if (!duplicate) {
+          let computedKey = type === 'row' ? 'col' : 'row';
+
+          sample.strings.push({value, [computedKey]: index});
+          sampledValues.push(value);
+          sample.needed--;
+        }
       }
     });
 
@@ -133,5 +163,4 @@ class SamplesGenerator {
 export {SamplesGenerator};
 
 // temp for tests only!
-Handsontable.utils = Handsontable.utils || {};
 Handsontable.utils.SamplesGenerator = SamplesGenerator;

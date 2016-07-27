@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {
   addClass,
   empty,
@@ -32,6 +32,7 @@ SelectEditor.prototype.init = function() {
 };
 
 SelectEditor.prototype.registerHooks = function() {
+  this.instance.addHook('afterScrollHorizontally', () => this.refreshDimensions());
   this.instance.addHook('afterScrollVertically', () => this.refreshDimensions());
   this.instance.addHook('afterColumnResize', () => this.refreshDimensions());
   this.instance.addHook('afterRowResize', () => this.refreshDimensions());

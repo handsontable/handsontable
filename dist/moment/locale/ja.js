@@ -1,10 +1,11 @@
 //! moment.js locale configuration
-//! locale : japanese (ja)
+//! locale : Japanese [ja]
 //! author : LI Long : https://github.com/baryon
 
-(function (global, factory) {
-   typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('../moment')) :
-   typeof define === 'function' && define.amd ? define(['moment'], factory) :
+;(function (global, factory) {
+   typeof exports === 'object' && typeof module !== 'undefined'
+       && typeof require === 'function' ? factory(require('../moment')) :
+   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
    factory(global.moment)
 }(this, function (moment) { 'use strict';
 
@@ -41,6 +42,17 @@
             lastDay : '[昨日] LT',
             lastWeek : '[前週]dddd LT',
             sameElse : 'L'
+        },
+        ordinalParse : /\d{1,2}日/,
+        ordinal : function (number, period) {
+            switch (period) {
+                case 'd':
+                case 'D':
+                case 'DDD':
+                    return number + '日';
+                default:
+                    return number;
+            }
         },
         relativeTime : {
             future : '%s後',

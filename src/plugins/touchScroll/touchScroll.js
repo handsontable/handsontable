@@ -1,14 +1,14 @@
+import Handsontable from './../../browser';
 import {addClass, removeClass} from './../../helpers/dom/element';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 
 /**
+ * @private
  * @plugin TouchScroll
+ * @class TouchScroll
  */
 class TouchScroll extends BasePlugin {
-  /**
-   * @param {Handsontable} hotInstance
-   */
   constructor(hotInstance) {
     super(hotInstance);
 

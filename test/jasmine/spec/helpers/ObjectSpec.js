@@ -135,4 +135,105 @@ describe('Object helper', function () {
       expect(instance1.local.test).not.toBeDefined();
     });
   });
+
+  //
+  // Handsontable.helper.clone
+  //
+  describe('clone', function() {
+    it("should returns cloned object", function () {
+      var clone = Handsontable.helper.clone;
+
+      var function1 = function() {};
+      var object1 = {};
+      var object2 = {
+        foo: false,
+        und: void 0,
+        bar: 0,
+        baz: object1,
+        func: function1,
+      };
+
+      expect(clone(object1)).toEqual({});
+      expect(clone(object1)).not.toBe(object1);
+      expect(clone(object2)).toEqual(object2);
+      expect(clone(object2)).not.toBe(object2);
+      expect(clone(object2).baz).toBe(object2.baz);
+      expect(clone(object2).func).toBe(function1);
+    });
+  });
+
+  describe('deepExtend', function () {
+    it('should extend an object with all the properties of another object (recursively)', function () {
+      var deepExtend = Handsontable.helper.deepExtend;
+      var baseObject = {
+        test: 'one',
+        anotherTest: ['one, two']
+      };
+      var date = new Date();
+      var partial = {
+        prop1: 'prop1',
+        prop2: 34,
+        prop3: [
+          12,
+          'test',
+          {
+            prop: 'one'
+          },
+          [0, 1]
+        ],
+        prop4: {
+          p1: 0,
+          p2: [0, 1],
+          p3: {
+            a: 'b'
+          }
+        },
+        prop5: date
+      };
+
+      deepExtend(baseObject, partial);
+
+      expect(baseObject.test).toEqual('one');
+      expect(baseObject.anotherTest).toEqual(['one, two']);
+      expect(baseObject.prop1).toEqual('prop1');
+      expect(baseObject.prop2).toEqual(34);
+      expect(baseObject.prop3[0]).toEqual(12);
+      expect(baseObject.prop3[1]).toEqual('test');
+      expect(baseObject.prop3[2].prop).toEqual('one');
+      expect(baseObject.prop3[3]).toEqual([0, 1]);
+      expect(baseObject.prop4.p1).toEqual(0);
+      expect(baseObject.prop4.p2).toEqual([0, 1]);
+      expect(baseObject.prop4.p3.a).toEqual('b');
+      expect(baseObject.prop5).toEqual(date);
+    });
+  });
+
+  describe('deepObjectSize', function () {
+    it('should return false if a variable is not an object', function () {
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
+      var toCount = [1, 2, 3];
+
+      expect(deepObjectSize(toCount)).toBeFalsy();
+    });
+
+    it('should return an object keys length (recursively and only these keys, which contain value)', function () {
+      var deepObjectSize = Handsontable.helper.deepObjectSize;
+      var toCount = {
+        prop1: 1,
+        prop2: 2,
+        prop3: {
+          prop31: {
+            prop311: 311,
+            prop312: 312
+          },
+          prop32: 32,
+          prop33: 33
+        },
+        prop4: 4,
+        prop5: 5
+      };
+
+      expect(deepObjectSize(toCount)).toEqual(8);
+    });
+  });
 });

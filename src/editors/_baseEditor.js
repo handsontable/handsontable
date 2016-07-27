@@ -1,4 +1,4 @@
-
+import Handsontable from './../browser';
 import {stringify} from './../helpers/mixed';
 import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
 
@@ -57,6 +57,12 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.prop = prop;
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
+
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+    document.activeElement.blur();
+  } else if (!document.activeElement) { //IE
+    document.body.focus();
+  }
 
   this.state = Handsontable.EditorState.VIRGIN;
 };
@@ -158,14 +164,16 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       return;
     }
 
+    let value = this.getValue();
+
     if (this.instance.getSettings().trimWhitespace) {
-      // String.prototype.trim is defined in Walkontable polyfill.js
+      // We trim only string values
       val = [
-        // We trim only string values
-        [typeof this.getValue() === 'string' ? String.prototype.trim.call(this.getValue() || '') : this.getValue()]];
+        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
+      ];
     } else {
       val = [
-        [this.getValue()]
+        [value]
       ];
     }
 

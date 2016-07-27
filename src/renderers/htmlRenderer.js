@@ -1,4 +1,3 @@
-
 import {fastInnerHTML} from './../helpers/dom/element';
 import {getRenderer, registerRenderer} from './../renderers';
 
@@ -15,6 +14,11 @@ import {getRenderer, registerRenderer} from './../renderers';
  */
 function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('base').apply(this, arguments);
+
+  if (value === null || value === void 0) {
+    value = '';
+  }
+
   fastInnerHTML(TD, value);
 }
 

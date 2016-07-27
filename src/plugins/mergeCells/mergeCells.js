@@ -1,3 +1,4 @@
+import Handsontable from './../../browser';
 import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
@@ -41,7 +42,7 @@ function CellInfoCollection() {
 }
 
 /**
- * Plugin used to merge cells in Handsontable
+ * Plugin used to merge cells in Handsontable.
  *
  * @private
  * @plugin MergeCells
@@ -389,8 +390,8 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
       this.render();
     },
     disabled: function() {
-      return false;
-    }
+      return this.selection.selectedHeader.corner;
+    },
   });
 };
 

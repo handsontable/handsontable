@@ -34,6 +34,35 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should inherit cell type when columns is a function', function () {
+
+    handsontable({
+      data : [[1,2]],
+      columns: function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = {};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      },
+      cells : function (row, col, prop) {
+        if (row === 0 && col === 0) {
+          return {
+            type : 'numeric'
+          }
+        }
+      }
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('numeric');
+    expect(getCellMeta(0, 1).type).toEqual('checkbox');
+
+  });
+
   it('should ignore mixed in properties to the cell array option', function() {
     Array.prototype.willFail = "BOOM";
 
@@ -43,6 +72,27 @@ describe('Core_updateSettings', function () {
         { type : 'numeric' },
         { type : 'checkbox' }
       ]
+    });
+
+    updateSettings({ cell: new Array() });
+  });
+
+  it('should ignore mixed in properties to the cell array option when columns is a function', function() {
+    Array.prototype.willFail = "BOOM";
+
+    handsontable({
+      data : [[1, true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'numeric'};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      },
     });
 
     updateSettings({ cell: new Array() });
@@ -69,6 +119,34 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should not reset columns types to text when columns is a function', function () {
+    handsontable({
+      data : [[1, true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'numeric'};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    var td = this.$container.find('td');
+
+    expect(td.eq(0).text()).toEqual('1');
+    expect(td.eq(1).text()).toEqual('');
+
+    updateSettings({});
+
+    expect(td.eq(0).text()).toEqual('1');
+    expect(td.eq(1).text()).toEqual('');
+
+  });
+
   it('should update readOnly global setting', function(){
     handsontable({
       readOnly: true,
@@ -77,6 +155,38 @@ describe('Core_updateSettings', function () {
         { },
         { }
       ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+
+    updateSettings({
+      readOnly: false
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+  });
+
+  it('should update readOnly global setting when columns is a function', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', 'bar']],
+      columns : function(column) {
+        var colMeta = {};
+
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -129,6 +239,51 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
+  it('should update readOnly columns setting when columns is a function', function(){
+    handsontable({
+      data : [['foo', true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+                      readOnly: true };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+
+    updateSettings({
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+            readOnly: false };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+  });
+
   it('should update readOnly columns setting and override global setting', function(){
     handsontable({
       readOnly: true,
@@ -144,7 +299,7 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
 
     expect(getCellMeta(0, 1).readOnly).toBe(true);
-    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
       columns: [
@@ -159,7 +314,52 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
 
     expect(getCellMeta(0, 1).readOnly).toBe(true);
-    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+  });
+
+  it('should update readOnly columns setting and override global setting when columns is a function', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text' };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+
+    updateSettings({
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+            readOnly: false };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
   });
 
   it("should not alter the columns object during init", function () {
@@ -237,6 +437,80 @@ describe('Core_updateSettings', function () {
     expect(getCellEditor(0, 0)).toEqual(Handsontable.TextCell.editor);
     expect(Handsontable.TextCell.validator).toBeUndefined();
     expect(getCellValidator(0, 0)).toBeUndefined();
+  });
+
+  it("should allow updating the table height", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5
+    });
+
+    var initialHeight = parseInt(this.$container[0].style.height, 10);
+
+    updateSettings({
+      height: 300
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toEqual(300);
+    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(initialHeight);
+  });
+
+  it("should not reset the table height, when the updateSettings config object doesn't have any height specified", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5,
+      height: 300
+    });
+
+    var initialHeight = this.$container[0].style.height;
+
+    updateSettings({
+      rowHeaders: true
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
+  });
+
+  it("should allow resetting the table height", function () {
+    var hot = handsontable({
+      startRows: 22,
+      startCols: 5,
+      height: 300
+    });
+
+    var initialHeight = this.$container[0].style.height;
+
+    updateSettings({
+      height: null
+    });
+
+    expect(parseInt(this.$container[0].style.height, 10)).toNotEqual(parseInt(initialHeight, 10));
+  });
+
+  it("should allow updating the stretching type", function() {
+    var hot = handsontable({
+      stretchH: 'last'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+
+    updateSettings({
+      stretchH: 'all'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
+
+    updateSettings({
+      stretchH: 'none'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
+
+    updateSettings({
+      stretchH: 'last'
+    });
+
+    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
 
 });

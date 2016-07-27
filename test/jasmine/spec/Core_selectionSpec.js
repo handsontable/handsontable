@@ -224,6 +224,80 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
+  it('should deselect on outside click if outsideClickDeselects is a function that returns true', function() {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed;
+    handsontable({
+      outsideClickDeselects: function() { return true }
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Foo';
+
+    textarea.focus();
+    textarea.simulate('mousedown');
+    textarea.simulate('mouseup');
+
+    textarea.on('keydown', function (event) {
+      keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+//    var event = $.Event('keydown');
+//    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).simulate('keydown',{
+      keyCode: LETTER_a_KEY
+    });
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
+
+    //should NOT preserve selection
+    expect(getSelected()).toEqual(undefined);
+    expect(getDataAtCell(0, 0)).toEqual('Foo');
+
+    textarea.remove();
+  });
+
+it('should not deselect on outside click if outsideClickDeselects is a function that returns false', function() {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed;
+    handsontable({
+      outsideClickDeselects: function() { return false }
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Foo';
+
+    textarea.focus();
+    textarea.simulate('mousedown');
+    textarea.simulate('mouseup');
+
+    textarea.on('keydown', function (event) {
+      keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+//    var event = $.Event('keydown');
+//    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).simulate('keydown',{
+      keyCode: LETTER_a_KEY
+    });
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
+
+    //should preserve selection, close editor and save changes
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getDataAtCell(0, 0)).toEqual('Foo');
+
+    textarea.remove();
+  });
+
   it('should fix start range if provided is out of bounds (to the left)', function () {
     handsontable({
       startRows: 5,
@@ -383,6 +457,90 @@ describe('Core_selection', function () {
     expect(tick).toEqual(2);
   });
 
+  it('should select columns by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+  it('should select rows by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true
+    });
+
+    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
+    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([1, 0, 4, 4]);
+
+  });
+
+  it('should select columns by click on header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+  it('should change selection after click on row header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([1, 0, 4, 4]);
+
+  });
+
+  it('should change selection after click on column header with SHIFT key', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 4]);
+
+  });
+
+
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
     var tick = 0, tickEnd = 0;
     handsontable({
@@ -406,6 +564,23 @@ describe('Core_selection', function () {
     expect(getSelected()).toEqual([0, 0, 1, 3]);
     expect(tick).toEqual(3);
     expect(tickEnd).toEqual(1);
+  });
+
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function () {
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 4, 1]);
   });
 
   it('should move focus to selected cell', function () {
@@ -450,7 +625,7 @@ describe('Core_selection', function () {
   });
 
   it("should select the entire column after column header is clicked", function(){
-    handsontable({
+    var hot = handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -459,11 +634,15 @@ describe('Core_selection', function () {
     });
 
     this.$container.find('thead th:eq(0)').simulate('mousedown');
+
     expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should select the entire column after column header is clicked (in fixed rows/cols corner)", function(){
-    handsontable({
+    var hot = handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -475,66 +654,93 @@ describe('Core_selection', function () {
     });
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
+
     expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  //it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function () {
-  //  var hot = handsontable({
-  //    width: 200,
-  //    height: 200,
-  //    startRows: 20,
-  //    startCols: 20,
-  //    colHeaders: true,
-  //    rowHeaders: true
-  //  });
-  //
-  //  hot.view.wt.scrollVertical(10);
-  //  hot.view.wt.scrollHorizontal(10);
-  //
-  //  hot.render();
-  //
-  //  waits(30);
-  //
-  //  runs(function() {
-  //    $(getCell(12,11)).simulate('mousedown');
-  //    this.$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
-  //  });
-  //
-  //  waits(30);
-  //
-  //  runs(function() {
-  //    expect(getSelected()).toEqual([12, 11, 10, 11]);
-  //  });
-  //});
+  it("should select the entire fixed column after column header is clicked, after scroll horizontally", function(){
+    var hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 50,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsLeft: 2
+    });
 
-  //it("should set the selection end to the first visible column, when dragging the selection from a cell to a row header", function () {
-  //  var hot = handsontable({
-  //    width: 200,
-  //    height: 200,
-  //    startRows: 20,
-  //    startCols: 20,
-  //    colHeaders: true,
-  //    rowHeaders: true
-  //  });
-  //
-  //  hot.view.wt.scrollVertical(10);
-  //  hot.view.wt.scrollHorizontal(10);
-  //
-  //  hot.render();
-  //
-  //  waits(30);
-  //
-  //  runs(function() {
-  //    $(getCell(12,11)).simulate('mousedown');
-  //    this.$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
-  //  });
-  //
-  //  waits(30);
-  //
-  //  runs(function() {
-  //    expect(getSelected()).toEqual([12, 11, 12, 10]);
-  //  });
-  //});
+    hot.render();
+    hot.view.wt.scrollHorizontal(20);
+
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
+    this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([0, 1, 49, 1]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(true);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
+  });
+
+  it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function () {
+    var hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    hot.view.wt.scrollVertical(10);
+    hot.view.wt.scrollHorizontal(10);
+
+    hot.render();
+
+    waits(30);
+
+    runs(function() {
+      $(getCell(12,11)).simulate('mousedown');
+      this.$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
+    });
+
+    waits(30);
+
+    runs(function() {
+      expect(getSelected()).toEqual([12, 11, 10, 11]);
+    });
+  });
+
+  it("should set the selection end to the first visible column, when dragging the selection from a cell to a row header", function () {
+    var hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    hot.view.wt.scrollVertical(10);
+    hot.view.wt.scrollHorizontal(10);
+
+    hot.render();
+
+    waits(30);
+
+    runs(function() {
+      $(getCell(12,11)).simulate('mousedown');
+      this.$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
+    });
+
+    waits(30);
+
+    runs(function() {
+      expect(getSelected()).toEqual([12, 11, 12, 10]);
+    });
+  });
 
   it("should allow to scroll the table when a whole column is selected and table is longer than it's container", function () {
     var errCount = 0;
@@ -626,7 +832,7 @@ describe('Core_selection', function () {
   });
 
   it("should select the entire row after row header is clicked", function(){
-    handsontable({
+    var hot = handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true,
@@ -634,8 +840,27 @@ describe('Core_selection', function () {
     });
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
 
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(hot.selection.selectedHeader.rows).toBe(true);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
+  });
+
+  it("should select the entire row after row header is clicked", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(hot.selection.selectedHeader.rows).toBe(true);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
   it("should select the entire row of a partially fixed table after row header is clicked", function(){
@@ -652,7 +877,6 @@ describe('Core_selection', function () {
     expect(getSelected()).toEqual([1, 0, 1, 4]);
     this.$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([2, 0, 2, 4]);
-
   });
 
   it("should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, " +
@@ -807,5 +1031,41 @@ describe('Core_selection', function () {
 
     expect(spy.mostRecentCall.args[1]).toBe(-1);
     expect(spy.mostRecentCall.args[2]).toBe(0);
+  });
+
+  it('should change selection after left mouse button on one of selected cell', function () {
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    var cells = $('.ht_master.handsontable td');
+
+    cells.eq(6).simulate('mousedown');
+    cells.eq(18).simulate('mouseover');
+    cells.eq(18).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([1, 1, 3, 3]);
+
+    cells.eq(16).simulate('mousedown');
+    cells.eq(16).simulate('mouseup');
+
+    expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
+  });
+
+  it("should select the first row after corner header is clicked", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('thead').find('th').eq(0).simulate('mousedown');
+
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(hot.selection.selectedHeader.rows).toBe(false);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(true);
   });
 });
