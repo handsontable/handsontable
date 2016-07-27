@@ -285,7 +285,6 @@ describe('manualColumnMove', function () {
   });
 
   it("should mark apropriate column as invalid, when column order is changed", function () {
-
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -304,16 +303,9 @@ describe('manualColumnMove', function () {
       colHeaders: true,
       manualColumnMove: [2, 0, 1],
       columns: [
-        {
-          type: 'numeric',
-          data: 'id'
-        },
-        {
-          data: 'name'
-        },
-        {
-          data: 'lastName'
-        }
+        {type: 'numeric', data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'}
       ],
       allowInvalid: true,
       afterValidate: onAfterValidate
@@ -335,7 +327,55 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('.htInvalid').length).toEqual(1);
       expect(this.$container.find('.htInvalid').text()).toMatch('foo');
     });
+  });
 
+  it("should mark apropriate column as invalid, when column order is changed when columns is a function", function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"},
+        {id: 6, name: "Chuck", lastName: "Jackson"},
+        {id: 7, name: "Meg", lastName: "Jansen"},
+        {id: 8, name: "Rob", lastName: "Norris"},
+        {id: 9, name: "Sean", lastName: "O'Hara"},
+        {id: 10, name: "Eve", lastName: "Branson"}
+      ],
+      colHeaders: true,
+      manualColumnMove: [2, 0, 1],
+      columns: function(column) {
+        var settings = [
+          {type: 'numeric', data: 'id'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ];
+
+        return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
+      },
+      allowInvalid: true,
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(0, 1);
+    keyDownUp('enter');
+    var editor = $('.handsontableInput');
+    editor.val('foo');
+
+    onAfterValidate.reset();
+    keyDownUp('enter');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(this.$container.find('.htInvalid').length).toEqual(1);
+      expect(this.$container.find('.htInvalid').text()).toMatch('foo');
+    });
   });
 
   it("should display the move handle in the correct place after the table has been scrolled", function () {
@@ -405,15 +445,9 @@ describe('manualColumnMove', function () {
   it("should return an appropriate column width, when column order has changed", function () {
     var hot = handsontable({
       columns: [
-        {
-          width: 50
-        },
-        {
-          width: 60
-        },
-        {
-          width: 70
-        }
+        {width: 50},
+        {width: 60},
+        {width: 70}
       ]
     });
 
@@ -428,8 +462,28 @@ describe('manualColumnMove', function () {
     expect(hot.getColWidth(0)).toEqual(70);
     expect(hot.getColWidth(1)).toEqual(50);
     expect(hot.getColWidth(2)).toEqual(60);
+  });
 
+  it("should return an appropriate column width, when column order has changed and when columns is a function", function () {
+    var hot = handsontable({
+      columns: function(column) {
+        var widths = [50, 60, 70];
 
+        return [0, 1, 2].indexOf(column) > -1 ? {width: widths[column]} : null;
+      }
+    });
+
+    expect(hot.getColWidth(0)).toEqual(50);
+    expect(hot.getColWidth(1)).toEqual(60);
+    expect(hot.getColWidth(2)).toEqual(70);
+
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
+
+    expect(hot.getColWidth(0)).toEqual(70);
+    expect(hot.getColWidth(1)).toEqual(50);
+    expect(hot.getColWidth(2)).toEqual(60);
   });
 
   it("should not change the default spreadsheet-like column headers when column order has changed ", function(){
@@ -442,33 +496,56 @@ describe('manualColumnMove', function () {
       ],
       colHeaders: true,
       columns: [
-        {
-          type: 'numeric',
-          data: 'id'
-        },
-        {
-          data: 'name'
-        },
-        {
-          data: 'lastName'
-        }
+        {type: 'numeric', data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'}
       ]
     });
 
-    if(hot.getSettings().colHeaders === true) {
-      expect(hot.getColHeader(0)).toEqual('A');
-      expect(hot.getColHeader(1)).toEqual('B');
-      expect(hot.getColHeader(2)).toEqual('C');
+    expect(hot.getColHeader(0)).toEqual('A');
+    expect(hot.getColHeader(1)).toEqual('B');
+    expect(hot.getColHeader(2)).toEqual('C');
 
-      hot.updateSettings({
-        manualColumnMove: [2, 0, 1]
-      });
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
 
-      expect(hot.getColHeader(0)).toEqual('A');
-      expect(hot.getColHeader(1)).toEqual('B');
-      expect(hot.getColHeader(2)).toEqual('C');
-    }
+    expect(hot.getColHeader(0)).toEqual('A');
+    expect(hot.getColHeader(1)).toEqual('B');
+    expect(hot.getColHeader(2)).toEqual('C');
+  });
 
+  it("should not change the default spreadsheet-like column headers when column order has changed and when columns is a function", function(){
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"}
+      ],
+      colHeaders: true,
+      columns: function(column) {
+        var settings = [
+          {type: 'numeric', data: 'id'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ];
+
+        return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
+      }
+    });
+
+    expect(hot.getColHeader(0)).toEqual('A');
+    expect(hot.getColHeader(1)).toEqual('B');
+    expect(hot.getColHeader(2)).toEqual('C');
+
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
+
+    expect(hot.getColHeader(0)).toEqual('A');
+    expect(hot.getColHeader(1)).toEqual('B');
+    expect(hot.getColHeader(2)).toEqual('C');
   });
 
   it("should change the custom column headers order when column order has changed", function(){
@@ -481,32 +558,56 @@ describe('manualColumnMove', function () {
       ],
       colHeaders: ["Id","Name","Last Name"],
       columns: [
-        {
-          type: 'numeric',
-          data: 'id'
-        },
-        {
-          data: 'name'
-        },
-        {
-          data: 'lastName'
-        }
+        {type: 'numeric', data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'}
       ]
     });
 
-    if(!hot.getSettings().colHeaders === true) {
-      expect(hot.getColHeader(0)).toEqual('Id');
-      expect(hot.getColHeader(1)).toEqual('Name');
-      expect(hot.getColHeader(2)).toEqual('Last Name');
+    expect(hot.getColHeader(0)).toEqual('Id');
+    expect(hot.getColHeader(1)).toEqual('Name');
+    expect(hot.getColHeader(2)).toEqual('Last Name');
 
-      hot.updateSettings({
-        manualColumnMove: [2, 0, 1]
-      });
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
 
-      expect(hot.getColHeader(0)).toEqual('Last Name');
-      expect(hot.getColHeader(1)).toEqual('Id');
-      expect(hot.getColHeader(2)).toEqual('Name');
-    }
+    expect(hot.getColHeader(0)).toEqual('Last Name');
+    expect(hot.getColHeader(1)).toEqual('Id');
+    expect(hot.getColHeader(2)).toEqual('Name');
+  });
+
+  it("should change the custom column headers order when column order has changed when columns is a function", function(){
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"}
+      ],
+      colHeaders: ["Id","Name","Last Name"],
+      columns: function(column) {
+        var settings = [
+          {type: 'numeric', data: 'id'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ];
+
+        return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
+      }
+    });
+
+    expect(hot.getColHeader(0)).toEqual('Id');
+    expect(hot.getColHeader(1)).toEqual('Name');
+    expect(hot.getColHeader(2)).toEqual('Last Name');
+
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
+
+    expect(hot.getColHeader(0)).toEqual('Last Name');
+    expect(hot.getColHeader(1)).toEqual('Id');
+    expect(hot.getColHeader(2)).toEqual('Name');
   });
 
   it("should not select the column when the user clicks the move handler", function() {

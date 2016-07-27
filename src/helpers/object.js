@@ -281,3 +281,30 @@ export function getProperty(object, name) {
 
   return result;
 }
+
+/**
+ * Return object length (recursively).
+ *
+ * @param {*} object Object for which we want get length.
+ * @returns {Number}
+ */
+export function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  let recursObjLen = function(obj) {
+    let result = 0;
+
+    if (isObject(obj)) {
+      objectEach(obj, (key) => {
+        result += recursObjLen(key);
+      });
+    } else {
+      result++;
+    }
+
+    return result;
+  };
+
+  return recursObjLen(object);
+}

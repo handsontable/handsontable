@@ -270,9 +270,7 @@ describe("ManualColumnFreeze plugin:", function () {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
       dataAtCell = hot.getDataAtCell(1, 2);
       expect(dataAtCell).toEqual("F2");
-
     });
-
   });
 
 });

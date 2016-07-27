@@ -23,7 +23,6 @@ describe('settings', function () {
       });
 
       it('should use editor from predefined string', function () {
-
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
         var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
@@ -35,6 +34,22 @@ describe('settings', function () {
               editor: 'checkbox'
             }
           ]
+        });
+        selectCell(0, 0);
+        expect(textEditorPrototype.init).not.toHaveBeenCalled();
+        expect(checkboxEditorPrototype.init).toHaveBeenCalled();
+      });
+
+      it('should use editor from predefined string when columns is a function', function () {
+        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
+
+        spyOn(textEditorPrototype, 'init');
+        spyOn(checkboxEditorPrototype, 'init');
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {editor: 'checkbox'} : null;
+          }
         });
         selectCell(0, 0);
         expect(textEditorPrototype.init).not.toHaveBeenCalled();
@@ -59,6 +74,22 @@ describe('settings', function () {
         expect(customEditor).toHaveBeenCalled();
       });
 
+      it('should use editor class passed directly when columns is a function', function () {
+        var customEditor = jasmine.createSpy('customEditor');
+        customEditor.plan = function(){
+          this.prepare = function(){};
+        };
+
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {editor: customEditor} : null;
+          }
+        });
+        selectCell(0, 0);
+
+        expect(customEditor).toHaveBeenCalled();
+      });
+
       it('should use editor from custom string', function () {
         var customEditor = jasmine.createSpy('customEditor');
         customEditor.plan = function(){
@@ -73,6 +104,24 @@ describe('settings', function () {
               editor: 'myEditor'
             }
           ]
+        });
+        selectCell(0, 0);
+
+        expect(customEditor).toHaveBeenCalled();
+      });
+
+      it('should use editor from custom string when columns is a function', function () {
+        var customEditor = jasmine.createSpy('customEditor');
+        customEditor.plan = function(){
+          this.prepare = function(){};
+        };
+
+        Handsontable.editors.registerEditor('myEditor', customEditor);
+
+        handsontable({
+          columns: function (column) {
+            return column === 0 ? {editor: 'myEditor'} : null;
+          },
         });
         selectCell(0, 0);
 

@@ -4274,9 +4274,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Mon Jun 27 2016 09:59:46 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Wed Jul 27 2016 12:03:17 GMT+0200 (CEST)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.26.0';
+Handsontable.version = '0.26.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -4419,6 +4419,8 @@ var $__browser__,
     $__numbro__,
     $__helpers_47_dom_47_element__,
     $__helpers_47_setting__,
+    $__helpers_47_function__,
+    $__helpers_47_mixed__,
     $__helpers_47_browser__,
     $__dataMap__,
     $__editorManager__,
@@ -4434,7 +4436,6 @@ var $__browser__,
     $__helpers_47_data__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_range__,
-    $__3rdparty_47_walkontable_47_src_47_selection__,
     $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__;
 var Handsontable = ($__browser__ = _dereq_("browser"), $__browser__ && $__browser__.__esModule && $__browser__ || {default: $__browser__}).default;
 var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
@@ -4444,31 +4445,36 @@ var $__2 = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $__
     isChildOfWebComponentTable = $__2.isChildOfWebComponentTable,
     removeClass = $__2.removeClass;
 var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
+var isFunction = ($__helpers_47_function__ = _dereq_("helpers/function"), $__helpers_47_function__ && $__helpers_47_function__.__esModule && $__helpers_47_function__ || {default: $__helpers_47_function__}).isFunction;
+var $__5 = ($__helpers_47_mixed__ = _dereq_("helpers/mixed"), $__helpers_47_mixed__ && $__helpers_47_mixed__.__esModule && $__helpers_47_mixed__ || {default: $__helpers_47_mixed__}),
+    isDefined = $__5.isDefined,
+    isUndefined = $__5.isUndefined;
 var isMobileBrowser = ($__helpers_47_browser__ = _dereq_("helpers/browser"), $__helpers_47_browser__ && $__helpers_47_browser__.__esModule && $__helpers_47_browser__ || {default: $__helpers_47_browser__}).isMobileBrowser;
 var DataMap = ($__dataMap__ = _dereq_("dataMap"), $__dataMap__ && $__dataMap__.__esModule && $__dataMap__ || {default: $__dataMap__}).DataMap;
 var EditorManager = ($__editorManager__ = _dereq_("editorManager"), $__editorManager__ && $__editorManager__.__esModule && $__editorManager__ || {default: $__editorManager__}).EditorManager;
 var eventManagerObject = ($__eventManager__ = _dereq_("eventManager"), $__eventManager__ && $__eventManager__.__esModule && $__eventManager__ || {default: $__eventManager__}).eventManager;
-var $__8 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
-    extend = $__8.extend,
-    duckSchema = $__8.duckSchema,
-    isObjectEquals = $__8.isObjectEquals,
-    deepClone = $__8.deepClone;
-var $__9 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
-    arrayFlatten = $__9.arrayFlatten,
-    arrayMap = $__9.arrayMap;
+var $__10 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
+    deepClone = $__10.deepClone,
+    duckSchema = $__10.duckSchema,
+    extend = $__10.extend,
+    isObject = $__10.isObject,
+    isObjectEquals = $__10.isObjectEquals,
+    deepObjectSize = $__10.deepObjectSize;
+var $__11 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
+    arrayFlatten = $__11.arrayFlatten,
+    arrayMap = $__11.arrayMap;
 var getPlugin = ($__plugins__ = _dereq_("plugins"), $__plugins__ && $__plugins__.__esModule && $__plugins__ || {default: $__plugins__}).getPlugin;
 var getRenderer = ($__renderers__ = _dereq_("renderers"), $__renderers__ && $__renderers__.__esModule && $__renderers__ || {default: $__renderers__}).getRenderer;
 var randomString = ($__helpers_47_string__ = _dereq_("helpers/string"), $__helpers_47_string__ && $__helpers_47_string__.__esModule && $__helpers_47_string__ || {default: $__helpers_47_string__}).randomString;
 var rangeEach = ($__helpers_47_number__ = _dereq_("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var TableView = ($__tableView__ = _dereq_("tableView"), $__tableView__ && $__tableView__.__esModule && $__tableView__ || {default: $__tableView__}).TableView;
 var DataSource = ($__dataSource__ = _dereq_("dataSource"), $__dataSource__ && $__dataSource__.__esModule && $__dataSource__ || {default: $__dataSource__}).DataSource;
-var $__16 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
-    translateRowsToColumns = $__16.translateRowsToColumns,
-    cellMethodLookupFactory = $__16.cellMethodLookupFactory,
-    spreadsheetColumnLabel = $__16.spreadsheetColumnLabel;
+var $__18 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
+    translateRowsToColumns = $__18.translateRowsToColumns,
+    cellMethodLookupFactory = $__18.cellMethodLookupFactory,
+    spreadsheetColumnLabel = $__18.spreadsheetColumnLabel;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__3rdparty_47_walkontable_47_src_47_cell_47_range__ = _dereq_("3rdparty/walkontable/src/cell/range"), $__3rdparty_47_walkontable_47_src_47_cell_47_range__ && $__3rdparty_47_walkontable_47_src_47_cell_47_range__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_range__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_range__}).WalkontableCellRange;
-var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = _dereq_("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 var WalkontableViewportColumnsCalculator = ($__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ = _dereq_("3rdparty/walkontable/src/calculator/viewportColumns"), $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__.__esModule && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ || {default: $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__}).WalkontableViewportColumnsCalculator;
 Handsontable.activeGuid = null;
 Handsontable.Core = function Core(rootElement, userSettings) {
@@ -4581,10 +4587,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         case 'remove_col':
           var logicalColumnIndex = translateColIndex(index);
           datamap.removeCol(index, amount);
-          for (var row$__23 = 0,
-              len$__24 = instance.countSourceRows(); row$__23 < len$__24; row$__23++) {
-            if (priv.cellSettings[row$__23]) {
-              priv.cellSettings[row$__23].splice(logicalColumnIndex, amount);
+          for (var row$__24 = 0,
+              len$__25 = instance.countSourceRows(); row$__24 < len$__25; row$__24++) {
+            if (priv.cellSettings[row$__24]) {
+              priv.cellSettings[row$__24].splice(logicalColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -4812,7 +4818,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (source === 'autofill') {
                 var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
                 if (result) {
-                  value = typeof(result.value) === 'undefined' ? value : result.value;
+                  value = isUndefined(result.value) ? value : result.value;
                 }
               }
               if (value !== null && typeof value === 'object') {
@@ -5135,7 +5141,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language === 'undefined') {
+            if (isUndefined(cellProperties.language)) {
               numbro.culture('en-US');
             } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
               numbro.culture('en-US');
@@ -5174,7 +5180,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var beforeChangeResult;
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.run(instance, 'beforeChange', changes, source);
-        if (typeof beforeChangeResult === 'function') {
+        if (isFunction(beforeChangeResult)) {
           console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length);
@@ -5233,7 +5239,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         };
       })(validator);
     }
-    if (typeof validator == 'function') {
+    if (isFunction(validator)) {
       value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
       instance._registerTimeout(setTimeout(function() {
         validator.call(cellProperties, value, function(valid) {
@@ -5362,7 +5368,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     GridSettings.prototype.data = data;
     if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
       instance.dataType = 'array';
-    } else if (typeof priv.settings.dataSchema === 'function') {
+    } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -5390,7 +5396,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.getData = function(r, c, r2, c2) {
-    if (typeof r === 'undefined') {
+    if (isUndefined(r)) {
       return datamap.getAll();
     } else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
@@ -5406,12 +5412,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return datamap.getSchema();
   };
   this.updateSettings = function(settings, init) {
-    var i,
-        clen;
-    if (typeof settings.rows !== 'undefined') {
+    var columnsAsFunc = false;
+    var i;
+    var j;
+    var clen;
+    if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
     }
-    if (typeof settings.cols !== 'undefined') {
+    if (isDefined(settings.cols)) {
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
     for (i in settings) {
@@ -5419,7 +5427,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue;
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
-          if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
+          if (isFunction(settings[i]) || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
         } else {
@@ -5437,34 +5445,46 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.createMap();
     }
     clen = instance.countCols();
+    if (settings.columns && isFunction(settings.columns)) {
+      clen = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
       priv.cellSettings.length = 0;
     }
     if (clen > 0) {
-      var proto,
-          column;
-      for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-        proto = priv.columnSettings[i].prototype;
+      var proto;
+      var column;
+      for (i = 0, j = 0; i < clen; i++) {
+        if (columnsAsFunc && !settings.columns(i)) {
+          continue;
+        }
+        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+        proto = priv.columnSettings[j].prototype;
         if (GridSettings.prototype.columns) {
-          column = GridSettings.prototype.columns[i];
+          if (columnsAsFunc) {
+            column = GridSettings.prototype.columns(i);
+          } else {
+            column = GridSettings.prototype.columns[j];
+          }
           if (column) {
             extend(proto, column);
             extend(proto, expandType(column));
           }
         }
+        j++;
       }
     }
-    if (typeof settings.cell !== 'undefined') {
-      for (i in settings.cell) {
-        if (settings.cell.hasOwnProperty(i)) {
-          var cell = settings.cell[i];
+    if (isDefined(settings.cell)) {
+      for (var key in settings.cell) {
+        if (settings.cell.hasOwnProperty(key)) {
+          var cell = settings.cell[key];
           instance.setCellMetaObject(cell.row, cell.col, cell);
         }
       }
     }
     Handsontable.hooks.run(instance, 'afterCellMetaReset');
-    if (typeof settings.className !== 'undefined') {
+    if (isDefined(settings.className)) {
       if (GridSettings.prototype.className) {
         removeClass(instance.rootElement, GridSettings.prototype.className);
       }
@@ -5477,7 +5497,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
     var height = settings.height;
-    if (typeof height == 'function') {
+    if (isFunction(height)) {
       height = height();
     }
     if (init) {
@@ -5487,9 +5507,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
     if (height === null) {
-      var initialStyle$__25 = instance.rootElement.getAttribute('data-initialstyle');
-      if (initialStyle$__25 && (initialStyle$__25.indexOf('height') > -1 || initialStyle$__25.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle$__25);
+      var initialStyle$__26 = instance.rootElement.getAttribute('data-initialstyle');
+      if (initialStyle$__26 && (initialStyle$__26.indexOf('height') > -1 || initialStyle$__26.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle$__26);
       } else {
         instance.rootElement.style.height = '';
         instance.rootElement.style.overflow = '';
@@ -5500,7 +5520,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     if (typeof settings.width != 'undefined') {
       var width = settings.width;
-      if (typeof width == 'function') {
+      if (isFunction(width)) {
         width = width();
       }
       instance.rootElement.style.width = width + 'px';
@@ -5521,7 +5541,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getValue = function() {
     var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
-      if (typeof GridSettings.prototype.getValue === 'function') {
+      if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
@@ -5612,7 +5632,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return data[0];
   };
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    var $__21 = this;
+    var $__22 = this;
     var previousType = null;
     var currentType = null;
     if (rowFrom === void 0) {
@@ -5631,7 +5651,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (function(row) {
       var isTypeEqual = true;
       rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (function(column) {
-        var cellType = $__21.getCellMeta(row, column);
+        var cellType = $__22.getCellMeta(row, column);
         currentType = cellType.type;
         if (previousType) {
           isTypeEqual = previousType === currentType;
@@ -5762,7 +5782,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }));
     } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
       rowHeader = rowHeader[row];
-    } else if (typeof rowHeader === 'function') {
+    } else if (isFunction(rowHeader)) {
       rowHeader = rowHeader(row);
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = row + 1;
@@ -5785,29 +5805,44 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return false;
   };
   this.getColHeader = function(col) {
+    var columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    var result = priv.settings.colHeaders;
     col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
     if (col === void 0) {
       var out = [];
-      for (var i = 0,
-          ilen = instance.countCols(); i < ilen; i++) {
+      var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      for (var i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
       }
-      return out;
+      result = out;
     } else {
+      var translateVisualIndexToColumns = function(col) {
+        var arr = [];
+        var columnsLen = instance.countSourceCols();
+        var index = 0;
+        for (; index < columnsLen; index++) {
+          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+        return arr[col];
+      };
       var baseCol = col;
       col = Handsontable.hooks.run(instance, 'modifyCol', col);
-      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-        return priv.settings.columns[col].title;
+      var prop = translateVisualIndexToColumns(col);
+      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+        result = priv.settings.columns(prop).title;
+      } else if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        result = priv.settings.columns[col].title;
       } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[col] !== void 0) {
-        return priv.settings.colHeaders[col];
-      } else if (typeof priv.settings.colHeaders === 'function') {
-        return priv.settings.colHeaders(col);
+        result = priv.settings.colHeaders[col];
+      } else if (isFunction(priv.settings.colHeaders)) {
+        result = priv.settings.colHeaders(col);
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        return spreadsheetColumnLabel(baseCol);
-      } else {
-        return priv.settings.colHeaders;
+        result = spreadsheetColumnLabel(baseCol);
       }
     }
+    return result;
   };
   this._getColWidthFromSettings = function(col) {
     var cellProperties = instance.getCellMeta(0, col);
@@ -5863,25 +5898,51 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.countSourceRows = function() {
     return instance.getSourceData() ? instance.getSourceData().length : 0;
   };
+  this.countSourceCols = function() {
+    var len = 0;
+    var obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    if (isObject(obj)) {
+      len = deepObjectSize(obj);
+    } else {
+      len = obj.length || 0;
+    }
+    return len;
+  };
   this.countRows = function() {
     return datamap.getLength();
   };
   this.countCols = function() {
-    if (instance.dataType === 'object' || instance.dataType === 'function') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
+    var dataHasLength = false;
+    var dataLen = 0;
+    if (instance.dataType === 'array') {
+      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    }
+    if (dataHasLength) {
+      dataLen = priv.settings.data[0].length;
+    }
+    if (priv.settings.columns) {
+      var columnsIsFunction = isFunction(priv.settings.columns);
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          var columnLen = 0;
+          for (var i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
+          }
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
+        }
       } else {
-        return datamap.colToPropCache.length;
+        dataLen = priv.settings.columns.length;
       }
-    } else if (instance.dataType === 'array') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
-      } else if (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
-        return priv.settings.data[0].length;
-      } else {
-        return 0;
+    } else {
+      if (instance.dataType === 'object' || instance.dataType === 'function') {
+        dataLen = datamap.colToPropCache.length;
       }
     }
+    return dataLen;
   };
   this.rowOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedRow();
@@ -5940,14 +6001,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
     var coords;
-    changeListener = typeof changeListener === 'undefined' || changeListener === true;
+    changeListener = isUndefined(changeListener) || changeListener === true;
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
     }
     if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
       return false;
     }
-    if (typeof endRow !== 'undefined') {
+    if (isDefined(endRow)) {
       if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
         return false;
       }
@@ -5960,7 +6021,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (changeListener) {
       instance.listen();
     }
-    if (typeof endRow === 'undefined') {
+    if (isUndefined(endRow)) {
       selection.setRangeEnd(priv.selRange.from, scrollToCell);
     } else {
       selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);
@@ -5970,7 +6031,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
     arguments[1] = datamap.propToCol(arguments[1]);
-    if (typeof arguments[3] !== 'undefined') {
+    if (isDefined(arguments[3])) {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
     return instance.selectCell.apply(instance, arguments);
@@ -6016,7 +6077,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.destroy(instance);
     for (var i in instance) {
       if (instance.hasOwnProperty(i)) {
-        if (typeof instance[i] === 'function') {
+        if (isFunction(instance[i])) {
           instance[i] = postMortem;
         } else if (i !== 'guid') {
           instance[i] = null;
@@ -6134,7 +6195,7 @@ DefaultSettings.prototype = {
         meta;
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
           return isObjectEquals(this.getSchema()[meta.prop], value);
@@ -6150,7 +6211,7 @@ DefaultSettings.prototype = {
         value;
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         return false;
       }
     }
@@ -6234,7 +6295,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"dataMap":26,"dataSource":27,"editorManager":28,"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":46,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"numbro":undefined,"plugins":59,"renderers":104,"tableView":113}],26:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"browser":23,"dataMap":26,"dataSource":27,"editorManager":28,"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":46,"helpers/function":49,"helpers/mixed":50,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"numbro":undefined,"plugins":59,"renderers":104,"tableView":113}],26:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -6258,7 +6319,9 @@ var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__he
 var $__4 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
     duckSchema = $__4.duckSchema,
     deepExtend = $__4.deepExtend,
-    deepClone = $__4.deepClone;
+    deepClone = $__4.deepClone,
+    isObject = $__4.isObject,
+    deepObjectSize = $__4.deepObjectSize;
 var $__5 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
     extendArray = $__5.extendArray,
     to2dArray = $__5.to2dArray;
@@ -6312,9 +6375,8 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
   return lastCol;
 };
 DataMap.prototype.createMap = function() {
-  var i,
-      ilen,
-      schema = this.getSchema();
+  var i;
+  var schema = this.getSchema();
   if (typeof schema === 'undefined') {
     throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
   }
@@ -6322,10 +6384,23 @@ DataMap.prototype.createMap = function() {
   this.propToColCache = new MultiMap();
   var columns = this.instance.getSettings().columns;
   if (columns) {
-    for (i = 0, ilen = columns.length; i < ilen; i++) {
-      if (typeof columns[i].data != 'undefined') {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache.set(columns[i].data, i);
+    var columnsLen = columns.length;
+    var filteredIndex = 0;
+    var columnsAsFunc = false;
+    var schemaLen = deepObjectSize(schema);
+    if (typeof columns === 'function') {
+      columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+      columnsAsFunc = true;
+    }
+    for (i = 0; i < columnsLen; i++) {
+      var column = columnsAsFunc ? columns(i) : columns[i];
+      if (isObject(column)) {
+        if (typeof column.data !== 'undefined') {
+          var index = columnsAsFunc ? filteredIndex : i;
+          this.colToPropCache[index] = column.data;
+          this.propToColCache.set(column.data, index);
+        }
+        filteredIndex++;
       }
     }
   } else {
@@ -10453,6 +10528,9 @@ function getComparisonFunction(language) {
 },{}],49:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  isFunction: {get: function() {
+      return isFunction;
+    }},
   proxy: {get: function() {
       return proxy;
     }},
@@ -10481,6 +10559,9 @@ Object.defineProperties(exports, {
 });
 var $__array__;
 var arrayReduce = ($__array__ = _dereq_("array"), $__array__ && $__array__.__esModule && $__array__ || {default: $__array__}).arrayReduce;
+function isFunction(func) {
+  return typeof func === 'function';
+}
 function proxy(func, context) {
   return function() {
     return func.apply(context, arguments);
@@ -10625,6 +10706,12 @@ Object.defineProperties(exports, {
   stringify: {get: function() {
       return stringify;
     }},
+  isDefined: {get: function() {
+      return isDefined;
+    }},
+  isUndefined: {get: function() {
+      return isUndefined;
+    }},
   __esModule: {value: true}
 });
 function stringify(value) {
@@ -10644,6 +10731,12 @@ function stringify(value) {
     default:
       return value.toString();
   }
+}
+function isDefined(variable) {
+  return typeof variable !== 'undefined';
+}
+function isUndefined(variable) {
+  return typeof variable === 'undefined';
 }
 
 //# 
@@ -10742,6 +10835,9 @@ Object.defineProperties(exports, {
     }},
   getProperty: {get: function() {
       return getProperty;
+    }},
+  deepObjectSize: {get: function() {
+      return deepObjectSize;
     }},
   __esModule: {value: true}
 });
@@ -10911,6 +11007,23 @@ function getProperty(object, name) {
     }
   }));
   return result;
+}
+function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  var recursObjLen = function(obj) {
+    var result = 0;
+    if (isObject(obj)) {
+      objectEach(obj, (function(key) {
+        result += recursObjLen(key);
+      }));
+    } else {
+      result++;
+    }
+    return result;
+  };
+  return recursObjLen(object);
 }
 
 //# 
@@ -13229,7 +13342,6 @@ var $Comments = Comments;
   },
   checkSelectionCommentsConsistency: function() {
     var selected = this.hot.getSelectedRange();
-    console.log('selected', selected);
     if (!selected) {
       return false;
     }
@@ -22859,787 +22971,6 @@ if (typeof exports !== "undefined") {
     exports.JsonPatchError = jsonpatch.JsonPatchError;
     exports.Error = jsonpatch.Error;
 }
-
-},{}],"numeral":[function(_dereq_,module,exports){
-/*!
- * numeral.js
- * version : 1.5.3
- * author : Adam Draper
- * license : MIT
- * http://adamwdraper.github.com/Numeral-js/
- */
-
-(function () {
-
-    /************************************
-        Constants
-    ************************************/
-
-    var numeral,
-        VERSION = '1.5.3',
-        // internal storage for language config files
-        languages = {},
-        currentLanguage = 'en',
-        zeroFormat = null,
-        defaultFormat = '0,0',
-        // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports);
-
-
-    /************************************
-        Constructors
-    ************************************/
-
-
-    // Numeral prototype object
-    function Numeral (number) {
-        this._value = number;
-    }
-
-    /**
-     * Implementation of toFixed() that treats floats more like decimals
-     *
-     * Fixes binary rounding issues (eg. (0.615).toFixed(2) === '0.61') that present
-     * problems for accounting- and finance-related software.
-     */
-    function toFixed (value, precision, roundingFunction, optionals) {
-        var power = Math.pow(10, precision),
-            optionalsRegExp,
-            output;
-
-        //roundingFunction = (roundingFunction !== undefined ? roundingFunction : Math.round);
-        // Multiply up by precision, round accurately, then divide and use native toFixed():
-        output = (roundingFunction(value * power) / power).toFixed(precision);
-
-        if (optionals) {
-            optionalsRegExp = new RegExp('0{1,' + optionals + '}$');
-            output = output.replace(optionalsRegExp, '');
-        }
-
-        return output;
-    }
-
-    /************************************
-        Formatting
-    ************************************/
-
-    // determine what type of formatting we need to do
-    function formatNumeral (n, format, roundingFunction) {
-        var output;
-
-        // figure out what kind of format we are dealing with
-        if (format.indexOf('$') > -1) { // currency!!!!!
-            output = formatCurrency(n, format, roundingFunction);
-        } else if (format.indexOf('%') > -1) { // percentage
-            output = formatPercentage(n, format, roundingFunction);
-        } else if (format.indexOf(':') > -1) { // time
-            output = formatTime(n, format);
-        } else { // plain ol' numbers or bytes
-            output = formatNumber(n._value, format, roundingFunction);
-        }
-
-        // return string
-        return output;
-    }
-
-    // revert to number
-    function unformatNumeral (n, string) {
-        var stringOriginal = string,
-            thousandRegExp,
-            millionRegExp,
-            billionRegExp,
-            trillionRegExp,
-            suffixes = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            bytesMultiplier = false,
-            power;
-
-        if (string.indexOf(':') > -1) {
-            n._value = unformatTime(string);
-        } else {
-            if (string === zeroFormat) {
-                n._value = 0;
-            } else {
-                if (languages[currentLanguage].delimiters.decimal !== '.') {
-                    string = string.replace(/\./g,'').replace(languages[currentLanguage].delimiters.decimal, '.');
-                }
-
-                // see if abbreviations are there so that we can multiply to the correct number
-                thousandRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.thousand + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                millionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.million + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                billionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.billion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                trillionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.trillion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-
-                // see if bytes are there so that we can multiply to the correct number
-                for (power = 0; power <= suffixes.length; power++) {
-                    bytesMultiplier = (string.indexOf(suffixes[power]) > -1) ? Math.pow(1024, power + 1) : false;
-
-                    if (bytesMultiplier) {
-                        break;
-                    }
-                }
-
-                // do some math to create our number
-                n._value = ((bytesMultiplier) ? bytesMultiplier : 1) * ((stringOriginal.match(thousandRegExp)) ? Math.pow(10, 3) : 1) * ((stringOriginal.match(millionRegExp)) ? Math.pow(10, 6) : 1) * ((stringOriginal.match(billionRegExp)) ? Math.pow(10, 9) : 1) * ((stringOriginal.match(trillionRegExp)) ? Math.pow(10, 12) : 1) * ((string.indexOf('%') > -1) ? 0.01 : 1) * (((string.split('-').length + Math.min(string.split('(').length-1, string.split(')').length-1)) % 2)? 1: -1) * Number(string.replace(/[^0-9\.]+/g, ''));
-
-                // round if we are talking about bytes
-                n._value = (bytesMultiplier) ? Math.ceil(n._value) : n._value;
-            }
-        }
-        return n._value;
-    }
-
-    function formatCurrency (n, format, roundingFunction) {
-        var symbolIndex = format.indexOf('$'),
-            openParenIndex = format.indexOf('('),
-            minusSignIndex = format.indexOf('-'),
-            space = '',
-            spliceIndex,
-            output;
-
-        // check for space before or after currency
-        if (format.indexOf(' $') > -1) {
-            space = ' ';
-            format = format.replace(' $', '');
-        } else if (format.indexOf('$ ') > -1) {
-            space = ' ';
-            format = format.replace('$ ', '');
-        } else {
-            format = format.replace('$', '');
-        }
-
-        // format the number
-        output = formatNumber(n._value, format, roundingFunction);
-
-        // position the symbol
-        if (symbolIndex <= 1) {
-            if (output.indexOf('(') > -1 || output.indexOf('-') > -1) {
-                output = output.split('');
-                spliceIndex = 1;
-                if (symbolIndex < openParenIndex || symbolIndex < minusSignIndex){
-                    // the symbol appears before the "(" or "-"
-                    spliceIndex = 0;
-                }
-                output.splice(spliceIndex, 0, languages[currentLanguage].currency.symbol + space);
-                output = output.join('');
-            } else {
-                output = languages[currentLanguage].currency.symbol + space + output;
-            }
-        } else {
-            if (output.indexOf(')') > -1) {
-                output = output.split('');
-                output.splice(-1, 0, space + languages[currentLanguage].currency.symbol);
-                output = output.join('');
-            } else {
-                output = output + space + languages[currentLanguage].currency.symbol;
-            }
-        }
-
-        return output;
-    }
-
-    function formatPercentage (n, format, roundingFunction) {
-        var space = '',
-            output,
-            value = n._value * 100;
-
-        // check for space before %
-        if (format.indexOf(' %') > -1) {
-            space = ' ';
-            format = format.replace(' %', '');
-        } else {
-            format = format.replace('%', '');
-        }
-
-        output = formatNumber(value, format, roundingFunction);
-
-        if (output.indexOf(')') > -1 ) {
-            output = output.split('');
-            output.splice(-1, 0, space + '%');
-            output = output.join('');
-        } else {
-            output = output + space + '%';
-        }
-
-        return output;
-    }
-
-    function formatTime (n) {
-        var hours = Math.floor(n._value/60/60),
-            minutes = Math.floor((n._value - (hours * 60 * 60))/60),
-            seconds = Math.round(n._value - (hours * 60 * 60) - (minutes * 60));
-        return hours + ':' + ((minutes < 10) ? '0' + minutes : minutes) + ':' + ((seconds < 10) ? '0' + seconds : seconds);
-    }
-
-    function unformatTime (string) {
-        var timeArray = string.split(':'),
-            seconds = 0;
-        // turn hours and minutes into seconds and add them all up
-        if (timeArray.length === 3) {
-            // hours
-            seconds = seconds + (Number(timeArray[0]) * 60 * 60);
-            // minutes
-            seconds = seconds + (Number(timeArray[1]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[2]);
-        } else if (timeArray.length === 2) {
-            // minutes
-            seconds = seconds + (Number(timeArray[0]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[1]);
-        }
-        return Number(seconds);
-    }
-
-    function formatNumber (value, format, roundingFunction) {
-        var negP = false,
-            signed = false,
-            optDec = false,
-            abbr = '',
-            abbrK = false, // force abbreviation to thousands
-            abbrM = false, // force abbreviation to millions
-            abbrB = false, // force abbreviation to billions
-            abbrT = false, // force abbreviation to trillions
-            abbrForce = false, // force abbreviation
-            bytes = '',
-            ord = '',
-            abs = Math.abs(value),
-            suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            min,
-            max,
-            power,
-            w,
-            precision,
-            thousands,
-            d = '',
-            neg = false;
-
-        // check if number is zero and a custom zero format has been set
-        if (value === 0 && zeroFormat !== null) {
-            return zeroFormat;
-        } else {
-            // see if we should use parentheses for negative number or if we should prefix with a sign
-            // if both are present we default to parentheses
-            if (format.indexOf('(') > -1) {
-                negP = true;
-                format = format.slice(1, -1);
-            } else if (format.indexOf('+') > -1) {
-                signed = true;
-                format = format.replace(/\+/g, '');
-            }
-
-            // see if abbreviation is wanted
-            if (format.indexOf('a') > -1) {
-                // check if abbreviation is specified
-                abbrK = format.indexOf('aK') >= 0;
-                abbrM = format.indexOf('aM') >= 0;
-                abbrB = format.indexOf('aB') >= 0;
-                abbrT = format.indexOf('aT') >= 0;
-                abbrForce = abbrK || abbrM || abbrB || abbrT;
-
-                // check for space before abbreviation
-                if (format.indexOf(' a') > -1) {
-                    abbr = ' ';
-                    format = format.replace(' a', '');
-                } else {
-                    format = format.replace('a', '');
-                }
-
-                if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
-                    // trillion
-                    abbr = abbr + languages[currentLanguage].abbreviations.trillion;
-                    value = value / Math.pow(10, 12);
-                } else if (abs < Math.pow(10, 12) && abs >= Math.pow(10, 9) && !abbrForce || abbrB) {
-                    // billion
-                    abbr = abbr + languages[currentLanguage].abbreviations.billion;
-                    value = value / Math.pow(10, 9);
-                } else if (abs < Math.pow(10, 9) && abs >= Math.pow(10, 6) && !abbrForce || abbrM) {
-                    // million
-                    abbr = abbr + languages[currentLanguage].abbreviations.million;
-                    value = value / Math.pow(10, 6);
-                } else if (abs < Math.pow(10, 6) && abs >= Math.pow(10, 3) && !abbrForce || abbrK) {
-                    // thousand
-                    abbr = abbr + languages[currentLanguage].abbreviations.thousand;
-                    value = value / Math.pow(10, 3);
-                }
-            }
-
-            // see if we are formatting bytes
-            if (format.indexOf('b') > -1) {
-                // check for space before
-                if (format.indexOf(' b') > -1) {
-                    bytes = ' ';
-                    format = format.replace(' b', '');
-                } else {
-                    format = format.replace('b', '');
-                }
-
-                for (power = 0; power <= suffixes.length; power++) {
-                    min = Math.pow(1024, power);
-                    max = Math.pow(1024, power+1);
-
-                    if (value >= min && value < max) {
-                        bytes = bytes + suffixes[power];
-                        if (min > 0) {
-                            value = value / min;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // see if ordinal is wanted
-            if (format.indexOf('o') > -1) {
-                // check for space before
-                if (format.indexOf(' o') > -1) {
-                    ord = ' ';
-                    format = format.replace(' o', '');
-                } else {
-                    format = format.replace('o', '');
-                }
-
-                ord = ord + languages[currentLanguage].ordinal(value);
-            }
-
-            if (format.indexOf('[.]') > -1) {
-                optDec = true;
-                format = format.replace('[.]', '.');
-            }
-
-            w = value.toString().split('.')[0];
-            precision = format.split('.')[1];
-            thousands = format.indexOf(',');
-
-            if (precision) {
-                if (precision.indexOf('[') > -1) {
-                    precision = precision.replace(']', '');
-                    precision = precision.split('[');
-                    d = toFixed(value, (precision[0].length + precision[1].length), roundingFunction, precision[1].length);
-                } else {
-                    d = toFixed(value, precision.length, roundingFunction);
-                }
-
-                w = d.split('.')[0];
-
-                if (d.split('.')[1].length) {
-                    d = languages[currentLanguage].delimiters.decimal + d.split('.')[1];
-                } else {
-                    d = '';
-                }
-
-                if (optDec && Number(d.slice(1)) === 0) {
-                    d = '';
-                }
-            } else {
-                w = toFixed(value, null, roundingFunction);
-            }
-
-            // format number
-            if (w.indexOf('-') > -1) {
-                w = w.slice(1);
-                neg = true;
-            }
-
-            if (thousands > -1) {
-                w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' + languages[currentLanguage].delimiters.thousands);
-            }
-
-            if (format.indexOf('.') === 0) {
-                w = '';
-            }
-
-            return ((negP && neg) ? '(' : '') + ((!negP && neg) ? '-' : '') + ((!neg && signed) ? '+' : '') + w + d + ((ord) ? ord : '') + ((abbr) ? abbr : '') + ((bytes) ? bytes : '') + ((negP && neg) ? ')' : '');
-        }
-    }
-
-    /************************************
-        Top Level Functions
-    ************************************/
-
-    numeral = function (input) {
-        if (numeral.isNumeral(input)) {
-            input = input.value();
-        } else if (input === 0 || typeof input === 'undefined') {
-            input = 0;
-        } else if (!Number(input)) {
-            input = numeral.fn.unformat(input);
-        }
-
-        return new Numeral(Number(input));
-    };
-
-    // version number
-    numeral.version = VERSION;
-
-    // compare numeral object
-    numeral.isNumeral = function (obj) {
-        return obj instanceof Numeral;
-    };
-
-    // This function will load languages and then set the global language.  If
-    // no arguments are passed in, it will simply return the current global
-    // language key.
-    numeral.language = function (key, values) {
-        if (!key) {
-            return currentLanguage;
-        }
-
-        if (key && !values) {
-            if(!languages[key]) {
-                throw new Error('Unknown language : ' + key);
-            }
-            currentLanguage = key;
-        }
-
-        if (values || !languages[key]) {
-            loadLanguage(key, values);
-        }
-
-        return numeral;
-    };
-
-    // This function provides access to the loaded language data.  If
-    // no arguments are passed in, it will simply return the current
-    // global language object.
-    numeral.languageData = function (key) {
-        if (!key) {
-            return languages[currentLanguage];
-        }
-
-        if (!languages[key]) {
-            throw new Error('Unknown language : ' + key);
-        }
-
-        return languages[key];
-    };
-
-    numeral.language('en', {
-        delimiters: {
-            thousands: ',',
-            decimal: '.'
-        },
-        abbreviations: {
-            thousand: 'k',
-            million: 'm',
-            billion: 'b',
-            trillion: 't'
-        },
-        ordinal: function (number) {
-            var b = number % 10;
-            return (~~ (number % 100 / 10) === 1) ? 'th' :
-                (b === 1) ? 'st' :
-                (b === 2) ? 'nd' :
-                (b === 3) ? 'rd' : 'th';
-        },
-        currency: {
-            symbol: '$'
-        }
-    });
-
-    numeral.zeroFormat = function (format) {
-        zeroFormat = typeof(format) === 'string' ? format : null;
-    };
-
-    numeral.defaultFormat = function (format) {
-        defaultFormat = typeof(format) === 'string' ? format : '0.0';
-    };
-
-    numeral.validate = function(val, culture) {
-
-        var _decimalSep,
-          _thousandSep,
-          _currSymbol,
-          _valArray,
-          _abbrObj,
-          _thousandRegEx,
-          languageData,
-          temp;
-
-        //coerce val to string
-        if (typeof val !== 'string') {
-            val += '';
-            if (console.warn) {
-                console.warn('Numeral.js: Value is not string. It has been co-erced to: ', val);
-            }
-        }
-
-        //trim whitespaces from either sides
-        val = val.trim();
-
-
-        //if val is empty return false
-        if (val === '') {
-            return false;
-        }
-
-        //replace the initial '+' or '-' sign if present
-        val = val.replace(/^[+-]?/, '');
-
-
-        //get the decimal and thousands separator from numeral.languageData
-        try {
-            //check if the culture is understood by numeral. if not, default it to current language
-            languageData = numeral.languageData(culture);
-        } catch (e) {
-            languageData = numeral.languageData(numeral.language());
-        }
-
-        //setup the delimiters and currency symbol based on culture/language
-        _currSymbol = languageData.currency.symbol;
-        _abbrObj = languageData.abbreviations;
-        _decimalSep = languageData.delimiters.decimal;
-        if (languageData.delimiters.thousands === '.') {
-            _thousandSep = '\\.';
-        } else {
-            _thousandSep = languageData.delimiters.thousands;
-        }
-
-        //validating currency symbol
-        temp = val.match(/^[^\d\.\,]+/);
-        if (temp !== null) {
-            //chuck the currency symbol away
-            val = val.substr(1);
-            if (temp[0] !== _currSymbol) {
-                return false;
-            }
-        }
-
-        //validating abbreviation symbol
-        temp = val.match(/[^\d]+$/);
-        if (temp !== null) {
-            val = val.slice(0, - 1);
-            if (temp[0] !== _abbrObj.thousand && temp[0] !== _abbrObj.million && temp[0] !== _abbrObj.billion && temp[0] !== _abbrObj.trillion) {
-                return false;
-            }
-        }
-
-        //if val is just digits the return true
-        if ( !! val.match(/^\d+$/)) {
-            return true;
-        }
-        _thousandRegEx = new RegExp(_thousandSep + '{2}');
-
-        if (!val.match(/[^\d.,]/g)) {
-            _valArray = val.split(_decimalSep);
-            if (_valArray.length > 2) {
-                return false;
-            } else {
-                if (_valArray.length < 2) {
-                    return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx));
-                } else {
-                    // for values without leading zero eg. .984
-                    if (_valArray[0] === '') {
-                        return ( !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    } else if (_valArray[0].length === 1) {
-                        return ( !! _valArray[0].match(/^\d+$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    } else {
-                        return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    }
-                }
-            }
-        }
-
-        return false;
-    };
-
-    /************************************
-        Helpers
-    ************************************/
-
-    function loadLanguage(key, values) {
-        languages[key] = values;
-    }
-
-    /************************************
-        Floating-point helpers
-    ************************************/
-
-    // The floating-point helper functions and implementation
-    // borrows heavily from sinful.js: http://guipn.github.io/sinful.js/
-
-    /**
-     * Array.prototype.reduce for browsers that don't support it
-     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#Compatibility
-     */
-    if ('function' !== typeof Array.prototype.reduce) {
-        Array.prototype.reduce = function (callback, opt_initialValue) {
-            'use strict';
-
-            if (null === this || 'undefined' === typeof this) {
-                // At the moment all modern browsers, that support strict mode, have
-                // native implementation of Array.prototype.reduce. For instance, IE8
-                // does not support strict mode, so this check is actually useless.
-                throw new TypeError('Array.prototype.reduce called on null or undefined');
-            }
-
-            if ('function' !== typeof callback) {
-                throw new TypeError(callback + ' is not a function');
-            }
-
-            var index,
-                value,
-                length = this.length >>> 0,
-                isValueSet = false;
-
-            if (1 < arguments.length) {
-                value = opt_initialValue;
-                isValueSet = true;
-            }
-
-            for (index = 0; length > index; ++index) {
-                if (this.hasOwnProperty(index)) {
-                    if (isValueSet) {
-                        value = callback(value, this[index], index, this);
-                    } else {
-                        value = this[index];
-                        isValueSet = true;
-                    }
-                }
-            }
-
-            if (!isValueSet) {
-                throw new TypeError('Reduce of empty array with no initial value');
-            }
-
-            return value;
-        };
-    }
-
-
-    /**
-     * Computes the multiplier necessary to make x >= 1,
-     * effectively eliminating miscalculations caused by
-     * finite precision.
-     */
-    function multiplier(x) {
-        var parts = x.toString().split('.');
-        if (parts.length < 2) {
-            return 1;
-        }
-        return Math.pow(10, parts[1].length);
-    }
-
-    /**
-     * Given a variable number of arguments, returns the maximum
-     * multiplier that must be used to normalize an operation involving
-     * all of them.
-     */
-    function correctionFactor() {
-        var args = Array.prototype.slice.call(arguments);
-        return args.reduce(function (prev, next) {
-            var mp = multiplier(prev),
-                mn = multiplier(next);
-        return mp > mn ? mp : mn;
-        }, -Infinity);
-    }
-
-
-    /************************************
-        Numeral Prototype
-    ************************************/
-
-
-    numeral.fn = Numeral.prototype = {
-
-        clone : function () {
-            return numeral(this);
-        },
-
-        format : function (inputString, roundingFunction) {
-            return formatNumeral(this,
-                  inputString ? inputString : defaultFormat,
-                  (roundingFunction !== undefined) ? roundingFunction : Math.round
-              );
-        },
-
-        unformat : function (inputString) {
-            if (Object.prototype.toString.call(inputString) === '[object Number]') {
-                return inputString;
-            }
-            return unformatNumeral(this, inputString ? inputString : defaultFormat);
-        },
-
-        value : function () {
-            return this._value;
-        },
-
-        valueOf : function () {
-            return this._value;
-        },
-
-        set : function (value) {
-            this._value = Number(value);
-            return this;
-        },
-
-        add : function (value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr, currI, O) {
-                return accum + corrFactor * curr;
-            }
-            this._value = [this._value, value].reduce(cback, 0) / corrFactor;
-            return this;
-        },
-
-        subtract : function (value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr, currI, O) {
-                return accum - corrFactor * curr;
-            }
-            this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;
-            return this;
-        },
-
-        multiply : function (value) {
-            function cback(accum, curr, currI, O) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) * (curr * corrFactor) /
-                    (corrFactor * corrFactor);
-            }
-            this._value = [this._value, value].reduce(cback, 1);
-            return this;
-        },
-
-        divide : function (value) {
-            function cback(accum, curr, currI, O) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) / (curr * corrFactor);
-            }
-            this._value = [this._value, value].reduce(cback);
-            return this;
-        },
-
-        difference : function (value) {
-            return Math.abs(numeral(this._value).subtract(value).value());
-        }
-
-    };
-
-    /************************************
-        Exposing Numeral
-    ************************************/
-
-    // CommonJS module is defined
-    if (hasModule) {
-        module.exports = numeral;
-    }
-
-    /*global ender:false */
-    if (typeof ender === 'undefined') {
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `numeral` as a global object via a string identifier,
-        // for Closure Compiler 'advanced' mode
-        this['numeral'] = numeral;
-    }
-
-    /*global define:false */
-    if (typeof define === 'function' && define.amd) {
-        define([], function () {
-            return numeral;
-        });
-    }
-}).call(window);
 
 },{}]},{},[23,61,63,62,64,97,98,99,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,100,101,102,103,117,118,119,120,106,107,108,109,110,111,31,35,32,33,40,34,36,37,38,39])(23)
 });

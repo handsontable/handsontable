@@ -88,7 +88,7 @@ class AutoColumnSize extends BasePlugin {
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
     /**
-     * `true` if only the first calculation was performed.
+     * `true` only if the first calculation was performed
      *
      * @type {Boolean}
      */
@@ -148,7 +148,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate columns width.
+   * Calculate a columns width.
    *
    * @param {Number|Object} colRange Column range object.
    * @param {Number|Object} rowRange Row range object.
@@ -242,7 +242,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get value which tells how much columns will be calculated synchronously. Rest columns will be calculated asynchronously.
+   * Get value which tells how many columns should be calculated synchronously. Rest of the columns will be calculated asynchronously.
    *
    * @returns {Number}
    */
@@ -265,7 +265,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get calculated column height.
+   * Get the calculated column width.
    *
    * @param {Number} col Column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
@@ -287,7 +287,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get first visible column.
+   * Get the first visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -305,7 +305,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get last visible column.
+   * Get the last visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */

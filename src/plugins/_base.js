@@ -151,7 +151,7 @@ class BasePlugin {
   }
 
   /**
-   * Update the plugin's settings
+   * Updates the plugin to use the latest options you have specified.
    *
    * @private
    */
@@ -160,7 +160,7 @@ class BasePlugin {
   }
 
   /**
-   * Destroy plugin
+   * Destroy plugin.
    */
   destroy() {
     if (this.eventManager) {

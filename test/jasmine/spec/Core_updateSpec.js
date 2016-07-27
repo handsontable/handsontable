@@ -34,6 +34,35 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should inherit cell type when columns is a function', function () {
+
+    handsontable({
+      data : [[1,2]],
+      columns: function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = {};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      },
+      cells : function (row, col, prop) {
+        if (row === 0 && col === 0) {
+          return {
+            type : 'numeric'
+          }
+        }
+      }
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('numeric');
+    expect(getCellMeta(0, 1).type).toEqual('checkbox');
+
+  });
+
   it('should ignore mixed in properties to the cell array option', function() {
     Array.prototype.willFail = "BOOM";
 
@@ -43,6 +72,27 @@ describe('Core_updateSettings', function () {
         { type : 'numeric' },
         { type : 'checkbox' }
       ]
+    });
+
+    updateSettings({ cell: new Array() });
+  });
+
+  it('should ignore mixed in properties to the cell array option when columns is a function', function() {
+    Array.prototype.willFail = "BOOM";
+
+    handsontable({
+      data : [[1, true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'numeric'};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      },
     });
 
     updateSettings({ cell: new Array() });
@@ -69,6 +119,34 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should not reset columns types to text when columns is a function', function () {
+    handsontable({
+      data : [[1, true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'numeric'};
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    var td = this.$container.find('td');
+
+    expect(td.eq(0).text()).toEqual('1');
+    expect(td.eq(1).text()).toEqual('');
+
+    updateSettings({});
+
+    expect(td.eq(0).text()).toEqual('1');
+    expect(td.eq(1).text()).toEqual('');
+
+  });
+
   it('should update readOnly global setting', function(){
     handsontable({
       readOnly: true,
@@ -77,6 +155,38 @@ describe('Core_updateSettings', function () {
         { },
         { }
       ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+
+    updateSettings({
+      readOnly: false
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+  });
+
+  it('should update readOnly global setting when columns is a function', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', 'bar']],
+      columns : function(column) {
+        var colMeta = {};
+
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -129,6 +239,51 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
+  it('should update readOnly columns setting when columns is a function', function(){
+    handsontable({
+      data : [['foo', true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+                      readOnly: true };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+
+    updateSettings({
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+            readOnly: false };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
+  });
+
   it('should update readOnly columns setting and override global setting', function(){
     handsontable({
       readOnly: true,
@@ -153,6 +308,51 @@ describe('Core_updateSettings', function () {
         },
         { type : 'checkbox' }
       ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+  });
+
+  it('should update readOnly columns setting and override global setting when columns is a function', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', true]],
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text' };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
+
+    updateSettings({
+      columns : function(column) {
+        var colMeta = null;
+
+        if (column === 0) {
+          colMeta = { type : 'text',
+            readOnly: false };
+        } else if (column === 1) {
+          colMeta = { type : 'checkbox' };
+        }
+
+        return colMeta;
+      }
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
