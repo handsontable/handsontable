@@ -6,7 +6,7 @@ import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coord
 
 export {Autofill};
 
-function getDeltas(start, end, data, direction) {
+function getDeltas(start, end, data, direction, attr) {
   var
   // rows
     rlength = data.length,
@@ -15,17 +15,24 @@ function getDeltas(start, end, data, direction) {
     deltas = [],
     arr = [],
     diffRow, diffCol,
-    startValue, endValue,
-    delta;
+    startValue, endValue, endRow, colAttr, endCol, rowAttr,
+    delta,
+    datePatternAry = ['YYYY/MM/DD', 'YYYY-MM-DD', 'HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'];
 
   diffRow = end.row - start.row;
   diffCol = end.col - start.col;
 
   if (['down', 'up'].indexOf(direction) !== -1) {
     for (var col = 0; col <= diffCol; col++) {
+      endRow = rlength - 1;
       startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[rlength - 1][col], 10);
-      delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      endValue = parseInt(data[endRow][col], 10);
+      colAttr = attr[0][col].dataAttrs;
+      if (endRow === 0 && colAttr && colAttr.format && datePatternAry.indexOf(colAttr.format) > -1) { 
+        delta = direction === 'down' ? 1 : -1;
+      } else {
+        delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      }
 
       arr.push(delta);
     }
@@ -34,9 +41,15 @@ function getDeltas(start, end, data, direction) {
 
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
+      endCol = clength - 1;
       startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][clength - 1], 10);
-      delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
+      endValue = parseInt(data[row][endCol], 10);
+      rowAttr = attr[row][0].dataAttrs;
+      if (endCol === 0 && rowAttr && rowAttr.format && datePatternAry.indexOf(rowAttr.format) > -1) { 
+        delta = direction === 'right' ? 1 : -1;
+      } else {
+        delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
+      }
 
       arr = [];
       arr.push(delta);
@@ -278,7 +291,7 @@ Autofill.prototype.apply = function() {
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
     _data = filterRawData(_data, selRange, this.instance);
-    deltas = getDeltas(start, end, _data.value, direction);
+    deltas = getDeltas(start, end, _data.value, direction, _data.attr);
 
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
     this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);

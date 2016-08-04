@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jul 12 2016 16:44:57 GMT+0800 (CST)
+ * Date: Thu Aug 04 2016 17:12:36 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Tue Jul 12 2016 16:44:57 GMT+0800 (CST)',
+  buildDate: 'Thu Aug 04 2016 17:12:36 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9729,7 +9729,7 @@ var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = require("e
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = require("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 ;
-function getDeltas(start, end, data, direction) {
+function getDeltas(start, end, data, direction, attr) {
   var rlength = data.length,
       clength = data ? data[0].length : 0,
       deltas = [],
@@ -9738,23 +9738,40 @@ function getDeltas(start, end, data, direction) {
       diffCol,
       startValue,
       endValue,
-      delta;
+      endRow,
+      colAttr,
+      endCol,
+      rowAttr,
+      delta,
+      datePatternAry = ['YYYY/MM/DD', 'YYYY-MM-DD', 'HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'];
   diffRow = end.row - start.row;
   diffCol = end.col - start.col;
   if (['down', 'up'].indexOf(direction) !== -1) {
     for (var col = 0; col <= diffCol; col++) {
+      endRow = rlength - 1;
       startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[rlength - 1][col], 10);
-      delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      endValue = parseInt(data[endRow][col], 10);
+      colAttr = attr[0][col].dataAttrs;
+      if (endRow === 0 && colAttr && colAttr.format && datePatternAry.indexOf(colAttr.format) > -1) {
+        delta = direction === 'down' ? 1 : -1;
+      } else {
+        delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      }
       arr.push(delta);
     }
     deltas.push(arr);
   }
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
+      endCol = clength - 1;
       startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][clength - 1], 10);
-      delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
+      endValue = parseInt(data[row][endCol], 10);
+      rowAttr = attr[row][0].dataAttrs;
+      if (endCol === 0 && rowAttr && rowAttr.format && datePatternAry.indexOf(rowAttr.format) > -1) {
+        delta = direction === 'right' ? 1 : -1;
+      } else {
+        delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
+      }
       arr = [];
       arr.push(delta);
       deltas.push(arr);
@@ -9928,7 +9945,7 @@ Autofill.prototype.apply = function() {
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
     _data = filterRawData(_data, selRange, this.instance);
-    deltas = getDeltas(start, end, _data.value, direction);
+    deltas = getDeltas(start, end, _data.value, direction, _data.attr);
     Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
     this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);
     this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
