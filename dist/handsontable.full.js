@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 04 2016 17:12:36 GMT+0800 (CST)
+ * Date: Thu Aug 04 2016 17:56:23 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Thu Aug 04 2016 17:12:36 GMT+0800 (CST)',
+  buildDate: 'Thu Aug 04 2016 17:56:23 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9749,14 +9749,10 @@ function getDeltas(start, end, data, direction, attr) {
   if (['down', 'up'].indexOf(direction) !== -1) {
     for (var col = 0; col <= diffCol; col++) {
       endRow = rlength - 1;
-      startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[endRow][col], 10);
+      startValue = parseFloat(data[0][col], 10);
+      endValue = parseFloat(data[endRow][col], 10);
       colAttr = attr[0][col].dataAttrs;
-      if (endRow === 0 && colAttr && colAttr.format && datePatternAry.indexOf(colAttr.format) > -1) {
-        delta = direction === 'down' ? 1 : -1;
-      } else {
-        delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
-      }
+      delta = genDateDelta(startValue, endValue, endRow, colAttr, direction, rlength);
       arr.push(delta);
     }
     deltas.push(arr);
@@ -9764,20 +9760,30 @@ function getDeltas(start, end, data, direction, attr) {
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
       endCol = clength - 1;
-      startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][endCol], 10);
+      startValue = parseFloat(data[row][0], 10);
+      endValue = parseFloat(data[row][endCol], 10);
       rowAttr = attr[row][0].dataAttrs;
-      if (endCol === 0 && rowAttr && rowAttr.format && datePatternAry.indexOf(rowAttr.format) > -1) {
-        delta = direction === 'right' ? 1 : -1;
-      } else {
-        delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-      }
+      delta = genDateDelta(startValue, endValue, endCol, rowAttr, direction, clength);
       arr = [];
       arr.push(delta);
       deltas.push(arr);
     }
   }
   return deltas;
+  function genDateDelta(startValue, endValue, endPos, attr, direction, totalLen) {
+    var isAdd = ['down', 'right'].indexOf(direction) > -1,
+        delta;
+    if (endPos === 0 && attr && attr.format && datePatternAry.indexOf(attr.format) > -1) {
+      if (attr.format === 'HH:mm:ss') {
+        delta = isAdd ? 1 / 24 : -1 / 24;
+      } else {
+        delta = isAdd ? 1 : -1;
+      }
+    } else {
+      delta = (isAdd ? (endValue - startValue) : (startValue - endValue)) / (totalLen - 1) || 0;
+    }
+    return delta;
+  }
 }
 function filterRawData(data, selRange, tableInst) {
   var destData = [],

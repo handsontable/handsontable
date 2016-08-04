@@ -25,14 +25,10 @@ function getDeltas(start, end, data, direction, attr) {
   if (['down', 'up'].indexOf(direction) !== -1) {
     for (var col = 0; col <= diffCol; col++) {
       endRow = rlength - 1;
-      startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[endRow][col], 10);
+      startValue = parseFloat(data[0][col], 10);
+      endValue = parseFloat(data[endRow][col], 10);
       colAttr = attr[0][col].dataAttrs;
-      if (endRow === 0 && colAttr && colAttr.format && datePatternAry.indexOf(colAttr.format) > -1) { 
-        delta = direction === 'down' ? 1 : -1;
-      } else {
-        delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
-      }
+      delta = genDelta(startValue, endValue, endRow, colAttr, direction, rlength);
 
       arr.push(delta);
     }
@@ -42,14 +38,10 @@ function getDeltas(start, end, data, direction, attr) {
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
       endCol = clength - 1;
-      startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][endCol], 10);
+      startValue = parseFloat(data[row][0], 10);
+      endValue = parseFloat(data[row][endCol], 10);
       rowAttr = attr[row][0].dataAttrs;
-      if (endCol === 0 && rowAttr && rowAttr.format && datePatternAry.indexOf(rowAttr.format) > -1) { 
-        delta = direction === 'right' ? 1 : -1;
-      } else {
-        delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-      }
+      delta = genDelta(startValue, endValue, endCol, rowAttr, direction, clength);
 
       arr = [];
       arr.push(delta);
@@ -59,6 +51,22 @@ function getDeltas(start, end, data, direction, attr) {
   }
 
   return deltas;
+
+  function genDelta(startValue, endValue, endPos, attr, direction, totalLen) {
+    var isAdd = ['down', 'right'].indexOf(direction) > -1,
+      delta;
+    if (endPos === 0 && attr && attr.format && datePatternAry.indexOf(attr.format) > -1) { 
+      if (attr.format === 'HH:mm:ss') {
+        delta = isAdd ? 1/24 : -1/24;
+      } else {
+        delta = isAdd ? 1 : -1;
+      }
+    } else {
+      delta = (isAdd ? (endValue - startValue) : (startValue - endValue)) / (totalLen - 1) || 0;
+    }
+
+    return delta;
+  }
 }
 
 //解析需要autofill的值和属性
