@@ -325,7 +325,9 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(49); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
 
-    moveSecondDisplayedRowBeforeFirstRow(getHtCore(), 0);
+    var plugin = hot.getPlugin('manualRowMove');
+    plugin.moveRow(0, 1);
+    hot.render();
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(49);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22);

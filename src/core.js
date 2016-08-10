@@ -609,6 +609,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           isHeaderSelected = false,
           areCoordsPositive = true;
 
+      // TODO: selection by headers when fixedCol/fixedRow are present doesn't work properly with firstVisible.
       var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
       var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
       var newRangeCoords = {
@@ -651,7 +652,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
       // set up highlight
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
@@ -841,6 +842,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!selection.isSelected()) {
         return false;
       }
+      // if (selection.selectedHeader.cols) {
+      //   return priv.selRange.includes(new WalkontableCellCoords(0, coords.col));
+      // }
+      // if (selection.selectedHeader.rows) {
+      //   return priv.selRange.includes(new WalkontableCellCoords(coords.row, 0));
+      // }
       return priv.selRange.includes(coords);
     },
 
@@ -855,11 +862,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
       }
       editorManager.destroyEditor();
       selection.refreshBorders();
+      removeClass(instance.rootElement, 'ht__selection--rows');
+      removeClass(instance.rootElement, 'ht__selection--columns');
       Handsontable.hooks.run(instance, 'afterDeselect');
     },
 
@@ -3710,6 +3719,17 @@ DefaultSettings.prototype = {
    */
   currentColClassName: void 0,
 
+  /**
+   * Class name for all visible headers in current selection.
+   *
+   * @type {String}
+   * @default undefined
+   * @example
+   * ```js
+   * currentHeaderClassName: 'ht__highlight' // This will add a 'ht__highlight' class name to appropriate table headers.
+   * ```
+   */
+  currentHeaderClassName: 'ht__highlight',
   /**
    * Class name for the Handsontable container element.
    *

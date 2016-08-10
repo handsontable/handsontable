@@ -148,8 +148,14 @@ class WalkontableSelection {
       if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
         TH = wotInstance.wtTable.getColumnHeader(sourceCol);
 
-        if (TH && this.settings.highlightColumnClassName) {
-          addClass(TH, this.settings.highlightColumnClassName);
+        if (TH) {
+          if (this.settings.highlightHeaderClassName) {
+            addClass(TH, this.settings.highlightHeaderClassName);
+          }
+
+          if (this.settings.highlightColumnClassName) {
+            addClass(TH, this.settings.highlightColumnClassName);
+          }
         }
       }
     }
@@ -160,8 +166,14 @@ class WalkontableSelection {
       if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
         TH = wotInstance.wtTable.getRowHeader(sourceRow);
 
-        if (TH && this.settings.highlightRowClassName) {
-          addClass(TH, this.settings.highlightRowClassName);
+        if (TH) {
+          if (this.settings.highlightHeaderClassName) {
+            addClass(TH, this.settings.highlightHeaderClassName);
+          }
+
+          if (TH && this.settings.highlightRowClassName) {
+            addClass(TH, this.settings.highlightRowClassName);
+          }
         }
       }
 
