@@ -1,22 +1,35 @@
 import BasePlugin from './../_base.js';
 import Handsontable from './../../browser';
-import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
-import {arrayEach, arrayMap} from './../../helpers/array';
+import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
-import {pageY} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
+import {RowsMapper} from './rowsMapper';
+import {ManualRowMoveUI as UI} from './manualRowMoveUI';
 
 const privatePool = new WeakMap();
+const CSSCLASSNAMES = {
+  plugin: 'ht__manualRowMove',
+  showUI: 'show-ui',
+  onMoving: 'on-moving--rows',
+  afterSelection: 'after-selection--rows',
+};
 
 /**
- * HandsontableManualRowMove
+ * @plugin ManualRowMove
  *
- * Has 2 UI components:
- * - handle - the draggable element that sets the desired position of the row
- * - guide - the helper guide that shows the desired position as a horizontal guide
+ * @description
+ * This plugin allows to change rows order.
  *
- * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
+ * API:
+ * - moveRow - move single row to the new position.
+ * - moveRows - move many rows (as an array of indexes) to the new position.
+ *
+ * If you want apply visual changes, you have to call manually the render() method on the instance of handsontable.
+ *
+ * UI components:
+ * - backlight - highlight of selected rows.
+ * - guideline - line which shows where rows has been moved.
  *
  * @class ManualRowMove
  * @plugin ManualRowMove
@@ -26,47 +39,40 @@ class ManualRowMove extends BasePlugin {
     super(hotInstance);
 
     privatePool.set(this, {
-      guideClassName: 'manualRowMoverGuide',
-      handleClassName: 'manualRowMover',
-      startOffset: null,
-      pressed: null,
-      startRow: null,
-      endRow: null,
-      currentRow: null,
-      startX: null,
-      startY: null
+      rowsToMove: [],
+      pressed: void 0,
+      target: {
+        event: void 0,
+        coords: void 0,
+        TD: void 0,
+        row: void 0
+      }
     });
 
     /**
-     * DOM element representing the horizontal guide line.
-     *
-     * @type {HTMLElement}
-     */
-    this.guideElement = null;
-    /**
-     * DOM element representing the move handle.
-     *
-     * @type {HTMLElement}
-     */
-    this.handleElement = null;
-    /**
-     * Currently processed TH element.
-     *
-     * @type {HTMLElement}
-     */
-    this.currentTH = null;
-    /**
-     * Manual column positions array.
+     * List of last removed row indexes.
      *
      * @type {Array}
      */
-    this.rowPositions = [];
+    this.removedRows = [];
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @type {RowsMapper}
+     */
+    this.rowsMapper = new RowsMapper(this);
     /**
      * Event Manager object.
      *
      * @type {Object}
      */
     this.eventManager = eventManagerObject(this);
+    /**
+     * UI Manager object.
+     *
+     * @type {Object}
+     */
+    this.uiManager = new UI(hotInstance);
   }
 
   /**
@@ -82,38 +88,29 @@ class ManualRowMove extends BasePlugin {
    * Enable the plugin.
    */
   enablePlugin() {
-    let priv = privatePool.get(this);
-    let initialSettings = this.hot.getSettings().manualRowMove;
-    let loadedManualRowPositions = this.loadManualRowPositions();
+    this.rowsMapper.createMap(this.hot.countSourceRows());
 
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseUp', (event, coords, TD) => this.onBeforeOnCellMouseUp(event, coords, TD));
+    this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
 
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-
-    this.addHook('modifyRow', (row) => this.onModifyRow(row));
+    this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
+    this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
-    this.addHook('init', () => this.onInit());
 
+    this.initialSettings();
+    this.uiManager.createUI();
     this.registerEvents();
 
-    if (typeof loadedManualRowPositions != 'undefined') {
-      this.rowPositions = loadedManualRowPositions;
-
-    } else if (Array.isArray(initialSettings)) {
-      this.rowPositions = initialSettings;
-
-    } else if (!initialSettings || this.rowPositions === void 0) {
-      this.rowPositions = [];
-    }
+    addClass(this.hot.rootElement, CSSCLASSNAMES.plugin);
 
     super.enablePlugin();
   }
 
   /**
-   * Update the plugin.
+   * Updates the plugin to use the latest options you have specified.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -123,29 +120,43 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    let pluginSetting = this.hot.getSettings().manualRowMove;
+    this.rowsMapper.clearMap();
 
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.rowPositions = [];
-    }
+    removeClass(this.hot.rootElement, CSSCLASSNAMES.plugin);
+
+    this.unregisterEvents();
+    this.uiManager.removeUI();
 
     super.disablePlugin();
   }
 
+  /**
+   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   */
+  initialSettings() {
+    let pluginSettings = this.hot.getSettings().manualRowMove;
+
+    if (Array.isArray(pluginSettings)) {
+      this.moveRows(0, pluginSettings);
+
+    } else if (pluginSettings !== void 0) {
+      let persistantState = this.persistentStateLoad();
+
+      if (persistantState.length) {
+        this.moveRows(0, persistantState);
+      }
+    }
+  }
   /**
    * Bind the events used by the plugin.
    *
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(window, 'mousemove', (event) => this.onMouseMove(event));
-    this.eventManager.addEventListener(window, 'mouseup', (event) => this.onMouseUp(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event, instance) => this.onMouseMove(event, this));
   }
 
   /**
@@ -157,297 +168,235 @@ class ManualRowMove extends BasePlugin {
     this.eventManager.clear();
   }
 
-  /**
-   * Save the manual row positions.
-   */
-  saveManualRowPositions() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowPositions', this.rowPositions);
-  }
+  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+    let isHeaderSelection = this.hot.selection.selectedHeader.rows;
+    let selection = this.hot.getSelectedRange();
+    let priv = privatePool.get(this);
 
-  /**
-   * Load the manual row positions.
-   *
-   * @returns {Object} Stored state.
-   */
-  loadManualRowPositions() {
-    let storedState = {};
-
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowPositions', storedState);
-
-    return storedState.value;
-  }
-
-  /**
-   * Complete the manual column positions array to match its length to the column count.
-   */
-  completeSettingsArray() {
-    let rowCount = this.hot.countRows();
-
-    if (this.rowPositions.length === rowCount) {
+    if (!selection || !isHeaderSelection || priv.pressed) {
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
+      removeClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
+      removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
       return;
     }
 
-    rangeEach(0, rowCount - 1, (i) => {
-      if (this.rowPositions.indexOf(i) === -1) {
-        this.rowPositions.push(i);
-      }
-    });
-  }
-
-  /**
-   * Setup the moving handle position.
-   *
-   * @param {HTMLElement} TH Currently processed TH element.
-   */
-  setupHandlePosition(TH) {
-    this.currentTH = TH;
-    let priv = privatePool.get(this);
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
-    let headerWidth = outerWidth(this.currentTH);
-
-    if (row >= 0) { // if not row header
-      let box = this.currentTH.getBoundingClientRect();
-      priv.currentRow = row;
-
-      priv.startOffset = box.top;
-      this.handleElement.style.top = priv.startOffset + 'px';
-      this.handleElement.style.left = box.left + 'px';
-      this.handleElement.style.width = headerWidth + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    if (this.uiManager.isCreated() && !this.uiManager.isAppended()) {
+      this.uiManager.appendUI(this.hot.view.wt.wtTable.hider);
     }
-  }
 
-  /**
-   * Refresh the moving handle position.
-   *
-   * @param {HTMLElement} TH TH element with the handle.
-   * @param {Number} delta Difference between the related rows.
-   */
-  refreshHandlePosition(TH, delta) {
-    let box = TH.getBoundingClientRect();
-    let handleHeight = 6;
+    let {from, to} = selection;
+    let start = Math.min(from.row, to.row);
+    let end = Math.max(from.row, to.row);
 
-    if (delta > 0) {
-      this.handleElement.style.top = (box.top + box.height - handleHeight) + 'px';
+    if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
+      blockCalculations.row = true;
+      priv.pressed = true;
+      priv.target.event = event;
+      priv.target.coords = coords;
+      priv.target.TD = TD;
+      priv.rowsToMove = this.prepareRowsToMoving();
+
+      this.uiManager.backlightElement.style.left = this.hot.getColWidth(-1) + 'px';
+      this.uiManager.backlightElement.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
+      this.uiManager.backlightElement.style.height = this.getRowsHeight(start, end + 1) + 'px';
+      this.uiManager.backlightElement.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
+
+      addClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
+
+      this.refreshPositions();
+
     } else {
-      this.handleElement.style.top = box.top + 'px';
+      removeClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
     }
   }
 
   /**
-   * Setup the moving handle position.
-   */
-  setupGuidePosition() {
-    let box = this.currentTH.getBoundingClientRect();
-    let priv = privatePool.get(this);
-    let handleWidth = parseInt(outerWidth(this.handleElement), 10);
-    let handleRightPosition = parseInt(this.handleElement.style.left, 10) + handleWidth;
-    let maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
-
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-
-    this.guideElement.style.height = box.height + 'px';
-    this.guideElement.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
-    this.guideElement.style.top = priv.startOffset + 'px';
-    this.guideElement.style.left = handleRightPosition + 'px';
-    this.hot.rootElement.appendChild(this.guideElement);
-  }
-
-  /**
-   * Refresh the moving guide position.
+   * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
    *
-   * @param {Number} diff Difference between the starting and current cursor position.
+   * @param {MouseEvent} event `mouseover` event properties.
+   * @param {WalkontableCellCoords} coords Cell coordinates where was fired event.
+   * @param {HTMLElement} TD Cell represented as HTMLElement.
+   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
-  refreshGuidePosition(diff) {
+  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+    let selectedRange = this.hot.getSelectedRange();
+    let selection = this.hot.selection;
     let priv = privatePool.get(this);
 
-    this.guideElement.style.top = priv.startOffset + diff + 'px';
-  }
-
-  /**
-   * Hide both the moving handle and the moving guide.
-   */
-  hideHandleAndGuide() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  }
-
-  /**
-   * Check if the provided element is in the row header.
-   *
-   * @param {HTMLElement} element The DOM element to be checked.
-   * @returns {Boolean}
-   */
-  checkRowHeader(element) {
-    if (element != this.hot.rootElement) {
-      let parent = element.parentNode;
-
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-
-      return this.checkRowHeader(parent);
+    if (!selectedRange) {
+      return;
     }
 
-    return false;
-  }
-
-  /**
-   * Create the initial row position data.
-   *
-   * @param {Number} len The desired length of the array.
-   */
-  createPositionData(len) {
-    let positionArr = this.rowPositions;
-
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (i) => {
-        positionArr[i] = i;
-      });
-    }
-  }
-
-  /**
-   * Get the TH parent element from the provided DOM element.
-   *
-   * @param {HTMLElement} element The DOM element to work on.
-   * @returns {HTMLElement|null} The TH element or null, if element has no TH parents.
-   */
-  getTHFromTargetElement(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
+    if (priv.pressed && coords.row > -1) {
+      // unfortunately, after select a row by header, header coords in inInSelection are false
+      if (selection.inInSelection(coords)) {
+        removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
 
       } else {
-        return this.getTHFromTargetElement(element.parentNode);
+        addClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
+      }
+
+      blockCalculations.row = true;
+      blockCalculations.column = true;
+      blockCalculations.cell = true;
+      priv.target.coords = coords;
+      priv.target.TD = TD;
+    }
+  }
+
+  /**
+   * `beforeOnCellMouseUp` hook callback.
+   *
+   * @param event {MouseEvent} `mouseup` event properties.
+   * @param coords {WalkontableCellCoords} Coords, where was fired mouse up action. If coords up was fired outside the table, then here is `null`.
+   * @param TD {HTMLElement}
+   */
+  onBeforeOnCellMouseUp(event, coords, TD) {
+    let priv = privatePool.get(this);
+    priv.pressed = false;
+    priv.backlightHeight = 0;
+
+    removeClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
+    removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
+    removeClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+
+    if (this.hot.selection.selectedHeader.rows) {
+      addClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+    }
+    if (priv.rowsToMove.length < 1) {
+      return;
+    }
+
+    let target = priv.target.row;
+
+    this.moveRows(target, priv.rowsToMove);
+    this.persistentStateSave();
+    this.hot.render();
+
+    let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+    let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+    this.changeSelection(selectionStart, selectionEnd);
+
+    priv.rowsToMove.length = 0;
+  }
+
+  /**
+   * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
+   *
+   * @param {MouseEvent} event `mousemove` event properties.
+   * @param {ManualRowMove} instance Plugin instance.
+   */
+  onMouseMove(event, instance) {
+    let priv = privatePool.get(instance);
+
+    if (!priv.pressed) {
+      return;
+    }
+
+    // callback for browser which doesn't supports CSS pointer-event: none (
+    // this
+    if (event.realTarget === instance.uiManager.backlightElement) {
+      let height = instance.uiManager.backlightElement.style.height;
+      instance.uiManager.backlightElement.style.height = '0';
+
+      setTimeout(function() {
+        instance.uiManager.backlightElement.style.height = height;
+      });
+    }
+
+    priv.target.event = event;
+    this.refreshPositions();
+  }
+
+  /**
+   * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
+   */
+  onAfterScrollHorizontally() {
+    let headerWidth = this.hot.getColWidth(-1);
+    let scrollLeft = this.hot.view.wt.wtTable.holder.scrollLeft;
+    let posLeft = headerWidth + scrollLeft;
+    this.uiManager.backlightElement.style.left = posLeft + 'px';
+    this.uiManager.backlightElement.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - posLeft) + 'px';
+  }
+
+  /**
+   * Prepare array of indexes based on actual selection.
+   *
+   * @returns {Array}
+   */
+  prepareRowsToMoving() {
+    let selection = this.hot.getSelectedRange();
+    let selectedRows = [];
+
+    if (!selection) {
+      return selectedRows;
+    }
+
+    let {from, to} = selection;
+    let start = Math.min(from.row, to.row);
+    let end = Math.max(from.row, to.row);
+
+    rangeEach(start, end, (i) => {
+      selectedRows.push(i);
+    });
+
+    return selectedRows;
+  }
+
+  /**
+   * Method for moving single rows.
+   *
+   * @param {Number} target Visual row index as target of moved row.
+   * @param {Number} row Visual row index to move.
+   */
+  moveRow(target, ...row) {
+    this.moveRows(target, row);
+  }
+
+  /**
+   * Method for moving multi rows.
+   *
+   * @param {Number} target Visual row index as target for moved rows.
+   * @param {Array} rows Array of visual rows index to moving.
+   */
+  moveRows(target, rows) {
+    let rowsLen = rows.length;
+    let i = 0;
+
+    Handsontable.hooks.run(this.hot, 'beforeRowMove', rows, target);
+    // rewrite visual indexes to logical for save reference after move
+    for (i = 0; i < rowsLen; i++) {
+      rows[i] = this.rowsMapper.getValueByIndex(rows[i]);
+    }
+
+    for (i = 0; i < rowsLen; i++) {
+      let actualPosition = this.rowsMapper.getIndexByValue(rows[i]);
+
+      if (actualPosition !== target) {
+        this.rowsMapper.moveRow(actualPosition, target + i);
       }
     }
-    return null;
+    this.rowsMapper.clearNull();
+
+    Handsontable.hooks.run(this.hot, 'afterRowMove', rows, target);
   }
 
   /**
-   * Change the row position. It puts the `rowIndex` row after the `destinationIndex` row.
+   * Select properly rows after move action. Fired only when action was fired by mouse.
+   * That's mean change row order by API doesn't change selection.
    *
-   * @param {Number} rowIndex Index of the row to move.
-   * @param {Number} destinationIndex Index of the destination row.
+   * @param {Number} startRow Visual row index for start selection.
+   * @param {Number} endRow Visual row index for end selection.
    */
-  changeRowPositions(rowIndex, destinationIndex) {
-    let maxLength = Math.max(rowIndex, destinationIndex);
+  changeSelection(startRow, endRow) {
+    let selection = this.hot.selection;
+    let lastColIndex = this.hot.countCols() - 1;
 
-    if (maxLength > this.rowPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-
-    this.rowPositions.splice(destinationIndex, 0, this.rowPositions.splice(rowIndex, 1)[0]);
-  }
-
-  /**
-   * Get the visible row index from the provided logical index.
-   *
-   * @param {Number} row Logical row index.
-   * @returns {Number|undefined} Visible row index.
-   */
-  getVisibleRowIndex(row) {
-    const position = this.rowPositions.indexOf(row);
-
-    return position === -1 ? void 0 : position;
-  }
-
-  /**
-   * Get the logical row index from the provided visible index.
-   *
-   * @param {Number} row Visible row index.
-   * @returns {Number|undefined} Logical row index.
-   */
-  getLogicalRowIndex(row) {
-    return this.rowPositions[row];
-  }
-
-  /**
-   * 'mouseover' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseOver(event) {
-    let priv = privatePool.get(this);
-
-    if (this.checkRowHeader(event.target)) {
-      let th = this.getTHFromTargetElement(event.target);
-
-      if (th) {
-        if (priv.pressed) {
-          priv.endRow = this.hot.view.wt.wtTable.getCoords(th).row;
-          this.refreshHandlePosition(th, priv.endRow - priv.startRow);
-
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  }
-
-  /**
-   * 'mousedown' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseDown(event) {
-    let priv = privatePool.get(this);
-
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startY = pageY(event);
-      this.setupGuidePosition();
-
-      priv.pressed = this.hot;
-      priv.startRow = priv.currentRow;
-      priv.endRow = priv.currentRow;
-    }
-  }
-
-  /**
-   * 'mousemove' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseMove(event) {
-    let priv = privatePool.get(this);
-
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageY(event) - priv.startY);
-    }
-  }
-
-  /**
-   * 'mouseup' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseUp(event) {
-    let priv = privatePool.get(this);
-
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-
-      this.createPositionData(this.hot.countRows());
-      this.changeRowPositions(priv.startRow, priv.endRow);
-
-      Handsontable.hooks.run(this.hot, 'beforeRowMove', priv.startRow, priv.endRow);
-
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
-
-      this.saveManualRowPositions();
-
-      Handsontable.hooks.run(this.hot, 'afterRowMove', priv.startRow, priv.endRow);
-
-      this.setupHandlePosition(this.currentTH);
-    }
+    selection.setRangeStart(new WalkontableCellCoords(startRow, 0));
+    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), true);
   }
 
   /**
@@ -457,8 +406,30 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} row Row index.
    * @returns {Number} Modified row index.
    */
-  onModifyRow(row) {
-    return this.getLogicalRowIndex(row);
+  onModifyRow(row, source) {
+    if (source !== this.pluginName) {
+      row = this.rowsMapper.getValueByIndex(row);
+    }
+
+    return row;
+  }
+
+  /**
+   * On before remove row listener.
+   *
+   * @private
+   * @param {Number} index Row index.
+   * @param {Number} amount Defines how many rows removed.
+   */
+  onBeforeRemoveRow(index, amount) {
+    this.removedRows.length = 0;
+
+    if (index !== false) {
+      // Collect physical row index.
+      rangeEach(index, index + amount - 1, (removedIndex) => {
+        this.removedRows.push(this.hot.runHooks('modifyRow', removedIndex, this.pluginName));
+      });
+    }
   }
 
   /**
@@ -469,30 +440,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} amount Amount of removed rows.
    */
   onAfterRemoveRow(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-
-    let rmindx;
-    let rowpos = this.rowPositions;
-
-    // We have removed rows, we also need to remove the indicies from manual row array
-    rmindx = rowpos.splice(index, amount);
-
-    // We need to remap rowPositions so it remains constant linear from 0->nrows
-    rowpos = arrayMap(rowpos, function(value, index) {
-      let newpos = value;
-
-      arrayEach(rmindx, (elem, index) => {
-        if (value > elem) {
-          newpos--;
-        }
-      });
-
-      return newpos;
-    });
-
-    this.rowPositions = rowpos;
+    this.rowsMapper.unshiftItems(this.removedRows);
   }
 
   /**
@@ -503,45 +451,133 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} amount Amount of created rows.
    */
   onAfterCreateRow(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-
-    let rowpos = this.rowPositions;
-
-    if (!rowpos.length) {
-      return;
-    }
-
-    let addindx = [];
-
-    for (var i = 0; i < amount; i++) {
-      addindx.push(index + i);
-    }
-
-    if (index >= rowpos.length) {
-      rowpos = rowpos.concat(addindx);
-
-    } else {
-      // We need to remap rowPositions so it remains constant linear from 0->nrows
-      rowpos = arrayMap(rowpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-
-      // We have added rows, we also need to add new indicies to manualrow position array
-      rowpos.splice.apply(rowpos, [index, 0].concat(addindx));
-    }
-
-    this.rowPositions = rowpos;
+    this.rowsMapper.shiftItems(index, amount);
   }
 
   /**
-   * `init` hook callback.
+   * Method for update UI visual position.
+   *
+   * @private
    */
-  onInit() {
-    this.completeSettingsArray();
+  refreshPositions() {
+    let priv = privatePool.get(this);
+    let event = priv.target.event;
+    let coords = priv.target.coords;
+    let TD = priv.target.TD;
+    let rootElementOffset = offset(this.hot.rootElement);
+    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    let mouseOffsetTop = event.pageY - rootElementOffset.top + this.hot.view.wt.wtTable.holder.scrollTop;
+    let hiderHeight = this.hot.view.wt.wtTable.hider.offsetHeight;
+    let tbodyOffsetTop = this.hot.view.wt.wtTable.TBODY.offsetTop;
+    let backlightElemMarginTop = parseInt(this.uiManager.backlightElement.style.marginTop, 10);
+    let backlightElemHeight = parseInt(this.uiManager.backlightElement.style.height, 10);
+
+    if (this.isFixedRowTop(coords.row)) {
+      tdOffsetTop += this.hot.view.wt.wtTable.holder.scrollTop;
+    }
+
+    //todo: fixedRowsBottom
+    // if (this.isFixedRowBottom(coords.row)) {
+    //
+    // }
+
+    if (coords.row < 0) {
+      // if hover on colHeader
+      priv.target.row = 0;
+
+    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+      // if hover on lower part of TD
+      priv.target.row = coords.row + 1;
+      tdOffsetTop += TD.offsetHeight;
+
+    } else {
+      // elsewhere on table
+      priv.target.row = coords.row;
+    }
+
+    let backlightTop = mouseOffsetTop;
+    let guidelineTop = tdOffsetTop;
+
+    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
+      // prevent display backlight below table
+      backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
+
+    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
+      // prevent display above below table
+      backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
+    }
+
+    if (tdOffsetTop >= hiderHeight - 1) {
+      // prevent display guideline below table
+      guidelineTop = hiderHeight - 1;
+    }
+
+    this.uiManager.backlightElement.style.top = backlightTop + 'px';
+    this.uiManager.guidelineElement.style.top = guidelineTop + 'px';
   }
 
+  /**
+   * Save the manual row positions to the persistent state.
+   */
+  persistentStateSave() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+  }
+
+  /**
+   * Load the manual row positions from the persistent state.
+   *
+   * @returns {Array} Stored state.
+   */
+  persistentStateLoad() {
+    let storedState = {};
+
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
+
+    return storedState.value ? storedState.value : [];
+  }
+
+  /**
+   * Helpers for check is row fixed top.
+   *
+   * @param {Number} row Visual row index to check.
+   * @returns {Boolean}
+   */
+  isFixedRowTop(row) {
+    return row < this.hot.getSettings().fixedRowsTop;
+  }
+
+  /**
+   * Helpers for check is row fixed bottom.
+   *
+   * @param {Number} row Visual row index to check.
+   * @returns {Boolean}
+   */
+  isFixedRowBottom(row) {
+    return row > this.hot.getSettings().fixedRowsBottom;
+  }
+
+  /**
+   * Helpers for get sum of height of rows range.
+   *
+   * @param {Number} from Visual row index.
+   * @param {Number} to Viusal row index.
+   * @returns {Number}
+   */
+  getRowsHeight(from, to) {
+    let height = 0;
+
+    for (let i = from; i < to; i++) {
+      let rowHeight = this.hot.getRowHeight(i) || 23;
+
+      if (rowHeight < 23) {
+        rowHeight = 23;
+      }
+
+      height += rowHeight;
+    }
+
+    return height;
+  }
 }
 
 export {ManualRowMove};

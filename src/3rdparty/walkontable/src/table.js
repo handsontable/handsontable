@@ -284,6 +284,9 @@ class WalkontableTable {
         if (this.wot.selections[i].settings.className) {
           this.removeClassFromCells(this.wot.selections[i].settings.className);
         }
+        if (this.wot.selections[i].settings.highlightHeaderClassName) {
+          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+        }
         if (this.wot.selections[i].settings.highlightRowClassName) {
           this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
         }
@@ -314,7 +317,11 @@ class WalkontableTable {
       // row after rendered rows
       return -2;
     }
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
+    let TR = void 0;
+
+    if (this.rowFilter) {
+      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
+    }
 
     if (TR) {
       return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
@@ -438,23 +445,23 @@ class WalkontableTable {
   }
 
   isRowBeforeRenderedRows(row) {
-    return (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
   }
 
   isRowAfterViewport(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
   }
 
   isRowAfterRenderedRows(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
   }
 
   isColumnBeforeViewport(column) {
-    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
   isColumnAfterViewport(column) {
-    return (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
   }
 
   isLastRowFullyVisible() {
