@@ -365,21 +365,26 @@ class ManualRowMove extends BasePlugin {
   moveRows(target, rows) {
     let rowsLen = rows.length;
     let i = 0;
+    let blockMoving = {
+      rows: false
+    };
 
-    Handsontable.hooks.run(this.hot, 'beforeRowMove', rows, target);
+    Handsontable.hooks.run(this.hot, 'beforeRowMove', rows, target, blockMoving);
     // rewrite visual indexes to logical for save reference after move
-    for (i = 0; i < rowsLen; i++) {
-      rows[i] = this.rowsMapper.getValueByIndex(rows[i]);
-    }
-
-    for (i = 0; i < rowsLen; i++) {
-      let actualPosition = this.rowsMapper.getIndexByValue(rows[i]);
-
-      if (actualPosition !== target) {
-        this.rowsMapper.moveRow(actualPosition, target + i);
+    if (!blockMoving.rows) {
+      for (i = 0; i < rowsLen; i++) {
+        rows[i] = this.rowsMapper.getValueByIndex(rows[i]);
       }
+
+      for (i = 0; i < rowsLen; i++) {
+        let actualPosition = this.rowsMapper.getIndexByValue(rows[i]);
+
+        if (actualPosition !== target) {
+          this.rowsMapper.moveRow(actualPosition, target + i);
+        }
+      }
+      this.rowsMapper.clearNull();
     }
-    this.rowsMapper.clearNull();
 
     Handsontable.hooks.run(this.hot, 'afterRowMove', rows, target);
   }
