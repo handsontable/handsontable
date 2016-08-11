@@ -70,6 +70,7 @@ class WalkontableSettings {
       //callbacks
       onCellMouseDown: null,
       onCellMouseOver: null,
+      onCellMouseUp: null,
 
       //    onCellMouseOut: null,
       onCellDblClick: null,
@@ -92,7 +93,8 @@ class WalkontableSettings {
       renderAllRows: false,
       groups: false,
       rowHeaderWidth: null,
-      columnHeaderHeight: null
+      columnHeaderHeight: null,
+      headerClassName: null
     };
 
     // reference to settings
