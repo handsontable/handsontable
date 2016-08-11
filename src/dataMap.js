@@ -26,6 +26,7 @@ function DataMap(instance, priv, GridSettings) {
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
   this.cachedLength = null;
+  this.skipCache = false;
   this.latestSourceRowsCount = 0;
 
   if (this.dataSource[0]) {
@@ -35,6 +36,8 @@ function DataMap(instance, priv, GridSettings) {
   }
   this.createMap();
   this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
+
+  this.instance.addHook('skipLengthCache', (delay) => this.onSkipLengthCache(delay));
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -654,7 +657,7 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    let reValidate = false;
+    let reValidate = this.skipCache;
 
     this.interval.start();
 
@@ -762,6 +765,14 @@ DataMap.prototype.getText = function(start, end) {
  */
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+};
+
+//TODO: docs
+DataMap.prototype.onSkipLengthCache = function(delay) {
+  this.skipCache = true;
+  setTimeout(() => {
+    this.skipCache = false;
+  }, delay);
 };
 
 /**

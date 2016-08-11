@@ -45,7 +45,12 @@ class WalkontableTableRenderer {
    */
   render() {
     if (!this.wtTable.isWorkingOnClone()) {
-      this.wot.getSetting('beforeDraw', true);
+      const skipRender = {};
+      this.wot.getSetting('beforeDraw', true, skipRender);
+
+      if (skipRender.skipRender === true) {
+        return;
+      }
     }
 
     this.rowHeaders = this.wot.getSetting('rowHeaders');

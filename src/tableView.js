@@ -442,8 +442,8 @@ function TableView(instance) {
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
     },
-    beforeDraw: function(force) {
-      that.beforeRender(force);
+    beforeDraw: function(force, skipRender) {
+      that.beforeRender(force, skipRender);
     },
     onDraw: function(force) {
       that.onDraw(force);
@@ -585,10 +585,10 @@ TableView.prototype.isCellEdited = function() {
   return activeEditor && activeEditor.isOpened();
 };
 
-TableView.prototype.beforeRender = function(force) {
+TableView.prototype.beforeRender = function(force, skipRender) {
   if (force) {
     //this.instance.forceFullRender = did Handsontable request full render?
-    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender);
+    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender, skipRender);
   }
 };
 
