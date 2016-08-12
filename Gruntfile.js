@@ -137,6 +137,9 @@ module.exports = function(grunt) {
           ],
           outfile: 'test/jasmine/SpecRunner.html',
           template: 'test/jasmine/templates/SpecRunner.tmpl',
+          templateOptions: {
+            basePath: '',
+          },
           keepRunner: true
         }
       },
@@ -178,6 +181,9 @@ module.exports = function(grunt) {
           ],
           outfile: 'test/jasmine/SpecRunner.html',
           template: 'test/jasmine/templates/SpecRunner.tmpl',
+          templateOptions: {
+            basePath: '',
+          },
           keepRunner: true
         }
       },

@@ -281,3 +281,35 @@ export function getProperty(object, name) {
 
   return result;
 }
+
+/**
+ * Create object with property where its value change will be observed.
+ *
+ * @param {*} [defaultValue=undefined] Default value.
+ * @param {String} [propertyToListen='value'] Property to listen.
+ * @returns {Object}
+ */
+export function createObjectPropListener(defaultValue, propertyToListen = 'value') {
+  const privateProperty = `_${propertyToListen}`;
+  const holder = {
+    _touched: false,
+    [privateProperty]: defaultValue,
+    isTouched() {
+      return this._touched;
+    }
+  };
+
+  Object.defineProperty(holder, propertyToListen, {
+    get: function() {
+      return this[privateProperty];
+    },
+    set: function(value) {
+      this._touched = true;
+      this[privateProperty] = value;
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  return holder;
+}

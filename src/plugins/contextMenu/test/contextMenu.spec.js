@@ -1072,7 +1072,7 @@ describe('ContextMenu', function () {
       contextMenu();
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countCols()).toBe(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1094,7 +1094,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); // Remove column
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, undefined, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], undefined, undefined, undefined);
       expect(countCols()).toBe(0);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1117,7 +1117,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 
