@@ -609,7 +609,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           isHeaderSelected = false,
           areCoordsPositive = true;
 
-      // TODO: selection by headers when fixedCol/fixedRow are present doesn't work properly with firstVisible.
       var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
       var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
       var newRangeCoords = {
@@ -842,12 +841,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!selection.isSelected()) {
         return false;
       }
-      // if (selection.selectedHeader.cols) {
-      //   return priv.selRange.includes(new WalkontableCellCoords(0, coords.col));
-      // }
-      // if (selection.selectedHeader.rows) {
-      //   return priv.selRange.includes(new WalkontableCellCoords(coords.row, 0));
-      // }
+
       return priv.selRange.includes(coords);
     },
 
@@ -867,8 +861,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       editorManager.destroyEditor();
       selection.refreshBorders();
-      removeClass(instance.rootElement, 'ht__selection--rows');
-      removeClass(instance.rootElement, 'ht__selection--columns');
+      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       Handsontable.hooks.run(instance, 'afterDeselect');
     },
 
@@ -3723,7 +3716,8 @@ DefaultSettings.prototype = {
    * Class name for all visible headers in current selection.
    *
    * @type {String}
-   * @default undefined
+   * @since 0.27.0
+   * @default 'ht__highlight'
    * @example
    * ```js
    * currentHeaderClassName: 'ht__highlight' // This will add a 'ht__highlight' class name to appropriate table headers.
@@ -4337,16 +4331,6 @@ DefaultSettings.prototype = {
    * @default 'auto'
    */
   viewportColumnRenderingOffset: 'auto',
-
-  /**
-   * Configuration of the plugin, allowing the user to show/hide certain columns
-   *
-   * @type {Object}
-   * @default undefined
-   * @since 0.19.0
-   */
-  //hiddenColumns: void 0,
-  //hiddenRows: void 0,
 
   /**
    * A function or a regular expression, which will be used in the process of cell validation.
