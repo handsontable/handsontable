@@ -193,7 +193,7 @@ class ManualRowMove extends BasePlugin {
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
 
-    if (!selection || !isHeaderSelection || priv.pressed) {
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI]);
