@@ -317,11 +317,8 @@ class WalkontableTable {
       // row after rendered rows
       return -2;
     }
-    let TR = void 0;
 
-    if (this.rowFilter) {
-      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
-    }
+    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
 
     if (TR) {
       return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];

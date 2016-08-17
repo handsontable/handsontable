@@ -5,15 +5,14 @@ import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {RowsMapper} from './rowsMapper';
-import {ManualRowMoveUI as UI} from './manualRowMoveUI';
+import {BacklightUI} from './ui/backlight';
+import {GuidelineUI} from './ui/guideline';
 
 const privatePool = new WeakMap();
-const CSSCLASSNAMES = {
-  plugin: 'ht__manualRowMove',
-  showUI: 'show-ui',
-  onMoving: 'on-moving--rows',
-  afterSelection: 'after-selection--rows',
-};
+const CSS_PLUGIN = 'ht__manualRowMove';
+const CSS_SHOWUI = 'show-ui';
+const CSS_ONMOVING = 'on-moving--rows';
+const CSS_AFTERSELECTION = 'after-selection--rows';
 
 /**
  * @plugin ManualRowMove
@@ -68,11 +67,17 @@ class ManualRowMove extends BasePlugin {
      */
     this.eventManager = eventManagerObject(this);
     /**
-     * UI Manager object.
+     * Backlight UI object.
      *
      * @type {Object}
      */
-    this.uiManager = new UI(hotInstance);
+    this.backlight = new BacklightUI(hotInstance);
+    /**
+     * Guideline UI object.
+     *
+     * @type {Object}
+     */
+    this.guideline = new GuidelineUI(hotInstance);
   }
 
   /**
@@ -94,17 +99,19 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseUp', (event, coords, TD) => this.onBeforeOnCellMouseUp(event, coords, TD));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
-
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
+    this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
 
     this.initialSettings();
-    this.uiManager.createUI();
+    this.backlight.build();
+    this.guideline.build();
     this.registerEvents();
 
-    addClass(this.hot.rootElement, CSSCLASSNAMES.plugin);
+    // TODO: move adding plugin classname to BasePlugin.
+    addClass(this.hot.rootElement, CSS_PLUGIN);
 
     super.enablePlugin();
   }
@@ -125,10 +132,11 @@ class ManualRowMove extends BasePlugin {
   disablePlugin() {
     this.rowsMapper.clearMap();
 
-    removeClass(this.hot.rootElement, CSSCLASSNAMES.plugin);
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
 
     this.unregisterEvents();
-    this.uiManager.removeUI();
+    this.backlight.destroy();
+    this.guideline.destroy();
 
     super.disablePlugin();
   }
@@ -168,21 +176,36 @@ class ManualRowMove extends BasePlugin {
     this.eventManager.clear();
   }
 
+  onBeforeColumnSort(column, order) {
+    // this.rowsMapper.createMap(this.hot.countRows());
+  }
+
+  /**
+   * Method for change behavior of selection / dragging.
+   *
+   * @param {MouseEvent} event
+   * @param {WalkontableCellCoords} coords
+   * @param {HTMLElement} TD
+   * @param {Object} blockCalculations
+   */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let isHeaderSelection = this.hot.selection.selectedHeader.rows;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
 
-    if (!selection || !isHeaderSelection || priv.pressed) {
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
-      removeClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
-      removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
+      removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI]);
       return;
     }
 
-    if (this.uiManager.isCreated() && !this.uiManager.isAppended()) {
-      this.uiManager.appendUI(this.hot.view.wt.wtTable.hider);
+    let guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    let backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(this.hot.view.wt.wtTable.hider);
+      this.backlight.appendTo(this.hot.view.wt.wtTable.hider);
     }
 
     let {from, to} = selection;
@@ -197,17 +220,17 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      this.uiManager.backlightElement.style.left = this.hot.getColWidth(-1) + 'px';
-      this.uiManager.backlightElement.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
-      this.uiManager.backlightElement.style.height = this.getRowsHeight(start, end + 1) + 'px';
-      this.uiManager.backlightElement.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
+      this.backlight.element.style.left = this.hot.getColWidth(-1) + 'px';
+      this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
+      this.backlight.element.style.height = this.getRowsHeight(start, end + 1) + 'px';
+      this.backlight.element.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
 
-      addClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
+      addClass(this.hot.rootElement, CSS_ONMOVING);
 
       this.refreshPositions();
 
     } else {
-      removeClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+      removeClass(this.hot.rootElement, CSS_AFTERSELECTION);
       priv.pressed = false;
       priv.rowsToMove.length = 0;
     }
@@ -226,25 +249,22 @@ class ManualRowMove extends BasePlugin {
     let selection = this.hot.selection;
     let priv = privatePool.get(this);
 
-    if (!selectedRange) {
+    if (!selectedRange || !priv.pressed) {
       return;
     }
 
-    if (priv.pressed && coords.row > -1) {
-      // unfortunately, after select a row by header, header coords in inInSelection are false
-      if (selection.inInSelection(coords)) {
-        removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
+    if (priv.rowsToMove.indexOf(coords.row) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOWUI);
 
-      } else {
-        addClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
-      }
-
-      blockCalculations.row = true;
-      blockCalculations.column = true;
-      blockCalculations.cell = true;
-      priv.target.coords = coords;
-      priv.target.TD = TD;
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOWUI);
     }
+
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.target.coords = coords;
+    priv.target.TD = TD;
   }
 
   /**
@@ -259,12 +279,10 @@ class ManualRowMove extends BasePlugin {
     priv.pressed = false;
     priv.backlightHeight = 0;
 
-    removeClass(this.hot.rootElement, CSSCLASSNAMES.onMoving);
-    removeClass(this.hot.rootElement, CSSCLASSNAMES.showUI);
-    removeClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+    removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI, CSS_AFTERSELECTION]);
 
     if (this.hot.selection.selectedHeader.rows) {
-      addClass(this.hot.rootElement, CSSCLASSNAMES.afterSelection);
+      addClass(this.hot.rootElement, CSS_AFTERSELECTION);
     }
     if (priv.rowsToMove.length < 1) {
       return;
@@ -296,14 +314,13 @@ class ManualRowMove extends BasePlugin {
       return;
     }
 
-    // callback for browser which doesn't supports CSS pointer-event: none (
-    // this
-    if (event.realTarget === instance.uiManager.backlightElement) {
-      let height = instance.uiManager.backlightElement.style.height;
-      instance.uiManager.backlightElement.style.height = '0';
+    // callback for browser which doesn't supports CSS pointer-event: none
+    if (event.realTarget === instance.backlight.element) {
+      let height = instance.backlight.element.style.height;
+      instance.backlight.element.style.height = '0';
 
       setTimeout(function() {
-        instance.uiManager.backlightElement.style.height = height;
+        instance.backlight.element.style.height = height;
       });
     }
 
@@ -318,8 +335,8 @@ class ManualRowMove extends BasePlugin {
     let headerWidth = this.hot.getColWidth(-1);
     let scrollLeft = this.hot.view.wt.wtTable.holder.scrollLeft;
     let posLeft = headerWidth + scrollLeft;
-    this.uiManager.backlightElement.style.left = posLeft + 'px';
-    this.uiManager.backlightElement.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - posLeft) + 'px';
+    this.backlight.element.style.left = posLeft + 'px';
+    this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - posLeft) + 'px';
   }
 
   /**
@@ -474,8 +491,8 @@ class ManualRowMove extends BasePlugin {
     let mouseOffsetTop = event.pageY - rootElementOffset.top + this.hot.view.wt.wtTable.holder.scrollTop;
     let hiderHeight = this.hot.view.wt.wtTable.hider.offsetHeight;
     let tbodyOffsetTop = this.hot.view.wt.wtTable.TBODY.offsetTop;
-    let backlightElemMarginTop = parseInt(this.uiManager.backlightElement.style.marginTop, 10);
-    let backlightElemHeight = parseInt(this.uiManager.backlightElement.style.height, 10);
+    let backlightElemMarginTop = parseInt(this.backlight.element.style.marginTop, 10);
+    let backlightElemHeight = parseInt(this.backlight.element.style.height, 10);
 
     if (this.isFixedRowTop(coords.row)) {
       tdOffsetTop += this.hot.view.wt.wtTable.holder.scrollTop;
@@ -517,8 +534,8 @@ class ManualRowMove extends BasePlugin {
       guidelineTop = hiderHeight - 1;
     }
 
-    this.uiManager.backlightElement.style.top = backlightTop + 'px';
-    this.uiManager.guidelineElement.style.top = guidelineTop + 'px';
+    this.backlight.element.style.top = backlightTop + 'px';
+    this.guideline.element.style.top = guidelineTop + 'px';
   }
 
   /**

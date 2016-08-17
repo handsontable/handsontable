@@ -149,13 +149,17 @@ class WalkontableSelection {
         TH = wotInstance.wtTable.getColumnHeader(sourceCol);
 
         if (TH) {
+          let newClasses = [];
+
           if (this.settings.highlightHeaderClassName) {
-            addClass(TH, this.settings.highlightHeaderClassName);
+            newClasses.push(this.settings.highlightHeaderClassName);
           }
 
           if (this.settings.highlightColumnClassName) {
-            addClass(TH, this.settings.highlightColumnClassName);
+            newClasses.push(this.settings.highlightColumnClassName);
           }
+
+          addClass(TH, newClasses);
         }
       }
     }
@@ -167,13 +171,17 @@ class WalkontableSelection {
         TH = wotInstance.wtTable.getRowHeader(sourceRow);
 
         if (TH) {
+          let newClasses = [];
+
           if (this.settings.highlightHeaderClassName) {
-            addClass(TH, this.settings.highlightHeaderClassName);
+            newClasses.push(this.settings.highlightHeaderClassName);
           }
 
-          if (TH && this.settings.highlightRowClassName) {
-            addClass(TH, this.settings.highlightRowClassName);
+          if (this.settings.highlightRowClassName) {
+            newClasses.push(this.settings.highlightRowClassName);
           }
+
+          addClass(TH, newClasses);
         }
       }
 
