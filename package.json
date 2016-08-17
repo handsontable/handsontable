@@ -1,5 +1,5 @@
 {
-  "name": "handsontable",
+  "name": "sm-handsontable",
   "description": "Spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "homepage": "http://handsontable.com/",
   "repository": {
@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "0.19.0",
+  "version": "1.0.1",
   "keywords": [
     "data",
     "grid",

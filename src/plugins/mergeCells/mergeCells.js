@@ -566,6 +566,8 @@ var afterGetCellMeta = function(row, col, cellProperties) {
     var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
     if (mergeParent && (mergeParent.row != row || mergeParent.col != col)) {
       cellProperties.copyable = false;
+    } else if(!cellProperties.copyable) {
+      cellProperties.copyable = true
     }
   }
 };

@@ -1,5 +1,5 @@
 /*!
- * Handsontable 0.19.0
+ * Handsontable 1.0.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 04 2016 17:56:23 GMT+0800 (CST)
+ * Date: Wed Aug 17 2016 11:28:27 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '0.19.0',
-  buildDate: 'Thu Aug 04 2016 17:56:23 GMT+0800 (CST)',
+  version: '1.0.1',
+  buildDate: 'Wed Aug 17 2016 11:28:27 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -9752,7 +9752,7 @@ function getDeltas(start, end, data, direction, attr) {
       startValue = parseFloat(data[0][col], 10);
       endValue = parseFloat(data[endRow][col], 10);
       colAttr = attr[0][col].dataAttrs;
-      delta = genDateDelta(startValue, endValue, endRow, colAttr, direction, rlength);
+      delta = genDelta(startValue, endValue, endRow, colAttr, direction, rlength);
       arr.push(delta);
     }
     deltas.push(arr);
@@ -9763,14 +9763,14 @@ function getDeltas(start, end, data, direction, attr) {
       startValue = parseFloat(data[row][0], 10);
       endValue = parseFloat(data[row][endCol], 10);
       rowAttr = attr[row][0].dataAttrs;
-      delta = genDateDelta(startValue, endValue, endCol, rowAttr, direction, clength);
+      delta = genDelta(startValue, endValue, endCol, rowAttr, direction, clength);
       arr = [];
       arr.push(delta);
       deltas.push(arr);
     }
   }
   return deltas;
-  function genDateDelta(startValue, endValue, endPos, attr, direction, totalLen) {
+  function genDelta(startValue, endValue, endPos, attr, direction, totalLen) {
     var isAdd = ['down', 'right'].indexOf(direction) > -1,
         delta;
     if (endPos === 0 && attr && attr.format && datePatternAry.indexOf(attr.format) > -1) {
@@ -14122,6 +14122,8 @@ var afterGetCellMeta = function(row, col, cellProperties) {
     var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
     if (mergeParent && (mergeParent.row != row || mergeParent.col != col)) {
       cellProperties.copyable = false;
+    } else if (!cellProperties.copyable) {
+      cellProperties.copyable = true;
     }
   }
 };
