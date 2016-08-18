@@ -433,7 +433,9 @@ class WalkontableBorder {
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
-      this.cornerStyle.display = 'block';
+
+      // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
+      this.cornerStyle.display = 'none';
 
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
 
@@ -455,6 +457,7 @@ class WalkontableBorder {
         }
       }
 
+      this.cornerStyle.display = 'block';
     }
 
     if (isMobileBrowser()) {
