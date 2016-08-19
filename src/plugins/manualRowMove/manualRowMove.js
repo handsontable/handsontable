@@ -276,6 +276,9 @@ class ManualRowMove extends BasePlugin {
    */
   onBeforeOnCellMouseUp(event, coords, TD) {
     let priv = privatePool.get(this);
+    let blockMoving = {
+      rows: false
+    };
     priv.pressed = false;
     priv.backlightHeight = 0;
 
@@ -290,13 +293,16 @@ class ManualRowMove extends BasePlugin {
 
     let target = priv.target.row;
 
-    this.moveRows(target, priv.rowsToMove);
+    this.moveRows(target, priv.rowsToMove, blockMoving);
     this.persistentStateSave();
     this.hot.render();
 
-    let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-    let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
-    this.changeSelection(selectionStart, selectionEnd);
+    if (!blockMoving.rows) {
+      let selectionStart = target;
+      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+
+      this.changeSelection(selectionStart, selectionEnd);
+    }
 
     priv.rowsToMove.length = 0;
   }
@@ -378,13 +384,11 @@ class ManualRowMove extends BasePlugin {
    *
    * @param {Number} target Visual row index as target for moved rows.
    * @param {Array} rows Array of visual rows index to moving.
+   * @param {Object} blockMoving Contains information about block native moving.
    */
-  moveRows(target, rows) {
+  moveRows(target, rows, blockMoving = { rows: false }) {
     let rowsLen = rows.length;
     let i = 0;
-    let blockMoving = {
-      rows: false
-    };
 
     Handsontable.hooks.run(this.hot, 'beforeRowMove', rows, target, blockMoving);
     // rewrite visual indexes to logical for save reference after move
