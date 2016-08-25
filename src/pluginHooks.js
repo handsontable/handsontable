@@ -899,6 +899,43 @@ const REGISTERED_HOOKS = [
    * @param {Number} col Column index.
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired before the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#beforeUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeUndo',
+  /**
+   * Fired after the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#afterUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterUndo',
+  /**
+   * Fired before the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#beforeRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeRedo',
+  /**
+   * Fired after the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#afterRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterRedo'
 ];
 
 import {arrayEach} from './helpers/array';
