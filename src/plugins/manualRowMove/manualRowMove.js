@@ -3,6 +3,7 @@ import Handsontable from './../../browser';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
+import {isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 import {RowsMapper} from './rowsMapper';
 import {BacklightUI} from './ui/backlight';
@@ -194,7 +195,7 @@ class ManualRowMove extends BasePlugin {
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
 
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isImmediatePropagationStopped(event)) {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI]);
