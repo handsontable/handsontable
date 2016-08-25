@@ -222,8 +222,8 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      this.backlight.element.style.left = this.hot.view.wt.wtTable.getColumnWidth(-1) + 'px';
-      this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
+      this.backlight.element.style.left = this.hot.view.wt.wtTable.holder.scrollLeft + this.hot.view.wt.wtTable.getColumnWidth(-1) + 'px';
+      this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.view.wt.wtTable.getColumnWidth(-1)) + 'px';
       this.backlight.element.style.height = this.getRowsHeight(start, end + 1) + 'px';
       this.backlight.element.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
 
@@ -337,7 +337,7 @@ class ManualRowMove extends BasePlugin {
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
    */
   onAfterScrollHorizontally() {
-    let headerWidth = this.hot.getColWidth(-1);
+    let headerWidth = this.hot.view.wt.wtTable.getColumnWidth(-1);
     let scrollLeft = this.hot.view.wt.wtTable.holder.scrollLeft;
     let posLeft = headerWidth + scrollLeft;
     this.backlight.element.style.left = posLeft + 'px';
