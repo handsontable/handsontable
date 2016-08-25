@@ -97,13 +97,13 @@ class ManualRowMove extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseUp', (event, coords, TD) => this.onBeforeOnCellMouseUp(event, coords, TD));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
+    this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
     this.initialSettings();
     this.backlight.build();
@@ -165,6 +165,7 @@ class ManualRowMove extends BasePlugin {
    */
   registerEvents() {
     this.eventManager.addEventListener(document.documentElement, 'mousemove', (event, instance) => this.onMouseMove(event, this));
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (event, instance) => this.onMouseUp(event, this));
   }
 
   /**
@@ -220,7 +221,7 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      this.backlight.element.style.left = this.hot.getColWidth(-1) + 'px';
+      this.backlight.element.style.left = this.hot.view.wt.wtTable.getColumnWidth(-1) + 'px';
       this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
       this.backlight.element.style.height = this.getRowsHeight(start, end + 1) + 'px';
       this.backlight.element.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
@@ -268,24 +269,23 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * `beforeOnCellMouseUp` hook callback.
+   * `onMouseUp` hook callback.
    *
    * @param event {MouseEvent} `mouseup` event properties.
-   * @param coords {WalkontableCellCoords} Coords, where was fired mouse up action. If coords up was fired outside the table, then here is `null`.
-   * @param TD {HTMLElement}
+   * @param instance {ManualRowMove} Instance of the `manualRowMove` plugin.
    */
-  onBeforeOnCellMouseUp(event, coords, TD) {
-    let priv = privatePool.get(this);
+  onMouseUp(event, instance) {
+    let priv = privatePool.get(instance);
     let blockMoving = {
       rows: false
     };
     priv.pressed = false;
     priv.backlightHeight = 0;
 
-    removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI, CSS_AFTERSELECTION]);
+    removeClass(instance.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI, CSS_AFTERSELECTION]);
 
-    if (this.hot.selection.selectedHeader.rows) {
-      addClass(this.hot.rootElement, CSS_AFTERSELECTION);
+    if (instance.hot.selection.selectedHeader.rows) {
+      addClass(instance.hot.rootElement, CSS_AFTERSELECTION);
     }
     if (priv.rowsToMove.length < 1) {
       return;
@@ -293,17 +293,15 @@ class ManualRowMove extends BasePlugin {
 
     let target = priv.target.row;
 
-    this.moveRows(target, priv.rowsToMove, blockMoving);
-    this.persistentStateSave();
-    this.hot.render();
+    instance.moveRows(target, priv.rowsToMove, blockMoving);
+    instance.persistentStateSave();
+    instance.hot.render();
 
     if (!blockMoving.rows) {
-      let selectionStart = target;
-      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
-
-      this.changeSelection(selectionStart, selectionEnd);
+      let selectionStart = instance.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+      let selectionEnd = instance.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      instance.changeSelection(selectionStart, selectionEnd);
     }
-
     priv.rowsToMove.length = 0;
   }
 
@@ -440,6 +438,16 @@ class ManualRowMove extends BasePlugin {
     return row;
   }
 
+  /**
+   * 'unmodifyRow' hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @returns {Number} Modified row index.
+   */
+  onUnmodifyRow(row) {
+    return this.rowsMapper.getIndexByValue(row);
+  }
   /**
    * On before remove row listener.
    *
@@ -593,11 +601,7 @@ class ManualRowMove extends BasePlugin {
     let height = 0;
 
     for (let i = from; i < to; i++) {
-      let rowHeight = this.hot.getRowHeight(i) || 23;
-
-      if (rowHeight < 23) {
-        rowHeight = 23;
-      }
+      let rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
 
       height += rowHeight;
     }
@@ -611,3 +615,4 @@ export {ManualRowMove};
 registerPlugin('ManualRowMove', ManualRowMove);
 Handsontable.hooks.register('beforeRowMove');
 Handsontable.hooks.register('afterRowMove');
+Handsontable.hooks.register('unmodifyRow');
