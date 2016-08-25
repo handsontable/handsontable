@@ -171,9 +171,6 @@ function WalkontableEvent(instance) {
 
       } else if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
         that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
-
-      } else if (that.instance.hasSetting('onCellMouseUp')) {
-        that.instance.getSetting('onCellMouseUp', event, null, null, that.instance);
       }
     }
   };
@@ -190,7 +187,7 @@ function WalkontableEvent(instance) {
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
-  eventManager.addEventListener(document.documentElement, 'mouseup', onMouseUp);
+  eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
   // check if full HOT instance, or detached WOT AND run on mobile device
   if (this.instance.wtTable.holder.parentNode.parentNode && isMobileBrowser() && !that.instance.wtTable.isWorkingOnClone()) {

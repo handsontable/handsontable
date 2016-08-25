@@ -648,6 +648,14 @@ const REGISTERED_HOOKS = [
     'unmodifyCol',
 
   /**
+   * Fired when a column index is about to be de-modified by a callback function.
+   *
+   * @event Hooks#unmodifyRow
+   * @since 0.26.2
+   * @param {Number} col Column index.
+   */
+  'unmodifyCol',
+  /**
    * Fired when a column header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyColHeader
