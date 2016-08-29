@@ -119,13 +119,38 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Boolean} [checked=null]
    */
   function toggleSelected(checked = null) {
-    eachSelectedCheckboxCell(function(checkboxes) {
-      for (let i = 0, len = checkboxes.length; i < len; i++) {
-        // Block changing checked property on toggle keys (SPACE and ENTER)
-        if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
-          return;
+    eachSelectedCheckboxCell(function() {
+      if (arguments.length > 1) {
+        let row = arguments[0];
+        let col = arguments[1];
+        let cellProperties = arguments[2];
+
+        if (cellProperties.checkedTemplate) {
+          let dataAtCell = instance.getDataAtCell(row, col);
+
+          if (checked === null) {
+            if (dataAtCell === cellProperties.checkedTemplate) {
+              instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
+
+            } else if (dataAtCell === cellProperties.uncheckedTemplate) {
+              instance.setDataAtCell(row, col, cellProperties.checkedTemplate);
+            }
+
+          } else {
+            instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
+          }
         }
-        toggleCheckbox(checkboxes[i], checked);
+
+      } else {
+        let checkboxes = arguments[0];
+
+        for (let i = 0, len = checkboxes.length; i < len; i++) {
+          // Block changing checked property on toggle keys (SPACE and ENTER)
+          if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+            return;
+          }
+          toggleCheckbox(checkboxes[i], checked);
+        }
       }
     });
   }
@@ -165,10 +190,17 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       for (let col = topLeft.col; col <= bottomRight.col; col++) {
         let cell = instance.getCell(row, col);
         let cellProperties = instance.getCellMeta(row, col);
-        let checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-        if (checkboxes.length > 0 && !cellProperties.readOnly) {
-          callback(checkboxes);
+        if (cell == null) {
+
+          callback(row, col, cellProperties);
+
+        } else {
+          let checkboxes = cell.querySelectorAll('input[type=checkbox]');
+
+          if (checkboxes.length > 0 && !cellProperties.readOnly) {
+            callback(checkboxes);
+          }
         }
       }
     }
