@@ -152,6 +152,10 @@ class Menu {
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
+
+      if (this.parentMenu) {
+        this.parentMenu.hotMenu.listen();
+      }
     }
   }
 

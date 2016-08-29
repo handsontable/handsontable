@@ -2500,6 +2500,33 @@ describe('ContextMenu', function () {
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
+
+    it("should close sub-menu and parent menu in proper order when user hits ESC twice", function () {
+      handsontable({
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      var contextMenuRoot = $('.htContextMenu');
+
+      item.simulate('mouseover');
+
+      waits(350) // waits for submenu open delay
+      runs(function() {
+        expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
+
+        keyDownUp('esc');
+
+        expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
+
+        keyDownUp('esc');
+
+        expect($('.htContextMenu').is(':visible')).toBe(false);
+      });
+    });
   });
 
   describe('mouse navigation', function () {
