@@ -156,6 +156,28 @@ describe('ContextMenu', function () {
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
+
+    it("should close menu after click under the menu", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(500, 10),
+        contextMenu: true,
+        height: 500
+      });
+
+      contextMenu();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      var rect = $('.htContextMenu')[0].getBoundingClientRect();
+
+      var x = parseInt(rect.left + rect.width / 2, 10);
+      var y = parseInt(rect.top + rect.height, 10);
+
+      window.scrollTo(0, y + window.innerHeight / 2);
+      y -= window.scrollY;
+      mouseDown(document.elementFromPoint(x, y));
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+    });
   });
 
   describe("menu disabled", function () {
