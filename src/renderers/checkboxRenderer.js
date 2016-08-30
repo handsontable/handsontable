@@ -188,8 +188,13 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     for (let row = topLeft.row; row <= bottomRight.row; row++) {
       for (let col = topLeft.col; col <= bottomRight.col; col++) {
-        let cell = instance.getCell(row, col);
         let cellProperties = instance.getCellMeta(row, col);
+
+        if (cellProperties.type !== 'checkbox') {
+          return;
+        }
+
+        let cell = instance.getCell(row, col);
 
         if (cell == null) {
 
