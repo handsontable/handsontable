@@ -294,6 +294,8 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undone
 
   Array.prototype.splice.apply(instance.getSourceData(), spliceArgs);
 
+  instance.runHooks('afterCreateRow', this.index, this.data.length, true);
+
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
