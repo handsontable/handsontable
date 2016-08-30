@@ -40,11 +40,21 @@ class RowsMapper {
     this._arrayMap = null;
   }
 
+  /**
+   * Moving elements in rowsMapper.
+   *
+   * @param {Number} from
+   * @param {Number} to
+   */
   moveRow(from, to) {
     var indexToMove = this._arrayMap[from];
     this._arrayMap[from] = null;
     this._arrayMap.splice(to, 0, indexToMove);
   }
+
+  /**
+   * Clearing arrayMap from `null` entries.
+   */
   clearNull() {
     this._arrayMap = this._arrayMap.filter(function(i) {
       return i !== null;

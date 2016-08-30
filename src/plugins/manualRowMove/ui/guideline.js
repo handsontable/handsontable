@@ -8,6 +8,9 @@ class GuidelineUI extends BaseUI {
     super(hotInstance);
   }
 
+  /**
+   * Custom className on build process.
+   */
   build() {
     super.build();
 

@@ -98,6 +98,10 @@ Handsontable.UndoRedo = function(instance) {
   instance.addHook('beforeFilter', function(formulaStacks) {
     plugin.done(new Handsontable.UndoRedo.FiltersAction(formulaStacks));
   });
+
+  instance.addHook('beforeRowMove', function(movedRows, target) {
+    plugin.done(new Handsontable.UndoRedo.RowMoveAction(movedRows, target));
+  });
 };
 
 Handsontable.UndoRedo.prototype.done = function(action) {
@@ -407,6 +411,45 @@ Handsontable.UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCa
 
   filters.formulaCollection.importAllFormulas(this.formulaStacks);
   filters.filter();
+};
+
+/**
+ * ManualRowMove action.
+ * @TODO: removeRow undo should works on logical index
+ */
+Handsontable.UndoRedo.RowMoveAction = function(movedRows, target) {
+  this.rows = movedRows.slice();
+  this.target = target;
+};
+inherit(Handsontable.UndoRedo.RowMoveAction, Handsontable.UndoRedo.Action);
+
+Handsontable.UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
+  let manualRowMove = instance.getPlugin('manualRowMove');
+
+  instance.addHookOnce('afterRender', undoneCallback);
+  let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  let newRows = [];
+  let rowsLen = this.rows.length + mod;
+
+  for (let i = mod; i < rowsLen; i++) {
+    newRows.push(this.target + i);
+  }
+  manualRowMove.moveRows(newTarget, newRows.slice());
+  instance.render();
+
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(this.rows[0], 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+};
+Handsontable.UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
+  let manualRowMove = instance.getPlugin('manualRowMove');
+
+  instance.addHookOnce('afterRender', redoneCallback);
+  manualRowMove.moveRows(this.target, this.rows.slice());
+  instance.render();
+  let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(startSelection, 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
 };
 
 function init() {

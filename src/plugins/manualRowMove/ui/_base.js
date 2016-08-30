@@ -1,13 +1,16 @@
 const STATE_APPENDED = 1;
 const STATE_BUILT = 2;
+const UNIT = 'px';
 
 class BaseUI {
   constructor(hotInstance) {
     this.hot = hotInstance;
-
+    /**
+     * DOM element representing parent for ui element.
+     */
     this.parent = void 0;
     /**
-     * DOM element representing the move handle.
+     * DOM element representing the ui element.
      *
      * @type {HTMLElement}
      */
@@ -71,10 +74,90 @@ class BaseUI {
   /**
    * Check if UI element are built.
    *
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   isBuilt() {
     return this.state >= STATE_BUILT;
+  }
+
+  /**
+   * Setter for position.
+   *
+   * @param {Number} top
+   * @param {Number} left
+   */
+  setPosition(top, left) {
+    if (top) {
+      this.element.style.top = top + UNIT;
+    }
+    if (left) {
+      this.element.style.left = left + UNIT;
+    }
+  }
+
+  /**
+   * Getter for the element position.
+   *
+   * @returns {Object} Object contains left and top position of the element.
+   */
+  getPosition() {
+    return {
+      top: this.element.style.top ? parseInt(this.element.style.top, 10) : 0,
+      left: this.element.style.left ? parseInt(this.element.style.left, 10) : 0
+    };
+  }
+
+  /**
+   * Setter for the element size.
+   *
+   * @param width
+   * @param height
+   */
+  setSize(width, height) {
+    if (width) {
+      this.element.style.width = width + UNIT;
+    }
+    if (height) {
+      this.element.style.height = height + UNIT;
+    }
+  }
+
+  /**
+   * Getter for the element position.
+   *
+   * @returns {Object} Object contains height and width of the element.
+   */
+  getSize() {
+    return {
+      width: this.element.style.width ? parseInt(this.element.style.width, 10) : 0,
+      height: this.element.style.height ? parseInt(this.element.style.height, 10) : 0
+    };
+  }
+
+  /**
+   * Setter for the element offset. Offset means marginTop and marginLeft of the element.
+   *
+   * @param {Number} top
+   * @param {Number} left
+   */
+  setOffset(top, left) {
+    if (top) {
+      this.element.style.marginTop = top + UNIT;
+    }
+    if (left) {
+      this.element.style.marginLeft = left + UNIT;
+    }
+  }
+
+  /**
+   * Getter for the element offset.
+   * @returns {Object} Object contains top and left offset of the element.
+   */
+  getOffset() {
+    return {
+      top: this.element.style.marginTop ? parseInt(this.element.style.marginTop, 10) : 0,
+      left: this.element.style.marginLeft ? parseInt(this.element.style.marginLeft, 10) : 0
+    };
   }
 }
 

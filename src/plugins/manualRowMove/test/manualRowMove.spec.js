@@ -315,4 +315,41 @@ describe('manualRowMove', function () {
       expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
     });
   });
+  describe('undoRedo', function() {
+    it('should back changes', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+      });
+      hot.getPlugin('manualRowMove').moveRow(4, 1);
+      hot.render();
+
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+
+      hot.undo();
+
+      expect(hot.getDataAtCell(1, 0)).toBe('A2');
+    });
+
+    it('should revert changes', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+      });
+      hot.getPlugin('manualRowMove').moveRow(4, 1);
+      hot.render();
+
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+
+      hot.undo();
+
+      expect(hot.getDataAtCell(1, 0)).toBe('A2');
+
+      hot.redo();
+
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+    });
+  })
 });

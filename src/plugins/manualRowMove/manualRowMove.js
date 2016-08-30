@@ -1,5 +1,6 @@
 import BasePlugin from './../_base.js';
 import Handsontable from './../../browser';
+import {arrayEach} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
@@ -37,11 +38,15 @@ class ManualRowMove extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
+    /**
+     * Set up WeakMap of plugin to sharing private parameters;
+     */
     privatePool.set(this, {
       rowsToMove: [],
       pressed: void 0,
+      disallowMoving: void 0,
       target: {
-        event: void 0,
+        eventPageY: void 0,
         coords: void 0,
         TD: void 0,
         row: void 0
@@ -164,8 +169,8 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event, instance) => this.onMouseMove(event, this));
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', (event, instance) => this.onMouseUp(event, this));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 
   /**
@@ -178,7 +183,9 @@ class ManualRowMove extends BasePlugin {
   }
 
   onBeforeColumnSort(column, order) {
-    // this.rowsMapper.createMap(this.hot.countRows());
+    let priv = privatePool.get(this);
+
+    priv.disallowMoving = order !== void 0;
   }
 
   /**
@@ -190,6 +197,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+    let wtTable = this.hot.view.wt.wtTable;
     let isHeaderSelection = this.hot.selection.selectedHeader.rows;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
@@ -205,8 +213,8 @@ class ManualRowMove extends BasePlugin {
     let backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
 
     if (guidelineIsNotReady && backlightIsNotReady) {
-      this.guideline.appendTo(this.hot.view.wt.wtTable.hider);
-      this.backlight.appendTo(this.hot.view.wt.wtTable.hider);
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
 
     let {from, to} = selection;
@@ -216,15 +224,16 @@ class ManualRowMove extends BasePlugin {
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       blockCalculations.row = true;
       priv.pressed = true;
-      priv.target.event = event;
+      priv.target.eventPageY = event.pageY;
       priv.target.coords = coords;
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      this.backlight.element.style.left = this.hot.getColWidth(-1) + 'px';
-      this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - this.hot.getColWidth(-1)) + 'px';
-      this.backlight.element.style.height = this.getRowsHeight(start, end + 1) + 'px';
-      this.backlight.element.style.marginTop = ((this.getRowsHeight(start, coords.row) + event.layerY) * -1) + 'px';
+      let leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
+
+      this.backlight.setPosition(null, leftPos);
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos,  this.getRowsHeight(start, end + 1));
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ONMOVING);
 
@@ -247,7 +256,6 @@ class ManualRowMove extends BasePlugin {
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
     let selectedRange = this.hot.getSelectedRange();
-    let selection = this.hot.selection;
     let priv = privatePool.get(this);
 
     if (!selectedRange || !priv.pressed) {
@@ -274,15 +282,15 @@ class ManualRowMove extends BasePlugin {
    * @param event {MouseEvent} `mouseup` event properties.
    * @param instance {ManualRowMove} Instance of the `manualRowMove` plugin.
    */
-  onMouseUp(event, instance) {
-    let priv = privatePool.get(instance);
+  onMouseUp() {
+    let priv = privatePool.get(this);
     priv.pressed = false;
     priv.backlightHeight = 0;
 
-    removeClass(instance.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI, CSS_AFTERSELECTION]);
+    removeClass(this.hot.rootElement, [CSS_ONMOVING, CSS_SHOWUI, CSS_AFTERSELECTION]);
 
-    if (instance.hot.selection.selectedHeader.rows) {
-      addClass(instance.hot.rootElement, CSS_AFTERSELECTION);
+    if (this.hot.selection.selectedHeader.rows) {
+      addClass(this.hot.rootElement, CSS_AFTERSELECTION);
     }
     if (priv.rowsToMove.length < 1) {
       return;
@@ -290,13 +298,13 @@ class ManualRowMove extends BasePlugin {
 
     let target = priv.target.row;
 
-    instance.moveRows(target, priv.rowsToMove);
-    instance.persistentStateSave();
-    instance.hot.render();
+    this.moveRows(target, priv.rowsToMove);
+    this.persistentStateSave();
+    this.hot.render();
 
-    let selectionStart = instance.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-    let selectionEnd = instance.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
-    instance.changeSelection(selectionStart, selectionEnd);
+    let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+    let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+    this.changeSelection(selectionStart, selectionEnd);
 
     priv.rowsToMove.length = 0;
   }
@@ -307,24 +315,24 @@ class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    * @param {ManualRowMove} instance Plugin instance.
    */
-  onMouseMove(event, instance) {
-    let priv = privatePool.get(instance);
+  onMouseMove(event) {
+    let priv = privatePool.get(this);
 
     if (!priv.pressed) {
       return;
     }
 
     // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.realTarget === instance.backlight.element) {
-      let height = instance.backlight.element.style.height;
-      instance.backlight.element.style.height = '0';
+    if (event.realTarget === this.backlight.element) {
+      let height = this.backlight.getSize().height;
+      this.backlight.setSize(null, 0);
 
       setTimeout(function() {
-        instance.backlight.element.style.height = height;
+        this.backlight.setPosition(null, height);
       });
     }
 
-    priv.target.event = event;
+    priv.target.eventPageY = event.pageY;
     this.refreshPositions();
   }
 
@@ -332,11 +340,13 @@ class ManualRowMove extends BasePlugin {
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
    */
   onAfterScrollHorizontally() {
-    let headerWidth = this.hot.getColWidth(-1);
-    let scrollLeft = this.hot.view.wt.wtTable.holder.scrollLeft;
+    let wtTable = this.hot.view.wt.wtTable;
+    let headerWidth = wtTable.getColumnWidth(-1);
+    let scrollLeft = wtTable.holder.scrollLeft;
     let posLeft = headerWidth + scrollLeft;
-    this.backlight.element.style.left = posLeft + 'px';
-    this.backlight.element.style.width = (this.hot.view.wt.wtTable.hider.offsetWidth - posLeft) + 'px';
+
+    this.backlight.setPosition(null, posLeft);
+    this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
   }
 
   /**
@@ -377,28 +387,29 @@ class ManualRowMove extends BasePlugin {
    * Method for moving multi rows.
    *
    * @param {Number} target Visual row index as target for moved rows.
-   * @param {Array} rows Array of visual rows index to moving.
+   * @param {Array} rows Array of visual rows indexes to moving.
    */
   moveRows(target, rows) {
-    let rowsLen = rows.length;
-    let i = 0;
+    this.hot.runHooks('beforeRowMove', rows, target);
 
-    Handsontable.hooks.run(this.hot, 'beforeRowMove', rows, target);
-    // rewrite visual indexes to logical for save reference after move
-    for (i = 0; i < rowsLen; i++) {
-      rows[i] = this.rowsMapper.getValueByIndex(rows[i]);
-    }
+    // first we need to rewrite an visual indexes to logical for save reference after move
+    arrayEach(rows, (row, index, array) => {
+      array[index] = this.rowsMapper.getValueByIndex(row);
+    });
 
-    for (i = 0; i < rowsLen; i++) {
-      let actualPosition = this.rowsMapper.getIndexByValue(rows[i]);
+    // next, when we have got an logical indexes, we can
+    arrayEach(rows, (row, index) => {
+      let actualPosition = this.rowsMapper.getIndexByValue(row);
 
       if (actualPosition !== target) {
-        this.rowsMapper.moveRow(actualPosition, target + i);
+        this.rowsMapper.moveRow(actualPosition, target + index);
       }
-    }
+    });
+
+    // after moving we
     this.rowsMapper.clearNull();
 
-    Handsontable.hooks.run(this.hot, 'afterRowMove', rows, target);
+    this.hot.runHooks('afterRowMove', rows, target);
   }
 
   /**
@@ -413,7 +424,7 @@ class ManualRowMove extends BasePlugin {
     let lastColIndex = this.hot.countCols() - 1;
 
     selection.setRangeStart(new WalkontableCellCoords(startRow, 0));
-    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), true);
+    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
   }
 
   /**
@@ -487,20 +498,20 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   refreshPositions() {
+    let wtTable = this.hot.view.wt.wtTable;
     let priv = privatePool.get(this);
-    let event = priv.target.event;
     let coords = priv.target.coords;
     let TD = priv.target.TD;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
-    let mouseOffsetTop = event.pageY - rootElementOffset.top + this.hot.view.wt.wtTable.holder.scrollTop;
-    let hiderHeight = this.hot.view.wt.wtTable.hider.offsetHeight;
-    let tbodyOffsetTop = this.hot.view.wt.wtTable.TBODY.offsetTop;
-    let backlightElemMarginTop = parseInt(this.backlight.element.style.marginTop, 10);
-    let backlightElemHeight = parseInt(this.backlight.element.style.height, 10);
+    let mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
+    let hiderHeight = wtTable.hider.offsetHeight;
+    let tbodyOffsetTop = wtTable.TBODY.offsetTop;
+    let backlightElemMarginTop = this.backlight.getOffset().top;
+    let backlightElemHeight = this.backlight.getSize().height;
 
     if (this.isFixedRowTop(coords.row)) {
-      tdOffsetTop += this.hot.view.wt.wtTable.holder.scrollTop;
+      tdOffsetTop += wtTable.holder.scrollTop;
     }
 
     //todo: fixedRowsBottom
@@ -515,7 +526,8 @@ class ManualRowMove extends BasePlugin {
     } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
-      tdOffsetTop += TD.offsetHeight;
+      // unfortunately first row is bigger than rest
+      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
 
     } else {
       // elsewhere on table
@@ -539,8 +551,8 @@ class ManualRowMove extends BasePlugin {
       guidelineTop = hiderHeight - 1;
     }
 
-    this.backlight.element.style.top = backlightTop + 'px';
-    this.guideline.element.style.top = guidelineTop + 'px';
+    this.backlight.setPosition(backlightTop);
+    this.guideline.setPosition(guidelineTop);
   }
 
   /**
