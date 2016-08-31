@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
 import {pivot} from './../helpers/array';
@@ -153,9 +152,9 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
       choices = source.filter(function(choice) {
 
         if (filteringCaseSensitive) {
-          return choice.indexOf(query) != -1;
+          return choice.toString().indexOf(query) != -1;
         } else {
-          return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
+          return choice.toString().toLowerCase().indexOf(lowerCaseQuery) != -1;
         }
 
       });
