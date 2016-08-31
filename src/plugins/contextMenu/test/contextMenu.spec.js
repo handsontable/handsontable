@@ -90,6 +90,24 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it("should not open the menu after clicking an open editor", function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100
+      });
+
+      selectCell(2, 2);
+      keyDownUp('enter');
+
+      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu(hot.getActiveEditor().TEXTAREA);
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+    });
+
     it("should open menu after right click on header cell when only header cells are visible", function () {
       var hot = handsontable({
         data: [],
