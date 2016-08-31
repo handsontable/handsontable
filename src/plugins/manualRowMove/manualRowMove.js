@@ -190,6 +190,214 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * Select properly rows after move action. Fired only when action was fired by mouse.
+   * That's mean change row order by API doesn't change selection.
+   *
+   * @private
+   * @param {Number} startRow Visual row index for start selection.
+   * @param {Number} endRow Visual row index for end selection.
+   */
+  changeSelection(startRow, endRow) {
+    let selection = this.hot.selection;
+    let lastColIndex = this.hot.countCols() - 1;
+
+    selection.setRangeStart(new WalkontableCellCoords(startRow, 0));
+    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
+  }
+
+  /**
+   * Helpers for get sum of height of rows range.
+   *
+   * @private
+   * @param {Number} from Visual row index.
+   * @param {Number} to Visual row index.
+   * @returns {Number}
+   */
+  getRowsHeight(from, to) {
+    let height = 0;
+
+    for (let i = from; i < to; i++) {
+      let rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+
+      height += rowHeight;
+    }
+
+    return height;
+  }
+
+  /**
+   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   *
+   * @private
+   */
+  initialSettings() {
+    let pluginSettings = this.hot.getSettings().manualRowMove;
+
+    if (Array.isArray(pluginSettings)) {
+      this.moveRows(pluginSettings, 0);
+
+    } else if (pluginSettings !== void 0) {
+      let persistentState = this.persistentStateLoad();
+
+      if (persistentState.length) {
+        this.moveRows(persistentState, 0);
+      }
+    }
+  }
+
+  /**
+   * Helpers for check is row fixed top.
+   *
+   * @private
+   * @param {Number} row Visual row index to check.
+   * @returns {Boolean}
+   */
+  isFixedRowTop(row) {
+    return row < this.hot.getSettings().fixedRowsTop;
+  }
+
+  /**
+   * Helpers for check is row fixed bottom.
+   *
+   * @private
+   * @param {Number} row Visual row index to check.
+   * @returns {Boolean}
+   */
+  isFixedRowBottom(row) {
+    return row > this.hot.getSettings().fixedRowsBottom;
+  }
+
+  /**
+   * Save the manual row positions to the persistent state.
+   *
+   * @private
+   */
+  persistentStateSave() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+  }
+
+  /**
+   * Load the manual row positions from the persistent state.
+   *
+   * @private
+   * @returns {Array} Stored state.
+   */
+  persistentStateLoad() {
+    let storedState = {};
+
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
+
+    return storedState.value ? storedState.value : [];
+  }
+
+  /**
+   * Prepare array of indexes based on actual selection.
+   *
+   * @private
+   * @returns {Array}
+   */
+  prepareRowsToMoving() {
+    let selection = this.hot.getSelectedRange();
+    let selectedRows = [];
+
+    if (!selection) {
+      return selectedRows;
+    }
+
+    let {from, to} = selection;
+    let start = Math.min(from.row, to.row);
+    let end = Math.max(from.row, to.row);
+
+    rangeEach(start, end, (i) => {
+      selectedRows.push(i);
+    });
+
+    return selectedRows;
+  }
+
+  /**
+   * Method for update UI visual position.
+   *
+   * @private
+   */
+  refreshPositions() {
+    let wtTable = this.hot.view.wt.wtTable;
+    let priv = privatePool.get(this);
+    let coords = priv.target.coords;
+    let TD = priv.target.TD;
+    let rootElementOffset = offset(this.hot.rootElement);
+    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    let mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
+    let hiderHeight = wtTable.hider.offsetHeight;
+    let tbodyOffsetTop = wtTable.TBODY.offsetTop;
+    let backlightElemMarginTop = this.backlight.getOffset().top;
+    let backlightElemHeight = this.backlight.getSize().height;
+
+    if (this.isFixedRowTop(coords.row)) {
+      tdOffsetTop += wtTable.holder.scrollTop;
+    }
+
+    //todo: fixedRowsBottom
+    // if (this.isFixedRowBottom(coords.row)) {
+    //
+    // }
+
+    if (coords.row < 0) {
+      // if hover on colHeader
+      priv.target.row = 0;
+
+    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+      // if hover on lower part of TD
+      priv.target.row = coords.row + 1;
+      // unfortunately first row is bigger than rest
+      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
+
+    } else {
+      // elsewhere on table
+      priv.target.row = coords.row;
+    }
+
+    let backlightTop = mouseOffsetTop;
+    let guidelineTop = tdOffsetTop;
+
+    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
+      // prevent display backlight below table
+      backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
+
+    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
+      // prevent display above below table
+      backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
+    }
+
+    if (tdOffsetTop >= hiderHeight - 1) {
+      // prevent display guideline below table
+      guidelineTop = hiderHeight - 1;
+    }
+
+    this.backlight.setPosition(backlightTop);
+    this.guideline.setPosition(guidelineTop);
+  }
+
+  /**
+   * Bind the events used by the plugin.
+   *
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
+  }
+
+  /**
+   * Unbind the events used by the plugin.
+   *
+   * @private
+   */
+  unregisterEvents() {
+    this.eventManager.clear();
+  }
+
+  /**
    * `beforeColumnSort` hook callback. If user uses the sorting, manual row moving is disabled.
    *
    * @private
@@ -430,214 +638,6 @@ class ManualRowMove extends BasePlugin {
    */
   onUnmodifyRow(row) {
     return this.rowsMapper.getIndexByValue(row);
-  }
-
-  /**
-   * Select properly rows after move action. Fired only when action was fired by mouse.
-   * That's mean change row order by API doesn't change selection.
-   *
-   * @private
-   * @param {Number} startRow Visual row index for start selection.
-   * @param {Number} endRow Visual row index for end selection.
-   */
-  changeSelection(startRow, endRow) {
-    let selection = this.hot.selection;
-    let lastColIndex = this.hot.countCols() - 1;
-
-    selection.setRangeStart(new WalkontableCellCoords(startRow, 0));
-    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
-  }
-
-  /**
-   * Helpers for get sum of height of rows range.
-   *
-   * @private
-   * @param {Number} from Visual row index.
-   * @param {Number} to Visual row index.
-   * @returns {Number}
-   */
-  getRowsHeight(from, to) {
-    let height = 0;
-
-    for (let i = from; i < to; i++) {
-      let rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
-
-      height += rowHeight;
-    }
-
-    return height;
-  }
-
-  /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
-   *
-   * @private
-   */
-  initialSettings() {
-    let pluginSettings = this.hot.getSettings().manualRowMove;
-
-    if (Array.isArray(pluginSettings)) {
-      this.moveRows(pluginSettings, 0);
-
-    } else if (pluginSettings !== void 0) {
-      let persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveRows(persistentState, 0);
-      }
-    }
-  }
-
-  /**
-   * Helpers for check is row fixed top.
-   *
-   * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
-   */
-  isFixedRowTop(row) {
-    return row < this.hot.getSettings().fixedRowsTop;
-  }
-
-  /**
-   * Helpers for check is row fixed bottom.
-   *
-   * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
-   */
-  isFixedRowBottom(row) {
-    return row > this.hot.getSettings().fixedRowsBottom;
-  }
-
-  /**
-   * Save the manual row positions to the persistent state.
-   *
-   * @private
-   */
-  persistentStateSave() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
-  }
-
-  /**
-   * Load the manual row positions from the persistent state.
-   *
-   * @private
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad() {
-    let storedState = {};
-
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
-
-    return storedState.value ? storedState.value : [];
-  }
-
-  /**
-   * Prepare array of indexes based on actual selection.
-   *
-   * @private
-   * @returns {Array}
-   */
-  prepareRowsToMoving() {
-    let selection = this.hot.getSelectedRange();
-    let selectedRows = [];
-
-    if (!selection) {
-      return selectedRows;
-    }
-
-    let {from, to} = selection;
-    let start = Math.min(from.row, to.row);
-    let end = Math.max(from.row, to.row);
-
-    rangeEach(start, end, (i) => {
-      selectedRows.push(i);
-    });
-
-    return selectedRows;
-  }
-
-  /**
-   * Method for update UI visual position.
-   *
-   * @private
-   */
-  refreshPositions() {
-    let wtTable = this.hot.view.wt.wtTable;
-    let priv = privatePool.get(this);
-    let coords = priv.target.coords;
-    let TD = priv.target.TD;
-    let rootElementOffset = offset(this.hot.rootElement);
-    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
-    let mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
-    let hiderHeight = wtTable.hider.offsetHeight;
-    let tbodyOffsetTop = wtTable.TBODY.offsetTop;
-    let backlightElemMarginTop = this.backlight.getOffset().top;
-    let backlightElemHeight = this.backlight.getSize().height;
-
-    if (this.isFixedRowTop(coords.row)) {
-      tdOffsetTop += wtTable.holder.scrollTop;
-    }
-
-    //todo: fixedRowsBottom
-    // if (this.isFixedRowBottom(coords.row)) {
-    //
-    // }
-
-    if (coords.row < 0) {
-      // if hover on colHeader
-      priv.target.row = 0;
-
-    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
-      // if hover on lower part of TD
-      priv.target.row = coords.row + 1;
-      // unfortunately first row is bigger than rest
-      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
-
-    } else {
-      // elsewhere on table
-      priv.target.row = coords.row;
-    }
-
-    let backlightTop = mouseOffsetTop;
-    let guidelineTop = tdOffsetTop;
-
-    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
-      // prevent display backlight below table
-      backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
-
-    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
-      // prevent display above below table
-      backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
-    }
-
-    if (tdOffsetTop >= hiderHeight - 1) {
-      // prevent display guideline below table
-      guidelineTop = hiderHeight - 1;
-    }
-
-    this.backlight.setPosition(backlightTop);
-    this.guideline.setPosition(guidelineTop);
-  }
-
-  /**
-   * Bind the events used by the plugin.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
-  }
-
-  /**
-   * Unbind the events used by the plugin.
-   *
-   * @private
-   */
-  unregisterEvents() {
-    this.eventManager.clear();
   }
 
   /**
