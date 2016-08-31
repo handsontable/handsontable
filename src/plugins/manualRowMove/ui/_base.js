@@ -1,25 +1,33 @@
-const STATE_APPENDED = 1;
-const STATE_BUILT = 2;
+const STATE_INITIALIZED = 0;
+const STATE_BUILT = 1;
+const STATE_APPENDED = 2;
 const UNIT = 'px';
 
+/**
+ * @class
+ * @private
+ */
 class BaseUI {
   constructor(hotInstance) {
-    this.hot = hotInstance;
     /**
-     * DOM element representing parent for ui element.
+     * Instance of Handsontable.
+     *
+     * @type {Core}
      */
-    this.parent = void 0;
+    this.hot = hotInstance;
     /**
      * DOM element representing the ui element.
      *
      * @type {HTMLElement}
+     * @private
      */
-    this.element = null;
+    this._element = null;
     /**
-     * State of the ui element.
-     * @type {boolean}
+     * Flag which determines build state of element.
+     *
+     * @type {Boolean}
      */
-    this.state = 0;
+    this.state = STATE_INITIALIZED;
   }
 
   /**
@@ -28,9 +36,7 @@ class BaseUI {
    * @param {HTMLElement} wrapper Element which are parent for our UI element.
    */
   appendTo(wrapper) {
-    this.wrapper = wrapper;
-
-    this.wrapper.appendChild(this.element);
+    wrapper.appendChild(this._element);
 
     this.state = STATE_APPENDED;
   }
@@ -39,7 +45,7 @@ class BaseUI {
    * Method for create UI element. Only create, without append to table.
    */
   build() {
-    this.element = document.createElement('div');
+    this._element = document.createElement('div');
     this.state = STATE_BUILT;
   }
 
@@ -48,24 +54,17 @@ class BaseUI {
    */
   destroy() {
     if (this.isAppended()) {
-      this.parent.removeChild(this.element);
-
-    } else if (this.isBuilt()) {
-      let toRemove = document.createElement('div');
-
-      toRemove.appendChild(this.element);
-
-      document.body.appendChild(toRemove);
-      document.body.removeChild(toRemove);
+      this._element.parentElement.removeChild(this._element);
     }
 
-    this.state = 0;
+    this._element = null;
+    this.state = STATE_INITIALIZED;
   }
 
   /**
    * Check if UI element are appended.
    *
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   isAppended() {
     return this.state === STATE_APPENDED;
@@ -83,15 +82,15 @@ class BaseUI {
   /**
    * Setter for position.
    *
-   * @param {Number} top
-   * @param {Number} left
+   * @param {Number} top New top position of the element.
+   * @param {Number} left New left position of the element.
    */
   setPosition(top, left) {
     if (top) {
-      this.element.style.top = top + UNIT;
+      this._element.style.top = top + UNIT;
     }
     if (left) {
-      this.element.style.left = left + UNIT;
+      this._element.style.left = left + UNIT;
     }
   }
 
@@ -102,23 +101,23 @@ class BaseUI {
    */
   getPosition() {
     return {
-      top: this.element.style.top ? parseInt(this.element.style.top, 10) : 0,
-      left: this.element.style.left ? parseInt(this.element.style.left, 10) : 0
+      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
     };
   }
 
   /**
    * Setter for the element size.
    *
-   * @param width
-   * @param height
+   * @param {Number} width New width of the element.
+   * @param {Number} height New height of the element.
    */
   setSize(width, height) {
     if (width) {
-      this.element.style.width = width + UNIT;
+      this._element.style.width = width + UNIT;
     }
     if (height) {
-      this.element.style.height = height + UNIT;
+      this._element.style.height = height + UNIT;
     }
   }
 
@@ -129,34 +128,35 @@ class BaseUI {
    */
   getSize() {
     return {
-      width: this.element.style.width ? parseInt(this.element.style.width, 10) : 0,
-      height: this.element.style.height ? parseInt(this.element.style.height, 10) : 0
+      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
     };
   }
 
   /**
    * Setter for the element offset. Offset means marginTop and marginLeft of the element.
    *
-   * @param {Number} top
-   * @param {Number} left
+   * @param {Number} top New margin top of the element.
+   * @param {Number} left New margin left of the element.
    */
   setOffset(top, left) {
     if (top) {
-      this.element.style.marginTop = top + UNIT;
+      this._element.style.marginTop = top + UNIT;
     }
     if (left) {
-      this.element.style.marginLeft = left + UNIT;
+      this._element.style.marginLeft = left + UNIT;
     }
   }
 
   /**
    * Getter for the element offset.
+   *
    * @returns {Object} Object contains top and left offset of the element.
    */
   getOffset() {
     return {
-      top: this.element.style.marginTop ? parseInt(this.element.style.marginTop, 10) : 0,
-      left: this.element.style.marginLeft ? parseInt(this.element.style.marginLeft, 10) : 0
+      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
     };
   }
 }

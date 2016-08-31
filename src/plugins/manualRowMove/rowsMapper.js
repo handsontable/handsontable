@@ -1,17 +1,17 @@
 import Handsontable from './../../browser';
 import {arrayMapper} from './../../mixins/arrayMapper';
+import {arrayFilter} from './../../helpers/array';
 import {mixin} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
 
 /**
  * @class RowsMapper
  * @plugin ManualRowMove
- * @pro
  */
 class RowsMapper {
   constructor(manualRowMove) {
     /**
-     * Instance of TrimRows plugin.
+     * Instance of ManualRowMove plugin.
      *
      * @type {ManualRowMove}
      */
@@ -43,11 +43,11 @@ class RowsMapper {
   /**
    * Moving elements in rowsMapper.
    *
-   * @param {Number} from
-   * @param {Number} to
+   * @param {Number} from Row index to move.
+   * @param {Number} to Target index.
    */
   moveRow(from, to) {
-    var indexToMove = this._arrayMap[from];
+    let indexToMove = this._arrayMap[from];
     this._arrayMap[from] = null;
     this._arrayMap.splice(to, 0, indexToMove);
   }
@@ -56,7 +56,7 @@ class RowsMapper {
    * Clearing arrayMap from `null` entries.
    */
   clearNull() {
-    this._arrayMap = this._arrayMap.filter(function(i) {
+    this._arrayMap = arrayFilter(this._arrayMap, (i) => {
       return i !== null;
     });
   }

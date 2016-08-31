@@ -435,7 +435,7 @@ Handsontable.UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCa
   for (let i = mod; i < rowsLen; i++) {
     newRows.push(this.target + i);
   }
-  manualRowMove.moveRows(newTarget, newRows.slice());
+  manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
   instance.selection.setRangeStartOnly(new WalkontableCellCoords(this.rows[0], 0));
@@ -445,7 +445,7 @@ Handsontable.UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCa
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', redoneCallback);
-  manualRowMove.moveRows(this.target, this.rows.slice());
+  manualRowMove.moveRows(this.rows.slice(), this.target);
   instance.render();
   let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
   instance.selection.setRangeStartOnly(new WalkontableCellCoords(startSelection, 0));

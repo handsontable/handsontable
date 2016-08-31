@@ -3,6 +3,10 @@ import {addClass} from './../../../helpers/dom/element';
 
 const CSS_CLASSNAME = 'ht__manualRowMove--guideline';
 
+/**
+ * @class GuidelineUI
+ * @util
+ */
 class GuidelineUI extends BaseUI {
   constructor(hotInstance) {
     super(hotInstance);
@@ -14,7 +18,7 @@ class GuidelineUI extends BaseUI {
   build() {
     super.build();
 
-    addClass(this.element, CSS_CLASSNAME);
+    addClass(this._element, CSS_CLASSNAME);
   }
 }
 

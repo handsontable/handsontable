@@ -143,7 +143,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-      hot.getPlugin('manualRowMove').moveRow(0, 2);
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -162,7 +162,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-      hot.getPlugin('manualRowMove').moveRows(0, [7, 9, 8]);
+      hot.getPlugin('manualRowMove').moveRows([7, 9, 8], 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('8');
@@ -184,7 +184,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-      hot.getPlugin('manualRowMove').moveRows(0, [8,9,7]);
+      hot.getPlugin('manualRowMove').moveRows([8,9,7], 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
@@ -210,7 +210,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-      hot.getPlugin('manualRowMove').moveRows(0, [8, 9, 7]);
+      hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
@@ -289,7 +289,7 @@ describe('manualRowMove', function () {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 1);
+      hot.getPlugin('manualRowMove').moveRow(1, 3);
       hot.render();
 
       expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
@@ -322,7 +322,7 @@ describe('manualRowMove', function () {
         rowHeaders: true,
         manualRowMove: true,
       });
-      hot.getPlugin('manualRowMove').moveRow(4, 1);
+      hot.getPlugin('manualRowMove').moveRow(1, 4);
       hot.render();
 
       expect(hot.getDataAtCell(3, 0)).toBe('A2');
@@ -338,7 +338,7 @@ describe('manualRowMove', function () {
         rowHeaders: true,
         manualRowMove: true,
       });
-      hot.getPlugin('manualRowMove').moveRow(4, 1);
+      hot.getPlugin('manualRowMove').moveRow(1, 4);
       hot.render();
 
       expect(hot.getDataAtCell(3, 0)).toBe('A2');
