@@ -433,12 +433,14 @@ class WalkontableBorder {
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
-      this.cornerStyle.display = 'block';
+
+      // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
+      this.cornerStyle.display = 'none';
 
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width) / 2) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + 'px';
@@ -447,7 +449,7 @@ class WalkontableBorder {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) >= innerHeight(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height) / 2) >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + 'px';
@@ -455,6 +457,7 @@ class WalkontableBorder {
         }
       }
 
+      this.cornerStyle.display = 'block';
     }
 
     if (isMobileBrowser()) {
