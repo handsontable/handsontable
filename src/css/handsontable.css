@@ -143,7 +143,7 @@
 }
 
 .handsontable th {
-  background-color: #EEE;
+  background-color: #f3f3f3;
   color: #222;
   text-align: center;
   font-weight: normal;
@@ -157,9 +157,19 @@
 .handsontable th.active {
   background-color: #CCC;
 }
-
 .handsontable thead th .relative {
   padding: 2px 4px;
+}
+
+/* selection */
+.handsontable tbody th.ht__highlight,
+.handsontable thead th.ht__highlight {
+  background-color: #dddddd;
+}
+.handsontable.ht__selection--columns thead th.ht__highlight,
+.handsontable.ht__selection--rows tbody th.ht__highlight {
+  background-color: #8fb1e8;
+  color: #000;
 }
 
 /* plugins */
@@ -175,19 +185,7 @@
   cursor: move;
 }
 
-.handsontable .manualRowMover {
-  position: fixed;
-  left: -4px;
-  top: 0;
-  background-color: transparent;
-  height: 5px;
-  width: 50px;
-  z-index: 999;
-  cursor: move;
-}
-
-.handsontable .manualColumnMoverGuide,
-.handsontable .manualRowMoverGuide {
+.handsontable .manualColumnMoverGuide {
   position: fixed;
   left: 0;
   top: 0;
@@ -198,16 +196,13 @@
   display: none;
 }
 
-.handsontable .manualColumnMoverGuide.active,
-.handsontable .manualRowMoverGuide.active {
+.handsontable .manualColumnMoverGuide.active {
   display: block;
   z-index: 199;
 }
 
 .handsontable .manualColumnMover:hover,
-.handsontable .manualColumnMover.active,
-.handsontable .manualRowMover:hover,
-.handsontable .manualRowMover.active{
+.handsontable .manualColumnMover.active {
   background-color: #88F;
 }
 

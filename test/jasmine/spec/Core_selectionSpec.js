@@ -641,6 +641,20 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
+  it("should add classname after select column", function(){
+    var hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('thead th:eq(0)').simulate('mousedown');
+
+    expect(this.$container.hasClass('ht__selection--columns')).toBeTruthy();
+  });
+
   it("should select the entire column after column header is clicked (in fixed rows/cols corner)", function(){
     var hot = handsontable({
       width: 200,
@@ -847,20 +861,18 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it("should select the entire row after row header is clicked", function(){
+  it("should add classname after select row", function(){
     var hot = handsontable({
-      startRows: 5,
+      width: 200,
+      height: 100,
+      startRows: 50,
       startCols: 5,
-      colHeaders: true,
       rowHeaders: true
     });
 
-    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
-    expect(hot.selection.selectedHeader.rows).toBe(true);
-    expect(hot.selection.selectedHeader.cols).toBe(false);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
+    expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
   });
 
   it("should select the entire row of a partially fixed table after row header is clicked", function(){

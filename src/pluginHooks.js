@@ -648,6 +648,14 @@ const REGISTERED_HOOKS = [
     'unmodifyCol',
 
   /**
+   * Fired when a row index is about to be de-modified by a callback function.
+   *
+   * @event Hooks#unmodifyRow
+   * @since 0.26.2
+   * @param {Number} row Logical row index.
+   */
+  'unmodifyRow',
+  /**
    * Fired when a column header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyColHeader
@@ -787,20 +795,20 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired before rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual rows indexes to moving.
+   * @param {Number} target Visual row index as target for moved rows.
    */
   'beforeRowMove',
 
   /**
-   * Fired after rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual rows indexes to moving.
+   * @param {Number} target Visual row index as target for moved rows.
    */
   'afterRowMove',
 
