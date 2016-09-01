@@ -3871,7 +3871,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
     'lineHeight', 'textDecoration', 'letterSpacing',
     'fontSize', 'fontFamily', 'fontStyle', 'fontWeight',
     'textTransform', 'textAlign', 'direction', 'wordSpacing', 'fontSizeAdjust',
-    'padding-top', 'padding-right', 'padding-bottom', 'padding-left'
+    'padding'
   ];
 
   autoResize.cloneCSSValues = {

@@ -2169,14 +2169,6 @@ Handsontable.TableView = function (instance) {
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
-      if(settings.rowHeight) {
-        var DIV = document.createElement('div');
-        DIV.className = 'fixedRowHeight';
-        DIV.style.height = settings.rowHeight + 'px';
-        DIV.innerHTML = TD.innerHTML;
-        TD.innerHTML = '';
-        TD.appendChild(DIV);
-      }
     },
     currentRowClassName: settings.currentRowClassName,
     currentColumnClassName: settings.currentColClassName,
@@ -3879,7 +3871,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
     'lineHeight', 'textDecoration', 'letterSpacing',
     'fontSize', 'fontFamily', 'fontStyle', 'fontWeight',
     'textTransform', 'textAlign', 'direction', 'wordSpacing', 'fontSizeAdjust',
-    'padding-top', 'padding-right', 'padding-bottom', 'padding-left'
+    'padding'
   ];
 
   autoResize.cloneCSSValues = {
