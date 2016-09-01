@@ -177,9 +177,13 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
+  // fix "can't select cell in clone-left in mobile"
+  var needTouch = !that.instance.wtTable.isWorkingOnClone() ||
+    (this.instance.wtTable.holder.parentNode.className.indexOf('ht_clone_left') > -1);
+
   // check if full HOT instance, or detached WOT AND run on mobile device
   // 2016mobile#12
-  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && needTouch) {
 
     var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
 

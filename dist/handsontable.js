@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 01 2016 12:41:51 GMT+0800 (CST)
+ * Date: Thu Sep 01 2016 17:36:19 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '1.0.3',
-  buildDate: 'Thu Sep 01 2016 12:41:51 GMT+0800 (CST)',
+  buildDate: 'Thu Sep 01 2016 17:36:19 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1361,7 +1361,8 @@ function WalkontableEvent(instance) {
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
-  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && !that.instance.wtTable.isWorkingOnClone()) {
+  var needTouch = !that.instance.wtTable.isWorkingOnClone() || (this.instance.wtTable.holder.parentNode.className.indexOf('ht_clone_left') > -1);
+  if (this.instance.wtTable.holder.parentNode.parentNode && Handsontable.mobileBrowser && needTouch) {
     var classSelector = '.' + this.instance.wtTable.holder.parentNode.className.split(' ').join('.');
     eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', function(event) {
       that.instance.touchApplied = true;
