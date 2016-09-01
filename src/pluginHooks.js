@@ -78,12 +78,45 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
-   * Fired after setting up the Context Menu's default options.
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
    * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
    */
   'afterContextMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Context Menu's items but after filtering these options by user (`contextMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @event Hooks#beforeContextMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Context Menu items.
+   */
+  'beforeContextMenuSetItems',
+
+  /**
+   * @description
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
+   *
+   * @pro
+   * @event Hooks#afterContextMenuDefaultOptions
+   * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
+   */
+  'afterDropdownMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Dropdown Menu's items but after filtering these options by user (`dropdownMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @pro
+   * @event Hooks#beforeDropdownMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Dropdown Menu items.
+   */
+  'beforeDropdownMenuSetItems',
 
   /**
    * @description
