@@ -59,11 +59,6 @@
   overflow: hidden;
 }
 
-.handsontable td.fixedRowHeight div {
-  padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-  overflow: hidden;
-}
-
 .handsontable th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;
