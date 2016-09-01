@@ -652,7 +652,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
       // set up highlight
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
@@ -842,6 +842,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!selection.isSelected()) {
         return false;
       }
+
       return priv.selRange.includes(coords);
     },
 
@@ -856,11 +857,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
       }
       editorManager.destroyEditor();
       selection.refreshBorders();
+      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       Handsontable.hooks.run(instance, 'afterDeselect');
     },
 
@@ -3805,6 +3807,18 @@ DefaultSettings.prototype = {
    */
   currentColClassName: void 0,
 
+  /**
+   * Class name for all visible headers in current selection.
+   *
+   * @type {String}
+   * @since 0.27.0
+   * @default 'ht__highlight'
+   * @example
+   * ```js
+   * currentHeaderClassName: 'ht__highlight' // This will add a 'ht__highlight' class name to appropriate table headers.
+   * ```
+   */
+  currentHeaderClassName: 'ht__highlight',
   /**
    * Class name for the Handsontable container element.
    *

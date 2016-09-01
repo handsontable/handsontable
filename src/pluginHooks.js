@@ -78,12 +78,45 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
-   * Fired after setting up the Context Menu's default options.
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
    * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
    */
   'afterContextMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Context Menu's items but after filtering these options by user (`contextMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @event Hooks#beforeContextMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Context Menu items.
+   */
+  'beforeContextMenuSetItems',
+
+  /**
+   * @description
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
+   *
+   * @pro
+   * @event Hooks#afterContextMenuDefaultOptions
+   * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
+   */
+  'afterDropdownMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Dropdown Menu's items but after filtering these options by user (`dropdownMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @pro
+   * @event Hooks#beforeDropdownMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Dropdown Menu items.
+   */
+  'beforeDropdownMenuSetItems',
 
   /**
    * @description
@@ -648,6 +681,14 @@ const REGISTERED_HOOKS = [
     'unmodifyCol',
 
   /**
+   * Fired when a row index is about to be de-modified by a callback function.
+   *
+   * @event Hooks#unmodifyRow
+   * @since 0.26.2
+   * @param {Number} row Logical row index.
+   */
+  'unmodifyRow',
+  /**
    * Fired when a column header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyColHeader
@@ -787,20 +828,20 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired before rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual row indexes to be moved.
+   * @param {Number} target Visual row index being a target for moved rows.
    */
   'beforeRowMove',
 
   /**
-   * Fired after rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual row indexes that were moved.
+   * @param {Number} target Visual row index being a target for moved rows.
    */
   'afterRowMove',
 
@@ -899,6 +940,43 @@ const REGISTERED_HOOKS = [
    * @param {Number} col Column index.
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired before the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#beforeUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeUndo',
+  /**
+   * Fired after the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#afterUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterUndo',
+  /**
+   * Fired before the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#beforeRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeRedo',
+  /**
+   * Fired after the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#afterRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterRedo'
 ];
 
 import {arrayEach} from './helpers/array';

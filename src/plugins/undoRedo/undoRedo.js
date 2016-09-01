@@ -22,14 +22,14 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
  * @plugin UndoRedo
  */
 Handsontable.UndoRedo = function(instance) {
-  var plugin = this;
+  let plugin = this;
   this.instance = instance;
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
   instance.addHook('afterChange', function(changes, origin) {
     if (changes) {
-      var action = new Handsontable.UndoRedo.ChangeAction(changes);
+      let action = new Handsontable.UndoRedo.ChangeAction(changes);
       plugin.done(action);
     }
   });
@@ -40,15 +40,15 @@ Handsontable.UndoRedo = function(instance) {
       return;
     }
 
-    var action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
+    let action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
     plugin.done(action);
   });
 
   instance.addHook('beforeRemoveRow', function(index, amount) {
-    var originalData = plugin.instance.getSourceData();
+    let originalData = plugin.instance.getSourceData();
     index = (originalData.length + index) % originalData.length;
-    var removedData = originalData.slice(index, index + amount);
-    var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
+    let removedData = originalData.slice(index, index + amount);
+    let action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
     plugin.done(action);
   });
 
@@ -58,7 +58,7 @@ Handsontable.UndoRedo = function(instance) {
       return;
     }
 
-    var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
+    let action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
     plugin.done(action);
   });
 
@@ -85,18 +85,22 @@ Handsontable.UndoRedo = function(instance) {
 
     let manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
 
-    var action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
+    let action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
 
     plugin.done(action);
   });
 
   instance.addHook('beforeCellAlignment', function(stateBefore, range, type, alignment) {
-    var action = new Handsontable.UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
+    let action = new Handsontable.UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
     plugin.done(action);
   });
 
   instance.addHook('beforeFilter', function(formulaStacks) {
     plugin.done(new Handsontable.UndoRedo.FiltersAction(formulaStacks));
+  });
+
+  instance.addHook('beforeRowMove', function(movedRows, target) {
+    plugin.done(new Handsontable.UndoRedo.RowMoveAction(movedRows, target));
   });
 };
 
@@ -115,14 +119,24 @@ Handsontable.UndoRedo.prototype.done = function(action) {
  */
 Handsontable.UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
-    var action = this.doneActions.pop();
+    let action = this.doneActions.pop();
+    let actionClone = deepClone(action);
+    let instance = this.instance;
+
+    let continueAction = instance.runHooks('beforeUndo', actionClone);
+
+    if (continueAction === false) {
+      return;
+    }
 
     this.ignoreNewActions = true;
-    var that = this;
+    let that = this;
     action.undo(this.instance, function() {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
+
+    instance.runHooks('afterUndo', actionClone);
   }
 };
 
@@ -134,14 +148,24 @@ Handsontable.UndoRedo.prototype.undo = function() {
  */
 Handsontable.UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
-    var action = this.undoneActions.pop();
+    let action = this.undoneActions.pop();
+    let actionClone = deepClone(action);
+    let instance = this.instance;
+
+    let continueAction = instance.runHooks('beforeRedo', actionClone);
+
+    if (continueAction === false) {
+      return;
+    }
 
     this.ignoreNewActions = true;
-    var that = this;
+    let that = this;
     action.redo(this.instance, function() {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
     });
+
+    instance.runHooks('afterRedo', actionClone);
   }
 };
 
@@ -187,15 +211,16 @@ Handsontable.UndoRedo.Action.prototype.redo = function() {};
  */
 Handsontable.UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
+  this.actionType = 'change';
 };
 inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
 
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
-  var data = deepClone(this.changes),
+  let data = deepClone(this.changes),
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
     emptyColsAtTheEnd = instance.countEmptyCols(true);
 
-  for (var i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(3, 1);
   }
 
@@ -203,7 +228,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
 
   instance.setDataAtRowProp(data, null, null, 'undo');
 
-  for (var i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i++) {
     if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
@@ -220,9 +245,9 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
 
 };
 Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
-  var data = deepClone(this.changes);
+  let data = deepClone(this.changes);
 
-  for (var i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
   }
 
@@ -238,11 +263,12 @@ Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishC
 Handsontable.UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_row';
 };
 inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
 
 Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
-  var rowCount = instance.countRows(),
+  let rowCount = instance.countRows(),
     minSpareRows = instance.getSettings().minSpareRows;
   if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
     this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
@@ -262,14 +288,17 @@ Handsontable.UndoRedo.CreateRowAction.prototype.redo = function(instance, redone
 Handsontable.UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
   this.data = data;
+  this.actionType = 'remove_row';
 };
 inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
 
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
-  var spliceArgs = [this.index, 0];
+  let spliceArgs = [this.index, 0];
   Array.prototype.push.apply(spliceArgs, this.data);
 
   Array.prototype.splice.apply(instance.getSourceData(), spliceArgs);
+
+  instance.runHooks('afterCreateRow', this.index, this.data.length, true);
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -285,6 +314,7 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function(instance, redone
 Handsontable.UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_col';
 };
 inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
 
@@ -305,13 +335,14 @@ Handsontable.UndoRedo.CellAlignmentAction = function(stateBefore, range, type, a
   this.range = range;
   this.type = type;
   this.alignment = alignment;
+  this.actionType = 'cell_alignment';
 };
 Handsontable.UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+  for (let row = this.range.from.row; row <= this.range.to.row; row++) {
+    for (let col = this.range.from.col; col <= this.range.to.col; col++) {
       instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
     }
   }
@@ -339,6 +370,7 @@ Handsontable.UndoRedo.RemoveColumnAction = function(indexes, data, headers, colu
   this.amount = this.data[0].length;
   this.headers = headers;
   this.columnPositions = columnPositions.slice(0);
+  this.actionType = 'remove_col';
 };
 inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
 
@@ -389,6 +421,7 @@ Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, red
  */
 Handsontable.UndoRedo.FiltersAction = function(formulaStacks) {
   this.formulaStacks = formulaStacks;
+  this.actionType = 'filter';
 };
 inherit(Handsontable.UndoRedo.FiltersAction, Handsontable.UndoRedo.Action);
 
@@ -409,9 +442,48 @@ Handsontable.UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCa
   filters.filter();
 };
 
+/**
+ * ManualRowMove action.
+ * @TODO: removeRow undo should works on logical index
+ */
+Handsontable.UndoRedo.RowMoveAction = function(movedRows, target) {
+  this.rows = movedRows.slice();
+  this.target = target;
+};
+inherit(Handsontable.UndoRedo.RowMoveAction, Handsontable.UndoRedo.Action);
+
+Handsontable.UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
+  let manualRowMove = instance.getPlugin('manualRowMove');
+
+  instance.addHookOnce('afterRender', undoneCallback);
+  let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  let newRows = [];
+  let rowsLen = this.rows.length + mod;
+
+  for (let i = mod; i < rowsLen; i++) {
+    newRows.push(this.target + i);
+  }
+  manualRowMove.moveRows(newRows.slice(), newTarget);
+  instance.render();
+
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(this.rows[0], 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+};
+Handsontable.UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
+  let manualRowMove = instance.getPlugin('manualRowMove');
+
+  instance.addHookOnce('afterRender', redoneCallback);
+  manualRowMove.moveRows(this.rows.slice(), this.target);
+  instance.render();
+  let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(startSelection, 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
+};
+
 function init() {
-  var instance = this;
-  var pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  let instance = this;
+  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {
@@ -442,9 +514,9 @@ function init() {
 }
 
 function onBeforeKeyDown(event) {
-  var instance = this;
+  let instance = this;
 
-  var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   if (ctrlDown) {
     if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
@@ -458,7 +530,7 @@ function onBeforeKeyDown(event) {
 }
 
 function onAfterChange(changes, source) {
-  var instance = this;
+  let instance = this;
   if (source == 'loadData') {
     return instance.undoRedo.clear();
   }
@@ -521,3 +593,8 @@ function removeExposedUndoRedoMethods(instance) {
 
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
+
+Handsontable.hooks.register('beforeUndo');
+Handsontable.hooks.register('afterUndo');
+Handsontable.hooks.register('beforeRedo');
+Handsontable.hooks.register('afterRedo');

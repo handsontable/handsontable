@@ -64,7 +64,7 @@ export function pageY(event) {
 }
 
 /**
- * Check if provided event was triggered by clicking the right mouse button. 
+ * Check if provided event was triggered by clicking the right mouse button.
  *
  * @param {Event} event DOM Event.
  * @returns {Boolean}

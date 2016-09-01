@@ -135,7 +135,12 @@ class ContextMenu extends BasePlugin {
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
       let menuItems = this.itemsFactory.getItems(settings);
 
-      this.menu = new Menu(this.hot, {className: 'htContextMenu', keepInViewport: true});
+      this.menu = new Menu(this.hot, {
+        className: 'htContextMenu',
+        keepInViewport: true
+      });
+      this.hot.runHooks('beforeContextMenuSetItems', menuItems);
+
       this.menu.setMenuItems(menuItems);
 
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
@@ -257,6 +262,10 @@ class ContextMenu extends BasePlugin {
     let element = event.realTarget;
     this.close();
 
+    if (hasClass(element, 'handsontableInput')) {
+      return;
+    }
+
     event.preventDefault();
     stopPropagation(event);
 
@@ -265,6 +274,7 @@ class ContextMenu extends BasePlugin {
         return;
       }
     }
+
     this.open(event);
   }
 

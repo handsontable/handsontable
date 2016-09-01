@@ -1,11 +1,11 @@
 //! moment.js locale configuration
-//! locale : Portuguese [pt]
+//! locale : portuguese (pt)
 //! author : Jefferson : https://github.com/jalex79
 
 ;(function (global, factory) {
    typeof exports === 'object' && typeof module !== 'undefined'
        && typeof require === 'function' ? factory(require('../moment')) :
-   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+   typeof define === 'function' && define.amd ? define(['moment'], factory) :
    factory(global.moment)
 }(this, function (moment) { 'use strict';
 
