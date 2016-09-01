@@ -88,6 +88,7 @@ function TableView(instance) {
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
+    var isKeepEditor = false;
 
     if (isMouseDown || !instance.rootElement ||
       (that.settings.outsideClickIgnore && that.settings.outsideClickIgnore(event))) {
@@ -123,7 +124,8 @@ function TableView(instance) {
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      isKeepEditor = document.activeElement.classList.contains('fx-editor');
+      instance.destroyEditor(null, isKeepEditor);
     }
   });
 

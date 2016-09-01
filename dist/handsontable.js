@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.0.1
+ * Handsontable 1.0.3
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Aug 17 2016 11:28:27 GMT+0800 (CST)
+ * Date: Thu Sep 01 2016 12:41:51 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.0.1',
-  buildDate: 'Wed Aug 17 2016 11:28:27 GMT+0800 (CST)',
+  version: '1.0.3',
+  buildDate: 'Thu Sep 01 2016 12:41:51 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -5098,8 +5098,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.isListening = function() {
     return Handsontable.activeGuid === instance.guid;
   };
-  this.destroyEditor = function(revertOriginal) {
-    selection.refreshBorders(revertOriginal);
+  this.destroyEditor = function(revertOriginal, keepEditor) {
+    selection.refreshBorders(revertOriginal, keepEditor);
   };
   this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas, inputAttr) {
     var c;
@@ -15349,6 +15349,7 @@ function TableView(instance) {
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
+    var isKeepEditor = false;
     if (isMouseDown || !instance.rootElement || (that.settings.outsideClickIgnore && that.settings.outsideClickIgnore(event))) {
       return;
     }
@@ -15374,7 +15375,8 @@ function TableView(instance) {
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      isKeepEditor = document.activeElement.classList.contains('fx-editor');
+      instance.destroyEditor(null, isKeepEditor);
     }
   });
   this.eventManager.addEventListener(table, 'selectstart', function(event) {
