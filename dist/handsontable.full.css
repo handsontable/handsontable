@@ -169,7 +169,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }
 
 .handsontable th {
-  background-color: #EEE;
+  background-color: #f3f3f3;
   color: #222;
   text-align: center;
   font-weight: normal;
@@ -183,9 +183,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .handsontable th.active {
   background-color: #CCC;
 }
-
 .handsontable thead th .relative {
   padding: 2px 4px;
+}
+
+/* selection */
+.handsontable tbody th.ht__highlight,
+.handsontable thead th.ht__highlight {
+  background-color: #dddddd;
+}
+.handsontable.ht__selection--columns thead th.ht__highlight,
+.handsontable.ht__selection--rows tbody th.ht__highlight {
+  background-color: #8fb1e8;
+  color: #000;
 }
 
 /* plugins */
@@ -201,19 +211,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   cursor: move;
 }
 
-.handsontable .manualRowMover {
-  position: fixed;
-  left: -4px;
-  top: 0;
-  background-color: transparent;
-  height: 5px;
-  width: 50px;
-  z-index: 999;
-  cursor: move;
-}
-
-.handsontable .manualColumnMoverGuide,
-.handsontable .manualRowMoverGuide {
+.handsontable .manualColumnMoverGuide {
   position: fixed;
   left: 0;
   top: 0;
@@ -224,16 +222,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   display: none;
 }
 
-.handsontable .manualColumnMoverGuide.active,
-.handsontable .manualRowMoverGuide.active {
+.handsontable .manualColumnMoverGuide.active {
   display: block;
   z-index: 199;
 }
 
 .handsontable .manualColumnMover:hover,
-.handsontable .manualColumnMover.active,
-.handsontable .manualRowMover:hover,
-.handsontable .manualRowMover.active{
+.handsontable .manualColumnMover.active {
   background-color: #88F;
 }
 
@@ -1100,7 +1095,7 @@ thead .htCollapseButton:after {
 }
 
 .htContextMenu table.htCore {
-  border: 1px solid #bbb;
+  border: 1px solid #ccc;
   border-bottom-width: 2px;
   border-right-width: 2px;
 }
@@ -1130,7 +1125,7 @@ thead .htCollapseButton:after {
 
 .htContextMenu table tbody tr td.current,
 .htContextMenu table tbody tr td.zeroclipboard-is-hover {
-  background: #e9e9e9;
+  background: #f3f3f3;
 }
 
 .htContextMenu table tbody tr td.htSeparator {
@@ -1167,6 +1162,49 @@ thead .htCollapseButton:after {
 
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
+}
+.handsontable .wtHider {
+  position: relative;
+}
+.handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+.handsontable.ht__manualRowMove.on-moving--rows,
+.handsontable.ht__manualRowMove.on-moving--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+.handsontable.ht__manualRowMove.on-moving--rows .manualRowResizer {
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline,
+.handsontable .ht__manualRowMove--backlight {
+  position: absolute;
+  width: 100%;
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline {
+  background: #777;
+  height: 2px;
+  left: 0;
+  margin-top: -1px;
+  z-index: 105;
+}
+.handsontable .ht__manualRowMove--backlight {
+  background: #333;
+  background: rgba(51, 51, 51, 0.25);
+  display: none;
+  z-index: 105;
+  pointer-events: none;
+}
+.handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
+.handsontable.on-moving--rows .ht__manualRowMove--backlight {
+  display: block;
 }
 @charset "UTF-8";
 

@@ -503,6 +503,37 @@ describe('AutocompleteEditor', function() {
       });
     });
 
+    it("should display the choices, regardless if they're declared as string or numeric, when data is present", function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: ["1", "2", 3, "4", 5, 6]
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      keyDownUp('backspace');
+
+      var editor = $('.autocompleteEditor');
+
+      keyDownUp('enter');
+
+      waits(100); //List filtering in async
+
+      runs(function() {
+        expect(editor.find('tbody td:eq(0)').text()).toEqual('1');
+        expect(editor.find('tbody td:eq(1)').text()).toEqual('2');
+        expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
+        expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
+        expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
+        expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
+      });
+    });
+
     it("should display the dropdown above the editor, when there is not enough space below the cell AND there is more space above the cell", function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30,30),

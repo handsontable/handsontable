@@ -152,6 +152,10 @@ class Menu {
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
+
+      if (this.parentMenu) {
+        this.parentMenu.hotMenu.listen();
+      }
     }
   }
 
@@ -637,6 +641,7 @@ class Menu {
 
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
+    hiderStyle.height = holderStyle.height;
   }
 
   /**
