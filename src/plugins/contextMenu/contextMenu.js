@@ -257,6 +257,10 @@ class ContextMenu extends BasePlugin {
     let element = event.realTarget;
     this.close();
 
+    if (hasClass(element, 'handsontableInput')) {
+      return;
+    }
+
     event.preventDefault();
     stopPropagation(event);
 
@@ -265,6 +269,7 @@ class ContextMenu extends BasePlugin {
         return;
       }
     }
+
     this.open(event);
   }
 
