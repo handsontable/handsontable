@@ -151,20 +151,20 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Method for moving single rows.
+   * Move a single row.
    *
-   * @param {Number} row Visual row index to move.
-   * @param {Number} target Visual row index as target of moved row.
+   * @param {Number} row Visual row index to be moved.
+   * @param {Number} target Visual row index being a target for the moved row.
    */
   moveRow(row, target) {
     this.moveRows([row], target);
   }
 
   /**
-   * Method for moving multi rows.
+   * Move multiple rows.
    *
-   * @param {Array} rows Array of visual rows indexes to moving.
-   * @param {Number} target Visual row index as target for moved rows.
+   * @param {Array} rows Array of visual row indexes to be moved.
+   * @param {Number} target Visual row index being a target for the moved rows.
    */
   moveRows(rows, target) {
     this.hot.runHooks('beforeRowMove', rows, target);
@@ -190,12 +190,12 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Select properly rows after move action. Fired only when action was fired by mouse.
-   * That's mean change row order by API doesn't change selection.
+   * Correct the cell selection after the move action. Fired only when action was made with a mouse.
+   * That means that changing the row order using the API won't correct the selection.
    *
    * @private
-   * @param {Number} startRow Visual row index for start selection.
-   * @param {Number} endRow Visual row index for end selection.
+   * @param {Number} startRow Visual row index for the start of the selection.
+   * @param {Number} endRow Visual row index for the end of the selection.
    */
   changeSelection(startRow, endRow) {
     let selection = this.hot.selection;
@@ -206,7 +206,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Helpers for get sum of height of rows range.
+   * Get the sum of the heights of rows in the provided range.
    *
    * @private
    * @param {Number} from Visual row index.
@@ -246,7 +246,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Helpers for check is row fixed top.
+   * Check if the provided row is in the fixedRowsTop section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -257,7 +257,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Helpers for check is row fixed bottom.
+   * Check if the provided row is in the fixedRowsBottom section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -316,7 +316,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Method for update UI visual position.
+   * Update the UI visual position.
    *
    * @private
    */
@@ -411,7 +411,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Method for change behavior of selection / dragging.
+   * Change the behavior of selection / dragging.
    *
    * @private
    * @param {MouseEvent} event
