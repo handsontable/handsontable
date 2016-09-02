@@ -207,4 +207,58 @@ describe('Object helper', function () {
       expect(baseObject.prop5).toEqual(date);
     });
   });
+
+  //
+  // Handsontable.helper.createObjectPropListener
+  //
+  describe('createObjectPropListener', function() {
+    it("should returns object listener and listen default property", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo');
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.value).toBe('foo');
+
+      propListener.test = 'bar';
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.value).toBe('foo');
+
+      propListener.value = 'bar';
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe('bar');
+      expect(propListener.test).toBe('bar');
+    });
+
+    it("should returns object listener and listen defined by user property", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo', 'me');
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.me).toBe('foo');
+
+      propListener.value = 'bar';
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.me).toBe('foo');
+      expect(propListener.value).toBe('bar');
+
+      propListener.me = 'bar';
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe('bar');
+      expect(propListener.me).toBe('bar');
+    });
+
+    it("should detect change value to undefined", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo');
+
+      propListener.value = void 0;
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe(void 0);
+    });
+  });
 });

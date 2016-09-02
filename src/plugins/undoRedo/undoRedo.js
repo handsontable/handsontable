@@ -69,20 +69,6 @@ Handsontable.UndoRedo = function(instance) {
       return;
     }
 
-    // var originalData = plugin.instance.getSourceData();
-    //
-    // index = (originalData.length + index) % originalData.length;
-    //
-    // let removedData = [];
-    //
-    // rangeEach(0, originalData.length - 1, (i) => {
-    //   removedData[i] = originalData[i].slice(index, index + amount);
-    // });
-    //
-    // plugin.done(new Handsontable.UndoRedo.RemoveColumnAction(index, removedData));
-
-    // ----
-
     let originalData = plugin.instance.getSourceDataArray();
 
     index = (plugin.instance.countCols() + index) % plugin.instance.countCols();

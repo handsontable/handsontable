@@ -1942,7 +1942,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getSourceDataArray
-   * @since 0.26.0
+   * @since 0.28.0
    * @param {Number} [r] From row.
    * @param {Number} [c] From column.
    * @param {Number} [r2] To row.

@@ -63,11 +63,11 @@ describe('Core_alter', function () {
           {data: "id"},
           {data: "name.first"}
         ],
-        beforeRemoveRow: onBeforeRemoveRow
+        beforeRemoveRow: onBeforeRemoveRow,
       });
-      alter('remove_row');
+      alter('remove_row', 2, 1, 'customSource');
 
-      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], undefined, undefined, undefined);
+      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource', undefined, undefined);
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', function () {
@@ -250,7 +250,9 @@ describe('Core_alter', function () {
     });
 
     it('should fire callback on remove row', function () {
-      var output;
+      var outputBefore;
+      var outputAfter;
+
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
@@ -258,13 +260,17 @@ describe('Core_alter', function () {
           {data: "id"},
           {data: "name.first"}
         ],
-        afterRemoveRow: function (index, amount) {
-          output = [index, amount];
+        beforeRemoveRow: function (index, amount, removedRows, source) {
+          outputBefore = [index, amount, removedRows, source];
+        },
+        afterRemoveRow: function (index, amount, removedRows, source) {
+          outputAfter = [index, amount, removedRows, source];
         }
       });
-      alter('remove_row', 1, 2);
+      alter('remove_row', 1, 2, 'customSource');
 
-      expect(output).toEqual([1, 2]);
+      expect(outputBefore).toEqual([1, 2, [1, 2], 'customSource']);
+      expect(outputAfter).toEqual([1, 2, [1, 2], 'customSource']);
     });
 
     it("should decrement the number of fixed rows, if a fix row is removed", function () {
@@ -402,17 +408,23 @@ describe('Core_alter', function () {
     });
 
     it('should fire callback on remove col', function () {
-      var output;
+      var outputBefore;
+      var outputAfter;
+
       handsontable({
         minRows: 5,
         data: arrayOfArrays(),
-        afterRemoveCol: function (index, amount) {
-          output = [index, amount];
+        beforeRemoveCol: function (index, amount, removedCols, source) {
+          outputBefore = [index, amount, removedCols, source];
+        },
+        afterRemoveCol: function (index, amount, removedCols, source) {
+          outputAfter = [index, amount, removedCols, source];
         }
       });
-      alter('remove_col', 1);
+      alter('remove_col', 1, 2, 'customSource');
 
-      expect(output).toEqual([1, 1]);
+      expect(outputBefore).toEqual([1, 2, [1, 2], 'customSource']);
+      expect(outputAfter).toEqual([1, 2, [1, 2], 'customSource']);
     });
 
     it("should remove column's properties", function () {
@@ -632,7 +644,9 @@ describe('Core_alter', function () {
     });
 
     it('should fire callback on create row', function () {
-      var output;
+      var outputBefore;
+      var outputAfter;
+
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
@@ -640,13 +654,17 @@ describe('Core_alter', function () {
           {data: "id"},
           {data: "name.first"}
         ],
-        afterCreateRow: function (index, amount) {
-          output = index;
-        }
+        beforeCreateRow: function (index, amount, source) {
+          outputBefore = [index, amount, source];
+        },
+        afterCreateRow: function (index, amount, source) {
+          outputAfter = [index, amount, source];
+        },
       });
-      alter('insert_row', 3);
+      alter('insert_row', 3, 1, 'customSource');
 
-      expect(output).toEqual(3);
+      expect(outputBefore).toEqual([3, 1, 'customSource']);
+      expect(outputAfter).toEqual([3, 1, 'customSource']);
     });
 
     it("should keep the single-cell selection in the same position as before inserting the row", function () {
@@ -778,17 +796,23 @@ describe('Core_alter', function () {
     });
 
     it('should fire callback on create col', function () {
-      var output;
+      var outputBefore;
+      var outputAfter;
+
       handsontable({
         minRows: 5,
         data: arrayOfArrays(),
-        afterCreateCol: function (index) {
-          output = index;
-        }
+        beforeCreateCol: function (index, amount, source) {
+          outputBefore = [index, amount, source];
+        },
+        afterCreateCol: function (index, amount, source) {
+          outputAfter = [index, amount, source];
+        },
       });
-      alter('insert_col', 2);
+      alter('insert_col', 2, 1, 'customSource');
 
-      expect(output).toEqual(2);
+      expect(outputBefore).toEqual([2, 1, 'customSource']);
+      expect(outputAfter).toEqual([2, 1, 'customSource']);
     });
 
     it("should not create column header together with the column, if headers were NOT specified explicitly", function () {
