@@ -311,14 +311,12 @@ function EditorManager(instance, priv, selection) {
     col = priv.selRange.highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
-    originalValue = instance.getDataAtCell(row, col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
       activeEditor = Handsontable.editors.getEditor(editorClass, instance);
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
-
     } else {
       activeEditor = void 0;
     }
@@ -344,6 +342,13 @@ function EditorManager(instance, priv, selection) {
    * @param {DOMEvent} event
    */
   this.openEditor = function(initialValue, event) {
+    if (activeEditor) {
+      activeEditor.originalValue = activeEditor.instance.getDataAtCell(
+        activeEditor.row,
+        activeEditor.col
+      );
+    }
+
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(initialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
