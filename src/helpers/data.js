@@ -1,64 +1,90 @@
 import Handsontable from './../browser';
 import {getPrototypeOf} from './object';
 
+const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
+
 /**
- * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
- * @param index
+ * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
+ *
+ * @param {Number} index Column index.
  * @returns {String}
  */
 export function spreadsheetColumnLabel(index) {
-  var dividend = index + 1;
-  var columnLabel = '';
-  var modulo;
+  let dividend = index + 1;
+  let columnLabel = '';
+  let modulo;
 
   while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
+    modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
+    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
   }
+
   return columnLabel;
 }
 
 /**
- * Creates 2D array of Excel-like values "A1", "A2", ...
- * @param rowCount
- * @param colCount
- * @returns {Array}
+ * Generates spreadsheet-like column index from theirs labels: A, B, C ...., Z, AA, AB, etc.
+ *
+ * @param {String} label Column label.
+ * @returns {Number}
  */
-export function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
+export function spreadsheetColumnIndex(label) {
+  let result = 0;
 
-  var rows = [], i, j;
-
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
-
-    for (j = 0; j < colCount; j++) {
-      row.push(spreadsheetColumnLabel(j) + (i + 1));
+  if (label) {
+    for (let i = 0, j = label.length - 1; i < label.length; i += 1, j -= 1) {
+      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
-    rows.push(row);
   }
+  --result;
 
-  return rows;
+  return result;
 }
 
-export function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
+/**
+ * Creates 2D array of Excel-like values "A1", "A2", ...
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} columns Number of columns to generate.
+ * @returns {Array}
+ */
+export function createSpreadsheetData(rows = 100, columns = 4) {
+  var _rows = [], i, j;
 
-  var rows = [], i, j;
+  for (i = 0; i < rows; i++) {
+    var row = [];
 
-  for (i = 0; i < rowCount; i++) {
+    for (j = 0; j < columns; j++) {
+      row.push(spreadsheetColumnLabel(j) + (i + 1));
+    }
+    _rows.push(row);
+  }
+
+  return _rows;
+}
+
+/**
+ * Creates 2D array of Excel-like values "A1", "A2", as an array of objects.
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} colCount Number of columns to generate.
+ * @returns {Array}
+ */
+export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
+  var _rows = [], i, j;
+
+  for (i = 0; i < rows; i++) {
     var row = {};
 
     for (j = 0; j < colCount; j++) {
       row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
     }
-    rows.push(row);
+    _rows.push(row);
   }
 
-  return rows;
+  return _rows;
 }
 
 /**

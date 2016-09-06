@@ -149,20 +149,44 @@ const REGISTERED_HOOKS = [
   'afterCopyLimit',
 
   /**
-   * Callback is fired after a new column is created.
+   * Callback is fired before a new column was created.
+   *
+   * @since 0.28.0
+   * @event Hooks#beforeCreateCol
+   * @param {Number} index Represents the index of first newly created column in the data source array.
+   * @param {Number} amount Number of newly created columns in the data source array.
+   * @param {String} [source] String that identifies source of method call.
+   */
+  'beforeCreateCol',
+
+  /**
+   * Callback is fired after a new column was created.
    *
    * @event Hooks#afterCreateCol
    * @param {Number} index Represents the index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
+   * @param {String} [source] String that identifies source of method call.
    */
   'afterCreateCol',
 
   /**
-   * Callback is fired after a new row is created.
+   * Callback is fired before a new row was created.
+   *
+   * @since 0.28.0
+   * @event Hooks#beforeCreateRow
+   * @param {Number} index Represents the index of first newly created row in the data source array.
+   * @param {Number} amount Number of newly created rows in the data source array.
+   * @param {String} [source] String that identifies source of method call.
+   */
+  'beforeCreateRow',
+
+  /**
+   * Callback is fired after a new row was created.
    *
    * @event Hooks#afterCreateRow
    * @param {Number} index Represents the index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
+   * @param {String} [source] String that identifies source of method call.
    */
   'afterCreateRow',
 
@@ -402,6 +426,26 @@ const REGISTERED_HOOKS = [
    * @param {*} value The updated meta value.
    */
   'afterSetCellMeta',
+
+  /**
+   * Called after cell data was changed.
+   *
+   * @event Hooks#afterSetDataAtCell
+   * @since 0.28.0
+   * @param {Array} changes An array of changes in format `[[row, col, oldValue, value], ...]`.
+   * @param {String} [source] String that identifies source of method call.
+   */
+  'afterSetDataAtCell',
+
+  /**
+   * Called after cell data was changed.
+   *
+   * @event Hooks#afterSetDataAtRowProp
+   * @since 0.28.0
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
+   * @param {String} [source] String that identifies source of method call.
+   */
+  'afterSetDataAtRowProp',
 
   /**
    * Fired after calling the `updateSettings` method.
@@ -729,11 +773,23 @@ const REGISTERED_HOOKS = [
    * Fired when a row height is about to be modified by a callback function.
    *
    * @event Hooks#modifyRowHeight
-   * @since 0.11
+   * @since 0.11.0
    * @param {Number} height Row height.
    * @param {Number} row Row index.
    */
   'modifyRowHeight',
+
+  /**
+   * Fired when a data was retrieved or modified.
+   *
+   * @event Hooks#modifyData
+   * @since 0.28.0
+   * @param {Number} row Row height.
+   * @param {Number} column Column index.
+   * @param {Object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {String} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  'modifyData',
 
   /**
    * Fired after loading data using the Persistent State plugin.

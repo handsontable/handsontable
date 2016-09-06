@@ -72,4 +72,86 @@ describe('Core_getDataAt*', function () {
       expect(getDataAtRowProp(1, 'details.city')).toBe('New York');
     });
   });
+
+  describe('`modifyData` hook', function () {
+    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', function () {
+      var spy = jasmine.createSpy();
+
+      handsontable({
+        data: arrayOfArrays(),
+        autoColumnSize: false,
+        modifyData: spy,
+      });
+
+      expect(spy.calls.length).toBe(20); // call for all cells
+      expect(spy.calls[1].args[0]).toBe(0);
+      expect(spy.calls[1].args[1]).toBe(1);
+      expect(spy.calls[1].args[2].value).toBe('Kia');
+      expect(spy.calls[1].args[3]).toBe('get');
+
+      spy.reset();
+      setDataAtCell(2, 3, 'foo');
+
+      expect(spy.calls.length).toBe(21); // call for all cells + 1 from setDataAtCell
+      expect(spy.calls[0].args[0]).toBe(2);
+      expect(spy.calls[0].args[1]).toBe(3);
+      expect(spy.calls[0].args[2].value).toBe('foo');
+      expect(spy.calls[0].args[3]).toBe('set');
+    });
+
+    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', function () {
+      var spy = jasmine.createSpy();
+
+      handsontable({
+        data: arrayOfObjects(),
+        autoColumnSize: false,
+        modifyData: spy,
+      });
+
+      expect(spy.calls.length).toBe(10); // call for all cells
+      expect(spy.calls[2].args[0]).toBe(0);
+      expect(spy.calls[2].args[1]).toBe(2);
+      expect(spy.calls[2].args[2].value).toBe('Nannie Patel');
+      expect(spy.calls[2].args[3]).toBe('get');
+
+      spy.reset();
+      setDataAtRowProp(2, 'name', 'foo');
+
+      expect(spy.calls.length).toBe(16);
+      expect(spy.calls[0].args[0]).toBe(2);
+      expect(spy.calls[0].args[1]).toBe(2);
+      expect(spy.calls[0].args[2].value).toBe('foo');
+      expect(spy.calls[0].args[3]).toBe('set');
+    });
+
+    it('should overwrite value while loading data', function () {
+      handsontable({
+        data: arrayOfArrays(),
+        modifyData: function(row, column, valueHolder, ioMode) {
+          if (ioMode === 'get' && row === 1 && column === 2) {
+            valueHolder.value = 'foo';
+          }
+        },
+      });
+
+      expect(getDataAtCell(1, 2)).toBe('foo');
+      expect(getSourceDataAtCell(1, 2)).toBe(11);
+    });
+
+    it('should overwrite value while saving data', function () {
+      handsontable({
+        data: arrayOfArrays(),
+        modifyData: function(row, column, valueHolder, ioMode) {
+          if (ioMode === 'set' && row === 1 && column === 2) {
+            valueHolder.value = 'foo';
+          }
+        },
+      });
+
+      setDataAtCell(1, 2, 'bar');
+
+      expect(getDataAtCell(1, 2)).toBe('foo');
+      expect(getSourceDataAtCell(1, 2)).toBe('foo');
+    });
+  });
 });

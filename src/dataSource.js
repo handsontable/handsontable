@@ -1,8 +1,5 @@
-
-import {cellMethodLookupFactory} from './helpers/data';
-import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend, getProperty} from './helpers/object';
-import {extendArray, arrayEach} from './helpers/array';
+import {getProperty} from './helpers/object';
+import {arrayEach} from './helpers/array';
 import {rangeEach} from './helpers/number';
 
 /**
@@ -38,10 +35,22 @@ class DataSource {
   /**
    * Get all data.
    *
+   * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
+   *                                  in another format.
    * @returns {Array}
    */
-  getData() {
-    return this.data;
+  getData(toArray = false) {
+    let result =  this.data;
+
+    if (toArray) {
+      result = this.getByRange(
+        {row: 0, col: 0},
+        {row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0)},
+        true
+      );
+    }
+
+    return result;
   }
 
   /**
@@ -91,10 +100,16 @@ class DataSource {
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
-   * @returns {String|Number}
+   * @returns {*}
    */
   getAtCell(row, column) {
-    return this.data[row][this.colToProp(column)];
+    let result = null;
+
+    if (this.data[row]) {
+      result = this.data[row][this.colToProp(column)];
+    }
+
+    return result;
   }
 
   /**
@@ -102,9 +117,11 @@ class DataSource {
    *
    * @param {Object} start Object with `row` and `col` keys.
    * @param {Object} end Object with `row` and `col` keys.
+   * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
+   *                                  in another format.
    * @returns {Array}
    */
-  getByRange(start, end) {
+  getByRange(start, end, toArray = false) {
     let startRow = Math.min(start.row, end.row);
     let startCol = Math.min(start.col, end.col);
     let endRow = Math.max(start.row, end.row);
@@ -116,19 +133,53 @@ class DataSource {
       let newRow;
 
       if (this.dataType === 'array') {
-        newRow = row.slice(startCol, endCol);
+        newRow = row.slice(startCol, endCol + 1);
+
       } else if (this.dataType === 'object') {
-        newRow = {};
+        newRow = toArray ? [] : {};
 
         rangeEach(startCol, endCol, (column) => {
           let prop = this.colToProp(column);
 
-          newRow[prop] = row[prop];
+          if (toArray) {
+            newRow.push(row[prop]);
+          } else {
+            newRow[prop] = row[prop];
+          }
         });
       }
 
       result.push(newRow);
     });
+
+    return result;
+  }
+
+  /**
+   * Count number of rows.
+   *
+   * @returns {Number}
+   */
+  countRows() {
+    return Array.isArray(this.data) ? this.data.length : 0;
+  }
+
+  /**
+   * Count number of columns.
+   *
+   * @returns {Number}
+   */
+  countColumns() {
+    let result = 0;
+
+    if (Array.isArray(this.data)) {
+      if (this.dataType === 'array') {
+        result = this.data[0].length;
+
+      } else if (this.dataType === 'object') {
+        result = Object.keys(this.data[0]).length;
+      }
+    }
 
     return result;
   }

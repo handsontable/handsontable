@@ -138,7 +138,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           if (instance.getSettings().maxRows === instance.countSourceRows()) {
             return;
           }
-          delta = datamap.createRow(index, amount);
+          delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
@@ -152,9 +152,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'insert_col':
-          // column order may have changes, so we need to translate the selection column index -> source array index
-          // index = instance.runHooksAndReturn('modifyCol', index);
-          delta = datamap.createCol(index, amount);
+          delta = datamap.createCol(index, amount, source);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {
@@ -179,7 +177,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_row':
-          datamap.removeRow(index, amount);
+          datamap.removeRow(index, amount, source);
           priv.cellSettings.splice(index, amount);
 
           var totalRows = instance.countRows();
@@ -200,7 +198,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         case 'remove_col':
           let logicalColumnIndex = translateColIndex(index);
 
-          datamap.removeCol(index, amount);
+          datamap.removeCol(index, amount, source);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
@@ -243,7 +241,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
         if (rows < priv.settings.minRows) {
           for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
-            datamap.createRow(instance.countRows(), 1, true);
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -253,7 +251,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
           for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
-            datamap.createRow(instance.countRows(), 1, true);
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -268,14 +266,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         // should I add empty cols to meet minCols?
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
             emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
       }
@@ -1143,7 +1141,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @param {Number|Array} row Row index or array of changes in format `[[row, col, value], ...]`.
    * @param {Number} col Column index.
    * @param {String} value New value.
-   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onChange callback).
+   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
   this.setDataAtCell = function(row, col, value, source) {
     var
@@ -1164,7 +1162,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       changes.push([
         input[i][0],
         prop,
-        datamap.get(input[i][0], prop),
+        dataSource.getAtCell(input[i][0], input[i][1]),
         input[i][2],
       ]);
     }
@@ -1172,6 +1170,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (!source && typeof row === 'object') {
       source = col;
     }
+
+    instance.runHooks('afterSetDataAtCell', changes, source);
 
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
@@ -1201,7 +1201,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       changes.push([
         input[i][0],
         input[i][1],
-        datamap.get(input[i][0], input[i][1]),
+        dataSource.getAtCell(input[i][0], input[i][1]),
         input[i][2],
       ]);
     }
@@ -1209,6 +1209,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (!source && typeof row === 'object') {
       source = prop;
     }
+
+    instance.runHooks('afterSetDataAtRowProp', changes, source);
 
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
@@ -1956,6 +1958,31 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       data = dataSource.getData();
     } else {
       data = dataSource.getByRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2));
+    }
+
+    return data;
+  };
+
+  /**
+   * Returns the source data object as an arrays of arrays format even when source data was provided in another format.
+   * Optionally you can provide a cell range by using the `row`, `col`, `row2`, `col2` arguments, to get only a fragment of grid data.
+   *
+   * @memberof Core#
+   * @function getSourceDataArray
+   * @since 0.28.0
+   * @param {Number} [r] From row.
+   * @param {Number} [c] From column.
+   * @param {Number} [r2] To row.
+   * @param {Number} [c2] To column.
+   * @returns {Array} An array of arrays.
+   */
+  this.getSourceDataArray = function(r, c, r2, c2) {
+    let data;
+
+    if (r === void 0) {
+      data = dataSource.getData(true);
+    } else {
+      data = dataSource.getByRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), true);
     }
 
     return data;
