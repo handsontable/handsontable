@@ -2,7 +2,7 @@ import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend, deepClone} from './helpers/object';
+import {duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
@@ -83,21 +83,43 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
 };
 
 DataMap.prototype.createMap = function() {
-  var i, ilen, schema = this.getSchema();
+  let i;
+  let schema = this.getSchema();
 
   if (typeof schema === 'undefined') {
     throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
   }
+
   this.colToPropCache = [];
   this.propToColCache = new MultiMap();
-  var columns = this.instance.getSettings().columns;
+
+  let columns = this.instance.getSettings().columns;
+
   if (columns) {
-    for (i = 0, ilen = columns.length; i < ilen; i++) {
-      if (typeof columns[i].data != 'undefined') {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache.set(columns[i].data, i);
+    let columnsLen = columns.length;
+    let filteredIndex = 0;
+    let columnsAsFunc = false;
+    let schemaLen = deepObjectSize(schema);
+
+    if (typeof columns === 'function') {
+      columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+      columnsAsFunc = true;
+    }
+
+    for (i = 0; i < columnsLen; i++) {
+      let column = columnsAsFunc ? columns(i) : columns[i];
+
+      if (isObject(column)) {
+        if (typeof column.data !== 'undefined') {
+          let index = columnsAsFunc ? filteredIndex : i;
+          this.colToPropCache[index] = column.data;
+          this.propToColCache.set(column.data, index);
+        }
+
+        filteredIndex++;
       }
     }
+
   } else {
     this.recursiveDuckColumns(schema);
   }

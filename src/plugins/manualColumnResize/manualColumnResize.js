@@ -86,7 +86,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Update the plugin settings based on handsontable settings.
+   * Updates the plugin to use the latest options you have specified.
    */
   updatePlugin() {
     let initialColumnWidth = this.hot.getSettings().manualColumnResize;

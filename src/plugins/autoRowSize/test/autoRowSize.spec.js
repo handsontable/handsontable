@@ -326,7 +326,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
 
     var plugin = hot.getPlugin('manualRowMove');
-    plugin.moveRow(0, 1);
+    plugin.moveRow(1, 0);
     hot.render();
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(49);

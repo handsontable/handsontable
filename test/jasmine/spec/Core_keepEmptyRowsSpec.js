@@ -41,6 +41,29 @@ describe('Core_keepEmptyRows', function () {
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
+  it('should remove columns if needed when columns is a function', function () {
+    handsontable({
+      data: arrayOfNestedObjects(),
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.data = 'id';
+
+        } else if (column === 1) {
+          colMeta.data = 'name.first';
+
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(this.$container.find('tbody tr:first td').length).toEqual(2);
+  });
+
   it('should create columns if needed', function () {
     handsontable({
       data: arrayOfNestedObjects(),
@@ -52,6 +75,40 @@ describe('Core_keepEmptyRows', function () {
         {data: "zip"},
         {data: "city"}
       ]
+    });
+
+    expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+  });
+
+  it('should create columns if needed when columns is a function', function () {
+    handsontable({
+      data: arrayOfNestedObjects(),
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.data = 'id';
+
+        } else if (column === 1) {
+          colMeta.data = 'name.first';
+
+        } else if (column === 2) {
+          colMeta.data = 'name.last';
+
+        } else if (column === 3) {
+          colMeta.data = 'address';
+
+        } else if (column === 4) {
+          colMeta.data = 'zip';
+
+        } else if (column === 5) {
+          colMeta.data = 'city';
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
@@ -161,6 +218,58 @@ describe('Core_keepEmptyRows', function () {
 
   });
 
+  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', function () {
+    var data = [
+      {id: 1, color: "orange" }
+    ];
+
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
+    };
+
+    handsontable({
+      data: data,
+      startRows: 5,
+      colHeaders: true,
+      minSpareRows: 1,
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.data = 'id';
+          colMeta.type = 'text';
+
+        } else if (column === 1) {
+          colMeta.data = 'color';
+          colMeta.editor = 'autocomplete';
+          colMeta.source = syncSources;
+
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+
+    selectCell(1, 1);
+
+    keyDownUp('enter');
+
+    waitsFor(function () {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function () {
+      keyDown('arrow_down');
+      keyDownUp('enter');
+
+      expect(data.length).toEqual(3);
+    });
+  });
+
   it('should not create more rows that maxRows', function () {
     handsontable({
       startRows: 4,
@@ -200,6 +309,24 @@ describe('Core_keepEmptyRows', function () {
     expect(countCols()).toEqual(2);
   });
 
+  it('should ignore minCols if columns is set when columns is a function', function () {
+    handsontable({
+      startCols: 1,
+      minCols: 6,
+      columns: function(column) {
+        var colMeta = {};
+
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(countCols()).toEqual(1);
+  });
+
   it('columns should have priority over startCols', function () {
     handsontable({
       startCols: 3,
@@ -208,6 +335,24 @@ describe('Core_keepEmptyRows', function () {
         {},
         {}
       ]
+    });
+
+    expect(countCols()).toEqual(2);
+  });
+
+  it('columns should have priority over startCols when columns is a function', function () {
+    handsontable({
+      startCols: 3,
+      minCols: 6,
+      columns: function(column) {
+        var colMeta = {};
+
+        if ([0, 1].indexOf(column) < 0) {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
     });
 
     expect(countCols()).toEqual(2);

@@ -158,7 +158,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate rows height.
+   * Calculate a given rows height.
    *
    * @param {Number|Object} rowRange Row range object.
    * @param {Number|Object} colRange Column range object.
@@ -194,7 +194,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate all rows height.
+   * Calculate the height of all the rows.
    *
    * @param {Object|Number} colRange Column range object.
    */
@@ -278,7 +278,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get calculated row height.
+   * Get the calculated row height.
    *
    * @param {Number} row Row index.
    * @param {Number} [defaultHeight] Default row height. It will be pick up if no calculated height found.
@@ -304,7 +304,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get first visible row.
+   * Get the first visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */
@@ -322,7 +322,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get last visible row.
+   * Get the last visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */

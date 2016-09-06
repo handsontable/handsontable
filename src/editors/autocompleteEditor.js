@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
 import {pivot} from './../helpers/array';
@@ -153,9 +152,9 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
       choices = source.filter(function(choice) {
 
         if (filteringCaseSensitive) {
-          return choice.indexOf(query) != -1;
+          return choice.toString().indexOf(query) != -1;
         } else {
-          return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
+          return choice.toString().toLowerCase().indexOf(lowerCaseQuery) != -1;
         }
 
       });
@@ -176,6 +175,7 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   let filterSetting = this.cellProperties.filter;
   let orderByRelevance = null;
   let highlightIndex = null;
+  let flipped = null;
 
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
@@ -224,6 +224,8 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   let textareaHeight = outerHeight(this.TEXTAREA);
   let dropdownHeight = this.getDropdownHeight();
   let trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+  let trimmingContainerScrollTop = trimmingContainer.scrollTop;
+  let headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
   let containerOffset = {
     row: 0,
     col: 0
@@ -233,14 +235,41 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
     containerOffset = offset(trimmingContainer);
   }
 
-  let spaceBelow = containerOffset.top + (trimmingContainer.scrollHeight - trimmingContainer.scrollTop);
-  let spaceAbove = containerOffset.top + trimmingContainer.scrollHeight;
-  let flipNeeded = (textareaOffset.top + textareaHeight + dropdownHeight > spaceBelow);
+  let spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+  let spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+  let flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
 
-  if (flipNeeded && spaceAbove > spaceBelow) {
+  if (flipNeeded) {
     this.flipDropdown(dropdownHeight);
   } else {
     this.unflipDropdown();
+  }
+
+  this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
+
+  return flipNeeded;
+};
+
+AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dropdownHeight) {
+  if (dropdownHeight > spaceAvailable) {
+    let tempHeight = 0;
+    let i = 0;
+    let lastRowHeight = 0;
+    let height = null;
+
+    do {
+      lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+      tempHeight += lastRowHeight;
+      i++;
+    } while (tempHeight < spaceAvailable);
+
+    height = tempHeight - lastRowHeight;
+
+    if (this.htEditor.flipped) {
+      this.htEditor.rootElement.style.top = parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height + 'px';
+    }
+
+    this.setDropdownHeight(tempHeight - lastRowHeight);
   }
 };
 
@@ -274,6 +303,12 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
   });
 
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+};
+
+AutocompleteEditor.prototype.setDropdownHeight = function(height) {
+  this.htEditor.updateSettings({
+    height: height
+  });
 };
 
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {

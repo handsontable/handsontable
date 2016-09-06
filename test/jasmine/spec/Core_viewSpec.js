@@ -620,14 +620,56 @@ describe('Core_view', function () {
       });
 
       expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+    });
 
+    it("should set the columns width correctly after changes made during updateSettings when columns is a function", function () {
+      var hot = handsontable({
+        startCols: 7,
+        startRows: 2,
+        fixedColumnsLeft: 2,
+        columns: function(column) {
+          var colMeta = {};
+
+          if (column === 0) {
+            colMeta.width = 50
+          } else if (column === 1) {
+            colMeta.width = 80
+          } else if (column === 2) {
+            colMeta.width = 110
+          } else if (column === 3) {
+            colMeta.width = 140
+          } else if ([4, 5, 6].indexOf(column) > -1) {
+            colMeta.width = 30
+          } else {
+            colMeta = null;
+          }
+
+          return colMeta;
+        }
+      });
+
+      var leftClone = this.$container.find('.ht_clone_left');
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+
+      hot.updateSettings({
+        manualColumnMove: [2, 0, 1],
+        fixedColumnsLeft: 1
+      });
+
+      expect(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0]).toBe(undefined);
+
+      hot.updateSettings({
+        manualColumnMove: false,
+        fixedColumnsLeft: 2
+      });
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
     });
   });
 
   describe('stretchH', function () {
-
     it("should stretch all visible columns with the ratio appropriate to the container's width", function() {
-
       this.$container[0].style.width = '300px';
 
       var hot = handsontable({
@@ -682,7 +724,6 @@ describe('Core_view', function () {
 
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
-
 
       expect(masterTH[1].offsetWidth).toBeInArray([86, 87, 88, 90]);
       expect(overlayTH[1].offsetWidth).toBeInArray([86, 87, 88, 90]); //if you get 90, it means it is calculated before scrollbars were applied, or show scroll on scrolling is enabled

@@ -78,12 +78,45 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
-   * Fired after setting up the Context Menu's default options.
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
    * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
    */
   'afterContextMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Context Menu's items but after filtering these options by user (`contextMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @event Hooks#beforeContextMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Context Menu items.
+   */
+  'beforeContextMenuSetItems',
+
+  /**
+   * @description
+   * Fired after setting up the Context Menu's default options. These options are a collection which user can select by setting
+   * an array of keys or an array of objects in `contextMenu` option.
+   *
+   * @pro
+   * @event Hooks#afterContextMenuDefaultOptions
+   * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
+   */
+  'afterDropdownMenuDefaultOptions',
+
+  /**
+   * @description
+   * Fired before setting up the Dropdown Menu's items but after filtering these options by user (`dropdownMenu` option). This hook
+   * can by helpful to determine if user use specified menu item or to set up one of the menu item to by always visible.
+   *
+   * @pro
+   * @event Hooks#beforeDropdownMenuSetItems
+   * @param {Array} menuItems Array of objects containing information about to generated Dropdown Menu items.
+   */
+  'beforeDropdownMenuSetItems',
 
   /**
    * @description
@@ -116,7 +149,7 @@ const REGISTERED_HOOKS = [
   'afterCopyLimit',
 
   /**
-   * Callback is fired after a new column was created.
+   * Callback is fired after a new column is created.
    *
    * @event Hooks#afterCreateCol
    * @param {Number} index Represents the index of first newly created column in the data source array.
@@ -125,7 +158,7 @@ const REGISTERED_HOOKS = [
   'afterCreateCol',
 
   /**
-   * Callback is fired after a new row was created.
+   * Callback is fired after a new row is created.
    *
    * @event Hooks#afterCreateRow
    * @param {Number} index Represents the index of first newly created row in the data source array.
@@ -134,7 +167,7 @@ const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
-   * Fired after the current cell was deselected.
+   * Fired after the current cell is deselected.
    *
    * @event Hooks#afterDeselect
    */
@@ -199,14 +232,14 @@ const REGISTERED_HOOKS = [
   'afterLoadData',
 
   /**
-   * Fired after a scroll event, which was identified as a momentum scroll (e.g. on an iPad).
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
   'afterMomentumScroll',
 
   /**
-   * Fired after a `mousedown` event was triggered on the cell corner (the drag handle).
+   * Fired after a `mousedown` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerMouseDown
    * @since 0.11
@@ -314,7 +347,7 @@ const REGISTERED_HOOKS = [
   'afterScrollVertically',
 
   /**
-   * Callback fired after one or more cells were selected (e.g. during mouse move).
+   * Callback fired after one or more cells are selected (e.g. during mouse move).
    *
    * @event Hooks#afterSelection
    * @param {Number} r Selection start row index.
@@ -325,7 +358,7 @@ const REGISTERED_HOOKS = [
   'afterSelection',
 
   /**
-   * Callback fired after one or more cells were selected. The `p` argument represents the source object property name instead of the column number.
+   * Callback fired after one or more cells are selected. The `p` argument represents the source object property name instead of the column number.
    *
    * @event Hooks#afterSelectionByProp
    * @param {Number} r Selection start row index.
@@ -359,7 +392,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionEndByProp',
 
   /**
-   * Called after cell meta was changed.
+   * Called after cell meta is changed.
    *
    * @event Hooks#afterSetCellMeta
    * @since 0.11.0
@@ -648,13 +681,13 @@ const REGISTERED_HOOKS = [
     'unmodifyCol',
 
   /**
-   * Fired when a column index is about to be de-modified by a callback function.
+   * Fired when a row index is about to be de-modified by a callback function.
    *
    * @event Hooks#unmodifyRow
    * @since 0.26.2
-   * @param {Number} col Column index.
+   * @param {Number} row Logical row index.
    */
-  'unmodifyCol',
+  'unmodifyRow',
   /**
    * Fired when a column header index is about to be modified by a callback function.
    *
@@ -795,20 +828,20 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired before rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual row indexes to be moved.
+   * @param {Number} target Visual row index being a target for moved rows.
    */
   'beforeRowMove',
 
   /**
-   * Fired after rendering the table with a modified row order. (Right now it's triggered on the mouseup event)
+   * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Number} startRow Index of the row from which it is moved.
-   * @param {Number} endRow Index of the row to which it is moved.
+   * @param {Number} rows Array of visual row indexes that were moved.
+   * @param {Number} target Visual row index being a target for moved rows.
    */
   'afterRowMove',
 
@@ -909,6 +942,46 @@ const REGISTERED_HOOKS = [
   'modifyColumnHeaderHeight',
 
   /**
+   * Fired before the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#beforeUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeUndo',
+
+  /**
+   * Fired after the undo action. Contains information about the action that is being undone.
+   *
+   * @event Hooks#afterUndo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being undone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterUndo',
+
+  /**
+   * Fired before the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#beforeRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'beforeRedo',
+
+  /**
+   * Fired after the redo action. Contains information about the action that is being redone.
+   *
+   * @event Hooks#afterRedo
+   * @since 0.26.2
+   * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
+   * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   */
+  'afterRedo',
+
+  /**
    * Used to modify the row header width.
    *
    * @event Hooks#modifyRowHeaderWidth
@@ -929,7 +1002,7 @@ class Hooks {
   }
 
   /**
-   * Returns new object with empty handlers related to every registered hook name.
+   * Returns a new object with empty handlers related to every registered hook name.
    *
    * @returns {Object} The empty bucket object.
    *
@@ -955,7 +1028,7 @@ class Hooks {
   }
 
   /**
-   * Get hook bucket based on context object or if argument is `undefined`, get the global hook bucket.
+   * Get hook bucket based on the context of the object or if argument is `undefined`, get the global hook bucket.
    *
    * @param {Object} [context=null] A Handsontable instance.
    * @returns {Object} Returns a global or Handsontable instance bucket.
@@ -973,11 +1046,11 @@ class Hooks {
   }
 
   /**
-   * Adds listener (globally or locally) to a specified hook name.
+   * Adds a listener (globally or locally) to a specified hook name.
    * If the `context` parameter is provided, the hook will be added only to the instance it references.
    * Otherwise, the callback will be used everytime the hook fires on any Handsontable instance.
    * You can provide an array of callback functions as the `callback` argument, this way they will all be fired
-   * once the hook was triggered.
+   * once the hook is triggered.
    *
    * @see Core#addHook
    * @param {String} key Hook name.
@@ -1023,7 +1096,7 @@ class Hooks {
   }
 
   /**
-   * Adds a listener to specified hook. After the hook runs this listener will be automatically removed from the bucket.
+   * Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
    *
    * @see Core#addHookOnce
    * @param {String} key Hook/Event name.
@@ -1210,7 +1283,7 @@ class Hooks {
   }
 
   /**
-   * Returns boolean information if a hook by such name has been registered.
+   * Returns a boolean depending on if a hook by such name has been registered.
    *
    * @param key {String} Hook name.
    * @returns {Boolean} `true` for success, `false` otherwise.

@@ -220,4 +220,35 @@ describe('Function helper', function() {
       expect(curried(1, 2)(3)).toBe(6);
     });
   });
+
+  //
+  // Handsontable.helper.isFunction
+  //
+  describe('isFunction', function() {
+    it('should correctly detect function', function() {
+      var isFunction = Handsontable.helper.isFunction;
+      var toCheck = [
+        function() {},
+        {id: function() {}},
+        1,
+        'text',
+        /^\d+$/,
+        true
+      ];
+
+      function namedFunc() {}
+
+      expect(isFunction(toCheck[0])).toBeTruthy();
+      expect(isFunction(toCheck[1].id)).toBeTruthy();
+      expect(isFunction(namedFunc)).toBeTruthy();
+      expect(isFunction(function() {})).toBeTruthy();
+
+      expect(isFunction(toCheck)).toBeFalsy();
+      expect(isFunction(toCheck[1])).toBeFalsy();
+      expect(isFunction(toCheck[2])).toBeFalsy();
+      expect(isFunction(toCheck[3])).toBeFalsy();
+      expect(isFunction(toCheck[4])).toBeFalsy();
+      expect(isFunction(toCheck[5])).toBeFalsy();
+    });
+  });
 });

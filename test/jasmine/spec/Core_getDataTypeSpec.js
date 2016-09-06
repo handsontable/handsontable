@@ -50,6 +50,43 @@ describe('Core_getDataType', function () {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
+  it('should return data type at specyfied range (type defined in columns) when columns is a function', function () {
+    handsontable({
+      data: arrayOfArrays(),
+      columns: function(column) {
+        var colMeta = {};
+
+        if (column === 0) {
+          colMeta.type = 'numeric';
+
+        } else if (column === 1) {
+          colMeta.type = 'text';
+
+        } else if (column === 2) {
+          colMeta.type = 'date';
+
+        } else if (column === 3) {
+          colMeta.type = 'autocomplete';
+
+        } else if (column === 4) {
+          colMeta.type = 'dropdown';
+
+        } else {
+          colMeta = null;
+        }
+
+        return colMeta;
+      }
+    });
+
+    expect(getDataType(0, 0)).toEqual('numeric');
+    expect(getDataType(0, 0, 1, 1)).toEqual('mixed');
+    expect(getDataType(0, 1, 1, 1)).toEqual('text');
+    expect(getDataType(0, 2, 1, 2)).toEqual('date');
+    expect(getDataType(3, 3, 3, 3)).toEqual('autocomplete');
+    expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
+  });
+
   it('should return data type at specyfied range (type defined in cells)', function () {
     handsontable({
       data: arrayOfArrays(),

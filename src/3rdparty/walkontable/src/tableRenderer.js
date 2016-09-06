@@ -108,6 +108,8 @@ class WalkontableTableRenderer {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
 
+      this.wot.wtOverlays.applyToDOM();
+
       let hiderWidth = outerWidth(this.wtTable.hider);
       let tableWidth = outerWidth(this.wtTable.TABLE);
 
@@ -115,8 +117,6 @@ class WalkontableTableRenderer {
         // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
         this.adjustColumnWidths(columnsToRender);
       }
-
-      this.wot.wtOverlays.applyToDOM();
 
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
