@@ -165,26 +165,29 @@ class ManualRowMove extends BasePlugin {
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {Number} target Visual row index being a target for the moved rows.
+   * @param {Object} blockMoving Contains information about block native moving.
    */
-  moveRows(rows, target) {
-    this.hot.runHooks('beforeRowMove', rows, target);
+  moveRows(rows, target, blockMoving = { rows: false }) {
+    this.hot.runHooks('beforeRowMove', rows, target, blockMoving);
 
-    // first we need to rewrite an visual indexes to logical for save reference after move
-    arrayEach(rows, (row, index, array) => {
-      array[index] = this.rowsMapper.getValueByIndex(row);
-    });
+    if (!blockMoving.rows) {
+      // first we need to rewrite an visual indexes to logical for save reference after move
+      arrayEach(rows, (row, index, array) => {
+        array[index] = this.rowsMapper.getValueByIndex(row);
+      });
 
-    // next, when we have got an logical indexes, we can
-    arrayEach(rows, (row, index) => {
-      let actualPosition = this.rowsMapper.getIndexByValue(row);
+      // next, when we have got an logical indexes, we can
+      arrayEach(rows, (row, index) => {
+        let actualPosition = this.rowsMapper.getIndexByValue(row);
 
-      if (actualPosition !== target) {
-        this.rowsMapper.moveRow(actualPosition, target + index);
-      }
-    });
+        if (actualPosition !== target) {
+          this.rowsMapper.moveRow(actualPosition, target + index);
+        }
+      });
 
-    // after moving we have to clear rowsMapper from null entries
-    this.rowsMapper.clearNull();
+      // after moving we have to clear rowsMapper from null entries
+      this.rowsMapper.clearNull();
+    }
 
     this.hot.runHooks('afterRowMove', rows, target);
   }
@@ -551,7 +554,7 @@ class ManualRowMove extends BasePlugin {
 
     let target = priv.target.row;
 
-    this.moveRows(priv.rowsToMove, target);
+    this.moveRows(priv.rowsToMove, target, blockMoving);
     this.persistentStateSave();
     this.hot.render();
 
