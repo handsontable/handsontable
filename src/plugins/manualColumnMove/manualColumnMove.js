@@ -1,23 +1,35 @@
 import BasePlugin from './../_base.js';
 import Handsontable from './../../browser';
-import {addClass, hasClass, removeClass, outerHeight} from './../../helpers/dom/element';
-import {arrayEach, arrayMap} from './../../helpers/array';
+import {arrayEach} from './../../helpers/array';
+import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import {eventManager as eventManagerObject} from './../../eventManager';
-import {pageX} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
+import {ColumnsMapper} from './columnsMapper';
+import {BacklightUI} from './ui/backlight';
+import {GuidelineUI} from './ui/guideline';
 
 const privatePool = new WeakMap();
+const CSS_PLUGIN = 'ht__manualColumnMove';
+const CSS_SHOW_UI = 'show-ui';
+const CSS_ON_MOVING = 'on-moving--columns';
+const CSS_AFTER_SELECTION = 'after-selection--columns';
 
 /**
+ * @plugin ManualColumnMove
+ *
  * @description
- * Handsontable ManualColumnMove
+ * This plugin allows to change columns order.
  *
- * Has 2 UI components:
- * * handle - the draggable element that sets the desired position of the column,
- * * guide - the helper guide that shows the desired position as a vertical guide
+ * API:
+ * - moveColumn - move single column to the new position.
+ * - moveColumns - move many columns (as an array of indexes) to the new position.
  *
- * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
+ * If you want apply visual changes, you have to call manually the render() method on the instance of Handsontable.
+ *
+ * UI components:
+ * - backlight - highlight of selected columns.
+ * - guideline - line which shows where rows has been moved.
  *
  * @class ManualColumnMove
  * @plugin ManualColumnMove
@@ -26,57 +38,57 @@ class ManualColumnMove extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
+    /**
+     * Set up WeakMap of plugin to sharing private parameters;
+     */
     privatePool.set(this, {
-      guideClassName: 'manualColumnMoverGuide',
-      handleClassName: 'manualColumnMover',
-      startOffset: null,
-      pressed: null,
-      startCol: null,
-      endCol: null,
-      currentCol: null,
-      startX: null,
-      startY: null
+      columnsToMove: [],
+      pressed: void 0,
+      disallowMoving: void 0,
+      target: {
+        eventPageX: void 0,
+        coords: void 0,
+        TD: void 0,
+        col: void 0
+      }
     });
 
     /**
-     * DOM element representing the vertical guide line.
-     *
-     * @type {HTMLElement}
-     */
-    this.guideElement = null;
-    /**
-     * DOM element representing the move handle.
-     *
-     * @type {HTMLElement}
-     */
-    this.handleElement = null;
-    /**
-     * Currently processed TH element.
-     *
-     * @type {HTMLElement}
-     */
-    this.currentTH = null;
-    /**
-     * Manual column positions array.
+     * List of last removed row indexes.
      *
      * @type {Array}
      */
-    this.columnPositions = [];
+    this.removedColumns = [];
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @type {RowsMapper}
+     */
+    this.columnsMapper = new ColumnsMapper(this);
     /**
      * Event Manager object.
      *
      * @type {Object}
      */
     this.eventManager = eventManagerObject(this);
-
-    // Needs to be in the constructor instead of enablePlugin, because the position array needs to be filled regardless of the plugin state.
-    this.addHook('init', () => this.onInit());
+    /**
+     * Backlight UI object.
+     *
+     * @type {Object}
+     */
+    this.backlight = new BacklightUI(hotInstance);
+    /**
+     * Guideline UI object.
+     *
+     * @type {Object}
+     */
+    this.guideline = new GuidelineUI(hotInstance);
   }
 
   /**
    * Check if plugin is enabled.
    *
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().manualColumnMove;
@@ -86,32 +98,28 @@ class ManualColumnMove extends BasePlugin {
    * Enable the plugin.
    */
   enablePlugin() {
-    let priv = privatePool.get(this);
-    let initialSettings = this.hot.getSettings().manualColumnMove;
-    let loadedManualColumnPositions = this.loadManualColumnPositions();
+    if (this.enabled) {
+      return;
+    }
 
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
+    this.columnsMapper.createMap(this.hot.countSourceCols() || 5);
 
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-
-    this.addHook('modifyCol', (col) => this.onModifyCol(col));
-    this.addHook('unmodifyCol', (col) => this.onUnmodifyCol(col));
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
+    this.addHook('modifyCol', (row, source) => this.onModifyCol(row, source));
+    this.addHook('beforeRemoveCol', (index, amount) => this.onBeforeRemoveCol(index, amount));
     this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
+    this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
 
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
     this.registerEvents();
 
-    if (typeof loadedManualColumnPositions != 'undefined') {
-      this.columnPositions = loadedManualColumnPositions;
-
-    } else if (Array.isArray(initialSettings)) {
-      this.columnPositions = initialSettings;
-
-    } else if (!initialSettings || this.columnPositions === void 0) {
-      this.columnPositions = [];
-    }
+    // TODO: move adding plugin classname to BasePlugin.
+    addClass(this.hot.rootElement, CSS_PLUGIN);
 
     super.enablePlugin();
   }
@@ -127,17 +135,241 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    let pluginSetting = this.hot.getSettings().manualColumnMove;
+    this.columnsMapper.clearMap();
 
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.columnPositions = [];
-    }
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
+
+    this.unregisterEvents();
+    this.backlight.destroy();
+    this.guideline.destroy();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Move a single column.
+   *
+   * @param {Number} column Visual column index to be moved.
+   * @param {Number} target Visual column index being a target for the moved column.
+   */
+  moveColumn(column, target) {
+    this.moveColumns([column], target);
+  }
+
+  /**
+   * Move multiple columns.
+   *
+   * @param {Array} columns Array of visual column indexes to be moved.
+   * @param {Number} target Visual column index being a target for the moved columns.
+   */
+  moveColumns(columns, target) {
+    let priv = privatePool.get(this);
+    let beforeColumnHook = this.hot.runHooks('beforeColumnMove', columns, target);
+
+    priv.disallowMoving = !beforeColumnHook;
+
+    if (!!beforeColumnHook) {
+      // first we need to rewrite an visual indexes to logical for save reference after move
+      arrayEach(columns, (column, index, array) => {
+        array[index] = this.columnsMapper.getValueByIndex(column);
+      });
+
+      // next, when we have got an logical indexes, we can move columns
+      arrayEach(columns, (column, index) => {
+        let actualPosition = this.columnsMapper.getIndexByValue(column);
+
+        if (actualPosition !== target) {
+          this.columnsMapper.moveColumn(actualPosition, target + index);
+        }
+      });
+
+      // after moving we have to clear columnsMapper from null entries
+      this.columnsMapper.clearNull();
+    }
+
+    this.hot.runHooks('afterColumnMove', columns, target);
+  }
+
+  /**
+   * Correct the cell selection after the move action. Fired only when action was made with a mouse.
+   * That means that changing the row order using the API won't correct the selection.
+   *
+   * @private
+   * @param {Number} startColumn Visual column index for the start of the selection.
+   * @param {Number} endColumn Visual column index for the end of the selection.
+   */
+  changeSelection(startColumn, endColumn) {
+    let selection = this.hot.selection;
+    let lastRowIndex = this.hot.countRows() - 1;
+
+    selection.setRangeStartOnly(new WalkontableCellCoords(0, startColumn));
+    selection.setRangeEnd(new WalkontableCellCoords(lastRowIndex, endColumn), false);
+  }
+
+  /**
+   * Get the sum of the widths of columns in the provided range.
+   *
+   * @private
+   * @param {Number} from Visual column index.
+   * @param {Number} to Visual column index.
+   * @returns {Number}
+   */
+  getColumnsWidth(from, to) {
+    let width = 0;
+
+    for (let i = from; i < to; i++) {
+      let columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 23;
+
+      width += columnWidth;
+    }
+
+    return width;
+  }
+
+  /**
+   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   *
+   * @private
+   */
+  initialSettings() {
+    let pluginSettings = this.hot.getSettings().manualColumnMove;
+
+    if (Array.isArray(pluginSettings)) {
+      this.moveColumns(pluginSettings, 0);
+
+    } else if (pluginSettings !== void 0) {
+      let persistentState = this.persistentStateLoad();
+
+      if (persistentState.length) {
+        this.moveColumns(persistentState, 0);
+      }
+    }
+  }
+
+  /**
+   * Check if the provided row is in the fixedRowsTop section.
+   *
+   * @private
+   * @param {Number} row Visual row index to check.
+   * @returns {Boolean}
+   */
+  isFixedColumnsLeft(column) {
+    return column < this.hot.getSettings().fixedColumnsLeft;
+  }
+
+  /**
+   * Save the manual row positions to the persistent state.
+   *
+   * @private
+   */
+  persistentStateSave() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+  }
+
+  /**
+   * Load the manual row positions from the persistent state.
+   *
+   * @private
+   * @returns {Array} Stored state.
+   */
+  persistentStateLoad() {
+    let storedState = {};
+
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+
+    return storedState.value ? storedState.value : [];
+  }
+
+  /**
+   * Prepare array of indexes based on actual selection.
+   *
+   * @private
+   * @returns {Array}
+   */
+  prepareColumnsToMoving() {
+    let selection = this.hot.getSelectedRange();
+    let selectedColumns = [];
+
+    if (!selection) {
+      return selectedColumns;
+    }
+
+    let {from, to} = selection;
+    let start = Math.min(from.col, to.col);
+    let end = Math.max(from.col, to.col);
+
+    rangeEach(start, end, (i) => {
+      selectedColumns.push(i);
+    });
+
+    return selectedColumns;
+  }
+
+  /**
+   * Update the UI visual position.
+   *
+   * @private
+   */
+  refreshPositions() {
+    let isRowHeader = !!this.hot.getSettings().rowHeaders;
+    let wtTable = this.hot.view.wt.wtTable;
+    let priv = privatePool.get(this);
+    let coords = priv.target.coords;
+    let TD = priv.target.TD;
+    let rootElementOffset = offset(this.hot.rootElement);
+    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, coords.col);
+    let mouseOffsetLeft = priv.target.eventPageX - rootElementOffset.left + wtTable.holder.scrollLeft;
+    let hiderWidth = wtTable.hider.offsetWidth;
+    let tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
+    let backlightElemMarginLeft = this.backlight.getOffset().left;
+    let backlightElemWidth = this.backlight.getSize().width;
+    let rowHeaderWidth = 0;
+
+    if (isRowHeader) {
+      rowHeaderWidth = wtTable.getColumnWidth(-1);
+    }
+    if (this.isFixedColumnsLeft(coords.col)) {
+      tdOffsetLeft += wtTable.holder.scrollLeft;
+    }
+    tdOffsetLeft += rowHeaderWidth;
+
+    if (coords.col < 0) {
+      // if hover on colHeader
+      priv.target.col = 0;
+
+    } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
+      // if hover on lower part of TD
+      priv.target.col = coords.col + 1;
+      // unfortunately first row is bigger than rest
+      tdOffsetLeft += coords.col === 0 ? TD.offsetWidth - 1 : TD.offsetWidth;
+
+    } else {
+      // elsewhere on table
+      priv.target.col = coords.col;
+    }
+
+    let backlightLeft = mouseOffsetLeft;
+    let guidelineLeft = tdOffsetLeft;
+
+    if (mouseOffsetLeft + backlightElemWidth + backlightElemMarginLeft >= hiderWidth) {
+      // prevent display backlight below table
+      backlightLeft = hiderWidth - backlightElemWidth - backlightElemMarginLeft;
+
+    } else if (mouseOffsetLeft + backlightElemMarginLeft < tbodyOffsetLeft + rowHeaderWidth) {
+      // prevent display above table
+      backlightLeft = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginLeft);
+    }
+
+    if (tdOffsetLeft >= hiderWidth - 1) {
+      // prevent display guideline below table
+      guidelineLeft = hiderWidth - 1;
+    }
+
+    this.backlight.setPosition(null, backlightLeft);
+    this.guideline.setPosition(null, guidelineLeft);
   }
 
   /**
@@ -146,10 +378,8 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (event) => this.onMouseOver(event));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(window, 'mousemove', (event) => this.onMouseMove(event));
-    this.eventManager.addEventListener(window, 'mouseup', (event) => this.onMouseUp(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 
   /**
@@ -162,357 +392,169 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Save the manual column positions.
-   */
-  saveManualColumnPositions() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnPositions', this.columnPositions);
-  }
-
-  /**
-   * Load the manual column positions.
+   * Change the behavior of selection / dragging.
    *
-   * @returns {Object} Stored state.
+   * @private
+   * @param {MouseEvent} event
+   * @param {WalkontableCellCoords} coords
+   * @param {HTMLElement} TD
+   * @param {Object} blockCalculations
    */
-  loadManualColumnPositions() {
-    let storedState = {};
+  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+    let wtTable = this.hot.view.wt.wtTable;
+    let isHeaderSelection = this.hot.selection.selectedHeader.cols;
+    let selection = this.hot.getSelectedRange();
+    let priv = privatePool.get(this);
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnPositions', storedState);
-
-    return storedState.value;
-  }
-
-  /**
-   * Complete the manual column positions array to match its length to the column count.
-   */
-  completeSettingsArray() {
-    let columnCount = this.hot.countCols();
-
-    if (this.columnPositions.length === columnCount) {
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
+      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
       return;
     }
 
-    rangeEach(0, columnCount - 1, (i) => {
-      if (this.columnPositions.indexOf(i) === -1) {
-        this.columnPositions.push(i);
-      }
-    });
-  }
+    let guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    let backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
 
-  /**
-   * Setup the moving handle position.
-   *
-   * @param {HTMLElement} TH Currently processed TH element.
-   */
-  setupHandlePosition(TH) {
-    this.currentTH = TH;
-    let priv = privatePool.get(this);
-    let col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns WalkontableCellCoords
-    let headerHeight = outerHeight(this.currentTH);
-
-    if (col >= 0) { // if not row header
-      let box = this.currentTH.getBoundingClientRect();
-      priv.currentCol = col;
-
-      priv.startOffset = box.left;
-      this.handleElement.style.top = box.top + 'px';
-      this.handleElement.style.left = priv.startOffset + 'px';
-      this.handleElement.style.height = headerHeight + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
-  }
 
-  /**
-   * Refresh the moving handle position.
-   *
-   * @param {HTMLElement} TH TH element with the handle.
-   * @param {Number} delta Difference between the related columns.
-   */
-  refreshHandlePosition(TH, delta) {
-    let box = TH.getBoundingClientRect();
-    let handleWidth = 6;
+    let {from, to} = selection;
+    let start = Math.min(from.col, to.col);
+    let end = Math.max(from.col, to.col);
 
-    if (delta > 0) {
-      this.handleElement.style.left = (box.left + box.width - handleWidth) + 'px';
+    if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
+      blockCalculations.column = true;
+      priv.pressed = true;
+      priv.target.eventPageX = event.pageX;
+      priv.target.coords = coords;
+      priv.target.TD = TD;
+      priv.columnsToMove = this.prepareColumnsToMoving();
+
+      let topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+
+      this.backlight.setPosition(topPos);
+      this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
+      this.backlight.setOffset(null, (this.getColumnsWidth(start, coords.col) + event.layerX) * -1);
+
+      addClass(this.hot.rootElement, CSS_ON_MOVING);
+
+      this.refreshPositions();
+
     } else {
-      this.handleElement.style.left = box.left + 'px';
+      removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
     }
   }
 
   /**
-   * Setup the moving handle position.
-   */
-  setupGuidePosition() {
-    let box = this.currentTH.getBoundingClientRect();
-    let priv = privatePool.get(this);
-    let handleHeight = parseInt(outerHeight(this.handleElement), 10);
-    let handleBottomPosition = parseInt(this.handleElement.style.top, 10) + handleHeight;
-    let maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
-
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-
-    this.guideElement.style.width = box.width + 'px';
-    this.guideElement.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
-    this.guideElement.style.top = handleBottomPosition + 'px';
-    this.guideElement.style.left = priv.startOffset + 'px';
-    this.hot.rootElement.appendChild(this.guideElement);
-  }
-
-  /**
-   * Refresh the moving guide position.
-   *
-   * @param {Number} diff Difference between the starting and current cursor position.
-   */
-  refreshGuidePosition(diff) {
-    let priv = privatePool.get(this);
-
-    this.guideElement.style.left = priv.startOffset + diff + 'px';
-  }
-
-  /**
-   * Hide both the moving handle and the moving guide.
-   */
-  hideHandleAndGuide() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  }
-
-  /**
-   * Check if the provided element is in the column header.
-   *
-   * @param {HTMLElement} element The DOM element to be checked.
-   * @returns {Boolean}
-   */
-  checkColumnHeader(element) {
-    if (element != this.hot.rootElement) {
-      let parent = element.parentNode;
-
-      if (parent.tagName === 'THEAD') {
-        return true;
-      }
-
-      return this.checkColumnHeader(parent);
-    }
-
-    return false;
-  }
-
-  /**
-   * Create the initial column position data.
-   *
-   * @param {Number} len The desired length of the array.
-   */
-  createPositionData(len) {
-    let positionArr = this.columnPositions;
-
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (i) => {
-        positionArr[i] = i;
-      });
-    }
-  }
-
-  /**
-   * Get the TH parent element from the provided DOM element.
-   *
-   * @param {HTMLElement} element The DOM element to work on.
-   * @returns {HTMLElement|null} The TH element or null, if element has no TH parents.
-   */
-  getTHFromTargetElement(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
-
-      } else {
-
-        return this.getTHFromTargetElement(element.parentNode);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Change the column position. It puts the `columnIndex` column after the `destinationIndex` column.
-   *
-   * @param {Number} columnIndex Index of the column to move.
-   * @param {Number} destinationIndex Index of the destination column.
-   */
-  changeColumnPositions(columnIndex, destinationIndex) {
-    let maxLength = Math.max(columnIndex, destinationIndex);
-
-    if (maxLength > this.columnPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-
-    this.columnPositions.splice(destinationIndex, 0, this.columnPositions.splice(columnIndex, 1)[0]);
-  }
-
-  /**
-   * Get the visible column index from the provided logical index.
-   *
-   * @param {Number} column Logical column index.
-   * @returns {Number|undefined} Visible column index.
-   */
-  getVisibleColumnIndex(column) {
-    const position = this.columnPositions.indexOf(column);
-
-    return position === -1 ? void 0 : position;
-  }
-
-  /**
-   * Get the logical column index from the provided visible index.
-   *
-   * @param {Number} column Visible column index.
-   * @returns {Number|undefined} Logical column index.
-   */
-  getLogicalColumnIndex(column) {
-    return this.columnPositions[column];
-  }
-
-  /**
-   * 'mouseover' event callback.
+   * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
    *
    * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseOver(event) {
-    let priv = privatePool.get(this);
-
-    if (this.checkColumnHeader(event.target)) {
-      let th = this.getTHFromTargetElement(event.target);
-
-      if (th) {
-        if (priv.pressed) {
-          let col = this.hot.view.wt.wtTable.getCoords(th).col;
-
-          if (col >= 0) { // not TH above row header
-            priv.endCol = col;
-            this.refreshHandlePosition(th, priv.endCol - priv.startCol);
-          }
-
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  }
-
-  /**
-   * 'mousedown' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseDown(event) {
-    let priv = privatePool.get(this);
-
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startX = pageX(event);
-      this.setupGuidePosition();
-
-      priv.pressed = this.hot;
-      priv.startCol = priv.currentCol;
-      priv.endCol = priv.currentCol;
-    }
-  }
-
-  /**
-   * 'mousemove' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
+   * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
     let priv = privatePool.get(this);
 
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageX(event) - priv.startX);
-    }
-  }
-
-  /**
-   * 'mouseup' event callback.
-   *
-   * @private
-   * @param {MouseEvent} event The event object.
-   */
-  onMouseUp(event) {
-    let priv = privatePool.get(this);
-
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-
-      this.createPositionData(this.hot.countCols());
-      this.changeColumnPositions(priv.startCol, priv.endCol);
-
-      Handsontable.hooks.run(this.hot, 'beforeColumnMove', priv.startCol, priv.endCol);
-
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
-
-      this.saveManualColumnPositions();
-
-      Handsontable.hooks.run(this.hot, 'afterColumnMove', priv.startCol, priv.endCol);
-
-      this.setupHandlePosition(this.currentTH);
-    }
-  }
-
-  /**
-   * 'modifyCol' hook callback.
-   *
-   * @private
-   * @param {Number} col Column index.
-   * @returns {Number} Modified column index.
-   */
-  onModifyCol(col) {
-    return this.getLogicalColumnIndex(col);
-  }
-
-  /**
-   * 'unmodifyCol' hook callback.
-   *
-   * @private
-   * @param {Number} col Column index.
-   * @returns {Number} Unmodified column index.
-   */
-  onUnmodifyCol(col) {
-    return this.getVisibleColumnIndex(col);
-  }
-
-  /**
-   * `afterRemoveCol` hook callback.
-   *
-   * @private
-   * @param {Number} index Index of the removed column.
-   * @param {Number} amount Amount of removed columns.
-   */
-  onAfterRemoveCol(index, amount) {
-    if (!this.isEnabled()) {
+    if (!priv.pressed) {
       return;
     }
 
-    let rmindx;
-    let colpos = this.columnPositions;
+    // callback for browser which doesn't supports CSS pointer-event: none
+    if (event.realTarget === this.backlight.element) {
+      let width = this.backlight.getSize().width;
+      this.backlight.setSize(0);
 
-    // We have removed columns, we also need to remove the indicies from manual column array
-    rmindx = colpos.splice(index, amount);
-
-    // We need to remap manualColPositions so it remains constant linear from 0->ncols
-    colpos = arrayMap(colpos, function(value, index) {
-      let i, newpos = value;
-
-      arrayEach(rmindx, (elem, index) => {
-        if (value > elem) {
-          newpos--;
-        }
+      setTimeout(function() {
+        this.backlight.setPosition(width);
       });
+    }
 
-      return newpos;
-    });
+    priv.target.eventPageX = event.pageX;
+    this.refreshPositions();
+  }
 
-    this.columnPositions = colpos;
+  /**
+   * 'beforeOnCellMouseOver' hook callback. Fired when pointer was over cell.
+   *
+   * @private
+   * @param {MouseEvent} event `mouseover` event properties.
+   * @param {WalkontableCellCoords} coords Cell coordinates where was fired event.
+   * @param {HTMLElement} TD Cell represented as HTMLElement.
+   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   */
+  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+    let selectedRange = this.hot.getSelectedRange();
+    let priv = privatePool.get(this);
+
+    if (!selectedRange || !priv.pressed) {
+      return;
+    }
+
+    if (priv.columnsToMove.indexOf(coords.col) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOW_UI);
+
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOW_UI);
+    }
+
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.target.coords = coords;
+    priv.target.TD = TD;
+  }
+
+  /**
+   * `onMouseUp` hook callback.
+   *
+   * @private
+   */
+  onMouseUp() {
+    let priv = privatePool.get(this);
+    priv.pressed = false;
+    priv.backlightWidth = 0;
+
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+
+    if (this.hot.selection.selectedHeader.cols) {
+      addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+    }
+    if (priv.columnsToMove.length < 1) {
+      return;
+    }
+
+    let target = priv.target.col;
+
+    this.moveColumns(priv.columnsToMove, target);
+    this.persistentStateSave();
+    this.hot.render();
+
+    if (!priv.disallowMoving) {
+      let selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
+      let selectionEnd = this.columnsMapper.getIndexByValue(priv.columnsToMove[priv.columnsToMove.length - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
+
+    priv.columnsToMove.length = 0;
+  }
+
+  /**
+   * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
+   *
+   * @private
+   */
+  onAfterScrollVertically() {
+    let wtTable = this.hot.view.wt.wtTable;
+    let headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
+    let scrollTop = wtTable.holder.scrollTop;
+    let posTop = headerHeight + scrollTop;
+
+    this.backlight.setPosition(posTop);
+    this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
   }
 
   /**
@@ -523,50 +565,78 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} amount Amount of created columns.
    */
   onAfterCreateCol(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-
-    let colpos = this.columnPositions;
-
-    if (!colpos.length) {
-      return;
-    }
-
-    let addindx = [];
-
-    rangeEach(0, amount - 1, (i) => {
-      addindx.push(index + i);
-    });
-
-    if (index >= colpos.length) {
-      colpos = colpos.concat(addindx);
-
-    } else {
-      // We need to remap manualColPositions so it remains constant linear from 0->ncols
-      colpos = arrayMap(colpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-
-      // We have added columns, we also need to add new indicies to column position array
-      colpos.splice.apply(colpos, [index, 0].concat(addindx));
-    }
-
-    this.columnPositions = colpos;
+    this.columnsMapper.shiftItems(index, amount);
   }
 
   /**
-   * `init` hook callback.
+   * On before remove column listener.
+   *
+   * @private
+   * @param {Number} index Column index.
+   * @param {Number} amount Defines how many columns removed.
    */
-  onInit() {
-    this.completeSettingsArray();
+  onBeforeRemoveCol(index, amount) {
+    this.removedColumns.length = 0;
+
+    if (index !== false) {
+      // Collect physical row index.
+      rangeEach(index, index + amount - 1, (removedIndex) => {
+        this.removedColumns.push(this.hot.runHooks('modifyCol', removedIndex, this.pluginName));
+      });
+    }
   }
 
+  /**
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {Number} index Index of the removed column.
+   * @param {Number} amount Amount of removed columns.
+   */
+  onAfterRemoveCol(index, amount) {
+    this.columnsMapper.unshiftItems(this.removedColumns);
+  }
+
+  /**
+   * 'modifyRow' hook callback.
+   *
+   * @private
+   * @param {Number} column Visual column index.
+   * @returns {Number} Modified column index.
+   */
+  onModifyCol(column, source) {
+    if (source !== this.pluginName) {
+      column = this.columnsMapper.getValueByIndex(column);
+    }
+
+    return column;
+  }
+
+  /**
+   * 'unmodifyCol' hook callback.
+   *
+   * @private
+   * @param {Number} column Visual column index.
+   * @returns {Number} Logical column index.
+   */
+  onUnmodifyCol(column) {
+    return this.columnsMapper.getIndexByValue(column);
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    this.backlight.destroy();
+    this.guideline.destroy();
+
+    super.destroy();
+  }
 }
 
 export {ManualColumnMove};
 
-registerPlugin('manualColumnMove', ManualColumnMove);
+registerPlugin('ManualColumnMove', ManualColumnMove);
 Handsontable.hooks.register('beforeColumnMove');
 Handsontable.hooks.register('afterColumnMove');
 Handsontable.hooks.register('unmodifyCol');

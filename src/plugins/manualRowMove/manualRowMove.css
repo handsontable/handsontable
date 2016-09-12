@@ -24,15 +24,15 @@
   display: none;
 }
 .handsontable .ht__manualRowMove--guideline {
-  background: #777;
+  background: #757575;
   height: 2px;
   left: 0;
   margin-top: -1px;
   z-index: 105;
 }
 .handsontable .ht__manualRowMove--backlight {
-  background: #333;
-  background: rgba(51, 51, 51, 0.25);
+  background: #343434;
+  background: rgba(52, 52, 52, 0.25);
   display: none;
   z-index: 105;
   pointer-events: none;

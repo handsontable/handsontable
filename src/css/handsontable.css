@@ -164,50 +164,17 @@
 /* selection */
 .handsontable tbody th.ht__highlight,
 .handsontable thead th.ht__highlight {
-  background-color: #dddddd;
+  background-color: #dcdcdc;
 }
 .handsontable.ht__selection--columns thead th.ht__highlight,
 .handsontable.ht__selection--rows tbody th.ht__highlight {
-  background-color: #8fb1e8;
+  background-color: #8eb0e7;
   color: #000;
 }
 
 /* plugins */
 
-.handsontable .manualColumnMover {
-  position: fixed;
-  left: 0;
-  top: 0;
-  background-color: transparent;
-  width: 5px;
-  height: 25px;
-  z-index: 999;
-  cursor: move;
-}
-
-.handsontable .manualColumnMoverGuide {
-  position: fixed;
-  left: 0;
-  top: 0;
-  background-color: #CCC;
-  width: 25px;
-  height: 25px;
-  opacity: 0.7;
-  display: none;
-}
-
-.handsontable .manualColumnMoverGuide.active {
-  display: block;
-  z-index: 199;
-}
-
-.handsontable .manualColumnMover:hover,
-.handsontable .manualColumnMover.active {
-  background-color: #88F;
-}
-
 /* row + column resizer*/
-
 .handsontable .manualColumnResizer {
   position: fixed;
   top: 0;
@@ -539,12 +506,6 @@ Comment For Cell
   padding: 0 0 5px 0;
 }
 
-/* removing shadows, TODO: remove the commented code and this comment  */
-/*.handsontable .handsontable:not(.ht_master) table {*/
-  /*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
-  /*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
-/*}*/
-
 /**
 * Autocomplete Editor
 */
@@ -651,7 +612,7 @@ Cell borders
   background-color: #FFFACD;
   border: 1px solid #999;
   box-shadow: 1px 1px 2px #bbb;
-  font-family: 'Arial';
+  font-family: sans-serif;
 }
 
 .handsontable tbody tr th:nth-last-child(2) {
@@ -746,9 +707,9 @@ thead .htCollapseButton:after {
   width: 10px;
   height: 10px;
   cursor: pointer;
-  -webkit-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
-  -moz-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
-  box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  -webkit-box-shadow: 0 0 0 6px rgba(238,238,238,1);
+  -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
+  box-shadow: 0 0 0 6px rgba(238,238,238,1);
   background: #eee;
 }
 

@@ -167,24 +167,30 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} target Visual row index being a target for the moved rows.
    */
   moveRows(rows, target) {
-    this.hot.runHooks('beforeRowMove', rows, target);
+    let blockMoving = {
+      rows: false
+    };
 
-    // first we need to rewrite an visual indexes to logical for save reference after move
-    arrayEach(rows, (row, index, array) => {
-      array[index] = this.rowsMapper.getValueByIndex(row);
-    });
+    this.hot.runHooks('beforeRowMove', rows, target, blockMoving);
 
-    // next, when we have got an logical indexes, we can
-    arrayEach(rows, (row, index) => {
-      let actualPosition = this.rowsMapper.getIndexByValue(row);
+    if (!blockMoving.rows) {
+      // first we need to rewrite an visual indexes to logical for save reference after move
+      arrayEach(rows, (row, index, array) => {
+        array[index] = this.rowsMapper.getValueByIndex(row);
+      });
 
-      if (actualPosition !== target) {
-        this.rowsMapper.moveRow(actualPosition, target + index);
-      }
-    });
+      // next, when we have got an logical indexes, we can move rows
+      arrayEach(rows, (row, index) => {
+        let actualPosition = this.rowsMapper.getIndexByValue(row);
 
-    // after moving we have to clear rowsMapper from null entries
-    this.rowsMapper.clearNull();
+        if (actualPosition !== target) {
+          this.rowsMapper.moveRow(actualPosition, target + index);
+        }
+      });
+
+      // after moving we have to clear rowsMapper from null entries
+      this.rowsMapper.clearNull();
+    }
 
     this.hot.runHooks('afterRowMove', rows, target);
   }
@@ -201,7 +207,7 @@ class ManualRowMove extends BasePlugin {
     let selection = this.hot.selection;
     let lastColIndex = this.hot.countCols() - 1;
 
-    selection.setRangeStart(new WalkontableCellCoords(startRow, 0));
+    selection.setRangeStartOnly(new WalkontableCellCoords(startRow, 0));
     selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
   }
 

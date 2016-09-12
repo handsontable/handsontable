@@ -85,7 +85,7 @@ Handsontable.UndoRedo = function(instance) {
 
     let manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
 
-    let action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
+    let action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : []);
 
     plugin.done(action);
   });
@@ -404,7 +404,7 @@ Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, und
   }
 
   if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnPositions = this.columnPositions;
+    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
   }
 
   instance.addHookOnce('afterRender', undoneCallback);
