@@ -162,12 +162,11 @@ class ManualRowMove extends BasePlugin {
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {Number} target Visual row index being a target for the moved rows.
-   * @param {Object} blockMoving Contains information about block native moving.
    */
-  moveRows(rows, target, blockMoving = { rows: false }) {
-    this.hot.runHooks('beforeRowMove', rows, target, blockMoving);
+  moveRows(rows, target) {
+    let beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
 
-    if (!blockMoving.rows) {
+    if (!!beforeMoveHook) {
       // first we need to rewrite an visual indexes to logical for save reference after move
       arrayEach(rows, (row, index, array) => {
         array[index] = this.rowsMapper.getValueByIndex(row);

@@ -831,7 +831,7 @@ const REGISTERED_HOOKS = [
    * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Number} rows Array of visual row indexes to be moved.
+   * @param {Array} rows Array of visual row indexes to be moved.
    * @param {Number} target Visual row index being a target for moved rows.
    */
   'beforeRowMove',
@@ -840,7 +840,7 @@ const REGISTERED_HOOKS = [
    * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Number} rows Array of visual row indexes that were moved.
+   * @param {Array} rows Array of visual row indexes that were moved.
    * @param {Number} target Visual row index being a target for moved rows.
    */
   'afterRowMove',
