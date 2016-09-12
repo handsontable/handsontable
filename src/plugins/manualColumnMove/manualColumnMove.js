@@ -171,7 +171,7 @@ class ManualColumnMove extends BasePlugin {
 
     priv.disallowMoving = !beforeColumnHook;
 
-    if (!!beforeColumnHook) {
+    if (beforeColumnHook !== false) {
       // first we need to rewrite an visual indexes to logical for save reference after move
       arrayEach(columns, (column, index, array) => {
         array[index] = this.columnsMapper.getValueByIndex(column);
@@ -195,7 +195,7 @@ class ManualColumnMove extends BasePlugin {
 
   /**
    * Correct the cell selection after the move action. Fired only when action was made with a mouse.
-   * That means that changing the row order using the API won't correct the selection.
+   * That means that changing the column order using the API won't correct the selection.
    *
    * @private
    * @param {Number} startColumn Visual column index for the start of the selection.
@@ -250,10 +250,10 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided row is in the fixedRowsTop section.
+   * Check if the provided column is in the fixedColumnsLeft section.
    *
    * @private
-   * @param {Number} row Visual row index to check.
+   * @param {Number} column Visual column index to check.
    * @returns {Boolean}
    */
   isFixedColumnsLeft(column) {
@@ -261,7 +261,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Save the manual row positions to the persistent state.
+   * Save the manual column positions to the persistent state.
    *
    * @private
    */
@@ -270,7 +270,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Load the manual row positions from the persistent state.
+   * Load the manual column positions from the persistent state.
    *
    * @private
    * @returns {Array} Stored state.
@@ -337,13 +337,13 @@ class ManualColumnMove extends BasePlugin {
     tdOffsetLeft += rowHeaderWidth;
 
     if (coords.col < 0) {
-      // if hover on colHeader
+      // if hover on rowHeader
       priv.target.col = 0;
 
     } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
-      // if hover on lower part of TD
+      // if hover on right part of TD
       priv.target.col = coords.col + 1;
-      // unfortunately first row is bigger than rest
+      // unfortunately first column is bigger than rest
       tdOffsetLeft += coords.col === 0 ? TD.offsetWidth - 1 : TD.offsetWidth;
 
     } else {
@@ -355,16 +355,16 @@ class ManualColumnMove extends BasePlugin {
     let guidelineLeft = tdOffsetLeft;
 
     if (mouseOffsetLeft + backlightElemWidth + backlightElemMarginLeft >= hiderWidth) {
-      // prevent display backlight below table
+      // prevent display backlight on the right side of the table
       backlightLeft = hiderWidth - backlightElemWidth - backlightElemMarginLeft;
 
     } else if (mouseOffsetLeft + backlightElemMarginLeft < tbodyOffsetLeft + rowHeaderWidth) {
-      // prevent display above table
+      // prevent display backlight on the left side of the table
       backlightLeft = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginLeft);
     }
 
     if (tdOffsetLeft >= hiderWidth - 1) {
-      // prevent display guideline below table
+      // prevent display guideline outside the table
       guidelineLeft = hiderWidth - 1;
     }
 
