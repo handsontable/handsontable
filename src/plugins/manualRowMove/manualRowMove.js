@@ -102,7 +102,7 @@ class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.rowsMapper.createMap(this.hot.countSourceRows());
+
 
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
@@ -114,9 +114,6 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
-    this.initialSettings();
-    this.backlight.build();
-    this.guideline.build();
     this.registerEvents();
 
     // TODO: move adding plugin classname to BasePlugin.
@@ -131,6 +128,8 @@ class ManualRowMove extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+
+    this.onAfterPluginsInitialized();
 
     super.updatePlugin();
   }
@@ -646,6 +645,18 @@ class ManualRowMove extends BasePlugin {
    */
   onUnmodifyRow(row) {
     return this.rowsMapper.getIndexByValue(row);
+  }
+
+  /**
+   * `afterPluginsInitialized` hook callback.
+   *
+   * @private
+   */
+  onAfterPluginsInitialized() {
+    this.rowsMapper.createMap(this.hot.countSourceRows());
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
   }
 
   /**
