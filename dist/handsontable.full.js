@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 01 2016 18:07:50 GMT+0200 (CEST)
+ * Date: Tue Sep 13 2016 12:06:03 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Fri Jul 01 2016 18:07:50 GMT+0200 (CEST)'
+  buildDate: 'Tue Sep 13 2016 12:06:03 GMT+0200 (CEST)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3309,7 +3309,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
       height = document.documentElement.clientHeight;
     } else {
       elemHeight = dom.outerHeight(trimmingContainer);
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : 200;
     }
     return height;
   },
