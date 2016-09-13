@@ -866,20 +866,20 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired before rendering the table with a modified column order. (Right now it's triggered on the mouseup event)
+   * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeColumnMove
-   * @param {Number} startColumn Index of the column from which it is moved.
-   * @param {Number} endColumn Index of the column to which it is moved.
+   * @param {Array} columns Array of visual column indexes to be moved.
+   * @param {Number} target Visual column index being a target for moved columns.
    */
   'beforeColumnMove',
 
   /**
-   * Fired after rendering the table with a modified column order. (Right now it's triggered on the mouseup event)
+   * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterColumnMove
-   * @param {Number} startColumn Index of the column from which it is moved.
-   * @param {Number} endColumn Index of the column to which it is moved.
+   * @param {Array} columns Array of visual column indexes that were moved.
+   * @param {Number} target Visual column index being a target for moved columns.
    */
   'afterColumnMove',
 
@@ -887,7 +887,7 @@ const REGISTERED_HOOKS = [
    * Fired before change order of the logical indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Number} rows Array of visual row indexes to be moved.
+   * @param {Array} rows Array of visual row indexes to be moved.
    * @param {Number} target Visual row index being a target for moved rows.
    */
   'beforeRowMove',
@@ -896,7 +896,7 @@ const REGISTERED_HOOKS = [
    * Fired after change order of the logical indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Number} rows Array of visual row indexes that were moved.
+   * @param {Array} rows Array of visual row indexes that were moved.
    * @param {Number} target Visual row index being a target for moved rows.
    */
   'afterRowMove',

@@ -18,11 +18,11 @@ describe('Core.propToCol', function () {
       manualColumnMove: true,
     });
 
-    hot.alter('insert_col', 10);
+
+
+    hot.alter('insert_col', 5);
 
     expect(propToCol(0)).toBe(0);
     expect(propToCol(10)).toBe(10);
-    expect(propToCol(11)).toBe(11);
-    expect(propToCol(12)).toBe(12);
   });
 });
