@@ -1006,6 +1006,7 @@ const REGISTERED_HOOKS = [
    * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
    */
   'beforeUndo',
+
   /**
    * Fired after the undo action. Contains information about the action that is being undone.
    *
@@ -1015,6 +1016,7 @@ const REGISTERED_HOOKS = [
    * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
    */
   'afterUndo',
+
   /**
    * Fired before the redo action. Contains information about the action that is being redone.
    *
@@ -1024,6 +1026,7 @@ const REGISTERED_HOOKS = [
    * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
    */
   'beforeRedo',
+
   /**
    * Fired after the redo action. Contains information about the action that is being redone.
    *
@@ -1032,7 +1035,15 @@ const REGISTERED_HOOKS = [
    * @param {Object} action The action object. Contains information about the action being redone. The `actionType`
    * property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
    */
-  'afterRedo'
+  'afterRedo',
+
+  /**
+   * Used to modify the row header width.
+   *
+   * @event Hooks#modifyRowHeaderWidth
+   * @param {Number} rowHeaderWidth Row header width.
+   */
+  'modifyRowHeaderWidth',
 ];
 
 import {arrayEach} from './helpers/array';

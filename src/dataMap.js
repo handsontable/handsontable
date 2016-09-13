@@ -26,6 +26,7 @@ function DataMap(instance, priv, GridSettings) {
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
   this.cachedLength = null;
+  this.skipCache = false;
   this.latestSourceRowsCount = 0;
 
   if (this.dataSource[0]) {
@@ -35,6 +36,8 @@ function DataMap(instance, priv, GridSettings) {
   }
   this.createMap();
   this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
+
+  this.instance.addHook('skipLengthCache', (delay) => this.onSkipLengthCache(delay));
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -175,11 +178,11 @@ DataMap.prototype.getSchema = function() {
 /**
  * Creates row at the bottom of the data array.
  *
- * @param {Number} [index] Index of the row before which the new row will be inserted
+ * @param {Number} [index] Index of the row before which the new row will be inserted.
  * @param {Number} [amount] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
- * @returns {Number} Returns number of created rows
+ * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function(index, amount, source) {
   var row, colCount = this.instance.countCols(),
@@ -221,7 +224,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
       this.dataSource.push(row);
 
     } else {
-      this.dataSource.splice(index, 0, row);
+      this.spliceData(index, 0, row);
     }
 
     numberOfCreatedRows++;
@@ -318,6 +321,8 @@ DataMap.prototype.removeRow = function(index, amount, source) {
     index = -amount;
   }
 
+  amount = Handsontable.hooks.run(this.instance, 'modifyRemovedAmount', amount, index);
+
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
   let logicRows = this.physicalRowsToLogical(index, amount);
@@ -330,12 +335,12 @@ DataMap.prototype.removeRow = function(index, amount, source) {
   let data = this.dataSource;
   let newData;
 
-  newData = data.filter(function(row, index) {
-    return logicRows.indexOf(index) == -1;
-  });
+  newData = this.filterData(index, amount);
 
-  data.length = 0;
-  Array.prototype.push.apply(data, newData);
+  if (newData) {
+    data.length = 0;
+    Array.prototype.push.apply(data, newData);
+  }
 
   Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows, source);
 
@@ -455,6 +460,41 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
 
   return removed;
+};
+
+/**
+ * Add/remove row(s) to/from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @param {Object} element Row to add.
+ */
+DataMap.prototype.spliceData = function(index, amount, element) {
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataSplice', index, amount, element);
+
+  if (continueSplicing !== false) {
+    this.dataSource.splice(index, amount, element);
+  }
+};
+
+/**
+ * Filter unwanted data elements from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @returns {Array}
+ */
+DataMap.prototype.filterData = function(index, amount) {
+  let logicRows = this.physicalRowsToLogical(index, amount);
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataFilter', index, amount, logicRows);
+
+  if (continueSplicing !== false) {
+    let newData = this.dataSource.filter(function(row, index) {
+      return logicRows.indexOf(index) == -1;
+    });
+
+    return newData;
+  }
 };
 
 /**
@@ -673,7 +713,7 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    let reValidate = false;
+    let reValidate = this.skipCache;
 
     this.interval.start();
 
@@ -781,6 +821,14 @@ DataMap.prototype.getText = function(start, end) {
  */
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+};
+
+//TODO: docs
+DataMap.prototype.onSkipLengthCache = function(delay) {
+  this.skipCache = true;
+  setTimeout(() => {
+    this.skipCache = false;
+  }, delay);
 };
 
 /**

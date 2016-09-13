@@ -191,7 +191,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('8');
 
-      expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, {rows: false}, void 0, void 0, void 0);
+      expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
     it('should trigger an afterRowMove event after row move', function () {

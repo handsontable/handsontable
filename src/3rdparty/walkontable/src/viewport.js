@@ -255,6 +255,8 @@ class WalkontableViewport {
       }
     }
 
+    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+
     return this.rowHeaderWidth;
   }
 
