@@ -100,6 +100,10 @@ Handsontable.UndoRedo = function(instance) {
   });
 
   instance.addHook('beforeRowMove', function(movedRows, target) {
+    if (movedRows === false) {
+      return;
+    }
+
     plugin.done(new Handsontable.UndoRedo.RowMoveAction(movedRows, target));
   });
 };

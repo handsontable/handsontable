@@ -164,9 +164,12 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} target Visual row index being a target for the moved rows.
    */
   moveRows(rows, target) {
+    let priv = privatePool.get(this);
     let beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
 
-    if (!!beforeMoveHook) {
+    priv.disallowMoving = beforeMoveHook === false;
+
+    if (!priv.disallowMoving) {
       // first we need to rewrite an visual indexes to logical for save reference after move
       arrayEach(rows, (row, index, array) => {
         array[index] = this.rowsMapper.getValueByIndex(row);
@@ -533,9 +536,7 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
-    let blockMoving = {
-      rows: false
-    };
+
     priv.pressed = false;
     priv.backlightHeight = 0;
 
@@ -550,11 +551,12 @@ class ManualRowMove extends BasePlugin {
 
     let target = priv.target.row;
 
-    this.moveRows(priv.rowsToMove, target, blockMoving);
+    this.moveRows(priv.rowsToMove, target);
+
     this.persistentStateSave();
     this.hot.render();
 
-    if (!blockMoving.rows) {
+    if (!priv.disallowMoving) {
       let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
       let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
       this.changeSelection(selectionStart, selectionEnd);
