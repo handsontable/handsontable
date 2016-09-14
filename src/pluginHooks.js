@@ -1044,6 +1044,196 @@ const REGISTERED_HOOKS = [
    * @param {Number} rowHeaderWidth Row header width.
    */
   'modifyRowHeaderWidth',
+
+  /**
+   * Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
+   *
+   * @event Hooks#beforeAutofillInsidePopulate
+   * @param {Object} index Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill.
+   * @param {String} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
+   * @param {Array} input Array of arrays. Contains an array of rows with data being used in the autofill.
+   * @param {Array} deltas The deltas array passed to the `populateFromArray` method.
+   */
+  'beforeAutofillInsidePopulate',
+
+  /**
+   * Fired when the start of the selection is being modified. (e.g. moving the selection with the arrow keys).
+   *
+   * @event Hooks#modifyTransformStart
+   * @param {WalkontableCellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   */
+  'modifyTransformStart',
+
+  /**
+   * Fired when the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
+   *
+   * @event Hooks#modifyTransformEnd
+   * @param {WalkontableCellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   */
+  'modifyTransformEnd',
+
+  /**
+   * Fired after the start of the selection is being modified. (e.g. moving the selection with the arrow keys).
+   *
+   * @event Hooks#afterModifyTransformStart
+   * @param {WalkontableCellCoords} coords Coords of the freshly selected cell.
+   * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
+   * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
+   */
+  'afterModifyTransformStart',
+
+  /**
+   * Fired after the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
+   *
+   * @event Hooks#afterModifyTransformEnd
+   * @param {WalkontableCellCoords} coords Coords of the freshly selected cell.
+   * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
+   * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
+   */
+  'afterModifyTransformEnd',
+
+  /**
+   * Fired before rendering a cell value.
+   *
+   * @event Hooks#beforeValueRender
+   * @param {Mixed} value The rendered value.
+   */
+  'beforeValueRender',
+
+  /**
+   * Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the row calculator parameters.
+   *
+   * @event Hooks#afterViewportRowCalculatorOverride
+   * @param {Object} calc The row calculator.
+   */
+  'afterViewportRowCalculatorOverride',
+
+  /**
+   * Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the row calculator parameters.
+   *
+   * @event Hooks#afterViewportColumnCalculatorOverride
+   * @param {Object} calc The row calculator.
+   */
+  'afterViewportColumnCalculatorOverride',
+
+  /**
+   * Fired after initializing all the plugins.
+   *
+   * @event Hooks#afterPluginsInitialized
+   */
+  'afterPluginsInitialized',
+
+  /**
+   * Used when saving/loading the manual row heights state.
+   *
+   * @event Hooks#manualRowHeights
+   * @param {Array} state The current manual row heights state.
+   */
+  'manualRowHeights',
+
+  /**
+   * Used to skip the length cache calculation for a defined period of time.
+   *
+   * @event Hooks#skipLengthCache
+   * @param {Number} delay The delay in milliseconds.
+   */
+  'skipLengthCache',
+
+  /**
+   * Fired after trimming rows in the TrimRows plugin.
+   *
+   * @pro
+   * @event Hooks#afterTrimRow
+   * @param {Array} rows Indexes of trimmed rows.
+   */
+  'afterTrimRow',
+
+  /**
+   * Fired after untrimming rows in the TrimRows plugin.
+   *
+   * @pro
+   * @event Hooks#afterUntrimRow
+   * @param {Array} rows Indexes of untrimmed rows.
+   */
+  'afterUntrimRow',
+
+  /**
+   * Fired after opening the dropdown menu.
+   *
+   * @pro
+   * @event Hooks#afterDropdownMenuShow
+   * @param {DropdownMenu} instance The DropdownMenu instance.
+   */
+  'afterDropdownMenuShow',
+
+  /**
+   * Fired after hiding the dropdown menu.
+   *
+   * @pro
+   * @event Hooks#afterDropdownMenuHide
+   * @param {DropdownMenu} instance The DropdownMenu instance.
+   */
+  'afterDropdownMenuHide',
+
+  /**
+   * Used to check whether the provided row index is hidden.
+   *
+   * @pro
+   * @event Hooks#hiddenRow
+   * @param {Number} row The row index in question.
+   */
+  'hiddenRow',
+
+  /**
+   * Used to check whether the provided column index is hidden.
+   *
+   * @pro
+   * @event Hooks#hiddenColumn
+   * @param {Number} column The column index in question.
+   */
+  'hiddenColumn',
+
+  /**
+   * Fired before adding a children to the NestedRows structure.
+   *
+   * @pro
+   * @event Hooks#beforeAddChild
+   * @param {Object} parent The parent object.
+   * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
+   * @param {Number|undefined} index The index within the parent where the new child was added. If `undefined`, the element was added as the last child.
+   */
+  'beforeAddChild',
+
+  /**
+   * Fired after adding a children to the NestedRows structure.
+   *
+   * @pro
+   * @event Hooks#afterAddChild
+   * @param {Object} parent The parent object.
+   * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
+   * @param {Number|undefined} index The index within the parent where the new child was added. If `undefined`, the element was added as the last child.
+   */
+  'afterAddChild',
+
+  /**
+   * Fired before detaching a child from its parent in the NestedRows plugin.
+   *
+   * @pro
+   * @event Hooks#beforeDetachChild
+   * @param {Object} parent An object representing the parent from which the element is to be detached.
+   * @param {Object} element The detached element.
+   */
+  'beforeDetachChild',
+
+  /**
+   * Fired after detaching a child from its parent in the NestedRows plugin.
+   *
+   * @pro
+   * @event Hooks#afterDetachChild
+   * @param {Object} parent An object representing the parent from which the element was detached.
+   * @param {Object} element The detached element.
+   */
+  'afterDetachChild',
 ];
 
 import {arrayEach} from './helpers/array';
