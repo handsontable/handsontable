@@ -102,7 +102,7 @@ const REGISTERED_HOOKS = [
    * an array of keys or an array of objects in `contextMenu` option.
    *
    * @pro
-   * @event Hooks#afterContextMenuDefaultOptions
+   * @event Hooks#afterDropdownMenuDefaultOptions
    * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
    */
   'afterDropdownMenuDefaultOptions',
