@@ -162,6 +162,9 @@ describe('Object helper', function () {
     });
   });
 
+  //
+  // Handsontable.helper.deepExtend
+  //
   describe('deepExtend', function () {
     it('should extend an object with all the properties of another object (recursively)', function () {
       var deepExtend = Handsontable.helper.deepExtend;
@@ -208,15 +211,22 @@ describe('Object helper', function () {
     });
   });
 
+  //
+  // Handsontable.helper.deepObjectSize
+  //
   describe('deepObjectSize', function () {
-    it('should return false if a variable is not an object', function () {
+    it('should return false if a variable is not an object', function() {
       var deepObjectSize = Handsontable.helper.deepObjectSize;
-      var toCount = [1, 2, 3];
+      var toCount = [
+        1,
+        2,
+        3
+      ];
 
       expect(deepObjectSize(toCount)).toBeFalsy();
     });
 
-    it('should return an object keys length (recursively and only these keys, which contain value)', function () {
+    it('should return an object keys length (recursively and only these keys, which contain value)', function() {
       var deepObjectSize = Handsontable.helper.deepObjectSize;
       var toCount = {
         prop1: 1,
@@ -234,6 +244,60 @@ describe('Object helper', function () {
       };
 
       expect(deepObjectSize(toCount)).toEqual(8);
+    });
+  });
+
+  //
+  // Handsontable.helper.createObjectPropListener
+  //
+  describe('createObjectPropListener', function() {
+    it("should returns object listener and listen default property", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo');
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.value).toBe('foo');
+
+      propListener.test = 'bar';
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.value).toBe('foo');
+
+      propListener.value = 'bar';
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe('bar');
+      expect(propListener.test).toBe('bar');
+    });
+
+    it("should returns object listener and listen defined by user property", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo', 'me');
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.me).toBe('foo');
+
+      propListener.value = 'bar';
+
+      expect(propListener.isTouched()).toBe(false);
+      expect(propListener.me).toBe('foo');
+      expect(propListener.value).toBe('bar');
+
+      propListener.me = 'bar';
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe('bar');
+      expect(propListener.me).toBe('bar');
+    });
+
+    it("should detect change value to undefined", function () {
+      var helper = Handsontable.helper.createObjectPropListener;
+      var propListener = helper('foo');
+
+      propListener.value = void 0;
+
+      expect(propListener.isTouched()).toBe(true);
+      expect(propListener.value).toBe(void 0);
     });
   });
 });
