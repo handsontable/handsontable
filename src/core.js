@@ -4965,6 +4965,15 @@ DefaultSettings.prototype = {
   filters: void 0,
 
   /**
+   * It allows Handsontable to process formula expressions defined in the provided data.
+   *
+   * @pro
+   * @since 1.7.0
+   * @type {Boolean}
+   */
+  formulas: void 0,
+
+  /**
    * @description
    * GanttChart plugin enables a possibility to create a Gantt chart using a Handsontable instance.
    * In this case, the whole table becomes read-only.
