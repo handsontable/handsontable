@@ -276,13 +276,14 @@ describe('AutoRowSize', function () {
       colHeaders: true
     });
 
-    window.hot = hot;
+    var plugin = hot.getPlugin('manualColumnMove');
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(42); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(105); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
 
-    swapDisplayedColumns(getHtCore(), 2, 1);
+    plugin.moveColumn(0, 2);
+    hot.render();
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);

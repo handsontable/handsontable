@@ -11,6 +11,7 @@ import {
   isOutsideInput,
   removeClass
 } from './helpers/dom/element';
+import {createObjectPropListener} from './helpers/object';
 import {eventManager as eventManagerObject} from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
@@ -272,11 +273,15 @@ function TableView(instance) {
     cellRenderer: function(row, col, TD) {
       const cellProperties = that.instance.getCellMeta(row, col);
       const prop = that.instance.colToProp(col);
-      const value = that.instance.getDataAtRowProp(row, prop);
+      let value = that.instance.getDataAtRowProp(row, prop);
 
-      Handsontable.hooks.run(that.instance, 'beforeRenderer', TD, row, col, prop, value, cellProperties);
+      if (that.instance.hasHook('beforeValueRender')) {
+        value = that.instance.runHooks('beforeValueRender', value);
+      }
+
+      that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
       that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
+      that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
     selections: selections,
@@ -463,8 +468,8 @@ function TableView(instance) {
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
     },
-    beforeDraw: function(force) {
-      that.beforeRender(force);
+    beforeDraw: function(force, skipRender) {
+      that.beforeRender(force, skipRender);
     },
     onDraw: function(force) {
       that.onDraw(force);
@@ -486,6 +491,9 @@ function TableView(instance) {
     },
     onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
       return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
+    },
+    onModifyRowHeaderWidth: function(rowHeaderWidth) {
+      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
     },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
@@ -603,10 +611,10 @@ TableView.prototype.isCellEdited = function() {
   return activeEditor && activeEditor.isOpened();
 };
 
-TableView.prototype.beforeRender = function(force) {
+TableView.prototype.beforeRender = function(force, skipRender) {
   if (force) {
     //this.instance.forceFullRender = did Handsontable request full render?
-    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender);
+    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender, skipRender);
   }
 };
 

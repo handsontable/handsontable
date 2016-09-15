@@ -316,7 +316,24 @@ function onChange(event, instance) {
   const cellProperties = instance.getCellMeta(row, col);
 
   if (!cellProperties.readOnly) {
-    instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+    let newCheckboxValue = null;
+
+    if (event.target.checked) {
+      if (cellProperties.checkedTemplate === void 0) {
+        newCheckboxValue = true;
+      } else {
+        newCheckboxValue = cellProperties.checkedTemplate;
+      }
+
+    } else {
+      if (cellProperties.uncheckedTemplate === void 0) {
+        newCheckboxValue = false;
+      } else {
+        newCheckboxValue = cellProperties.uncheckedTemplate;
+      }
+    }
+
+    instance.setDataAtCell(row, col, newCheckboxValue);
   }
 }
 

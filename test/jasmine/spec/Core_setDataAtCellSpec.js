@@ -284,4 +284,84 @@ describe('Core_setDataAtCell', function () {
     expect(getDataAtCell(0, 0)).toEqual('new value');
     expect(lastSource).toEqual('customSource');
   });
+
+  it('should trigger `afterSetDataAtCell` hook with applied changes', function() {
+    var _changes;
+    var _source;
+
+    handsontable({
+      afterSetDataAtCell: function(changes, source) {
+        _changes = changes;
+        _source = source;
+      }
+    });
+
+    setDataAtCell(0, 0, 'foo bar', 'customSource');
+
+    expect(_changes).toEqual([[0, 0, null, 'foo bar']]);
+    expect(_source).toBe('customSource');
+    expect(getDataAtCell(0, 0)).toEqual('foo bar');
+  });
+
+  it('should modify value on the fly using `afterSetDataAtCell` hook', function() {
+    handsontable({
+      data: [['a', 'b', 'c'], [1, 2, 3]],
+      afterSetDataAtCell: function(changes, source) {
+        if (changes[0][3] === 'foo bar') {
+          changes[0][3] = 'bar';
+        }
+        if (changes[0][3] === 22) {
+          changes[0][3] = 33;
+        }
+      }
+    });
+
+    setDataAtCell(0, 0, 'foo bar', 'customSource');
+    setDataAtCell(1, 2, 22, 'customSource');
+
+    expect(getDataAtCell(0, 0)).toBe('bar');
+    expect(getDataAtCell(1, 2)).toBe(33);
+    expect(getData()).toEqual([['bar', 'b', 'c' ], [1, 2, 33]]);
+  });
+
+  it('should trigger `afterSetDataAtRowProp` hook with applied changes', function() {
+    var _changes;
+    var _source;
+
+    handsontable({
+      columns: [{data: 'name'}, {data: 'id'}],
+      afterSetDataAtRowProp: function(changes, source) {
+        _changes = changes;
+        _source = source;
+      }
+    });
+
+    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+
+    expect(_changes).toEqual([[0, 'name', void 0, 'foo bar']]);
+    expect(_source).toBe('customSource');
+    expect(getDataAtCell(0, 0)).toBe('foo bar');
+  });
+
+  it('should modify value on the fly using `afterSetDataAtRowProp` hook', function() {
+    handsontable({
+      data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
+      columns: [{data: 'name'}, {data: 'id'}],
+      afterSetDataAtRowProp: function(changes, source) {
+        if (changes[0][3] === 'foo bar') {
+          changes[0][3] = 'bar';
+        }
+        if (changes[0][3] === 22) {
+          changes[0][3] = 33;
+        }
+      }
+    });
+
+    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    setDataAtRowProp(1, 'id', 22, 'customSource');
+
+    expect(getDataAtRowProp(0, 'name')).toEqual('bar');
+    expect(getDataAtRowProp(1, 'id')).toBe(33);
+    expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
+  });
 });
