@@ -1,9 +1,5 @@
 import Handsontable from './../browser';
 import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
-import {arrayEach} from './../helpers/array';
-import {objectEach} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
-import {stringify} from './../helpers/mixed';
 
 /**
  * @class Interval

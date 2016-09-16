@@ -81,6 +81,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterTrimRow', (row) => this.sort());
     this.addHook('afterUntrimRow', (row) => this.sort());
     this.addHook('modifyRow', (row) => this.translateRow(row));
+    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterCreateRow', function() {
@@ -179,11 +180,11 @@ class ColumnSorting extends BasePlugin {
     }
     this.updateOrderClass();
     this.updateSortIndicator();
-    this.hot.render();
-
-    this.saveSortingState();
 
     Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+
+    this.hot.render();
+    this.saveSortingState();
   }
 
   /**
