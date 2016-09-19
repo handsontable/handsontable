@@ -87,7 +87,7 @@ DataMap.prototype.createMap = function() {
   let schema = this.getSchema();
 
   if (typeof schema === 'undefined') {
-    throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
+    throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
   }
 
   this.colToPropCache = [];

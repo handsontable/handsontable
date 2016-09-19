@@ -691,6 +691,15 @@ const REGISTERED_HOOKS = [
   'beforeValidate',
 
   /**
+   * Callback fired before cell value is rendered into the DOM (through renderer function).
+   *
+   * @event Hooks#beforeValueRender
+   * @since 0.29.0
+   * @param {*} value Cell value to render.
+   */
+  'beforeValueRender',
+
+  /**
    * Callback fired after Handsontable instance is constructed (via `new` operator).
    *
    * @event Hooks#construct

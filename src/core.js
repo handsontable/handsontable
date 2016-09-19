@@ -17,6 +17,7 @@ import {rangeEach} from './helpers/number';
 import {TableView} from './tableView';
 import {DataSource} from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
+import {getTranslator} from './utils/recordTranslator';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range';
 import {WalkontableViewportColumnsCalculator} from './3rdparty/walkontable/src/calculator/viewportColumns';
@@ -63,6 +64,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       GridSettings = function() {
       },
       eventManager = eventManagerObject(instance);
+
+  const recordTranslator = getTranslator(instance);
 
   extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
@@ -196,7 +199,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           break;
 
         case 'remove_col':
-          let logicalColumnIndex = translateColIndex(index);
+          let logicalColumnIndex = recordTranslator.toPhysicalColumn(index);
 
           datamap.removeCol(index, amount, source);
 
@@ -1162,7 +1165,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(input[i][0], input[i][1]),
+        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1201,7 +1204,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getAtCell(input[i][0], input[i][1]),
+        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1872,6 +1875,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Translate physical row index into visual.
+   *
+   * @since 0.29.0
+   * @memberof Core#
+   * @function toVisualRow
+   * @param {Number} row Physical row index.
+   * @returns {Number} Returns visual row index.
+   */
+  this.toVisualRow = (row) => recordTranslator.toVisualRow(row);
+
+  /**
+   * Translate physical column index into visual.
+   *
+   * @since 0.29.0
+   * @memberof Core#
+   * @function toVisualColumn
+   * @param {Number} column Physical column index.
+   * @returns {Number} Returns visual column index.
+   */
+  this.toVisualColumn = (column) => recordTranslator.toVisualColumn(column);
+
+  /**
+   * Translate visual row index into physical.
+   * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
+   * to retrieve valid physical row index you can use this method.
+   *
+   * @since 0.29.0
+   * @memberof Core#
+   * @function toPhysicalRow
+   * @param {Number} row Visual row index.
+   * @returns {Number} Returns physical row index.
+   */
+  this.toPhysicalRow = (row) => recordTranslator.toPhysicalRow(row);
+
+  /**
+   * Translate visual column index into physical.
+   * If displayed columns order is different than the order of columns stored in memory (i.e. manual column move is applied)
+   * to retrieve valid physical column index you can use this method.
+   *
+   * @since 0.29.0
+   * @memberof Core#
+   * @function toPhysicalColumn
+   * @param {Number} column Visual column index.
+   * @returns {Number} Returns physical column index.
+   */
+  this.toPhysicalColumn = (column) => recordTranslator.toPhysicalColumn(column);
+
+  /**
    * @description
    * Returns the cell value at `row`, `col`. `row` and `col` are the __visible__ indexes (note, that if columns were reordered or sorted,
    * the currently visible order will be used).
@@ -2189,8 +2240,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     let visualRow = row;
     let visualCol = col;
-    row = translateRowIndex(row);
-    col = translateColIndex(col);
+
+    [row, col] = recordTranslator.toPhysical(row, col);
 
     if (!priv.columnSettings[col]) {
       priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2236,37 +2287,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.isColumnModificationAllowed = function() {
     return !(instance.dataType === 'object' || instance.getSettings().columns);
   };
-
-  /**
-   * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
-   * we need to translate logical (stored) row index to physical (displayed) index.
-   *
-   * @private
-   * @memberof Core#
-   * @function translateRowIndex
-   * @param {Number} row Original row index
-   * @returns {Number} Translated row index
-   * @fires Hooks#modifyRow
-   */
-  function translateRowIndex(row) {
-    return Handsontable.hooks.run(instance, 'modifyRow', row);
-  }
-
-  /**
-   * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
-   * we need to translate logical (stored) column index to physical (displayed) index.
-   *
-   * @private
-   * @memberof Core#
-   * @function translateColIndex
-   * @param {Number} col Original column index
-   * @returns {Number} Translated column index
-   * @fires Hooks#modifyCol
-   */
-  function translateColIndex(col) {
-    // warning: this must be done after datamap.colToProp
-    return Handsontable.hooks.run(instance, 'modifyCol', col);
-  }
 
   var rendererLookup = cellMethodLookupFactory('renderer');
 
