@@ -36,7 +36,7 @@ class RecordTranslator {
    *
    * @param {Number|Object} row Physical coordinates or row index.
    * @param {Number} [column] Physical column index.
-   * @returns {Number} Returns an object with visual records or an array if coordinates passed as separate arguments.
+   * @returns {Object|Array} Returns an object with visual records or an array if coordinates passed as separate arguments.
    */
   toVisual(row, column) {
     let result;
