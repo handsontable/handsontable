@@ -405,8 +405,7 @@ function TableView(instance) {
         addClass(instance.rootElement, 'ht__selection--columns');
 
       } else {
-        removeClass(instance.rootElement, 'ht__selection--rows');
-        removeClass(instance.rootElement, 'ht__selection--columns');
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
