@@ -2,7 +2,7 @@ import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
+import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import {Interval} from './utils/interval';
 import {rangeEach} from './helpers/number';
@@ -26,6 +26,7 @@ function DataMap(instance, priv, GridSettings) {
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
   this.cachedLength = null;
+  this.skipCache = false;
   this.latestSourceRowsCount = 0;
 
   if (this.dataSource[0]) {
@@ -35,6 +36,8 @@ function DataMap(instance, priv, GridSettings) {
   }
   this.createMap();
   this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
+
+  this.instance.addHook('skipLengthCache', (delay) => this.onSkipLengthCache(delay));
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -175,11 +178,13 @@ DataMap.prototype.getSchema = function() {
 /**
  * Creates row at the bottom of the data array.
  *
- * @param {Number} [index] Index of the row before which the new row will be inserted
+ * @param {Number} [index] Index of the row before which the new row will be inserted.
+ * @param {Number} [amount] An amount of rows to add.
+ * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
- * @returns {Number} Returns number of created rows
+ * @returns {Number} Returns number of created rows.
  */
-DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
+DataMap.prototype.createRow = function(index, amount, source) {
   var row, colCount = this.instance.countCols(),
     numberOfCreatedRows = 0,
     currentIndex;
@@ -191,6 +196,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateRow', index, amount, source);
 
   currentIndex = index;
   var maxRows = this.instance.getSettings().maxRows;
@@ -218,14 +224,14 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
       this.dataSource.push(row);
 
     } else {
-      this.dataSource.splice(index, 0, row);
+      this.spliceData(index, 0, row);
     }
 
     numberOfCreatedRows++;
     currentIndex++;
   }
 
-  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
@@ -235,12 +241,12 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
  * Creates col at the right of the data array.
  *
  * @param {Number} [index] Index of the column before which the new column will be inserted
- * @param {Number} [amount]
- * @param {Number} [createdAutomatically]
+ * @param {Number} [amount] An amount of columns to add.
+ * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
-DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
+DataMap.prototype.createCol = function(index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' +
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -258,12 +264,14 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countCols()) {
     index = this.instance.countCols();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateCol', index, amount, source);
 
   currentIndex = index;
 
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
+
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       if (rlen > 0) {
         for (var r = 0; r < rlen; r++) {
@@ -290,7 +298,7 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
     currentIndex++;
   }
 
-  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedCols;
@@ -301,10 +309,11 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
  *
  * @param {Number} [index] Index of the row to be removed. If not provided, the last row will be removed
  * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
+ * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
-DataMap.prototype.removeRow = function(index, amount) {
+DataMap.prototype.removeRow = function(index, amount, source) {
   if (!amount) {
     amount = 1;
   }
@@ -312,11 +321,13 @@ DataMap.prototype.removeRow = function(index, amount) {
     index = -amount;
   }
 
+  amount = Handsontable.hooks.run(this.instance, 'modifyRemovedAmount', amount, index);
+
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
   let logicRows = this.physicalRowsToLogical(index, amount);
-  let descendingLogicRows = logicRows.slice(0).sort(function(a, b) {return b - a;});
-  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows, source);
+
   if (actionWasNotCancelled === false) {
     return;
   }
@@ -324,14 +335,14 @@ DataMap.prototype.removeRow = function(index, amount) {
   let data = this.dataSource;
   let newData;
 
-  newData = data.filter(function(row, index) {
-    return logicRows.indexOf(index) == -1;
-  });
+  newData = this.filterData(index, amount);
 
-  data.length = 0;
-  Array.prototype.push.apply(data, newData);
+  if (newData) {
+    data.length = 0;
+    Array.prototype.push.apply(data, newData);
+  }
 
-  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
+  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -341,10 +352,11 @@ DataMap.prototype.removeRow = function(index, amount) {
  *
  * @param {Number} [index] Index of the column to be removed. If not provided, the last column will be removed
  * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
+ * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
  */
-DataMap.prototype.removeCol = function(index, amount) {
+DataMap.prototype.removeCol = function(index, amount, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
@@ -359,7 +371,8 @@ DataMap.prototype.removeCol = function(index, amount) {
 
   let logicColumns = this.physicalColumnsToLogical(index, amount);
   let descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {return b - a;});
-  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns);
+  let actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns, source);
+
   if (actionWasNotCancelled === false) {
     return;
   }
@@ -391,7 +404,7 @@ DataMap.prototype.removeCol = function(index, amount) {
     }
   }
 
-  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount, logicColumns, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -450,6 +463,41 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
 };
 
 /**
+ * Add/remove row(s) to/from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @param {Object} element Row to add.
+ */
+DataMap.prototype.spliceData = function(index, amount, element) {
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataSplice', index, amount, element);
+
+  if (continueSplicing !== false) {
+    this.dataSource.splice(index, amount, element);
+  }
+};
+
+/**
+ * Filter unwanted data elements from the data source.
+ *
+ * @param {Number} index Index of the element to remove.
+ * @param {Number} amount Number of rows to add/remove.
+ * @returns {Array}
+ */
+DataMap.prototype.filterData = function(index, amount) {
+  let logicRows = this.physicalRowsToLogical(index, amount);
+  let continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataFilter', index, amount, logicRows);
+
+  if (continueSplicing !== false) {
+    let newData = this.dataSource.filter(function(row, index) {
+      return logicRows.indexOf(index) == -1;
+    });
+
+    return newData;
+  }
+};
+
+/**
  * Returns single value from the data array.
  *
  * @param {Number} row
@@ -458,11 +506,18 @@ DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
 
-  const dataRow = this.dataSource[row];
+  let dataRow = this.dataSource[row];
+  // TODO: To remove, use 'modifyData' hook instead (see below)
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'get');
+
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  //
+
+  let value = null;
 
   // try to get value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
-    return dataRow[prop];
+    value = dataRow[prop];
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     let sliced = prop.split('.');
@@ -478,7 +533,7 @@ DataMap.prototype.get = function(row, prop) {
         return null;
       }
     }
-    return out;
+    value = out;
 
   } else if (typeof prop === 'function') {
     /**
@@ -494,10 +549,20 @@ DataMap.prototype.get = function(row, prop) {
      *      }
      *    }]}
      */
-    return prop(this.dataSource.slice(row, row + 1)[0]);
+    value = prop(this.dataSource.slice(row, row + 1)[0]);
   }
 
-  return null;
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    const valueHolder = createObjectPropListener(value);
+
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'get');
+
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
+
+  return value;
 };
 
 var copyableLookup = cellMethodLookupFactory('copyable', false);
@@ -527,7 +592,22 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
 
-  const dataRow = this.dataSource[row];
+  let dataRow = this.dataSource[row];
+  // TODO: To remove, use 'modifyData' hook instead (see below)
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'set', source);
+
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  //
+
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    const valueHolder = createObjectPropListener(value);
+
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'set');
+
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
 
   // try to set value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
@@ -633,7 +713,7 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    let reValidate = false;
+    let reValidate = this.skipCache;
 
     this.interval.start();
 
@@ -741,6 +821,14 @@ DataMap.prototype.getText = function(start, end) {
  */
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
+};
+
+//TODO: docs
+DataMap.prototype.onSkipLengthCache = function(delay) {
+  this.skipCache = true;
+  setTimeout(() => {
+    this.skipCache = false;
+  }, delay);
 };
 
 /**

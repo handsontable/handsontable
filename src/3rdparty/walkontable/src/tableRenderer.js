@@ -45,7 +45,12 @@ class WalkontableTableRenderer {
    */
   render() {
     if (!this.wtTable.isWorkingOnClone()) {
-      this.wot.getSetting('beforeDraw', true);
+      const skipRender = {};
+      this.wot.getSetting('beforeDraw', true, skipRender);
+
+      if (skipRender.skipRender === true) {
+        return;
+      }
     }
 
     this.rowHeaders = this.wot.getSetting('rowHeaders');
@@ -121,6 +126,7 @@ class WalkontableTableRenderer {
         let lastRendered = this.wtTable.getLastRenderedColumn();
 
         let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
 
         if (rowHeaderWidthSetting != null) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
@@ -391,6 +397,7 @@ class WalkontableTableRenderer {
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
 
     if (rowHeaderWidthSetting != null) {
       for (let i = 0; i < this.rowHeaderCount; i++) {

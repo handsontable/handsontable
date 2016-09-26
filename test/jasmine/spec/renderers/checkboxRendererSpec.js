@@ -382,6 +382,40 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
   });
 
+  it("should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format", function () {
+    handsontable({
+      data  :  [[1],[1],[0]],
+      columns : [
+        {
+          type: 'checkbox',
+          checkedTemplate: 1,
+          uncheckedTemplate: 0
+        }
+      ]
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    var checkboxes = this.$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[1], [1], [0]]);
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[0], [1], [0]]);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
+  });
+
   it("should change checkbox state to unchecked after hitting DELETE", function () {
     handsontable({
       data  :  [[true], [false], [true]],
