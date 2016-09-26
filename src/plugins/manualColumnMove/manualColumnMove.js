@@ -221,7 +221,7 @@ class ManualColumnMove extends BasePlugin {
     let width = 0;
 
     for (let i = from; i < to; i++) {
-      let columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 23;
+      let columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i);
 
       width += columnWidth;
     }
@@ -329,7 +329,7 @@ class ManualColumnMove extends BasePlugin {
     let rowHeaderWidth = 0;
 
     if (isRowHeader) {
-      rowHeaderWidth = wtTable.getColumnWidth(-1);
+      rowHeaderWidth = wtTable.getColumnHeader(-1).offsetWidth;
     }
     if (this.isFixedColumnsLeft(coords.col)) {
       tdOffsetLeft += wtTable.holder.scrollLeft;
@@ -344,7 +344,7 @@ class ManualColumnMove extends BasePlugin {
       // if hover on right part of TD
       priv.target.col = coords.col + 1;
       // unfortunately first column is bigger than rest
-      tdOffsetLeft += coords.col === 0 ? TD.offsetWidth - 1 : TD.offsetWidth;
+      tdOffsetLeft += TD.offsetWidth;
 
     } else {
       // elsewhere on table
@@ -366,6 +366,10 @@ class ManualColumnMove extends BasePlugin {
     if (tdOffsetLeft >= hiderWidth - 1) {
       // prevent display guideline outside the table
       guidelineLeft = hiderWidth - 1;
+
+    } else if (guidelineLeft === 0) {
+      // guideline has got `margin-left: -1px` as default
+      guidelineLeft = 1;
     }
 
     this.backlight.setPosition(null, backlightLeft);
