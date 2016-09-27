@@ -102,7 +102,9 @@ class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.columnsMapper.createMap(this.hot.countSourceCols() || 5);
+    if (this.columnsMapper._arrayMap.length === 0) {
+      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+    }
 
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
@@ -138,7 +140,11 @@ class ManualColumnMove extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.columnsMapper.clearMap();
+    let pluginSettings = this.hot.getSettings().manualColumnMove;
+
+    if (Array.isArray(pluginSettings)) {
+      this.columnsMapper.clearMap();
+    }
 
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 

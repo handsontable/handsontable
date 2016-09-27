@@ -136,7 +136,11 @@ class ManualRowMove extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.rowsMapper.clearMap();
+    let pluginSettings = this.hot.getSettings().manualRowMove;
+
+    if (Array.isArray(pluginSettings)) {
+      this.rowsMapper.clearMap();
+    }
 
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
@@ -652,7 +656,9 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    this.rowsMapper.createMap(this.hot.countSourceRows());
+    if (this.rowsMapper._arrayMap.length === 0) {
+      this.rowsMapper.createMap(this.hot.countSourceRows() || this.hot.getSettings().startRows);
+    }
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
