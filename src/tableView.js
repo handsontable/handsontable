@@ -362,7 +362,7 @@ function TableView(instance) {
         }
 
         const rightClick = isRightClick(event);
-        const leftClick = isLeftClick(event);
+        const leftClick = isLeftClick(event) || event.type === 'touchstart';
 
         // clicked row header and when some column was selected
         if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
