@@ -64,7 +64,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
-   * @param {String} source Is one of the strings: `"alter', "empty', "edit', "populateFromArray', "loadData', "autofill', "paste"`.
+   * @param {String} source Is one of the strings: `"alter", "edit", "populateFromArray", "loadData", "autofill", "paste"`.
    */
   'afterChange',
 
