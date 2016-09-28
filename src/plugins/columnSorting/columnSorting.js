@@ -76,7 +76,6 @@ class ColumnSorting extends BasePlugin {
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
       this.enableObserveChangesPlugin();
     }
-    this.bindColumnSortingAfterClick();
 
     this.addHook('afterTrimRow', (row) => this.sort());
     this.addHook('afterUntrimRow', (row) => this.sort());
@@ -84,6 +83,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
+    this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow.apply(_this, arguments);
     });
@@ -232,49 +232,6 @@ class ColumnSorting extends BasePlugin {
       orderClass = 'descending';
     }
     this.sortOrderClass = orderClass;
-  }
-
-  /**
-   * Bind the events for column sorting.
-   */
-  bindColumnSortingAfterClick() {
-    if (this.bindedSortEvent) {
-      return;
-    }
-    let eventManager = eventManagerObject(this.hot),
-        _this = this;
-
-    this.bindedSortEvent = true;
-    eventManager.addEventListener(this.hot.rootElement, 'click', (e) => {
-      if (hasClass(e.target, 'columnSorting')) {
-        let col = getColumn(e.target);
-
-        // reset order state on every new column header click
-        if (col !== this.lastSortedColumn) {
-          this.hot.sortOrder = true;
-        }
-        this.lastSortedColumn = col;
-
-        this.sortByColumn(col);
-      }
-    });
-
-    function countRowHeaders() {
-      let tr = _this.hot.view.TBODY.querySelector('tr');
-      let length = 1;
-
-      if (tr) {
-        /*jshint -W020 */
-        length = tr.querySelectorAll('th').length;
-      }
-
-      return length;
-    }
-
-    function getColumn(target) {
-      let TH = closest(target, 'TH');
-      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
-    }
   }
 
   enableObserveChangesPlugin() {
@@ -599,6 +556,30 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.saveSortingState();
+  }
+
+  /**
+   * `onAfterOnCellMouseDown` hook callback.
+   *
+   * @private
+   * @param {Event} event Event which are provided by hook.
+   * @param {WalkontableCellCoords} coords Coords of the selected cell.
+   */
+  onAfterOnCellMouseDown(event, coords) {
+    if (coords.row > -1) {
+      return;
+    }
+
+    if (hasClass(event.realTarget, 'columnSorting')) {
+      // reset order state on every new column header click
+      if (coords.col !== this.lastSortedColumn) {
+        this.hot.sortOrder = true;
+      }
+
+      this.lastSortedColumn = coords.col;
+
+      this.sortByColumn(coords.col);
+    }
   }
 }
 
