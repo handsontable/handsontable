@@ -823,7 +823,11 @@ DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
 
-//TODO: docs
+/**
+ * `skipLengthCache` callback.
+ * @private
+ * @param {Number} delay Time of the delay in milliseconds.
+ */
 DataMap.prototype.onSkipLengthCache = function(delay) {
   this.skipCache = true;
   setTimeout(() => {
