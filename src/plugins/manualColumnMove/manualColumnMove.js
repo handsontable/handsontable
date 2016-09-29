@@ -335,7 +335,7 @@ class ManualColumnMove extends BasePlugin {
     let rowHeaderWidth = 0;
 
     if (isRowHeader) {
-      rowHeaderWidth = wtTable.getColumnHeader(-1).offsetWidth;
+      rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
     if (this.isFixedColumnsLeft(coords.col)) {
       tdOffsetLeft += wtTable.holder.scrollLeft;
