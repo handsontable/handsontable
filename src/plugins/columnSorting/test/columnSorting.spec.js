@@ -5,7 +5,10 @@ describe('ColumnSorting', function() {
     this.$container = $('<div id="' + id + '" style="overflow: auto; width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.sortByColumn = function(columnIndex) {
-      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
+      var element = this.$container.find('th span.columnSorting:eq(' + columnIndex + ')');
+
+      element.simulate('mousedown');
+      element.simulate('mouseup');
     };
   });
 
@@ -251,11 +254,11 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
+    this.sortByColumn(2); // DESC sort after first click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
+    this.sortByColumn(2);// ASC sort after second click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
@@ -292,14 +295,14 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
+    this.sortByColumn(2);  // DESC sort after first click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
     expect(htCore.find('tbody tr:eq(7) td:eq(2)').text()).toEqual("");
     expect(htCore.find('tbody tr:eq(8) td:eq(2)').text()).toEqual("");
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
+    this.sortByColumn(2);  // ASC sort after second click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
@@ -333,15 +336,15 @@ describe('ColumnSorting', function() {
 
     var htCore = getHtCore();
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
 
