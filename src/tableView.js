@@ -362,7 +362,7 @@ function TableView(instance) {
         }
 
         const rightClick = isRightClick(event);
-        const leftClick = isLeftClick(event);
+        const leftClick = isLeftClick(event) || event.type === 'touchstart';
 
         // clicked row header and when some column was selected
         if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
@@ -405,8 +405,7 @@ function TableView(instance) {
         addClass(instance.rootElement, 'ht__selection--columns');
 
       } else {
-        removeClass(instance.rootElement, 'ht__selection--rows');
-        removeClass(instance.rootElement, 'ht__selection--columns');
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;

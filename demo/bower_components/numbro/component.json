@@ -1,0 +1,17 @@
+{
+  "name": "numbro",
+  "repo": "foretagsplatsen/numbro",
+  "version": "1.9.3",
+  "description": "Format and manipulate numbers.",
+  "keywords": [
+    "numeral",
+    "numbro",
+    "number",
+    "format",
+    "time",
+    "money",
+    "percentage"
+  ],
+  "scripts": [ "numbro.js" ],
+  "main": "numbro.js"
+}

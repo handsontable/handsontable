@@ -64,7 +64,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
-   * @param {String} source Is one of the strings: `"alter', "empty', "edit', "populateFromArray', "loadData', "autofill', "paste"`.
+   * @param {String} source Is one of the strings: `"alter", "edit", "populateFromArray", "loadData", "autofill", "paste"`.
    */
   'afterChange',
 
@@ -102,7 +102,7 @@ const REGISTERED_HOOKS = [
    * an array of keys or an array of objects in `contextMenu` option.
    *
    * @pro
-   * @event Hooks#afterContextMenuDefaultOptions
+   * @event Hooks#afterDropdownMenuDefaultOptions
    * @param {Array} predefinedItems Array of objects containing information about the pre-defined Context Menu items.
    */
   'afterDropdownMenuDefaultOptions',
@@ -689,6 +689,15 @@ const REGISTERED_HOOKS = [
    * @param {String} source Information about the context of calling the function.
    */
   'beforeValidate',
+
+  /**
+   * Callback fired before cell value is rendered into the DOM (through renderer function).
+   *
+   * @event Hooks#beforeValueRender
+   * @since 0.29.0
+   * @param {*} value Cell value to render.
+   */
+  'beforeValueRender',
 
   /**
    * Callback fired after Handsontable instance is constructed (via `new` operator).

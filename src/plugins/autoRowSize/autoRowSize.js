@@ -37,6 +37,9 @@ import {isPercentValue} from './../../helpers/string';
  * ...
  * ```
  *
+ * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row height. Note, that this might have
+ * a negative impact on performance.
+ *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example
@@ -131,12 +134,7 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    let setting = this.hot.getSettings().autoRowSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
-    }
+    this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
@@ -241,6 +239,25 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+    }
+  }
+
+  /**
+   * Set the sampling options.
+   *
+   * @private
+   */
+  setSamplingOptions() {
+    let setting = this.hot.getSettings().autoRowSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   }
 
