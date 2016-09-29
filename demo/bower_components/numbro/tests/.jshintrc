@@ -1,0 +1,19 @@
+{
+  "extends": "../.jshintrc",
+
+  // == Relaxing Options ================================================
+  //
+  // These options allow you to suppress certain types of warnings. Use
+  // them only if you are absolutely positive that you know what you are
+  // doing.
+
+  "globalstrict"  : true,     // Allow global "use strict" (also enables 'strict').
+
+  // == Environments ====================================================
+  //
+  // These options pre-define global variables that are exposed by
+  // popular JavaScript libraries and runtime environments—such as
+  // browser or node.js.
+
+  "node"          : true      // Enable globals available when code is running inside of the NodeJS runtime environment.
+}

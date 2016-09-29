@@ -67,5 +67,22 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('.ht__manualColumnMove--guideline:visible').length).toBe(1);
       expect(this.$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
     });
+
+    it('should set properly width for the backlight element when stretchH is enabled', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 5),
+        width: 600,
+        colHeaders: true,
+        stretchH: 'all',
+        manualColumnMove: true
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+
+      expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+    });
   });
 });

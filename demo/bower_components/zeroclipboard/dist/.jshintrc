@@ -1,0 +1,70 @@
+{
+  /* Enforcing options */
+  "bitwise": true,
+  "camelcase": true,
+  "curly": true,
+  "eqeqeq": true,
+  "es3": true,
+  "es5": false,
+  "forin": true,
+  "freeze": true,
+  "immed": true,
+  "indent": 2,
+  "latedef": true,
+  "newcap": true,
+  "noarg": true,
+  "noempty": true,
+  "nonbsp": true,
+  "nonew": true,
+  "plusplus": false,
+  "quotmark": "double",
+  "undef": true,
+  "unused": true,
+  "strict": true,
+  "trailing": true,
+  "maxparams": 4,
+  "maxdepth": 5,
+  "maxstatements": false,
+  "maxlen": false,    /* IDEAL: 120? */
+
+
+  /* Relaxing options */
+  "asi": false,
+  "boss": false,
+  "debug": false,
+  "eqnull": true,
+  "esnext": false,
+  "evil": false,
+  "expr": false,
+  "funcscope": false,
+  "gcl": false,
+  "globalstrict": false,
+  "iterator": false,
+  "lastsemic": false,
+  "laxbreak": false,
+  "laxcomma": false,
+  "loopfunc": false,
+  "maxerr": 50,
+  "moz": false,
+  "multistr": false,
+  "notypeof": false,
+  "proto": false,
+  "scripturl": false,
+  "smarttabs": false,
+  "shadow": false,
+  "sub": false,
+  "supernew": false,
+  "validthis": false,
+  "noyield": false,
+
+  /* Environments */
+  "browser": true,
+
+  /* Global variables */
+  "globals": {
+    /* AMD */
+    "define": false,
+    /* CommonJS */
+    "module": false
+  }
+}
