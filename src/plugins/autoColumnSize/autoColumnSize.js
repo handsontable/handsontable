@@ -122,11 +122,6 @@ class AutoColumnSize extends BasePlugin {
     }
 
     let setting = this.hot.getSettings().autoColumnSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
-    }
 
     if (setting && setting.useHeaders != null) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
@@ -228,6 +223,25 @@ class AutoColumnSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+    }
+  }
+
+  /**
+   * Set the sampling options.
+   *
+   * @private
+   */
+  setSamplingOptions() {
+    let setting = this.hot.getSettings().autoColumnSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   }
 
