@@ -1,0 +1,38 @@
+{
+  "name": "pikaday",
+  "description": "A refreshing JavaScript Datepicker — lightweight, no dependencies, modular CSS",
+  "keywords": [
+    "datepicker",
+    "calendar",
+    "date"
+  ],
+  "main": [
+    "./pikaday.js",
+    "./css/pikaday.css"
+  ],
+  "dependencies": {},
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "license": [
+    "BSD",
+    "MIT"
+  ],
+  "homepage": "http://dbushell.github.io/Pikaday/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dbushell/Pikaday.git"
+  },
+  "version": "1.4.0",
+  "_release": "1.4.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.4.0",
+    "commit": "651842140ee0f872f3364c33a34e2b595fd72d43"
+  },
+  "_source": "https://github.com/dbushell/Pikaday.git",
+  "_target": "^1.4.0",
+  "_originalSource": "pikaday"
+}
