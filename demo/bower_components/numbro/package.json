@@ -1,0 +1,63 @@
+{
+  "name": "numbro",
+  "version": "1.9.3",
+  "description": "Format and manipulate numbers.",
+  "homepage": "http://numbrojs.com",
+  "author": {
+    "name": "Företagsplatsen AB",
+    "email": "contact@foretagsplatsen.se",
+    "url": "http://www.foretagsplatsen.se"
+  },
+  "keywords": [
+    "numeral",
+    "numbro",
+    "number",
+    "format",
+    "time",
+    "money",
+    "percentage"
+  ],
+  "main": "./numbro.js",
+  "typings": "./numbro.d.ts",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/foretagsplatsen/numbro"
+  },
+  "bugs": {
+    "url": "https://github.com/foretagsplatsen/numbro/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-bump": "^0.8.0",
+    "grunt-confirm": "^1.0.5",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-nodeunit": "^1.0.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-jscs": "^2.8.0",
+    "grunt-release": "^0.13.1",
+    "uglify-js": "^2.6.2"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "files": [
+    "LICENSE",
+    "LICENSE-Numeraljs",
+    "CHANGELOG",
+    "CHANGELOG-Numeraljs.md",
+    "numbro.js",
+    "numbro.d.ts",
+    "languages",
+    "dist"
+  ]
+}
