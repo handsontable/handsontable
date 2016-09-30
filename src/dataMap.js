@@ -87,7 +87,7 @@ DataMap.prototype.createMap = function() {
   let schema = this.getSchema();
 
   if (typeof schema === 'undefined') {
-    throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
+    throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
   }
 
   this.colToPropCache = [];
@@ -823,7 +823,11 @@ DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
 
-//TODO: docs
+/**
+ * `skipLengthCache` callback.
+ * @private
+ * @param {Number} delay Time of the delay in milliseconds.
+ */
 DataMap.prototype.onSkipLengthCache = function(delay) {
   this.skipCache = true;
   setTimeout(() => {

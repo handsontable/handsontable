@@ -1,3 +1,5 @@
+import {isNumeric} from './../../../helpers/number';
+
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
 const STATE_APPENDED = 2;
@@ -86,10 +88,10 @@ class BaseUI {
    * @param {Number} left New left position of the element.
    */
   setPosition(top, left) {
-    if (top) {
+    if (isNumeric(top)) {
       this._element.style.top = top + UNIT;
     }
-    if (left) {
+    if (isNumeric(left)) {
       this._element.style.left = left + UNIT;
     }
   }
@@ -113,10 +115,10 @@ class BaseUI {
    * @param {Number} height New height of the element.
    */
   setSize(width, height) {
-    if (width) {
+    if (isNumeric(width)) {
       this._element.style.width = width + UNIT;
     }
-    if (height) {
+    if (isNumeric(height)) {
       this._element.style.height = height + UNIT;
     }
   }
@@ -140,10 +142,10 @@ class BaseUI {
    * @param {Number} left New margin left of the element.
    */
   setOffset(top, left) {
-    if (top) {
+    if (isNumeric(top)) {
       this._element.style.marginTop = top + UNIT;
     }
-    if (left) {
+    if (isNumeric(left)) {
       this._element.style.marginLeft = left + UNIT;
     }
   }

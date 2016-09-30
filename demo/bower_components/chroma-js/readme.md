@@ -57,7 +57,7 @@ To run the tests simply run
 ### Similar Libraries / Prior Art
 
 * [Chromatist](https://github.com/jrus/chromatist)
-* [GrapeFruit](http://code.google.com/p/grapefruit/) (Python)
+* [GrapeFruit](https://github.com/xav/Grapefruit) (Python)
 * [colors.py](https://github.com/mattrobenolt/colors.py) (Python)
 * [d3.js](https://github.com/mbostock/d3)
 
@@ -73,4 +73,9 @@ Versions prior to 0.4 were released under [GPL](http://www.gnu.org/licenses/gpl-
 
 ### Known issues
 
-* HSI color conversion (experimental) produces weird results sometimes
+* HSI color conversion is experimental and produces weird results sometimes
+
+### Further reading
+
+* [How To Avoid Equidistant HSV Colors](https://vis4.net/blog/posts/avoid-equidistant-hsv-colors/)
+* [Mastering Multi-hued Color Scales with Chroma.js](https://vis4.net/blog/posts/mastering-multi-hued-color-scales/)

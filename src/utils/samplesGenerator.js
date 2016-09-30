@@ -40,6 +40,13 @@ class SamplesGenerator {
      * @default {null}
      */
     this.customSampleCount = null;
+    /**
+     * `true` if duplicate samples collection should be allowed, `false` otherwise.
+     *
+     * @type {Boolean}
+     * @default {false}
+     */
+    this.allowDuplicates = false;
   }
 
   /**
@@ -53,6 +60,24 @@ class SamplesGenerator {
     }
     return SamplesGenerator.SAMPLE_COUNT;
   };
+
+  /**
+   * Set the sample count.
+   *
+   * @param {Number} sampleCount Number of samples to be collected.
+   */
+  setSampleCount(sampleCount) {
+    this.customSampleCount = sampleCount;
+  }
+
+  /**
+   * Set if the generator should accept duplicate values.
+   *
+   * @param {Boolean} allowDuplicates `true` to allow duplicate values.
+   */
+  setAllowDuplicates(allowDuplicates) {
+    this.allowDuplicates = allowDuplicates;
+  }
 
   /**
    * Generate samples for row. You can control which area should be sampled by passing `rowRange` object and `colRange` object.
@@ -146,7 +171,7 @@ class SamplesGenerator {
       if (sample.needed) {
         let duplicate = sampledValues.indexOf(value) > -1;
 
-        if (!duplicate) {
+        if (!duplicate || this.allowDuplicates) {
           let computedKey = type === 'row' ? 'col' : 'row';
 
           sample.strings.push({value, [computedKey]: index});

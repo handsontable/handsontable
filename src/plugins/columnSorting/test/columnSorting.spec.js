@@ -5,7 +5,10 @@ describe('ColumnSorting', function() {
     this.$container = $('<div id="' + id + '" style="overflow: auto; width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.sortByColumn = function(columnIndex) {
-      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').simulate('click');
+      var element = this.$container.find('th span.columnSorting:eq(' + columnIndex + ')');
+
+      element.simulate('mousedown');
+      element.simulate('mouseup');
     };
   });
 
@@ -251,11 +254,11 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
+    this.sortByColumn(2); // DESC sort after first click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
+    this.sortByColumn(2);// ASC sort after second click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
@@ -292,14 +295,14 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // DESC sort after first click
+    this.sortByColumn(2);  // DESC sort after first click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
     expect(htCore.find('tbody tr:eq(7) td:eq(2)').text()).toEqual("");
     expect(htCore.find('tbody tr:eq(8) td:eq(2)').text()).toEqual("");
 
-    htCore.find('th span.columnSorting:eq(2)').simulate('click');  // ASC sort after second click
+    this.sortByColumn(2);  // ASC sort after second click
 
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
@@ -333,15 +336,15 @@ describe('ColumnSorting', function() {
 
     var htCore = getHtCore();
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    htCore.find('th span.columnSorting:eq(3)').simulate('click');
+    this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
 
@@ -679,8 +682,7 @@ describe('ColumnSorting', function() {
     expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
-  it("should fire afterColumnSort event before data has been sorted", function() {
-
+  it("should fire afterColumnSort event before data has been sorted but before table render", function() {
     var hot = handsontable({
       data: [
         [2],
@@ -690,29 +692,31 @@ describe('ColumnSorting', function() {
       ],
       columnSorting: true
     });
+    var rendered = false;
+    var afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
+    var afterRenderSpy = jasmine.createSpy('afterRender');
 
-    this.afterColumnSortHandler = function() {
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('4');
-    };
-
-    spyOn(this, 'afterColumnSortHandler');
-
-    hot.addHook('afterColumnSort', this.afterColumnSortHandler);
+    hot.addHook('afterColumnSort', function() {
+      expect(rendered).toBe(false);
+      afterColumnSortHandler.apply(afterColumnSortHandler, arguments);
+    });
+    hot.addHook('afterRender', function() {
+      rendered = true;
+      afterRenderSpy.apply(afterRenderSpy, arguments);
+    });
 
     var sortColumn = 0;
     var sortOrder = true;
+    afterRenderSpy.reset();
 
     hot.sort(sortColumn, sortOrder);
 
-    expect(this.afterColumnSortHandler.callCount).toEqual(1);
-    expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(afterColumnSortHandler.callCount).toBe(1);
+    expect(afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(afterRenderSpy.callCount).toBe(1);
   });
 
   it("should add afterColumnSort event listener in constructor", function() {
-
     var afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
 
     var hot = handsontable({
@@ -1685,4 +1689,27 @@ describe('ColumnSorting', function() {
     expect(getDataAtCol(0)).toEqual(["hello", "b", "a", "1000", "0.0561", "-0.01", "-4.1", "-10.67", "-127"]);
   });
 
+  it("should modify row translating process when soring is applied (visual to physical and vice versa)", function() {
+    var hot = handsontable({
+      data: [
+        [2],
+        [4],
+        [1],
+        [3]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+
+    expect(hot.toPhysicalRow(0)).toBe(2);
+    expect(hot.toPhysicalRow(1)).toBe(0);
+    expect(hot.toPhysicalRow(2)).toBe(3);
+    expect(hot.toPhysicalRow(3)).toBe(1);
+    expect(hot.toVisualRow(0)).toBe(1);
+    expect(hot.toVisualRow(1)).toBe(3);
+    expect(hot.toVisualRow(2)).toBe(0);
+    expect(hot.toVisualRow(3)).toBe(2);
+  });
 });

@@ -277,39 +277,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   right: -15px;
 }
 
-.handsontable th.beforeHiddenColumn {
-  position: relative;
-}
-
-.handsontable th.beforeHiddenColumn::after,
-.handsontable th.afterHiddenColumn::before {
-  content: '\25C0';
-  color: #bbb;
-  position: absolute;
-  right: 1px;
-  top: 2px;
-  font-size: 5pt;
-}
-
-.handsontable th.afterHiddenColumn {
-  position: relative;
-}
-
-.handsontable th.afterHiddenColumn::before {
-  left: 1px;
-  top: 2px;
-  right: auto;
-  content: '\25B6';
-}
-
-.handsontable td.afterHiddenColumn.firstVisible {
-  border-left: 1px solid #CCC;
-}
-
-.handsontable thead th.hiddenHeader {
-  display: none;
-}
-
 /* border line */
 
 .handsontable .wtBorder {
