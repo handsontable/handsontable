@@ -106,7 +106,13 @@ class DataSource {
     let result = null;
 
     if (this.data[row]) {
-      result = this.data[row][this.colToProp(column)];
+      let prop = this.colToProp(column);
+
+      if (typeof prop === 'string') {
+        result = getProperty(this.data[row], prop);
+      } else {
+        result = this.data[row][prop];
+      }
     }
 
     return result;
