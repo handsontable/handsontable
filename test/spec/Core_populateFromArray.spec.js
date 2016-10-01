@@ -189,4 +189,62 @@ describe('Core_populateFromArray', function() {
     expect(getDataAtCell(0, 2)).toEqual('A1');
     expect(getDataAtCell(0, 3)).toEqual('Toyota');
   });
+
+  it('should deep clone object-valued cells when using the default clone factory', function() {
+    var data = arrayOfArrays();
+    data[1][4] = {a: 123, b: 456};
+
+    handsontable({
+      data: data
+    });
+
+    populateFromArray(1, 4, [[data[1][5]]], 1, 4, 'autofill', null, 'left', [[0]]);
+
+    expect(getDataAtCell(1, 4)).toEqual(data[1][5]);
+    expect(getDataAtCell(1, 4)).not.toBe(data[1][5]);
+  });
+
+  it('should use the clone factory from settings when deep cloning object-valued cells', function() {
+    var data = arrayOfArrays();
+    data[1][4] = {a: 123, b: 456};
+    var customCloneFactoryWasCalled = false;
+
+    handsontable({
+      data: data,
+      cloneFactory: function(cell) {
+        customCloneFactoryWasCalled = true;
+        return cell;
+      }
+    });
+
+    populateFromArray(1, 4, [[data[1][5]]], 1, 4, 'autofill', null, 'left', [[0]]);
+
+    expect(customCloneFactoryWasCalled).toBeTruthy();
+  });
+
+  it('should support clone factories that allow for complex objects (including function properties)', function() {
+    var ComplexCell = function(value) {
+      return {
+        value: value,
+        customFunction: function() { return 1; }
+      };
+    };
+    ComplexCell.clone = function(cell) {
+      return ComplexCell(cell.value);
+    };
+    var data = arrayOfArrays();
+    data[1][4] = ComplexCell('Value of old cell');
+    data[1][5] = ComplexCell('Value of cell being cloned');
+
+    handsontable({
+      data: data,
+      cloneFactory: ComplexCell.clone
+    });
+
+    populateFromArray(1, 4, [[data[1][5]]], 1, 4, 'autofill', null, 'left', [[0]]);
+
+    expect(getDataAtCell(1, 4).value).toEqual(data[1][5].value);
+    expect(getDataAtCell(1, 4).customFunction()).toEqual(1);
+    expect(getDataAtCell(1, 4)).not.toBe(data[1][5]);
+  });
 });

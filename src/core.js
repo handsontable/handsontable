@@ -506,7 +506,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
                   /* jshint -W073 */
                   if (isObjectEquals(orgValueSchema, valueSchema)) {
-                    value = deepClone(value);
+                    const cloneFactory = instance.getSettings().cloneFactory;
+                    value = cloneFactory(value);
                   } else {
                     pushData = false;
                   }
@@ -5199,5 +5200,17 @@ DefaultSettings.prototype = {
    * @default: false
    */
   filteringCaseSensitive: false,
+
+  /**
+   * @description
+   * The function used to clone cells when performing operations like autofill.
+   *
+   * @type {Function}
+   * @param {Object} cell
+   * @returns {Object}
+   * @default A function which takes a deep clone of JSON-compatible properties (i.e. it ignores functions, does not
+   * preserve prototypes, etc).
+   */
+  cloneFactory: deepClone
 };
 Handsontable.DefaultSettings = DefaultSettings;
