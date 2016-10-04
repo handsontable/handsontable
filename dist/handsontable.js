@@ -4305,9 +4305,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Thu Sep 29 2016 14:23:14 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Tue Oct 04 2016 14:31:03 GMT+0200 (CEST)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.28.1';
+Handsontable.version = '0.28.2';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -6958,7 +6958,12 @@ var DataSource = function DataSource(hotInstance) {
   getAtCell: function(row, column) {
     var result = null;
     if (this.data[row]) {
-      result = this.data[row][this.colToProp(column)];
+      var prop = this.colToProp(column);
+      if (typeof prop === 'string') {
+        result = getProperty(this.data[row], prop);
+      } else {
+        result = this.data[row][prop];
+      }
     }
     return result;
   },

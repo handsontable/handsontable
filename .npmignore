@@ -1,5 +1,6 @@
 .DS_Store
 .grunt
+.github
 .idea
 _SpecRunner.html
 cars.sqlite
