@@ -301,6 +301,45 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("");
   });
 
+  it('should render nested object value in textarea', function () {
+    handsontable({
+      data: [
+        {name: {first: 'Tom', last: 'Kowalski', obj: {}}},
+        {name: {first: 'John', last: 'Cage', obj: {foo: 'bar'}}}
+      ],
+      columns: [{data: 'name.last'}, {data: 'name.obj.foo'}]
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+
+    expect(keyProxy().val()).toEqual("Kowalski");
+
+    selectCell(1, 1);
+    keyDown('enter');
+
+    expect(keyProxy().val()).toEqual("bar");
+  });
+
+  it('should render array value defined by columns settings in textarea', function () {
+    handsontable({
+      data: [
+        ['', 'Kia'],
+        ['2012', 10],
+        ['2013', 10],
+      ],
+      columns: [{data: '1'}, {data: '0'}]
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+
+    expect(keyProxy().val()).toEqual("Kia");
+
+    selectCell(1, 1);
+    keyDown('enter');
+
+    expect(keyProxy().val()).toEqual("2012");
+  });
+
   it('should open editor after hitting F2', function () {
     handsontable();
     selectCell(2, 2);
@@ -990,7 +1029,7 @@ describe('TextEditor', function () {
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     var $editorInput = $('.handsontableInput');
-    
+
     waits(150);
 
     runs(function() {
