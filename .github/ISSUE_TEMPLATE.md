@@ -1,16 +1,16 @@
-## Description
+### Description
 <!--- Tell us what happens and what should happen -->
 
-## Steps to reproduce
+### Steps to reproduce
 <!--- Provide steps to reproduce this issue -->
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
-## Demo
+### Demo
 <!--- Provide a link to a live example on JSFiddle or Codepen -->
 
-## Your environment
+### Your environment
 * Version:
 * Browser Name and version:
 * Operating System:
