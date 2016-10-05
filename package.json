@@ -34,7 +34,7 @@
     "zeroclipboard": "^2.2.0"
   },
   "devDependencies": {
-    "grunt": "^1.0.0",
+    "grunt": ">=0.4.0",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-jscs": "^3.0.1",
     "hot-builder": "^0.5.2",
@@ -44,7 +44,7 @@
     "build": "./node_modules/.bin/grunt build",
     "build:dev": "./node_modules/.bin/grunt build-dev",
     "build:custom": "./node_modules/.bin/grunt build-custom",
-    "test": "npm run test-ci:walkontable && npm run test-ci:handsontable-standalone && npm run test-ci:handsontable-full",
+    "test": "npm run build && npm run test-ci:walkontable && npm run test-ci:handsontable-standalone && npm run test-ci:handsontable-full",
     "test:walkontable": "./node_modules/.bin/testem -f src/3rdparty/walkontable/test/testem.json",
     "test:handsontable-standalone": "./node_modules/.bin/testem -f test/testem-standalone.json",
     "test:handsontable-full": "./node_modules/.bin/testem -f test/testem-full.json",

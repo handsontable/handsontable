@@ -12,10 +12,6 @@
   "src_files": [
     "test/lib/jquery.min.js",
     "test/lib/jquery.simulate.js",
-    "dist/numbro/numbro.js",
-    "demo/js/moment/moment.js",
-    "demo/js/pikaday/pikaday.js",
-    "demo/js/ZeroClipboard.js",
     "demo/js/backbone/lodash.underscore.js",
     "demo/js/backbone/backbone.js",
     "demo/js/backbone/backbone-relational/backbone-relational.js",
