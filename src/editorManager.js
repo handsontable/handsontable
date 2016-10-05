@@ -312,7 +312,7 @@ function EditorManager(instance, priv, selection) {
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), instance.runHooks('modifyCol', col));
+    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
 
