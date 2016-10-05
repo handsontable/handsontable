@@ -10,4 +10,3 @@ before_script:
   - "export DISPLAY=:99.0"
   - "export TZ=Europe/Warsaw"
   - "sh -e /etc/init.d/xvfb start"
-  - "npm install -g grunt-cli"

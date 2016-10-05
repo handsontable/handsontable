@@ -185,13 +185,10 @@ describe('ContextMenu', function () {
       contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
-      var rect = $('.htContextMenu')[0].getBoundingClientRect();
 
+      var rect = $('.htContextMenu')[0].getBoundingClientRect();
       var x = parseInt(rect.left + rect.width / 2, 10);
       var y = parseInt(rect.top + rect.height, 10);
-
-      window.scrollTo(0, y + window.innerHeight / 2);
-      y -= window.scrollY;
       mouseDown(document.elementFromPoint(x, y));
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
@@ -272,16 +269,13 @@ describe('ContextMenu', function () {
         height: 100
       });
 
-
       expect(hot.getPlugin('contextMenu').isEnabled()).toBe(true);
-      //expect($('.htContextMenu').length).toEqual(1);
 
       updateSettings({
         contextMenu: false
       });
 
       expect(hot.getPlugin('contextMenu').isEnabled()).toBe(false);
-      //expect($('.htContextMenu').length).toEqual(0);
     });
 
     it('should work properly (remove row) after destroy and new init', function () {
@@ -303,7 +297,6 @@ describe('ContextMenu', function () {
 
       test();
     });
-
   });
 
   describe("menu hidden items", function() {
@@ -383,7 +376,7 @@ describe('ContextMenu', function () {
   });
 
   describe("subMenu", function () {
-    it ('should not open subMenu immediately', function (){
+    it ('should not open subMenu immediately', function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -393,22 +386,20 @@ describe('ContextMenu', function () {
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
-
       item.simulate('mouseover');
-
       var contextSubMenu = $('.htContextMenuSub_' + item.text()).find('tbody td');
 
       expect(contextSubMenu.length).toEqual(0);
 
-      waits(250);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text()).find('tbody td');
 
         expect(contextSubMenu.length).toEqual(0);
-      })
+        done();
+      }, 100);
     });
 
-    it ('should open subMenu with delay', function (){
+    it ('should open subMenu with delay', function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -421,12 +412,12 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350); // menu opens after 300ms
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
         expect(contextSubMenu.length).toEqual(1);
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
     it ('should NOT open subMenu if there is no subMenu for item', function () {
@@ -472,7 +463,7 @@ describe('ContextMenu', function () {
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right of main menu if there\'s free space', function() {
+    it('should open subMenu on the right of main menu if there\'s free space', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4,  Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -487,18 +478,18 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect(item.text()).toBe('Alignment');
         expect(item.hasClass('htSubmenu')).toBe(true);
 
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
         expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
-      })
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it('should open subMenu on the left-bottom of main menu if there\'s free space', function() {
+    it('should open subMenu on the left-bottom of main menu if there\'s free space', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -514,19 +505,19 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect(item.text()).toBe('Alignment');
         expect(item.hasClass('htSubmenu')).toBe(true);
 
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
-        expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
-      });
+        expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+        expect(parseInt(contextSubMenu.offset().left, 10)).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it('should open subMenu on the right-bottom of main menu if there\'s free space', function() {
+    it('should open subMenu on the right-bottom of main menu if there\'s free space', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -543,19 +534,19 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect(item.text()).toBe('Alignment');
         expect(item.hasClass('htSubmenu')).toBe(true);
 
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
 
-        expect(contextSubMenu.offset().top).toBeAroundValue(item.offset().top);
-        expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
-      });
+        expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+        expect(parseInt(contextSubMenu.offset().left, 10)).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', function() {
+    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -570,8 +561,7 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect(item.text()).toBe('Alignment');
         expect(item.hasClass('htSubmenu')).toBe(true);
 
@@ -579,10 +569,11 @@ describe('ContextMenu', function () {
 
         expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
         expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', function() {
+    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23),  Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -597,8 +588,7 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect(item.text()).toBe('Alignment');
         expect(item.hasClass('htSubmenu')).toBe(true);
 
@@ -606,7 +596,8 @@ describe('ContextMenu', function () {
 
         expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
         expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
   });
 
@@ -1291,7 +1282,7 @@ describe('ContextMenu', function () {
       }
     });
 
-    it("should align text left", function () {
+    it("should align text left", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1303,18 +1294,18 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
         button.simulate('mousedown'); //Text left
 
         expect(getCellMeta(0,0).className).toEqual('htLeft');
         expect(getCell(0,0).className).toContain('htLeft');
-      });
+        done();
+      }, 350);
     });
 
-    it("should align text center", function () {
+    it("should align text center", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1326,18 +1317,18 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
         button.simulate('mousedown'); //Text center
         expect(getCellMeta(0,0).className).toEqual('htCenter');
         expect(getCell(0,0).className).toContain('htCenter');
-      });
+        done();
+      }, 350);
     });
 
-    it("should align text right", function () {
+    it("should align text right", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1349,18 +1340,18 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
         button.simulate('mousedown'); //Text right
         expect(getCellMeta(0,0).className).toEqual('htRight');
         expect(getCell(0,0).className).toContain('htRight');
-      });
+        done();
+      }, 350);
     });
 
-    it("should justify text", function () {
+    it("should justify text", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1372,8 +1363,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
@@ -1381,10 +1371,11 @@ describe('ContextMenu', function () {
         deselectCell();
         expect(getCellMeta(0,0).className).toEqual('htJustify');
         expect(getCell(0,0).className).toContain('htJustify');
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it("should vertical align text top", function () {
+    it("should vertical align text top", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1396,8 +1387,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
@@ -1405,10 +1395,11 @@ describe('ContextMenu', function () {
         deselectCell();
         expect(getCellMeta(0,0).className).toEqual('htTop');
         expect(getCell(0,0).className).toContain('htTop');
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it("should vertical align text middle", function () {
+    it("should vertical align text middle", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1420,8 +1411,7 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
@@ -1429,10 +1419,11 @@ describe('ContextMenu', function () {
         deselectCell();
         expect(getCellMeta(0,0).className).toEqual('htMiddle');
         expect(getCell(0,0).className).toContain('htMiddle');
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
-    it("should vertical align text bottom", function () {
+    it("should vertical align text bottom", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1443,15 +1434,15 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + item.text());
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
         button.simulate('mousedown'); //Text bottom
         deselectCell();
         expect(getCellMeta(0,0).className).toEqual('htBottom');
         expect(getCell(0,0).className).toContain('htBottom');
-      });
+        done();
+      }, 350); // menu opens after 300ms
     });
 
     it("should not close menu after clicking on submenu root item", function () {
@@ -1468,7 +1459,7 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it("should add comment", function () {
+    xit("should add comment", function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1484,8 +1475,7 @@ describe('ContextMenu', function () {
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       expect(menu.find('td:eq(17)').hasClass('htDisabled')).toBe(true);
 
-      waits(350);
-      runs(function() {
+      setTimeout(function () {
         menu.find('td').not('.htSeparator').eq(10).simulate('mousedown');
 
         var comments = $('body > .htCommentsContainer > .htComments');
@@ -1493,19 +1483,23 @@ describe('ContextMenu', function () {
         expect(comments.css('display')).toEqual('block');
 
         var textArea = comments.find('textarea');
-        textArea.focus();
+
+        textArea.simulate('focus');
+        textArea[0].focus();
+        textArea[0].select();
         textArea.val(testComment);
-        textArea.blur();
+        textArea.simulate('blur');
 
         mouseDown(document.body);
+        $(hot.getPlugin('comments').editor.getInputElement()).simulate('blur');
+        textArea.blur();
+      }, 350); // menu opens after 300ms
 
-        waits(100);
-
-        runs(function() {
-          expect(getCellMeta(1, 1).comment).toEqual(testComment);
-          expect(getCell(1, 1).className).toContain('htCommentCell');
-        });
-      })
+      setTimeout(function () {
+        expect(getCellMeta(1, 1).comment).toEqual(testComment);
+        expect(getCell(1, 1).className).toContain('htCommentCell');
+        done();
+      }, 450);
     });
 
     it("should delete comment", function () {
@@ -1838,14 +1832,14 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
-      expect(callback1.calls.length).toEqual(1);
-      expect(callback2.calls.length).toEqual(0);
+      expect(callback1.calls.count()).toEqual(1);
+      expect(callback2.calls.count()).toEqual(0);
 
       contextMenu();
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
 
-      expect(callback1.calls.length).toEqual(1);
-      expect(callback2.calls.length).toEqual(1);
+      expect(callback1.calls.count()).toEqual(1);
+      expect(callback2.calls.count()).toEqual(1);
 
     });
 
@@ -1910,13 +1904,12 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
-      expect(callback.calls.length).toEqual(1);
+      expect(callback.calls.count()).toEqual(1);
 
       contextMenu();
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
 
-      expect(callback.calls.length).toEqual(2);
-
+      expect(callback.calls.count()).toEqual(2);
     });
 
     it("should override default items options", function () {
@@ -1943,7 +1936,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
-      expect(callback.calls.length).toEqual(1);
+      expect(callback.calls.count()).toEqual(1);
 
       expect(countCols()).toEqual(5);
 
@@ -1954,7 +1947,6 @@ describe('ContextMenu', function () {
     });
 
     it("should fire item callback after item has been clicked", function () {
-
       var customItem = {
         name: 'Custom item',
         callback: function(){}
@@ -1975,17 +1967,14 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
-      expect(customItem.callback.calls.length).toEqual(1);
-      expect(customItem.callback.calls[0].args[0]).toEqual('customItemKey');
-
+      expect(customItem.callback.calls.count()).toEqual(1);
+      expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
-
   });
 
   describe("keyboard navigation", function () {
     describe("no item selected", function () {
       it("should select the first item in menu, when user hits ARROW_DOWN", function () {
-
         var hot = handsontable({
           contextMenu: true,
           height: 100
@@ -2541,7 +2530,7 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it("should close sub-menu and parent menu in proper order when user hits ESC twice", function () {
+    it("should close sub-menu and parent menu in proper order when user hits ESC twice", function (done) {
       handsontable({
         contextMenu: true,
         height: 100
@@ -2554,8 +2543,7 @@ describe('ContextMenu', function () {
 
       item.simulate('mouseover');
 
-      waits(350) // waits for submenu open delay
-      runs(function() {
+      setTimeout(function () {
         expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 
         keyDownUp('esc');
@@ -2565,7 +2553,8 @@ describe('ContextMenu', function () {
         keyDownUp('esc');
 
         expect($('.htContextMenu').is(':visible')).toBe(false);
-      });
+        done();
+      }, 350); // waits for submenu open delay
     });
   });
 
@@ -3015,5 +3004,4 @@ describe('ContextMenu', function () {
       expect(keys).toEqual(['make_read_only', 'col_left']);
     });
   });
-
 });

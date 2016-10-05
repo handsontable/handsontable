@@ -1,0 +1,41 @@
+{
+  "framework": "jasmine2",
+  "launch_in_dev": [
+    "chrome",
+    "firefox"
+  ],
+  "launch_in_ci": [
+    "phantomjs"
+  ],
+  "phantomjs_args": [],
+  "watch_files": [],
+  "src_files": [
+    "test/lib/jquery.min.js",
+    "test/lib/jquery.simulate.js",
+    "dist/numbro/numbro.js",
+    "dist/numbro/languages.js",
+    "demo/js/moment/moment.js",
+    "demo/js/pikaday/pikaday.js",
+    "demo/js/ZeroClipboard.js",
+    "demo/js/backbone/lodash.underscore.js",
+    "demo/js/backbone/backbone.js",
+    "demo/js/backbone/backbone-relational/backbone-relational.js",
+    "demo/js/jquery-ui/js/jquery-ui.custom.js",
+    "dist/handsontable.js",
+    "plugins/removeRow/handsontable.removeRow.js",
+    "test/SpecHelper.js",
+    "test/test-init.js",
+    "test/spec/*Spec.js",
+    "test/spec/**/*Spec.js",
+    "test/spec/helpers/dom/*Spec.js",
+    "src/plugins/*/test/*.spec.js",
+    "test/spec/MemoryLeakTest.js"
+  ],
+  "src_files_ignore": [
+    "test/spec/mobile/*Spec.js"
+  ],
+  "css_files": [
+    "dist/pikaday/pikaday.css",
+    "dist/handsontable.css"
+  ]
+}

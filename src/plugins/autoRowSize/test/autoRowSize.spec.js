@@ -40,7 +40,7 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', function () {
+  it('should correctly detect row height when table is hidden on init (display: none)', function (done) {
     this.$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
@@ -48,21 +48,20 @@ describe('AutoRowSize', function () {
       autoRowSize: true
     });
 
-    waits(200);
-
-    runs(function() {
-      this.$container.css('display', 'block');
+    setTimeout(function () {
+      spec().$container.css('display', 'block');
       hot.render();
 
-      expect(rowHeight(this.$container, 0)).toBeAroundValue(24);
-      expect(rowHeight(this.$container, 1)).toBeAroundValue(43);
+      expect(rowHeight(spec().$container, 0)).toBeAroundValue(24);
+      expect(rowHeight(spec().$container, 1)).toBeAroundValue(43);
 
-      if (Handsontable.helper.isIE9()) {
-        expect(rowHeight(this.$container, 2)).toBeAroundValue(127);
+      if (Handsontable.helper.isChrome() || /PhantomJS/.test(window.navigator.userAgent)) {
+        expect(rowHeight(spec().$container, 2)).toBeAroundValue(106);
       } else {
-        expect(rowHeight(this.$container, 2)).toBeAroundValue(106);
+        expect(rowHeight(spec().$container, 2)).toBeAroundValue(127);
       }
-    });
+      done();
+    }, 200);
   });
 
   it('should be possible to disable plugin using updateSettings', function () {
@@ -250,8 +249,8 @@ describe('AutoRowSize', function () {
     resizeColumn.call(this, 1, 100);
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(42);
+    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(63);
 
     resizeColumn.call(this, 1, 50);
 
@@ -263,7 +262,7 @@ describe('AutoRowSize', function () {
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22);
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(42);
   });
 
   it('should recalculate heights after column moved', function () {

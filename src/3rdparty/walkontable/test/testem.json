@@ -1,0 +1,30 @@
+{
+  "framework": "jasmine2",
+  "launch_in_dev": [
+    "chrome",
+    "firefox"
+  ],
+  "launch_in_ci": [
+    "phantomjs"
+  ],
+  "phantomjs_args": [],
+  "watch_files": [],
+  "src_files": [
+    "src/3rdparty/walkontable/test/lib/jquery.min.js",
+    "src/3rdparty/walkontable/test/lib/jquery.simulate.js",
+    "dist/numbro/numbro.js",
+    "dist/numbro/languages.js",
+    "demo/js/moment/moment.js",
+    "demo/js/pikaday/pikaday.js",
+    "demo/js/ZeroClipboard.js",
+    "dist/handsontable.js",
+    "src/3rdparty/walkontable/test/SpecHelper.js",
+    "src/3rdparty/walkontable/test/test-init.js",
+    "src/3rdparty/walkontable/test/spec/**/*.spec.js"
+  ],
+  "src_files_ignore": [],
+  "css_files": [
+    "demo/js/pikaday/css/pikaday.css",
+    "src/3rdparty/walkontable/css/walkontable.css"
+  ]
+}
