@@ -38,6 +38,7 @@
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-jscs": "^3.0.1",
     "hot-builder": "^0.5.2",
+    "phantomjs": "^2.1.7",
     "testem": "^1.12.0"
   },
   "scripts": {
