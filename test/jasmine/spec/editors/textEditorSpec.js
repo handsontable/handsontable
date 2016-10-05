@@ -320,6 +320,62 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("bar");
   });
 
+  it('should render nested object value in textarea after change rows order', function () {
+    var hot = handsontable({
+      data: [
+        {name: {first: 'Tom', last: 'Kowalski', obj: {}}},
+        {name: {first: 'John', last: 'Cage', obj: {foo: 'bar'}}}
+      ],
+      columns: [{data: 'name.last'}, {data: 'name.obj.foo'}],
+      manualRowMove: true
+    });
+
+    hot.getPlugin('manualRowMove').moveRow(1, 0);
+    hot.render();
+
+    selectCell(0, 0);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('Cage');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(0,0)).toEqual('Cage');
+
+    selectCell(1, 1);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(1,1)).toEqual('');
+  });
+
+  it('should render nested object value in textarea after change columns order', function () {
+    var hot = handsontable({
+      data: [
+        {name: {first: 'Tom', last: 'Kowalski', obj: {}}},
+        {name: {first: 'John', last: 'Cage', obj: {foo: 'bar'}}}
+      ],
+      columns: [{data: 'name.last'}, {data: 'name.obj.foo'}],
+      manualColumnMove: true
+    });
+
+    hot.getPlugin('manualColumnMove').moveColumn(1, 0);
+    hot.render();
+
+    selectCell(0, 0);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(0,0)).toEqual('');
+
+    selectCell(1, 1);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('Cage');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(1,1)).toEqual('Cage');
+  });
+
   it('should render array value defined by columns settings in textarea', function () {
     handsontable({
       data: [
