@@ -176,9 +176,9 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect($columnHeaders.eq(1).width()).toEqual(26);
-      expect($columnHeaders.eq(2).width()).toEqual(26);
-      expect($columnHeaders.eq(3).width()).toEqual(26);
+      expect($columnHeaders.eq(1).width()).toBe(34);
+      expect($columnHeaders.eq(2).width()).toBe(34);
+      expect($columnHeaders.eq(3).width()).toBe(34);
       done();
     }, 1000);
   });
@@ -208,9 +208,9 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect($columnHeaders.eq(1).width()).toEqual(147);
-      expect($columnHeaders.eq(2).width()).toEqual(147);
-      expect($columnHeaders.eq(3).width()).toEqual(147);
+      expect($columnHeaders.eq(1).width()).toBe(155);
+      expect($columnHeaders.eq(2).width()).toBe(155);
+      expect($columnHeaders.eq(3).width()).toBe(155);
       done();
     }, 1000);
   });
@@ -288,11 +288,11 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect($columnHeaders.eq(0).width()).toEqual(19);
-      expect($columnHeaders.eq(1).width()).toEqual(49);
-      expect($columnHeaders.eq(2).width()).toEqual(49);
-      expect($columnHeaders.eq(3).width()).toEqual(49);
-      expect($columnHeaders.eq(4).width()).toEqual(738);
+      expect($columnHeaders.eq(0).width()).toBeAroundValue(18);
+      expect($columnHeaders.eq(1).width()).toBeAroundValue(49);
+      expect($columnHeaders.eq(2).width()).toBeAroundValue(49);
+      expect($columnHeaders.eq(3).width()).toBeAroundValue(49);
+      expect($columnHeaders.eq(4).width()).toBeAroundValue(739);
       done();
     }, 1000);
   });
@@ -414,8 +414,8 @@ describe('manualColumnResize', function () {
       expect(afterColumnResizeCallback.calls.count()).toEqual(1);
       expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(0);
       // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
-      expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toBeInArray([30, 24, 25]);
-      expect(colWidth(spec().$container, 0)).toBeInArray([30, 24, 25]);
+      expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toBeInArray([30, 31, 32, 24, 25]);
+      expect(colWidth(spec().$container, 0)).toBeInArray([30, 32, 24, 25]);
       done();
     }, 1000);
   });
@@ -444,7 +444,7 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect(colWidth(spec().$container, 2)).toBeAroundValue(29);
+      expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
       done();
     }, 1000);
   });
@@ -476,9 +476,9 @@ describe('manualColumnResize', function () {
     }, 600);
 
     setTimeout(function () {
-      expect(colWidth(spec().$container, 1)).toBeAroundValue(29);
-      expect(colWidth(spec().$container, 2)).toBeAroundValue(29);
-      expect(colWidth(spec().$container, 3)).toBeAroundValue(29);
+      expect(colWidth(spec().$container, 1)).toBeAroundValue(29, 4);
+      expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 4);
+      expect(colWidth(spec().$container, 3)).toBeAroundValue(29, 4);
       done();
     }, 1200);
   });

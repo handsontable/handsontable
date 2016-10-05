@@ -54,12 +54,7 @@ describe('AutoRowSize', function () {
 
       expect(rowHeight(spec().$container, 0)).toBeAroundValue(24);
       expect(rowHeight(spec().$container, 1)).toBeAroundValue(43);
-
-      if (Handsontable.helper.isChrome() || /PhantomJS/.test(window.navigator.userAgent)) {
-        expect(rowHeight(spec().$container, 2)).toBeAroundValue(106);
-      } else {
-        expect(rowHeight(spec().$container, 2)).toBeAroundValue(127);
-      }
+      expect([106, 127]).toEqual(jasmine.arrayContaining([rowHeight(spec().$container, 2)]));
       done();
     }, 200);
   });
@@ -242,27 +237,27 @@ describe('AutoRowSize', function () {
       colHeaders: true
     });
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(22); // -1px of cell border
 
     resizeColumn.call(this, 1, 100);
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(63);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
+    expect([63, 84]).toEqual(jasmine.arrayContaining([parseInt(hot.getCell(2, -1).style.height, 10)]));
 
     resizeColumn.call(this, 1, 50);
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(126);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(126);
 
     resizeColumn.call(this, 1, 200);
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(42);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(42);
   });
 
   it('should recalculate heights after column moved', function () {

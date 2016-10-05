@@ -355,6 +355,7 @@ describe('DateEditor', function () {
 
     var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 10),
+        colWidths: 60,
         columns: [
           {type: 'date'},
           {type: 'date'},
@@ -374,13 +375,8 @@ describe('DateEditor', function () {
     cellOffset = $(hot.getActiveEditor().TD).offset();
     datePickerOffset = $('.pika-single').offset();
 
-    // 23 is a height of the editor cell
-    if(!!navigator.userAgent.match(/MSIE 10/)) { // IE10 hack
-      expect(datePickerOffset.top).toBeAroundValue(cellOffset.top + 23);
-    } else {
-      expect(cellOffset.top + 23 === datePickerOffset.top).toBe(true);
-    }
-    expect(cellOffset.left === datePickerOffset.left).toBe(true);
+    expect(cellOffset.top + 23).toBe(datePickerOffset.top);
+    expect(cellOffset.left).toBe(datePickerOffset.left);
   });
 
   it("should not modify the edited date and time, when opening the editor", function() {

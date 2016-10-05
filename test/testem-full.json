@@ -7,8 +7,6 @@
   "launch_in_ci": [
     "phantomjs"
   ],
-  "phantomjs_args": [],
-  "watch_files": [],
   "src_files": [
     "test/lib/jquery.min.js",
     "test/lib/jquery.simulate.js",
@@ -32,6 +30,7 @@
   ],
   "css_files": [
     "dist/pikaday/pikaday.css",
+    "test/lib/normalize.css",
     "dist/handsontable.full.min.css"
   ]
 }

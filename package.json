@@ -49,9 +49,9 @@
     "test:walkontable": "./node_modules/.bin/testem -f src/3rdparty/walkontable/test/testem.json",
     "test:handsontable-standalone": "./node_modules/.bin/testem -f test/testem-standalone.json",
     "test:handsontable-full": "./node_modules/.bin/testem -f test/testem-full.json",
-    "test-ci:walkontable": "./node_modules/.bin/testem -f src/3rdparty/walkontable/test/testem.json ci",
-    "test-ci:handsontable-standalone": "./node_modules/.bin/testem -f test/testem-standalone.json ci",
-    "test-ci:handsontable-full": "./node_modules/.bin/testem -f test/testem-full.json ci"
+    "test-ci:walkontable": "./node_modules/.bin/testem -f src/3rdparty/walkontable/test/testem.json ci -R dot",
+    "test-ci:handsontable-standalone": "./node_modules/.bin/testem -f test/testem-standalone.json ci -R dot",
+    "test-ci:handsontable-full": "./node_modules/.bin/testem -f test/testem-full.json ci -R dot"
   },
   "license": "MIT",
   "builderDependencies": {

@@ -115,7 +115,7 @@ describe('TextEditor', function () {
 
     setTimeout(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(42);
+      expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(48, 2);
       expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
       done();
     }, 200);
@@ -141,8 +141,8 @@ describe('TextEditor', function () {
     mainHolder.scrollLeft = 150;
 
     setTimeout(function () {
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('-78px');
-      expect(hot.getActiveEditor().textareaParentStyle.left).toBe('-1px');
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-78);
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBe(-1);
       done();
     }, 200);
   });
@@ -935,7 +935,7 @@ describe('TextEditor', function () {
     var $editorInput = $('.handsontableInput');
 
     setTimeout(function () {
-      expect($editorInput.height()).toEqual(105);
+      expect([105, 119]).toEqual(jasmine.arrayContaining([$editorInput.height()]));
       done();
     }, 150);
   });

@@ -43,15 +43,15 @@ describe('AutoColumnSize', function () {
     });
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(50);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(110);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(210);
+    expect(colWidth(this.$container, 1)).toBeAroundValue(121, 8);
+    expect([229, 230, 247]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(156);
+    expect([168, 169, 189]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
     expect(colWidth(this.$container, 1)).toBeAroundValue(50);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(210);
+    expect([229, 230, 247]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
   it('should correctly detect column width with colHeaders', function () {
@@ -64,7 +64,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(146);
+    expect([155, 174]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function () {
@@ -93,7 +93,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(68);
+    expect([70, 71, 72, 80]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
@@ -109,7 +109,7 @@ describe('AutoColumnSize', function () {
       spec().$container.css('display', 'block');
       hot.render();
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(68);
+      expect([70, 71, 72, 80]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
       done();
     }, 200);
   });
@@ -125,15 +125,15 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(68);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(110);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(210);
+    expect([70, 71, 72, 80]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([120, 121, 129]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([228, 229, 247]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
 
     hot.alter('remove_row', 0);
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(68);
-    expect(colWidth(this.$container, 1)).toBeAroundValue(110);
-    expect(colWidth(this.$container, 2)).toBeAroundValue(210);
+    expect([70, 71, 72, 80]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([120, 121, 129]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([228, 229, 247]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
   it('should be possible to disable plugin using updateSettings', function () {
