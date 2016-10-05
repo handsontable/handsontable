@@ -462,4 +462,35 @@ describe('Core_dataSchema', function () {
     expect(spy.calls[0].args[5]).toEqual({id: null});
     expect(spy.calls[1].args[5]).toEqual({id: 1});
   });
+
+  it('should create an array of objects as the source structure, when dataSchema is defined (as an object) but no data is provided', function() {
+    var hot = handsontable({
+      startCols: 2,
+      minSpareRows: 4,
+      dataSchema: {id: null, name: null, surname: null},
+    });
+
+    var dataAtRow = hot.getSourceDataAtRow(0);
+
+    expect(Array.isArray(dataAtRow)).toBe(false);
+    expect(dataAtRow.id).toEqual(null);
+    expect(dataAtRow.name).toEqual(null);
+    expect(dataAtRow.surname).toEqual(null);
+  });
+
+  it('should create an array of objects as the source structure, when dataSchema is defined (as an array with an object) but no data is provided', function() {
+    var hot = handsontable({
+      startCols: 2,
+      minSpareRows: 4,
+      dataSchema: [{id: null, name: null, surname: null}],
+    });
+
+    var dataAtRow = hot.getSourceDataAtRow(0);
+
+    expect(Array.isArray(dataAtRow)).toBe(false);
+    expect(dataAtRow.id).toEqual(null);
+    expect(dataAtRow.name).toEqual(null);
+    expect(dataAtRow.surname).toEqual(null);
+  });
+
 });
