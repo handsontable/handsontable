@@ -977,14 +977,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             } else {
               numbro.culture(cellProperties.language);
             }
+
             const {delimiters} = numbro.cultureData(numbro.culture());
 
-            // add leading zero for numbers without it (for numbro validation) - https://github.com/foretagsplatsen/numbro/pull/182
-            if (new RegExp('^\\' + delimiters.decimal + '[0-9]+$').test(changes[i][3] + '')) {
-              changes[i][3] = '0' + changes[i][3];
-            }
             // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) || !isNaN(parseFloat(changes[i][3]))) {
+            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
+              changes[i][3] = parseFloat(changes[i][3]);
+
+            } else {
               changes[i][3] = numbro().unformat(changes[i][3]);
             }
           }
