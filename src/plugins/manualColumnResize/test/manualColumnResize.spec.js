@@ -415,7 +415,7 @@ describe('manualColumnResize', function () {
       expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(0);
       // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
       expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toBeInArray([30, 31, 32, 24, 25]);
-      expect(colWidth(spec().$container, 0)).toBeInArray([30, 32, 24, 25]);
+      expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
       done();
     }, 1000);
   });

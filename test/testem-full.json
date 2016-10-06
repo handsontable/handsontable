@@ -7,6 +7,7 @@
   "launch_in_ci": [
     "phantomjs"
   ],
+  "test_page": "test/template.mustache",
   "src_files": [
     "test/lib/jquery.min.js",
     "test/lib/jquery.simulate.js",
@@ -29,7 +30,6 @@
     "test/spec/mobile/*Spec.js"
   ],
   "css_files": [
-    "dist/pikaday/pikaday.css",
     "test/lib/normalize.css",
     "dist/handsontable.full.min.css"
   ]

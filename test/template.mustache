@@ -1,0 +1,27 @@
+
+<!doctype html>
+<html>
+<head>
+  <title>Test'em</title>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/jasmine.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/jasmine-html.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/boot.js"></script>
+  <script src="/testem.js"></script>
+
+  {{#serve_files}}
+    <script src="../{{{src}}}"></script>
+  {{/serve_files}}
+
+  {{#css_files}}
+    <link rel="stylesheet" href="../{{{src}}}">
+  {{/css_files}}
+  <style>
+    .jasmine_html-reporter {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+</body>
+</html>

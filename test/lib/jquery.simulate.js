@@ -119,20 +119,39 @@
           doc = eventDoc.documentElement;
           body = eventDoc.body;
 
-          Object.defineProperty( event, "pageX", {
-            get: function() {
+          try {
+            Object.defineProperty( event, "pageX", {
+              get: function() {
+                return options.clientX +
+                ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+                ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+              }
+            });
+          } catch (ex) {
+            // Fix for PhantomJS 2.1
+            event.__defineGetter__("pageX", function () {
               return options.clientX +
                 ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
                 ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-            }
-          });
-          Object.defineProperty( event, "pageY", {
-            get: function() {
+            });
+          }
+
+          try {
+            Object.defineProperty( event, "pageY", {
+              get: function() {
+                return options.clientY +
+                  ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
+                  ( doc && doc.clientTop || body && body.clientTop || 0 );
+              }
+            });
+          } catch (ex) {
+            // Fix for PhantomJS 2.1
+            event.__defineGetter__("pageY", function () {
               return options.clientY +
                 ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
                 ( doc && doc.clientTop || body && body.clientTop || 0 );
-            }
-          });
+            });
+          }
         }
       } else if ( document.createEventObject ) {
         try {
