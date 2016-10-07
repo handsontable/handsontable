@@ -239,7 +239,7 @@ describe('AutoRowSize', function () {
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
     resizeColumn.call(this, 1, 100);
 
@@ -272,16 +272,16 @@ describe('AutoRowSize', function () {
 
     var plugin = hot.getPlugin('manualColumnMove');
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(42); // -1px of cell border
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(105); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(42); // -1px of cell border
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105); // -1px of cell border
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
     plugin.moveColumn(0, 2);
     hot.render();
 
-    expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(42);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(126);
+    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
+    expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
+    expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(126);
   });
 
   it('should recalculate heights with manualRowResize when changing text to multiline', function () {
@@ -296,13 +296,13 @@ describe('AutoRowSize', function () {
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(49); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBeInArray([22, 42]); // -1px of cell border
 
     hot.setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(105);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22);
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBeInArray([22, 42]);
   });
 
   it('should recalculate heights after moved row', function () {
@@ -318,7 +318,7 @@ describe('AutoRowSize', function () {
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(22); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(49); // -1px of cell border
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22); // -1px of cell border
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBeInArray([22, 42]); // -1px of cell border
 
     var plugin = hot.getPlugin('manualRowMove');
     plugin.moveRow(1, 0);
@@ -326,7 +326,7 @@ describe('AutoRowSize', function () {
 
     expect(parseInt(hot.getCell(0, -1).style.height || 0)).toBe(49);
     expect(parseInt(hot.getCell(1, -1).style.height || 0)).toBe(22);
-    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBe(22);
+    expect(parseInt(hot.getCell(2, -1).style.height || 0)).toBeInArray([22, 42]); // -1px of cell border
   });
 
   it('should resize the column headers properly, according the their content sizes', function() {
