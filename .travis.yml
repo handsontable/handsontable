@@ -6,7 +6,4 @@ node_js:
   - "0.12"
 
 before_script:
-  - "npm update -g npm"
-  - "export DISPLAY=:99.0"
   - "export TZ=Europe/Warsaw"
-  - "sh -e /etc/init.d/xvfb start"
