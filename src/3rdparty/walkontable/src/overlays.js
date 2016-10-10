@@ -286,8 +286,8 @@ class WalkontableOverlays {
     let topOverlay = this.topOverlay.clone.wtTable.holder;
     let bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     let leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    let topLeftCornerOverlay = this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
-    let bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
+    let topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    let bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
     let eventMockup = {type: 'wheel'};
     let tempElem = event.target;
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
