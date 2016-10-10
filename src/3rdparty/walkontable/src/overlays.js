@@ -168,6 +168,14 @@ class WalkontableOverlays {
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
     }
 
+    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+    }
+
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+    }
+
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
       // This is necessary?
       //eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
@@ -184,6 +192,12 @@ class WalkontableOverlays {
 
         } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
+
+        } else if (this.topLeftCornerOverlay.clone && this.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'topLeft';
+
+        } else if (this.bottomLeftCornerOverlay.clone && this.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottomLeft';
         }
 
         if (overlay == 'top' && deltaY !== 0) {
@@ -191,6 +205,8 @@ class WalkontableOverlays {
         } else if (overlay == 'left' && deltaX !== 0) {
           event.preventDefault();
         } else if (overlay == 'bottom' && deltaY !== 0) {
+          event.preventDefault();
+        } else if ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0)) {
           event.preventDefault();
         }
       }]);
@@ -262,6 +278,7 @@ class WalkontableOverlays {
   /**
    * Translate wheel event into scroll event and sync scroll overlays position
    *
+   * @private
    * @param {Event} event
    * @returns {Boolean}
    */
@@ -269,11 +286,14 @@ class WalkontableOverlays {
     let topOverlay = this.topOverlay.clone.wtTable.holder;
     let bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     let leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    let topLeftCornerOverlay = this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    let bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
     let eventMockup = {type: 'wheel'};
     let tempElem = event.target;
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
     let parentHolder;
+    let mouseWheelSpeedRatio = -0.2;
 
     // Fix for extremely slow header scrolling with a mousewheel on Firefox
     if (event.deltaMode === 1) {
@@ -290,14 +310,19 @@ class WalkontableOverlays {
     }
     eventMockup.target = parentHolder;
 
-    if (parentHolder == topOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
+    if (parentHolder === topOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY);
 
-    } else if (parentHolder == bottomOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
+    } else if (parentHolder === bottomOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY);
 
-    } else if (parentHolder == leftOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
+    } else if (parentHolder === leftOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX);
+
+    } else if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX, 'x');
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY, 'y');
+
     }
 
     return false;
@@ -306,10 +331,12 @@ class WalkontableOverlays {
   /**
    * Synchronize scroll position between master table and overlay table.
    *
+   * @private
    * @param {Event|Object} event
    * @param {Number} [fakeScrollValue=null]
+   * @param {String} [fakeScrollDirection=null] `x` or `y`.
    */
-  syncScrollPositions(event, fakeScrollValue = null) {
+  syncScrollPositions(event, fakeScrollValue = null, fakeScrollDirection = null) {
     if (this.destroyed) {
       return;
     }
@@ -325,6 +352,8 @@ class WalkontableOverlays {
     let scrollValueChanged = false;
     let topOverlay;
     let leftOverlay;
+    let topLeftCornerOverlay;
+    let bottomLeftCornerOverlay;
     let bottomOverlay;
     let delegatedScroll = false;
     let preventOverflow = this.wot.getSetting('preventOverflow');
@@ -339,6 +368,14 @@ class WalkontableOverlays {
 
     if (this.leftOverlay.needFullRender) {
       leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    }
+
+    if (this.leftOverlay.needFullRender && this.topOverlay.needFullRender) {
+      topLeftCornerOverlay = this.topLeftCornerOverlay.clone.wtTable.holder;
+    }
+
+    if (this.leftOverlay.needFullRender && this.bottomOverlay.needFullRender) {
+      bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone.wtTable.holder;
     }
 
     if (target === document) {
@@ -498,6 +535,16 @@ class WalkontableOverlays {
       if (fakeScrollValue !== null) {
         scrollValueChanged = true;
         masterVertical.scrollLeft += fakeScrollValue;
+      }
+    } else if (target === topLeftCornerOverlay || target === bottomLeftCornerOverlay) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
+
+        if (fakeScrollDirection === 'x') {
+          masterVertical.scrollLeft += fakeScrollValue;
+        } else if (fakeScrollDirection === 'y') {
+          masterVertical.scrollTop += fakeScrollValue;
+        }
       }
     }
 
