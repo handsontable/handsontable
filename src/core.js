@@ -2963,18 +2963,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.scrollVertical(row);
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
 
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.scrollVertical(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
 
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
 
       result = true;
     }
