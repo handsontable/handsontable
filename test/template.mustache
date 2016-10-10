@@ -7,6 +7,20 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/jasmine-html.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/boot.js"></script>
   <script src="/testem.js"></script>
+  <script>
+    Testem.afterTests(function (config, data, callback) {
+      var style = document.createElement('link');
+
+      style.rel = 'stylesheet';
+      style.href = 'https://cdnjs.cloudflare.com/ajax/libs/jasmine/2.4.1/jasmine.css';
+      document.head.appendChild(style);
+      document.querySelector('.jasmine_html-reporter').style.display = 'block';
+
+      setTimeout(function () {
+        callback();
+      }, 10);
+    });
+  </script>
 
   {{#serve_files}}
     <script src="../{{{src}}}"></script>
@@ -17,7 +31,7 @@
   {{/css_files}}
   <style>
     .jasmine_html-reporter {
-      display: none !important;
+      display: none;
     }
   </style>
 </head>

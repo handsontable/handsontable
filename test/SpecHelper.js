@@ -67,6 +67,10 @@ beforeEach(function () {
   }
 });
 
+afterEach(function () {
+  window.scrollTo(0, 0)
+});
+
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original

@@ -19,7 +19,6 @@
     "demo/js/ZeroClipboard.js",
     "dist/handsontable.js",
     "src/3rdparty/walkontable/test/SpecHelper.js",
-    "src/3rdparty/walkontable/test/test-init.js",
     "src/3rdparty/walkontable/test/spec/**/*.spec.js"
   ],
   "src_files_ignore": [],

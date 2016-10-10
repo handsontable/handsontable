@@ -78,6 +78,10 @@ beforeEach(function () {
   jasmine.addMatchers(matchers);
 });
 
+afterEach(function () {
+  window.scrollTo(0, 0)
+});
+
 function getTableWidth(elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); //IE8 reports 0 as <table> offsetWidth
 };
