@@ -42,16 +42,16 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(50, 4);
+    expect(colWidth(this.$container, 0)).toBeAroundValue(50, 3);
     expect([120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([229, 230, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect([229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
 
     expect([168, 169, 189, 191]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect(colWidth(this.$container, 1)).toBeAroundValue(50);
-    expect([229, 230, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect(colWidth(this.$container, 1)).toBeAroundValue(50, 3);
+    expect([229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
   it('should correctly detect column width with colHeaders', function () {
@@ -81,7 +81,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toEqual(50);
+    expect(colWidth(this.$container, 0)).toBe(50);
   });
 
   it('should correctly detect column width with columns.title', function () {
@@ -93,7 +93,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect([70, 71, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
@@ -109,7 +109,7 @@ describe('AutoColumnSize', function () {
       spec().$container.css('display', 'block');
       hot.render();
 
-      expect([70, 71, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+      expect([70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
       done();
     }, 200);
   });
@@ -125,16 +125,15 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect([70, 71, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    // 135 PhantomJS
+    expect([70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
     expect([120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([228, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect([229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
 
     hot.alter('remove_row', 0);
 
-    expect([70, 71, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
     expect([120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([228, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect([229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
   it('should be possible to disable plugin using updateSettings', function () {

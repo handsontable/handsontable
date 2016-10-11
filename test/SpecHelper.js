@@ -531,7 +531,14 @@ function colWidth($elem, col) {
  * @returns {Number}
  */
 function rowHeight($elem, row) {
-  var TD = $elem[0].querySelector('tbody tr:nth-child(' + (row + 1) +') td');
+  var TD;
+
+  if (row >= 0) {
+    TD = $elem[0].querySelector('tbody tr:nth-child(' + (row + 1) +') td');
+  } else {
+    TD = $elem[0].querySelector('thead tr:nth-child(' + Math.abs(row) + ')');
+  }
+
   if (!TD) {
     throw new Error("Cannot find table row of index '" + row + "'");
   }

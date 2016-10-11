@@ -123,7 +123,10 @@ describe('WalkontableCore', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
-    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+
+    expect(function () {
+      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+    }).not.toThrow();
   });
 
   it("should render empty table (unlimited height)", function () {
@@ -136,7 +139,10 @@ describe('WalkontableCore', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
-    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+
+    expect(function () {
+      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+    }).not.toThrow();
   });
 
   it("should render empty then filled table (limited height)", function () {
@@ -150,7 +156,10 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
     createDataArray(1, 5);
-    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+
+    expect(function () {
+      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+    }).not.toThrow();
   });
 
   it("should render empty then filled table (unlimited height)", function () {
@@ -164,7 +173,10 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
     createDataArray(1, 5);
-    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+
+    expect(function () {
+      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+    }).not.toThrow();
   });
 
   it("should render table with rows but no columns", function () {
@@ -177,5 +189,9 @@ describe('WalkontableCore', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
+
+    expect($table.find('tbody tr').length).toBe(5);
+    expect($table.find('tbody td').length).toBe(0);
+    expect($table.find('tbody col').length).toBe(0);
   });
 });

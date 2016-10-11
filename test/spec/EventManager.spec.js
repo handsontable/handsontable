@@ -38,6 +38,9 @@ describe('EventManager', function () {
   it('should detect event when fired from hot-table (web component)', function () {
     // skip if browser not support Shadow DOM natively
     if (!document.createElement('div').createShadowRoot) {
+      // Fix for "no exceptations" warnings
+      expect(true).toBe(true);
+
       return;
     }
     Handsontable.eventManager.isHotTableEnv = true;

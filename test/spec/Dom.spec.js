@@ -272,6 +272,9 @@ describe('Handsontable.Dom', function () {
     it("should return correct Boolean value depending on whether an element exists in `hot-table` or not", function () {
       // skip if browser not support Shadow DOM natively
       if (!document.createElement('div').createShadowRoot) {
+        // Fix for "no exceptations" warnings
+        expect(true).toBe(true);
+
         return;
       }
       var hotTable = document.createElement('hot-table');
