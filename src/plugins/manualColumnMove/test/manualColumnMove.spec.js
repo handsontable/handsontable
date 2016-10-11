@@ -80,6 +80,31 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
+    it('should update columnsMapper when updateSettings change numbers of columns', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+
+      updateSettings({
+        columns: [
+          {data: 2},
+          {data: 0},
+          {data: 1},
+        ]
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+    });
+
     it('should reset column order with updateSettings when undefined is passed', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),

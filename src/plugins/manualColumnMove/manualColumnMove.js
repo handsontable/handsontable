@@ -104,6 +104,23 @@ class ManualColumnMove extends BasePlugin {
 
     if (this.columnsMapper._arrayMap.length === 0) {
       this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+
+    } else if (this.columnsMapper._arrayMap.length < this.hot.countCols()) {
+      let diff = this.hot.countCols() - this.columnsMapper._arrayMap.length;
+
+      this.columnsMapper.insertItems(this.columnsMapper._arrayMap.length, diff);
+
+    } else if (this.columnsMapper._arrayMap.length > this.hot.countCols()) {
+      let maxIndex = this.hot.countCols() - 1;
+      let columnsToRemove = [];
+
+      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      });
+
+      this.columnsMapper.removeItems(columnsToRemove);
     }
 
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
