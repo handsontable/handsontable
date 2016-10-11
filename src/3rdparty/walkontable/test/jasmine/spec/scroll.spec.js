@@ -505,6 +505,68 @@ var $table
 
       });
     });
+
+    it('should scroll the table when the `wheel` event is triggered on the corner overlay', function() {
+      createDataArray(100, 100);
+      $wrapper.width(260).height(201);
+
+      var masterCallback = jasmine.createSpy('masterCallback');
+      var topCallback = jasmine.createSpy('topCallback');
+      var leftCallback = jasmine.createSpy('leftCallback');
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2
+      });
+
+      wt.draw();
+
+      var topLeftCornerOverlayHolder = wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder;
+      var topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      var leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      var masterHolder = wt.wtTable.holder;
+
+
+      masterHolder.addEventListener('scroll', masterCallback);
+      topHolder.addEventListener('scroll', topCallback);
+      leftHolder.addEventListener('scroll', leftCallback);
+
+      var wheelEvent = new WheelEvent('wheel', {
+        deltaX: 400
+      });
+
+      topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
+
+      wt.draw();
+
+      waits(20);
+
+      runs(function() {
+        expect(masterCallback.callCount).toEqual(1);
+        expect(topCallback.callCount).toEqual(1);
+        expect(leftCallback.callCount).toEqual(0);
+
+        wheelEvent = new WheelEvent('wheel', {
+          deltaY: 400
+        });
+
+        topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
+        wt.draw();
+      });
+
+      waits(20);
+
+      runs(function() {
+        expect(masterCallback.callCount).toEqual(2);
+        expect(topCallback.callCount).toEqual(1);
+        expect(leftCallback.callCount).toEqual(1);
+      });
+
+    });
   });
 
   describe('scrollViewport - horizontally', function () {
