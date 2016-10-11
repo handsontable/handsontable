@@ -200,13 +200,11 @@ class WalkontableOverlays {
           overlay = 'bottomLeft';
         }
 
-        if (overlay == 'top' && deltaY !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'left' && deltaX !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'bottom' && deltaY !== 0) {
-          event.preventDefault();
-        } else if ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0)) {
+        if ((overlay == 'top' && deltaY !== 0) ||
+          (overlay == 'left' && deltaX !== 0) ||
+          (overlay == 'bottom' && deltaY !== 0) ||
+          ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
+
           event.preventDefault();
         }
       }]);
@@ -283,17 +281,18 @@ class WalkontableOverlays {
    * @returns {Boolean}
    */
   translateMouseWheelToScroll(event) {
-    let topOverlay = this.topOverlay.clone.wtTable.holder;
-    let bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
-    let leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    let topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
-    let bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
-    let eventMockup = {type: 'wheel'};
-    let tempElem = event.target;
+    const topOverlay = this.topOverlay.clone.wtTable.holder;
+    const bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
+    const leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    const topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    const bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
+    const mouseWheelSpeedRatio = -0.2;
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
-    let parentHolder;
-    let mouseWheelSpeedRatio = -0.2;
+    let parentHolder = null;
+    let eventMockup = {type: 'wheel'};
+    let tempElem = event.target;
+    let delta = null;
 
     // Fix for extremely slow header scrolling with a mousewheel on Firefox
     if (event.deltaMode === 1) {
@@ -310,19 +309,19 @@ class WalkontableOverlays {
     }
     eventMockup.target = parentHolder;
 
-    if (parentHolder === topOverlay) {
-      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY);
-
-    } else if (parentHolder === bottomOverlay) {
-      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY);
-
-    } else if (parentHolder === leftOverlay) {
-      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX);
-
-    } else if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
+    if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
       this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX, 'x');
       this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY, 'y');
 
+    } else {
+      if (parentHolder === topOverlay || parentHolder === bottomOverlay) {
+        delta = deltaY;
+
+      } else if (parentHolder === leftOverlay) {
+        delta = deltaX;
+      }
+
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * delta);
     }
 
     return false;
