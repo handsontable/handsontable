@@ -424,6 +424,12 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   return allowed;
 };
 
+AutocompleteEditor.prototype.discardEditor = function(result) {
+  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+
+  this.instance.view.render();
+};
+
 export {AutocompleteEditor};
 
 registerEditor('autocomplete', AutocompleteEditor);
