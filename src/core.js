@@ -2948,11 +2948,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @since 0.24.3
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {Number|null} row Row index.
-   * @param {Number|null} column Column index.
+   * @param {Number|undefined} row Row index.
+   * @param {Number|undefined} column Column index.
+   * @param [rowBottomEdge=false] {Boolean} rowBottomEdge If `true`, viewport is scrolled to show the row on the bottom.
+   * @param [columnBottomEdge=false] {Boolean} columnBottomEdge If `true`, viewport is scrolled to show the column on the right.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column) {
+  this.scrollViewportTo = function(row, column, rowBottomEdge = false, columnBottomEdge = false) {
     if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
@@ -2963,18 +2965,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, rowBottomEdge);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, columnBottomEdge);
 
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, rowBottomEdge);
 
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, columnBottomEdge);
 
       result = true;
     }
