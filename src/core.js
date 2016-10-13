@@ -1400,6 +1400,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.dataType = 'object';
     }
 
+    if (datamap) {
+      datamap.destroy();
+    }
+    datamap = new DataMap(instance, priv, GridSettings);
+
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
         // when data is not an array, attempt to make a single-row array of it
@@ -1411,14 +1416,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var row;
       var r = 0;
       var rlen = 0;
+      var dataSchema = datamap.getSchema();
 
       for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        if (instance.dataType === 'object' && priv.settings.dataSchema) {
-          row = deepClone(priv.settings.dataSchema);
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = deepClone(dataSchema);
           data.push(row);
 
         } else if (instance.dataType === 'array') {
-          row = deepClone(priv.settings.dataSchema[0]);
+          row = deepClone(dataSchema[0]);
           data.push(row);
 
         } else {
@@ -1443,10 +1449,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance.dataType = 'array';
     }
 
-    if (datamap) {
-      datamap.destroy();
-    }
-    datamap = new DataMap(instance, priv, GridSettings);
+    datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
