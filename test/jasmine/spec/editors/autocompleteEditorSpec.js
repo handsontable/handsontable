@@ -791,54 +791,38 @@ describe('AutocompleteEditor', function() {
       });
     });
 
-    // Is this test have necessary value?
-    //it('finish editing should move the focus aways from textarea to table cell', function() {
-    //  var last;
-    //  var finishEdit = false;
-    //
-    //  var syncSources = jasmine.createSpy('syncSources');
-    //
-    //  syncSources.plan = function(query, process) {
-    //    process(choices);
-    //  };
-    //
-    //  handsontable({
-    //    columns: [
-    //      {
-    //        editor: 'autocomplete',
-    //        source: syncSources
-    //      }
-    //    ]
-    //  });
-    //  setDataAtCell(0, 0, 'black');
-    //  selectCell(0, 0);
-    //  last = document.activeElement;
-    //
-    //  keyDownUp('enter');
-    //
-    //  waitsFor(function() {
-    //    return syncSources.calls.length > 0;
-    //  }, 'Source function call', 1000);
-    //
-    //  runs(function() {
-    //    autocomplete().siblings('.handsontableInput').val("ye");
-    //    keyDownUp(69); //e
-    //    deselectCell();
-    //
-    //    setTimeout(function() {
-    //      keyDownUp('enter');
-    //      finishEdit = true;
-    //    });
-    //  });
-    //
-    //  waitsFor(function() {
-    //    return finishEdit;
-    //  }, 'Edition finish', 1000);
-    //
-    //  runs(function() {
-    //    expect(document.activeElement.nodeName).toEqual(last.nodeName);
-    //  });
-    //});
+    it("should show fillHandle element again after close editor", function() {
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function(query, process) {
+        process(choices.filter(function(choice) {
+          return choice.indexOf(query) != -1;
+        }));
+      };
+
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: syncSources,
+            strict: false
+          },
+          {}
+        ]
+      });
+
+      selectCell(1, 0);
+      keyDownUp('x'); // Trigger quick edit mode
+      keyDownUp('enter');
+
+      waitsFor(function() {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function() {
+        expect($('#testContainer.handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
+      });
+    });
   });
 
   describe("non strict mode", function() {

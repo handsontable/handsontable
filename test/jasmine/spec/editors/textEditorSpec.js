@@ -81,7 +81,30 @@ describe('TextEditor', function () {
     runs(function () {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
       expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('-1px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('0px');
+    });
+  });
+
+  it('should render textarea editor in specified position at cell 1, 0 without headers', function () {
+    var hot = handsontable(),
+      editorHeight;
+
+    selectCell(1, 1);
+
+    keyDown('enter');
+
+    setTimeout(function () {
+      editorHeight = hot.getActiveEditor().TEXTAREA.style.height;
+    }, 200);
+
+    waitsFor(function () {
+      return editorHeight;
+    }, 'Retrieve editor height', 1000);
+
+    runs(function () {
+      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('41px');
+      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('23px');
     });
   });
 
