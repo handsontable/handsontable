@@ -102,8 +102,28 @@ class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    if (this.columnsMapper._arrayMap.length === 0) {
+    let countCols = this.hot.countCols();
+    let columnsMapperLen = this.columnsMapper._arrayMap.length;
+
+    if (columnsMapperLen === 0) {
       this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+
+    } else if (columnsMapperLen < countCols) {
+      let diff = countCols - columnsMapperLen;
+
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+
+    } else if (columnsMapperLen > countCols) {
+      let maxIndex = countCols - 1;
+      let columnsToRemove = [];
+
+      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      });
+
+      this.columnsMapper.removeItems(columnsToRemove);
     }
 
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
@@ -320,10 +340,23 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   refreshPositions() {
-    let isRowHeader = !!this.hot.getSettings().rowHeaders;
-    let wtTable = this.hot.view.wt.wtTable;
     let priv = privatePool.get(this);
     let coords = priv.target.coords;
+    let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
+    let lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
+    let fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+    let countCols = this.hot.countCols();
+
+    if (coords.col < fixedColumns && firstVisible > 0) {
+      this.hot.scrollViewportTo(undefined, firstVisible - 1);
+    }
+
+    if (coords.col >= lastVisible && lastVisible < countCols) {
+      this.hot.scrollViewportTo(undefined, lastVisible + 1, undefined, true);
+    }
+
+    let isRowHeader = !!this.hot.getSettings().rowHeaders;
+    let wtTable = this.hot.view.wt.wtTable;
     let TD = priv.target.TD;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, coords.col);
@@ -333,6 +366,10 @@ class ManualColumnMove extends BasePlugin {
     let backlightElemMarginLeft = this.backlight.getOffset().left;
     let backlightElemWidth = this.backlight.getSize().width;
     let rowHeaderWidth = 0;
+
+    if ((rootElementOffset.left + wtTable.holder.offsetWidth) < priv.target.eventPageX) {
+      priv.target.coords.col++;
+    }
 
     if (isRowHeader) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
@@ -344,7 +381,7 @@ class ManualColumnMove extends BasePlugin {
 
     if (coords.col < 0) {
       // if hover on rowHeader
-      priv.target.col = 0;
+      priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
 
     } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
       // if hover on right part of TD
@@ -376,6 +413,15 @@ class ManualColumnMove extends BasePlugin {
     } else if (guidelineLeft === 0) {
       // guideline has got `margin-left: -1px` as default
       guidelineLeft = 1;
+    }
+
+    let leftOverlayWidth = rowHeaderWidth;
+    if (this.hot.view.wt.wtOverlays.leftOverlay) {
+      leftOverlayWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.TABLE.offsetWidth;
+    }
+
+    if (coords.col >= fixedColumns && (guidelineLeft - wtTable.holder.scrollLeft) < leftOverlayWidth) {
+      this.hot.scrollViewportTo(null, coords.col);
     }
 
     this.backlight.setPosition(null, backlightLeft);
@@ -616,7 +662,9 @@ class ManualColumnMove extends BasePlugin {
    */
   onModifyCol(column, source) {
     if (source !== this.pluginName) {
-      column = this.columnsMapper.getValueByIndex(column);
+      // ugly fix for try to insert new, needed columns after pasting data
+      let columnInMapper = this.columnsMapper.getValueByIndex(column);
+      column = columnInMapper === null ? column : columnInMapper;
     }
 
     return column;
@@ -630,7 +678,10 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Logical column index.
    */
   onUnmodifyCol(column) {
-    return this.columnsMapper.getIndexByValue(column);
+    let indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+
+    return column;
   }
 
   /**

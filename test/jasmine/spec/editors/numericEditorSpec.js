@@ -277,7 +277,7 @@ describe('NumericEditor', function () {
 
     keyDown('enter');
 
-    document.activeElement.value = '2456.22';
+    document.activeElement.value = '2456.235';
 
     onAfterValidate.reset();
     destroyEditor();
@@ -287,7 +287,7 @@ describe('NumericEditor', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+      expect(getCell(2, 0).innerHTML).toEqual('2.456,24 €');
     });
 
   });
