@@ -1037,13 +1037,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
-    var i = changes.length - 1;
+    let i = changes.length - 1;
 
     if (i < 0) {
       return;
     }
 
     for (; 0 <= i; i--) {
+      let skipThisChange = false;
+
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -1055,8 +1057,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          datamap.createRow();
+          let numberOfCreatedRows = datamap.createRow();
+
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
         }
+      }
+
+      if (skipThisChange) {
+        continue;
       }
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
