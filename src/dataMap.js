@@ -29,7 +29,7 @@ function DataMap(instance, priv, GridSettings) {
   this.skipCache = false;
   this.latestSourceRowsCount = 0;
 
-  if (this.dataSource[0]) {
+  if (this.dataSource && this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
   } else {
     this.duckSchema = {};
