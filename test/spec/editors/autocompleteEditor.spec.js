@@ -734,7 +734,7 @@ describe('AutocompleteEditor', function() {
       }, 200);
     });
 
-    it("should show fillHandle element again after close editor", function() {
+    it("should show fillHandle element again after close editor", function(done) {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.plan = function(query, process) {
@@ -758,13 +758,10 @@ describe('AutocompleteEditor', function() {
       keyDownUp('x'); // Trigger quick edit mode
       keyDownUp('enter');
 
-      waitsFor(function() {
-        return syncSources.calls.length > 0;
-      }, 'Source function call', 1000);
-
-      runs(function() {
+      setTimeout(function () {
         expect($('#testContainer.handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
-      });
+        done();
+      }, 200);
     });
   });
 
