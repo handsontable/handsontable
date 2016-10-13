@@ -652,7 +652,10 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Logical column index.
    */
   onUnmodifyCol(column) {
-    return this.columnsMapper.getIndexByValue(column);
+    let indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+
+    return column;
   }
 
   /**

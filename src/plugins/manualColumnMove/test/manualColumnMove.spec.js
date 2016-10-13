@@ -315,10 +315,10 @@ describe('manualColumnMove', function () {
         manualColumnMove: true,
       });
       var changesSet = [
-        [0, 4, 'A1'],
-        [0, 5, 'B1'],
-        [0, 6, 'C1'],
-        [0, 7, 'D1'],
+        [3, 4, 'A1'],
+        [3, 5, 'B1'],
+        [3, 6, 'C1'],
+        [3, 7, 'D1'],
       ];
 
       // unfortunately couse of security rules, we can't simulate native mechanism (e.g. CTRL+C -> CTRL+V)
