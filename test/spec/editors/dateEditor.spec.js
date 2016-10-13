@@ -342,8 +342,8 @@ describe('DateEditor', function () {
     datePickerOffset = $('.pika-single').offset();
 
     // 23 is a height of the editor cell
-    expect(cellOffset.top + 23 === datePickerOffset.top).toBe(true);
-    expect(cellOffset.left === datePickerOffset.left).toBe(true);
+    expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+    expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
   it("should display Pikaday Calendar bottom of the selected cell when table have scrolls", function() {
@@ -375,8 +375,8 @@ describe('DateEditor', function () {
     cellOffset = $(hot.getActiveEditor().TD).offset();
     datePickerOffset = $('.pika-single').offset();
 
-    expect(cellOffset.top + 23).toBe(datePickerOffset.top);
-    expect(cellOffset.left).toBe(datePickerOffset.left);
+    expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+    expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
   it("should not modify the edited date and time, when opening the editor", function() {

@@ -800,7 +800,7 @@ describe('ColumnSorting', function() {
     }, 200);
   });
 
-  xit("should not display new row added directly to dataSource, when observeChanges plugin is explicitly disabled", function(done) {
+  it("should not display new row added directly to dataSource, when observeChanges plugin is explicitly disabled", function(done) {
     var data = [
       [1, 'B'],
       [0, 'A'],
@@ -831,13 +831,16 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-
     expect(htCore.find('tbody tr').length).toEqual(4);
 
     data.push([5, 'E']);
 
     setTimeout(function () {
-      expect(countRows()).toEqual(4);
+      expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+      expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+      expect(htCore.find('tbody tr').length).toEqual(4);
       expect(afterChangesObservedCallback).not.toHaveBeenCalled();
       done();
     }, 100);

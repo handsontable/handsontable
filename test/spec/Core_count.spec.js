@@ -60,12 +60,12 @@ describe('Core_count', function () {
   });
 
   describe('countVisibleCols', function () {
-    xit('should return number of visible columns', function () {
+    it('should return number of visible columns', function () {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
       });
-      expect(instance.countVisibleCols()).toEqual(2);
+      expect(instance.countVisibleCols()).toEqual(10);
     });
 
     it('should return -1 if table is not rendered', function () {
@@ -74,6 +74,7 @@ describe('Core_count', function () {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
       });
+
       expect(instance.countVisibleCols()).toEqual(-1);
     });
   });

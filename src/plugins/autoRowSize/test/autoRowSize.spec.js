@@ -175,7 +175,7 @@ describe('AutoRowSize', function () {
   });
 
   // Currently columns.height is not supported
-  xit('should not trigger autoColumnSize when column width is defined (through columns.width)', function () {
+  xit('should not trigger autoRowSize when column height is defined (through columns.height)', function () {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,

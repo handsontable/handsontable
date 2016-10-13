@@ -53,7 +53,7 @@ describe('Mixed helper', function() {
       var stringify = Handsontable.helper.stringify;
       var toConvert = function() {};
 
-      expect(stringify(toConvert)).toBe('function () {}');
+      expect(stringify(toConvert)).toMatch(/function( )?\(\) \{\}/i);
     });
 
     it('should convert properly `undefined` to `string`', function() {

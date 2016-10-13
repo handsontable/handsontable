@@ -90,7 +90,7 @@ module.exports = function(grunt) {
           ],
           styles: [
             'test/lib/normalize.css',
-            'demo/js/pikaday/css/pikaday.css',
+            'dist/pikaday/pikaday.css',
             'dist/handsontable.css',
           ],
           vendor: [
@@ -98,9 +98,9 @@ module.exports = function(grunt) {
             'test/lib/jquery.simulate.js',
             'dist/numbro/numbro.js',
             'dist/numbro/languages.js',
-            'demo/js/moment/moment.js',
-            'demo/js/pikaday/pikaday.js',
-            'demo/js/ZeroClipboard.js',
+            'dist/moment/moment.js',
+            'dist/pikaday/pikaday.js',
+            'dist/zeroclipboard/ZeroClipboard.js',
             'demo/js/backbone/lodash.underscore.js',
             'demo/js/backbone/backbone.js',
           ],
@@ -123,7 +123,7 @@ module.exports = function(grunt) {
           ],
           styles: [
             'test/lib/normalize.css',
-            'demo/js/pikaday/css/pikaday.css',
+            'dist/pikaday/pikaday.css',
             'dist/handsontable.full.min.css',
           ],
           vendor: [
@@ -153,9 +153,9 @@ module.exports = function(grunt) {
             'src/3rdparty/walkontable/test/lib/jquery.simulate.js',
             'dist/numbro/numbro.js',
             'dist/numbro/languages.js',
-            'demo/js/moment/moment.js',
-            'demo/js/pikaday/pikaday.js',
-            'demo/js/ZeroClipboard.js',
+            'dist/moment/moment.js',
+            'dist/pikaday/pikaday.js',
+            'dist/zeroclipboard/ZeroClipboard.js',
           ],
           helpers: [
             'src/3rdparty/walkontable/test/SpecHelper.js'
@@ -200,10 +200,9 @@ module.exports = function(grunt) {
   grunt.registerTask('build-dev', ['hotBuilder:handsontableDev']);
   grunt.registerTask('build-custom', ['hotBuilder:handsontableCustom']);
   grunt.registerTask('test', ['default', 'jasmine:walkontable', 'jasmine:handsontableStandalone', 'jasmine:handsontableFull']);
-  grunt.registerTask('test:handsontable', ['jasmine:handsontableStandalone']);
-  grunt.registerTask('test:handsontableStandalone', ['jasmine:handsontableStandalone']);
-  grunt.registerTask('test:handsontableFull', ['jasmine:handsontableFull']);
-  grunt.registerTask('test:walkontable', ['jasmine:walkontable']);
+  grunt.registerTask('test-handsontable', ['jasmine:handsontableStandalone']);
+  grunt.registerTask('test-handsontableFull', ['jasmine:handsontableFull']);
+  grunt.registerTask('test-walkontable', ['jasmine:walkontable']);
 
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-jshint');

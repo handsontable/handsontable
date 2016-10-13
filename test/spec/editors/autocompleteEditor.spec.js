@@ -559,7 +559,7 @@ describe('AutocompleteEditor', function() {
         expect(autocompleteEditor.css('position')).toEqual('absolute');
         expect(autocompleteEditor.css('top')).toEqual((-1) * autocompleteEditor.height() + 'px');
         done();
-      }, 80);
+      }, 100);
     });
   });
 
@@ -1433,7 +1433,7 @@ describe('AutocompleteEditor', function() {
         expect(innerHot.getData()).toEqual([]);
         expect(innerHot.getSourceData()).toEqual([]);
         done();
-      }, 100);
+      }, 200);
     });
 
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', function(done) {

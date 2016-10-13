@@ -281,7 +281,8 @@ describe('manualColumnMove', function () {
       expect(htCore.find('tbody tr:eq(1) td:eq(1)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
     });
   });
-  xdescribe('undoRedo', function() {
+
+  describe('undoRedo', function() {
     xit('should back changes', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -291,11 +292,11 @@ describe('manualColumnMove', function () {
       hot.getPlugin('manualColumnMove').moveColumn(1, 4);
       hot.render();
 
-      expect(hot.getDataAtCell(1, 3)).toBe('A2');
+      expect(hot.getDataAtCell(1, 3)).toBe('B2');
 
       hot.undo();
 
-      expect(hot.getDataAtCell(1, 1)).toBe('A2');
+      expect(hot.getDataAtCell(1, 3)).toBe('D2');
     });
 
     xit('should revert changes', function () {

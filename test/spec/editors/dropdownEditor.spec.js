@@ -53,13 +53,13 @@ describe('DropdownEditor', function() {
         $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
         $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-        dropdown.instance.view.wt.wtOverlays.topOverlay.scrollTo(3);
-      }, 60);
+        hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+      }, 150);
 
       setTimeout(function () {
         expect($(dropdown.htContainer).is(':visible')).toBe(true);
         done();
-      }, 90);
+      }, 200);
     });
   });
 

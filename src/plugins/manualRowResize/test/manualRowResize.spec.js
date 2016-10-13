@@ -275,16 +275,16 @@ describe('manualRowResize', function () {
     var $handle = this.$container.find('.manualRowResizer');
     $handle[0].style.background = "red";
 
-    expect($rowHeader.offset().left).toEqual($handle.offset().left);
-    expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
+    expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+    expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
 
     $(mainHolder).scrollTop(200);
     $(mainHolder).scroll();
 
     $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
     $rowHeader.simulate("mouseover");
-    expect($rowHeader.offset().left).toEqual($handle.offset().left);
-    expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
+    expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+    expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
   });
 
   it("should autosize selected rows after double click on handler", function (done) {
@@ -382,8 +382,8 @@ describe('manualRowResize', function () {
 
       var $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).toEqual($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1);
-      expect($handle.width()).toEqual($headerTH.outerWidth());
+      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
   });
 });

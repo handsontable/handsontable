@@ -213,7 +213,7 @@ describe('GhostTable', function () {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBeAroundValue(89, 4);
+      expect(widthSpy.calls.argsFor(0)[1]).toBeAroundValue(87, 4);
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).toBeAroundValue(41, 4);
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);

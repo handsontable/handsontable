@@ -13,7 +13,7 @@ var $table
     $wrapper.appendTo('body');
     createDataArray(100, 4);
   });
-
+  
   afterEach(function () {
     if (!debug) {
       $('.wtHolder').remove();
@@ -334,7 +334,7 @@ var $table
       expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
 
-    xit("should scroll to last row with very high rows", function () {
+    it("should scroll to last row with very high rows", function () {
       createDataArray(20, 100);
 
       for (var i = 0, ilen = this.data.length; i < ilen; i++) {
@@ -353,7 +353,7 @@ var $table
       expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(this.data.length - 1, 0))); //last rendered row should be last data row
     });
 
-    xit("should scroll to last row with very high rows (respecting fixedRows)", function () {
+    it("should scroll to last row with very high rows (respecting fixedRows)", function () {
       createDataArray(20, 100);
 
       for (var i = 0, ilen = this.data.length; i < ilen; i++) {
@@ -367,10 +367,12 @@ var $table
         totalColumns: getTotalColumns,
         fixedRowsTop: 2
       });
-      wt.draw().scrollVertical(Infinity).draw();
+
+      wt.draw().scrollVertical(2000).draw();
+
       expect($table.find('tbody tr:eq(0) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(0, 0))); //first rendered row should fixed row 0
       expect($table.find('tbody tr:eq(1) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(1, 0))); //second rendered row should fixed row 1
-      expect($table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(16, 0))); //third rendered row should fixed row 1
+      expect($table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(2, 0))); //third rendered row should fixed row 1
       expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(this.data.length - 1, 0))); //last rendered row should be last data row
     });
 
@@ -629,9 +631,8 @@ var $table
           if (col === 3) {
             return 300
           }
-          else {
-            return 50
-          }
+
+          return 50
         }
       });
 
@@ -654,7 +655,6 @@ var $table
       wt.scrollViewport(new WalkontableCellCoords(0, 4)).draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
-
     });
 
     xit("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
@@ -669,9 +669,8 @@ var $table
           if (col === 3) {
             return 300
           }
-          else {
-            return 50
-          }
+
+          return 50;
         },
         fixedColumnsLeft: 2
       });

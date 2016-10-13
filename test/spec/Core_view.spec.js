@@ -52,17 +52,19 @@ describe('Core_view', function () {
     expect(this.$container.find('.undefined').length).toBe(0);
   });
 
-  xit('should scroll viewport when partially visible cell is clicked', function () {
+  it('should scroll viewport when partially visible cell is clicked', function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
 
-    handsontable({
+    var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 3),
       height: 60
     });
 
     var htCore = getHtCore();
+    var scrollTop = hot.rootElement.querySelector('.wtHolder').scrollTop;
 
+    expect(scrollTop).toBe(0);
     expect(this.$container.height()).toEqual(60);
     expect(this.$container.find('.wtHolder .wtHider').height()).toBeGreaterThan(60);
 
@@ -71,10 +73,9 @@ describe('Core_view', function () {
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
     htCore.find('tr:eq(3) td:eq(0)').simulate('mousedown');
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A2"); //test whether it scrolled
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4"); //test whether it scrolled
-    expect(getSelected()).toEqual([3, 0, 3, 0]); //test whether it is selected
+
+    expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
   });
 
   it('should scroll viewport without cell selection', function() {
@@ -126,17 +127,20 @@ describe('Core_view', function () {
     }).toThrow();
   });
 
-  xit('should scroll viewport, respecting fixed rows', function () {
-    this.$container[0].style.width = '200px';
-    this.$container[0].style.height = '100px';
+  it('should scroll viewport, respecting fixed rows', function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
 
-    handsontable({
+    var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
-      fixedRowsTop: 1
+      fixedRowsTop: 1,
+      height: 60
     });
 
     var htCore = getHtCore();
+    var scrollTop = hot.rootElement.querySelector('.wtHolder').scrollTop;
 
+    expect(scrollTop).toBe(0);
     expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
     expect(htCore.find('tr:eq(0) td:eq(1)').html()).toEqual("B1");
     expect(htCore.find('tr:eq(0) td:eq(2)').html()).toEqual("C1");
@@ -148,13 +152,10 @@ describe('Core_view', function () {
     keyDown('arrow_down');
     keyDown('arrow_down');
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
-
+    expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
   });
 
-  xit('should enable to change fixedRowsTop with updateSettings', function () {
+  it('should enable to change fixedRowsTop with updateSettings', function () {
     this.$container[0].style.width = '400px';
     this.$container[0].style.height = '60px';
 
@@ -168,7 +169,7 @@ describe('Core_view', function () {
     selectCell(0, 0);
 
     var htCore = getHtCore();
-    var topClone = this.$container.find('.ht_clone_top');
+    var topClone = getTopClone();
 
     expect(topClone.find('tr').length).toEqual(1);
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
@@ -185,18 +186,6 @@ describe('Core_view', function () {
 
     expect(topClone.find('tr').length).toEqual(1);
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
-
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A5");
-
-    selectCell(0, 0);
-
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
 
     HOT.updateSettings({
       fixedRowsTop: 2
@@ -210,17 +199,6 @@ describe('Core_view', function () {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
-
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A5");
-
   });
 
   it('should scroll viewport, respecting fixed columns', function () {

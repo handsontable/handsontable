@@ -53,9 +53,7 @@ describe('NumericRenderer', function () {
     }, 200);
   });
 
-  xit('should render string as it is', function (done) {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+  it('should try to render string as numeral', function (done) {
     handsontable({
       cells: function () {
         return {
@@ -63,15 +61,14 @@ describe('NumericRenderer', function () {
           format: '$0,0.00'
         }
       },
-      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 2, '123 simple test');
 
     setTimeout(function () {
-      expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
+      expect(getCell(2, 2).innerHTML).toEqual('$123.00');
       done();
-    }, 200);
+    }, 100);
   });
 
   it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', function () {
@@ -139,7 +136,7 @@ describe('NumericRenderer', function () {
 
       setTimeout(function () {
         var contextSubMenu = $('.htContextMenuSub_' + menu.text()).find('tbody td').eq(0);
-        
+
         contextSubMenu.simulate('mousedown');
         contextSubMenu.simulate('mouseup');
 

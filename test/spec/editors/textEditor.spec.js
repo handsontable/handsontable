@@ -147,8 +147,7 @@ describe('TextEditor', function () {
     }, 200);
   });
 
-  // Should be fixed for safari
-  xit('should hide editor when quick navigation by click scrollbar was triggered', function (done) {
+  it('should hide editor when quick navigation by click scrollbar was triggered', function (done) {
     var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         rowHeaders: true,
@@ -161,16 +160,13 @@ describe('TextEditor', function () {
 
     keyDown('enter');
     keyUp('enter');
-
-    var mainHolder = hot.view.wt.wtTable.holder;
-
-    mainHolder.scrollTop = 1000;
+    hot.scrollViewportTo(49);
 
     setTimeout(function () {
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('72px');
-      expect(hot.getActiveEditor().textareaParentStyle.left).toBe('149px');
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-961, 3);
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBe(149);
       done();
-    }, 150);
+    }, 100);
   });
 
   it('should render textarea editor in specified height (single line)', function (done) {

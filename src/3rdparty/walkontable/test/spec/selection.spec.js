@@ -202,10 +202,10 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
-    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
+    expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
     wt.selections.current.clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
-    expect(wt.wtTable.getLastVisibleRow()).toEqual(17);
+    expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 
   it("should clear a selection that has more than one cell", function () {

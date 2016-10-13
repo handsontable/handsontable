@@ -530,16 +530,16 @@ describe('manualColumnResize', function () {
     var $handle = this.$container.find('.manualColumnResizer');
     $handle[0].style.background = "red";
 
-    expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
-    expect($colHeader.offset().top).toEqual($handle.offset().top);
+    expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
+    expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
     $(mainHolder).scrollLeft(200);
     hot.render();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
     $colHeader.simulate("mouseover");
-    expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
-    expect($colHeader.offset().top).toEqual($handle.offset().top);
+    expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
+    expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
   describe('handle and guide', function() {

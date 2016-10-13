@@ -77,7 +77,7 @@ describe('Core_copy', function () {
       expect(hot.getDataAtCell(1, 1)).toEqual('');
       expect(hot.getDataAtCell(2, 2)).toEqual('');
       done();
-    }, 200);
+    }, 300);
   });
 
   it('ctrl+v should paste copied data to selected range', function (done) {

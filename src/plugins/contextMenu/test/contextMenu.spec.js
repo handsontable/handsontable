@@ -1459,69 +1459,6 @@ describe('ContextMenu', function () {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    xit("should add comment", function (done) {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
-        contextMenu: true,
-				comments: true,
-        height: 100
-      });
-
-      var testComment = 'Test comment';
-
-      selectCell(1, 1, 1, 1);
-      contextMenu();
-
-      var menu = $('.htContextMenu .ht_master .htCore tbody');
-      expect(menu.find('td:eq(17)').hasClass('htDisabled')).toBe(true);
-
-      setTimeout(function () {
-        menu.find('td').not('.htSeparator').eq(10).simulate('mousedown');
-
-        var comments = $('body > .htCommentsContainer > .htComments');
-        expect(comments[0]).not.toBeUndefined();
-        expect(comments.css('display')).toEqual('block');
-
-        var textArea = comments.find('textarea');
-
-        textArea.simulate('focus');
-        textArea[0].focus();
-        textArea[0].select();
-        textArea.val(testComment);
-        textArea.simulate('blur');
-
-        mouseDown(document.body);
-        $(hot.getPlugin('comments').editor.getInputElement()).simulate('blur');
-        textArea.blur();
-      }, 350); // menu opens after 300ms
-
-      setTimeout(function () {
-        expect(getCellMeta(1, 1).comment).toEqual(testComment);
-        expect(getCell(1, 1).className).toContain('htCommentCell');
-        done();
-      }, 450);
-    });
-
-    it("should delete comment", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100,
-
-				comments: true,
-        afterCellMetaReset: function() {
-          this.setCellMeta(0, 0, "comment", "Test comment");
-        }
-      });
-
-      expect(getCell(0,0).className).toContain('htCommentCell');
-      contextMenu();
-      var $menu = $('.htContextMenu .ht_master .htCore tbody');
-      expect($menu.find('td:eq(17)').hasClass('htDisabled')).toBe(false);
-      $menu.find('td').not('.htSeparator').eq(11).simulate('mousedown');
-      expect(getCellMeta(0,0).comment).toBeUndefined();
-    });
-
     it("should make a group of selected cells read-only, if all of them are writable (reverse selection)", function(){
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -2570,7 +2507,7 @@ describe('ContextMenu', function () {
       window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
-      expect(window.scrollY).toBe(0);
+      expect(window.scrollY || document.documentElement.scrollTop).toBe(0);
     });
   });
 
@@ -2837,7 +2774,7 @@ describe('ContextMenu', function () {
     it("should not close the menu, when table is scrolled", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(40, 30),
-        colWidths: 50, //can also be a number or a function
+        colWidths: 50, // can also be a number or a function
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -2862,10 +2799,10 @@ describe('ContextMenu', function () {
 
       $mainHolder.scrollTop(scrollTop + 100).scroll();
 
-      expect($('.htContextMenu').is(':visible')).toBe(true)
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    xit("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
+    it("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(40, 30),
         colWidths: 50, //can also be a number or a function
@@ -2880,13 +2817,7 @@ describe('ContextMenu', function () {
       selectCell(15, 3);
       var scrollTop = mainHolder.scrollTop();
       contextMenu();
-      var $menu = $(hot.getPlugin('contextMenu').menu);
-
-      expect($menu.is(':visible')).toBe(true);
-
-      mainHolder.scrollTop(scrollTop + 60).scroll();
-
-      expect($menu.is(':visible')).toBe(false);
+      var $menu = $('.htContextMenu');
 
       spyOn(hot.getPlugin('contextMenu'), 'close');
 
