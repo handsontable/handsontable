@@ -9,9 +9,6 @@ import {TextEditor} from './textEditor';
 import moment from 'moment';
 import Pikaday from 'pikaday';
 
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
-
 /**
  * @private
  * @editor DateEditor
@@ -251,5 +248,8 @@ class DateEditor extends TextEditor {
 }
 
 export {DateEditor};
+
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 
 registerEditor('date', DateEditor);

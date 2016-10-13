@@ -23,425 +23,303 @@ describe('HandsontableObserveChanges', function () {
 
   describe("refreshing table after changes have been detected", function () {
     describe("array data", function () {
-      it('should render newly added row', function () {
+      it('should render newly added row', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data.push(["A3", "B3"]);
 
         var htCore = getHtCore();
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(3);
           expect(htCore.find('col').length).toEqual(2);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render newly added column', function () {
+      it('should render newly added column', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
-
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data[0].push("C1");
         data[1].push("C2");
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(2);
           expect(htCore.find('col').length).toEqual(3);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render removed row', function () {
+      it('should render removed row', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data.splice(0, 1); //removes one row at index 0
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(1);
           expect(htCore.find('col').length).toEqual(2);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render removed column', function () {
+      it('should render removed column', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data[0].splice(0, 1); //removes one column at index 0 in first row
         data[1].splice(0, 1); //removes one column at index 0 in second row
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(2);
           expect(htCore.find('col').length).toEqual(1);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render cell change from string to string', function () {
+      it('should render cell change from string to string', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data[0][0] = 'new string';
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('td:eq(0)').html()).toEqual('new string');
-        });
+          done();
+        }, 200);
       });
 
-      it('should render cell change in a new row', function () {
+      it('should render cell change in a new row', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
-
         data.push(["A3", "B3"]);
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1500);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-          afterRenderSpy.reset();
           data[2][0] = 'new string';
-        });
+        }, 200);
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1500);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('new string');
-        });
+          done();
+        }, 1200);
       });
 
-      it('should not render cell change when turned off (`observeChanges: false`)', function () {
+      it('should not render cell change when turned off (`observeChanges: false`)', function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         createHOT(data, false);
         var htCore = getHtCore();
 
         data[0][0] = 'new string';
 
-        waits(100); //Object.observe is async
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('td:eq(0)').html()).toEqual('A1');
-        });
+          done();
+        }, 100);
       });
     });
     describe("object data", function () {
-      it('should render newly added row', function () {
+      it('should render newly added row', function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data.push({prop0: "A3", prop1: "B3"});
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1500);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(3);
           expect(htCore.find('col').length).toEqual(2);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render removed row', function () {
+      it('should render removed row', function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data.splice(0, 1); //removes one row at index 0
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr').length).toEqual(1);
           expect(htCore.find('col').length).toEqual(2);
-        });
+          done();
+        }, 200);
       });
 
-      it('should render cell change from string to string', function () {
+      it('should render cell change from string to string', function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
 
         data[0]['prop0'] = 'new string';
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('td:eq(0)').html()).toEqual('new string');
-        });
+          done();
+        }, 200);
       });
 
-      it('should render cell change in a new row', function () {
+      it('should render cell change in a new row', function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
 
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
-
         data.push({prop0: "A3", prop1: "B3"});
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1500);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-          afterRenderSpy.reset();
           data[2]['prop0'] = 'new string';
-        });
+        }, 200);
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1500);
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('new string');
-        });
+          done();
+        }, 1200);
       });
 
       it('should not break with undefined data properties', function () {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         data[0].prop0 = undefined;
-        var hot = createHOT(data, true);
-        var htCore = getHtCore();
+
+        expect(function () {
+          var hot = createHOT(data, true);
+          var htCore = getHtCore();
+        }).not.toThrow();
       });
 
-      it('should not render cell change when turned off (`observeChanges: false`)', function () {
+      it('should not render cell change when turned off (`observeChanges: false`)', function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         createHOT(data, false);
         var htCore = getHtCore();
 
         data[0]['prop0'] = 'new string';
 
-        waits(100); //Object.observe is async
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('td:eq(0)').html()).toEqual('A1');
-        });
+          done();
+        }, 200);
       });
     });
   });
 
   describe("enabling/disabling plugin", function () {
-    it("should be possible to enable plugin using updateSettings", function () {
+    it("should be possible to enable plugin using updateSettings", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, false);
       var htCore = getHtCore();
 
       data[0][0] = 'new string';
 
-      waits(100); //Object.observe is async
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('td:eq(0)').html()).toEqual('A1');
 
         updateSettings({
           observeChanges: true
         });
-
-        var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-        hot.addHook('afterRender', afterRenderSpy);
-
         data[1][0] = 'another new string';
+      }, 200);
 
-        waitsFor(function () {
-          return afterRenderSpy.callCount > 0;
-        }, 'Table render', 1000);
-
-        runs(function () {
-          expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('another new string');
-        });
-
-      });
+      setTimeout(function () {
+        expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('another new string');
+        done();
+      }, 400);
     });
 
-    it("should be possible to disable plugin using updateSettings", function () {
+    it("should be possible to disable plugin using updateSettings", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
 
-      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-      hot.addHook('afterRender', afterRenderSpy);
-
       data[0][0] = 'new string';
 
-      waitsFor(function () {
-        return afterRenderSpy.callCount > 0;
-      }, 'Table render', 1000);
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
-      });
 
-      runs(function () {
         updateSettings({
           observeChanges: false
         });
 
         data[1][0] = 'another new string';
-      });
+      }, 200);
 
-      waits(100);
-
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
-      });
 
-
-      runs(function () {
         hot.render();
 
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('another new string');
-      });
-
+        done();
+      }, 300);
     });
 
-    it("should be possible to pause observing changes without disabling the plugin", function () {
+    it("should be possible to pause observing changes without disabling the plugin", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
-
-      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-      hot.addHook('afterRender', afterRenderSpy);
 
       data[0][0] = 'new string';
 
-      waitsFor(function () {
-        return afterRenderSpy.callCount > 0;
-      }, 'Table render', 1000);
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
-      });
 
-      runs(function () {
         hot.pauseObservingChanges();
 
         data[1][0] = 'another new string';
-      });
+      }, 200);
 
-      waits(100);
-
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
-      });
 
-
-      runs(function () {
         hot.render();
 
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('another new string');
-      });
-
+        done();
+      }, 300);
     });
 
-    it("should be possible to resume observing changes after it was paused", function () {
+    it("should be possible to resume observing changes after it was paused", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
       var htCore = getHtCore();
-
-      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
-      hot.addHook('afterRender', afterRenderSpy);
 
       hot.pauseObservingChanges();
 
       data[0][0] = 'new string';
 
-      waits(100);
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A1');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
-      });
 
-      runs(function () {
         hot.resumeObservingChanges();
         data[1][0] = 'another new string';
-        afterRenderSpy.reset();
-      });
+      }, 100);
 
-      waitsFor(function () {
-        return afterRenderSpy.calls.length > 0;
-      }, 'Table render', 1000);
-
-
-      runs(function () {
+      setTimeout(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('another new string');
-      });
+        done();
+      }, 1200);
     });
   });
 
   describe('observeChanges fires appropriate events when changes are detected', function () {
     describe("array data", function () {
-      it("should fire afterChangesObserved event after changes has been noticed", function () {
+      it("should fire afterChangesObserved event after changes has been noticed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -450,17 +328,13 @@ describe('HandsontableObserveChanges', function () {
 
         data[0][0] = 'new string';
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-        });
+        setTimeout(function () {
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should fire afterCreateRow event after detecting that new row has been added", function () {
+      it("should fire afterCreateRow event after detecting that new row has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -469,18 +343,14 @@ describe('HandsontableObserveChanges', function () {
 
         data.push(['A2', 'B2']);
 
-        waitsFor(function () {
-          return afterCreateRowCallback.calls.length > 0;
-        }, 'afterCreateRow event fire', 1000);
-
-
-        runs(function () {
-          expect(afterCreateRowCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterCreateRowCallback.calls.count()).toEqual(1);
           expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveRow event after detecting that row has been removed", function () {
+      it("should fire afterRemoveRow event after detecting that row has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -489,18 +359,14 @@ describe('HandsontableObserveChanges', function () {
 
         data.pop();
 
-        waitsFor(function () {
-          return afterRemoveRowCallback.calls.length > 0;
-        }, 'afterCreateRow event fire', 1000);
-
-
-        runs(function () {
-          expect(afterRemoveRowCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterRemoveRowCallback.calls.count()).toEqual(1);
           expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function () {
+      it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -509,23 +375,20 @@ describe('HandsontableObserveChanges', function () {
 
         data.splice(0, 2);
 
-        waitsFor(function () {
-          return afterRemoveRowCallback.calls.length > 0;
-        }, 'afterRemoveRow event fire', 1000);
+        setTimeout(function () {
+          expect(afterRemoveRowCallback.calls.count()).toEqual(2);
 
-        runs(function () {
-          expect(afterRemoveRowCallback.calls.length).toEqual(2);
-
-          //The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
+          // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
           var args = [];
-          args.push(afterRemoveRowCallback.calls[0].args);
-          args.push(afterRemoveRowCallback.calls[1].args);
+          args.push(afterRemoveRowCallback.calls.argsFor(0));
+          args.push(afterRemoveRowCallback.calls.argsFor(1));
           expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
           expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterCreateCol event after detecting that new col has been added", function () {
+      it("should fire afterCreateCol event after detecting that new col has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -535,18 +398,14 @@ describe('HandsontableObserveChanges', function () {
         data[0].push("C1");
         data[1].push("C2");
 
-        waitsFor(function () {
-          return afterCreateColCallback.calls.length > 0;
-        }, 'afterCreateCol event fire', 1000);
-
-
-        runs(function () {
-          expect(afterCreateColCallback.calls.length).toEqual(1);
-          expect(afterCreateColCallback.calls[0].args).toEqual([2, undefined, undefined, undefined, undefined, undefined]);
-        });
+        setTimeout(function () {
+          expect(afterCreateColCallback.calls.count()).toEqual(1);
+          expect(afterCreateColCallback.calls.argsFor(0)).toEqual([2, undefined, undefined, undefined, undefined, undefined]);
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveCol event after detecting that col has been removed", function () {
+      it("should fire afterRemoveCol event after detecting that col has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -556,18 +415,14 @@ describe('HandsontableObserveChanges', function () {
         data[0].pop();
         data[1].pop();
 
-        waitsFor(function () {
-          return afterRemoveColCallback.calls.length > 0;
-        }, 'afterRemoveCol event fire', 1000);
-
-
-        runs(function () {
-          expect(afterRemoveColCallback.calls.length).toEqual(1);
-          expect(afterRemoveColCallback.calls[0].args).toEqual([1, 1, undefined, undefined, undefined, undefined]);
-        });
+        setTimeout(function () {
+          expect(afterRemoveColCallback.calls.count()).toEqual(1);
+          expect(afterRemoveColCallback.calls.argsFor(0)).toEqual([1, 1, undefined, undefined, undefined, undefined]);
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveCol event after detecting that multiple cols have been removed", function () {
+      it("should fire afterRemoveCol event after detecting that multiple cols have been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -579,24 +434,20 @@ describe('HandsontableObserveChanges', function () {
         data[1].pop();
         data[1].pop();
 
-        waitsFor(function () {
-          return afterRemoveColCallback.calls.length > 0;
-        }, 'afterRemoveCol event fire', 1000);
+        setTimeout(function () {
+          expect(afterRemoveColCallback.calls.count()).toEqual(2);
 
-
-        runs(function () {
-          expect(afterRemoveColCallback.calls.length).toEqual(2);
-
-          //The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
+          // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
           var args = [];
-          args.push(afterRemoveColCallback.calls[0].args);
-          args.push(afterRemoveColCallback.calls[1].args);
+          args.push(afterRemoveColCallback.calls.argsFor(0));
+          args.push(afterRemoveColCallback.calls.argsFor(1));
           expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
           expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterChange event after detecting that table data has changed", function () {
+      it("should fire afterChange event after detecting that table data has changed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -605,19 +456,15 @@ describe('HandsontableObserveChanges', function () {
 
         data[0][0] = "new string";
 
-        waitsFor(function () {
-          return afterChangeCallback.calls.length > 0;
-        }, 'afterChange event fire', 1000);
-
-
-        runs(function () {
-          expect(afterChangeCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterChangeCallback.calls.count()).toEqual(1);
           expect(afterChangeCallback).toHaveBeenCalledWith([0, 0, null, "new string"], 'external', undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
     });
     describe("object data", function () {
-      it("should fire afterChangesObserved event after changes has been noticed", function () {
+      it("should fire afterChangesObserved event after changes has been noticed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -626,17 +473,13 @@ describe('HandsontableObserveChanges', function () {
 
         data[0]['prop0'] = 'new string';
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-        });
+        setTimeout(function () {
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should fire afterCreateRow event after detecting that new row has been added", function () {
+      it("should fire afterCreateRow event after detecting that new row has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -645,18 +488,14 @@ describe('HandsontableObserveChanges', function () {
 
         data.push({prop0: 'A2', prop1: 'B2'});
 
-        waitsFor(function () {
-          return afterCreateRowCallback.calls.length > 0;
-        }, 'afterCreateRow event fire', 1000);
-
-
-        runs(function () {
-          expect(afterCreateRowCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterCreateRowCallback.calls.count()).toEqual(1);
           expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveRow event after detecting that row has been removed", function () {
+      it("should fire afterRemoveRow event after detecting that row has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -665,18 +504,14 @@ describe('HandsontableObserveChanges', function () {
 
         data.pop();
 
-        waitsFor(function () {
-          return afterRemoveRowCallback.calls.length > 0;
-        }, 'afterCreateRow event fire', 1000);
-
-
-        runs(function () {
-          expect(afterRemoveRowCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterRemoveRowCallback.calls.count()).toEqual(1);
           expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function () {
+      it("should fire afterRemoveRow event after detecting that multiple rows have been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -685,24 +520,20 @@ describe('HandsontableObserveChanges', function () {
 
         data.splice(0, 2);
 
-        waitsFor(function () {
-          return afterRemoveRowCallback.calls.length > 0;
-        }, 'afterRemoveRow event fire', 1000);
+        setTimeout(function () {
+          expect(afterRemoveRowCallback.calls.count()).toEqual(2);
 
-
-        runs(function () {
-          expect(afterRemoveRowCallback.calls.length).toEqual(2);
-
-          //The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
+          // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
           var args = [];
-          args.push(afterRemoveRowCallback.calls[0].args);
-          args.push(afterRemoveRowCallback.calls[1].args);
+          args.push(afterRemoveRowCallback.calls.argsFor(0));
+          args.push(afterRemoveRowCallback.calls.argsFor(1));
           expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
           expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
-        });
+          done();
+        }, 200);
       });
 
-      it("should fire afterChange event after detecting that table data has changed", function () {
+      it("should fire afterChange event after detecting that table data has changed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -711,44 +542,34 @@ describe('HandsontableObserveChanges', function () {
 
         data[0]['prop0'] = "new string";
 
-        waitsFor(function () {
-          return afterChangeCallback.calls.length > 0;
-        }, 'afterChange event fire', 1000);
-
-
-        runs(function () {
-          expect(afterChangeCallback.calls.length).toEqual(1);
+        setTimeout(function () {
+          expect(afterChangeCallback.calls.count()).toEqual(1);
           expect(afterChangeCallback).toHaveBeenCalledWith([0, 'prop0', null, "new string"], 'external', undefined, undefined, undefined, undefined);
-        });
+          done();
+        }, 200);
       });
     });
   });
 
   describe("using HOT data manipulation methods, when observeChanges plugin is enabled", function () {
     describe("array data", function () {
-      it("should run render ONCE after detecting that new row has been added", function () {
+      it("should run render ONCE after detecting that new row has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
         hot.addHook('afterRender', afterRenderSpy);
 
-        var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
-        hot.addHook('afterChangesObserved', afterChangesObservedCallback);
-
         alter('insert_row');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(countRows()).toEqual(3);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that row has been removed", function () {
+      it("should run render ONCE after detecting that row has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -760,41 +581,31 @@ describe('HandsontableObserveChanges', function () {
 
         alter('remove_row');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
+        setTimeout(function () {
           expect(countRows()).toEqual(1);
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that new column has been added", function () {
+      it("should run render ONCE after detecting that new column has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
         hot.addHook('afterRender', afterRenderSpy);
 
-        var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
-        hot.addHook('afterChangesObserved', afterChangesObservedCallback);
-
         alter('insert_col');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(countCols()).toEqual(3);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that column has been removed", function () {
+      it("should run render ONCE after detecting that column has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
 
@@ -806,19 +617,15 @@ describe('HandsontableObserveChanges', function () {
 
         alter('remove_col');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
+        setTimeout(function () {
           expect(countCols()).toEqual(1);
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that table data has changed", function () {
+      it("should run render ONCE after detecting that table data has changed", function (done) {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
         var hot = createHOT(data, true);
         var htCore = getHtCore();
@@ -831,42 +638,32 @@ describe('HandsontableObserveChanges', function () {
 
         setDataAtCell(0, 0, 'new value');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
+        setTimeout(function () {
           expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('new value');
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
     });
     describe("object data", function () {
-      it("should run render ONCE after detecting that new row has been added", function () {
+      it("should run render ONCE after detecting that new row has been added", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
         hot.addHook('afterRender', afterRenderSpy);
 
-        var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
-        hot.addHook('afterChangesObserved', afterChangesObservedCallback);
-
         alter('insert_row');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-        runs(function () {
+        setTimeout(function () {
           expect(countRows()).toEqual(3);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that row has been removed", function () {
+      it("should run render ONCE after detecting that row has been removed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -878,19 +675,15 @@ describe('HandsontableObserveChanges', function () {
 
         alter('remove_row');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
+        setTimeout(function () {
           expect(countRows()).toEqual(1);
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
 
-      it("should run render ONCE after detecting that table data has changed", function () {
+      it("should run render ONCE after detecting that table data has changed", function (done) {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         var hot = createHOT(data, true);
 
@@ -902,22 +695,18 @@ describe('HandsontableObserveChanges', function () {
 
         setDataAtRowProp(0, 'prop0', 'new value');
 
-        waitsFor(function () {
-          return afterChangesObservedCallback.calls.length > 0;
-        }, 'afterChangesObserved event fire', 1000);
-
-
-        runs(function () {
-          expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('new value');
-          expect(afterChangesObservedCallback.calls.length).toEqual(1);
-          expect(afterRenderSpy.calls.length).toEqual(1);
-        });
+        setTimeout(function () {
+          expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('new value');
+          expect(afterChangesObservedCallback.calls.count()).toEqual(1);
+          expect(afterRenderSpy.calls.count()).toEqual(1);
+          done();
+        }, 200);
       });
     });
   });
 
   describe("refreshing table after changes have been detected", function () {
-    it("should observe changes to new data bound using loadData", function () {
+    it("should observe changes to new data bound using loadData", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var newData = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
@@ -929,18 +718,15 @@ describe('HandsontableObserveChanges', function () {
 
       newData.push(["A3", "B3"]);
 
-      waitsFor(function () {
-        return afterRenderSpy.callCount > 0;
-      }, 'Table render', 1000);
-
-      runs(function () {
-        expect(afterRenderSpy.callCount).toBe(1);
+      setTimeout(function () {
+        expect(afterRenderSpy.calls.count()).toBe(1);
         expect(htCore.find('tr').length).toEqual(3);
         expect(htCore.find('col').length).toEqual(2);
-      });
+        done();
+      }, 200);
     });
 
-    it("should not observe changes to old data after it was replaced using loadData", function () {
+    it("should not observe changes to old data after it was replaced using loadData", function (done) {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
       var newData = Handsontable.helper.createSpreadsheetData(2, 2);
       var hot = createHOT(data, true);
@@ -952,13 +738,12 @@ describe('HandsontableObserveChanges', function () {
 
       data.push(["A3", "B3"]);
 
-      waits(1000);
-
-      runs(function () {
-        expect(afterRenderSpy.callCount).toBe(0);
+      setTimeout(function () {
+        expect(afterRenderSpy.calls.count()).toBe(0);
         expect(htCore.find('tr').length).toEqual(2);
         expect(htCore.find('col').length).toEqual(2);
-      });
+        done();
+      }, 1000);
     });
   });
 });

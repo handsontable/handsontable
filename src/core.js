@@ -367,6 +367,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             col: end === null ? null : end.col
           };
 
+      /* jshint ignore:start */
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down' :
@@ -404,10 +405,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
 
-        /* jshint ignore:start */
         case 'overwrite':
         default:
-          /* jshint ignore:end */
           // overwrite and other not specified options
           current.row = start.row;
           current.col = start.col;
@@ -527,6 +526,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
+      /* jshint ignore:end */
     },
   };
 

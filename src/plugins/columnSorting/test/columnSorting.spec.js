@@ -119,7 +119,6 @@ describe('ColumnSorting', function() {
     //Now if sort is launched, sorting ordered will be reversed
     hot.sortOrder = false;
 
-
     hot.alter('remove_row', 0);
 
     expect(htCore.find('tbody tr').length).toEqual(3);
@@ -221,12 +220,9 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
-
-
   });
 
   it('should sort date columns', function() {
-
     var hot = handsontable({
       data: [
         ["Mercedes", "A 160", "01/14/2006", 6999.9999],
@@ -265,7 +261,6 @@ describe('ColumnSorting', function() {
   });
 
   it('should sort date columns along with empty and null values', function() {
-
     var hot = handsontable({
       data: [
         ["Mercedes", "A 160", "01/14/2006", 6999.9999],
@@ -308,7 +303,6 @@ describe('ColumnSorting', function() {
 
     expect(htCore.find('tbody tr:eq(7) td:eq(2)').text()).toEqual("");
     expect(htCore.find('tbody tr:eq(8) td:eq(2)').text()).toEqual("");
-
   });
 
   it('should properly sort numeric data', function() {
@@ -347,11 +341,9 @@ describe('ColumnSorting', function() {
     this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
-
   });
 
   it('should sort table with multiple row headers', function() {
-
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -386,8 +378,6 @@ describe('ColumnSorting', function() {
     this.sortByColumn(1);  // sort by second column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
-
-
   });
 
   it('should allow to define sorting column and order during initialization', function() {
@@ -554,7 +544,6 @@ describe('ColumnSorting', function() {
 
     expect(hot.getSettings()['columnSorting']).toBeFalsy();
     expect(hot.sort).toBeUndefined();
-
   });
 
   it("should sort table using HOT.sort method", function() {
@@ -579,7 +568,6 @@ describe('ColumnSorting', function() {
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-
   });
 
   it("should reset column sorting with updateSettings", function() {
@@ -607,7 +595,6 @@ describe('ColumnSorting', function() {
   });
 
   it("should fire beforeColumnSort event before sorting data", function() {
-
     var hot = handsontable({
       data: [
         [2],
@@ -634,11 +621,11 @@ describe('ColumnSorting', function() {
 
     hot.sort(sortColumn, sortOrder);
 
-    expect(this.beforeColumnSortHandler.callCount).toEqual(1);
+    expect(this.beforeColumnSortHandler.calls.count()).toEqual(1);
     expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
-  it("should not sorting column when beforeColumnSort returns false", function() {
+  it("should not sorting column when beforeColumnSort returns false", function(done) {
     var hot = handsontable({
       data: [
         [2],
@@ -654,17 +641,16 @@ describe('ColumnSorting', function() {
 
     hot.sort(0, true);
 
-    waits(100);
-    runs(function() {
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-    })
+    setTimeout(function () {
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+      done();
+    }, 200);
   });
 
   it("should add beforeColumnSort event listener in constructor", function() {
-
     var beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
 
     var hot = handsontable({
@@ -678,7 +664,7 @@ describe('ColumnSorting', function() {
 
     hot.sort(sortColumn, sortOrder);
 
-    expect(beforeColumnSortCallback.callCount).toEqual(1);
+    expect(beforeColumnSortCallback.calls.count()).toEqual(1);
     expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
@@ -707,13 +693,13 @@ describe('ColumnSorting', function() {
 
     var sortColumn = 0;
     var sortOrder = true;
-    afterRenderSpy.reset();
+    afterRenderSpy.calls.reset();
 
     hot.sort(sortColumn, sortOrder);
 
-    expect(afterColumnSortHandler.callCount).toBe(1);
+    expect(afterColumnSortHandler.calls.count()).toBe(1);
     expect(afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
-    expect(afterRenderSpy.callCount).toBe(1);
+    expect(afterRenderSpy.calls.count()).toBe(1);
   });
 
   it("should add afterColumnSort event listener in constructor", function() {
@@ -730,7 +716,7 @@ describe('ColumnSorting', function() {
 
     hot.sort(sortColumn, sortOrder);
 
-    expect(afterColumnSortCallback.callCount).toEqual(1);
+    expect(afterColumnSortCallback.calls.count()).toEqual(1);
     expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
@@ -773,7 +759,7 @@ describe('ColumnSorting', function() {
     expect(countRows()).toEqual(3);
   });
 
-  it("should display new row added directly to dataSource, when observeChanges plugin is enabled", function() {
+  it("should display new row added directly to dataSource, when observeChanges plugin is enabled", function(done) {
     var data = [
       [1, 'B'],
       [0, 'A'],
@@ -809,20 +795,15 @@ describe('ColumnSorting', function() {
 
     data.push([5, 'E']);
 
-    waitsFor(function() {
-      return afterChangesObservedCallback.calls.length > 0;
-    }, 'afterChangesObserved event fire', 1000);
-
-    runs(function() {
+    setTimeout(function () {
       expect(countRows()).toEqual(5);
-      expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
-      expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
-    });
-
-
+      expect(spec().$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
+      expect(spec().$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
+      done();
+    }, 200);
   });
 
-  xit("should not display new row added directly to dataSource, when observeChanges plugin is explicitly disabled", function() {
+  it("should not display new row added directly to dataSource, when observeChanges plugin is explicitly disabled", function(done) {
     var data = [
       [1, 'B'],
       [0, 'A'],
@@ -853,22 +834,22 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-
     expect(htCore.find('tbody tr').length).toEqual(4);
 
     data.push([5, 'E']);
 
-    waits(100);
-
-    runs(function() {
-      expect(countRows()).toEqual(4);
+    setTimeout(function () {
+      expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+      expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+      expect(htCore.find('tbody tr').length).toEqual(4);
       expect(afterChangesObservedCallback).not.toHaveBeenCalled();
-    });
-
-
+      done();
+    }, 100);
   });
 
-  it("should display new row added directly to dataSource, when observeChanges plugin status is undefined", function() {
+  it("should display new row added directly to dataSource, when observeChanges plugin status is undefined", function(done) {
     var data = [
       [1, 'B'],
       [0, 'A'],
@@ -891,43 +872,29 @@ describe('ColumnSorting', function() {
     var htCore = getHtCore();
 
     //columnSorting enables observeChanges plugin by asynchronously invoking updateSettings
-    waitsFor(function() {
-      return onUpdateSettings.calls.length > 0;
-    }, 'Update settings', 1000);
-
-
-    runs(function() {
+    setTimeout(function () {
       expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
       expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
       expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-      this.sortByColumn(0);
+      spec().sortByColumn(0);
 
       expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
       expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
       expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
       expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-
       expect(htCore.find('tbody tr').length).toEqual(4);
 
-      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
-      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
-
       data.push([5, 'E']);
-    });
+    }, 100);
 
-    waitsFor(function() {
-      return afterChangesObservedCallback.calls.length > 0;
-    }, 'afterChangesObserved event fire', 1000);
-
-    runs(function() {
+    setTimeout(function () {
       expect(countRows()).toEqual(5);
       expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
       expect(htCore.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
-    });
-
-
+      done();
+    }, 2000); // 2s delayed needs for safari env
   });
 
   it("should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)", function() {

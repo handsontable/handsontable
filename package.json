@@ -34,20 +34,17 @@
     "zeroclipboard": "^2.2.0"
   },
   "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-connect": "~0.8.0",
-    "grunt-contrib-jasmine": "~0.5.1",
-    "grunt-contrib-jshint": "^0.11.3",
-    "grunt-contrib-watch": "~0.6.1",
-    "grunt-gitinfo": "~0.1.6",
-    "grunt-jscs": "^2.5.0",
-    "grunt-saucelabs": "~8.3.3",
-    "hot-builder": "^0.5.2",
-    "load-grunt-tasks": "^3.3.0",
-    "time-grunt": "^1.2.2"
+    "grunt": ">=0.4.0",
+    "grunt-contrib-jasmine": "^1.0.3",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-jscs": "^3.0.1",
+    "hot-builder": "^0.5.2"
   },
   "scripts": {
-    "test": "grunt test -v"
+    "build": "./node_modules/.bin/grunt build",
+    "build:dev": "./node_modules/.bin/grunt build-dev",
+    "build:custom": "./node_modules/.bin/grunt build-custom",
+    "test": "./node_modules/.bin/grunt test"
   },
   "license": "MIT",
   "builderDependencies": {

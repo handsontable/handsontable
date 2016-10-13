@@ -13,7 +13,7 @@ describe('CopyPaste', function () {
   });
 
   it("should remove additional new line from copied text (only safari)", function () {
-    var getData = jasmine.createSpy().andReturn('a\nb\n\n');
+    var getData = jasmine.createSpy().and.returnValue('a\nb\n\n');
     var preventDefault = jasmine.createSpy();
     var hot = handsontable();
 
@@ -34,7 +34,7 @@ describe('CopyPaste', function () {
     }
   });
 
-  it("should allow blocking cutting cells by stopping the immediate propagation", function() {
+  it("should allow blocking cutting cells by stopping the immediate propagation", function(done) {
     var onCut = jasmine.createSpy();
     var hot = handsontable({
       data: [
@@ -53,11 +53,10 @@ describe('CopyPaste', function () {
     selectCell(0, 0);
     keyDown('ctrl+x');
 
-    waits(100);
-
-    runs(function() {
+    setTimeout(function () {
       expect(onCut).not.toHaveBeenCalled();
-    });
+      done();
+    }, 100);
   });
 
   describe("enabling/disabing plugin", function () {
@@ -66,7 +65,6 @@ describe('CopyPaste', function () {
       var hot = handsontable();
 
       expect(hot.copyPaste).toBeDefined();
-
     });
 
     it("should create copyPaste div if enabled", function () {
@@ -197,7 +195,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
     });
 
-    it("should set copyable text when selecting all cells with CTRL+A", function () {
+    it("should set copyable text when selecting all cells with CTRL+A", function (done) {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -209,13 +207,12 @@ describe('CopyPaste', function () {
       selectCell(0, 0);
 
       $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true});
-      waits(0);
 
-      runs(function () {
+      setTimeout(function () {
         expect(getSelected()).toEqual([0, 0, 1, 1]);
-
         expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2\n');
-      });
+        done();
+      }, 10);
     });
 
     it("should not throw error when no cell is selected (#1221)", function () {

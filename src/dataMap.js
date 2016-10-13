@@ -209,6 +209,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
 
       } else {
         row = [];
+        /* jshint loopfunc:true */
         rangeEach(colCount - 1, () => row.push(null));
       }
 

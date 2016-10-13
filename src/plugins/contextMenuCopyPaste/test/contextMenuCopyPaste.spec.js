@@ -6,14 +6,8 @@ describe("ContextMenuCopyPaste", function () {
   }
 
   beforeEach(function () {
-
-    try {
-      $('head').append('<script src="../../demo/js/ZeroClipboard.js"></script>');
-    } catch (err) {
-      $('head').append('<script src="../../../../node_modules/hot-builder/node_modules/handsontable/demo/js/ZeroClipboard.js"></script>');
-    }
-
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+
     var wrapper = $('<div></div>').css({
       width: 400,
       height: 200,
@@ -118,34 +112,4 @@ describe("ContextMenuCopyPaste", function () {
       'Alignment',
     ].join(''));
   });
-
-  // currently not needed - cannot trigger copy action programically
-  xdescribe("Copy context menu option", function () {
-
-    xit("should allow to copy single cell's data", function () {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
-        rowHeaders: true,
-        colHeaders: true,
-        minSpareRows: 1,
-        contextMenu: true,
-        contextMenuCopyPaste: {
-          swfPath: "swf/ZeroClipboard.swf"
-        }
-      });
-
-      selectCell(1,1);
-
-      contextMenu();
-
-      var copyButton = $('.htContextMenu .ht_master .htCore tbody').find('td').find('div').filter(function(){
-        return (/Paste/i).test($(this).text())
-      }).parents('td');
-
-      copyButton.trigger('mousedown');
-
-    });
-
-  });
-
 });

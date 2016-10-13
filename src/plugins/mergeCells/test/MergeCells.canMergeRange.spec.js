@@ -21,6 +21,7 @@ describe("MergeCells", function() {
       var coordsFrom = new WalkontableCellCoords(0, 1);
       var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 1));
       var result = mergeCells.canMergeRange(cellRange);
+
       expect(result).toBe(false);
     });
 
@@ -32,6 +33,7 @@ describe("MergeCells", function() {
       var coordsFrom = new WalkontableCellCoords(0, 1);
       var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
       var result = mergeCells.canMergeRange(cellRange);
+
       expect(result).toBe(true);
     });
 
@@ -43,6 +45,7 @@ describe("MergeCells", function() {
       var coordsFrom = new WalkontableCellCoords(0, 1);
       var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 2));
       var result = mergeCells.canMergeRange(cellRange);
+
       expect(result).toBe(true);
     });
 
@@ -54,6 +57,7 @@ describe("MergeCells", function() {
       var coordsFrom = new WalkontableCellCoords(0, 1);
       var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 2));
       var result = mergeCells.canMergeRange(cellRange);
+
       expect(result).toBe(true);
     });
   });
@@ -67,6 +71,7 @@ describe("MergeCells", function() {
         ]
       });
       var TD = hot.rootElement.querySelector('td');
+
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
     });
@@ -226,8 +231,6 @@ describe("MergeCells", function() {
       hot.selectCell(0, 1, 1, 1);
 
       expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
-
-
     });
 
     it("should not switch the selection start point when selecting from non-merged cells to merged cells", function() {
@@ -299,16 +302,14 @@ describe("MergeCells", function() {
       expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
 
       selectCell(1, 1, 4, 4);
-      expect(getCell(1, 1).className.indexOf('area')).toNotEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).not.toEqual(-1);
 
       selectCell(1, 1);
       expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
 
       selectCell(0, 0);
       expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
-
     });
-
   });
 
   describe("modifyTransform", function() {
@@ -322,6 +323,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(0, 1));
     });
 
@@ -334,6 +336,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(0, 3));
     });
 
@@ -347,12 +350,14 @@ describe("MergeCells", function() {
       var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(-1, 1));
 
       var coords = new WalkontableCellCoords(1, 1);
       var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(1, 3));
     });
 
@@ -365,6 +370,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(0, -3));
     });
 
@@ -377,6 +383,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
     });
 
@@ -390,12 +397,14 @@ describe("MergeCells", function() {
       var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(-1, -3));
 
       var coords = new WalkontableCellCoords(1, 1);
       var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(1, -1));
     });
 
@@ -408,6 +417,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
     });
 
@@ -420,6 +430,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(3, 0));
     });
 
@@ -432,6 +443,7 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(-1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(-3, 0));
     });
 
@@ -444,9 +456,9 @@ describe("MergeCells", function() {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(-1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+
       expect(inDelta).toEqual(new WalkontableCellCoords(-1, 0));
     });
-
   });
 
   describe("merged cells scroll", function() {
@@ -585,7 +597,6 @@ describe("MergeCells", function() {
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
       expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(6);
-
     });
 
     it("should shift the merged cells left, when removing a column on the left side of them", function() {
@@ -621,7 +632,6 @@ describe("MergeCells", function() {
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
       expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(6);
-
     });
 
     it("should shift the merged cells down, when inserting a row above them", function() {
@@ -639,9 +649,7 @@ describe("MergeCells", function() {
 
       expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
       expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(4);
-
     });
-
   });
 
   describe('ContextMenu', function() {
