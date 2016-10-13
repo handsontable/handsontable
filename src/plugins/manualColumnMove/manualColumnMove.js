@@ -340,10 +340,23 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   refreshPositions() {
-    let isRowHeader = !!this.hot.getSettings().rowHeaders;
-    let wtTable = this.hot.view.wt.wtTable;
     let priv = privatePool.get(this);
     let coords = priv.target.coords;
+    let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
+    let lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
+    let fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+    let countCols = this.hot.countCols();
+
+    if (coords.col < fixedColumns && firstVisible > 0) {
+      this.hot.scrollViewportTo(undefined, firstVisible - 1);
+    }
+
+    if (coords.col >= lastVisible && lastVisible < countCols) {
+      this.hot.scrollViewportTo(undefined, lastVisible + 1, undefined, true);
+    }
+
+    let isRowHeader = !!this.hot.getSettings().rowHeaders;
+    let wtTable = this.hot.view.wt.wtTable;
     let TD = priv.target.TD;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, coords.col);
@@ -353,6 +366,10 @@ class ManualColumnMove extends BasePlugin {
     let backlightElemMarginLeft = this.backlight.getOffset().left;
     let backlightElemWidth = this.backlight.getSize().width;
     let rowHeaderWidth = 0;
+
+    if ((rootElementOffset.left + wtTable.holder.offsetWidth) < priv.target.eventPageX) {
+      priv.target.coords.col++;
+    }
 
     if (isRowHeader) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
@@ -364,7 +381,7 @@ class ManualColumnMove extends BasePlugin {
 
     if (coords.col < 0) {
       // if hover on rowHeader
-      priv.target.col = 0;
+      priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
 
     } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
       // if hover on right part of TD
@@ -396,6 +413,15 @@ class ManualColumnMove extends BasePlugin {
     } else if (guidelineLeft === 0) {
       // guideline has got `margin-left: -1px` as default
       guidelineLeft = 1;
+    }
+
+    let leftOverlayWidth = rowHeaderWidth;
+    if (this.hot.view.wt.wtOverlays.leftOverlay) {
+      leftOverlayWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.TABLE.offsetWidth;
+    }
+
+    if (coords.col >= fixedColumns && (guidelineLeft - wtTable.holder.scrollLeft) < leftOverlayWidth) {
+      this.hot.scrollViewportTo(null, coords.col);
     }
 
     this.backlight.setPosition(null, backlightLeft);

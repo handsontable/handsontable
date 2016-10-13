@@ -327,9 +327,21 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   refreshPositions() {
-    let wtTable = this.hot.view.wt.wtTable;
     let priv = privatePool.get(this);
     let coords = priv.target.coords;
+    let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
+    let lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
+    let fixedRows = this.hot.getSettings().fixedRowsTop;
+    let countRows = this.hot.countRows();
+
+    if (coords.row < fixedRows && firstVisible > 0) {
+      this.hot.scrollViewportTo(firstVisible - 1);
+    }
+    if (coords.row >= lastVisible && lastVisible < countRows) {
+      this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
+    }
+
+    let wtTable = this.hot.view.wt.wtTable;
     let TD = priv.target.TD;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
@@ -338,6 +350,10 @@ class ManualRowMove extends BasePlugin {
     let tbodyOffsetTop = wtTable.TBODY.offsetTop;
     let backlightElemMarginTop = this.backlight.getOffset().top;
     let backlightElemHeight = this.backlight.getSize().height;
+
+    if ((rootElementOffset.top + wtTable.holder.offsetHeight) < priv.target.eventPageY) {
+      priv.target.coords.row++;
+    }
 
     if (this.isFixedRowTop(coords.row)) {
       tdOffsetTop += wtTable.holder.scrollTop;
@@ -350,7 +366,7 @@ class ManualRowMove extends BasePlugin {
 
     if (coords.row < 0) {
       // if hover on colHeader
-      priv.target.row = 0;
+      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
 
     } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
@@ -378,6 +394,15 @@ class ManualRowMove extends BasePlugin {
     if (tdOffsetTop >= hiderHeight - 1) {
       // prevent display guideline below table
       guidelineTop = hiderHeight - 1;
+    }
+
+    let topOverlayHeight = 0;
+    if (this.hot.view.wt.wtOverlays.topOverlay) {
+      topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
+    }
+
+    if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
+      this.hot.scrollViewportTo(coords.row);
     }
 
     this.backlight.setPosition(backlightTop);

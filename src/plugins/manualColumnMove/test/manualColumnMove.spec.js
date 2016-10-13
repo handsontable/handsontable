@@ -264,6 +264,43 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
+    it('should properly scrolling viewport if mouse is over part-visible cell', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 20),
+        colHeaders: true,
+        rowHeaders: true,
+        manualColumnMove: true,
+        width: 600,
+        height: 600,
+        colWidths: 47
+      });
+
+      var ev = {};
+
+      hot.selectCell(0, 19);
+
+      waits(50);
+
+      runs(function() {
+        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(8);
+
+        var $rowsHeaders = this.$container.find('.ht_clone_top tr th');
+
+        $rowsHeaders.eq(2).simulate('mousedown');
+        $rowsHeaders.eq(2).simulate('mouseup');
+        $rowsHeaders.eq(2).simulate('mousedown');
+        $rowsHeaders.eq(0).simulate('mouseover');
+        $rowsHeaders.eq(0).simulate('mousemove');
+        $rowsHeaders.eq(0).simulate('mouseup');
+      });
+
+      waits(100);
+
+      runs(function() {
+        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeLessThan(8);
+      });
+    });
+
     it("moving column should keep cell meta created using cells function", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
