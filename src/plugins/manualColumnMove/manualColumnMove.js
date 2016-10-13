@@ -636,7 +636,9 @@ class ManualColumnMove extends BasePlugin {
    */
   onModifyCol(column, source) {
     if (source !== this.pluginName) {
-      column = this.columnsMapper.getValueByIndex(column);
+      // ugly fix for try to insert new, needed columns after pasting data
+      let columnInMapper = this.columnsMapper.getValueByIndex(column);
+      column = columnInMapper === null ? column : columnInMapper;
     }
 
     return column;
@@ -650,7 +652,10 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Logical column index.
    */
   onUnmodifyCol(column) {
-    return this.columnsMapper.getIndexByValue(column);
+    let indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+
+    return column;
   }
 
   /**

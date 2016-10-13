@@ -306,6 +306,27 @@ describe('manualColumnMove', function () {
       expect(htCore.find('tbody tr:eq(1) td:eq(1)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
     });
   });
+
+  describe('copy-paste', function() {
+    it('should create new columns is are needed', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnMove: true,
+      });
+      var changesSet = [
+        [3, 4, 'A1'],
+        [3, 5, 'B1'],
+        [3, 6, 'C1'],
+        [3, 7, 'D1'],
+      ];
+
+      // unfortunately couse of security rules, we can't simulate native mechanism (e.g. CTRL+C -> CTRL+V)
+      hot.setDataAtCell(changesSet, void 0, void 0, 'paste');
+      expect(hot.countCols()).toEqual(8)
+    })
+  });
+
   xdescribe('undoRedo', function() {
     xit('should back changes', function () {
       var hot = handsontable({
