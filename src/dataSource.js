@@ -72,13 +72,14 @@ class DataSource {
     let result = [];
 
     arrayEach(this.data, (row) => {
-      let property = this.colToProp(column);
+      const property = this.colToProp(column);
 
       if (typeof property === 'string') {
         row = getProperty(row, property);
       } else {
         row = row[property];
       }
+
       result.push(row);
     });
 
@@ -106,12 +107,15 @@ class DataSource {
     let result = null;
 
     if (this.data[row]) {
-      let prop = this.colToProp(column);
+      const property = this.colToProp(column);
 
-      if (typeof prop === 'string') {
-        result = getProperty(this.data[row], prop);
+      result = this.data[row];
+
+      if (typeof property === 'string') {
+        result = getProperty(result, property);
+
       } else {
-        result = this.data[row][prop];
+        result = result[property];
       }
     }
 

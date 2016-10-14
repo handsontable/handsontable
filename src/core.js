@@ -8,7 +8,7 @@ import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, createObjectPropListener} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -1912,50 +1912,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Translate physical row index into visual.
    *
-   * @since 0.29.0
+   * @since 0.28.1
    * @memberof Core#
    * @function toVisualRow
    * @param {Number} row Physical row index.
+   * @param {String} [modifierToExclude] Plugin name that will be excluded from row translation.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row) => recordTranslator.toVisualRow(row);
+  this.toVisualRow = (row, modifierToExclude) => recordTranslator.toVisualRow(row, modifierToExclude);
 
   /**
    * Translate physical column index into visual.
    *
-   * @since 0.29.0
+   * @since 0.28.1
    * @memberof Core#
    * @function toVisualColumn
    * @param {Number} column Physical column index.
+   * @param {String} [modifierToExclude] Plugin name that will be excluded from column translation.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column) => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = (column, modifierToExclude) => recordTranslator.toVisualColumn(column, modifierToExclude);
 
   /**
    * Translate visual row index into physical.
    * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
    * to retrieve valid physical row index you can use this method.
    *
-   * @since 0.29.0
+   * @since 0.28.1
    * @memberof Core#
    * @function toPhysicalRow
    * @param {Number} row Visual row index.
+   * @param {String} [modifierToExclude] Plugin name that will be excluded from row translation.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row) => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = (row, modifierToExclude) => recordTranslator.toPhysicalRow(row, modifierToExclude);
 
   /**
    * Translate visual column index into physical.
    * If displayed columns order is different than the order of columns stored in memory (i.e. manual column move is applied)
    * to retrieve valid physical column index you can use this method.
    *
-   * @since 0.29.0
+   * @since 0.28.1
    * @memberof Core#
    * @function toPhysicalColumn
    * @param {Number} column Visual column index.
+   * @param {String} [modifierToExclude] Plugin name that will be excluded from column translation.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column) => recordTranslator.toPhysicalColumn(column);
+  this.toPhysicalColumn = (column, modifierToExclude) => recordTranslator.toPhysicalColumn(column, modifierToExclude);
 
   /**
    * @description
@@ -2112,6 +2116,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.getSourceDataAtCell = function(row, column) {
     return dataSource.getAtCell(row, column);
+  };
+
+  /**
+   * Returns a single compiled value (modified through `modifyData` hook) from the data source.
+   *
+   * @memberof Core#
+   * @function getCompiledDataAtCell
+   * @param {Number} row Physical row index.
+   * @param {Number} column Physical column index.
+   * @returns {*} Cell data.
+   * @since 0.28.1
+   */
+  this.getCompiledDataAtCell = function(row, column) {
+    let value = dataSource.getAtCell(row, column);
+
+    if (instance.hasHook('modifyData')) {
+      const valueHolder = createObjectPropListener(value);
+
+      instance.runHooks('modifyData', row, column, valueHolder, 'get');
+
+      if (valueHolder.isTouched()) {
+        value = valueHolder.value;
+      }
+    }
+
+    return value;
   };
 
   /**
