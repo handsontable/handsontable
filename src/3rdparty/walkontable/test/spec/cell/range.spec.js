@@ -1256,4 +1256,70 @@ describe("WalkontableCellRange", function () {
       expect(callCount).toBe(2);
     });
   });
+
+  describe('change direction', function () {
+    it('should properly change direction on NW-SE', function () {
+      var from = new WalkontableCellCoords(2, 1);
+      var to = new WalkontableCellCoords(1, 2);
+      var range = new WalkontableCellRange(from, from, to);
+
+      expect(range.getDirection()).toBe('SW-NE');
+
+      range.setDirection('NW-SE');
+
+      expect(range.getDirection()).toBe('NW-SE');
+      expect(range.from.row).toBe(1);
+      expect(range.from.col).toBe(1);
+      expect(range.to.row).toBe(2);
+      expect(range.to.col).toBe(2);
+    });
+
+    it('should properly change direction on NE-SW', function () {
+      var from = new WalkontableCellCoords(2, 1);
+      var to = new WalkontableCellCoords(1, 2);
+      var range = new WalkontableCellRange(from, from, to);
+
+      expect(range.getDirection()).toBe('SW-NE');
+
+      range.setDirection('NE-SW');
+
+      expect(range.getDirection()).toBe('NE-SW');
+      expect(range.from.row).toBe(1);
+      expect(range.from.col).toBe(2);
+      expect(range.to.row).toBe(2);
+      expect(range.to.col).toBe(1);
+    });
+
+    it('should properly change direction on SE-NW', function () {
+      var from = new WalkontableCellCoords(1, 1);
+      var to = new WalkontableCellCoords(2, 2);
+      var range = new WalkontableCellRange(from, from, to);
+
+      expect(range.getDirection()).toBe('NW-SE');
+
+      range.setDirection('SE-NW');
+
+      expect(range.getDirection()).toBe('SE-NW');
+      expect(range.from.row).toBe(2);
+      expect(range.from.col).toBe(2);
+      expect(range.to.row).toBe(1);
+      expect(range.to.col).toBe(1);
+    });
+
+    it('should properly change direction on SW-NE', function () {
+      var from = new WalkontableCellCoords(1, 1);
+      var to = new WalkontableCellCoords(2, 2);
+      var range = new WalkontableCellRange(from, from, to);
+
+      expect(range.getDirection()).toBe('NW-SE');
+
+      range.setDirection('SW-NE');
+
+      expect(range.getDirection()).toBe('SW-NE');
+      expect(range.from.row).toBe(2);
+      expect(range.from.col).toBe(1);
+      expect(range.to.row).toBe(1);
+      expect(range.to.col).toBe(2);
+    });
+  })
 });
