@@ -3,7 +3,7 @@
 .idea
 _SpecRunner.html
 cars.sqlite
-dev.html
+dev*.html
 npm-debug.log
 
 !dist/README.md
