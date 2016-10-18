@@ -35,7 +35,11 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   var WRAPPER = clonableWRAPPER.cloneNode(true); //this is faster than createElement
   var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
 
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  if (cellProperties.allowHtml) {
+    getRenderer('html').apply(this, arguments);
+  } else {
+    getRenderer('text').apply(this, arguments);
+  }
 
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');

@@ -88,4 +88,19 @@ describe('String helper', function () {
       expect(padStart(2, 3, '00')).toBe('002');
     });
   });
+
+  //
+  // Handsontable.helper.stripTags
+  //
+  describe('stripTags', function() {
+    it("should strip any HTML tags from the string", function() {
+      var stripTags= Handsontable.helper.stripTags;
+
+      expect(stripTags('')).toBe('');
+      expect(stripTags('<i>foo</i>')).toBe('foo');
+      expect(stripTags('<script>alert()</script>')).toBe('alert()');
+      expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
+      expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
+    });
+  });
 });

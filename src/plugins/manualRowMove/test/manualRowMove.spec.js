@@ -111,7 +111,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     });
 
-    xit('should not change row order with updateSettings when `true` is passed', function () {
+    it('should not change row order with updateSettings when `true` is passed', function () {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
