@@ -127,6 +127,8 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
 
   // only rerender the selections (FillHandle should disappear when beginediting is triggered)
   this.instance.view.render();
+
+  this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {

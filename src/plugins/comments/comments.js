@@ -6,7 +6,10 @@ import {
   getWindowScrollTop,
   hasClass,
   offset,
-    } from './../../helpers/dom/element';
+} from './../../helpers/dom/element';
+import {
+  debounce
+} from './../../helpers/function';
 import {EventManager} from './../../eventManager';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {registerPlugin} from './../../plugins';
@@ -17,52 +20,58 @@ import {CommentEditor} from './commentEditor';
  * @plugin Comments
  *
  * @description
- * This plugin allows setting and managing cell comments by either an option in the context menu or with the use of the API.
- *
- * To enable the plugin, you'll need to set the comments property of the config object to `true`:
- * ```js
- * ...
- * comments: true
- * ...
- * ```
- *
- * OR by declaring it as an object with the plugin settings.
- * For example, to enable it with a pre-defined comment added to cell at (1,1), you'd need to set it up like this:
- * ```js
- * comments: {row: 1, col: 1, comment: "Test comment"}
- * ```
- *
- * @example
- *
- * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
- *   comments: true,
- *   cell: [
- *     {row: 1, col: 1, comment: 'Foo'},
- *     {row: 2, col: 2, comment: 'Bar'}
- *   ]
- * });
- * // Access to the Comments plugin instance:
- * var commentsPlugin = hot.getPlugin('comments');
- *
- * // Managing comments programmatically:
- * commentsPlugin.editor.setValue('Cell comment text');
- * commentsPlugin.showAtCell(1, 6);
- * commentsPlugin.saveCommentAtCell(1, 6);
- * commentsPlugin.removeCommentAtCell(1, 6);
- * ...
- * // You can also set range once and use proper methods:
- * commentsPlugin.setRange({row: 1, col: 6});
- * commentsPlugin.editor.setValue('Cell comment text');
- *
- * commentsPlugin.show();
- * commentsPlugin.saveComment();
- * commentsPlugin.removeComment();
- * ...
- * ```
+ * TODO: write new documentation
  */
+
+//* This plugin allows setting and managing cell comments by either an option in the context menu or with the use of the API.
+// *
+// * To enable the plugin, you'll need to set the comments property of the config object to `true`:
+// * ```js
+// * ...
+// * comments: true
+// * ...
+// * ```
+// *
+// * OR by declaring it as an object with the plugin settings.
+// * For example, to enable it with a pre-defined comment added to cell at (1,1), you'd need to set it up like this:
+// * ```js
+// * comments: {row: 1, col: 1, comment: "Test comment"}
+// * ```
+// *
+// * If you'd like to declare multiple pre-defined comments, just set up an array consisting of these objects.
+// *
+// * @example
+// *
+// * ```js
+// * ...
+// * var hot = new Handsontable(document.getElementById('example'), {
+// *   date: getData(),
+// *   comments: true,
+// *   cell: [
+// *     {row: 1, col: 1, comment: 'Foo'},
+// *     {row: 2, col: 2, comment: 'Bar'}
+// *   ]
+// * });
+// *
+// * // Access to the Comments plugin instance:
+// * var commentsPlugin = hot.getPlugin('comments');
+// *
+// * // Manage comments programmatically:
+// * commentsPlugin.editor.setValue('Cell comment text');
+// * commentsPlugin.showAtCell(1, 6);
+// * commentsPlugin.saveCommentAtCell(1, 6);
+// * commentsPlugin.removeCommentAtCell(1, 6);
+// *
+// * // You can also set range once and use proper methods:
+// * commentsPlugin.setRange({row: 1, col: 6});
+// * commentsPlugin.editor.setValue('Cell comment text');
+// *
+// * commentsPlugin.show();
+// * commentsPlugin.saveComment();
+// * commentsPlugin.removeComment();
+// * ...
+// * ```
+
 class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -100,6 +109,8 @@ class Comments extends BasePlugin {
      * @type {*}
      */
     this.timer = null;
+    // TODO: docs
+    this.displayDelay = 250;
   }
 
   /**
@@ -108,7 +119,7 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().comments;
+    return !!this.hot.getSettings().comments;
   }
 
   /**
@@ -118,19 +129,26 @@ class Comments extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
     if (!this.editor) {
       this.editor = new CommentEditor();
     }
+
     if (!this.eventManager) {
       this.eventManager = new EventManager(this);
     }
+
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.refreshEditorPosition());
     this.addHook('afterScrollVertically', () => this.refreshEditorPosition());
     this.addHook('afterColumnResize', () => this.refreshEditorPosition());
     this.addHook('afterRowResize', () => this.refreshEditorPosition());
+
+    this.addHook('afterBeginEditing', (args) => this.onAfterBeginEditing(args));
+
     this.registerListeners();
+
     super.enablePlugin();
   }
 
@@ -165,14 +183,14 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Clear current selected cell.
+   * Clear the currently selected cell.
    */
   clearRange() {
     this.range = {};
   }
 
   /**
-   * Check if event target is a cell containing a comment.
+   * Check if the event target is a cell containing a comment.
    *
    * @param {Event} event DOM event
    * @returns {Boolean}
@@ -182,7 +200,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if event target is a comment textarea.
+   * Check if the event target is a comment textarea.
    *
    * @param {Event} event DOM event.
    * @returns {Boolean}
@@ -192,7 +210,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Save comment for cell according to previously set range (see {@link Comments#setRange}).
+   * Save a comment for a cell according to the previously set range (see {@link Comments#setRange}).
    */
   saveComment() {
     if (!this.range.from) {
@@ -207,7 +225,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Save comment for cell.
+   * Save a comment for a cell.
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
@@ -220,7 +238,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Remove comment for cell according to previously set range (see {@link Comments#setRange}).
+   * Remove a comment from a cell according to previously set range (see {@link Comments#setRange}).
    */
   removeComment() {
     if (!this.range.from) {
@@ -245,9 +263,9 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Show comment editor according to previously set range (see {@link Comments#setRange}).
+   * Show the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
-   * @returns {Boolean} Returns `true` if comment editor was showed.
+   * @returns {Boolean} Returns `true` if comment editor was shown.
    */
   show() {
     if (!this.range.from) {
@@ -257,7 +275,10 @@ class Comments extends BasePlugin {
 
     this.refreshEditorPosition(true);
     this.editor.setValue(meta.comment || '');
-    this.editor.show();
+
+    if (this.editor.hidden) {
+      this.editor.show();
+    }
 
     return true;
   }
@@ -281,7 +302,9 @@ class Comments extends BasePlugin {
    * Hide all comments input editors.
    */
   hide() {
-    this.editor.hide();
+    if (!this.editor.hidden) {
+      this.editor.hide();
+    }
   }
 
   /**
@@ -346,29 +369,6 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Mouse over DOM listener.
-   *
-   * @private
-   * @param {Event} event Mouse event.
-   */
-  onMouseOver(event) {
-    if (this.mouseDown || this.editor.isFocused()) {
-      return;
-    }
-    if (this.targetIsCellWithComment(event)) {
-      let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-      let range = {
-        from: new WalkontableCellCoords(coordinates.row, coordinates.col)
-      };
-      this.setRange(range);
-      this.show();
-
-    } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-      this.hide();
-    }
-  }
-
-  /**
    * Mouse move DOM listener.
    *
    * @private
@@ -385,6 +385,33 @@ class Comments extends BasePlugin {
         this.mouseDown = false;
       }, 200);
     }
+  }
+
+  /**
+   * Mouse over DOM listener.
+   *
+   * @private
+   * @param {Event} event Mouse event.
+   */
+  onMouseOver(event) {
+    if (this.mouseDown || this.editor.isFocused()) {
+      return;
+    }
+
+    debounce(() => {
+      if (this.targetIsCellWithComment(event)) {
+        let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
+        let range = {
+          from: new WalkontableCellCoords(coordinates.row, coordinates.col)
+        };
+
+        this.setRange(range);
+        this.show();
+
+      } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
+        this.hide();
+      }
+    }, this.displayDelay)();
   }
 
   /**
@@ -505,6 +532,11 @@ class Comments extends BasePlugin {
         }
       }
     );
+  }
+
+  //TODO: docs
+  onAfterBeginEditing(row, col) {
+    this.hide();
   }
 
   /**

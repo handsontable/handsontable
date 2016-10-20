@@ -1,4 +1,3 @@
-
 import {addClass} from './../../helpers/dom/element';
 
 /**
@@ -11,12 +10,15 @@ class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {
     return 'htCommentsContainer';
   }
+
   static get CLASS_EDITOR() {
     return 'htComments';
   }
+
   static get CLASS_INPUT() {
     return 'htCommentTextArea';
   }
+
   static get CLASS_CELL() {
     return 'htCommentCell';
   }
@@ -27,6 +29,9 @@ class CommentEditor {
     this.editorStyle.position = 'absolute';
     // above cell editor
     this.editorStyle.zIndex = 100;
+
+    this.hidden = true;
+
     this.hide();
   }
 
@@ -46,6 +51,7 @@ class CommentEditor {
    */
   show() {
     this.editorStyle.display = 'block';
+    this.hidden = false;
   }
 
   /**
@@ -53,6 +59,7 @@ class CommentEditor {
    */
   hide() {
     this.editorStyle.display = 'none';
+    this.hidden = true;
   }
 
   /**
