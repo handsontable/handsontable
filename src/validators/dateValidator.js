@@ -19,7 +19,7 @@ Handsontable.DateValidator = function(value, callback) {
   if (value == null) {
     value = '';
   }
-  let isValidDate = moment(new Date(value)).isValid();
+  let isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
   // is it in the specified format
   let isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
@@ -56,19 +56,18 @@ Handsontable.DateValidator = function(value, callback) {
  * @returns {String}
  */
 let correctFormat = function correctFormat(value, dateFormat) {
-  let date = moment(getNormalizedDate(value));
-  let year = date.format('YYYY');
-  let yearNow = moment().format('YYYY');
+  let dateFromDate = moment(getNormalizedDate(value));
+  let dateFromMoment = moment(value, dateFormat);
+  let isAlphanumeric = value.search(/[A-z]/g) > -1;
+  let date;
 
-  // Firefox and IE counting 2-digits year from 1900 rest from current age.
-  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
-    if (!value.match(new RegExp(year))) {
-      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
-    }
+  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
+      !dateFromMoment.isValid() ||
+      isAlphanumeric) {
+    date = dateFromDate;
 
-  } else if (year.length > 4) {
-    // Ugly fix for moment bug which can not format 5-digits year using YYYY
-    date.year((date.year() + '').substr(0, 4));
+  } else {
+    date = dateFromMoment;
   }
 
   return date.format(dateFormat);

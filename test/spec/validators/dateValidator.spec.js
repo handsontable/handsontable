@@ -324,6 +324,30 @@ describe('dateValidator', function () {
       }, 130);
     });
 
+    it("should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)", function (done) {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'date', type: 'date', dateFormat: "DD.MM.YYYY", correctFormat: true},
+          {data: 'lastName'}
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      setDataAtCell(1, 0, '5.3.2016');
+
+      setTimeout(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date', undefined, undefined);
+      }, 100);
+
+      setTimeout(function () {
+        expect(getDataAtCell(1, 0)).toEqual("05.03.2016");
+        done();
+      }, 130);
+    });
+
     it("should not try to correct format of non-date strings", function (done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
