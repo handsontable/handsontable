@@ -151,6 +151,60 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(true);
   });
 
+  it("should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)", function () {
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(function(opt) {
+      return "<option value='" + opt + "'>" + opt + "</option>"
+    }).join('');
+    var called = false;
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = '#' + col + '<select>' + opt + '</select>'
+      }],
+      onCellMouseDown: function (event, coords, TD) {
+        called = true
+      }
+    });
+    wt.draw();
+
+    var select = $table.find('th:first select');
+
+    select.focus();
+    select.simulate('mousedown');
+
+    expect(called).toBe(false);
+  });
+
+  it("should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)", function () {
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(function(opt) {
+      return "<option value='" + opt + "'>" + opt + "</option>"
+    }).join('');
+    var called = false;
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer: function (row, column, TD) {
+        TD.innerHTML = '<select>' + opt + '</select>';
+      },
+      onCellMouseDown: function (event, coords, TD) {
+        called = true
+      }
+    });
+    wt.draw();
+
+    var select = $table.find('td:first select');
+
+    select.focus();
+    select.simulate('mousedown');
+
+    expect(called).toBe(false);
+  });
+
   it("should call `onCellMouseOver` callback when clicked on TH", function () {
     var called
       , wt = new Walkontable({
