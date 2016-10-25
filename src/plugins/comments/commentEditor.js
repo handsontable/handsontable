@@ -46,6 +46,24 @@ class CommentEditor {
     this.editorStyle.top = y + 'px';
   }
 
+  //TODO: docs
+  setSize(width, height) {
+    if (width && height) {
+      const input = this.getInputElement();
+
+      input.style.width = width + 'px';
+      input.style.height = height + 'px';
+    }
+  }
+
+  //TODO: docs
+  resetSize() {
+    const input = this.getInputElement();
+
+    input.style.width = '';
+    input.style.height = '';
+  }
+
   /**
    * Show comments editor
    */

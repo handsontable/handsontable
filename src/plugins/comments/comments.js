@@ -6,6 +6,8 @@ import {
   getWindowScrollTop,
   hasClass,
   offset,
+  outerWidth,
+  outerHeight
 } from './../../helpers/dom/element';
 import {
   debounce
@@ -72,6 +74,8 @@ import {CommentEditor} from './commentEditor';
 // * ...
 // * ```
 
+const privatePool = new WeakMap();
+
 class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -111,6 +115,10 @@ class Comments extends BasePlugin {
     this.timer = null;
     // TODO: docs
     this.displayDelay = 250;
+
+    privatePool.set(this, {
+      tempEditorDimensions: {}
+    });
   }
 
   /**
@@ -140,10 +148,8 @@ class Comments extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
-    this.addHook('afterScrollHorizontally', () => this.refreshEditorPosition());
-    this.addHook('afterScrollVertically', () => this.refreshEditorPosition());
-    this.addHook('afterColumnResize', () => this.refreshEditorPosition());
-    this.addHook('afterRowResize', () => this.refreshEditorPosition());
+    this.addHook('afterScrollHorizontally', () => this.hide());
+    this.addHook('afterScrollVertically', () => this.hide());
 
     this.addHook('afterBeginEditing', (args) => this.onAfterBeginEditing(args));
 
@@ -167,9 +173,10 @@ class Comments extends BasePlugin {
   registerListeners() {
     this.eventManager.addEventListener(document, 'mouseover', (event) => this.onMouseOver(event));
     this.eventManager.addEventListener(document, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mousemove', (event) => this.onMouseMove(event));
     this.eventManager.addEventListener(document, 'mouseup', (event) => this.onMouseUp(event));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (event) => this.onEditorBlur(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (event) => this.onEditorMouseDown(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (event) => this.onEditorMouseUp(event));
   }
 
   /**
@@ -196,7 +203,9 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   targetIsCellWithComment(event) {
-    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
+    const closestCell = closest(event.target, 'TD', 'TBODY');
+
+    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
   }
 
   /**
@@ -318,7 +327,9 @@ class Comments extends BasePlugin {
     }
     let TD = this.hot.view.wt.wtTable.getCell(this.range.from);
     let cellOffset = offset(TD);
-    let lastColWidth = this.hot.getColWidth(this.range.from.col);
+    let row = this.range.from.row;
+    let column = this.range.from.col;
+    let lastColWidth = this.hot.getColWidth(column);
     let cellTopOffset = cellOffset.top;
     let cellLeftOffset = cellOffset.left;
     let verticalCompensation = 0;
@@ -346,6 +357,14 @@ class Comments extends BasePlugin {
     if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
       this.hide();
     } else {
+      const commentStyle = this.hot.getCellMeta(row, column).commentStyle;
+
+      if (commentStyle) {
+        this.editor.setSize(commentStyle.width, commentStyle.height);
+      } else {
+        this.editor.resetSize();
+      }
+
       this.editor.setPosition(x, y);
     }
   }
@@ -366,25 +385,6 @@ class Comments extends BasePlugin {
       this.hide();
     }
     this.contextMenuEvent = false;
-  }
-
-  /**
-   * Mouse move DOM listener.
-   *
-   * @private
-   * @param {Event} event Mouse Event.
-   */
-  onMouseMove(event) {
-    // Fix for Chrome issues about not firing mousedown events on textarea corner handler
-    // https://code.google.com/p/chromium/issues/detail?id=453023
-    if (this.targetIsCommentTextArea(event)) {
-      this.mouseDown = true;
-
-      clearTimeout(this.timer);
-      this.timer = setTimeout(() => {
-        this.mouseDown = false;
-      }, 200);
-    }
   }
 
   /**
@@ -445,6 +445,30 @@ class Comments extends BasePlugin {
    */
   onEditorBlur(event) {
     this.saveComment();
+  }
+
+  //TODO: docs
+  onEditorMouseDown(event) {
+    const priv = privatePool.get(this);
+
+    priv.tempEditorDimensions = {
+      width: outerWidth(event.target),
+      height: outerHeight(event.target)
+    };
+  }
+
+  //TODO: docs
+  onEditorMouseUp(event) {
+    const priv = privatePool.get(this);
+    const currentWidth = outerWidth(event.target);
+    const currentHeight = outerHeight(event.target);
+
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+      this.hot.setCellMeta(this.range.from.row, this.range.from.col, 'commentStyle', {
+        width: currentWidth,
+        height: currentHeight
+      });
+    }
   }
 
   /**
