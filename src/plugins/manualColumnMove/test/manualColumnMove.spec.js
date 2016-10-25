@@ -275,8 +275,6 @@ describe('manualColumnMove', function () {
         colWidths: 47
       });
 
-      var ev = {};
-
       hot.selectCell(0, 19);
 
       setTimeout(function () {
@@ -287,13 +285,13 @@ describe('manualColumnMove', function () {
         $rowsHeaders.eq(2).simulate('mousedown');
         $rowsHeaders.eq(2).simulate('mouseup');
         $rowsHeaders.eq(2).simulate('mousedown');
-        $rowsHeaders.eq(0).simulate('mouseover');
-        $rowsHeaders.eq(0).simulate('mousemove');
-        $rowsHeaders.eq(0).simulate('mouseup');
+        $rowsHeaders.eq(1).simulate('mouseover');
+        $rowsHeaders.eq(1).simulate('mousemove');
+        $rowsHeaders.eq(1).simulate('mouseup');
       }, 50);
 
       setTimeout(function () {
-        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeLessThan(8);
+        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeLessThan(9);
         done();
       }, 150);
     });

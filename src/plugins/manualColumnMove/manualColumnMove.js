@@ -43,6 +43,8 @@ class ManualColumnMove extends BasePlugin {
      */
     privatePool.set(this, {
       columnsToMove: [],
+      countCols: 0,
+      fixedColumns: 0,
       pressed: void 0,
       disallowMoving: void 0,
       target: {
@@ -102,30 +104,6 @@ class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    let countCols = this.hot.countCols();
-    let columnsMapperLen = this.columnsMapper._arrayMap.length;
-
-    if (columnsMapperLen === 0) {
-      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
-
-    } else if (columnsMapperLen < countCols) {
-      let diff = countCols - columnsMapperLen;
-
-      this.columnsMapper.insertItems(columnsMapperLen, diff);
-
-    } else if (columnsMapperLen > countCols) {
-      let maxIndex = countCols - 1;
-      let columnsToRemove = [];
-
-      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
-        if (value > maxIndex) {
-          columnsToRemove.push(index);
-        }
-      });
-
-      this.columnsMapper.removeItems(columnsToRemove);
-    }
-
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
@@ -135,9 +113,6 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
 
-    this.initialSettings();
-    this.backlight.build();
-    this.guideline.build();
     this.registerEvents();
 
     // TODO: move adding plugin classname to BasePlugin.
@@ -152,6 +127,8 @@ class ManualColumnMove extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+
+    this.onAfterPluginsInitialized();
 
     super.updatePlugin();
   }
@@ -247,7 +224,7 @@ class ManualColumnMove extends BasePlugin {
     let width = 0;
 
     for (let i = from; i < to; i++) {
-      let columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i);
+      let columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
 
       width += columnWidth;
     }
@@ -315,17 +292,8 @@ class ManualColumnMove extends BasePlugin {
    * @private
    * @returns {Array}
    */
-  prepareColumnsToMoving() {
-    let selection = this.hot.getSelectedRange();
+  prepareColumnsToMoving(start, end) {
     let selectedColumns = [];
-
-    if (!selection) {
-      return selectedColumns;
-    }
-
-    let {from, to} = selection;
-    let start = Math.min(from.col, to.col);
-    let end = Math.max(from.col, to.col);
 
     rangeEach(start, end, (i) => {
       selectedColumns.push(i);
@@ -341,57 +309,63 @@ class ManualColumnMove extends BasePlugin {
    */
   refreshPositions() {
     let priv = privatePool.get(this);
-    let coords = priv.target.coords;
     let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
     let lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
-    let fixedColumns = this.hot.getSettings().fixedColumnsLeft;
-    let countCols = this.hot.countCols();
-
-    if (coords.col < fixedColumns && firstVisible > 0) {
-      this.hot.scrollViewportTo(undefined, firstVisible - 1);
-    }
-
-    if (coords.col >= lastVisible && lastVisible < countCols) {
-      this.hot.scrollViewportTo(undefined, lastVisible + 1, undefined, true);
-    }
-
-    let isRowHeader = !!this.hot.getSettings().rowHeaders;
     let wtTable = this.hot.view.wt.wtTable;
-    let TD = priv.target.TD;
-    let rootElementOffset = offset(this.hot.rootElement);
-    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, coords.col);
-    let mouseOffsetLeft = priv.target.eventPageX - rootElementOffset.left + wtTable.holder.scrollLeft;
+    let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    let scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
+    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
+    let mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset + (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
     let hiderWidth = wtTable.hider.offsetWidth;
     let tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     let backlightElemMarginLeft = this.backlight.getOffset().left;
     let backlightElemWidth = this.backlight.getSize().width;
     let rowHeaderWidth = 0;
 
-    if ((rootElementOffset.left + wtTable.holder.offsetWidth) < priv.target.eventPageX) {
-      priv.target.coords.col++;
+    if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
+      if (priv.coordsColumn < priv.countCols) {
+        priv.coordsColumn++;
+      }
     }
 
-    if (isRowHeader) {
+    if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
-    if (this.isFixedColumnsLeft(coords.col)) {
-      tdOffsetLeft += wtTable.holder.scrollLeft;
+    if (this.isFixedColumnsLeft(priv.coordsColumn)) {
+      tdOffsetLeft += scrollLeft;
     }
     tdOffsetLeft += rowHeaderWidth;
 
-    if (coords.col < 0) {
+    if (priv.coordsColumn < 0) {
       // if hover on rowHeader
-      priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      if (priv.fixedColumns > 0) {
+        priv.target.col = 0;
+      } else {
+        priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      }
 
-    } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
+    } else if (priv.target.TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
+      let newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
       // if hover on right part of TD
-      priv.target.col = coords.col + 1;
+      priv.target.col = newCoordsCol + 1;
       // unfortunately first column is bigger than rest
-      tdOffsetLeft += TD.offsetWidth;
+      tdOffsetLeft += priv.target.TD.offsetWidth;
+
+      if (priv.target.col > lastVisible) {
+        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
+      }
 
     } else {
       // elsewhere on table
-      priv.target.col = coords.col;
+      priv.target.col = priv.coordsColumn;
+
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+        this.hot.scrollViewportTo(void 0, firstVisible - 1);
+      }
+    }
+
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
     let backlightLeft = mouseOffsetLeft;
@@ -413,15 +387,9 @@ class ManualColumnMove extends BasePlugin {
     } else if (guidelineLeft === 0) {
       // guideline has got `margin-left: -1px` as default
       guidelineLeft = 1;
-    }
 
-    let leftOverlayWidth = rowHeaderWidth;
-    if (this.hot.view.wt.wtOverlays.leftOverlay) {
-      leftOverlayWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.TABLE.offsetWidth;
-    }
-
-    if (coords.col >= fixedColumns && (guidelineLeft - wtTable.holder.scrollLeft) < leftOverlayWidth) {
-      this.hot.scrollViewportTo(null, coords.col);
+    } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
+      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
     this.backlight.setPosition(null, backlightLeft);
@@ -485,19 +453,29 @@ class ManualColumnMove extends BasePlugin {
       blockCalculations.column = true;
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
-      priv.target.coords = coords;
+      priv.coordsColumn = coords.col;
       priv.target.TD = TD;
-      priv.columnsToMove = this.prepareColumnsToMoving();
+      priv.target.col = coords.col;
+      priv.columnsToMove = this.prepareColumnsToMoving(start, end);
+      priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
+      priv.countCols = this.hot.countCols();
+      priv.fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+      priv.rootElementOffset = offset(this.hot.rootElement).left;
 
+      let countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       let topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+      let fixedColumns = coords.col < priv.fixedColumns;
+      let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+      let wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - offset(this.hot.rootElement).left : 0;
 
-      this.backlight.setPosition(topPos);
+      let mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+      let leftOffset = this.getColumnsWidth(start, coords.col) + mouseOffset;
+
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
       this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, (this.getColumnsWidth(start, coords.col) + event.layerX) * -1);
+      this.backlight.setOffset(null, leftOffset * -1);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
-
-      this.refreshPositions();
 
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
@@ -560,7 +538,7 @@ class ManualColumnMove extends BasePlugin {
     blockCalculations.row = true;
     blockCalculations.column = true;
     blockCalculations.cell = true;
-    priv.target.coords = coords;
+    priv.coordsColumn = coords.col;
     priv.target.TD = TD;
   }
 
@@ -571,6 +549,8 @@ class ManualColumnMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+
+    priv.coordsColumn = void 0;
     priv.pressed = false;
     priv.backlightWidth = 0;
 
@@ -579,15 +559,14 @@ class ManualColumnMove extends BasePlugin {
     if (this.hot.selection.selectedHeader.cols) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
-    if (priv.columnsToMove.length < 1) {
+    if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {
       return;
     }
 
-    let target = priv.target.col;
-
-    this.moveColumns(priv.columnsToMove, target);
+    this.moveColumns(priv.columnsToMove, priv.target.col);
     this.persistentStateSave();
     this.hot.render();
+    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
     if (!priv.disallowMoving) {
       let selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
@@ -682,6 +661,41 @@ class ManualColumnMove extends BasePlugin {
     column = indexInMapper === null ? column : indexInMapper;
 
     return column;
+  }
+
+  /**
+   * `afterPluginsInitialized` hook callback.
+   *
+   * @private
+   */
+  onAfterPluginsInitialized() {
+    let countCols = this.hot.countCols();
+    let columnsMapperLen = this.columnsMapper._arrayMap.length;
+
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+
+    } else if (columnsMapperLen < countCols) {
+      let diff = countCols - columnsMapperLen;
+
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+
+    } else if (columnsMapperLen > countCols) {
+      let maxIndex = countCols - 1;
+      let columnsToRemove = [];
+
+      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      });
+
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
+
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
   }
 
   /**
