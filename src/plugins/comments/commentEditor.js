@@ -26,9 +26,6 @@ class CommentEditor {
   constructor() {
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
-    this.editorStyle.position = 'absolute';
-    // above cell editor
-    this.editorStyle.zIndex = 100;
 
     this.hidden = true;
 

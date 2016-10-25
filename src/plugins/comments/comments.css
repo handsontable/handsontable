@@ -13,6 +13,8 @@
 
 .htComments {
     display: none;
+    z-index: 9999;
+    position: absolute;
 }
 
 .htCommentTextArea {
