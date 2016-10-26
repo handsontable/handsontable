@@ -273,7 +273,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    it('should properly scrolling viewport if mouse is over part-visible cell', function () {
+    it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         colHeaders: true,
@@ -288,12 +288,10 @@ describe('manualRowMove', function () {
 
       hot.selectCell(19, 0);
 
-      waits(50);
-
-      runs(function() {
+      setTimeout(function () {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
-        var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+        var $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
 
         $rowsHeaders.eq(10).simulate('mousedown');
         $rowsHeaders.eq(10).simulate('mouseup');
@@ -301,13 +299,12 @@ describe('manualRowMove', function () {
         $rowsHeaders.eq(8).simulate('mouseover');
         $rowsHeaders.eq(8).simulate('mousemove');
         $rowsHeaders.eq(8).simulate('mouseup');
-      });
+      }, 50);
 
-      waits(100);
-
-      runs(function() {
+      setTimeout(function () {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
-      });
+        done();
+      }, 150);
     });
 
     it("moving row should keep cell meta created using cells function", function () {
