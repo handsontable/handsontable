@@ -977,14 +977,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             } else {
               numbro.culture(cellProperties.language);
             }
+
             const {delimiters} = numbro.cultureData(numbro.culture());
 
-            // add leading zero for numbers without it (for numbro validation) - https://github.com/foretagsplatsen/numbro/pull/182
-            if (new RegExp('^\\' + delimiters.decimal + '[0-9]+$').test(changes[i][3] + '')) {
-              changes[i][3] = '0' + changes[i][3];
-            }
             // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) || !isNaN(parseFloat(changes[i][3]))) {
+            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
+              changes[i][3] = parseFloat(changes[i][3]);
+
+            } else {
               changes[i][3] = numbro().unformat(changes[i][3]);
             }
           }
@@ -1037,13 +1037,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
-    var i = changes.length - 1;
+    let i = changes.length - 1;
 
     if (i < 0) {
       return;
     }
 
     for (; 0 <= i; i--) {
+      let skipThisChange = false;
+
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -1055,8 +1057,17 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          datamap.createRow();
+          let numberOfCreatedRows = datamap.createRow();
+
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
         }
+      }
+
+      if (skipThisChange) {
+        continue;
       }
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
@@ -1392,29 +1403,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
-        // when data is not an array, attempt to make a single-row array of it
-        data = [data];
-      }
-    } else if (data === null) {
-      data = [];
-      var row;
-      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        data.push(row);
-      }
-    } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
-    }
-
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-
-    if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
+    if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
@@ -1426,6 +1415,52 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.destroy();
     }
     datamap = new DataMap(instance, priv, GridSettings);
+
+    if (typeof data === 'object' && data !== null) {
+      if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
+        // when data is not an array, attempt to make a single-row array of it
+        data = [data];
+      }
+
+    } else if (data === null) {
+      data = [];
+      var row;
+      var r = 0;
+      var rlen = 0;
+      var dataSchema = datamap.getSchema();
+
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = deepClone(dataSchema);
+          data.push(row);
+
+        } else if (instance.dataType === 'array') {
+          row = deepClone(dataSchema[0]);
+          data.push(row);
+
+        } else {
+          row = [];
+
+          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+
+          data.push(row);
+        }
+      }
+
+    } else {
+      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
+    }
+
+    priv.isPopulated = false;
+    GridSettings.prototype.data = data;
+
+    if (Array.isArray(data[0])) {
+      instance.dataType = 'array';
+    }
+
+    datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
@@ -2948,11 +2983,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @since 0.24.3
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {Number|null} row Row index.
-   * @param {Number|null} column Column index.
+   * @param {Number} [row] Row index.
+   * @param {Number} [column] Column index.
+   * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column) {
+  this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
     if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
@@ -2963,18 +3000,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
 
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
 
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
 
       result = true;
     }
