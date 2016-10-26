@@ -172,8 +172,7 @@ describe('TextEditor', function() {
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true
-      }),
-      editorHeight;
+      });
 
     setDataAtCell(2, 2, "string\nstring\nstring");
     selectCell(2, 2);
@@ -183,8 +182,7 @@ describe('TextEditor', function() {
     hot.scrollViewportTo(49);
 
     setTimeout(function() {
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-961, 3);
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBe(149);
+      expect(hot.getActiveEditor().textareaParentStyle.display).toBe('none');
       done();
     }, 100);
   });

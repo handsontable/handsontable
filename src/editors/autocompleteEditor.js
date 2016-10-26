@@ -1,6 +1,7 @@
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
-import {pivot} from './../helpers/array';
+import {stripTags} from './../helpers/string';
+import {pivot, arrayFilter, arrayMap} from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -84,20 +85,22 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer: function(TD, row, col, prop, value) {
-      let caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+    afterRenderer: function(TD, row, col, prop, value, cellProperties) {
+      let {filteringCaseSensitive, allowHtml} = _this.cellProperties;
       let indexOfMatch;
       let match;
+
       value = stringify(value);
 
-      if (value) {
-        indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+      if (value && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
 
-        if (indexOfMatch != -1) {
+        if (indexOfMatch !== -1) {
           match = value.substr(indexOfMatch, _this.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          value = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+      TD.innerHTML = value;
     },
     autoColumnSize: true,
     modifyColWidth: function(width, col) {
@@ -130,42 +133,20 @@ AutocompleteEditor.prototype.close = function() {
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
 
-  const source = this.cellProperties.source;
-  const hasFilter = this.cellProperties.filter;
-  const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  const {source, filter, filteringCaseSensitive, allowHtml} = this.cellProperties;
+  const stripTagsEach = (choices) => arrayMap(choices, (choice) => stripTags(choice));
 
   if (typeof source == 'function') {
-    var _this = this;
-
-    source.call(this.cellProperties, query, function(choices) {
-      _this.updateChoicesList(choices);
+    source.call(this.cellProperties, query, (choices) => {
+      this.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
     });
 
   } else if (Array.isArray(source)) {
-    let choices;
-
-    if (!query || hasFilter === false) {
-      choices = source;
-    } else {
-      let lowerCaseQuery = query.toLowerCase();
-
-      choices = source.filter(function(choice) {
-
-        if (filteringCaseSensitive) {
-          return choice.toString().indexOf(query) != -1;
-        } else {
-          return choice.toString().toLowerCase().indexOf(lowerCaseQuery) != -1;
-        }
-
-      });
-    }
-
-    this.updateChoicesList(choices);
+    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
 
   } else {
     this.updateChoicesList([]);
   }
-
 };
 
 AutocompleteEditor.prototype.updateChoicesList = function(choices) {
@@ -180,18 +161,20 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   }
+  let orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
   if (filterSetting === false) {
-    if (orderByRelevance) {
+    if (orderByRelevanceLength) {
       highlightIndex = orderByRelevance[0];
-    } else {
-      highlightIndex = 0;
     }
   } else {
     let sorted = [];
 
     for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-      if (orderByRelevance) {
+      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+        break;
+      }
+      if (orderByRelevanceLength) {
         sorted.push(choices[orderByRelevance[i]]);
       } else {
         sorted.push(choices[i]);
@@ -351,7 +334,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   }
 
   for (i = 0; i < choicesCount; i++) {
-    currentItem = stringify(choices[i]);
+    currentItem = stripTags(stringify(choices[i]));
 
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);

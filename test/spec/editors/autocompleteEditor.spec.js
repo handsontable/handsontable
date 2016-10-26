@@ -13,7 +13,7 @@ describe('AutocompleteEditor', function() {
     if (hot) {
       hot = null;
     }
-
+  
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -1730,6 +1730,252 @@ describe('AutocompleteEditor', function() {
     }, 200);
   });
 
+  describe("allow html mode", function() {
+    it('should allow inject html items (async mode)', function(done) {
+      hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: function (query, cb) {
+              cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
+            },
+            allowHtml: true,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      setTimeout(function () {
+        editorInput.val("b");
+        keyDownUp('b'.charCodeAt(0));
+      }, 200);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>'],
+          ['<strong>baz</strong>'],
+        ]);
+
+        editorInput.val("bar");
+        keyDownUp('a'.charCodeAt(0));
+        keyDownUp('r'.charCodeAt(0));
+      }, 400);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>']
+        ]);
+
+        keyDownUp('arrow_down');
+        keyDownUp('enter');
+      }, 600);
+
+      setTimeout(function () {
+        expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
+        done();
+      }, 700);
+    });
+
+    it('should allow inject html items (sync mode)', function(done) {
+      hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      setTimeout(function () {
+        editorInput.val("b");
+        keyDownUp('b'.charCodeAt(0));
+      }, 200);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>'],
+          ['<strong>baz</strong>'],
+        ]);
+
+        editorInput.val("bar");
+        keyDownUp('a'.charCodeAt(0));
+        keyDownUp('r'.charCodeAt(0));
+      }, 400);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>']
+        ]);
+
+        keyDownUp('arrow_down');
+        keyDownUp('enter');
+      }, 600);
+
+      setTimeout(function () {
+        expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
+        done();
+      }, 700);
+    });
+  });
+
+  describe("disallow html mode", function() {
+    it('should be disabled by default', function() {
+      hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: function (query, cb) {
+              cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
+            },
+            allowHtml: false,
+          }
+        ]
+      });
+
+      expect(hot.getCellMeta(0, 0).allowHtml).toBeFalsy();
+    });
+
+    it('should strip html from strings provided in source (async mode)', function(done) {
+      hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: function (query, cb) {
+              cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
+            },
+            allowHtml: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      setTimeout(function () {
+        editorInput.val("b");
+        keyDownUp('b'.charCodeAt(0));
+      }, 200);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['bar'],
+          ['baz'],
+        ]);
+
+        editorInput.val("bar");
+        keyDownUp('a'.charCodeAt(0));
+        keyDownUp('r'.charCodeAt(0));
+      }, 400);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['bar']
+        ]);
+
+        keyDownUp('arrow_down');
+        keyDownUp('enter');
+      }, 600);
+
+      setTimeout(function () {
+        expect(getCell(0, 0).querySelector('i')).toBeNull()
+        expect(getCell(0, 0).textContent).toMatch('bar');
+        done();
+      }, 700);
+    });
+
+    it('should strip html from strings provided in source (sync mode)', function(done) {
+      hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
+            allowHtml: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      setTimeout(function () {
+        editorInput.val("b");
+        keyDownUp('b'.charCodeAt(0));
+      }, 200);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['bar'],
+          ['baz'],
+        ]);
+
+        editorInput.val("bar");
+        keyDownUp('a'.charCodeAt(0));
+        keyDownUp('r'.charCodeAt(0));
+      }, 400);
+
+      setTimeout(function () {
+        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var innerHot = ac.htEditor;
+
+        expect(innerHot.getData()).toEqual([
+          ['bar']
+        ]);
+
+        keyDownUp('arrow_down');
+        keyDownUp('enter');
+      }, 600);
+
+      setTimeout(function () {
+        expect(getCell(0, 0).querySelector('i')).toBeNull()
+        expect(getCell(0, 0).textContent).toMatch('bar');
+        done();
+      }, 700);
+    });
+  });
+
   describe("Autocomplete helper functions:", function() {
     describe("sortByRelevance", function() {
       it("should sort the provided array, so items more relevant to the provided value are listed first", function() {
@@ -1780,14 +2026,17 @@ describe('AutocompleteEditor', function() {
     selectCell(0, 0);
     keyDownUp('enter');
     var $editorInput = $('.handsontableInput');
-    $editorInput.val("a");
-    keyDownUp(65); //a
+    $editorInput.val('a');
+    keyDownUp('a'.charCodeAt(0));
     Handsontable.Dom.setCaretPosition($editorInput[0], 1);
 
     setTimeout(function () {
       var dropdownList = $('.autocompleteEditor tbody').first();
+      var listLength = dropdownList.find('tr').size();
 
-      for(var i = 1; i <= dropdownList.find('tr').size(); i++) {
+      expect(listLength).toBe(9);
+
+      for (var i = 1; i <= listLength; i++) {
         expect(dropdownList.find('tr:nth-child(' + i + ') td').text()).toEqual(choices[i - 1]);
       }
       done();
