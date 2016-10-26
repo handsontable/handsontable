@@ -45,4 +45,40 @@ describe('DomElement helper', function () {
       expect(closestDown(wrapper2, ['TD'], wrapper2.firstChild)).toBe(null);
     });
   });
+
+  //
+  // Handsontable.helper.getParent
+  //
+  describe('getParent', function () {
+    var element = null;
+
+    beforeEach(function () {
+      element = document.createElement('div');
+      element.innerHTML = '<div id="a1"><ul id="a2"></ul><ul id="b2"><li id="a3"><span id="a4">HELLO</span></li></ul></div>';
+    });
+
+    afterEach(function () {
+      element = null;
+    });
+
+    it("should return the node parent only from the one level deep", function () {
+      var getParent = Handsontable.dom.getParent;
+
+      expect(getParent(element.querySelector('#a4'))).toBe(element.querySelector('#a3'));
+      expect(getParent(element.querySelector('#a1'))).toBe(element);
+    });
+
+    it("should return the node parent from the defined level deep", function () {
+      var getParent = Handsontable.dom.getParent;
+
+      expect(getParent(element.querySelector('#a4'), 0)).toBe(element.querySelector('#a3'));
+      expect(getParent(element.querySelector('#a4'), 1)).toBe(element.querySelector('#b2'));
+      expect(getParent(element.querySelector('#a4'), 2)).toBe(element.querySelector('#a1'));
+      expect(getParent(element.querySelector('#a4'), 3)).toBe(element);
+      expect(getParent(element.querySelector('#a4'), 4)).toBe(null);
+      expect(getParent(element.querySelector('#a4'), 5)).toBe(null);
+      expect(getParent(element.querySelector('#a2'), 0)).toBe(element.querySelector('#a1'));
+      expect(getParent(element.querySelector('#a2'), 1)).toBe(element);
+    });
+  });
 });
