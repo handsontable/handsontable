@@ -224,7 +224,13 @@ class ManualColumnMove extends BasePlugin {
     let width = 0;
 
     for (let i = from; i < to; i++) {
-      let columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      let columnWidth = 0;
+
+      if (i < 0) {
+        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+      } else {
+        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      }
 
       width += columnWidth;
     }
@@ -466,10 +472,10 @@ class ManualColumnMove extends BasePlugin {
       let topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       let fixedColumns = coords.col < priv.fixedColumns;
       let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
-      let wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - offset(this.hot.rootElement).left : 0;
+      let wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
 
       let mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
-      let leftOffset = this.getColumnsWidth(start, coords.col) + mouseOffset;
+      let leftOffset = Math.abs(this.getColumnsWidth(start, coords.col) + mouseOffset);
 
       this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
       this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
