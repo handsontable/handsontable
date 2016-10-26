@@ -2,7 +2,9 @@ import {
   closestDown,
   hasClass,
   isChildOf,
+  getParent,
 } from './../../../helpers/dom/element';
+import {partial} from './../../../helpers/function';
 import {isMobileBrowser} from './../../../helpers/browser';
 import {eventManager as eventManagerObject} from './../../../eventManager';
 
@@ -10,21 +12,30 @@ import {eventManager as eventManagerObject} from './../../../eventManager';
  *
  */
 function WalkontableEvent(instance) {
-  var that = this;
+  const that = this;
+  const eventManager = eventManagerObject(instance);
 
-  var eventManager = eventManagerObject(instance);
-
-  //reference to instance
   this.instance = instance;
 
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
 
   var onMouseDown = function(event) {
-    var cell = that.parentCell(event.realTarget);
+    const activeElement = document.activeElement;
+    const getParentNode = partial(getParent, event.realTarget);
+    const realTarget = event.realTarget;
 
-    if (hasClass(event.realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
+    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
+    if (realTarget === activeElement ||
+        getParentNode(0) === activeElement ||
+        getParentNode(1) === activeElement) {
+      return;
+    }
+
+    var cell = that.parentCell(realTarget);
+
+    if (hasClass(realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);

@@ -2,6 +2,35 @@ import {isIE8, isIE9, isSafari} from '../browser';
 import {hasCaptionProblem} from '../feature';
 
 /**
+ * Get the parent of the specified node in the DOM tree.
+ *
+ * @param  {HTMLElement} element Element from which traversing is started.
+ * @param  {Number} [level=0] Traversing deep level.
+ * @return {HTMLElement|null}
+ */
+export function getParent(element, level = 0) {
+  let iteration = -1;
+  let parent = null;
+
+  while (element != null) {
+    if (iteration === level) {
+      parent = element;
+      break;
+    }
+
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+
+    } else {
+      iteration++;
+      element = element.parentNode;
+    }
+  }
+
+  return parent;
+}
+
+/**
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
  * This method goes up through web components.
  *

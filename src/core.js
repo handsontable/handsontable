@@ -4909,6 +4909,28 @@ DefaultSettings.prototype = {
   strict: void 0,
 
   /**
+   * @description
+   * If typed `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
+   *
+   * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
+   *
+   * Option desired for `'autocomplete'`-typed cells.
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'autocomplete',
+   *   allowHtml: true,
+   *   source: ['<b>foo</b>', '<b>bar</b>']
+   * }]
+   * ...
+   * ```
+   * @type {Boolean}
+   * @default false
+   */
+  allowHtml: false,
+
+  /**
    * If typed `true` then virtual rendering mechanism for handsontable will be disabled.
    *
    * @type {Boolean}
