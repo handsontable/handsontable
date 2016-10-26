@@ -282,7 +282,7 @@ class Comments extends BasePlugin {
     }
     let meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
-    this.refreshEditorPosition(true);
+    this.refreshEditor(true);
     this.editor.setValue(meta.comment || '');
 
     if (this.editor.hidden) {
@@ -321,7 +321,7 @@ class Comments extends BasePlugin {
    *
    * @param {Boolean} [force=false] If `true` then recalculation will be forced.
    */
-  refreshEditorPosition(force = false) {
+  refreshEditor(force = false) {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
@@ -357,13 +357,17 @@ class Comments extends BasePlugin {
     if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
       this.hide();
     } else {
-      const commentStyle = this.hot.getCellMeta(row, column).commentStyle;
+      const cellMeta = this.hot.getCellMeta(row, column);
+      const commentStyle = cellMeta.commentStyle;
+      const readOnly = cellMeta.commentReadOnly;
 
       if (commentStyle) {
         this.editor.setSize(commentStyle.width, commentStyle.height);
       } else {
         this.editor.resetSize();
       }
+
+      this.editor.setReadOnlyState(readOnly);
 
       this.editor.setPosition(x, y);
     }
@@ -526,6 +530,17 @@ class Comments extends BasePlugin {
     this.removeCommentAtCell(selection.start.row, selection.start.col);
   }
 
+  //TODO: docs
+  onContextMenuMakeReadOnly(selection) {
+    for (let i = selection.start.row; i <= selection.start.row; i++) {
+      for (let j = selection.end.col; j <= selection.end.col; j++) {
+        let currentState = !!this.hot.getCellMeta(i, j).commentReadOnly;
+
+        this.hot.setCellMeta(i, j, 'commentReadOnly', !currentState);
+      }
+    }
+  }
+
   /**
    * Add Comments to context menu.
    *
@@ -551,6 +566,16 @@ class Comments extends BasePlugin {
           return 'Delete Comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(key, selection),
+        disabled: () => {
+          return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
+        }
+      },
+      {
+        key: 'commentsReadOnly',
+        name: function() {
+          return 'Read only comment';
+        },
+        callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
         disabled: () => {
           return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
         }

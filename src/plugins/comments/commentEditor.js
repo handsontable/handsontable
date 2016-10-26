@@ -61,6 +61,13 @@ class CommentEditor {
     input.style.height = '';
   }
 
+  //TODO: docs
+  setReadOnlyState(state) {
+    const input = this.getInputElement();
+
+    input.readOnly = state;
+  }
+
   /**
    * Show comments editor
    */

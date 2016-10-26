@@ -13,7 +13,7 @@
 
 .htComments {
     display: none;
-    z-index: 9999;
+    z-index: 1059;
     position: absolute;
 }
 
