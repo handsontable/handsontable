@@ -33,7 +33,7 @@ class CommentEditor {
   }
 
   /**
-   * Set position of comments editor according to x, y coords.
+   * Set position of the comments editor according to the  provided x and y coordinates.
    *
    * @param {Number} x X position (in pixels).
    * @param {Number} y Y position (in pixels).
@@ -43,7 +43,12 @@ class CommentEditor {
     this.editorStyle.top = y + 'px';
   }
 
-  //TODO: docs
+  /**
+   * Set the editor size according to the provided arguments.
+   *
+   * @param {Number} width Width in pixels.
+   * @param {Number} height Height in pixels.
+   */
   setSize(width, height) {
     if (width && height) {
       const input = this.getInputElement();
@@ -53,7 +58,9 @@ class CommentEditor {
     }
   }
 
-  //TODO: docs
+  /**
+   * Reset the editor size to its initial state.
+   */
   resetSize() {
     const input = this.getInputElement();
 
@@ -61,7 +68,11 @@ class CommentEditor {
     input.style.height = '';
   }
 
-  //TODO: docs
+  /**
+   * Set the read-only state for the comments editor.
+   *
+   * @param {Boolean} state The new read only state.
+   */
   setReadOnlyState(state) {
     const input = this.getInputElement();
 
@@ -69,7 +80,7 @@ class CommentEditor {
   }
 
   /**
-   * Show comments editor
+   * Show the comments editor.
    */
   show() {
     this.editorStyle.display = 'block';
@@ -77,7 +88,7 @@ class CommentEditor {
   }
 
   /**
-   * Hide comments editor
+   * Hide the comments editor.
    */
   hide() {
     this.editorStyle.display = 'none';
@@ -85,7 +96,7 @@ class CommentEditor {
   }
 
   /**
-   * Checks if editor is visible
+   * Checks if the editor is visible.
    *
    * @returns {Boolean}
    */
@@ -94,7 +105,7 @@ class CommentEditor {
   }
 
   /**
-   * Set comment value
+   * Set the comment value.
    *
    * @param {String} [value] The value to use.
    */
@@ -104,7 +115,7 @@ class CommentEditor {
   }
 
   /**
-   * Get comment value
+   * Get the comment value.
    *
    * @returns {String}
    */
@@ -113,7 +124,7 @@ class CommentEditor {
   }
 
   /**
-   * Checks if comment input element is focused
+   * Checks if the comment input element is focused.
    *
    * @returns {Boolean}
    */
@@ -122,16 +133,16 @@ class CommentEditor {
   }
 
   /**
-   * Focus comments input element
+   * Focus the comments input element.
    */
   focus() {
     this.getInputElement().focus();
   }
 
   /**
-   * Create editor for comment textarea
+   * Create the `textarea` to be used as a comments editor.
    *
-   * @returns {Element}
+   * @returns {HTMLElement}
    */
   createEditor() {
     let container = document.querySelector('.' + CommentEditor.CLASS_EDITOR_CONTAINER);
@@ -156,7 +167,7 @@ class CommentEditor {
   }
 
   /**
-   * Get input element
+   * Get the input element.
    *
    * @returns {HTMLElement}
    */
@@ -165,7 +176,7 @@ class CommentEditor {
   }
 
   /**
-   * Destroy comment editor
+   * Destroy the comments editor.
    */
   destroy() {
     this.editor.parentNode.removeChild(this.editor);

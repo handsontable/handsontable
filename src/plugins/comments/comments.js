@@ -113,16 +113,25 @@ class Comments extends BasePlugin {
      * @type {*}
      */
     this.timer = null;
-    // TODO: docs
+    /**
+     * Delay used when showing/hiding the comments (in milliseconds).
+     *
+     * @type {Number}
+     */
     this.displayDelay = 250;
 
     privatePool.set(this, {
-      tempEditorDimensions: {}
+      tempEditorDimensions: {},
+      metas: {
+        comment: 'comment',
+        commentStyle: 'commentStyle',
+        commentReadOnly: 'commentReadOnly'
+      }
     });
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Check if the plugin is enabled in the Handsontable settings.
    *
    * @returns {Boolean}
    */
@@ -180,7 +189,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set current cell range to be able to use general methods like {@link Comments#saveComment},
+   * Set current cell range to be able to use general methods like {@link Comments#setComment},
    * {@link Comments#removeComment}, {@link Comments#show}.
    *
    * @param {Object} range Object with `row` and `col` properties.
@@ -219,31 +228,33 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Save a comment for a cell according to the previously set range (see {@link Comments#setRange}).
+   * Set a comment for a cell according to the previously set range (see {@link Comments#setRange}).
    */
-  saveComment() {
+  setComment() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
+    const priv = privatePool.get(this);
+
     let comment = this.editor.getValue();
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, 'comment', comment);
+    this.hot.setCellMeta(row, col, priv.metas.comment, comment);
     this.hot.render();
   }
 
   /**
-   * Save a comment for a cell.
+   * Set a comment for a cell.
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    */
-  saveCommentAtCell(row, col) {
+  setCommentAtCell(row, col) {
     this.setRange({
       from: new WalkontableCellCoords(row, col)
     });
-    this.saveComment();
+    this.setComment();
   }
 
   /**
@@ -253,13 +264,17 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, 'comment');
+    const priv = privatePool.get(this);
+
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.comment);
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentReadOnly);
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentStyle);
     this.hot.render();
     this.hide();
   }
 
   /**
-   * Remove comment.
+   * Remove comment from a cell.
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
@@ -297,7 +312,7 @@ class Comments extends BasePlugin {
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
-   * @returns {Boolean} Returns `true` if comment editor was showed.
+   * @returns {Boolean} Returns `true` if comment editor was shown.
    */
   showAtCell(row, col) {
     this.setRange({
@@ -308,7 +323,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Hide all comments input editors.
+   * Hide the comment editor.
    */
   hide() {
     if (!this.editor.hidden) {
@@ -317,7 +332,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Refresh comment editor position.
+   * Refresh comment editor position and styling.
    *
    * @param {Boolean} [force=false] If `true` then recalculation will be forced.
    */
@@ -374,10 +389,32 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Mouse down DOM listener.
+   * Check if there is a comment for selected range.
    *
    * @private
-   * @param {Event} event Mouse event.
+   * @returns {Boolean}
+   */
+  checkSelectionCommentsConsistency() {
+    const selected = this.hot.getSelectedRange();
+
+    if (!selected) {
+      return false;
+    }
+    let hasComment = false;
+    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+
+    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
+      hasComment = true;
+    }
+
+    return hasComment;
+  }
+
+  /**
+   * `mousedown` event callback.
+   *
+   * @private
+   * @param {MouseEvent} event The `mousedown` event.
    */
   onMouseDown(event) {
     this.mouseDown = true;
@@ -392,10 +429,10 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Mouse over DOM listener.
+   * `mouseover` event callback.
    *
    * @private
-   * @param {Event} event Mouse event.
+   * @param {MouseEvent} event The `mouseover` event.
    */
   onMouseOver(event) {
     if (this.mouseDown || this.editor.isFocused()) {
@@ -419,21 +456,21 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Mouse up DOM listener.
+   * `mouseup` event callback.
    *
    * @private
-   * @param {Event} event
+   * @param {MouseEvent} event The `mouseup` event.
    */
   onMouseUp(event) {
     this.mouseDown = false;
   }
 
   /***
-   * After renderer Handsontable hook listener.
+   * The `afterRenderer` hook callback..
    *
    * @private
-   * @param {HTMLTableCellElement} TD
-   * @param {Object} cellProperties
+   * @param {HTMLTableCellElement} TD The rendered `TD` element.
+   * @param {Object} cellProperties The rendered cell's property object.
    */
   onAfterRenderer(TD, cellProperties) {
     if (cellProperties.comment) {
@@ -442,16 +479,21 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Comment input blur DOM event listener
+   * `blur` event callback for the comment editor.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The `blur` event.
    */
   onEditorBlur(event) {
-    this.saveComment();
+    this.setComment();
   }
 
-  //TODO: docs
+  /**
+   * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
+   *
+   * @private
+   * @param {MouseEvent} event The `mousedown` event.
+   */
   onEditorMouseDown(event) {
     const priv = privatePool.get(this);
 
@@ -461,14 +503,19 @@ class Comments extends BasePlugin {
     };
   }
 
-  //TODO: docs
+  /**
+   * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
+   *
+   * @private
+   * @param {MouseEvent} event The `mouseup` event.
+   */
   onEditorMouseUp(event) {
     const priv = privatePool.get(this);
     const currentWidth = outerWidth(event.target);
     const currentHeight = outerHeight(event.target);
 
     if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
-      this.hot.setCellMeta(this.range.from.row, this.range.from.col, 'commentStyle', {
+      this.hot.setCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentStyle, {
         width: currentWidth,
         height: currentHeight
       });
@@ -476,29 +523,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if there is a comment for selected range.
-   *
-   * @private
-   * @returns {Boolean}
-   */
-  checkSelectionCommentsConsistency() {
-    const selected = this.hot.getSelectedRange();
-
-    if (!selected) {
-      return false;
-    }
-    let hasComment = false;
-    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
-
-    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
-      hasComment = true;
-    }
-
-    return hasComment;
-  }
-
-  /**
-   * Listen on context menu add/edit comment action.
+   * Context Menu's "Add comment" callback. Results in showing the comment editor.
    *
    * @private
    */
@@ -519,30 +544,42 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Listen on context menu remove comment action.
+   * Context Menu's "remove comment" callback.
    *
    * @private
-   * @param {String} key
-   * @param {Array} selection
+   * @param {Object} selection The current selection.
    */
-  onContextMenuRemoveComment(key, selection) {
+  onContextMenuRemoveComment(selection) {
     this.contextMenuEvent = true;
-    this.removeCommentAtCell(selection.start.row, selection.start.col);
-  }
 
-  //TODO: docs
-  onContextMenuMakeReadOnly(selection) {
-    for (let i = selection.start.row; i <= selection.start.row; i++) {
-      for (let j = selection.end.col; j <= selection.end.col; j++) {
-        let currentState = !!this.hot.getCellMeta(i, j).commentReadOnly;
-
-        this.hot.setCellMeta(i, j, 'commentReadOnly', !currentState);
+    for (let i = selection.start.row; i <= selection.end.row; i++) {
+      for (let j = selection.start.col; j <= selection.end.col; j++) {
+        this.removeCommentAtCell(i, j);
       }
     }
   }
 
   /**
-   * Add Comments to context menu.
+   * Context Menu's "make comment read-only" callback.
+   *
+   * @private
+   * @param {Object} selection The current selection.
+   */
+  onContextMenuMakeReadOnly(selection) {
+    const priv = privatePool.get(this);
+    this.contextMenuEvent = true;
+
+    for (let i = selection.start.row; i <= selection.end.row; i++) {
+      for (let j = selection.start.col; j <= selection.end.col; j++) {
+        let currentState = !!this.hot.getCellMeta(i, j).commentReadOnly;
+
+        this.hot.setCellMeta(i, j, priv.metas.commentReadOnly, !currentState);
+      }
+    }
+  }
+
+  /**
+   * Add Comments plugin options to the Context Menu.
    *
    * @private
    * @param {Object} defaultOptions
@@ -565,9 +602,9 @@ class Comments extends BasePlugin {
         name: function() {
           return 'Delete Comment';
         },
-        callback: (key, selection) => this.onContextMenuRemoveComment(key, selection),
+        callback: (key, selection) => this.onContextMenuRemoveComment(selection),
         disabled: () => {
-          return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
+          return this.hot.selection.selectedHeader.corner;
         }
       },
       {
@@ -583,8 +620,14 @@ class Comments extends BasePlugin {
     );
   }
 
-  //TODO: docs
-  onAfterBeginEditing(row, col) {
+  /**
+   * `afterBeginEditing` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index of the currently edited cell.
+   * @param {Number} column Column index of the currently edited cell.
+   */
+  onAfterBeginEditing(row, column) {
     this.hide();
   }
 
