@@ -60,6 +60,30 @@ describe('HandsontableEditor', function () {
     expect(this.$container.find('.handsontableEditor:visible').length).toEqual(0);
   });
 
+  // see https://github.com/handsontable/handsontable/issues/3380
+  it("should not throw error while selecting the next cell by hitting enter key", function() {
+    var spy = jasmine.createSpyObj('error', ['test']);
+
+    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+      spy.test();
+    };
+    handsontable({
+      columns: [{
+        type: 'handsontable',
+        handsontable: {
+          data: [['Marque'], ['Country'], ['Parent company']]
+        }
+      }]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(spy.test.calls.count()).toBe(0);
+  });
+
   it('Enter pressed in nested HT should set the value and hide the editor', function () {
     handsontable({
       columns: [
