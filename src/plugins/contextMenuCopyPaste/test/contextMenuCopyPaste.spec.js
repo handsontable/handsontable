@@ -116,6 +116,7 @@ describe("ContextMenuCopyPaste", function () {
   // see https://github.com/handsontable/handsontable/issues/3140
   it("should not throwing error when ContextMenu plugin is disabled", function () {
     var spy = jasmine.createSpy();
+    var prevError = window.onerror;
 
     window.onerror = function() {
       spy();
@@ -136,5 +137,6 @@ describe("ContextMenuCopyPaste", function () {
     $(getCell(0, 0)).simulate('mouseenter');
 
     expect(spy).not.toHaveBeenCalled();
+    window.onerror = prevError;
   });
 });
