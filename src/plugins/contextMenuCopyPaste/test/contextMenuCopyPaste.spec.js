@@ -112,4 +112,29 @@ describe("ContextMenuCopyPaste", function () {
       'Alignment',
     ].join(''));
   });
+
+  // see https://github.com/handsontable/handsontable/issues/3140
+  it("should not throwing error when ContextMenu plugin is disabled", function () {
+    var spy = jasmine.createSpy();
+
+    window.onerror = function() {
+      spy();
+    };
+
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      minSpareRows: 1,
+      contextMenu: true,
+      contextMenuCopyPaste: {
+        swfPath: "../../demo/swf/ZeroClipboard.swf"
+      }
+    });
+
+    hot.getPlugin('contextMenu').disablePlugin();
+    $(getCell(0, 0)).simulate('mouseenter');
+
+    expect(spy).not.toHaveBeenCalled();
+  });
 });
