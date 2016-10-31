@@ -615,7 +615,7 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(12);
+      expect(actions.length).toEqual(13);
       expect(separators.length).toEqual(6);
 
       expect(actions.text()).toEqual([
@@ -629,8 +629,9 @@ describe('ContextMenu', function () {
         'Redo',
         'Read only',
         'Alignment',
-        'Add Comment',
-        'Delete Comment'
+        'Add comment',
+        'Delete comment',
+        'Read only comment'
       ].join(''));
     });
 

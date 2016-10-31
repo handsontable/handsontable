@@ -18,64 +18,51 @@ import {registerPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import {CommentEditor} from './commentEditor';
 
+const privatePool = new WeakMap();
 /**
  * @plugin Comments
  *
  * @description
- * TODO: write new documentation
+ * This plugin allows setting and managing cell comments by either an option in the context menu or with the use of the API.
+ *
+ * To enable the plugin, you'll need to set the comments property of the config object to `true`:
+ * ```js
+ * ...
+ * comments: true
+ * ...
+ * ```
+ *
+ * To add comments at the table initialization, define the `comment` property in the `cell` config array.
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * var hot = new Handsontable(document.getElementById('example'), {
+ *   date: getData(),
+ *   comments: true,
+ *   cell: [
+ *     {row: 1, col: 1, comment: 'Foo'},
+ *     {row: 2, col: 2, comment: 'Bar'}
+ *   ]
+ * });
+ *
+ * // Access to the Comments plugin instance:
+ * var commentsPlugin = hot.getPlugin('comments');
+ *
+ * // Manage comments programmatically:
+ * commentsPlugin.editor.setCommentAtCell(1, 6, 'Comment contents');
+ * commentsPlugin.showAtCell(1, 6);
+ * commentsPlugin.removeCommentAtCell(1, 6);
+ *
+ * // You can also set range once and use proper methods:
+ * commentsPlugin.setRange({row: 1, col: 6});
+ * commentsPlugin.setComment('Comment contents');
+ * commentsPlugin.show();
+ * commentsPlugin.removeComment();
+ * ...
+ * ```
  */
-
-//* This plugin allows setting and managing cell comments by either an option in the context menu or with the use of the API.
-// *
-// * To enable the plugin, you'll need to set the comments property of the config object to `true`:
-// * ```js
-// * ...
-// * comments: true
-// * ...
-// * ```
-// *
-// * OR by declaring it as an object with the plugin settings.
-// * For example, to enable it with a pre-defined comment added to cell at (1,1), you'd need to set it up like this:
-// * ```js
-// * comments: {row: 1, col: 1, comment: "Test comment"}
-// * ```
-// *
-// * If you'd like to declare multiple pre-defined comments, just set up an array consisting of these objects.
-// *
-// * @example
-// *
-// * ```js
-// * ...
-// * var hot = new Handsontable(document.getElementById('example'), {
-// *   date: getData(),
-// *   comments: true,
-// *   cell: [
-// *     {row: 1, col: 1, comment: 'Foo'},
-// *     {row: 2, col: 2, comment: 'Bar'}
-// *   ]
-// * });
-// *
-// * // Access to the Comments plugin instance:
-// * var commentsPlugin = hot.getPlugin('comments');
-// *
-// * // Manage comments programmatically:
-// * commentsPlugin.editor.setValue('Cell comment text');
-// * commentsPlugin.showAtCell(1, 6);
-// * commentsPlugin.saveCommentAtCell(1, 6);
-// * commentsPlugin.removeCommentAtCell(1, 6);
-// *
-// * // You can also set range once and use proper methods:
-// * commentsPlugin.setRange({row: 1, col: 6});
-// * commentsPlugin.editor.setValue('Cell comment text');
-// *
-// * commentsPlugin.show();
-// * commentsPlugin.saveComment();
-// * commentsPlugin.removeComment();
-// * ...
-// * ```
-
-const privatePool = new WeakMap();
-
 class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -229,14 +216,23 @@ class Comments extends BasePlugin {
 
   /**
    * Set a comment for a cell according to the previously set range (see {@link Comments#setRange}).
+   *
+   * @param {String} value Comment contents.
    */
-  setComment() {
+  setComment(value) {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     const priv = privatePool.get(this);
+    const editorValue = this.editor.getValue();
+    let comment = '';
 
-    let comment = this.editor.getValue();
+    if (value != null) {
+      comment = value;
+    } else if (editorValue != null) {
+      comment = editorValue;
+    }
+
     let row = this.range.from.row;
     let col = this.range.from.col;
 
@@ -249,12 +245,13 @@ class Comments extends BasePlugin {
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
+   * @param {String} value Comment contents.
    */
-  setCommentAtCell(row, col) {
+  setCommentAtCell(row, col, value) {
     this.setRange({
       from: new WalkontableCellCoords(row, col)
     });
-    this.setComment();
+    this.setComment(value);
   }
 
   /**
@@ -284,6 +281,23 @@ class Comments extends BasePlugin {
       from: new WalkontableCellCoords(row, col)
     });
     this.removeComment();
+  }
+
+  /**
+   * Get comment from a cell at the predefined range.
+   */
+  getComment() {
+
+  }
+
+  /**
+   * Get comment from a cell at the provided coordinates.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   */
+  getCommentAtCell(row, column) {
+
   }
 
   /**
@@ -590,7 +604,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsAddEdit',
         name: () => {
-          return this.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
+          return this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
         },
         callback: () => this.onContextMenuAddComment(),
         disabled: function() {
@@ -600,7 +614,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsRemove',
         name: function() {
-          return 'Delete Comment';
+          return 'Delete comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
         disabled: () => {
