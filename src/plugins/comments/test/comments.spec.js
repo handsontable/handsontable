@@ -43,8 +43,8 @@ describe('Comments', function() {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: 'test'},
-          {row: 2, col: 2, comment: 'test'}
+          {row: 1, col: 1, comment: {value: 'test'}},
+          {row: 2, col: 2, comment: {value: 'test'}}
         ]
       });
 
@@ -66,7 +66,7 @@ describe('Comments', function() {
 
       plugin.setCommentAtCell(1, 1, 'test comment');
 
-      expect(getCellMeta(1, 1).comment).toEqual('test comment');
+      expect(getCellMeta(1, 1).comment.value).toEqual('test comment');
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', function() {
@@ -74,13 +74,13 @@ describe('Comments', function() {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: 'test'}
+          {row: 1, col: 1, comment: {value: 'test'}}
         ]
       });
 
       var plugin = hot.getPlugin('comments');
 
-      expect(getCellMeta(1, 1).comment).toEqual('test');
+      expect(getCellMeta(1, 1).comment.value).toEqual('test');
 
       plugin.removeCommentAtCell(1, 1);
 
@@ -148,11 +148,11 @@ describe('Comments', function() {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: 'Test comment'}
+          {row: 1, col: 1, comment: {value: 'Test comment'}}
         ]
       });
 
-      expect(getCellMeta(1, 1).comment).toEqual('Test comment');
+      expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
 
       selectCell(1, 1);
       contextMenu();
@@ -172,13 +172,13 @@ describe('Comments', function() {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: 'Test comment'},
-          {row: 2, col: 2, comment: 'Test comment 2'}
+          {row: 1, col: 1, comment: {value: 'Test comment'}},
+          {row: 2, col: 2, comment: {value: 'Test comment 2'}}
         ]
       });
 
-      expect(getCellMeta(1, 1).comment).toEqual('Test comment');
-      expect(getCellMeta(2, 2).comment).toEqual('Test comment 2');
+      expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
+      expect(getCellMeta(2, 2).comment.value).toEqual('Test comment 2');
 
       selectCell(1, 1, 2, 2);
       contextMenu();
@@ -199,7 +199,7 @@ describe('Comments', function() {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: 'Test comment'}
+          {row: 1, col: 1, comment: {value: 'Test comment'}}
         ]
       });
 

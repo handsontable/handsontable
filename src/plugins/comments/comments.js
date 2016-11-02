@@ -22,8 +22,9 @@ import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/u
 
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
-const META_STYLE = 'commentStyle';
-const META_READONLY = 'commentReadOnly';
+const META_COMMENT_VALUE = 'value';
+const META_STYLE = 'style';
+const META_READONLY = 'readOnly';
 
 /**
  * @plugin Comments
@@ -38,7 +39,7 @@ const META_READONLY = 'commentReadOnly';
  * ...
  * ```
  *
- * To add comments at the table initialization, define the `comment` property in the `cell` config array.
+ * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
  * @example
  *
@@ -48,8 +49,8 @@ const META_READONLY = 'commentReadOnly';
  *   date: getData(),
  *   comments: true,
  *   cell: [
- *     {row: 1, col: 1, comment: 'Foo'},
- *     {row: 2, col: 2, comment: 'Bar'}
+ *     {row: 1, col: 1, comment: {value: 'Foo'}},
+ *     {row: 2, col: 2, comment: {value: 'Bar'}}
  *   ]
  * });
  *
@@ -236,7 +237,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, META_COMMENT, comment);
+    this.updateCommentMeta(row, col, comment);
     this.hot.render();
   }
 
@@ -256,16 +257,20 @@ class Comments extends BasePlugin {
 
   /**
    * Remove a comment from a cell according to previously set range (see {@link Comments#setRange}).
+   *
+   * @param {Boolean} [forceRender = true] If set to `true`, the table will be re-rendered at the end of the operation.
    */
-  removeComment() {
+  removeComment(forceRender = true) {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_COMMENT);
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_READONLY);
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_STYLE);
-    this.hot.render();
+    this.hot.getCellMeta(this.range.from.row, this.range.from.col)[META_COMMENT] = void 0;
+
+    if (forceRender) {
+      this.hot.render();
+    }
+
     this.hide();
   }
 
@@ -274,12 +279,13 @@ class Comments extends BasePlugin {
    *
    * @param {Number} row Row index.
    * @param {Number} col Column index.
+   * @param {Boolean} [forceRender = true] If `true`, the table will be re-rendered at the end of the operation.
    */
-  removeCommentAtCell(row, col) {
+  removeCommentAtCell(row, col, forceRender = true) {
     this.setRange({
       from: new WalkontableCellCoords(row, col)
     });
-    this.removeComment();
+    this.removeComment(forceRender);
   }
 
   /**
@@ -311,7 +317,7 @@ class Comments extends BasePlugin {
     let meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
-    this.editor.setValue(meta.comment || '');
+    this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
 
     if (this.editor.hidden) {
       this.editor.show();
@@ -360,37 +366,20 @@ class Comments extends BasePlugin {
     let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
-    let verticalCompensation = 0;
-    let horizontalCompensation = 0;
 
     if (this.hot.view.wt.wtViewport.hasVerticalScroll()) {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
-      verticalCompensation = 20;
     }
 
     if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-      horizontalCompensation = 20;
     }
 
     let x = cellLeftOffset + lastColWidth;
     let y = cellTopOffset;
 
-    let rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
-    let holderPos = {
-      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + getWindowScrollLeft() - 15,
-      top: rect.top + getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + getWindowScrollTop()
-    };
-
-    if (x > holderPos.right) {
-      x = holderPos.right;
-    }
-
-    const cellMeta = this.hot.getCellMeta(row, column);
-    const commentStyle = cellMeta.commentStyle;
-    const readOnly = cellMeta.commentReadOnly;
+    const commentStyle = this.getCommentMeta(row, column, META_STYLE);
+    const readOnly = this.getCommentMeta(row, column, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
@@ -418,11 +407,58 @@ class Comments extends BasePlugin {
     let hasComment = false;
     let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
-    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
+    if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
     }
 
     return hasComment;
+  }
+
+  /**
+   * Set or update the comment-related cell meta.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @param {String} [value=null] Comment value.
+   * @param {Object} [style=null] CSS comment information.
+   * @param {Boolean} [readOnly=null] Read-only state of the comment at the specified cell.
+   */
+  updateCommentMeta(row, column, value = null, style = null, readOnly = null) {
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (!cellMeta[META_COMMENT]) {
+      cellMeta[META_COMMENT] = {};
+    }
+
+    if (value !== null) {
+      cellMeta[META_COMMENT][META_COMMENT_VALUE] = value;
+    }
+
+    if (style !== null) {
+      cellMeta[META_COMMENT][META_STYLE] = style;
+    }
+
+    if (readOnly !== null) {
+      cellMeta[META_COMMENT][META_READONLY] = readOnly;
+    }
+  }
+
+  /**
+   * Get the comment related meta information.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @param {String} property Cell meta property.
+   * @returns {Mixed}
+   */
+  getCommentMeta(row, column, property) {
+    const cellMeta = this.hot.getCellMeta(row, column);
+
+    if (!cellMeta[META_COMMENT]) {
+      return void 0;
+    }
+
+    return cellMeta[META_COMMENT][property];
   }
 
   /**
@@ -530,10 +566,10 @@ class Comments extends BasePlugin {
     const currentHeight = outerHeight(event.target);
 
     if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
-      this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_STYLE, {
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, null, {
         width: currentWidth,
         height: currentHeight
-      });
+      }, null);
     }
   }
 
@@ -569,9 +605,11 @@ class Comments extends BasePlugin {
 
     for (let i = selection.start.row; i <= selection.end.row; i++) {
       for (let j = selection.start.col; j <= selection.end.col; j++) {
-        this.removeCommentAtCell(i, j);
+        this.removeCommentAtCell(i, j, false);
       }
     }
+
+    this.hot.render();
   }
 
   /**
@@ -585,9 +623,9 @@ class Comments extends BasePlugin {
 
     for (let i = selection.start.row; i <= selection.end.row; i++) {
       for (let j = selection.start.col; j <= selection.end.col; j++) {
-        let currentState = !!this.hot.getCellMeta(i, j).commentReadOnly;
+        let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
-        this.hot.setCellMeta(i, j, META_READONLY, !currentState);
+        this.updateCommentMeta(i, j, null, null, !currentState);
       }
     }
   }
@@ -626,7 +664,10 @@ class Comments extends BasePlugin {
         name: function() {
           let label = 'Read only comment';
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-            let readOnlyProperty = this.getCellMeta(row, col).commentReadOnly;
+            let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
+            if (readOnlyProperty) {
+              readOnlyProperty = readOnlyProperty[META_READONLY];
+            }
 
             if (readOnlyProperty) {
               return true;
