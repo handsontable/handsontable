@@ -512,7 +512,7 @@ class Comments extends BasePlugin {
    * @param {Object} cellProperties The rendered cell's property object.
    */
   onAfterRenderer(TD, cellProperties) {
-    if (cellProperties.comment) {
+    if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
       addClass(TD, cellProperties.commentedCellClassName);
     }
   }
