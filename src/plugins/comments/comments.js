@@ -17,6 +17,7 @@ import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coord
 import {registerPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import {CommentEditor} from './commentEditor';
+import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
 
 const privatePool = new WeakMap();
 /**
@@ -358,8 +359,8 @@ class Comments extends BasePlugin {
     let cellOffset = offset(TD);
     let row = this.range.from.row;
     let column = this.range.from.col;
-    let lastColWidth = this.hot.getColWidth(column);
-    let cellTopOffset = cellOffset.top;
+    let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
     let verticalCompensation = 0;
     let horizontalCompensation = 0;
@@ -368,10 +369,12 @@ class Comments extends BasePlugin {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
       verticalCompensation = 20;
     }
+
     if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
       horizontalCompensation = 20;
     }
+
     let x = cellLeftOffset + lastColWidth;
     let y = cellTopOffset;
 
@@ -383,23 +386,23 @@ class Comments extends BasePlugin {
       bottom: rect.bottom + getWindowScrollTop()
     };
 
-    if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
-      this.hide();
-    } else {
-      const cellMeta = this.hot.getCellMeta(row, column);
-      const commentStyle = cellMeta.commentStyle;
-      const readOnly = cellMeta.commentReadOnly;
-
-      if (commentStyle) {
-        this.editor.setSize(commentStyle.width, commentStyle.height);
-      } else {
-        this.editor.resetSize();
-      }
-
-      this.editor.setReadOnlyState(readOnly);
-
-      this.editor.setPosition(x, y);
+    if (x > holderPos.right) {
+      x = holderPos.right;
     }
+
+    const cellMeta = this.hot.getCellMeta(row, column);
+    const commentStyle = cellMeta.commentStyle;
+    const readOnly = cellMeta.commentReadOnly;
+
+    if (commentStyle) {
+      this.editor.setSize(commentStyle.width, commentStyle.height);
+    } else {
+      this.editor.resetSize();
+    }
+
+    this.editor.setReadOnlyState(readOnly);
+
+    this.editor.setPosition(x, y);
   }
 
   /**
@@ -624,7 +627,20 @@ class Comments extends BasePlugin {
       {
         key: 'commentsReadOnly',
         name: function() {
-          return 'Read only comment';
+          let label = 'Read only comment';
+          let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
+            let readOnlyProperty = this.getCellMeta(row, col).commentReadOnly;
+
+            if (readOnlyProperty) {
+              return true;
+            }
+          });
+
+          if (hasProperty) {
+            label = markLabelAsSelected(label);
+          }
+
+          return label;
         },
         callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
         disabled: () => {
