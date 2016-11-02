@@ -2,6 +2,7 @@ import Handsontable from './../../browser';
 import {
   addClass,
   closest,
+  isChildOf,
   getWindowScrollLeft,
   getWindowScrollTop,
   hasClass,
@@ -20,6 +21,10 @@ import {CommentEditor} from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
 
 const privatePool = new WeakMap();
+const META_COMMENT = 'comment';
+const META_STYLE = 'commentStyle';
+const META_READONLY = 'commentReadOnly';
+
 /**
  * @plugin Comments
  *
@@ -110,11 +115,6 @@ class Comments extends BasePlugin {
 
     privatePool.set(this, {
       tempEditorDimensions: {},
-      metas: {
-        comment: 'comment',
-        commentStyle: 'commentStyle',
-        commentReadOnly: 'commentReadOnly'
-      }
     });
   }
 
@@ -224,7 +224,6 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    const priv = privatePool.get(this);
     const editorValue = this.editor.getValue();
     let comment = '';
 
@@ -237,7 +236,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, priv.metas.comment, comment);
+    this.hot.setCellMeta(row, col, META_COMMENT, comment);
     this.hot.render();
   }
 
@@ -262,11 +261,10 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    const priv = privatePool.get(this);
 
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.comment);
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentReadOnly);
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentStyle);
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_COMMENT);
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_READONLY);
+    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, META_STYLE);
     this.hot.render();
     this.hide();
   }
@@ -466,7 +464,7 @@ class Comments extends BasePlugin {
         this.setRange(range);
         this.show();
 
-      } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
+      } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
         this.hide();
       }
     }, this.displayDelay)();
@@ -532,7 +530,7 @@ class Comments extends BasePlugin {
     const currentHeight = outerHeight(event.target);
 
     if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
-      this.hot.setCellMeta(this.range.from.row, this.range.from.col, priv.metas.commentStyle, {
+      this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_STYLE, {
         width: currentWidth,
         height: currentHeight
       });
@@ -583,14 +581,13 @@ class Comments extends BasePlugin {
    * @param {Object} selection The current selection.
    */
   onContextMenuMakeReadOnly(selection) {
-    const priv = privatePool.get(this);
     this.contextMenuEvent = true;
 
     for (let i = selection.start.row; i <= selection.end.row; i++) {
       for (let j = selection.start.col; j <= selection.end.col; j++) {
         let currentState = !!this.hot.getCellMeta(i, j).commentReadOnly;
 
-        this.hot.setCellMeta(i, j, priv.metas.commentReadOnly, !currentState);
+        this.hot.setCellMeta(i, j, META_READONLY, !currentState);
       }
     }
   }
