@@ -3,13 +3,14 @@ import {
   addClass,
   closest,
   isChildOf,
-  getWindowScrollLeft,
-  getWindowScrollTop,
   hasClass,
   offset,
   outerWidth,
   outerHeight
 } from './../../helpers/dom/element';
+import {
+  deepExtend
+} from './../../helpers/object';
 import {
   debounce
 } from './../../helpers/function';
@@ -237,7 +238,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.updateCommentMeta(row, col, comment);
+    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
     this.hot.render();
   }
 
@@ -419,28 +420,15 @@ class Comments extends BasePlugin {
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
-   * @param {String} [value=null] Comment value.
-   * @param {Object} [style=null] CSS comment information.
-   * @param {Boolean} [readOnly=null] Read-only state of the comment at the specified cell.
+   * @param {Object} metaObject Object defining all the comment-related meta information.
    */
-  updateCommentMeta(row, column, value = null, style = null, readOnly = null) {
+  updateCommentMeta(row, column, metaObject) {
     const cellMeta = this.hot.getCellMeta(row, column);
+    let newObj = {
+      [META_COMMENT]: metaObject
+    };
 
-    if (!cellMeta[META_COMMENT]) {
-      cellMeta[META_COMMENT] = {};
-    }
-
-    if (value !== null) {
-      cellMeta[META_COMMENT][META_COMMENT_VALUE] = value;
-    }
-
-    if (style !== null) {
-      cellMeta[META_COMMENT][META_STYLE] = style;
-    }
-
-    if (readOnly !== null) {
-      cellMeta[META_COMMENT][META_READONLY] = readOnly;
-    }
+    deepExtend(cellMeta, newObj);
   }
 
   /**
@@ -566,10 +554,10 @@ class Comments extends BasePlugin {
     const currentHeight = outerHeight(event.target);
 
     if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
-      this.updateCommentMeta(this.range.from.row, this.range.from.col, null, {
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, {[META_STYLE]: {
         width: currentWidth,
         height: currentHeight
-      }, null);
+      }});
     }
   }
 
@@ -625,7 +613,7 @@ class Comments extends BasePlugin {
       for (let j = selection.start.col; j <= selection.end.col; j++) {
         let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
-        this.updateCommentMeta(i, j, null, null, !currentState);
+        this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});
       }
     }
   }
