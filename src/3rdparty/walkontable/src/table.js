@@ -200,7 +200,7 @@ class WalkontableTable {
       this.holderOffset = offset(this.holder);
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
 
-      if (rowHeaders) {
+      if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = this.wot.wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
