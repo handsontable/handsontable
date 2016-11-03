@@ -321,7 +321,7 @@ class ManualColumnMove extends BasePlugin {
     let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
     let scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
-    let mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset + (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
+    let mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
     let hiderWidth = wtTable.hider.offsetWidth;
     let tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     let backlightElemMarginLeft = this.backlight.getOffset().left;
@@ -350,7 +350,7 @@ class ManualColumnMove extends BasePlugin {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if (priv.target.TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
+    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
       let newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
       // if hover on right part of TD
       priv.target.col = newCoordsCol + 1;
