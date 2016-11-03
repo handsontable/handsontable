@@ -9,6 +9,7 @@ import {
     overlayContainsElement,
     closest
 } from './../../../helpers/dom/element';
+import {isFunction} from './../../../helpers/function';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 import {WalkontableColumnFilter} from './filter/column';
@@ -51,6 +52,12 @@ class WalkontableTable {
 
     this.rowFilter = null;
     this.columnFilter = null;
+    this.correctHeaderWidth = false;
+
+    const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+
+    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
+    this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
   }
 
   /**
@@ -181,15 +188,28 @@ class WalkontableTable {
   /**
    * Redraws the table
    *
-   * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+   * @param {Boolean} fastDraw If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
    * @returns {WalkontableTable}
    */
   draw(fastDraw) {
     let totalRows = this.instance.getSetting('totalRows');
+    let rowHeaders = this.wot.getSetting('rowHeaders').length;
+    let columnHeaders = this.wot.getSetting('columnHeaders').length;
 
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
       fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
+
+      if (rowHeaders) {
+        const leftScrollPos = this.wot.wtOverlays.leftOverlay.getScrollPosition();
+        const previousState = this.correctHeaderWidth;
+
+        this.correctHeaderWidth = leftScrollPos > 0;
+
+        if (previousState !== this.correctHeaderWidth) {
+          fastDraw = false;
+        }
+      }
     }
 
     if (fastDraw) {
@@ -228,8 +248,8 @@ class WalkontableTable {
       } else {
         startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
 
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw(); //creates calculator after draw
@@ -573,6 +593,40 @@ class WalkontableTable {
       if (stretchedWidth) {
         width = stretchedWidth;
       }
+    }
+
+    return width;
+  }
+
+  /**
+   * Modify row header widths provided by user in class contructor.
+   *
+   * @private
+   */
+  _modifyRowHeaderWidth(rowHeaderWidthFactory) {
+    let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
+
+    if (Array.isArray(widths)) {
+      widths = [...widths];
+      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
+    } else {
+      widths = this._correctRowHeaderWidth(widths);
+    }
+
+    return widths;
+  }
+
+  /**
+   * Correct row header width if necessary.
+   *
+   * @private
+   */
+  _correctRowHeaderWidth(width) {
+    if (typeof width !== 'number') {
+      width = this.wot.getSetting('defaultColumnWidth');
+    }
+    if (this.correctHeaderWidth) {
+      width++;
     }
 
     return width;

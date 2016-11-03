@@ -1,4 +1,5 @@
 import Handsontable from './../../browser';
+import moment from 'moment';
 import {
     addClass,
     closest,
@@ -249,9 +250,10 @@ class ColumnSorting extends BasePlugin {
    * Default sorting algorithm.
    *
    * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The comparing function.
    */
-  defaultSort(sortOrder) {
+  defaultSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -292,10 +294,11 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * Date sorting algorithm
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  dateSort(sortOrder) {
+  dateSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -307,13 +310,20 @@ class ColumnSorting extends BasePlugin {
         return -1;
       }
 
-      var aDate = new Date(a[1]);
-      var bDate = new Date(b[1]);
+      var aDate = moment(a[1], columnMeta.dateFormat);
+      var bDate = moment(b[1], columnMeta.dateFormat);
 
-      if (aDate < bDate) {
+      if (!aDate.isValid()) {
+        return 1;
+      }
+      if (!bDate.isValid()) {
+        return -1;
+      }
+
+      if (bDate.isAfter(aDate)) {
         return sortOrder ? -1 : 1;
       }
-      if (aDate > bDate) {
+      if (bDate.isBefore(aDate)) {
         return sortOrder ? 1 : -1;
       }
 
@@ -324,10 +334,11 @@ class ColumnSorting extends BasePlugin {
   /**
    * Numeric sorting algorithm.
    *
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  numericSort(sortOrder) {
+  numericSort(sortOrder, columnMeta) {
     return function(a, b) {
       let parsedA = parseFloat(a[1]);
       let parsedB = parseFloat(b[1]);
@@ -393,7 +404,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
+    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
     for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {

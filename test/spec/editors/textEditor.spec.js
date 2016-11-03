@@ -162,7 +162,7 @@ describe('TextEditor', function() {
 
     setTimeout(function() {
       expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBe(-1);
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(-1);
       done();
     }, 200);
   });

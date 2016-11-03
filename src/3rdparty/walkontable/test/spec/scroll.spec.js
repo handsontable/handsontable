@@ -13,7 +13,7 @@ var $table
     $wrapper.appendTo('body');
     createDataArray(100, 4);
   });
-  
+
   afterEach(function () {
     if (!debug) {
       $('.wtHolder').remove();
