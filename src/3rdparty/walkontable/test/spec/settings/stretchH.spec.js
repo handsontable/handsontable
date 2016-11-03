@@ -22,7 +22,7 @@ describe("stretchH option", function () {
     $wrapper.remove();
   });
 
-  it("should stretch all visible columns when stretchH equals 'all'", function () {
+  it("should stretch all visible columns when stretchH equals 'all' dupa", function () {
     createDataArray(20, 2);
 
     $wrapper.width(500).height(400);
