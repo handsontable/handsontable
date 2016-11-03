@@ -124,13 +124,18 @@ class WalkontableTableRenderer {
 
         let firstRendered = this.wtTable.getFirstRenderedColumn();
         let lastRendered = this.wtTable.getLastRenderedColumn();
-
+        let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
         let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
+
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
         if (rowHeaderWidthSetting != null) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
-            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+            let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+
+            width = width == null ? defaultColumnWidth : width;
+
+            this.COLGROUP.childNodes[i].style.width = width + 'px';
           }
         }
 
@@ -390,23 +395,29 @@ class WalkontableTableRenderer {
     let scrollbarCompensation = 0;
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     let mainHolder = sourceInstance.wtTable.holder;
+    let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+    let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
-    let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting != null) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
-        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+        let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+
+        width = width == null ? defaultColumnWidth : width;
+
+        this.COLGROUP.childNodes[i].style.width = width + 'px';
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+
       this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
     }
   }
