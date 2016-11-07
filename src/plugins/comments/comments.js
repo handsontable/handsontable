@@ -6,7 +6,8 @@ import {
   hasClass,
   offset,
   outerWidth,
-  outerHeight
+  outerHeight,
+  getScrollableElement
 } from './../../helpers/dom/element';
 import {
   deepExtend
@@ -117,6 +118,7 @@ class Comments extends BasePlugin {
 
     privatePool.set(this, {
       tempEditorDimensions: {},
+      cellBelowCursor: null
     });
   }
 
@@ -360,19 +362,20 @@ class Comments extends BasePlugin {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
-    let TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    const scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
+    const TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    const row = this.range.from.row;
+    const column = this.range.from.col;
     let cellOffset = offset(TD);
-    let row = this.range.from.row;
-    let column = this.range.from.col;
     let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
     }
 
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
@@ -461,8 +464,17 @@ class Comments extends BasePlugin {
     if (!this.hot.view || !this.hot.view.wt) {
       return;
     }
-    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event) && !this.targetIsCellWithComment(event)) {
-      this.hide();
+
+    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
+      const eventCell = closest(event.target, 'TD', 'TBODY');
+
+      if (eventCell) {
+        const coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+      }
+
+      if (!eventCell || (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col)) {
+        this.hide();
+      }
     }
     this.contextMenuEvent = false;
   }
@@ -477,8 +489,14 @@ class Comments extends BasePlugin {
     if (this.mouseDown || this.editor.isFocused()) {
       return;
     }
+    const priv = privatePool.get(this);
+    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
     debounce(() => {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target) {
+        return;
+      }
+
       if (this.targetIsCellWithComment(event)) {
         let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
         let range = {
@@ -554,10 +572,12 @@ class Comments extends BasePlugin {
     const currentHeight = outerHeight(event.target);
 
     if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
-      this.updateCommentMeta(this.range.from.row, this.range.from.col, {[META_STYLE]: {
-        width: currentWidth,
-        height: currentHeight
-      }});
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, {
+        [META_STYLE]: {
+          width: currentWidth,
+          height: currentHeight
+        }
+      });
     }
   }
 
