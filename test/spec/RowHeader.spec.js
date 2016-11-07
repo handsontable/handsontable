@@ -77,13 +77,14 @@ describe('RowHeader', function () {
       rowHeaders: true
     });
 
+    expect(getHtCore().find('tbody th').length).toEqual(5);
     expect(getLeftClone().find('tbody th').length).toEqual(5);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(getLeftClone().find('tbody th').length).toEqual(0);
+    expect(getHtCore().find('tbody th').length).toEqual(0);
   });
 
   it('should show rows headers after updateSettings', function(){
@@ -92,12 +93,14 @@ describe('RowHeader', function () {
       rowHeaders: false
     });
 
+    expect(getHtCore().find('tbody th').length).toEqual(0);
     expect(getLeftClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
+    expect(getHtCore().find('tbody th').length).toEqual(5);
     expect(getLeftClone().find('tbody th').length).toEqual(5);
   });
 
@@ -107,26 +110,29 @@ describe('RowHeader', function () {
       rowHeaders: false
     });
 
+    expect(getHtCore().find('tbody th').length).toEqual(0);
     expect(getLeftClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
-    expect(getLeftClone().find('tbody th').length).toEqual(5);
+    expect(getHtCore().find('tbody th').length).toEqual(5);
+    expect(getLeftClone().width()).toBeGreaterThan(0);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(getLeftClone().find('tbody th').length).toEqual(0);
+    expect(getHtCore().find('tbody th').length).toEqual(0);
+    expect(getLeftClone().width()).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
-    expect(getLeftClone().find('tbody th').length).toEqual(5);
-
+    expect(getHtCore().find('tbody th').length).toEqual(5);
+    expect(getLeftClone().width()).toBeGreaterThan(0);
   });
 
   it('should show new rows headers after updateSettings', function(){

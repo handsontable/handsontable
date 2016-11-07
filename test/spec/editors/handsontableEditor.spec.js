@@ -63,6 +63,7 @@ describe('HandsontableEditor', function () {
   // see https://github.com/handsontable/handsontable/issues/3380
   it("should not throw error while selecting the next cell by hitting enter key", function() {
     var spy = jasmine.createSpyObj('error', ['test']);
+    var prevError = window.onerror;
 
     window.onerror = function(messageOrEvent, source, lineno, colno, error) {
       spy.test();
@@ -82,6 +83,8 @@ describe('HandsontableEditor', function () {
     keyDownUp('enter');
 
     expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
   });
 
   it('Enter pressed in nested HT should set the value and hide the editor', function () {

@@ -119,12 +119,14 @@ describe('ColHeader', function() {
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
+    expect(getTopClone().find('thead th').length).toEqual(5);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(this.$container.find('thead th').length).toEqual(0);
+    expect(getHtCore().find('thead th').length).toEqual(0);
+    expect(getTopClone().width()).toEqual(0);
   });
 
   it('should show/hide columns headers after updateSettings', function() {
@@ -133,27 +135,29 @@ describe('ColHeader', function() {
       colHeaders: true
     });
 
-    var htCore = getHtCore();
-
-    expect(htCore.find('thead th').length).toEqual(5);
+    expect(getHtCore().find('thead th').length).toEqual(5);
+    expect(getTopClone().find('thead th').length).toEqual(5);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(htCore.find('thead th').length).toEqual(0);
+    expect(getHtCore().find('thead th').length).toEqual(0);
+    expect(getTopClone().width()).toEqual(0);
 
     hot.updateSettings({
       colHeaders: true
     });
 
-    expect(htCore.find('thead th').length).toEqual(5);
+    expect(getHtCore().find('thead th').length).toEqual(5);
+    expect(getTopClone().width()).toBeGreaterThan(0);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(htCore.find('thead th').length).toEqual(0);
+    expect(getHtCore().find('thead th').length).toEqual(0);
+    expect(getTopClone().width()).toEqual(0);
   });
 
   it('should show columns headers after updateSettings', function() {
@@ -162,15 +166,15 @@ describe('ColHeader', function() {
       colHeaders: false
     });
 
-    var htCore = getHtCore();
-
-    expect(htCore.find('thead th').length).toEqual(0);
+    expect(getHtCore().find('thead th').length).toEqual(0);
+    expect(getTopClone().find('thead th').length).toEqual(0);
 
     hot.updateSettings({
       colHeaders: true
     });
 
-    expect(htCore.find('thead th').length).toEqual(5);
+    expect(getHtCore().find('thead th').length).toEqual(5);
+    expect(getTopClone().find('thead th').length).toEqual(5);
   });
 
   it('should show new columns headers after updateSettings', function() {

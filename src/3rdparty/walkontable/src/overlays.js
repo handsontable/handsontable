@@ -28,34 +28,7 @@ class WalkontableOverlays {
 
     this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
-    this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
-
-    if (typeof WalkontableBottomOverlay === 'undefined') {
-      this.bottomOverlay = {
-        needFullRender: false
-      };
-
-    } else {
-      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
-    }
-
-    this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
-
-    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-      this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
-    }
-
-    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
-      this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
-    } else {
-      this.bottomLeftCornerOverlay = {
-        needFullRender: false
-      };
-    }
-
-    if (this.wot.getSetting('debug')) {
-      this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
-    }
+    this.prepareOverlays();
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -75,7 +48,6 @@ class WalkontableOverlays {
       bottom: {
         top: null,
         left: 0
-
       },
       left: {
         top: 0,
@@ -93,7 +65,6 @@ class WalkontableOverlays {
       },
       bottom: {
         left: 0,
-
       },
       left: {
         top: 0,
@@ -107,6 +78,64 @@ class WalkontableOverlays {
     this.registeredListeners = [];
 
     this.registerListeners();
+  }
+
+  /**
+   * Prepare overlays based on user settings.
+   *
+   * @returns {Boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
+   */
+  prepareOverlays() {
+    let syncScroll = false;
+
+    if (this.topOverlay) {
+      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
+    }
+
+    if (typeof WalkontableBottomOverlay === 'undefined') {
+      this.bottomOverlay = {
+        needFullRender: false
+      };
+
+    } else if (this.bottomOverlay) {
+      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
+    }
+
+    if (this.leftOverlay) {
+      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
+    }
+
+    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.topLeftCornerOverlay) {
+        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
+      }
+    }
+
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
+      if (this.bottomLeftCornerOverlay) {
+        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+      }
+    } else {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false
+      };
+    }
+
+    if (this.wot.getSetting('debug') && !this.debug) {
+      this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
+    }
+
+    return syncScroll;
   }
 
   /**
