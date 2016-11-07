@@ -32,7 +32,7 @@ bower install handsontable --save
 - [Download from nuget](https://www.nuget.org/packages/Handsontable/)
 
 ### CDN
- - http://www.jsdelivr.com/projects/handsontable
+ - https://www.jsdelivr.com/projects/handsontable
  - https://cdnjs.com/libraries/handsontable
 
 ### AMD support
