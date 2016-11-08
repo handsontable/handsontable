@@ -217,7 +217,10 @@ describe('Comments', function() {
       $(readOnlyComment).simulate('mousedown');
       $(document).simulate('mouseup');
 
-      $(getCell(1, 1)).simulate('mouseover');
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.Dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.Dom.offset(getCell(1, 1)).top + 5,
+      });
 
       setTimeout(function() {
         expect($(editor)[0].readOnly).toBe(true);

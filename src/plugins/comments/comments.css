@@ -18,7 +18,7 @@
 }
 
 .htCommentTextArea {
-    box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px, rgba(0, 0, 0, 0.239216) 0px 1px 2px;
+    box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
     border: none;
     border-left: 3px solid #ccc;
     background-color: #fff;
@@ -31,6 +31,6 @@
 }
 
 .htCommentTextArea:focus {
-    border: 1px solid #5292f7;
+    box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
     border-left: 3px solid #5292f7;
 }
