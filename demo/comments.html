@@ -67,7 +67,7 @@
       <p>With option <code>comments: true</code>, you can add and remove cell comments through the context menu.</p>
 
       <p>To initialize Handsontable with predefined comments, provide <code>comment</code> cell property:
-        <code>{row: 1, col: 1, comment: "Test comment"}</code></p>
+        <code>{row: 1, col: 1, comment: {value: "Test comment"}}</code></p>
 
       <div id="example1"></div>
 
@@ -105,11 +105,11 @@
           contextMenu: true,
           comments: true,
           cell: [
-            {row: 1, col: 1, comment: 'HOT1 Test comment'},
-            {row: 2, col: 2, comment: 'HOT1 Sample'},
-            {row: 12, col: 2, comment: 'HOT1 Another comment'},
-            {row: 2, col: 22, comment: 'HOT1 Super important comment'},
-            {row: 15, col: 15, comment: 'HOT1 15 x 15 position'}
+            {row: 1, col: 1, comment: {value: 'HOT1 Test comment'}},
+            {row: 2, col: 2, comment: {value: 'HOT1 Sample'}},
+            {row: 12, col: 2, comment: {value: 'HOT1 Another comment'}},
+            {row: 2, col: 22, comment: {value: 'HOT1 Super important comment'}},
+            {row: 15, col: 15, comment: {value: 'HOT1 15 x 15 position'}}
           ]
         });
       </script>
