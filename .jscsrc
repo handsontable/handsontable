@@ -1,6 +1,5 @@
 
 {
-  "esnext": true,
   "disallowSpacesInNamedFunctionExpression": {
     "beforeOpeningRoundBrace": true
   },
@@ -13,7 +12,7 @@
   "disallowSpacesInFunctionDeclaration": {
     "beforeOpeningRoundBrace": true
   },
-  "disallowEmptyBlocks": true,
+  "disallowEmptyBlocks": false,
   "disallowSpacesInCallExpression": true,
   "disallowSpacesInsideArrayBrackets": true,
   "disallowSpacesInsideParentheses": true,

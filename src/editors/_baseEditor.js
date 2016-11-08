@@ -58,9 +58,11 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
 
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+  let ieIframeDocument = document.activeElement.nodeName === void 0;
+
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !ieIframeDocument) {
     document.activeElement.blur();
-  } else if (!document.activeElement) { //IE
+  } else if (!document.activeElement || (document.activeElement && ieIframeDocument)) { //IE
     document.body.focus();
   }
 
@@ -127,6 +129,8 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
 
   // only rerender the selections (FillHandle should disappear when beginediting is triggered)
   this.instance.view.render();
+
+  this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {

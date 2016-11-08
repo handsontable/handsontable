@@ -367,6 +367,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             col: end === null ? null : end.col
           };
 
+      /* jshint ignore:start */
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down' :
@@ -404,10 +405,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
 
-        /* jshint ignore:start */
         case 'overwrite':
         default:
-          /* jshint ignore:end */
           // overwrite and other not specified options
           current.row = start.row;
           current.col = start.col;
@@ -527,6 +526,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
+      /* jshint ignore:end */
     },
   };
 
@@ -4907,6 +4907,28 @@ DefaultSettings.prototype = {
    * @type {Boolean}
    */
   strict: void 0,
+
+  /**
+   * @description
+   * If typed `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
+   *
+   * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
+   *
+   * Option desired for `'autocomplete'`-typed cells.
+   * @example
+   * ```js
+   * ...
+   * columns: [{
+   *   type: 'autocomplete',
+   *   allowHtml: true,
+   *   source: ['<b>foo</b>', '<b>bar</b>']
+   * }]
+   * ...
+   * ```
+   * @type {Boolean}
+   * @default false
+   */
+  allowHtml: false,
 
   /**
    * If typed `true` then virtual rendering mechanism for handsontable will be disabled.

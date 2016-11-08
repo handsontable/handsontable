@@ -199,7 +199,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
-.is-disabled .pika-button {
+.is-disabled .pika-button,
+.is-outside-current-month .pika-button {
     pointer-events: none;
     cursor: default;
     color: #999;

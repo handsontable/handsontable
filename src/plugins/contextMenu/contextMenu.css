@@ -58,6 +58,7 @@
 
 .htContextMenu table tbody tr td.htDisabled {
   color: #999;
+  cursor: default;
 }
 
 .htContextMenu table tbody tr td.htDisabled:hover {

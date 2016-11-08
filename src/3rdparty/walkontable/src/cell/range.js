@@ -210,20 +210,16 @@ class WalkontableCellRange {
   setDirection(direction) {
     switch (direction) {
       case 'NW-SE':
-        this.from = this.getTopLeftCorner();
-        this.to = this.getBottomRightCorner();
+        [this.from, this.to] = [this.getTopLeftCorner(), this.getBottomRightCorner()];
         break;
       case 'NE-SW':
-        this.from = this.getTopRightCorner();
-        this.to = this.getBottomLeftCorner();
+        [this.from, this.to] = [this.getTopRightCorner(), this.getBottomLeftCorner()];
         break;
       case 'SE-NW':
-        this.from = this.getBottomRightCorner();
-        this.to = this.getTopLeftCorner();
+        [this.from, this.to] = [this.getBottomRightCorner(), this.getTopLeftCorner()];
         break;
       case 'SW-NE':
-        this.from = this.getBottomLeftCorner();
-        this.to = this.getTopRightCorner();
+        [this.from, this.to] = [this.getBottomLeftCorner(), this.getTopRightCorner()];
         break;
     }
   }

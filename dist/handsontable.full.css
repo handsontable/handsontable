@@ -141,6 +141,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }
 
 .handsontable th:first-child,
+.handsontable th:nth-child(2),
 .handsontable td:first-of-type,
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
@@ -435,21 +436,6 @@ CheckboxRenderer
   width: 100%;
 }
 
-/*
-Comment For Cell
-*/
-.htCommentCell{
-  position: relative;
-}
-.htCommentCell:after{
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-left: 6px solid transparent;
-  border-top: 6px solid red;
-}
-
 @-webkit-keyframes opacity-hide {
   from {
     opacity: 1;
@@ -597,15 +583,6 @@ Cell borders
 .htBordered.htLeftBorderSolid {
   border-left-style: solid;
   border-left-color: #000;
-}
-
-.htCommentTextArea{
-  -moz-box-shadow: 1px 1px 2px #bbb;
-  -webkit-box-shadow: 1px 1px 2px #bbb;
-  background-color: #FFFACD;
-  border: 1px solid #999;
-  box-shadow: 1px 1px 2px #bbb;
-  font-family: sans-serif;
 }
 
 .handsontable tbody tr th:nth-last-child(2) {
@@ -1005,6 +982,42 @@ thead .htCollapseButton:after {
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
+.htCommentCell {
+    position: relative;
+}
+
+.htCommentCell:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-left: 6px solid transparent;
+    border-top: 6px solid black;
+}
+
+.htComments {
+    display: none;
+    z-index: 1059;
+    position: absolute;
+}
+
+.htCommentTextArea {
+    box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
+    border: none;
+    border-left: 3px solid #ccc;
+    background-color: #fff;
+    width: 215px;
+    height: 90px;
+    font-size: 12px;
+    padding: 5px;
+    outline: 0px !important;
+    -webkit-appearance: none;
+}
+
+.htCommentTextArea:focus {
+    box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
+    border-left: 3px solid #5292f7;
+}
 /*!
  * Handsontable ContextMenu
  */
@@ -1065,6 +1078,7 @@ thead .htCollapseButton:after {
 
 .htContextMenu table tbody tr td.htDisabled {
   color: #999;
+  cursor: default;
 }
 
 .htContextMenu table tbody tr td.htDisabled:hover {
@@ -1382,7 +1396,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
-.is-disabled .pika-button {
+.is-disabled .pika-button,
+.is-outside-current-month .pika-button {
     pointer-events: none;
     cursor: default;
     color: #999;

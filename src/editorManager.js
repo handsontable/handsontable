@@ -247,7 +247,9 @@ function EditorManager(instance, priv, selection) {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
 
     eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
-      instance.runHooks('afterDocumentKeyDown', event);
+      if (!destroyed) {
+        instance.runHooks('afterDocumentKeyDown', event);
+      }
     });
 
     function onDblClick(event, coords, elem) {
