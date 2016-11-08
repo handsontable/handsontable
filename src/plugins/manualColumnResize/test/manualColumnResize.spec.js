@@ -125,11 +125,11 @@ describe('manualColumnResize', function () {
 
     var $columnHeaders = this.$container.find('thead tr:eq(1) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(210);
-    expect($columnHeaders.eq(1).width()).toBe(63);
-    expect($columnHeaders.eq(2).width()).toBe(211);
-    expect($columnHeaders.eq(3).width()).toBe(211);
-    expect($columnHeaders.eq(4).width()).toBe(209);
+    expect($columnHeaders.eq(0).width()).toBe(209);
+    expect($columnHeaders.eq(1).width()).toBe(64);
+    expect($columnHeaders.eq(2).width()).toBe(210);
+    expect($columnHeaders.eq(3).width()).toBe(210);
+    expect($columnHeaders.eq(4).width()).toBe(211);
   });
 
   it("should resize (extending) appropriate columns, even when stretchH `all` is enabled", function () {
@@ -144,11 +144,11 @@ describe('manualColumnResize', function () {
 
     var $columnHeaders = this.$container.find('thead tr:eq(1) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(126);
-    expect($columnHeaders.eq(1).width()).toBe(398);
-    expect($columnHeaders.eq(2).width()).toBe(127);
-    expect($columnHeaders.eq(3).width()).toBe(127);
-    expect($columnHeaders.eq(4).width()).toBe(126);
+    expect($columnHeaders.eq(0).width()).toBe(125);
+    expect($columnHeaders.eq(1).width()).toBe(399);
+    expect($columnHeaders.eq(2).width()).toBe(126);
+    expect($columnHeaders.eq(3).width()).toBe(126);
+    expect($columnHeaders.eq(4).width()).toBe(128);
   });
 
   it("should resize (narrowing) selected columns", function(done) {
@@ -176,7 +176,7 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect($columnHeaders.eq(1).width()).toBe(34);
+      expect($columnHeaders.eq(1).width()).toBe(33);
       expect($columnHeaders.eq(2).width()).toBe(34);
       expect($columnHeaders.eq(3).width()).toBe(34);
       done();
@@ -208,7 +208,7 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mouseup');
 
     setTimeout(function () {
-      expect($columnHeaders.eq(1).width()).toBe(155);
+      expect($columnHeaders.eq(1).width()).toBe(154);
       expect($columnHeaders.eq(2).width()).toBe(155);
       expect($columnHeaders.eq(3).width()).toBe(155);
       done();
@@ -227,11 +227,11 @@ describe('manualColumnResize', function () {
 
     var $columnHeaders = this.$container.find('thead tr:eq(1) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(210);
-    expect($columnHeaders.eq(1).width()).toBe(63);
-    expect($columnHeaders.eq(2).width()).toBe(211);
-    expect($columnHeaders.eq(3).width()).toBe(211);
-    expect($columnHeaders.eq(4).width()).toBe(209);
+    expect($columnHeaders.eq(0).width()).toBe(209);
+    expect($columnHeaders.eq(1).width()).toBe(64);
+    expect($columnHeaders.eq(2).width()).toBe(210);
+    expect($columnHeaders.eq(3).width()).toBe(210);
+    expect($columnHeaders.eq(4).width()).toBe(211);
 
     var $th = $columnHeaders.eq(1);
 
@@ -269,7 +269,7 @@ describe('manualColumnResize', function () {
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
 
     expect($columnHeaders.eq(0).width()).toBe(63);
-    expect($columnHeaders.eq(1).width()).toBe(49);
+    expect($columnHeaders.eq(1).width()).toBe(48);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBe(694);
@@ -289,7 +289,7 @@ describe('manualColumnResize', function () {
 
     setTimeout(function () {
       expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-      expect($columnHeaders.eq(1).width()).toBe(49);
+      expect($columnHeaders.eq(1).width()).toBe(48);
       expect($columnHeaders.eq(2).width()).toBe(49);
       expect($columnHeaders.eq(3).width()).toBe(49);
       expect($columnHeaders.eq(4).width()).toBeAroundValue(738);

@@ -96,10 +96,18 @@ class WalkontableOverlays {
 
     if (typeof WalkontableBottomOverlay === 'undefined') {
       this.bottomOverlay = {
-        needFullRender: false
+        needFullRender: false,
+        updateStateOfRendering: () => false,
       };
+    }
+    if (typeof WalkontableBottomLeftCornerOverlay === 'undefined') {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: () => false,
+      };
+    }
 
-    } else if (this.bottomOverlay) {
+    if (this.bottomOverlay) {
       syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
     } else {
       this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
@@ -119,16 +127,12 @@ class WalkontableOverlays {
       }
     }
 
-    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.bottomLeftCornerOverlay) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
         this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
-    } else {
-      this.bottomLeftCornerOverlay = {
-        needFullRender: false
-      };
     }
 
     if (this.wot.getSetting('debug') && !this.debug) {
@@ -593,13 +597,17 @@ class WalkontableOverlays {
    * Synchronize overlay scrollbars with the master scrollbar
    */
   syncScrollWithMaster() {
-    var master = this.topOverlay.mainTableScrollableElement;
+    const master = this.topOverlay.mainTableScrollableElement;
+    const {scrollLeft, scrollTop} = master;
 
     if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
+      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+    }
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
     }
     if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
+      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
     }
   }
 

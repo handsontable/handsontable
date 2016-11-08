@@ -304,7 +304,7 @@ class WalkontableTableRenderer {
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
       if (oversizedColumnHeaders[i]) {
-        if (children[i].childNodes.length === 0) {
+        if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
         children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
