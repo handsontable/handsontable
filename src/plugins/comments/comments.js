@@ -467,12 +467,13 @@ class Comments extends BasePlugin {
 
     if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
       const eventCell = closest(event.target, 'TD', 'TBODY');
+      let coordinates = null;
 
       if (eventCell) {
-        const coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+        coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
       }
 
-      if (!eventCell || (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col)) {
+      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
         this.hide();
       }
     }
