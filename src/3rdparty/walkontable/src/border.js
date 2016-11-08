@@ -64,6 +64,7 @@ class WalkontableBorder {
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
+      /* jshint loopfunc:true */
       this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }

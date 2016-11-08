@@ -1,10 +1,10 @@
-import Handsontable from './../../browser';
+import BasePlugin from './../_base';
+import ZeroClipboard from 'zeroclipboard';
 import {removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {EventManager} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import BasePlugin from './../_base';
-import ZeroClipboard from 'zeroclipboard';
+import {SEPARATOR} from './../contextMenu/predefinedItems';
 
 /**
  * @description
@@ -130,7 +130,7 @@ class ContextMenuCopyPaste extends BasePlugin {
           return this.selection.selectedHeader.corner;
         },
       },
-      Handsontable.plugins.ContextMenu.SEPARATOR
+      {name: SEPARATOR}
     );
   }
 
@@ -167,6 +167,9 @@ class ContextMenuCopyPaste extends BasePlugin {
   removeCurrentClass() {
     const contextMenu = this.hot.getPlugin('contextMenu');
 
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       let element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
 
@@ -184,6 +187,9 @@ class ContextMenuCopyPaste extends BasePlugin {
   removeZeroClipboardClass() {
     const contextMenu = this.hot.getPlugin('contextMenu');
 
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       let element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
 

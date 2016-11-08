@@ -9,6 +9,7 @@ import {
     overlayContainsElement,
     closest
 } from './../../../helpers/dom/element';
+import {isFunction} from './../../../helpers/function';
 import {WalkontableCellCoords} from './cell/coords';
 import {WalkontableCellRange} from './cell/range';
 import {WalkontableColumnFilter} from './filter/column';
@@ -51,6 +52,12 @@ class WalkontableTable {
 
     this.rowFilter = null;
     this.columnFilter = null;
+    this.correctHeaderWidth = false;
+
+    const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+
+    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
+    this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
   }
 
   /**
@@ -181,24 +188,43 @@ class WalkontableTable {
   /**
    * Redraws the table
    *
-   * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+   * @param {Boolean} fastDraw If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
    * @returns {WalkontableTable}
    */
   draw(fastDraw) {
+    const {wtOverlays, wtViewport} = this.wot;
     let totalRows = this.instance.getSetting('totalRows');
+    let rowHeaders = this.wot.getSetting('rowHeaders').length;
+    let columnHeaders = this.wot.getSetting('columnHeaders').length;
+    let syncScroll = false;
 
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
+      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+
+      if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
+        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        const previousState = this.correctHeaderWidth;
+
+        this.correctHeaderWidth = leftScrollPos > 0;
+
+        if (previousState !== this.correctHeaderWidth) {
+          fastDraw = false;
+        }
+      }
+    }
+
+    if (!this.isWorkingOnClone()) {
+      syncScroll = wtOverlays.prepareOverlays();
     }
 
     if (fastDraw) {
       if (!this.isWorkingOnClone()) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        this.wot.wtViewport.createVisibleCalculators();
+        wtViewport.createVisibleCalculators();
       }
-      if (this.wot.wtOverlays) {
-        this.wot.wtOverlays.refresh(true);
+      if (wtOverlays) {
+        wtOverlays.refresh(true);
       }
     } else {
       if (this.isWorkingOnClone()) {
@@ -216,7 +242,7 @@ class WalkontableTable {
           WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+        startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       let startColumn;
 
@@ -226,10 +252,10 @@ class WalkontableTable {
           WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+        startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
 
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw(); //creates calculator after draw
@@ -237,21 +263,24 @@ class WalkontableTable {
     this.refreshSelections(fastDraw);
 
     if (!this.isWorkingOnClone()) {
-      this.wot.wtOverlays.topOverlay.resetFixedPosition();
+      wtOverlays.topOverlay.resetFixedPosition();
 
-      if (this.wot.wtOverlays.bottomOverlay.clone) {
-        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      if (wtOverlays.bottomOverlay.clone) {
+        wtOverlays.bottomOverlay.resetFixedPosition();
       }
 
-      this.wot.wtOverlays.leftOverlay.resetFixedPosition();
+      wtOverlays.leftOverlay.resetFixedPosition();
 
-      if (this.wot.wtOverlays.topLeftCornerOverlay) {
-        this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.topLeftCornerOverlay) {
+        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
       }
 
-      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
-        this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+    }
+    if (syncScroll) {
+      wtOverlays.syncScrollWithMaster();
     }
     this.wot.drawn = true;
 
@@ -573,6 +602,40 @@ class WalkontableTable {
       if (stretchedWidth) {
         width = stretchedWidth;
       }
+    }
+
+    return width;
+  }
+
+  /**
+   * Modify row header widths provided by user in class contructor.
+   *
+   * @private
+   */
+  _modifyRowHeaderWidth(rowHeaderWidthFactory) {
+    let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
+
+    if (Array.isArray(widths)) {
+      widths = [...widths];
+      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
+    } else {
+      widths = this._correctRowHeaderWidth(widths);
+    }
+
+    return widths;
+  }
+
+  /**
+   * Correct row header width if necessary.
+   *
+   * @private
+   */
+  _correctRowHeaderWidth(width) {
+    if (typeof width !== 'number') {
+      width = this.wot.getSetting('defaultColumnWidth');
+    }
+    if (this.correctHeaderWidth) {
+      width++;
     }
 
     return width;

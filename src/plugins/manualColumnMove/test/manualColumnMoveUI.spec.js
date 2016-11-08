@@ -84,5 +84,35 @@ describe('manualColumnMove', function () {
 
       expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
     });
+
+    it('should set properly width for the backlight element when stretchH is enabled and column order was changed', function() {
+      var hot = handsontable({
+        data: [
+          {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro',	level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
+        ],
+        width: 600,
+        colHeaders: true,
+        stretchH: 'all',
+        manualColumnMove: [2,4,6,3,1,0],
+        columns: [
+          { data: 'id', type: 'numeric', width: 40 },
+          { data: 'currencyCode', type: 'text' },
+          { data: 'currency', type: 'text' },
+          { data: 'level', type: 'numeric', format: '0.0000' },
+          { data: 'units', type: 'text' },
+          { data: 'asOf', type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { data: 'onedChng', type: 'numeric', format: '0.00%' }
+        ],
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+
+      expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+    });
   });
 });

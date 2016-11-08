@@ -156,3 +156,17 @@ export function padStart(string, maxLength, fillString = ' ') {
 
   return truncatedString + string;
 };
+
+const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
+
+/**
+ * Strip any HTML tag from the string.
+ *
+ * @param  {String} string String to cut HTML from.
+ * @return {String}
+ */
+export function stripTags(string) {
+  string = string + '';
+
+  return string.replace(STRIP_TAGS_REGEX, '');
+}
