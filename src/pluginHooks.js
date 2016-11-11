@@ -149,6 +149,17 @@ const REGISTERED_HOOKS = [
   'afterCopyLimit',
 
   /**
+   * @description
+   * Fired after paste command is issued, before evaluating and pasting data, to allow any manipulation before paste.
+   *
+   * @event Hooks#beforePaste
+   * @param {Array[Array]} array containing all values being pasted in all directions, grouped separately for each row.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the starting cell from where data will start pasting.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the end cell where data will end pasting.
+   */
+  'beforePaste',
+
+  /**
    * Callback is fired before a new column was created.
    *
    * @since 0.28.0
