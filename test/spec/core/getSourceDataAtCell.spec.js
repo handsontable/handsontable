@@ -50,4 +50,81 @@ describe('Core.getSourceDataAtCell', function () {
 
     expect(getSourceDataAtCell(1, 'b.b')).toEqual('bb');
   });
+
+  it("should return cell value when data is provided by dataSchema", function () {
+    handsontable({
+      data: [
+        model({id: 1, name: 'Ted Right', address: ''}),
+        model({id: 2, name: 'Frank Honest', address: ''}),
+        model({id: 3, name: 'Joan Well', address: ''}),
+        model({id: 4, name: 'Gail Polite', address: ''}),
+        model({id: 5, name: 'Michael Fair', address: ''})
+      ],
+      dataSchema: model,
+      columns: [
+        {data: property('id')},
+        {data: property('name')},
+        {data: property('address')}
+      ]
+    });
+
+    function model(opts) {
+      var
+        _pub = {},
+        _priv = {
+          "id": undefined,
+          "name": undefined,
+          "address": undefined
+        };
+
+      for (var i in opts) {
+        if (opts.hasOwnProperty(i)) {
+          _priv[i] = opts[i];
+        }
+      }
+
+      _pub.attr = function (attr, val) {
+        if (typeof val === 'undefined') {
+          return _priv[attr];
+        }
+        _priv[attr] = val;
+
+        return _pub;
+      };
+
+      return _pub;
+    }
+
+    function property(attr) {
+      return function (row, value) {
+        return row.attr(attr, value);
+      }
+    }
+
+    expect(getSourceDataAtCell(1, 1)).toEqual('Frank Honest');
+  });
+
+  describe('`modifyRowSourceData` hook', function () {
+    it('should be possible to change data for row on the fly ', function () {
+      handsontable({
+        data: [
+          ["", "Kia", "Nissan", "Toyota", "Honda"],
+          ["2008", 10, 11, 12, 13],
+          ["2009", 20, 11, 14, 13],
+          ["2010", 30, 15, 12, 13]
+        ],
+        modifyRowSourceData: function(row) {
+          var newDataset = [];
+
+          if (row === 1) {
+            newDataset.push('2016', 0, 0, 0, 0);
+          }
+
+          return newDataset.length ? newDataset : void 0;
+        }
+      });
+
+      expect(getSourceDataAtCell(1, 0)).toEqual('2016');
+    });
+  });
 });

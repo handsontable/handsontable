@@ -801,6 +801,15 @@ const REGISTERED_HOOKS = [
   'modifyData',
 
   /**
+   * Fired in `getSourceDataAtCell` to modify data on-the-fly.
+   *
+   * @event Hooks#modifyRowSourceData
+   * @since 0.29.1
+   * @param {Number} row Row logical index.
+   */
+  'modifyRowSourceData',
+
+  /**
    * Fired after loading data using the Persistent State plugin.
    *
    * @event Hooks#persistentStateLoad
