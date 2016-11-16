@@ -104,7 +104,7 @@ describe('Core.getSourceDataAtCell', function () {
     expect(getSourceDataAtCell(1, 1)).toEqual('Frank Honest');
   });
 
-  describe('`modifyRowSourceData` hook', function () {
+  describe('`modifyRowData` hook', function () {
     it('should be possible to change data for row on the fly ', function () {
       handsontable({
         data: [
@@ -113,7 +113,7 @@ describe('Core.getSourceDataAtCell', function () {
           ["2009", 20, 11, 14, 13],
           ["2010", 30, 15, 12, 13]
         ],
-        modifyRowSourceData: function(row) {
+        modifyRowData: function(row) {
           var newDataset = [];
 
           if (row === 1) {

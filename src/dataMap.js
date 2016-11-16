@@ -509,7 +509,7 @@ DataMap.prototype.get = function(row, prop) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'get');
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -595,7 +595,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'set', source);
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //

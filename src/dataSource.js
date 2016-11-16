@@ -105,9 +105,9 @@ class DataSource {
   getAtCell(row, column) {
     let result = null;
 
-    let modifyRowSourceData = this.hot.runHooks('modifyRowSourceData', row);
+    let modifyRowData = this.hot.runHooks('modifyRowData', row);
 
-    let dataRow = isNaN(modifyRowSourceData) ? modifyRowSourceData : this.data[row];
+    let dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
 
     if (dataRow) {
       let prop = this.colToProp(column);
