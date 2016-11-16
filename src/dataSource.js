@@ -105,13 +105,21 @@ class DataSource {
   getAtCell(row, column) {
     let result = null;
 
-    if (this.data[row]) {
+    let modifyRowData = this.hot.runHooks('modifyRowData', row);
+
+    let dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
+
+    if (dataRow) {
       let prop = this.colToProp(column);
 
       if (typeof prop === 'string') {
-        result = getProperty(this.data[row], prop);
+        result = getProperty(dataRow, prop);
+
+      } else if (typeof prop === 'function') {
+        result = prop(this.data.slice(row, row + 1)[0]);
+
       } else {
-        result = this.data[row][prop];
+        result = dataRow[prop];
       }
     }
 
