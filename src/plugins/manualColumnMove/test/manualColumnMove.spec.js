@@ -23,6 +23,75 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
+
+  });
+
+  describe('persistentState', function() {
+
+    it('should reload persistent state from a default order', function () {
+      this.$container.remove();
+      this.$container = $('<div id="persistentDefault"></div>').appendTo('body');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: [1, 2, 0],
+        persistentState: true
+      });
+
+      hot.destroy();
+      this.$container.remove();
+      this.$container = $('<div id="persistentDefault"></div>').appendTo('body');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+    });
+
+    it('should reload persistent state after a move', function () {
+      this.$container.remove();
+      this.$container = $('<div id="persistentMove"></div>').appendTo('body');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+      var $rowsHeaders = this.$container.find('.ht_clone_top tr th');
+
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(1).simulate('mouseup');
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(0).simulate('mouseover');
+      $rowsHeaders.eq(0).simulate('mousemove');
+      $rowsHeaders.eq(0).simulate('mouseup');
+
+      hot.destroy();
+      this.$container.remove();
+      this.$container = $('<div id="persistentMove"></div>').appendTo('body');
+      
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+    });
+
   });
 
   describe('updateSettings', function() {
