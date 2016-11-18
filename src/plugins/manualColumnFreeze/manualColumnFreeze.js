@@ -77,6 +77,9 @@ class ManualColumnFreeze extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
+    if (!this.manualColumnMovePlugin.isEnabled()) {
+      this.manualColumnMovePlugin.adjustColumnSize();
+    }
     super.updatePlugin();
   }
 

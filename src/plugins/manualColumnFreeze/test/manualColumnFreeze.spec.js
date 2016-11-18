@@ -37,6 +37,25 @@ describe("manualColumnFreeze", function () {
 
       expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(5);
     });
+
+    it("should still freeze columns as table size expands", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        manualColumnFreeze: true
+      });
+
+      hot.updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(10, 10)
+      });
+      
+      var plugin = hot.getPlugin('manualColumnFreeze');
+      var movePlugin = hot.getPlugin('manualColumnMove');
+
+      plugin.freezeColumn(5);
+
+      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(5);
+    });
+
   });
 
   describe("unfreezeColumn", function () {
@@ -69,6 +88,7 @@ describe("manualColumnFreeze", function () {
       expect(movePlugin.columnsMapper.getValueByIndex(1)).toEqual(2);
       expect(movePlugin.columnsMapper.getValueByIndex(2)).toEqual(0);
     });
+
   });
 
   describe("functionality", function () {

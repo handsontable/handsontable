@@ -670,11 +670,10 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * `afterPluginsInitialized` hook callback.
+   * `adjustColumnSize` -- called to adjust size of columnsMapper
    *
-   * @private
    */
-  onAfterPluginsInitialized() {
+  adjustColumnSize() {
     let countCols = this.hot.countCols();
     let columnsMapperLen = this.columnsMapper._arrayMap.length;
 
@@ -698,7 +697,15 @@ class ManualColumnMove extends BasePlugin {
 
       this.columnsMapper.removeItems(columnsToRemove);
     }
+  }
 
+  /**
+   * `afterPluginsInitialized` hook callback.
+   *
+   * @private
+   */
+  onAfterPluginsInitialized() {
+    this.adjustColumnSize();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
