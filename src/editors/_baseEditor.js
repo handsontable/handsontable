@@ -58,13 +58,12 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
 
-  let ieIframeDocument = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
-  console.log(document.activeElement, ' - ', document.activeElement.nodeName);
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !ieIframeDocument) {
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
 
-  } else if (ieIframeDocument) { //IE
+  } else if (invalidActiveElement) { //IE
     document.body.focus();
   }
 
