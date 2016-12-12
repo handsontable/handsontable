@@ -11,7 +11,7 @@
 <!--- Provide a link to a live example on JSFiddle or Codepen -->
 
 ### Your environment
-* Version:
+* Handsontable version:
 * Browser Name and version:
 * Operating System:
 
