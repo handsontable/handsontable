@@ -1,5 +1,6 @@
 describe('manualColumnMove', function () {
   var id = 'testContainer';
+  var arrayOfArrays = Handsontable.helper.createSpreadsheetData(30, 30);
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
@@ -15,7 +16,7 @@ describe('manualColumnMove', function () {
   describe('UI', function() {
     it('should append UI elements to wtHider after click on row header', function() {
       var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
       });
@@ -31,7 +32,7 @@ describe('manualColumnMove', function () {
 
     it('should part of UI elements be visible on dragging action', function() {
       var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
       });
@@ -47,7 +48,7 @@ describe('manualColumnMove', function () {
 
     it('should all of UI elements be visible on dragging action', function() {
       var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
       });
@@ -102,7 +103,7 @@ describe('manualColumnMove', function () {
           { data: 'units', type: 'text' },
           { data: 'asOf', type: 'date', dateFormat: 'MM/DD/YYYY' },
           { data: 'onedChng', type: 'numeric', format: '0.00%' }
-        ],
+        ]
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
@@ -113,6 +114,29 @@ describe('manualColumnMove', function () {
       $headerTH.simulate('mousedown');
 
       expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+    });
+
+    it('should not run moving ui if mousedown was fired on sorting element', function() {
+      var hot = handsontable({
+        data: arrayOfArrays.slice(),
+        colHeaders: true,
+        manualColumnMove: true,
+        columnSorting: true
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      var $summaryElement = $headerTH.find('.columnSorting');
+
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+
+      var $backlight = this.$container.find('.ht__manualColumnMove--backlight')[0];
+      $summaryElement.simulate('mousedown');
+
+      var displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
+      expect(displayProp).toEqual('none');
     });
   });
 });
