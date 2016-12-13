@@ -509,7 +509,7 @@ DataMap.prototype.get = function(row, prop) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'get');
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -595,7 +595,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'set', source);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -711,18 +711,18 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
+  const maxRows = this.instance.getSettings().maxRows;
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
     let reValidate = this.skipCache;
 
     this.interval.start();
-
     if (length !== this.latestSourceRowsCount) {
       reValidate = true;
     }
-    this.latestSourceRowsCount = length;
 
+    this.latestSourceRowsCount = length;
     if (this.cachedLength === null || reValidate) {
       rangeEach(length - 1, (row) => {
         row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
@@ -740,7 +740,7 @@ DataMap.prototype.getLength = function() {
     this.interval.stop();
   }
 
-  return length;
+  return Math.min(length, maxRows);
 };
 
 /**
@@ -753,8 +753,11 @@ DataMap.prototype.getAll = function() {
     row: 0,
     col: 0,
   };
+
+  const maxRows = this.instance.getSettings().maxRows;
+
   let end = {
-    row: Math.max(this.instance.countSourceRows() - 1, 0),
+    row: Math.min(maxRows - 1, Math.max(this.instance.countSourceRows() - 1, 0)),
     col: Math.max(this.instance.countCols() - 1, 0),
   };
 
