@@ -435,8 +435,9 @@ class ManualColumnMove extends BasePlugin {
     let isHeaderSelection = this.hot.selection.selectedHeader.cols;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
+    let isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
 
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
       priv.pressed = false;
       priv.columnsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);

@@ -801,6 +801,15 @@ const REGISTERED_HOOKS = [
   'modifyData',
 
   /**
+   * Fired when a data was retrieved or modified.
+   *
+   * @event Hooks#modifyRowSourceData
+   * @since 0.28.0
+   * @param {Number} row Row logical index.
+   */
+  'modifyRowData',
+
+  /**
    * Fired after loading data using the Persistent State plugin.
    *
    * @event Hooks#persistentStateLoad
