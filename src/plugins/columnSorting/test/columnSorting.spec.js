@@ -1762,4 +1762,20 @@ describe('ColumnSorting', function() {
     expect(hot.toVisualRow(2)).toBe(0);
     expect(hot.toVisualRow(3)).toBe(2);
   });
+
+
+  it('should return sorted properly data when maxRows option is set', function () {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      maxRows: 5,
+      columnSorting: {
+        column: 1,
+        sortOrder: false
+      }
+    });
+
+    expect(getData().length).toEqual(5);
+
+    expect(getDataAtCell(0, 2)).toEqual('C5');
+  });
 });

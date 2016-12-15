@@ -3603,7 +3603,7 @@ DefaultSettings.prototype = {
   minCols: 0,
 
   /**
-   * Maximum number of rows.
+   * Maximum number of rows. If set to value which is greater then number of initial rows data will be trimmed.
    *
    * @type {Number}
    * @default Infinity
