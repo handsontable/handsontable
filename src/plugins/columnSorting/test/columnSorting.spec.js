@@ -1762,4 +1762,56 @@ describe('ColumnSorting', function() {
     expect(hot.toVisualRow(2)).toBe(0);
     expect(hot.toVisualRow(3)).toBe(2);
   });
+
+  describe('should return sorted properly data when maxRows or / and minSpareRow options are set', function() {
+    var testSorting = function (desc, config, result) {
+      it(desc, function () {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns),
+          maxRows: config.maxRow,
+          minSpareRows: config.minSpareRows,
+          columnSorting: {
+            column: config.sortByColumnIndex,
+            sortOrder: config.sortOrder
+          }
+        });
+
+        expect(getData().length).toEqual(result.dataLength);
+
+        for (var i = 0; i < result.expectations.length; i += 1) {
+          expect(getDataAtCell(result.expectations[i].rowIndex, result.expectations[i].columnIndex)).toEqual(result.expectations[i].value);
+        }
+      });
+    };
+
+    testSorting(
+      'maxRows < data.length',
+      {rows: 9, columns: 9, maxRow: 6, sortByColumnIndex: 1, sortOrder: false},
+      {dataLength: 6, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
+    );
+
+    testSorting(
+      'maxRows > data.length',
+      {rows: 8, columns: 8, maxRow: 20, sortByColumnIndex: 1, sortOrder: false},
+      {dataLength: 8, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C8'}]}
+    );
+
+    testSorting(
+      'minSpareRows is set; maxRows < data.length',
+      {rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
+      {dataLength: 5, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C5'}]}
+    );
+
+    testSorting(
+      'minSpareRows is set; maxRows === data.length',
+      {rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
+      {dataLength: 6 + 3, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
+    );
+
+    testSorting(
+      'minSpareRows is set; maxRows > data.length',
+      {rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortByColumnIndex: 1, sortOrder: false},
+      {dataLength: 9 + 2, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C9'}]}
+    );
+  });
 });
