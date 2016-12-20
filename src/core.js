@@ -1902,7 +1902,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function propToCol
-   * @param {String} prop Property name.
+   * @param {String|Number} prop Property name or column index.
    * @returns {Number} Column index.
    */
   this.propToCol = function(prop) {
