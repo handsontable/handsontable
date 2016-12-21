@@ -227,7 +227,84 @@ describe('Comments', function() {
         done();
       }, 550);
     });
-
   });
 
+  describe('Hooks invoked after changing cell meta', function() {
+    it('should trigger afterSetCellMeta callback after deleting comment', function() {
+      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      var rows = 10, columns = 10;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns: function () {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
+
+      selectCell(1, 1);
+      contextMenu();
+
+      var deleteCommentButton = $('.htItemWrapper').filter(function () {
+        return $(this).text() === 'Delete comment';
+      })[0];
+
+      $(deleteCommentButton).simulate('mousedown');
+
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
+    });
+
+    it('should trigger afterSetCellMeta callback after editing comment', function (done) {
+      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      var rows = 10, columns = 10;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns: function () {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      var editCommentButton = $('.htItemWrapper').filter(function () {
+        return $(this).text() === 'Edit comment';
+      })[0];
+
+      $(editCommentButton).simulate('mousedown');
+
+      setTimeout(function () {
+        $('.htCommentTextArea').val('Edited comment');
+
+        // changing focus
+
+        $('body').simulate('mousedown');
+
+        setTimeout(function () {
+          expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
+          done();
+        }, 100);
+      }, 100);
+    });
+  });
 });
