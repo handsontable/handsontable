@@ -711,18 +711,25 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
+  let maxRows, maxRowsFromSettings = this.instance.getSettings().maxRows;
+
+  if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
+    maxRows = 0;
+  } else {
+    maxRows = maxRowsFromSettings || Infinity;
+  }
+
   let length = this.instance.countSourceRows();
 
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
     let reValidate = this.skipCache;
 
     this.interval.start();
-
     if (length !== this.latestSourceRowsCount) {
       reValidate = true;
     }
-    this.latestSourceRowsCount = length;
 
+    this.latestSourceRowsCount = length;
     if (this.cachedLength === null || reValidate) {
       rangeEach(length - 1, (row) => {
         row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
@@ -740,7 +747,7 @@ DataMap.prototype.getLength = function() {
     this.interval.stop();
   }
 
-  return length;
+  return Math.min(length, maxRows);
 };
 
 /**
@@ -753,8 +760,15 @@ DataMap.prototype.getAll = function() {
     row: 0,
     col: 0,
   };
+
+  let maxRows = this.instance.getSettings().maxRows;
+
+  if (maxRows === 0) {
+    return [];
+  }
+
   let end = {
-    row: Math.max(this.instance.countSourceRows() - 1, 0),
+    row: Math.min(Math.max(maxRows - 1, 0), Math.max(this.instance.countSourceRows() - 1, 0)),
     col: Math.max(this.instance.countCols() - 1, 0),
   };
 
@@ -775,7 +789,7 @@ DataMap.prototype.getAll = function() {
  */
 DataMap.prototype.getRange = function(start, end, destination) {
   var r, rlen, c, clen, output = [],
-    row, rowExists;
+    row;
 
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
@@ -787,7 +801,6 @@ DataMap.prototype.getRange = function(start, end, destination) {
     let physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', r);
 
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
-      let rowValue;
 
       if (physicalRow === null) {
         break;

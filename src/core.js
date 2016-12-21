@@ -1902,7 +1902,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function propToCol
-   * @param {String} prop Property name.
+   * @param {String|Number} prop Property name or column index.
    * @returns {Number} Column index.
    */
   this.propToCol = function(prop) {
@@ -3603,7 +3603,7 @@ DefaultSettings.prototype = {
   minCols: 0,
 
   /**
-   * Maximum number of rows.
+   * Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided value as the number of rows.
    *
    * @type {Number}
    * @default Infinity
