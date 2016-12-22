@@ -3,50 +3,9 @@ import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {getDeltas} from './utils';
 
 export {Autofill};
-
-function getDeltas(start, end, data, direction) {
-  var
-  // rows
-    rlength = data.length,
-  // cols
-    clength = data ? data[0].length : 0,
-    deltas = [],
-    arr = [],
-    diffRow, diffCol,
-    startValue, endValue,
-    delta;
-
-  diffRow = end.row - start.row;
-  diffCol = end.col - start.col;
-
-  if (['down', 'up'].indexOf(direction) !== -1) {
-    for (var col = 0; col <= diffCol; col++) {
-      startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[rlength - 1][col], 10);
-      delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
-
-      arr.push(delta);
-    }
-    deltas.push(arr);
-  }
-
-  if (['right', 'left'].indexOf(direction) !== -1) {
-    for (var row = 0; row <= diffRow; row++) {
-      startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][clength - 1], 10);
-      delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-
-      arr = [];
-      arr.push(delta);
-
-      deltas.push(arr);
-    }
-  }
-
-  return deltas;
-}
 
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
