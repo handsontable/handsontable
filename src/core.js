@@ -985,7 +985,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               changes[i][3] = parseFloat(changes[i][3]);
 
             } else {
-              changes[i][3] = numbro().unformat(changes[i][3]);
+              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
             }
           }
         }
