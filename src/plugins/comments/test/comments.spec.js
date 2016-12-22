@@ -301,47 +301,47 @@ describe('Comments', function() {
     // Don't work in PhantomJS
     // It will work probably when #3961 will be fixed
 
-    // it('should trigger `afterSetCellMeta` callback after editing comment by context menu', function (done) {
-    //   var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-    //   var rows = 10, columns = 10;
-    //
-    //   handsontable({
-    //     data: Handsontable.helper.createSpreadsheetData(rows, columns),
-    //     rowHeaders: true,
-    //     colHeaders: true,
-    //     contextMenu: true,
-    //     comments: true,
-    //     columns: function () {
-    //       return {
-    //         comment: {
-    //           value: 'test'
-    //         }
-    //       };
-    //     },
-    //     afterSetCellMeta: afterSetCellMetaCallback
-    //   });
-    //
-    //   selectCell(0, 0);
-    //   contextMenu();
-    //
-    //   var editCommentButton = $('.htItemWrapper').filter(function () {
-    //     return $(this).text() === 'Edit comment';
-    //   })[0];
-    //
-    //   $(editCommentButton).simulate('mousedown');
-    //
-    //   setTimeout(function () {
-    //     $('.htCommentTextArea').val('Edited comment');
-    //
-    //     // changing focus
-    //
-    //     $('body').simulate('mousedown');
-    //
-    //     setTimeout(function () {
-    //       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
-    //       done();
-    //     }, 100);
-    //   }, 100);
-    // });
+    xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', function (done) {
+      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      var rows = 10, columns = 10;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns: function () {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      var editCommentButton = $('.htItemWrapper').filter(function () {
+        return $(this).text() === 'Edit comment';
+      })[0];
+
+      $(editCommentButton).simulate('mousedown');
+
+      setTimeout(function () {
+        $('.htCommentTextArea').val('Edited comment');
+
+        // changing focus
+
+        $('body').simulate('mousedown');
+
+        setTimeout(function () {
+          expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
+          done();
+        }, 100);
+      }, 100);
+    });
   });
 });

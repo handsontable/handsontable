@@ -240,7 +240,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, 'comment', {[META_COMMENT_VALUE]: comment});
+    this.hot.setCellMeta(row, col, META_COMMENT, {[META_COMMENT_VALUE]: comment});
     this.hot.render();
   }
 
