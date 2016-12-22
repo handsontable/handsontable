@@ -240,7 +240,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
+    this.hot.setCellMeta(row, col, META_COMMENT, {[META_COMMENT_VALUE]: comment});
     this.hot.render();
   }
 
@@ -268,7 +268,7 @@ class Comments extends BasePlugin {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
-    this.hot.getCellMeta(this.range.from.row, this.range.from.col)[META_COMMENT] = void 0;
+    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT, void 0);
 
     if (forceRender) {
       this.hot.render();
