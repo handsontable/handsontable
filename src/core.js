@@ -3543,7 +3543,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * comments: [{row: 1, col: 1, comment: "Test comment"}],
+   * comments: [{row: 1, col: 1, comment: {value: "Test comment"}}],
    * ...
    * ```
    */
