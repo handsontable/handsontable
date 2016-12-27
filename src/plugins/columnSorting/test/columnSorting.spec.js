@@ -222,171 +222,239 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
   });
 
-  it('should sort date columns (MM/DD/YYYY)', function() {
-    var hot = handsontable({
-      data: [
-        ["Mercedes", "A 160", "01/14/2006", 6999.9999],
-        ["Citroen", "C4 Coupe", "12/01/2008", 8330],
-        ["Audi", "A4 Avant", "11/19/2011", 33900],
-        ["Opel", "Astra", "02/02/2004", 7000],
-        ["BMW", "320i Coupe", "07/24/2011", 30500]
-      ],
-      columns: [
-        {},
-        {},
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        },
-        {
-          type: 'numeric'
-        }
-      ],
-      colHeaders: true,
-      columnSorting: true
+  describe('data type: date', function() {
+    it('should sort date columns (DD/MM/YYYY)', function() {
+      var hot = handsontable({
+        data: [
+          ["Mercedes", "A 160", "01/12/2012", 6999.9999],
+          ["Citroen", "C4 Coupe", "12/01/2013", 8330],
+          ["Audi", "A4 Avant", "11/10/2014", 33900],
+          ["Opel", "Astra", "02/02/2015", 7000],
+          ["BMW", "320i Coupe", "07/02/2013", 30500]
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'DD/MM/YYYY'
+          },
+          {
+            type: 'numeric'
+          }
+        ],
+        colHeaders: true,
+        columnSorting: true
+      });
+
+      hot.sort(2, true); // ASC
+
+      expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "01/12/2012", 6999.9999]);
+      expect(hot.getDataAtRow(1)).toEqual(["Citroen", "C4 Coupe", "12/01/2013", 8330]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/02/2013", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Audi", "A4 Avant", "11/10/2014", 33900]);
+      expect(hot.getDataAtRow(4)).toEqual(["Opel", "Astra", "02/02/2015", 7000]);
+
+      hot.sort(2, false); // DESC
+
+      expect(hot.getDataAtRow(0)).toEqual(["Opel", "Astra", "02/02/2015", 7000]);
+      expect(hot.getDataAtRow(1)).toEqual(["Audi", "A4 Avant", "11/10/2014", 33900]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/02/2013", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Citroen", "C4 Coupe", "12/01/2013", 8330]);
+      expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/12/2012", 6999.9999]);
     });
 
-    hot.sort(2, true); // ASC
+    it('should sort date columns (MMMM Do YYYY)', function() {
+      var hot = handsontable({
+        data: [
+          ["Mercedes", "A 160", "October 28th 2016", 6999.9999],
+          ["Citroen", "C4 Coupe", "October 27th 2001", 8330],
+          ["Audi", "A4 Avant", "July 8th 1999", 33900],
+          ["Opel", "Astra", "June 1st 2001", 7000],
+          ["BMW", "320i Coupe", "August 3rd 2001", 30500]
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'MMMM Do YYYY'
+          },
+          {
+            type: 'numeric'
+          }
+        ],
+        colHeaders: true,
+        columnSorting: true
+      });
 
-    expect(hot.getDataAtRow(0)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
-    expect(hot.getDataAtRow(1)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-    expect(hot.getDataAtRow(2)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
-    expect(hot.getDataAtRow(3)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
-    expect(hot.getDataAtRow(4)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
+      hot.sort(2, true); // ASC
 
-    hot.sort(2, false); // DESC
+      expect(hot.getDataAtRow(0)).toEqual(["Audi", "A4 Avant", "July 8th 1999", 33900]);
+      expect(hot.getDataAtRow(1)).toEqual(["Opel", "Astra", "June 1st 2001", 7000]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "August 3rd 2001", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Citroen", "C4 Coupe", "October 27th 2001", 8330]);
+      expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "October 28th 2016", 6999.9999]);
 
-    expect(hot.getDataAtRow(0)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
-    expect(hot.getDataAtRow(1)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
-    expect(hot.getDataAtRow(2)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
-    expect(hot.getDataAtRow(3)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-    expect(hot.getDataAtRow(4)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
-  });
+      hot.sort(2, false); // DESC
 
-  it('should sort date columns (DD/MM/YYYY)', function() {
-    var hot = handsontable({
-      data: [
-        ["Mercedes", "A 160", "01/12/2012", 6999.9999],
-        ["Citroen", "C4 Coupe", "12/01/2013", 8330],
-        ["Audi", "A4 Avant", "11/10/2014", 33900],
-        ["Opel", "Astra", "02/02/2015", 7000],
-        ["BMW", "320i Coupe", "07/02/2013", 30500]
-      ],
-      columns: [
-        {},
-        {},
-        {
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY'
-        },
-        {
-          type: 'numeric'
-        }
-      ],
-      colHeaders: true,
-      columnSorting: true
+      expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "October 28th 2016", 6999.9999]);
+      expect(hot.getDataAtRow(1)).toEqual(["Citroen", "C4 Coupe", "October 27th 2001", 8330]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "August 3rd 2001", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "June 1st 2001", 7000]);
+      expect(hot.getDataAtRow(4)).toEqual(["Audi", "A4 Avant", "July 8th 1999", 33900]);
     });
 
-    hot.sort(2, true); // ASC
+    it('should sort date columns (MM/DD/YYYY)', function() {
+      var hot = handsontable({
+        data: [
+          ["Mercedes", "A 160", "01/14/2006", 6999.9999],
+          ["Citroen", "C4 Coupe", "12/01/2008", 8330],
+          ["Audi", "A4 Avant", "11/19/2011", 33900],
+          ["Opel", "Astra", "02/02/2004", 7000],
+          ["BMW", "320i Coupe", "07/24/2011", 30500]
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY'
+          },
+          {
+            type: 'numeric'
+          }
+        ],
+        colHeaders: true,
+        columnSorting: true
+      });
 
-    expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "01/12/2012", 6999.9999]);
-    expect(hot.getDataAtRow(1)).toEqual(["Citroen", "C4 Coupe", "12/01/2013", 8330]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/02/2013", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Audi", "A4 Avant", "11/10/2014", 33900]);
-    expect(hot.getDataAtRow(4)).toEqual(["Opel", "Astra", "02/02/2015", 7000]);
+      hot.sort(2, true); // ASC
 
-    hot.sort(2, false); // DESC
+      expect(hot.getDataAtRow(0)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
+      expect(hot.getDataAtRow(1)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
+      expect(hot.getDataAtRow(2)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
+      expect(hot.getDataAtRow(3)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
+      expect(hot.getDataAtRow(4)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
 
-    expect(hot.getDataAtRow(0)).toEqual(["Opel", "Astra", "02/02/2015", 7000]);
-    expect(hot.getDataAtRow(1)).toEqual(["Audi", "A4 Avant", "11/10/2014", 33900]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/02/2013", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Citroen", "C4 Coupe", "12/01/2013", 8330]);
-    expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/12/2012", 6999.9999]);
-  });
+      hot.sort(2, false); // DESC
 
-  it('should sort date columns (MMMM Do YYYY)', function() {
-    var hot = handsontable({
-      data: [
-        ["Mercedes", "A 160", "October 28th 2016", 6999.9999],
-        ["Citroen", "C4 Coupe", "October 27th 2001", 8330],
-        ["Audi", "A4 Avant", "July 8th 1999", 33900],
-        ["Opel", "Astra", "June 1st 2001", 7000],
-        ["BMW", "320i Coupe", "August 3rd 2001", 30500]
-      ],
-      columns: [
-        {},
-        {},
-        {
-          type: 'date',
-          dateFormat: 'MMMM Do YYYY'
-        },
-        {
-          type: 'numeric'
-        }
-      ],
-      colHeaders: true,
-      columnSorting: true
+      expect(hot.getDataAtRow(0)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
+      expect(hot.getDataAtRow(1)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
+      expect(hot.getDataAtRow(2)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
+      expect(hot.getDataAtRow(3)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
+      expect(hot.getDataAtRow(4)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
     });
 
-    hot.sort(2, true); // ASC
+    it('should sort date columns along with empty and null values', function() {
+      var hot = handsontable({
+        data: [
+          ["Mercedes", "A 160", "01/14/2006", 6999.9999],
+          ["Citroen", "C4 Coupe", "12/01/2008", 8330],
+          ["Citroen", "C4 Coupe null", null, 8330],
+          ["Citroen", "C4 Coupe empty", "", 8330],
+          ["Audi", "A4 Avant", "11/19/2011", 33900],
+          ["Opel", "Astra", "02/02/2004", 7000],
+          ["BMW", "320i Coupe", "07/24/2011", 30500]
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'mm/dd/yy'
+          },
+          {
+            type: 'numeric'
+          }
+        ],
+        colHeaders: true,
+        columnSorting: true
+      });
 
-    expect(hot.getDataAtRow(0)).toEqual(["Audi", "A4 Avant", "July 8th 1999", 33900]);
-    expect(hot.getDataAtRow(1)).toEqual(["Opel", "Astra", "June 1st 2001", 7000]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "August 3rd 2001", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Citroen", "C4 Coupe", "October 27th 2001", 8330]);
-    expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "October 28th 2016", 6999.9999]);
+      hot.sort(2, true); // ASC
 
-    hot.sort(2, false); // DESC
+      expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
+      expect(hot.getDataAtRow(1)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
+      expect(hot.getDataAtRow(4)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
 
-    expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "October 28th 2016", 6999.9999]);
-    expect(hot.getDataAtRow(1)).toEqual(["Citroen", "C4 Coupe", "October 27th 2001", 8330]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "August 3rd 2001", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "June 1st 2001", 7000]);
-    expect(hot.getDataAtRow(4)).toEqual(["Audi", "A4 Avant", "July 8th 1999", 33900]);
-  });
+      hot.sort(2, false); // DESC
 
-  it('should sort date columns along with empty and null values', function() {
-    var hot = handsontable({
-      data: [
-        ["Mercedes", "A 160", "01/14/2006", 6999.9999],
-        ["Citroen", "C4 Coupe", "12/01/2008", 8330],
-        ["Citroen", "C4 Coupe null", null, 8330],
-        ["Citroen", "C4 Coupe empty", "", 8330],
-        ["Audi", "A4 Avant", "11/19/2011", 33900],
-        ["Opel", "Astra", "02/02/2004", 7000],
-        ["BMW", "320i Coupe", "07/24/2011", 30500]
-      ],
-      columns: [
-        {},
-        {},
-        {
-          type: 'date',
-          dateFormat: 'mm/dd/yy'
-        },
-        {
-          type: 'numeric'
-        }
-      ],
-      colHeaders: true,
-      columnSorting: true
+      expect(hot.getDataAtRow(0)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
+      expect(hot.getDataAtRow(1)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
+      expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
     });
 
-    hot.sort(2, true); // ASC
+    it('should properly rewrite date into correct format after sort', function(done) {
+      var hot = handsontable({
+        data: [
+          ["01/14/2006"],
+          ["12/01/2008"],
+          ["11/19/2011"],
+          ["02/02/2004"],
+          ["07/24/2011"]
+        ],
+        columns: [
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY',
+            correctFormat: true
+          }
+        ],
+        colHeaders: true,
+        columnSorting: {
+          column: 0,
+          sortOrder: false
+        }
+      });
 
-    expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-    expect(hot.getDataAtRow(1)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
-    expect(hot.getDataAtRow(4)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
+      hot.setDataAtCell(0, 0, '12-06-2015', 'edit');
 
-    hot.sort(2, false); // DESC
-
-    expect(hot.getDataAtRow(0)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
-    expect(hot.getDataAtRow(1)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
-    expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
-    expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
-    expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
+      setTimeout(function () {
+        expect(hot.getDataAtCell(0, 0)).toEqual('12/06/2015');
+        done();
+      }, 200);
+    });
   });
+
+  describe('data type: time', function() {
+    it('should properly rewrite time into correct format after sort', function(done) {
+      var hot = handsontable({
+        data: [
+          ['0:00:01 am'],
+          ['5:30:14 pm'],
+          ['8:00:00 pm'],
+          ['11:15:05 am'],
+          ['4:07:48 am']
+        ],
+        columns: [
+          {
+            type: 'time',
+            dateFormat: 'h:mm:ss a',
+            correctFormat: true
+          }
+        ],
+        colHeaders: true,
+        columnSorting: {
+          column: 0,
+          sortOrder: false
+        }
+      });
+
+      hot.setDataAtCell(0, 0, '19:55', 'edit');
+
+      setTimeout(function () {
+        expect(hot.getDataAtCell(0, 0)).toEqual('7:55:00 pm');
+        done();
+      }, 100);
+    });
+  });
+
+
 
   it('should properly sort numeric data', function() {
     var hot = handsontable({
