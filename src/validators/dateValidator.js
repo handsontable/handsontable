@@ -37,8 +37,10 @@ Handsontable.DateValidator = function(value, callback) {
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       let correctedValue = correctFormat(value, this.dateFormat);
+      let row = this.instance.runHooks('unmodifyRow', this.row);
+      let column = this.instance.runHooks('unmodifyCol', this.col);
 
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');
+      this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
     } else {
       valid = false;
