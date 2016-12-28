@@ -139,8 +139,8 @@ class Autofill extends BasePlugin {
 
     if (lastFilledInRowIndex) {
       this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(select[SELECTION_ROW_FROM_INDEX], select[SELECTION_COLUMN_FROM_INDEX]));
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(lastFilledInRowIndex, select[SELECTION_COLUMN_TO_INDEX]));
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(cornersOfSelectedCells[SELECTION_ROW_FROM_INDEX], cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]));
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(lastFilledInRowIndex, cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]));
       this.apply();
     }
   }
