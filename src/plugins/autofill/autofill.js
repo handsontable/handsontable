@@ -106,10 +106,10 @@ class Autofill extends BasePlugin {
       select = this.hot.view.wt.selections.current.getCorners();
     }
 
-    rows: for (r = select[2] + 1; r < this.hot.countRows(); r++) {
+    for (r = select[2] + 1; r < this.hot.countRows(); r++) {
       for (c = select[1]; c <= select[3]; c++) {
         if (data[r][c]) {
-          break rows;
+          return;
         }
       }
       if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
