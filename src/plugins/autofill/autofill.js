@@ -156,21 +156,21 @@ class Autofill extends BasePlugin {
       return;
     }
 
-    const selectionsFillCorners = this.hot.view.wt.selections.fill.getCorners();
-    let select;
+    const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+    let cornersOfSelectedCells;
 
     this.handle.isDragged = 0;
     this.hot.view.wt.selections.fill.clear();
 
     if (this.hot.selection.isMultiple()) {
-      select = this.hot.view.wt.selections.area.getCorners();
+      cornersOfSelectedCells = this.hot.view.wt.selections.area.getCorners();
     } else {
-      select = this.hot.view.wt.selections.current.getCorners();
+      cornersOfSelectedCells = this.hot.view.wt.selections.current.getCorners();
     }
 
-    const {direction, start, end} = getDirectionAndRange(select, selectionsFillCorners);
+    const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
 
-    this.hot.runHooks('afterAutofillApplyValues', select, selectionsFillCorners);
+    this.hot.runHooks('afterAutofillApplyValues', cornersOfSelectedCells, cornersOfSelectedDragArea);
 
     if (start && start.row > -1 && start.col > -1) {
       const selRange = {
@@ -184,8 +184,8 @@ class Autofill extends BasePlugin {
       this.hot.runHooks('beforeAutofill', start, end, data);
       this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
-      this.hot.selection.setRangeStart(new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]));
-      this.hot.selection.setRangeEnd(new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]));
+      this.hot.selection.setRangeStart(new WalkontableCellCoords(cornersOfSelectedDragArea[SELECTION_ROW_FROM_INDEX], cornersOfSelectedDragArea[SELECTION_COLUMN_FROM_INDEX]));
+      this.hot.selection.setRangeEnd(new WalkontableCellCoords(cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX], cornersOfSelectedDragArea[SELECTION_COLUMN_TO_INDEX]));
 
     } else {
       // reset to avoid some range bug
@@ -232,10 +232,12 @@ class Autofill extends BasePlugin {
 
     if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && priv.settings('autoInsertRow')) {
       const selection = this.hot.getSelected();
-      const selectionsFillCorners = this.hot.view.wt.selections.fill.getCorners();
+      const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (selection[2] < nrOfTableRows - 1 && selectionsFillCorners[2] === nrOfTableRows - 1) {
+      if (selection[SELECTION_ROW_TO_INDEX] < nrOfTableRows - 1 &&
+        cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX] === nrOfTableRows - 1) {
+
         this.addingStarted = true;
 
         this.hot._registerTimeout(setTimeout(() => {
@@ -280,8 +282,9 @@ class Autofill extends BasePlugin {
 
   onMouseMove(event) {
     const priv = privatePool.get(this);
+    const mouseDraggedOutside = this.getIfMouseDraggedOutside(event);
 
-    if (this.addingStarted === false && this.handle.isDragged > 0 && this.getIfMouseDraggedOutside(event)) {
+    if (this.addingStarted === false && this.handle.isDragged > 0 && mouseDraggedOutside) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 
