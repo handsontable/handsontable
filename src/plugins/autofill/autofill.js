@@ -5,13 +5,9 @@ import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {getDeltas, settingsFactory, getDirectionAndRange} from './utils';
 import {isObject} from './../../helpers/object';
+import {SELECTION_ROW_FROM_INDEX, SELECTION_COLUMN_FROM_INDEX, SELECTION_ROW_TO_INDEX, SELECTION_COLUMN_TO_INDEX} from './utils';
 
 const privatePool = new WeakMap();
-
-const SELECTION_ROW_FROM_INDEX = 0;
-const SELECTION_COLUMN_FROM_INDEX = 1;
-const SELECTION_ROW_TO_INDEX = 2;
-const SELECTION_COLUMN_TO_INDEX = 3;
 
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
@@ -139,8 +135,14 @@ class Autofill extends BasePlugin {
 
     if (lastFilledInRowIndex) {
       this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(cornersOfSelectedCells[SELECTION_ROW_FROM_INDEX], cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]));
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(lastFilledInRowIndex, cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]));
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+        cornersOfSelectedCells[SELECTION_ROW_FROM_INDEX],
+        cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX])
+      );
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+        lastFilledInRowIndex,
+        cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX])
+      );
       this.apply();
     }
   }
@@ -184,8 +186,14 @@ class Autofill extends BasePlugin {
       this.hot.runHooks('beforeAutofill', start, end, data);
       this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
-      this.hot.selection.setRangeStart(new WalkontableCellCoords(cornersOfSelectedDragArea[SELECTION_ROW_FROM_INDEX], cornersOfSelectedDragArea[SELECTION_COLUMN_FROM_INDEX]));
-      this.hot.selection.setRangeEnd(new WalkontableCellCoords(cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX], cornersOfSelectedDragArea[SELECTION_COLUMN_TO_INDEX]));
+      this.hot.selection.setRangeStart(new WalkontableCellCoords(
+        cornersOfSelectedDragArea[SELECTION_ROW_FROM_INDEX],
+        cornersOfSelectedDragArea[SELECTION_COLUMN_FROM_INDEX])
+      );
+      this.hot.selection.setRangeEnd(new WalkontableCellCoords(
+        cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX],
+        cornersOfSelectedDragArea[SELECTION_COLUMN_TO_INDEX])
+      );
 
     } else {
       // reset to avoid some range bug
