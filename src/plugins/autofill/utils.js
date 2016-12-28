@@ -31,3 +31,34 @@ export function getDeltas(start, end, data, direction) {
 
   return deltas;
 }
+
+export function settingsFactory(settings) {
+  return function(key) {
+    let result;
+
+    if (key === 'direction') {
+      if (typeof settings === 'string') {
+        result = settings;
+
+      } else if (typeof settings === 'object' && settings[key] !== void 0) {
+        result = settings[key];
+
+      } else {
+        result = true;
+      }
+
+    } else if (key === 'autoInsertRow') {
+      if (typeof settings === 'object' && settings[key] !== void 0) {
+        result = settings[key];
+
+      } else {
+        result = true;
+      }
+
+    } else if (key === 'fillHandle') {
+      result = settings ? true : false;
+    }
+
+    return result;
+  };
+}
