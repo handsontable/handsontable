@@ -109,19 +109,19 @@ class Autofill extends BasePlugin {
    * @memberof Autofill#
    */
   selectAdjacent() {
-    let select, lastFilledInRowIndex;
+    let cornersOfSelectedCells, lastFilledInRowIndex;
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
 
     if (this.hot.selection.isMultiple()) {
-      select = this.hot.view.wt.selections.area.getCorners();
+      cornersOfSelectedCells = this.hot.view.wt.selections.area.getCorners();
 
     } else {
-      select = this.hot.view.wt.selections.current.getCorners();
+      cornersOfSelectedCells = this.hot.view.wt.selections.current.getCorners();
     }
 
-    for (let rowIndex = select[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = select[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= select[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
+    for (let rowIndex = cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
+      for (let columnIndex = cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
         let dataInCell = data[rowIndex][columnIndex];
 
         if (dataInCell) {
@@ -129,8 +129,8 @@ class Autofill extends BasePlugin {
         }
       }
 
-      let dataInNextLeftCell = data[rowIndex][select[SELECTION_COLUMN_FROM_INDEX] - 1];
-      let dataInNextRightCell = data[rowIndex][select[SELECTION_COLUMN_TO_INDEX] + 1];
+      let dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX] - 1];
+      let dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX] + 1];
 
       if (!!dataInNextLeftCell || !!dataInNextRightCell) {
         lastFilledInRowIndex = rowIndex;
@@ -231,11 +231,11 @@ class Autofill extends BasePlugin {
     const priv = privatePool.get(this);
 
     if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && priv.settings('autoInsertRow')) {
-      const selection = this.hot.getSelected();
+      const cornersOfSelectedCells = this.hot.getSelected();
       const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (selection[SELECTION_ROW_TO_INDEX] < nrOfTableRows - 1 &&
+      if (cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] < nrOfTableRows - 1 &&
         cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX] === nrOfTableRows - 1) {
 
         this.addingStarted = true;
