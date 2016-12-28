@@ -4,6 +4,7 @@ import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {getDeltas, settingsFactory} from './utils';
+import {isObject} from './../../helpers/object';
 
 const privatePool = new WeakMap();
 
@@ -56,7 +57,7 @@ class Autofill extends BasePlugin {
    */
   isEnabled() {
     return this.hot.getSettings().fillHandle === true || this.hot.getSettings().fillHandle === 'horizontal' ||
-      this.hot.getSettings().fillHandle === 'vertical';
+      this.hot.getSettings().fillHandle === 'vertical' || isObject(this.hot.getSettings().fillHandle);
   }
 
   /**
@@ -71,12 +72,11 @@ class Autofill extends BasePlugin {
 
     this.addHook('afterOnCellCornerMouseDown', (event) => this.onAfterCellCornerMouseDown(event));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD) => this.onBeforeCellMouseOver(coords));
-
-    setTimeout(() => {
+    this.addHook('init', () => {
       this.hot.view.wt.wtSettings.settings.onCellCornerDblClick = () => {
         this.selectAdjacent();
       };
-    }, 200);
+    });
 
     super.enablePlugin();
   }
@@ -184,7 +184,6 @@ class Autofill extends BasePlugin {
       const deltas = getDeltas(start, end, data, direction);
 
       this.hot.runHooks('beforeAutofill', start, end, data);
-
 
       this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
