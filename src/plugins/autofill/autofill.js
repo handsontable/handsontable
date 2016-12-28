@@ -3,7 +3,7 @@ import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {getDeltas, settingsFactory} from './utils';
+import {getDeltas, settingsFactory, getDirectionAndRange} from './utils';
 import {isObject} from './../../helpers/object';
 
 const privatePool = new WeakMap();
@@ -124,41 +124,6 @@ class Autofill extends BasePlugin {
     }
   }
 
-  getDirectionAndRange (select, selectionsFillCorners) {
-    let start, end, direction;
-
-    if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[1] < select[1]) {
-      direction = 'left';
-
-      start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
-      end = new WalkontableCellCoords(selectionsFillCorners[2], select[1] - 1);
-
-    } else if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[3] > select[3]) {
-      direction = 'right';
-
-      start = new WalkontableCellCoords(selectionsFillCorners[0], select[3] + 1);
-      end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
-
-    } else if (selectionsFillCorners[0] < select[0] && selectionsFillCorners[1] === select[1]) {
-      direction = 'up';
-
-      start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
-      end = new WalkontableCellCoords(select[0] - 1, selectionsFillCorners[3]);
-
-    } else if (selectionsFillCorners[2] > select[2] && selectionsFillCorners[1] === select[1]) {
-      direction = 'down';
-
-      start = new WalkontableCellCoords(select[2] + 1, selectionsFillCorners[1]);
-      end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
-    }
-
-    return {
-      direction,
-      start,
-      end
-    };
-  }
-
   /**
    * Apply fill values to the area in fill border, omitting the selection border
    *
@@ -170,8 +135,7 @@ class Autofill extends BasePlugin {
       return;
     }
 
-    const drag = this.hot.view.wt.selections.fill.getCorners();
-
+    const selectionsFillCorners = this.hot.view.wt.selections.fill.getCorners();
     let select;
 
     this.handle.isDragged = 0;
@@ -183,9 +147,9 @@ class Autofill extends BasePlugin {
       select = this.hot.view.wt.selections.current.getCorners();
     }
 
-    const {direction, start, end} = this.getDirectionAndRange(select, drag);
+    const {direction, start, end} = getDirectionAndRange(select, selectionsFillCorners);
 
-    this.hot.runHooks('afterAutofillApplyValues', select, drag);
+    this.hot.runHooks('afterAutofillApplyValues', select, selectionsFillCorners);
 
     if (start && start.row > -1 && start.col > -1) {
       const selRange = {
@@ -199,8 +163,8 @@ class Autofill extends BasePlugin {
       this.hot.runHooks('beforeAutofill', start, end, data);
       this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
-      this.hot.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-      this.hot.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
+      this.hot.selection.setRangeStart(new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]));
+      this.hot.selection.setRangeEnd(new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]));
 
     } else {
       // reset to avoid some range bug

@@ -62,3 +62,38 @@ export function settingsFactory(settings) {
     return result;
   };
 }
+
+export function getDirectionAndRange(select, selectionsFillCorners) {
+  let start, end, direction;
+
+  if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[1] < select[1]) {
+    direction = 'left';
+
+    start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
+    end = new WalkontableCellCoords(selectionsFillCorners[2], select[1] - 1);
+
+  } else if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[3] > select[3]) {
+    direction = 'right';
+
+    start = new WalkontableCellCoords(selectionsFillCorners[0], select[3] + 1);
+    end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
+
+  } else if (selectionsFillCorners[0] < select[0] && selectionsFillCorners[1] === select[1]) {
+    direction = 'up';
+
+    start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
+    end = new WalkontableCellCoords(select[0] - 1, selectionsFillCorners[3]);
+
+  } else if (selectionsFillCorners[2] > select[2] && selectionsFillCorners[1] === select[1]) {
+    direction = 'down';
+
+    start = new WalkontableCellCoords(select[2] + 1, selectionsFillCorners[1]);
+    end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
+  }
+
+  return {
+    direction,
+    start,
+    end
+  };
+}
