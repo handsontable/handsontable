@@ -95,9 +95,12 @@ class Autofill extends BasePlugin {
    * @memberof Autofill#
    */
   selectAdjacent() {
-    let select;
+    let select, lastFilledInRowIndex;
     const data = this.hot.getData();
-    var r, maxR, c;
+    const SELECTION_ROW_FROM_INDEX = 0;
+    const SELECTION_COLUMN_FROM_INDEX = 1;
+    const SELECTION_ROW_TO_INDEX = 2;
+    const SELECTION_COLUMN_TO_INDEX = 3;
 
     if (this.hot.selection.isMultiple()) {
       select = this.hot.view.wt.selections.area.getCorners();
@@ -106,20 +109,27 @@ class Autofill extends BasePlugin {
       select = this.hot.view.wt.selections.current.getCorners();
     }
 
-    for (r = select[2] + 1; r < this.hot.countRows(); r++) {
-      for (c = select[1]; c <= select[3]; c++) {
-        if (data[r][c]) {
+    for (let rowIndex = select[SELECTION_ROW_TO_INDEX] + 1; rowIndex < this.hot.countRows(); rowIndex++) {
+      for (let columnIndex = select[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= select[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
+        let dataInCell = data[rowIndex][columnIndex];
+
+        if (dataInCell) {
           return;
         }
       }
-      if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-        maxR = r;
+
+      let dataInNextLeftCell = data[rowIndex][select[SELECTION_COLUMN_FROM_INDEX] - 1];
+      let dataInNextRightCell = data[rowIndex][select[SELECTION_COLUMN_TO_INDEX] + 1];
+
+      if (!!dataInNextLeftCell || !!dataInNextRightCell) {
+        lastFilledInRowIndex = rowIndex;
       }
     }
-    if (maxR) {
+
+    if (lastFilledInRowIndex) {
       this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(select[0], select[1]));
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(select[SELECTION_ROW_FROM_INDEX], select[SELECTION_COLUMN_FROM_INDEX]));
+      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(lastFilledInRowIndex, select[SELECTION_COLUMN_TO_INDEX]));
       this.apply();
     }
   }
