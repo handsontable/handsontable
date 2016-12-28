@@ -8,6 +8,19 @@ import {isObject} from './../../helpers/object';
 
 const privatePool = new WeakMap();
 
+const SELECTION_ROW_FROM_INDEX = 0;
+const SELECTION_COLUMN_FROM_INDEX = 1;
+const SELECTION_ROW_TO_INDEX = 2;
+const SELECTION_COLUMN_TO_INDEX = 3;
+
+const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
+const INTERVAL_FOR_ADDING_ROW = 200;
+
+const DIRECTIONS = {
+  horizontal: 'horizontal',
+  vertical: 'vertical'
+};
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
  * using the small square in the right bottom of the cell selection.
@@ -56,8 +69,9 @@ class Autofill extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().fillHandle === true || this.hot.getSettings().fillHandle === 'horizontal' ||
-      this.hot.getSettings().fillHandle === 'vertical' || isObject(this.hot.getSettings().fillHandle);
+    return this.hot.getSettings().fillHandle === true ||
+      DIRECTIONS.hasOwnProperty(this.hot.getSettings().fillHandle) ||
+      isObject(this.hot.getSettings().fillHandle);
   }
 
   /**
@@ -97,10 +111,7 @@ class Autofill extends BasePlugin {
   selectAdjacent() {
     let select, lastFilledInRowIndex;
     const data = this.hot.getData();
-    const SELECTION_ROW_FROM_INDEX = 0;
-    const SELECTION_COLUMN_FROM_INDEX = 1;
-    const SELECTION_ROW_TO_INDEX = 2;
-    const SELECTION_COLUMN_TO_INDEX = 3;
+    const nrOfTableRows = this.hot.countRows();
 
     if (this.hot.selection.isMultiple()) {
       select = this.hot.view.wt.selections.area.getCorners();
@@ -109,7 +120,7 @@ class Autofill extends BasePlugin {
       select = this.hot.view.wt.selections.current.getCorners();
     }
 
-    for (let rowIndex = select[SELECTION_ROW_TO_INDEX] + 1; rowIndex < this.hot.countRows(); rowIndex++) {
+    for (let rowIndex = select[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
       for (let columnIndex = select[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= select[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
         let dataInCell = data[rowIndex][columnIndex];
 
@@ -194,10 +205,10 @@ class Autofill extends BasePlugin {
     const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
     const priv = privatePool.get(this);
 
-    if (priv.settings('direction') !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+    if (priv.settings('direction') !== DIRECTIONS.horizontal && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
       coords = new WalkontableCellCoords(coords.row, bottomRight.col);
 
-    } else if (priv.settings('direction') !== 'vertical') { // jscs:ignore disallowNotOperatorsInConditionals
+    } else if (priv.settings('direction') !== DIRECTIONS.vertical) { // jscs:ignore disallowNotOperatorsInConditionals
       coords = new WalkontableCellCoords(bottomRight.row, coords.col);
 
     } else {
@@ -228,9 +239,9 @@ class Autofill extends BasePlugin {
         this.addingStarted = true;
 
         this.hot._registerTimeout(setTimeout(() => {
-          this.hot.alter('insert_row');
+          this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
           this.addingStarted = false;
-        }, 200));
+        }, INTERVAL_FOR_ADDING_ROW));
       }
     }
   }
@@ -281,8 +292,8 @@ class Autofill extends BasePlugin {
     if (this.mouseDragOutside && priv.settings('autoInsertRow')) {
       setTimeout(() => {
         this.addingStarted = false;
-        this.hot.alter('insert_row');
-      }, 200);
+        this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      }, INTERVAL_FOR_ADDING_ROW);
     }
   }
 
