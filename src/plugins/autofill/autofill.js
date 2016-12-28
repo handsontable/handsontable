@@ -124,6 +124,41 @@ class Autofill extends BasePlugin {
     }
   }
 
+  getDirectionAndRange (select, selectionsFillCorners) {
+    let start, end, direction;
+
+    if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[1] < select[1]) {
+      direction = 'left';
+
+      start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
+      end = new WalkontableCellCoords(selectionsFillCorners[2], select[1] - 1);
+
+    } else if (selectionsFillCorners[0] === select[0] && selectionsFillCorners[3] > select[3]) {
+      direction = 'right';
+
+      start = new WalkontableCellCoords(selectionsFillCorners[0], select[3] + 1);
+      end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
+
+    } else if (selectionsFillCorners[0] < select[0] && selectionsFillCorners[1] === select[1]) {
+      direction = 'up';
+
+      start = new WalkontableCellCoords(selectionsFillCorners[0], selectionsFillCorners[1]);
+      end = new WalkontableCellCoords(select[0] - 1, selectionsFillCorners[3]);
+
+    } else if (selectionsFillCorners[2] > select[2] && selectionsFillCorners[1] === select[1]) {
+      direction = 'down';
+
+      start = new WalkontableCellCoords(select[2] + 1, selectionsFillCorners[1]);
+      end = new WalkontableCellCoords(selectionsFillCorners[2], selectionsFillCorners[3]);
+    }
+
+    return {
+      direction,
+      start,
+      end
+    };
+  }
+
   /**
    * Apply fill values to the area in fill border, omitting the selection border
    *
@@ -137,7 +172,7 @@ class Autofill extends BasePlugin {
 
     const drag = this.hot.view.wt.selections.fill.getCorners();
 
-    let select, start, end, direction;
+    let select;
 
     this.handle.isDragged = 0;
     this.hot.view.wt.selections.fill.clear();
@@ -148,43 +183,20 @@ class Autofill extends BasePlugin {
       select = this.hot.view.wt.selections.current.getCorners();
     }
 
+    const {direction, start, end} = this.getDirectionAndRange(select, drag);
+
     this.hot.runHooks('afterAutofillApplyValues', select, drag);
-
-    if (drag[0] === select[0] && drag[1] < select[1]) {
-      direction = 'left';
-
-      start = new WalkontableCellCoords(drag[0], drag[1]);
-      end = new WalkontableCellCoords(drag[2], select[1] - 1);
-
-    } else if (drag[0] === select[0] && drag[3] > select[3]) {
-      direction = 'right';
-
-      start = new WalkontableCellCoords(drag[0], select[3] + 1);
-      end = new WalkontableCellCoords(drag[2], drag[3]);
-
-    } else if (drag[0] < select[0] && drag[1] === select[1]) {
-      direction = 'up';
-
-      start = new WalkontableCellCoords(drag[0], drag[1]);
-      end = new WalkontableCellCoords(select[0] - 1, drag[3]);
-
-    } else if (drag[2] > select[2] && drag[1] === select[1]) {
-      direction = 'down';
-
-      start = new WalkontableCellCoords(select[2] + 1, drag[1]);
-      end = new WalkontableCellCoords(drag[2], drag[3]);
-    }
 
     if (start && start.row > -1 && start.col > -1) {
       const selRange = {
         from: this.hot.getSelectedRange().from,
         to: this.hot.getSelectedRange().to,
       };
+
       const data = this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
       const deltas = getDeltas(start, end, data, direction);
 
       this.hot.runHooks('beforeAutofill', start, end, data);
-
       this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
       this.hot.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
@@ -235,10 +247,10 @@ class Autofill extends BasePlugin {
 
     if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && priv.settings('autoInsertRow')) {
       const selection = this.hot.getSelected();
-      const fillCorners = this.hot.view.wt.selections.fill.getCorners();
+      const selectionsFillCorners = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (selection[2] < nrOfTableRows - 1 && fillCorners[2] === nrOfTableRows - 1) {
+      if (selection[2] < nrOfTableRows - 1 && selectionsFillCorners[2] === nrOfTableRows - 1) {
         this.addingStarted = true;
 
         this.hot._registerTimeout(setTimeout(() => {
@@ -272,16 +284,19 @@ class Autofill extends BasePlugin {
     }
   }
 
-  onMouseMove(event) {
-    const priv = privatePool.get(this);
-
+  getIfMouseDraggedOutside(event) {
     let tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
       document.documentElement.scrollTop) + outerHeight(this.hot.table);
     let tableRight = offset(this.hot.table).left - (window.pageXOffset ||
       document.documentElement.scrollLeft) + outerWidth(this.hot.table);
 
-    // dragged outside bottom
-    if (this.addingStarted === false && this.handle.isDragged > 0 && event.clientY > tableBottom && event.clientX <= tableRight) {
+    return event.clientY > tableBottom && event.clientX <= tableRight;
+  }
+
+  onMouseMove(event) {
+    const priv = privatePool.get(this);
+
+    if (this.addingStarted === false && this.handle.isDragged > 0 && this.getIfMouseDraggedOutside(event)) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 
