@@ -40,8 +40,7 @@ class Autofill extends BasePlugin {
     this.mouseDownOnCellCorner = false;
     this.mouseDragOutside = false;
     this.handle = {
-      isDragged: 0,
-      disabled: false
+      isDragged: 0
     };
 
     privatePool.set(this, {
@@ -114,15 +113,15 @@ class Autofill extends BasePlugin {
 
     for (let rowIndex = cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
       for (let columnIndex = cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
-        let dataInCell = data[rowIndex][columnIndex];
+        const dataInCell = data[rowIndex][columnIndex];
 
         if (dataInCell) {
           return;
         }
       }
 
-      let dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX] - 1];
-      let dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX] + 1];
+      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX] - 1];
+      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX] + 1];
 
       if (!!dataInNextLeftCell || !!dataInNextRightCell) {
         lastFilledInRowIndex = rowIndex;
@@ -150,7 +149,7 @@ class Autofill extends BasePlugin {
    * @memberof Autofill#
    */
   selectAdjacent() {
-    let cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     const lastFilledInRowIndex = this.getIndexOfLastFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex) {
@@ -219,6 +218,14 @@ class Autofill extends BasePlugin {
     }
   }
 
+  redrawBorders(coords) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
+    this.hot.view.wt.selections.fill.add(coords);
+    this.hot.view.render();
+  }
+
   /**
    * Show fill border
    *
@@ -241,11 +248,8 @@ class Autofill extends BasePlugin {
       // wrong direction
       return;
     }
-    this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
-    this.hot.view.wt.selections.fill.add(coords);
-    this.hot.view.render();
+
+    this.redrawBorders(coords);
   }
 
   /**
@@ -298,9 +302,9 @@ class Autofill extends BasePlugin {
   }
 
   getIfMouseDraggedOutside(event) {
-    let tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
+    const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
       document.documentElement.scrollTop) + outerHeight(this.hot.table);
-    let tableRight = offset(this.hot.table).left - (window.pageXOffset ||
+    const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
       document.documentElement.scrollLeft) + outerWidth(this.hot.table);
 
     return event.clientY > tableBottom && event.clientX <= tableRight;
