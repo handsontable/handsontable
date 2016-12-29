@@ -98,23 +98,19 @@ class Autofill extends BasePlugin {
     super.disablePlugin();
   }
 
-  /**
-   * Selects cells down to the last row in the left column, then fills down to that cell
-   *
-   * @function selectAdjacent
-   * @memberof Autofill#
-   */
-  selectAdjacent() {
-    let cornersOfSelectedCells, lastFilledInRowIndex;
-    const data = this.hot.getData();
-    const nrOfTableRows = this.hot.countRows();
-
+  getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
-      cornersOfSelectedCells = this.hot.view.wt.selections.area.getCorners();
+      return this.hot.view.wt.selections.area.getCorners();
 
     } else {
-      cornersOfSelectedCells = this.hot.view.wt.selections.current.getCorners();
+      return this.hot.view.wt.selections.current.getCorners();
     }
+  }
+
+  getIndexOfLastFilledInRow(cornersOfSelectedCells) {
+    const data = this.hot.getData();
+    const nrOfTableRows = this.hot.countRows();
+    let lastFilledInRowIndex;
 
     for (let rowIndex = cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
       for (let columnIndex = cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
@@ -132,19 +128,60 @@ class Autofill extends BasePlugin {
         lastFilledInRowIndex = rowIndex;
       }
     }
+    return lastFilledInRowIndex;
+  }
+
+  addSelectionFromStartAreaToSpecificRowIndex (startArea, rowIndex) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+      startArea[SELECTION_ROW_FROM_INDEX],
+      startArea[SELECTION_COLUMN_FROM_INDEX])
+    );
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+      rowIndex,
+      startArea[SELECTION_COLUMN_TO_INDEX])
+    );
+  }
+
+  /**
+   * Selects cells down to the last row in the left column, then fills down to that cell
+   *
+   * @function selectAdjacent
+   * @memberof Autofill#
+   */
+  selectAdjacent() {
+    let cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const lastFilledInRowIndex = this.getIndexOfLastFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex) {
-      this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
-        cornersOfSelectedCells[SELECTION_ROW_FROM_INDEX],
-        cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX])
-      );
-      this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
-        lastFilledInRowIndex,
-        cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX])
-      );
+      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
       this.apply();
     }
+  }
+
+  setSelection(cornersOfArea) {
+    this.hot.selection.setRangeStart(new WalkontableCellCoords(
+      cornersOfArea[SELECTION_ROW_FROM_INDEX],
+      cornersOfArea[SELECTION_COLUMN_FROM_INDEX])
+    );
+    this.hot.selection.setRangeEnd(new WalkontableCellCoords(
+      cornersOfArea[SELECTION_ROW_TO_INDEX],
+      cornersOfArea[SELECTION_COLUMN_TO_INDEX])
+    );
+  }
+
+  resetSelectionOfDraggedArea() {
+    this.handle.isDragged = 0;
+    this.hot.view.wt.selections.fill.clear();
+  }
+
+  getSelectionData() {
+    const selRange = {
+      from: this.hot.getSelectedRange().from,
+      to: this.hot.getSelectedRange().to,
+    };
+
+    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
   }
 
   /**
@@ -159,41 +196,22 @@ class Autofill extends BasePlugin {
     }
 
     const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
-    let cornersOfSelectedCells;
+    this.resetSelectionOfDraggedArea();
 
-    this.handle.isDragged = 0;
-    this.hot.view.wt.selections.fill.clear();
-
-    if (this.hot.selection.isMultiple()) {
-      cornersOfSelectedCells = this.hot.view.wt.selections.area.getCorners();
-    } else {
-      cornersOfSelectedCells = this.hot.view.wt.selections.current.getCorners();
-    }
-
+    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
 
     this.hot.runHooks('afterAutofillApplyValues', cornersOfSelectedCells, cornersOfSelectedDragArea);
 
     if (start && start.row > -1 && start.col > -1) {
-      const selRange = {
-        from: this.hot.getSelectedRange().from,
-        to: this.hot.getSelectedRange().to,
-      };
 
-      const data = this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+      const data = this.getSelectionData();
       const deltas = getDeltas(start, end, data, direction);
 
       this.hot.runHooks('beforeAutofill', start, end, data);
-      this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
 
-      this.hot.selection.setRangeStart(new WalkontableCellCoords(
-        cornersOfSelectedDragArea[SELECTION_ROW_FROM_INDEX],
-        cornersOfSelectedDragArea[SELECTION_COLUMN_FROM_INDEX])
-      );
-      this.hot.selection.setRangeEnd(new WalkontableCellCoords(
-        cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX],
-        cornersOfSelectedDragArea[SELECTION_COLUMN_TO_INDEX])
-      );
+      this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
+      this.setSelection(cornersOfSelectedDragArea);
 
     } else {
       // reset to avoid some range bug
