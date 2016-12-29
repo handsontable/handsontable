@@ -1,11 +1,10 @@
 import BasePlugin from './../_base';
+import Handsontable from './../../browser';
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {getDeltas, settingsFactory, getDirectionAndRange} from './utils';
-import {isObject} from './../../helpers/object';
-import {SELECTION_ROW_FROM_INDEX, SELECTION_COLUMN_FROM_INDEX, SELECTION_ROW_TO_INDEX, SELECTION_COLUMN_TO_INDEX} from './utils';
 
 const privatePool = new WeakMap();
 
@@ -49,24 +48,12 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Bind the events used by the plugin.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document, 'mousemove', (event) => this.onMouseMove(event));
-  }
-
-  /**
    * Check if the plugin is enabled in the Handsontable settings.
    *
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().fillHandle === true ||
-      DIRECTIONS.hasOwnProperty(this.hot.getSettings().fillHandle) ||
-      isObject(this.hot.getSettings().fillHandle);
+    return this.hot.getSettings().fillHandle;
   }
 
   /**
@@ -91,10 +78,28 @@ class Autofill extends BasePlugin {
   }
 
   /**
+   * Update plugin for this Handsontable instance.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+  }
+
+  /**
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
+  }
+
+  /**
+   * Bind the events used by the plugin.
+   *
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(document, 'mousemove', (event) => this.onMouseMove(event));
   }
 
   /**
@@ -119,14 +124,13 @@ class Autofill extends BasePlugin {
    * @returns {*}
    * @param cornersOfSelectedCells
    */
-
   getIndexOfLastLeftFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
     let lastFilledInRowIndex;
 
-    for (let rowIndex = cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX]; columnIndex <= cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX]; columnIndex++) {
+    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
+      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
         const dataInCell = data[rowIndex][columnIndex];
 
         if (dataInCell) {
@@ -134,8 +138,8 @@ class Autofill extends BasePlugin {
         }
       }
 
-      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_FROM_INDEX] - 1];
-      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[SELECTION_COLUMN_TO_INDEX] + 1];
+      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
+      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
 
       if (!!dataInNextLeftCell || !!dataInNextRightCell) {
         lastFilledInRowIndex = rowIndex;
@@ -148,19 +152,18 @@ class Autofill extends BasePlugin {
    * Add selection from start area to specific row index
    *
    * @private
-   * @param startArea
+   * @param selectStartArea
    * @param rowIndex
    */
-
-  addSelectionFromStartAreaToSpecificRowIndex (startArea, rowIndex) {
+  addSelectionFromStartAreaToSpecificRowIndex (selectStartArea, rowIndex) {
     this.hot.view.wt.selections.fill.clear();
     this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
-      startArea[SELECTION_ROW_FROM_INDEX],
-      startArea[SELECTION_COLUMN_FROM_INDEX])
+      selectStartArea[0],
+      selectStartArea[1])
     );
     this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
       rowIndex,
-      startArea[SELECTION_COLUMN_TO_INDEX])
+      selectStartArea[3])
     );
   }
 
@@ -186,15 +189,14 @@ class Autofill extends BasePlugin {
    * @private
    * @param cornersOfArea
    */
-
   setSelection(cornersOfArea) {
     this.hot.selection.setRangeStart(new WalkontableCellCoords(
-      cornersOfArea[SELECTION_ROW_FROM_INDEX],
-      cornersOfArea[SELECTION_COLUMN_FROM_INDEX])
+      cornersOfArea[0],
+      cornersOfArea[1])
     );
     this.hot.selection.setRangeEnd(new WalkontableCellCoords(
-      cornersOfArea[SELECTION_ROW_TO_INDEX],
-      cornersOfArea[SELECTION_COLUMN_TO_INDEX])
+      cornersOfArea[2],
+      cornersOfArea[3])
     );
   }
 
@@ -203,7 +205,6 @@ class Autofill extends BasePlugin {
    *
    * @private
    */
-
   resetSelectionOfDraggedArea() {
     this.handle.isDragged = 0;
     this.hot.view.wt.selections.fill.clear();
@@ -214,7 +215,6 @@ class Autofill extends BasePlugin {
    *
    * @returns {*|string|Array}
    */
-
   getSelectionData() {
     const selRange = {
       from: this.hot.getSelectedRange().from,
@@ -265,7 +265,6 @@ class Autofill extends BasePlugin {
    * @private
    * @param coords
    */
-
   redrawBorders(coords) {
     this.hot.view.wt.selections.fill.clear();
     this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
@@ -313,8 +312,7 @@ class Autofill extends BasePlugin {
       const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (cornersOfSelectedCells[SELECTION_ROW_TO_INDEX] < nrOfTableRows - 1 &&
-        cornersOfSelectedDragArea[SELECTION_ROW_TO_INDEX] === nrOfTableRows - 1) {
+      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
 
         this.addingStarted = true;
 
@@ -330,7 +328,6 @@ class Autofill extends BasePlugin {
    * On after cell corner mouse down listener.
    * @private
    */
-
   onAfterCellCornerMouseDown() {
     this.handle.isDragged = 1;
     this.mouseDownOnCellCorner = true;
@@ -356,7 +353,6 @@ class Autofill extends BasePlugin {
    *
    * @private
    */
-
   onMouseUp() {
     if (this.handle.isDragged) {
       if (this.handle.isDragged > 1) {
@@ -374,7 +370,6 @@ class Autofill extends BasePlugin {
    * @param event
    * @returns {boolean}
    */
-
   getIfMouseWasDraggedOutside(event) {
     const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
       document.documentElement.scrollTop) + outerHeight(this.hot.table);
@@ -390,7 +385,6 @@ class Autofill extends BasePlugin {
    * @private
    * @param event
    */
-
   onMouseMove(event) {
     const priv = privatePool.get(this);
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
@@ -422,3 +416,5 @@ class Autofill extends BasePlugin {
 export {Autofill};
 
 registerPlugin('autofill', Autofill);
+Handsontable.hooks.register('afterAutofillApplyValues');
+Handsontable.hooks.register('beforeAutofill');

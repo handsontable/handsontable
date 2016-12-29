@@ -1,8 +1,3 @@
-export const SELECTION_ROW_FROM_INDEX = 0;
-export const SELECTION_COLUMN_FROM_INDEX = 1;
-export const SELECTION_ROW_TO_INDEX = 2;
-export const SELECTION_COLUMN_TO_INDEX = 3;
-
 export function getDeltas(start, end, data, direction) {
   const rowsLength = data.length;
   const columnsLength = data ? data[0].length : 0;
@@ -71,33 +66,30 @@ export function settingsFactory(settings) {
 export function getDirectionAndRange(select1, select2) {
   let start, end, direction;
 
-  if (select2[SELECTION_ROW_FROM_INDEX] === select1[SELECTION_ROW_FROM_INDEX] &&
-    select2[SELECTION_COLUMN_FROM_INDEX] < select1[SELECTION_COLUMN_FROM_INDEX]) {
+  if (select2[0] === select1[0] && select2[1] < select1[1]) {
     direction = 'left';
 
-    start = new WalkontableCellCoords(select2[SELECTION_ROW_FROM_INDEX], select2[SELECTION_COLUMN_FROM_INDEX]);
-    end = new WalkontableCellCoords(select2[SELECTION_ROW_TO_INDEX], select1[SELECTION_COLUMN_FROM_INDEX] - 1);
+    start = new WalkontableCellCoords(select2[0], select2[1]);
+    end = new WalkontableCellCoords(select2[2], select1[1] - 1);
 
-  } else if (select2[SELECTION_ROW_FROM_INDEX] === select1[SELECTION_ROW_FROM_INDEX] &&
-    select2[SELECTION_COLUMN_TO_INDEX] > select1[SELECTION_COLUMN_TO_INDEX]) {
+  } else if (select2[0] === select1[0] && select2[3] > select1[3]) {
     direction = 'right';
 
-    start = new WalkontableCellCoords(select2[SELECTION_ROW_FROM_INDEX], select1[SELECTION_COLUMN_TO_INDEX] + 1);
-    end = new WalkontableCellCoords(select2[SELECTION_ROW_TO_INDEX], select2[SELECTION_COLUMN_TO_INDEX]);
+    start = new WalkontableCellCoords(select2[0], select1[3] + 1);
+    end = new WalkontableCellCoords(select2[2], select2[3]);
 
-  } else if (select2[SELECTION_ROW_FROM_INDEX] < select1[SELECTION_ROW_FROM_INDEX] &&
-    select2[SELECTION_COLUMN_FROM_INDEX] === select1[SELECTION_COLUMN_FROM_INDEX]) {
+  } else if (select2[0] < select1[0] && select2[1] === select1[1]) {
     direction = 'up';
 
-    start = new WalkontableCellCoords(select2[SELECTION_ROW_FROM_INDEX], select2[SELECTION_COLUMN_FROM_INDEX]);
-    end = new WalkontableCellCoords(select1[SELECTION_ROW_FROM_INDEX] - 1, select2[SELECTION_COLUMN_TO_INDEX]);
+    start = new WalkontableCellCoords(select2[0], select2[1]);
+    end = new WalkontableCellCoords(select1[0] - 1, select2[3]);
 
-  } else if (select2[SELECTION_ROW_TO_INDEX] > select1[SELECTION_ROW_TO_INDEX] &&
-    select2[SELECTION_COLUMN_FROM_INDEX] === select1[SELECTION_COLUMN_FROM_INDEX]) {
+  } else if (select2[2] > select1[2] &&
+    select2[1] === select1[1]) {
     direction = 'down';
 
-    start = new WalkontableCellCoords(select1[SELECTION_ROW_TO_INDEX] + 1, select2[SELECTION_COLUMN_FROM_INDEX]);
-    end = new WalkontableCellCoords(select2[SELECTION_ROW_TO_INDEX], select2[SELECTION_COLUMN_TO_INDEX]);
+    start = new WalkontableCellCoords(select1[2] + 1, select2[1]);
+    end = new WalkontableCellCoords(select2[2], select2[3]);
   }
 
   return {
