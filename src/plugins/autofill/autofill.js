@@ -97,6 +97,12 @@ class Autofill extends BasePlugin {
     super.disablePlugin();
   }
 
+  /**
+   * Get corners of selected cells.
+   *
+   * @private
+   * @returns {Array}
+   */
   getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
       return this.hot.view.wt.selections.area.getCorners();
@@ -106,7 +112,15 @@ class Autofill extends BasePlugin {
     }
   }
 
-  getIndexOfLastFilledInRow(cornersOfSelectedCells) {
+  /**
+   * Get index of last left filled in row
+   *
+   * @private
+   * @returns {*}
+   * @param cornersOfSelectedCells
+   */
+
+  getIndexOfLastLeftFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
     let lastFilledInRowIndex;
@@ -130,6 +144,14 @@ class Autofill extends BasePlugin {
     return lastFilledInRowIndex;
   }
 
+  /**
+   * Add selection from start area to specific row index
+   *
+   * @private
+   * @param startArea
+   * @param rowIndex
+   */
+
   addSelectionFromStartAreaToSpecificRowIndex (startArea, rowIndex) {
     this.hot.view.wt.selections.fill.clear();
     this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
@@ -150,13 +172,20 @@ class Autofill extends BasePlugin {
    */
   selectAdjacent() {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const lastFilledInRowIndex = this.getIndexOfLastFilledInRow(cornersOfSelectedCells);
+    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex) {
       this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
       this.apply();
     }
   }
+
+  /**
+   * Set selection based on passed corners
+   *
+   * @private
+   * @param cornersOfArea
+   */
 
   setSelection(cornersOfArea) {
     this.hot.selection.setRangeStart(new WalkontableCellCoords(
@@ -169,10 +198,22 @@ class Autofill extends BasePlugin {
     );
   }
 
+  /**
+   * Reset selection of dragged area
+   *
+   * @private
+   */
+
   resetSelectionOfDraggedArea() {
     this.handle.isDragged = 0;
     this.hot.view.wt.selections.fill.clear();
   }
+
+  /**
+   * Get selection data
+   *
+   * @returns {*|string|Array}
+   */
 
   getSelectionData() {
     const selRange = {
@@ -217,6 +258,13 @@ class Autofill extends BasePlugin {
       this.hot.selection.refreshBorders();
     }
   }
+
+  /**
+   * Redraw borders
+   *
+   * @private
+   * @param coords
+   */
 
   redrawBorders(coords) {
     this.hot.view.wt.selections.fill.clear();
@@ -278,10 +326,22 @@ class Autofill extends BasePlugin {
     }
   }
 
+  /**
+   * On after cell corner mouse down listener.
+   * @private
+   */
+
   onAfterCellCornerMouseDown() {
     this.handle.isDragged = 1;
     this.mouseDownOnCellCorner = true;
   }
+
+  /**
+   * On before cell mouse over listener.
+   *
+   * @private
+   * @param coords
+   */
 
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handle.isDragged) {
@@ -290,6 +350,12 @@ class Autofill extends BasePlugin {
       this.addNewRowIfNeeded();
     }
   }
+
+  /**
+   * On mouse up listener.
+   *
+   * @private
+   */
 
   onMouseUp() {
     if (this.handle.isDragged) {
@@ -301,7 +367,15 @@ class Autofill extends BasePlugin {
     }
   }
 
-  getIfMouseDraggedOutside(event) {
+  /**
+   * Get if mouse was dragged outside
+   *
+   * @private
+   * @param event
+   * @returns {boolean}
+   */
+
+  getIfMouseWasDraggedOutside(event) {
     const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
       document.documentElement.scrollTop) + outerHeight(this.hot.table);
     const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
@@ -310,11 +384,18 @@ class Autofill extends BasePlugin {
     return event.clientY > tableBottom && event.clientX <= tableRight;
   }
 
+  /**
+   * On mouse move listener.
+   *
+   * @private
+   * @param event
+   */
+
   onMouseMove(event) {
     const priv = privatePool.get(this);
-    const mouseDraggedOutside = this.getIfMouseDraggedOutside(event);
+    const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
-    if (this.addingStarted === false && this.handle.isDragged > 0 && mouseDraggedOutside) {
+    if (this.addingStarted === false && this.handle.isDragged > 0 && mouseWasDraggedOutside) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 
