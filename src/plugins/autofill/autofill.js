@@ -89,8 +89,8 @@ class Autofill extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
   }
 
   /**

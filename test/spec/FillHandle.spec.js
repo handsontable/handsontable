@@ -357,13 +357,13 @@ describe('FillHandle', function () {
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
 
-    $(document).simulate('mousemove', ev);
+    $(document.documentElement).simulate('mousemove', ev);
 
     setTimeout(function () {
       expect(hot.countRows()).toBe(4);
 
       ev.clientY = $lastRow.offset().top + 150;
-      $(document).simulate('mousemove',ev);
+      $(document.documentElement).simulate('mousemove',ev);
     }, 300);
 
     setTimeout(function () {
@@ -423,13 +423,13 @@ describe('FillHandle', function () {
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
 
-    $(document).simulate('mousemove', ev);
+    $(document.documentElement).simulate('mousemove', ev);
 
     setTimeout(function () {
       expect(hot.countRows()).toBe(5);
 
       ev.clientY = $lastRow.offset().top + 150;
-      $(document).simulate('mousemove',ev);
+      $(document.documentElement).simulate('mousemove',ev);
     }, 300);
 
     setTimeout(function () {
@@ -548,13 +548,13 @@ describe('FillHandle', function () {
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
 
-    $(document).simulate('mousemove', ev);
+    $(document.documentElement).simulate('mousemove', ev);
 
     setTimeout(function () {
       expect(hot.countRows()).toBe(5);
 
       ev.clientY = $lastRow.offset().top + 150;
-      $(document).simulate('mousemove',ev);
+      $(document.documentElement).simulate('mousemove',ev);
     }, 300);
 
     setTimeout(function () {
