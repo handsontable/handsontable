@@ -4,17 +4,10 @@ import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {getDeltas, settingsFactory, getDirectionAndRange} from './utils';
-
-const privatePool = new WeakMap();
+import {getDeltas, getDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
 
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
-
-const DIRECTIONS = {
-  horizontal: 'horizontal',
-  vertical: 'vertical'
-};
 
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
@@ -42,9 +35,7 @@ class Autofill extends BasePlugin {
       isDragged: 0
     };
 
-    privatePool.set(this, {
-      settings: settingsFactory(this.hot.getSettings().fillHandle)
-    });
+    this.mappedSettings = {};
   }
 
   /**
@@ -179,7 +170,7 @@ class Autofill extends BasePlugin {
 
     if (lastFilledInRowIndex) {
       this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
-      this.apply();
+      this.perform();
     }
   }
 
@@ -230,7 +221,7 @@ class Autofill extends BasePlugin {
    * @function apply
    * @memberof Autofill#
    */
-  apply() {
+  perform() {
     if (this.hot.view.wt.selections.fill.isEmpty()) {
       return;
     }
@@ -283,12 +274,12 @@ class Autofill extends BasePlugin {
   showBorder(coords) {
     const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
     const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
-    const priv = privatePool.get(this);
+    const directions = this.mappedSettings.directions;
 
-    if (priv.settings('direction') !== DIRECTIONS.horizontal && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+    if (directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
       coords = new WalkontableCellCoords(coords.row, bottomRight.col);
 
-    } else if (priv.settings('direction') !== DIRECTIONS.vertical) { // jscs:ignore disallowNotOperatorsInConditionals
+    } else if (directions.includes(DIRECTIONS.horizontal)) {
       coords = new WalkontableCellCoords(bottomRight.row, coords.col);
 
     } else {
@@ -305,9 +296,9 @@ class Autofill extends BasePlugin {
    * @memberof Autofill#
    */
   addNewRowIfNeeded() {
-    const priv = privatePool.get(this);
+    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
 
-    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && priv.settings('autoInsertRow')) {
+    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && autoInsertRowOptionWasSet) {
       const cornersOfSelectedCells = this.hot.getSelected();
       const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
@@ -339,7 +330,6 @@ class Autofill extends BasePlugin {
    * @private
    * @param coords
    */
-
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handle.isDragged) {
       this.handle.isDragged++;
@@ -356,7 +346,7 @@ class Autofill extends BasePlugin {
   onMouseUp() {
     if (this.handle.isDragged) {
       if (this.handle.isDragged > 1) {
-        this.apply();
+        this.perform();
       }
       this.handle.isDragged = 0;
       this.mouseDownOnCellCorner = false;
@@ -386,7 +376,7 @@ class Autofill extends BasePlugin {
    * @param event
    */
   onMouseMove(event) {
-    const priv = privatePool.get(this);
+    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
     if (this.addingStarted === false && this.handle.isDragged > 0 && mouseWasDraggedOutside) {
@@ -397,12 +387,21 @@ class Autofill extends BasePlugin {
       this.mouseDragOutside = false;
     }
 
-    if (this.mouseDragOutside && priv.settings('autoInsertRow')) {
+    if (this.mouseDragOutside && autoInsertRowOptionWasSet) {
       setTimeout(() => {
         this.addingStarted = false;
         this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
       }, INTERVAL_FOR_ADDING_ROW);
     }
+  }
+
+  /**
+ * `afterPluginsInitialized` hook callback.
+ *
+ * @private
+ */
+  onAfterPluginsInitialized() {
+    this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
   }
 
   /**

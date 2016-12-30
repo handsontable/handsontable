@@ -1,3 +1,11 @@
+import {isObject} from './../../helpers/object';
+import {isDefined} from './../../helpers/mixed';
+
+export const DIRECTIONS = {
+  horizontal: 'horizontal',
+  vertical: 'vertical'
+};
+
 export function getDeltas(start, end, data, direction) {
   const rowsLength = data.length;
   const columnsLength = data ? data[0].length : 0;
@@ -30,37 +38,6 @@ export function getDeltas(start, end, data, direction) {
   }
 
   return deltas;
-}
-
-export function settingsFactory(settings) {
-  return function(key) {
-    let result;
-
-    if (key === 'direction') {
-      if (typeof settings === 'string') {
-        result = settings;
-
-      } else if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-
-      } else {
-        result = true;
-      }
-
-    } else if (key === 'autoInsertRow') {
-      if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-
-      } else {
-        result = true;
-      }
-
-    } else if (key === 'fillHandle') {
-      result = settings ? true : false;
-    }
-
-    return result;
-  };
 }
 
 export function getDirectionAndRange(select1, select2) {
@@ -97,4 +74,53 @@ export function getDirectionAndRange(select1, select2) {
     start,
     end
   };
+}
+
+export function getMappedFillHandleSetting(fillHandle) {
+  const mappedSettings = {};
+
+  if (fillHandle === true) {
+    mappedSettings.directions = Object.keys(DIRECTIONS);
+    mappedSettings.autoInsertRow = true;
+
+  } else if (isObject(fillHandle)) {
+    if (isDefined(fillHandle.autoInsertRow)) {
+
+      // autoInsertRow for horizontal direction will be always false
+
+      if (fillHandle.direction === DIRECTIONS.horizontal) {
+        mappedSettings.autoInsertRow = false;
+      } else {
+        mappedSettings.autoInsertRow = fillHandle.autoInsertRow;
+      }
+    } else {
+      mappedSettings.autoInsertRow = false;
+    }
+
+    if (isDefined(fillHandle.direction)) {
+      mappedSettings.directions = [fillHandle.direction];
+    } else {
+      mappedSettings.directions = Object.keys(DIRECTIONS);
+    }
+
+  } else if (typeof fillHandle === 'string') {
+    mappedSettings.directions = [fillHandle];
+    mappedSettings.autoInsertRow = true;
+
+  } else {
+    mappedSettings.directions = [];
+    mappedSettings.autoInsertRow = false;
+  }
+
+  // TODO: We could use predefined Array `includes` function (ES7)
+
+  mappedSettings.directions.includes = function(value) {
+    if (DIRECTIONS.hasOwnProperty(value)) {
+      return this.indexOf(value) !== -1;
+    } else {
+      return false;
+    }
+  };
+
+  return mappedSettings;
 }
