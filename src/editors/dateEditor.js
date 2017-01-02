@@ -226,17 +226,19 @@ class DateEditor extends TextEditor {
     options.bound = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
-    options.onSelect = (dateStr) => {
-      if (!isNaN(dateStr.getTime())) {
-        dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
-      }
-      this.setValue(dateStr);
-      this.hideDatepicker();
+	if(this.cellProperties && !this.cellProperties.overrideOnSelect){
+		options.onSelect = (dateStr) => {
+		  if (!isNaN(dateStr.getTime())) {
+			dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
+		  }
+		  this.setValue(dateStr);
+		  this.hideDatepicker();
 
-      if (origOnSelect) {
-        origOnSelect();
-      }
-    };
+		  if (origOnSelect) {
+			origOnSelect();
+		  }
+		};
+	}
     options.onClose = () => {
       if (!this.parentDestroyed) {
         this.finishEditing(false);

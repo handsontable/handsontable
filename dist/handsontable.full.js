@@ -3,17 +3,17 @@
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
- * Copyright 2016 Handsoncode sp. z o.o. <hello@handsontable.com>
+ * Copyright 2017 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Sep 13 2016 12:06:03 GMT+0200 (CEST)
+ * Date: Mon Jan 02 2017 13:09:56 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.16.1',
-  buildDate: 'Tue Sep 13 2016 12:06:03 GMT+0200 (CEST)'
+  buildDate: 'Mon Jan 02 2017 13:09:56 GMT+0100 (CET)'
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -7350,16 +7350,18 @@ var $DateEditor = DateEditor;
     options.bound = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
-    options.onSelect = (function(dateStr) {
-      if (!isNaN(dateStr.getTime())) {
-        dateStr = moment(dateStr).format($__7.cellProperties.dateFormat || $__7.defaultDateFormat);
-      }
-      $__7.setValue(dateStr);
-      $__7.hideDatepicker();
-      if (origOnSelect) {
-        origOnSelect();
-      }
-    });
+    if (this.cellProperties && !this.cellProperties.overrideOnSelect) {
+      options.onSelect = (function(dateStr) {
+        if (!isNaN(dateStr.getTime())) {
+          dateStr = moment(dateStr).format($__7.cellProperties.dateFormat || $__7.defaultDateFormat);
+        }
+        $__7.setValue(dateStr);
+        $__7.hideDatepicker();
+        if (origOnSelect) {
+          origOnSelect();
+        }
+      });
+    }
     options.onClose = (function() {
       if (!$__7.parentDestroyed) {
         $__7.finishEditing(false);
