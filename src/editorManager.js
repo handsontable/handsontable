@@ -305,6 +305,8 @@ function EditorManager(instance, priv, selection) {
         if (dataSaved) {
           _this.prepareEditor();
         }
+
+        instance.view.render();
       });
 
       return;
