@@ -145,7 +145,9 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       if (previousCloseCallback) {
         previousCloseCallback(result);
       }
+
       callback(result);
+      _this.instance.view.render();
     };
   }
 
