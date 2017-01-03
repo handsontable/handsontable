@@ -706,5 +706,11 @@ describe('FillHandle', function () {
     $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
+
+    $container1.handsontable('destroy');
+    $container1.remove();
+
+    $container2.handsontable('destroy');
+    $container2.remove();
   });
 });
