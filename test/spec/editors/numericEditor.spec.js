@@ -418,31 +418,13 @@ describe('NumericEditor', function () {
       var doneFunc = settings.doneFunc;
       var $corner = settings.$container.find('.wtBorder.current.corner');
 
-      expect($corner.css('display')).toEqual('none');
-
       selectCell(moveFromRow, moveFromCol);
+      keyDown('enter');
+      selectCell(moveToRow, moveToCol);
 
       setTimeout(function () {
         expect($corner.css('display')).toEqual('block');
-
-        keyDown('enter');
-
-        setTimeout(function () {
-
-          expect($corner.css('display')).toEqual('none');
-
-          setTimeout(function () {
-
-            selectCell(moveToRow, moveToCol);
-
-            setTimeout(function () {
-
-              expect($corner.css('display')).toEqual('block');
-              doneFunc();
-
-            }, 100);
-          }, 100);
-        }, 100);
+        doneFunc();
       }, 100);
     };
 
