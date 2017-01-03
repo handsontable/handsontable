@@ -50,7 +50,7 @@ describe('FillHandle', function () {
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
-  it('should not change cell value (drag vertically when fillHandle option is set to `vertical`)', function () {
+  it('should not change cell value (drag horizontally when fillHandle option is set to `vertical`)', function () {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -106,7 +106,6 @@ describe('FillHandle', function () {
         direction: 'horizontal'
       }
     });
-
 
     selectCell(0, 0);
     this.$container.find('.wtBorder.current.corner').simulate('mousedown');
