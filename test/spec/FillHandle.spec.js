@@ -32,6 +32,123 @@ describe('FillHandle', function () {
     expect(isFillHandleVisible()).toBe(true);
   });
 
+  it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', function () {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: 'horizontal'
+    });
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 0)).toEqual(7);
+  });
+
+  it('should not change cell value (drag vertically when fillHandle option is set to `vertical`)', function () {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: 'vertical'
+    });
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(2);
+  });
+
+  it('should work properly when fillHandle option is set to object with property `direction` set to `vertical`)', function () {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        direction: 'vertical'
+      }
+    });
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(2);
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
+  it('should work properly when fillHandle option is set to object with property `direction` set to `horizontal`)', function () {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        direction: 'horizontal'
+      }
+    });
+
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(1);
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 0)).toEqual(7);
+  });
+
+  xit('should not change cell value (drag when fillHandle is set to `false`)', function () {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: false
+    });
+
+    // checking drag vertically - should not change cell value
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(2);
+
+    // checking drag horizontally - should not change cell value
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(2);
+  });
+
   it('should appear when fillHandle is enabled as `object` value', function () {
     handsontable({
       fillHandle: {
@@ -563,4 +680,32 @@ describe('FillHandle', function () {
     }, 600);
   });
 
+  it('should works properly when two or more instances of Handsontable was initialized with other settings #3257', function () {
+    function getData() {
+      return [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ];
+    };
+
+    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+      data: getData(),
+      fillHandle: true
+    });
+
+    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+      data: getData(),
+      fillHandle: 'horizontal'
+    });
+
+    // checking drag vertically - should change cell value
+
+    $container1.handsontable('selectCell', 0, 0);
+    $container1.find('.wtBorder.current.corner').simulate('mousedown');
+    $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
+  });
 });
