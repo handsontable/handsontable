@@ -719,60 +719,61 @@ describe('FillHandle', function () {
     }, 600);
   });
 
-  it('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', function () {
-    function getData() {
-      return [
-        [1, 2, 3, 4, 5, 6],
-        [7, 8, 9, 1, 2, 3],
-        [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
-      ];
-    };
+  describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', function () {
+    var getData, $container1, $container2;
 
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
-      data: getData(),
-      fillHandle: true
+    beforeAll(function () {
+      getData = function getData() {
+        return [
+          [1, 2, 3, 4, 5, 6],
+          [7, 8, 9, 1, 2, 3],
+          [4, 5, 6, 7, 8, 9],
+          [1, 2, 3, 4, 5, 6]
+        ];
+      };
+
+      $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+        data: getData(),
+        fillHandle: true
+      });
+
+      $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+        data: getData(),
+        fillHandle: 'horizontal'
+      });
     });
 
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
-      data: getData(),
-      fillHandle: 'horizontal'
+
+    it('checking drag vertically on 1. instance of Handsontable - should change cell value', function () {
+      $container1.handsontable('selectCell', 0, 0);
+      $container1.find('.wtBorder.current.corner').simulate('mousedown');
+      $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+      expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
     });
 
-    // checking drag vertically of 1. instance of Handsontable - should change cell value
+    describe('-> updating settings on 2. instance of Handsontable', function () {
+      beforeAll(function () {
+        $container2.handsontable('updateSettings', {fillHandle: 'vertical'});
+      });
 
-    $container1.handsontable('selectCell', 0, 0);
-    $container1.find('.wtBorder.current.corner').simulate('mousedown');
-    $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+      it('checking drag vertically on 2. instance of Handsontable - should change cell value', function () {
+        $container2.handsontable('selectCell', 0, 2);
+        $container2.find('.wtBorder.current.corner').simulate('mousedown');
+        $container2.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
 
-    expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
+        expect($container2.handsontable('getDataAtCell', 1, 2)).toEqual(3);
+      });
+    });
 
-    // updating settings of 2. instance of Handsontable
+    afterAll(function () {
+      // destroing containers
 
-    $container2.handsontable('updateSettings', {fillHandle: 'vertical'});
+      $container1.handsontable('destroy');
+      $container1.remove();
 
-    // checking drag vertically - should change cell value of 2. instance of Handsontable
-
-    $container2.handsontable('selectCell', 0, 1);
-    $container2.find('.wtBorder.current.corner').simulate('mousedown');
-    $container2.find('tbody tr:eq(1) td:eq(1)').simulate('mouseover').simulate('mouseup');
-
-    expect($container2.handsontable('getDataAtCell', 1, 1)).toEqual(2);
-
-    // checking drag vertically - should change cell value of 1. instance of Handsontable
-
-    $container1.handsontable('selectCell', 0, 2);
-    $container1.find('.wtBorder.current.corner').simulate('mousedown');
-    $container1.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
-
-    expect($container1.handsontable('getDataAtCell', 1, 2)).toEqual(3);
-
-    // destroing containers
-
-    $container1.handsontable('destroy');
-    $container1.remove();
-
-    $container2.handsontable('destroy');
-    $container2.remove();
+      $container2.handsontable('destroy');
+      $container2.remove();
+    });
   });
 });
