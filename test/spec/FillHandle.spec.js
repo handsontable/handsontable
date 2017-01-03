@@ -120,7 +120,7 @@ describe('FillHandle', function () {
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
-  xit('should not change cell value (drag when fillHandle is set to `false`)', function () {
+  it('should not change cell value (drag when fillHandle is set to `false`)', function () {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -146,6 +146,46 @@ describe('FillHandle', function () {
     this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(2);
+  });
+
+  it('should work properly when using updateSettings', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: 'horizontal'
+    });
+
+    updateSettings({ fillHandle: 'vertical' });
+
+    // checking drag vertically - should change cell value
+
+    selectCell(0, 0);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(2);
+
+    updateSettings({ fillHandle: false });
+
+    // checking drag vertically - should not change cell value
+
+    selectCell(0, 1);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(1) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 1)).toEqual(8);
+
+    // checking drag horizontally - should not change cell value
+
+    selectCell(0, 1);
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    this.$container.find('tbody tr:eq(0) td:eq(2)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 2)).toEqual(3);
   });
 
   it('should appear when fillHandle is enabled as `object` value', function () {
@@ -679,7 +719,7 @@ describe('FillHandle', function () {
     }, 600);
   });
 
-  it('should works properly when two or more instances of Handsontable was initialized with other settings #3257', function () {
+  it('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', function () {
     function getData() {
       return [
         [1, 2, 3, 4, 5, 6],
@@ -699,13 +739,35 @@ describe('FillHandle', function () {
       fillHandle: 'horizontal'
     });
 
-    // checking drag vertically - should change cell value
+    // checking drag vertically of 1. instance of Handsontable - should change cell value
 
     $container1.handsontable('selectCell', 0, 0);
     $container1.find('.wtBorder.current.corner').simulate('mousedown');
     $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
+
+    // updating settings of 2. instance of Handsontable
+
+    $container2.handsontable('updateSettings', {fillHandle: 'vertical'});
+
+    // checking drag vertically - should change cell value of 2. instance of Handsontable
+
+    $container2.handsontable('selectCell', 0, 1);
+    $container2.find('.wtBorder.current.corner').simulate('mousedown');
+    $container2.find('tbody tr:eq(1) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect($container2.handsontable('getDataAtCell', 1, 1)).toEqual(2);
+
+    // checking drag vertically - should change cell value of 1. instance of Handsontable
+
+    $container1.handsontable('selectCell', 0, 2);
+    $container1.find('.wtBorder.current.corner').simulate('mousedown');
+    $container1.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
+
+    expect($container1.handsontable('getDataAtCell', 1, 2)).toEqual(3);
+
+    // destroing containers
 
     $container1.handsontable('destroy');
     $container1.remove();
