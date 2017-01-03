@@ -416,8 +416,8 @@ describe('NumericEditor', function () {
       var moveToRow = settings.moveToRow;
       var moveToCol = settings.moveToCol;
       var doneFunc = settings.doneFunc;
+      var $corner = settings.$container.find('.wtBorder.current.corner');
 
-      var $corner = $('.wtBorder.current.corner');
       expect($corner.css('display')).toEqual('none');
 
       selectCell(moveFromRow, moveFromCol);
@@ -464,6 +464,7 @@ describe('NumericEditor', function () {
         moveFromCol: 3,
         moveToRow: 0,
         moveToCol: 0,
+        $container: this.$container,
         doneFunc: done
       });
     });
@@ -487,6 +488,7 @@ describe('NumericEditor', function () {
         moveFromCol: 1,
         moveToRow: 0,
         moveToCol: 3,
+        $container: this.$container,
         doneFunc: done
       });
     });
