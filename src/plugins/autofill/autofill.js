@@ -157,6 +157,19 @@ class Autofill extends BasePlugin {
   }
 
   /**
+   * Adds new row
+   *
+   * @private
+   */
+
+  addRow() {
+    this.hot._registerTimeout(setTimeout(() => {
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      this.addingStarted = false;
+    }, INTERVAL_FOR_ADDING_ROW));
+  }
+
+  /**
    * Adds new rows if they are needed to continue auto-filling values
    *
    * @private
@@ -172,11 +185,7 @@ class Autofill extends BasePlugin {
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
 
         this.addingStarted = true;
-
-        this.hot._registerTimeout(setTimeout(() => {
-          this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
-          this.addingStarted = false;
-        }, INTERVAL_FOR_ADDING_ROW));
+        this.addRow();
       }
     }
   }
@@ -306,6 +315,22 @@ class Autofill extends BasePlugin {
   }
 
   /**
+   * Get if mouse was dragged outside
+   *
+   * @private
+   * @param event
+   * @returns {boolean}
+   */
+  getIfMouseWasDraggedOutside(event) {
+    const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
+      document.documentElement.scrollTop) + outerHeight(this.hot.table);
+    const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
+      document.documentElement.scrollLeft) + outerWidth(this.hot.table);
+
+    return event.clientY > tableBottom && event.clientX <= tableRight;
+  }
+
+  /**
    * Bind the events used by the plugin.
    *
    * @private
@@ -368,22 +393,6 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get if mouse was dragged outside
-   *
-   * @private
-   * @param event
-   * @returns {boolean}
-   */
-  getIfMouseWasDraggedOutside(event) {
-    const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
-      document.documentElement.scrollTop) + outerHeight(this.hot.table);
-    const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
-      document.documentElement.scrollLeft) + outerWidth(this.hot.table);
-
-    return event.clientY > tableBottom && event.clientX <= tableRight;
-  }
-
-  /**
    * On mouse move listener.
    *
    * @private
@@ -402,10 +411,7 @@ class Autofill extends BasePlugin {
     }
 
     if (this.mouseDragOutside && autoInsertRowOptionWasSet) {
-      setTimeout(() => {
-        this.addingStarted = false;
-        this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
-      }, INTERVAL_FOR_ADDING_ROW);
+      this.addRow();
     }
   }
 
