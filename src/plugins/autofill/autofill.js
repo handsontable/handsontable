@@ -61,7 +61,7 @@ class Autofill extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (event, coords, TD) => this.onBeforeCellMouseOver(coords));
     this.addHook('init', () => {
       this.hot.view.wt.wtSettings.settings.onCellCornerDblClick = () => {
-        this.selectAdjacent();
+        this.onCellCornerDblClick();
       };
     });
 
@@ -82,17 +82,122 @@ class Autofill extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.mappedSettings = {};
     super.disablePlugin();
   }
 
   /**
-   * Bind the events used by the plugin.
+   * Try to select cells down to the last row in the left column and then returns if selection was applied
    *
-   * @private
+   * @returns {boolean}
    */
-  registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+  selectAdjacent() {
+    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
+
+    if (lastFilledInRowIndex === -1) {
+      return false;
+    } else {
+      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+      return true;
+    }
+  }
+
+  /**
+   * Get selection data
+   *
+   * @returns {*|string|Array}
+   */
+  getSelectionData() {
+    const selRange = {
+      from: this.hot.getSelectedRange().from,
+      to: this.hot.getSelectedRange().to,
+    };
+
+    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+  }
+
+  /**
+   * Try to apply fill values to the area in fill border, omitting the selection border and then returns if fill was applied
+   * @returns {boolean}
+   */
+  fillIn() {
+    if (this.hot.view.wt.selections.fill.isEmpty()) {
+      return false;
+    }
+
+    const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+    this.resetSelectionOfDraggedArea();
+
+    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
+
+    this.hot.runHooks('afterAutofillApplyValues', cornersOfSelectedCells, cornersOfSelectedDragArea);
+
+    if (start && start.row > -1 && start.col > -1) {
+
+      const data = this.getSelectionData();
+      const deltas = getDeltas(start, end, data, direction);
+
+      this.hot.runHooks('beforeAutofill', start, end, data);
+
+      this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
+      this.setSelection(cornersOfSelectedDragArea);
+
+    } else {
+      // reset to avoid some range bug
+      this.hot.selection.refreshBorders();
+    }
+    return true;
+  }
+
+  /**
+   * Show fill border
+   *
+   * @function showBorder
+   * @memberof Autofill#
+   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
+   */
+  showBorder(coords) {
+    const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
+    const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
+    const directions = this.mappedSettings.directions;
+
+    if (directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+      coords = new WalkontableCellCoords(coords.row, bottomRight.col);
+
+    } else if (directions.includes(DIRECTIONS.horizontal)) {
+      coords = new WalkontableCellCoords(bottomRight.row, coords.col);
+
+    } else {
+      // wrong direction
+      return;
+    }
+
+    this.redrawBorders(coords);
+  }
+
+  /**
+   * Adds new rows if they are needed to continue auto-filling values
+   */
+  addNewRowIfNeeded() {
+    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
+
+    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && autoInsertRowOptionWasSet) {
+      const cornersOfSelectedCells = this.hot.getSelected();
+      const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+      const nrOfTableRows = this.hot.countRows();
+
+      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
+
+        this.addingStarted = true;
+
+        this.hot._registerTimeout(setTimeout(() => {
+          this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+          this.addingStarted = false;
+        }, INTERVAL_FOR_ADDING_ROW));
+      }
+    }
   }
 
   /**
@@ -112,10 +217,8 @@ class Autofill extends BasePlugin {
 
   /**
    * Get index of last left filled in row
-   *
-   * @private
-   * @returns {*}
    * @param cornersOfSelectedCells
+   * @returns {*}
    */
   getIndexOfLastLeftFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
@@ -127,7 +230,7 @@ class Autofill extends BasePlugin {
         const dataInCell = data[rowIndex][columnIndex];
 
         if (dataInCell) {
-          return;
+          return -1;
         }
       }
 
@@ -161,22 +264,6 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Selects cells down to the last row in the left column, then fills down to that cell
-   *
-   * @function selectAdjacent
-   * @memberof Autofill#
-   */
-  selectAdjacent() {
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
-
-    if (lastFilledInRowIndex) {
-      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
-      this.perform();
-    }
-  }
-
-  /**
    * Set selection based on passed corners
    *
    * @private
@@ -204,55 +291,6 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get selection data
-   *
-   * @returns {*|string|Array}
-   */
-  getSelectionData() {
-    const selRange = {
-      from: this.hot.getSelectedRange().from,
-      to: this.hot.getSelectedRange().to,
-    };
-
-    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-  }
-
-  /**
-   * Apply fill values to the area in fill border, omitting the selection border
-   *
-   * @function apply
-   * @memberof Autofill#
-   */
-  perform() {
-    if (this.hot.view.wt.selections.fill.isEmpty()) {
-      return;
-    }
-
-    const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
-    this.resetSelectionOfDraggedArea();
-
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
-
-    this.hot.runHooks('afterAutofillApplyValues', cornersOfSelectedCells, cornersOfSelectedDragArea);
-
-    if (start && start.row > -1 && start.col > -1) {
-
-      const data = this.getSelectionData();
-      const deltas = getDeltas(start, end, data, direction);
-
-      this.hot.runHooks('beforeAutofill', start, end, data);
-
-      this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
-      this.setSelection(cornersOfSelectedDragArea);
-
-    } else {
-      // reset to avoid some range bug
-      this.hot.selection.refreshBorders();
-    }
-  }
-
-  /**
    * Redraw borders
    *
    * @private
@@ -267,58 +305,32 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Show fill border
+   * Bind the events used by the plugin.
    *
-   * @function showBorder
-   * @memberof Autofill#
-   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
+   * @private
    */
-  showBorder(coords) {
-    const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
-    const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
-    const directions = this.mappedSettings.directions;
-
-    if (directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-      coords = new WalkontableCellCoords(coords.row, bottomRight.col);
-
-    } else if (directions.includes(DIRECTIONS.horizontal)) {
-      coords = new WalkontableCellCoords(bottomRight.row, coords.col);
-
-    } else {
-      // wrong direction
-      return;
-    }
-
-    this.redrawBorders(coords);
+  registerEvents() {
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
   }
 
+
   /**
-   * Adds new rows if they are needed to continue auto-filling values
-   * @function addNewRowIfNeeded
-   * @memberof Autofill#
+   * On cell corner double click
+   *
+   * @private
    */
-  addNewRowIfNeeded() {
-    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
+  onCellCornerDblClick() {
+    const selectionApplied = this.selectAdjacent();
 
-    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && autoInsertRowOptionWasSet) {
-      const cornersOfSelectedCells = this.hot.getSelected();
-      const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
-      const nrOfTableRows = this.hot.countRows();
-
-      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
-
-        this.addingStarted = true;
-
-        this.hot._registerTimeout(setTimeout(() => {
-          this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
-          this.addingStarted = false;
-        }, INTERVAL_FOR_ADDING_ROW));
-      }
+    if (selectionApplied) {
+      this.fillIn();
     }
   }
 
   /**
    * On after cell corner mouse down listener.
+   *
    * @private
    */
   onAfterCellCornerMouseDown() {
@@ -348,7 +360,7 @@ class Autofill extends BasePlugin {
   onMouseUp() {
     if (this.handle.isDragged) {
       if (this.handle.isDragged > 1) {
-        this.perform();
+        this.fillIn();
       }
       this.handle.isDragged = 0;
       this.mouseDownOnCellCorner = false;
@@ -398,10 +410,8 @@ class Autofill extends BasePlugin {
   }
 
   /**
- * `afterPluginsInitialized` hook callback.
- *
- * @private
- */
+   * `afterPluginsInitialized` hook callback.
+   */
   onAfterPluginsInitialized() {
     this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
   }
