@@ -314,7 +314,6 @@ class Autofill extends BasePlugin {
     this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
   }
 
-
   /**
    * On cell corner double click
    *
