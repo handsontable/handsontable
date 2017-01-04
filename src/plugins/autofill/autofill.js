@@ -266,6 +266,7 @@ class Autofill extends BasePlugin {
   /**
    * Try to select cells down to the last row in the left column and then returns if selection was applied
    *
+   * @private
    * @returns {boolean}
    */
   selectAdjacent() {
