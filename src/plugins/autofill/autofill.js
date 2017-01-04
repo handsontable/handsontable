@@ -83,23 +83,6 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Try to select cells down to the last row in the left column and then returns if selection was applied
-   *
-   * @returns {boolean}
-   */
-  selectAdjacent() {
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
-
-    if (lastFilledInRowIndex === -1) {
-      return false;
-    } else {
-      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
-      return true;
-    }
-  }
-
-  /**
    * Get selection data
    *
    * @returns {*|string|Array}
@@ -115,6 +98,7 @@ class Autofill extends BasePlugin {
 
   /**
    * Try to apply fill values to the area in fill border, omitting the selection border and then returns if fill was applied
+   *
    * @returns {boolean}
    */
   fillIn() {
@@ -150,8 +134,7 @@ class Autofill extends BasePlugin {
   /**
    * Show fill border
    *
-   * @function showBorder
-   * @memberof Autofill#
+   * @private
    * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
    */
   showBorder(coords) {
@@ -175,6 +158,8 @@ class Autofill extends BasePlugin {
 
   /**
    * Adds new rows if they are needed to continue auto-filling values
+   *
+   * @private
    */
   addNewRowIfNeeded() {
     const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
@@ -213,6 +198,8 @@ class Autofill extends BasePlugin {
 
   /**
    * Get index of last left filled in row
+   *
+   * @private
    * @param cornersOfSelectedCells
    * @returns {*}
    */
@@ -405,7 +392,9 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * `afterPluginsInitialized` hook callback.
+   * On after plugins initialized
+   *
+   * @private
    */
   onAfterPluginsInitialized() {
     this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);

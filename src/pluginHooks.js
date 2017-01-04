@@ -272,11 +272,11 @@ const REGISTERED_HOOKS = [
   'afterOnCellCornerMouseDown',
 
   /**
-   * Fired after a double-click event is triggered on the cell corner (the drag handle).
+   * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
-   * @event Hooks#afterOnCellCornerMouseDown
-   * @since 0.11
-   * @param {Object} event `mousedown` event object.
+   * @event Hooks#afterOnCellCornerDblClick
+   * @since 0.29.3
+   * @param {Object} event `dblclick` event object.
    */
 
   'afterOnCellCornerDblClick',
