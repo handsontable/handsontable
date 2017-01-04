@@ -264,6 +264,23 @@ class Autofill extends BasePlugin {
   }
 
   /**
+   * Try to select cells down to the last row in the left column and then returns if selection was applied
+   *
+   * @returns {boolean}
+   */
+  selectAdjacent() {
+    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
+
+    if (lastFilledInRowIndex === -1) {
+      return false;
+    } else {
+      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+      return true;
+    }
+  }
+
+  /**
    * Reset selection of dragged area
    *
    * @private
