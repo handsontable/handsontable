@@ -112,7 +112,7 @@ class Autofill extends BasePlugin {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
 
-    this.hot.runHooks('afterAutofillApplyValues', cornersOfSelectedCells, cornersOfSelectedDragArea);
+    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectedDragArea);
 
     if (start && start.row > -1 && start.col > -1) {
 
@@ -435,5 +435,5 @@ class Autofill extends BasePlugin {
 export {Autofill};
 
 registerPlugin('autofill', Autofill);
-Handsontable.hooks.register('afterAutofillApplyValues');
+Handsontable.hooks.register('modifyAutofillRange');
 Handsontable.hooks.register('beforeAutofill');

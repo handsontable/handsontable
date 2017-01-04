@@ -872,17 +872,17 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
-   * Fired after applying the autofill values.
+   * Fired after setting range of autofill.
    * Both arguments are provided in the following format:
    * ```js
    * [startRow, startColumn, endRow, endColumn]
    * ```
    *
-   * @event Hooks#afterAutofillApplyValues
+   * @event Hooks#modifyAutofillRange
    * @param {Array} startArea Array of coordinates of the starting point for the drag-down operation.
    * @param {Array} entireArea Array of coordinates of the entire area of the drag-down operation.
    */
-  'afterAutofillApplyValues',
+  'modifyAutofillRange',
 
   /**
    * Fired to allow modifying the copyable range with a callback function.
