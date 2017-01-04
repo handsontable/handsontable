@@ -272,6 +272,16 @@ const REGISTERED_HOOKS = [
   'afterOnCellCornerMouseDown',
 
   /**
+   * Fired after a double-click event is triggered on the cell corner (the drag handle).
+   *
+   * @event Hooks#afterOnCellCornerMouseDown
+   * @since 0.11
+   * @param {Object} event `mousedown` event object.
+   */
+
+  'afterOnCellCornerDblClick',
+
+  /**
    * Callback fired after clicking on a cell or row/column header.
    * In case the row/column header was clicked, the index is negative.
    * For example clicking on the row header of cell (0, 0) results with `afterOnCellMouseDown` called

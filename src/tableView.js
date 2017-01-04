@@ -467,6 +467,10 @@ function TableView(instance) {
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
     },
+    onCellCornerDblClick: function(event) {
+      event.preventDefault();
+      Handsontable.hooks.run(instance, 'afterOnCellCornerDblClick', event);
+    },
     beforeDraw: function(force, skipRender) {
       that.beforeRender(force, skipRender);
     },
