@@ -75,6 +75,7 @@ class Autofill extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
     this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+    super.updatePlugin();
   }
 
   /**
