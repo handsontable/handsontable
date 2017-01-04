@@ -2213,8 +2213,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @param {Array} items The new items to be added to the array.
    */
   this.spliceCellsMeta = function(index, deleteAmount, ...items) {
-    let args = [index, deleteAmount].concat(items);
-    priv.cellSettings.splice(...args);
+    priv.cellSettings.splice(index, deleteAmount, ...items);
   };
 
   /**
@@ -2333,7 +2332,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   /**
    * Returns a row off the cell meta array.
    *
-   * @param {Number} row
+   * @memberof Core#
+   * @function getCellMetaAtRow
+   * @since 0.30.0
+   * @param {Number} row Index of the row to return cell meta for.
+   * @returns {Array}
    */
   this.getCellMetaAtRow = function(row) {
     return priv.cellSettings[row];
