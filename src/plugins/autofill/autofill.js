@@ -26,16 +26,47 @@ const INTERVAL_FOR_ADDING_ROW = 200;
 class Autofill extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-
+    /**
+     * Event manager
+     *
+     * @type {EventManager}
+     */
     this.eventManager = eventManagerObject(this);
+    /**
+     * Specifies if adding new row started
+     *
+     * @type {Boolean}
+     */
     this.addingStarted = false;
+    /**
+     * Specifies if there was mouse down on cell corner
+     *
+     * @type {Boolean}
+     */
     this.mouseDownOnCellCorner = false;
+    /**
+     * Specifies if mouse was dragged outside Handsontable
+     *
+     * @type {Boolean}
+     */
     this.mouseDragOutside = false;
-    this.handle = {
-      isDragged: 0
-    };
-
+    /**
+     * Specifies how many cell levels was dragged by handle
+     *
+     * @type {Boolean}
+     */
+    this.handleDraggedCells = 0;
+    /**
+     * Specifies allowed directions of drag
+     *
+     * @type {Array}
+     */
     this.directions = [];
+    /**
+     * Specifies if can insert new rows if needed
+     *
+     * @type {Boolean}
+     */
     this.autoInsertRow = false;
   }
 
@@ -308,7 +339,7 @@ class Autofill extends BasePlugin {
    * @private
    */
   resetSelectionOfDraggedArea() {
-    this.handle.isDragged = 0;
+    this.handleDraggedCells = 0;
     this.hot.view.wt.selections.fill.clear();
   }
 
@@ -371,7 +402,7 @@ class Autofill extends BasePlugin {
    * @private
    */
   onAfterCellCornerMouseDown() {
-    this.handle.isDragged = 1;
+    this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
   }
 
@@ -382,8 +413,8 @@ class Autofill extends BasePlugin {
    * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
    */
   onBeforeCellMouseOver(coords) {
-    if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handle.isDragged) {
-      this.handle.isDragged++;
+    if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
+      this.handleDraggedCells++;
       this.showBorder(coords);
       this.addNewRowIfNeeded();
     }
@@ -395,11 +426,11 @@ class Autofill extends BasePlugin {
    * @private
    */
   onMouseUp() {
-    if (this.handle.isDragged) {
-      if (this.handle.isDragged > 1) {
+    if (this.handleDraggedCells) {
+      if (this.handleDraggedCells > 1) {
         this.fillIn();
       }
-      this.handle.isDragged = 0;
+      this.handleDraggedCells = 0;
       this.mouseDownOnCellCorner = false;
     }
   }
@@ -414,7 +445,7 @@ class Autofill extends BasePlugin {
     const autoInsertRowOptionWasSet = this.autoInsertRow;
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
-    if (this.addingStarted === false && this.handle.isDragged > 0 && mouseWasDraggedOutside) {
+    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 
