@@ -574,7 +574,7 @@ var isMultipleSelection = function(isMultiple) {
   return isMultiple;
 };
 
-function afterAutofillApplyValues(select, drag) {
+function modifyAutofillRange(select, drag) {
   var mergeCellsSetting = this.getSettings().mergeCells;
 
   if (!mergeCellsSetting || this.selection.isMultiple()) {
@@ -628,7 +628,7 @@ Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContex
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
-Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
+Handsontable.hooks.add('modifyAutofillRange', modifyAutofillRange);
 Handsontable.hooks.add('afterCreateCol', onAfterCreateCol);
 Handsontable.hooks.add('afterRemoveCol', onAfterRemoveCol);
 Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
