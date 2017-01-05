@@ -140,6 +140,7 @@ class Autofill extends BasePlugin {
     }
 
     const cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+
     this.resetSelectionOfDraggedArea();
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
@@ -171,6 +172,7 @@ class Autofill extends BasePlugin {
       // reset to avoid some range bug
       this.hot.selection.refreshBorders();
     }
+
     return true;
   }
 
@@ -183,12 +185,11 @@ class Autofill extends BasePlugin {
   showBorder(coords) {
     const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
     const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
-    const directions = this.directions;
 
-    if (directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+    if (this.directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
       coords = new WalkontableCellCoords(coords.row, bottomRight.col);
 
-    } else if (directions.includes(DIRECTIONS.horizontal)) {
+    } else if (this.directions.includes(DIRECTIONS.horizontal)) {
       coords = new WalkontableCellCoords(bottomRight.row, coords.col);
 
     } else {
@@ -207,6 +208,7 @@ class Autofill extends BasePlugin {
   addRow() {
     this.hot._registerTimeout(setTimeout(() => {
       this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW));
   }
@@ -217,15 +219,14 @@ class Autofill extends BasePlugin {
    * @private
    */
   addNewRowIfNeeded() {
-    const autoInsertRowOptionWasSet = this.autoInsertRow;
-
-    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && autoInsertRowOptionWasSet) {
+    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
       const cornersOfSelectedCells = this.hot.getSelected();
       const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
       const nrOfTableRows = this.hot.countRows();
 
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
         this.addingStarted = true;
+
         this.addRow();
       }
     }
@@ -329,6 +330,7 @@ class Autofill extends BasePlugin {
 
     } else {
       this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+
       return true;
     }
   }
@@ -340,6 +342,7 @@ class Autofill extends BasePlugin {
    */
   resetSelectionOfDraggedArea() {
     this.handleDraggedCells = 0;
+
     this.hot.view.wt.selections.fill.clear();
   }
 
@@ -415,6 +418,7 @@ class Autofill extends BasePlugin {
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
       this.handleDraggedCells++;
+
       this.showBorder(coords);
       this.addNewRowIfNeeded();
     }
@@ -443,7 +447,6 @@ class Autofill extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
-    const autoInsertRowOptionWasSet = this.autoInsertRow;
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
     if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
@@ -454,7 +457,7 @@ class Autofill extends BasePlugin {
       this.mouseDragOutside = false;
     }
 
-    if (this.mouseDragOutside && autoInsertRowOptionWasSet) {
+    if (this.mouseDragOutside && this.autoInsertRow) {
       this.addRow();
     }
   }

@@ -15,12 +15,10 @@ export const DIRECTIONS = {
  * @param {String} direction
  * @returns {Array}
  */
-
 export function getDeltas(start, end, data, direction) {
   const rowsLength = data.length;
   const columnsLength = data ? data[0].length : 0;
   const deltas = [];
-
   const diffRow = end.row - start.row;
   const diffCol = end.col - start.col;
 
@@ -34,6 +32,7 @@ export function getDeltas(start, end, data, direction) {
 
       arr.push(delta);
     }
+
     deltas.push(arr);
   }
 
@@ -57,7 +56,6 @@ export function getDeltas(start, end, data, direction) {
  * @param {Array} endSelection
  * @returns {{direction: String, start: WalkontableCellCoords, end: WalkontableCellCoords}}
  */
-
 export function getDragDirectionAndRange(startSelection, endSelection) {
   let startOfDragCoords, endOfDragCoords, directionOfDrag;
 
@@ -102,7 +100,6 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
  * @returns {{directions: Array, autoInsertRow: Boolean}} object allowing access to information
  * about FillHandle in more useful way
  */
-
 export function getMappedFillHandleSetting(fillHandle) {
   const mappedSettings = {};
 
@@ -117,15 +114,18 @@ export function getMappedFillHandleSetting(fillHandle) {
 
       if (fillHandle.direction === DIRECTIONS.horizontal) {
         mappedSettings.autoInsertRow = false;
+
       } else {
         mappedSettings.autoInsertRow = fillHandle.autoInsertRow;
       }
+
     } else {
       mappedSettings.autoInsertRow = false;
     }
 
     if (isDefined(fillHandle.direction)) {
       mappedSettings.directions = [fillHandle.direction];
+
     } else {
       mappedSettings.directions = Object.keys(DIRECTIONS);
     }
@@ -144,6 +144,7 @@ export function getMappedFillHandleSetting(fillHandle) {
   mappedSettings.directions.includes = function(value) {
     if (DIRECTIONS.hasOwnProperty(value)) {
       return this.indexOf(value) !== -1;
+
     } else {
       return false;
     }
