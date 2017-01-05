@@ -47,7 +47,6 @@ export function getDeltas(start, end, data, direction) {
     }
   }
 
-  console.log(deltas);
   return deltas;
 }
 

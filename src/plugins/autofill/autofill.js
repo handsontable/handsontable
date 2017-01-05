@@ -35,7 +35,8 @@ class Autofill extends BasePlugin {
       isDragged: 0
     };
 
-    this.mappedSettings = {};
+    this.directions = [];
+    this.autoInsertRow = false;
   }
 
   /**
@@ -55,6 +56,7 @@ class Autofill extends BasePlugin {
       return;
     }
 
+    this.mapSettings();
     this.registerEvents();
 
     this.addHook('afterOnCellCornerMouseDown', (event) => this.onAfterCellCornerMouseDown(event));
@@ -70,7 +72,6 @@ class Autofill extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
-    this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
     super.updatePlugin();
   }
 
@@ -78,7 +79,7 @@ class Autofill extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.mappedSettings = {};
+    this.clearMappedSettings();
     super.disablePlugin();
   }
 
@@ -151,7 +152,7 @@ class Autofill extends BasePlugin {
   showBorder(coords) {
     const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
     const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
-    const directions = this.mappedSettings.directions;
+    const directions = this.directions;
 
     if (directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
       coords = new WalkontableCellCoords(coords.row, bottomRight.col);
@@ -185,7 +186,7 @@ class Autofill extends BasePlugin {
    * @private
    */
   addNewRowIfNeeded() {
-    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
+    const autoInsertRowOptionWasSet = this.autoInsertRow;
 
     if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && autoInsertRowOptionWasSet) {
       const cornersOfSelectedCells = this.hot.getSelected();
@@ -410,7 +411,7 @@ class Autofill extends BasePlugin {
    * @param {Event} event
    */
   onMouseMove(event) {
-    const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;
+    const autoInsertRowOptionWasSet = this.autoInsertRow;
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
     if (this.addingStarted === false && this.handle.isDragged > 0 && mouseWasDraggedOutside) {
@@ -427,12 +428,24 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * On after plugins initialized
+   * Clears mapped settings
    *
    * @private
    */
-  onAfterPluginsInitialized() {
-    this.mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+  clearMappedSettings() {
+    this.directions.length = 0;
+    this.autoInsertRow = false;
+  }
+
+  /**
+   * Maps settings
+   *
+   * @private
+   */
+  mapSettings() {
+    const mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+    this.directions = mappedSettings.directions;
+    this.autoInsertRow = mappedSettings.autoInsertRow;
   }
 
   /**
