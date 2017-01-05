@@ -278,7 +278,6 @@ const REGISTERED_HOOKS = [
    * @since 0.30.0
    * @param {Object} event `dblclick` event object.
    */
-
   'afterOnCellCornerDblClick',
 
   /**

@@ -131,6 +131,7 @@ class Autofill extends BasePlugin {
   /**
    * Try to apply fill values to the area in fill border, omitting the selection border
    *
+   * @private
    * @returns {Boolean} reports if fill was applied
    */
   fillIn() {
@@ -147,7 +148,6 @@ class Autofill extends BasePlugin {
     this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
-
       const selectionData = this.getSelectionData();
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
 
@@ -225,7 +225,6 @@ class Autofill extends BasePlugin {
       const nrOfTableRows = this.hot.countRows();
 
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
-
         this.addingStarted = true;
         this.addRow();
       }
@@ -251,7 +250,7 @@ class Autofill extends BasePlugin {
    * Get index of last left filled in row
    *
    * @private
-   * @param {Array} cornersOfSelectedCells
+   * @param {Array} cornersOfSelectedCells corners of selection
    * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied
    * or -1 when selection adjacent can't be applied
    */
@@ -327,6 +326,7 @@ class Autofill extends BasePlugin {
 
     if (lastFilledInRowIndex === -1) {
       return false;
+
     } else {
       this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
       return true;
@@ -361,7 +361,7 @@ class Autofill extends BasePlugin {
    * Get if mouse was dragged outside
    *
    * @private
-   * @param {Event} event
+   * @param {Event} `mousemove` event
    * @returns {Boolean}
    */
   getIfMouseWasDraggedOutside(event) {
@@ -430,6 +430,7 @@ class Autofill extends BasePlugin {
       if (this.handleDraggedCells > 1) {
         this.fillIn();
       }
+
       this.handleDraggedCells = 0;
       this.mouseDownOnCellCorner = false;
     }
@@ -439,7 +440,7 @@ class Autofill extends BasePlugin {
    * On mouse move listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} `mousemove` event
    */
   onMouseMove(event) {
     const autoInsertRowOptionWasSet = this.autoInsertRow;
