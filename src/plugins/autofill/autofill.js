@@ -250,7 +250,7 @@ class Autofill extends BasePlugin {
    * Get index of last left filled in row
    *
    * @private
-   * @param {Array} cornersOfSelectedCells corners of selection
+   * @param {Array} cornersOfSelectedCells indexes of selection corners
    * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied
    * or -1 when selection adjacent can't be applied
    */
@@ -361,7 +361,7 @@ class Autofill extends BasePlugin {
    * Get if mouse was dragged outside
    *
    * @private
-   * @param {Event} `mousemove` event
+   * @param {MouseEvent} event `mousemove` event properties.
    * @returns {Boolean}
    */
   getIfMouseWasDraggedOutside(event) {
@@ -440,7 +440,7 @@ class Autofill extends BasePlugin {
    * On mouse move listener.
    *
    * @private
-   * @param {Event} `mousemove` event
+   * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
     const autoInsertRowOptionWasSet = this.autoInsertRow;
