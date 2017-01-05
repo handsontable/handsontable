@@ -275,7 +275,7 @@ const REGISTERED_HOOKS = [
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerDblClick
-   * @since 0.29.3
+   * @since 0.30.0
    * @param {Object} event `dblclick` event object.
    */
 

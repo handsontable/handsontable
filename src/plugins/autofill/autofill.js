@@ -4,7 +4,7 @@ import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {getDeltas, getDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
+import {getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
 
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
@@ -85,7 +85,7 @@ class Autofill extends BasePlugin {
   /**
    * Get selection data
    *
-   * @returns {*|string|Array}
+   * @returns {Array} Array with the data.
    */
   getSelectionData() {
     const selRange = {
@@ -97,32 +97,43 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Try to apply fill values to the area in fill border, omitting the selection border and then returns if fill was applied
+   * Try to apply fill values to the area in fill border, omitting the selection border
    *
-   * @returns {boolean}
+   * @returns {Boolean} reports if fill was applied
    */
   fillIn() {
     if (this.hot.view.wt.selections.fill.isEmpty()) {
       return false;
     }
 
-    const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+    const cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
     this.resetSelectionOfDraggedArea();
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const {direction, start, end} = getDirectionAndRange(cornersOfSelectedCells, cornersOfSelectedDragArea);
+    const {directionOfDrag, startOfDragCoords, endOfDragCoords} = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
-    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectedDragArea);
+    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
-    if (start && start.row > -1 && start.col > -1) {
+    if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
 
-      const data = this.getSelectionData();
-      const deltas = getDeltas(start, end, data, direction);
+      const selectionData = this.getSelectionData();
+      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
 
-      this.hot.runHooks('beforeAutofill', start, end, data);
+      this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
 
-      this.hot.populateFromArray(start.row, start.col, data, end.row, end.col, 'autofill', null, direction, deltas);
-      this.setSelection(cornersOfSelectedDragArea);
+      this.hot.populateFromArray(
+        startOfDragCoords.row,
+        startOfDragCoords.col,
+        selectionData,
+        endOfDragCoords.row,
+        endOfDragCoords.col,
+        'autofill',
+        null,
+        directionOfDrag,
+        deltas
+      );
+
+      this.setSelection(cornersOfSelectionAndDragAreas);
 
     } else {
       // reset to avoid some range bug
@@ -161,7 +172,6 @@ class Autofill extends BasePlugin {
    *
    * @private
    */
-
   addRow() {
     this.hot._registerTimeout(setTimeout(() => {
       this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
@@ -209,8 +219,9 @@ class Autofill extends BasePlugin {
    * Get index of last left filled in row
    *
    * @private
-   * @param cornersOfSelectedCells
-   * @returns {*}
+   * @param {Array} cornersOfSelectedCells
+   * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied
+   * or -1 when selection adjacent can't be applied
    */
   getIndexOfLastLeftFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
@@ -240,8 +251,8 @@ class Autofill extends BasePlugin {
    * Add selection from start area to specific row index
    *
    * @private
-   * @param selectStartArea
-   * @param rowIndex
+   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection
+   * @param {Number} rowIndex
    */
   addSelectionFromStartAreaToSpecificRowIndex (selectStartArea, rowIndex) {
     this.hot.view.wt.selections.fill.clear();
@@ -259,7 +270,7 @@ class Autofill extends BasePlugin {
    * Set selection based on passed corners
    *
    * @private
-   * @param cornersOfArea
+   * @param {Array} cornersOfArea
    */
   setSelection(cornersOfArea) {
     this.hot.selection.setRangeStart(new WalkontableCellCoords(
@@ -276,7 +287,7 @@ class Autofill extends BasePlugin {
    * Try to select cells down to the last row in the left column and then returns if selection was applied
    *
    * @private
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   selectAdjacent() {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
@@ -304,7 +315,7 @@ class Autofill extends BasePlugin {
    * Redraw borders
    *
    * @private
-   * @param coords
+   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
    */
   redrawBorders(coords) {
     this.hot.view.wt.selections.fill.clear();
@@ -318,8 +329,8 @@ class Autofill extends BasePlugin {
    * Get if mouse was dragged outside
    *
    * @private
-   * @param event
-   * @returns {boolean}
+   * @param {Event} event
+   * @returns {Boolean}
    */
   getIfMouseWasDraggedOutside(event) {
     const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
@@ -367,7 +378,7 @@ class Autofill extends BasePlugin {
    * On before cell mouse over listener.
    *
    * @private
-   * @param coords
+   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
    */
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handle.isDragged) {
@@ -396,7 +407,7 @@ class Autofill extends BasePlugin {
    * On mouse move listener.
    *
    * @private
-   * @param event
+   * @param {Event} event
    */
   onMouseMove(event) {
     const autoInsertRowOptionWasSet = this.mappedSettings.autoInsertRow;

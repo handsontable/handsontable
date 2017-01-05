@@ -6,6 +6,16 @@ export const DIRECTIONS = {
   vertical: 'vertical'
 };
 
+/**
+ * Get deltas array.
+ *
+ * @param {WalkontableCellCoords} start
+ * @param {WalkontableCellCoords} end
+ * @param {Array} data
+ * @param {String} direction
+ * @returns {Array}
+ */
+
 export function getDeltas(start, end, data, direction) {
   const rowsLength = data.length;
   const columnsLength = data ? data[0].length : 0;
@@ -37,44 +47,62 @@ export function getDeltas(start, end, data, direction) {
     }
   }
 
+  console.log(deltas);
   return deltas;
 }
 
-export function getDirectionAndRange(select1, select2) {
-  let start, end, direction;
+/**
+ * Get direction between positions and cords of selections difference (drag area)
+ *
+ * @param {Array} startSelection
+ * @param {Array} endSelection
+ * @returns {{direction: String, start: WalkontableCellCoords, end: WalkontableCellCoords}}
+ */
 
-  if (select2[0] === select1[0] && select2[1] < select1[1]) {
-    direction = 'left';
+export function getDragDirectionAndRange(startSelection, endSelection) {
+  let startOfDragCoords, endOfDragCoords, directionOfDrag;
 
-    start = new WalkontableCellCoords(select2[0], select2[1]);
-    end = new WalkontableCellCoords(select2[2], select1[1] - 1);
+  if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
+    directionOfDrag = 'left';
 
-  } else if (select2[0] === select1[0] && select2[3] > select1[3]) {
-    direction = 'right';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], startSelection[1] - 1);
 
-    start = new WalkontableCellCoords(select2[0], select1[3] + 1);
-    end = new WalkontableCellCoords(select2[2], select2[3]);
+  } else if (endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
+    directionOfDrag = 'right';
 
-  } else if (select2[0] < select1[0] && select2[1] === select1[1]) {
-    direction = 'up';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], startSelection[3] + 1);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
 
-    start = new WalkontableCellCoords(select2[0], select2[1]);
-    end = new WalkontableCellCoords(select1[0] - 1, select2[3]);
+  } else if (endSelection[0] < startSelection[0] && endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'up';
 
-  } else if (select2[2] > select1[2] &&
-    select2[1] === select1[1]) {
-    direction = 'down';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(startSelection[0] - 1, endSelection[3]);
 
-    start = new WalkontableCellCoords(select1[2] + 1, select2[1]);
-    end = new WalkontableCellCoords(select2[2], select2[3]);
+  } else if (endSelection[2] > startSelection[2] &&
+    endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'down';
+
+    startOfDragCoords = new WalkontableCellCoords(startSelection[2] + 1, endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
   }
 
   return {
-    direction,
-    start,
-    end
+    directionOfDrag,
+    startOfDragCoords,
+    endOfDragCoords
   };
 }
+
+/**
+ * Get mapped FillHandle setting containing information about
+ * allowed FillHandle directions and if allowed is automatic insertion of rows on drag
+ *
+ * @param {Boolean|Object} fillHandle property of Handsontable settings
+ * @returns {{directions: Array, autoInsertRow: Boolean}} object allowing access to information
+ * about FillHandle in more useful way
+ */
 
 export function getMappedFillHandleSetting(fillHandle) {
   const mappedSettings = {};
