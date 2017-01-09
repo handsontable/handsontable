@@ -34,7 +34,6 @@ describe('ColumnSorting', function() {
     ];
   };
 
-
   it('should sort table by first visible column', function() {
     var hot = handsontable({
       data: [
@@ -93,7 +92,6 @@ describe('ColumnSorting', function() {
   });
 
   it('should remove specified row from sorted table and NOT sort the table again', function() {
-
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -223,7 +221,7 @@ describe('ColumnSorting', function() {
   });
 
   describe('data type: date', function() {
-    it('should sort date columns (MM/DD/YYYY)', function() {
+    it('should sort date columns (MM/DD/YYYY)', function () {
       var hot = handsontable({
         data: [
           ["Mercedes", "A 160", "01/14/2006", 6999.9999],
@@ -264,7 +262,7 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(4)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
     });
 
-    it('should sort date columns (DD/MM/YYYY)', function() {
+    it('should sort date columns (DD/MM/YYYY)', function () {
       var hot = handsontable({
         data: [
           ["Mercedes", "A 160", "01/12/2012", 6999.9999],
@@ -305,7 +303,7 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/12/2012", 6999.9999]);
     });
 
-    it('should sort date columns (MMMM Do YYYY)', function() {
+    it('should sort date columns (MMMM Do YYYY)', function () {
       var hot = handsontable({
         data: [
           ["Mercedes", "A 160", "October 28th 2016", 6999.9999],
@@ -346,7 +344,7 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(4)).toEqual(["Audi", "A4 Avant", "July 8th 1999", 33900]);
     });
 
-    it('should sort date columns along with empty and null values', function() {
+    it('should sort date columns along with empty and null values', function () {
       var hot = handsontable({
         data: [
           ["Mercedes", "A 160", "01/14/2006", 6999.9999],
@@ -388,20 +386,22 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
       expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
     });
+  });
 
-    it('should properly rewrite date into correct format after sort', function(done) {
+  describe('data type: time', function() {
+    it('should properly rewrite time into correct format after sort', function(done) {
       var hot = handsontable({
         data: [
-          ["01/14/2006"],
-          ["12/01/2008"],
-          ["11/19/2011"],
-          ["02/02/2004"],
-          ["07/24/2011"]
+          ['0:00:01 am'],
+          ['5:30:14 pm'],
+          ['8:00:00 pm'],
+          ['11:15:05 am'],
+          ['4:07:48 am']
         ],
         columns: [
           {
-            type: 'date',
-            dateFormat: 'MM/DD/YYYY',
+            type: 'time',
+            dateFormat: 'h:mm:ss a',
             correctFormat: true
           }
         ],
@@ -412,12 +412,12 @@ describe('ColumnSorting', function() {
         }
       });
 
-      hot.setDataAtCell(0, 0, '12-06-2015', 'edit');
+      hot.setDataAtCell(0, 0, '19:55', 'edit');
 
       setTimeout(function () {
-        expect(hot.getDataAtCell(0, 0)).toEqual('12/06/2015');
+        expect(hot.getDataAtCell(0, 0)).toEqual('7:55:00 pm');
         done();
-      }, 200);
+      }, 100);
     });
   });
 
