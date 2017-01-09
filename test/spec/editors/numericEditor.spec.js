@@ -383,6 +383,24 @@ describe('NumericEditor', function () {
     }, 200);
   });
 
+  it("should mark text as invalid without removing", function (done) {
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+    });
+
+    hot.setDataAtCell(0, 0, 'abc');
+
+    setTimeout(function () {
+      expect(hot.getDataAtCell(0, 0)).toEqual('abc');
+      done();
+    }, 200);
+  });
+
   it("should not throw error on closing editor when column data is defined as 'length'", function() {
     hot = handsontable({
       data: [
