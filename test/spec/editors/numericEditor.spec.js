@@ -53,6 +53,23 @@ describe('NumericEditor', function () {
     }, 100);
   });
 
+  it('should apply changes to editor after validation', function (done) {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('delete');
+
+    setTimeout(function () {
+      expect(getActiveEditor().originalValue).toEqual('');
+      done();
+    }, 100);
+  });
+
   it('should allow custom validator', function (done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -379,6 +396,24 @@ describe('NumericEditor', function () {
 
     setTimeout(function () {
       expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
+      done();
+    }, 200);
+  });
+
+  it("should mark text as invalid without removing", function (done) {
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+    });
+
+    hot.setDataAtCell(0, 0, 'abc');
+
+    setTimeout(function () {
+      expect(hot.getDataAtCell(0, 0)).toEqual('abc');
       done();
     }, 200);
   });
