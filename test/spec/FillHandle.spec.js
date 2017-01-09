@@ -586,12 +586,12 @@ describe('FillHandle', function () {
 
       ev.clientY = $lastRow.offset().top + 150;
       $(document.documentElement).simulate('mousemove',ev);
-    }, 300);
+    }, 500);
 
     setTimeout(function () {
       expect(hot.countRows()).toBe(6);
       done();
-    }, 600);
+    }, 1000);
   });
 
   it('should not fill any cells when dragging the handle to the headers', function () {
@@ -681,42 +681,6 @@ describe('FillHandle', function () {
       expect(hot.countRows()).toBe(4);
       done();
     }, 700);
-  });
-
-  it('should add new row after dragging the handle below the viewport', function (done) {
-    var hot = handsontable({
-      data: [
-        [1, 2, "test", 4, 5, 6],
-        [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
-      ]
-    });
-
-    selectCell(0, 2);
-
-    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
-    var ev = {}
-      , $lastRow = this.$container.find('tr:last-child td:eq(2)');
-
-    expect(hot.countRows()).toBe(4);
-
-    ev.clientX = $lastRow.offset().left / 2;
-    ev.clientY = $lastRow.offset().top + 50;
-
-    $(document.documentElement).simulate('mousemove', ev);
-
-    setTimeout(function () {
-      expect(hot.countRows()).toBe(5);
-
-      ev.clientY = $lastRow.offset().top + 150;
-      $(document.documentElement).simulate('mousemove',ev);
-    }, 300);
-
-    setTimeout(function () {
-      expect(hot.countRows()).toBe(6);
-      done();
-    }, 600);
   });
 
   describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', function () {
