@@ -33,37 +33,37 @@ class Autofill extends BasePlugin {
      */
     this.eventManager = eventManagerObject(this);
     /**
-     * Specifies if adding new row started
+     * Specifies if adding new row started.
      *
      * @type {Boolean}
      */
     this.addingStarted = false;
     /**
-     * Specifies if there was mouse down on cell corner
+     * Specifies if there was mouse down on the cell corner.
      *
      * @type {Boolean}
      */
     this.mouseDownOnCellCorner = false;
     /**
-     * Specifies if mouse was dragged outside Handsontable
+     * Specifies if mouse was dragged outside Handsontable.
      *
      * @type {Boolean}
      */
     this.mouseDragOutside = false;
     /**
-     * Specifies how many cell levels was dragged by handle
+     * Specifies how many cell levels were dragged using the handle.
      *
      * @type {Boolean}
      */
     this.handleDraggedCells = 0;
     /**
-     * Specifies allowed directions of drag
+     * Specifies allowed directions of drag.
      *
      * @type {Array}
      */
     this.directions = [];
     /**
-     * Specifies if can insert new rows if needed
+     * Specifies if can insert new rows if needed.
      *
      * @type {Boolean}
      */
@@ -117,6 +117,7 @@ class Autofill extends BasePlugin {
   /**
    * Get selection data
    *
+   * @private
    * @returns {Array} Array with the data.
    */
   getSelectionData() {
@@ -129,10 +130,10 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Try to apply fill values to the area in fill border, omitting the selection border
+   * Try to apply fill values to the area in fill border, omitting the selection border.
    *
    * @private
-   * @returns {Boolean} reports if fill was applied
+   * @returns {Boolean} reports if fill was applied.
    */
   fillIn() {
     if (this.hot.view.wt.selections.fill.isEmpty()) {
@@ -177,12 +178,12 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Reduce selection area if handle was dragged outside borders of table cells
+   * Reduce the selection area if the handle was dragged outside of the table or on headers.
    *
-   * @param {WalkontableCellCoords} coords indexes of selection corners
+   * @private
+   * @param {WalkontableCellCoords} coords indexes of selection corners.
    * @returns {WalkontableCellCoords}
    */
-
   reduceSelectionAreaIfNeeded(coords) {
     if (coords.row < 0) {
       coords.row = 0;
@@ -195,8 +196,9 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get coordinates of drag & drop borders
+   * Get the coordinates of the drag & drop borders.
    *
+   * @private
    * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
    * @returns {Array}
    */
@@ -222,7 +224,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Show fill border
+   * Show the fill border.
    *
    * @private
    * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
@@ -236,7 +238,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Adds new row
+   * Add new row
    *
    * @private
    */
@@ -249,7 +251,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Adds new rows if they are needed to continue auto-filling values
+   * Add new rows if they are needed to continue auto-filling values.
    *
    * @private
    */
@@ -283,14 +285,14 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last left filled in row
+   * Get index of last adjacent filled in row
    *
    * @private
-   * @param {Array} cornersOfSelectedCells indexes of selection corners
-   * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied
+   * @param {Array} cornersOfSelectedCells indexes of selection corners.
+   * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied.
    * or -1 when selection adjacent can't be applied
    */
-  getIndexOfLastLeftFilledInRow(cornersOfSelectedCells) {
+  getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
     const nrOfTableRows = this.hot.countRows();
     let lastFilledInRowIndex;
@@ -315,10 +317,10 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Add selection from start area to specific row index
+   * Add a selection from the start area to the specific row index.
    *
    * @private
-   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection
+   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
    * @param {Number} rowIndex
    */
   addSelectionFromStartAreaToSpecificRowIndex (selectStartArea, rowIndex) {
@@ -334,7 +336,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Set selection based on passed corners
+   * Set selection based on passed corners.
    *
    * @private
    * @param {Array} cornersOfArea
@@ -351,14 +353,14 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Try to select cells down to the last row in the left column and then returns if selection was applied
+   * Try to select cells down to the last row in the left column and then returns if selection was applied.
    *
    * @private
    * @returns {Boolean}
    */
   selectAdjacent() {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const lastFilledInRowIndex = this.getIndexOfLastLeftFilledInRow(cornersOfSelectedCells);
+    const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex === -1) {
       return false;
@@ -371,7 +373,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Reset selection of dragged area
+   * Reset selection of dragged area.
    *
    * @private
    */
@@ -382,7 +384,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Redraw borders
+   * Redraw borders.
    *
    * @private
    * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
@@ -396,7 +398,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get if mouse was dragged outside
+   * Get if mouse was dragged outside.
    *
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
@@ -422,7 +424,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * On cell corner double click
+   * On cell corner double click callback.
    *
    * @private
    */
@@ -498,7 +500,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Clears mapped settings
+   * Clear mapped settings.
    *
    * @private
    */
@@ -508,7 +510,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Maps settings
+   * Map settings.
    *
    * @private
    */
