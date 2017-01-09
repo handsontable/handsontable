@@ -594,7 +594,7 @@ describe('FillHandle', function () {
     }, 600);
   });
 
-  it('should not fill any cells when dragging the handle to the headers', function () {
+  it('should fill cells when dragging the handle to the headers', function () {
     var hot = handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -602,7 +602,8 @@ describe('FillHandle', function () {
         [1, 2, 7, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
       ],
-      colHeaders: true
+      colHeaders: true,
+      rowHeaders: true
     });
 
     // col headers:
@@ -620,9 +621,10 @@ describe('FillHandle', function () {
     }
 
     expect(errors).toEqual(0);
-    expect(getDataAtCell(1,2)).toEqual(3);
-    expect(getDataAtCell(0,2)).toEqual(3);
-    expect($(".fill").filter(function() { return $(this).css("display") != "none" }).length).toEqual(0); // check if fill selection is refreshed
+    expect(getDataAtCell(1, 2)).toEqual(7);
+    expect(getDataAtCell(0, 2)).toEqual(7);
+
+    expect($(".fill").filter(function() { return $(this).css("display") !== "none" }).length).toEqual(0); // check if fill selection is refreshed
 
     // row headers:
     selectCell(2, 2);
@@ -638,9 +640,9 @@ describe('FillHandle', function () {
     }
 
     expect(errors).toEqual(0);
-    expect(getDataAtCell(2,1)).toEqual(2);
-    expect(getDataAtCell(2,0)).toEqual(1);
-    expect($(".fill").filter(function() { return $(this).css("display") != "none" }).length).toEqual(0); // check if fill selection is refreshed
+    expect(getDataAtCell(2, 1)).toEqual(7);
+    expect(getDataAtCell(2, 0)).toEqual(7);
+    expect($(".fill").filter(function() { return $(this).css("display") !== "none" }).length).toEqual(0); // check if fill selection is refreshed
   });
 
 
@@ -717,6 +719,38 @@ describe('FillHandle', function () {
       expect(hot.countRows()).toBe(6);
       done();
     }, 600);
+  });
+
+  it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', function (done) {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: {
+        direction: 'horizontal',
+        autoInsertRow: true
+      }
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
+    var ev = {}, $lastRow = this.$container.find('tr:last-child td:eq(2)');
+
+    expect(hot.countRows()).toBe(4);
+
+    ev.clientX = $lastRow.offset().left / 2;
+    ev.clientY = $lastRow.offset().top + 50;
+
+    $(document.documentElement).simulate('mousemove', ev);
+
+    setTimeout(function () {
+      expect(hot.countRows()).toBe(4);
+      done();
+    }, 300);
   });
 
   describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', function () {
