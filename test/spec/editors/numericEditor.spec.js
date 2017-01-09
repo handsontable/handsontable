@@ -53,6 +53,23 @@ describe('NumericEditor', function () {
     }, 100);
   });
 
+  it('should apply changes to editor after validation', function (done) {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('delete');
+
+    setTimeout(function () {
+      expect(getActiveEditor().originalValue).toEqual('');
+      done();
+    }, 100);
+  });
+
   it('should allow custom validator', function (done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
