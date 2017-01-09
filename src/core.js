@@ -2205,6 +2205,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Remove one or more rows from the cell meta object.
+   *
+   * @since 0.30.0
+   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
+   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
+   * @param {Array} items The new items to be added to the array.
+   */
+  this.spliceCellsMeta = function(index, deleteAmount, ...items) {
+    priv.cellSettings.splice(index, deleteAmount, ...items);
+  };
+
+  /**
    * Set cell meta data object defined by `prop` to the corresponding params `row` and `col`.
    *
    * @memberof Core#
@@ -2238,6 +2250,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, col, key, val) {
+    [row, col] = recordTranslator.toPhysical(row, col);
+
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
@@ -2313,6 +2327,19 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+  };
+
+  /**
+   * Returns a row off the cell meta array.
+   *
+   * @memberof Core#
+   * @function getCellMetaAtRow
+   * @since 0.30.0
+   * @param {Number} row Index of the row to return cell meta for.
+   * @returns {Array}
+   */
+  this.getCellMetaAtRow = function(row) {
+    return priv.cellSettings[row];
   };
 
   /**
