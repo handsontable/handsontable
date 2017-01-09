@@ -177,27 +177,62 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Show fill border
+   * Reduce selection area if handle was dragged outside borders of table cells
    *
-   * @private
-   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
+   * @param {WalkontableCellCoords} coords indexes of selection corners
+   * @returns {WalkontableCellCoords}
    */
-  showBorder(coords) {
-    const topLeft = this.hot.getSelectedRange().getTopLeftCorner();
-    const bottomRight = this.hot.getSelectedRange().getBottomRightCorner();
 
-    if (this.directions.includes(DIRECTIONS.vertical) && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-      coords = new WalkontableCellCoords(coords.row, bottomRight.col);
+  reduceSelectionAreaIfNeeded(coords) {
+    if (coords.row < 0) {
+      coords.row = 0;
+    }
+
+    if (coords.col < 0) {
+      coords.col = 0;
+    }
+    return coords;
+  }
+
+  /**
+   * Get coordinates of drag & drop borders
+   *
+   * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
+   * @returns {Array}
+   */
+
+  getCoordsOfDragAndDropBorders (coordsOfSelection) {
+    const topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
+    const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+    let coords;
+
+    if (this.directions.includes(DIRECTIONS.vertical) &&
+      (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+      coords = new WalkontableCellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
     } else if (this.directions.includes(DIRECTIONS.horizontal)) {
-      coords = new WalkontableCellCoords(bottomRight.row, coords.col);
+      coords = new WalkontableCellCoords(bottomRightCorner.row, coordsOfSelection.col);
 
     } else {
       // wrong direction
       return;
     }
 
-    this.redrawBorders(coords);
+    return this.reduceSelectionAreaIfNeeded(coords);
+  }
+
+  /**
+   * Show fill border
+   *
+   * @private
+   * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
+   */
+  showBorder(coordsOfSelection) {
+    const coordsOfDragAndDropBorders = this.getCoordsOfDragAndDropBorders(coordsOfSelection);
+
+    if (coordsOfDragAndDropBorders) {
+      this.redrawBorders(coordsOfDragAndDropBorders);
+    }
   }
 
   /**
