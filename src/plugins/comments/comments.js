@@ -494,7 +494,7 @@ class Comments extends BasePlugin {
     priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
     debounce(() => {
-      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target) {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !this.editor) {
         return;
       }
 
