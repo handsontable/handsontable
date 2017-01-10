@@ -214,3 +214,37 @@ export function arrayUnique(array) {
 
   return unique;
 }
+
+/**
+ * ES7 Array.includes polyfill from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+ * Warn: May not work properly with NaN
+ *
+ * @param array
+ * @param searchElement The element to search for.
+ * @param fromIndex The position in this array at which to begin searching for searchElement. A negative value searches from the index of array.length + fromIndex by asc. Defaults to 0.
+ * @returns {boolean}
+ */
+
+export function arrayIncludes(array, searchElement, fromIndex) {
+  if (array == null) {
+    throw new TypeError('"array" is null or not defined');
+  }
+
+  var o = Object(array);
+  var len = o.length >>> 0;
+
+  if (len === 0) {
+    return false;
+  }
+
+  var n = fromIndex | 0;
+  var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+  while (k < len) {
+    if (o[k] === searchElement) {
+      return true;
+    }
+    k++;
+  }
+  return false;
+}
