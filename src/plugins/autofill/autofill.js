@@ -1,5 +1,6 @@
 import BasePlugin from './../_base';
 import Handsontable from './../../browser';
+import {arrayIncludes} from './../../helpers/array';
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import {registerPlugin} from './../../plugins';
@@ -208,11 +209,11 @@ class Autofill extends BasePlugin {
     const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
     let coords;
 
-    if (this.directions.includes(DIRECTIONS.vertical) &&
+    if (arrayIncludes(this.directions, DIRECTIONS.vertical) &&
       (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
       coords = new WalkontableCellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
-    } else if (this.directions.includes(DIRECTIONS.horizontal)) {
+    } else if (arrayIncludes(this.directions, DIRECTIONS.horizontal)) {
       coords = new WalkontableCellCoords(bottomRightCorner.row, coordsOfSelection.col);
 
     } else {

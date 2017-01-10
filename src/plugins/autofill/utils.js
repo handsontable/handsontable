@@ -139,16 +139,5 @@ export function getMappedFillHandleSetting(fillHandle) {
     mappedSettings.autoInsertRow = false;
   }
 
-  // TODO: We could use predefined Array `includes` function (ES7)
-
-  mappedSettings.directions.includes = function(value) {
-    if (DIRECTIONS.hasOwnProperty(value)) {
-      return this.indexOf(value) !== -1;
-
-    } else {
-      return false;
-    }
-  };
-
   return mappedSettings;
 }
