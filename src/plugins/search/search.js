@@ -19,17 +19,17 @@ Handsontable.Search = function Search(instance) {
     if (!queryMethod) {
       queryMethod = Handsontable.Search.global.getDefaultQueryMethod();
     }
-	
+
     for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
       for (var colIndex = 0; colIndex < colCount; colIndex++) {
         var colProperties = instance.getSettings().columns[colIndex];
-        var colQueryMethod = 
-          (colProperties.search !== null && typeof colProperties.search == 'object' &&colProperties.search.queryMethod;
+        var colQueryMethod = (colProperties.search !== null && typeof colProperties.search == 'object' &&
+          colProperties.search.queryMethod);
 
         var cellData = instance.getDataAtCell(rowIndex, colIndex);
         var cellProperties = instance.getCellMeta(rowIndex, colIndex);
         var cellCallback = cellProperties.search.callback || callback;
-        var cellQueryMethod = cellProperties.search.queryMethod || colQueryMethod|| queryMethod;
+        var cellQueryMethod = cellProperties.search.queryMethod || colQueryMethod || queryMethod;
         var testResult = cellQueryMethod(queryStr, cellData);
 
         if (testResult) {
