@@ -4024,8 +4024,9 @@ DefaultSettings.prototype = {
 
   /**
    * If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`.
-   * It will result with *invalid* cells being treated as *valid*.
-   * If set to `false`, Handsontable will *not* accept the invalid values.
+   * It will result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
+   * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
+   * This option will be particularly useful when used with the Autocomplete's `strict` mode.
    *
    * @type {Boolean}
    * @default true
@@ -4922,9 +4923,10 @@ DefaultSettings.prototype = {
   defaultDate: void 0,
 
   /**
-   * If typed `true` value entered into the cell must match to the autocomplete source. Otherwise, cell won't pass the validation.
+   * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source. Otherwise, cell won't pass the validation.
+   * When filtering the autocomplete source list, the editor will be working in case-insensitive mode.
    *
-   * Option desired for `'autocomplete'`-typed cells.
+   * Option desired for `autocomplete`-typed cells.
    *
    * @example
    * ```js
