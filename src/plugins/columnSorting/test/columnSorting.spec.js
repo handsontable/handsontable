@@ -417,7 +417,7 @@ describe('ColumnSorting', function() {
       setTimeout(function () {
         expect(hot.getDataAtCell(0, 0)).toEqual('7:55:00 pm');
         done();
-      }, 100);
+      }, 250);
     });
   });
 
