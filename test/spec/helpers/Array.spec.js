@@ -117,7 +117,7 @@ describe('Array helper', function() {
       expect(arrayIncludes(['a', 'b', 'c'], 'c', -1)).toBe(true);
     });
 
-    it('should returns proper value for array containing undefined', function () {
+    it('should returns proper value for array when working with `undefined`', function () {
       var arrayIncludes = Handsontable.helper.arrayIncludes;
       expect(arrayIncludes([], undefined)).toBe(false);
       expect(arrayIncludes([0], undefined)).toBe(false);
@@ -127,7 +127,17 @@ describe('Array helper', function() {
       expect(arrayIncludes([0, undefined], undefined)).toBe(true);
     });
 
-    xit('should returns proper value for array containing  NaN', function () {
+    it('should returns proper value for array when working with `null`', function () {
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes([], null)).toBe(false);
+      expect(arrayIncludes([0], null)).toBe(false);
+      expect(arrayIncludes(['a'], null)).toBe(false);
+      expect(arrayIncludes([null], null)).toBe(true);
+      expect(arrayIncludes([NaN], null)).toBe(false);
+      expect(arrayIncludes([0, null], null)).toBe(true);
+    });
+
+    xit('should returns proper value for array when working with `NaN`', function () {
       var arrayIncludes = Handsontable.helper.arrayIncludes;
       expect(arrayIncludes([], NaN)).toBe(false);
       expect(arrayIncludes([0], NaN)).toBe(false);
