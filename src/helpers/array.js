@@ -217,7 +217,7 @@ export function arrayUnique(array) {
 
 /**
  * ES7 Array.includes polyfill from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
- * Warn: Don't work properly with NaN
+ * Warn: Doesn't work properly with NaN
  *
  * @param {Array} array
  * @param {*} searchElement The element to search for.
