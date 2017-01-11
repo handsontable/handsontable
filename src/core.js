@@ -985,7 +985,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               changes[i][3] = parseFloat(changes[i][3]);
 
             } else {
-              changes[i][3] = numbro().unformat(changes[i][3]);
+              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
             }
           }
         }
@@ -1085,6 +1085,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+
+    let activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   }
 
   this.validateCell = function(value, cellProperties, callback, source) {
@@ -2205,6 +2211,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Remove one or more rows from the cell meta object.
+   *
+   * @since 0.30.0
+   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
+   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
+   * @param {Array} items The new items to be added to the array.
+   */
+  this.spliceCellsMeta = function(index, deleteAmount, ...items) {
+    priv.cellSettings.splice(index, deleteAmount, ...items);
+  };
+
+  /**
    * Set cell meta data object defined by `prop` to the corresponding params `row` and `col`.
    *
    * @memberof Core#
@@ -2238,6 +2256,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, col, key, val) {
+    [row, col] = recordTranslator.toPhysical(row, col);
+
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
@@ -2313,6 +2333,19 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+  };
+
+  /**
+   * Returns a row off the cell meta array.
+   *
+   * @memberof Core#
+   * @function getCellMetaAtRow
+   * @since 0.30.0
+   * @param {Number} row Index of the row to return cell meta for.
+   * @returns {Array}
+   */
+  this.getCellMetaAtRow = function(row) {
+    return priv.cellSettings[row];
   };
 
   /**
@@ -3543,7 +3576,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * comments: [{row: 1, col: 1, comment: "Test comment"}],
+   * comments: [{row: 1, col: 1, comment: {value: "Test comment"}}],
    * ...
    * ```
    */
@@ -3991,8 +4024,9 @@ DefaultSettings.prototype = {
 
   /**
    * If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`.
-   * It will result with *invalid* cells being treated as *valid*.
-   * If set to `false`, Handsontable will *not* accept the invalid values.
+   * It will result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
+   * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
+   * This option will be particularly useful when used with the Autocomplete's `strict` mode.
    *
    * @type {Boolean}
    * @default true
@@ -4889,9 +4923,10 @@ DefaultSettings.prototype = {
   defaultDate: void 0,
 
   /**
-   * If typed `true` value entered into the cell must match to the autocomplete source. Otherwise, cell won't pass the validation.
+   * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source. Otherwise, cell won't pass the validation.
+   * When filtering the autocomplete source list, the editor will be working in case-insensitive mode.
    *
-   * Option desired for `'autocomplete'`-typed cells.
+   * Option desired for `autocomplete`-typed cells.
    *
    * @example
    * ```js

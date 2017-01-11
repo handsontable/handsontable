@@ -129,6 +129,14 @@ SelectEditor.prototype.focus = function() {
   this.select.focus();
 };
 
+SelectEditor.prototype.refreshValue = function() {
+  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
+
 SelectEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;

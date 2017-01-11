@@ -53,6 +53,23 @@ describe('NumericEditor', function () {
     }, 100);
   });
 
+  it('should apply changes to editor after validation', function (done) {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('delete');
+
+    setTimeout(function () {
+      expect(getActiveEditor().originalValue).toEqual('');
+      done();
+    }, 100);
+  });
+
   it('should allow custom validator', function (done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
@@ -383,6 +400,24 @@ describe('NumericEditor', function () {
     }, 200);
   });
 
+  it("should mark text as invalid without removing", function (done) {
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+    });
+
+    hot.setDataAtCell(0, 0, 'abc');
+
+    setTimeout(function () {
+      expect(hot.getDataAtCell(0, 0)).toEqual('abc');
+      done();
+    }, 200);
+  });
+
   it("should not throw error on closing editor when column data is defined as 'length'", function() {
     hot = handsontable({
       data: [
@@ -407,4 +442,72 @@ describe('NumericEditor', function () {
     }).not.toThrow();
   });
 
+
+  describe('Cell corner is showed properly when changing focused cells #3877', function () {
+
+    var isFocusedCellDisplayingCornerTest = function (settings) {
+      var moveFromRow = settings.moveFromRow;
+      var moveFromCol = settings.moveFromCol;
+      var moveToRow = settings.moveToRow;
+      var moveToCol = settings.moveToCol;
+      var doneFunc = settings.doneFunc;
+      var $corner = settings.$container.find('.wtBorder.current.corner');
+
+      selectCell(moveFromRow, moveFromCol);
+      keyDown('enter');
+      selectCell(moveToRow, moveToCol);
+
+      setTimeout(function () {
+        expect($corner.css('display')).toEqual('block');
+        doneFunc();
+      }, 100);
+    };
+
+    it("Moving from numeric editor to text editor", function (done) {
+      handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right", money: 0}
+        ],
+        columns: [
+          {data: 'id'},
+          {data: 'name'},
+          {data: 'lastName'},
+          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+        ]
+      });
+
+      isFocusedCellDisplayingCornerTest({
+        moveFromRow: 0,
+        moveFromCol: 3,
+        moveToRow: 0,
+        moveToCol: 0,
+        $container: this.$container,
+        doneFunc: done
+      });
+    });
+
+
+    it("Moving from text editor to numeric editor", function (done) {
+      handsontable({
+        data: [
+          {id: 1, name: "Ted", lastName: "Right", money: 0}
+        ],
+        columns: [
+          {data: 'id'},
+          {data: 'name'},
+          {data: 'lastName'},
+          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+        ]
+      });
+
+      isFocusedCellDisplayingCornerTest({
+        moveFromRow: 0,
+        moveFromCol: 1,
+        moveToRow: 0,
+        moveToCol: 3,
+        $container: this.$container,
+        doneFunc: done
+      });
+    });
+  });
 });
