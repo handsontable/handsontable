@@ -81,9 +81,6 @@ describe('Comments', function() {
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', {value: 'Added comment'}, undefined, undefined);
-
-      plugin.setCommentAtCell(1, 1, 'Edited comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', {value: 'Edited comment'}, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', function() {
@@ -152,6 +149,31 @@ describe('Comments', function() {
 
       expect(editor.parentNode.style.display).toEqual('none');
     });
+  });
+
+  it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', function() {
+    var comment, readOnly;
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      comments: true
+    });
+    var plugin = hot.getPlugin('comments');
+
+    setCellMeta(0, 0, 'comment', {readOnly: true});
+    plugin.updateCommentMeta(0, 0, {value: 'Test'});
+
+    comment = getCellMeta(0, 0).comment;
+    readOnly = comment && comment.readOnly;
+
+    expect(readOnly).toEqual(true);
+
+    plugin.setRange({from: {row: 0, col: 0}, to: {row: 0, col: 0}});
+    plugin.setComment('Test2');
+
+    comment = getCellMeta(0, 0).comment;
+    readOnly = comment && comment.readOnly;
+
+    expect(readOnly).toEqual(true);
   });
 
   describe('Using the Context Menu', function() {
