@@ -1004,6 +1004,9 @@ thead .htCollapseButton:after {
 
 .htCommentTextArea {
     box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     border: none;
     border-left: 3px solid #ccc;
     background-color: #fff;
