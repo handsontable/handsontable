@@ -10,7 +10,7 @@ import {
   getScrollableElement
 } from './../../helpers/dom/element';
 import {
-  deepExtend
+  deepClone, deepExtend
 } from './../../helpers/object';
 import {
   debounce
@@ -240,7 +240,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, META_COMMENT, {[META_COMMENT_VALUE]: comment});
+    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
     this.hot.render();
   }
 
@@ -426,12 +426,17 @@ class Comments extends BasePlugin {
    * @param {Object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row, column, metaObject) {
-    const cellMeta = this.hot.getCellMeta(row, column);
-    let newObj = {
-      [META_COMMENT]: metaObject
-    };
+    const oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    let newComment;
 
-    deepExtend(cellMeta, newObj);
+    if (oldComment) {
+      newComment = deepClone(oldComment);
+      deepExtend(newComment, metaObject);
+    } else {
+      newComment = metaObject;
+    }
+
+    this.hot.setCellMeta(row, column, META_COMMENT, newComment);
   }
 
   /**
