@@ -20,7 +20,7 @@ export function readOnlyItem() {
       let atLeastOneReadOnly = checkSelectionConsistency(range, (row, col) => this.getCellMeta(row, col).readOnly);
 
       range.forAll((row, col) => {
-        this.getCellMeta(row, col).readOnly = atLeastOneReadOnly ? false : true;
+        this.setCellMeta(row, col, 'readOnly', atLeastOneReadOnly ? false : true);
       });
       this.render();
     },

@@ -238,6 +238,14 @@ TextEditor.prototype.getEditedCell = function() {
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
 
+TextEditor.prototype.refreshValue = function() {
+  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
+
 TextEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;

@@ -10,7 +10,7 @@ import {
   getScrollableElement
 } from './../../helpers/dom/element';
 import {
-  deepExtend
+  deepClone, deepExtend
 } from './../../helpers/object';
 import {
   debounce
@@ -268,7 +268,7 @@ class Comments extends BasePlugin {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
-    this.hot.getCellMeta(this.range.from.row, this.range.from.col)[META_COMMENT] = void 0;
+    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT, void 0);
 
     if (forceRender) {
       this.hot.render();
@@ -426,12 +426,17 @@ class Comments extends BasePlugin {
    * @param {Object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row, column, metaObject) {
-    const cellMeta = this.hot.getCellMeta(row, column);
-    let newObj = {
-      [META_COMMENT]: metaObject
-    };
+    const oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    let newComment;
 
-    deepExtend(cellMeta, newObj);
+    if (oldComment) {
+      newComment = deepClone(oldComment);
+      deepExtend(newComment, metaObject);
+    } else {
+      newComment = metaObject;
+    }
+
+    this.hot.setCellMeta(row, column, META_COMMENT, newComment);
   }
 
   /**
@@ -494,7 +499,7 @@ class Comments extends BasePlugin {
     priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
     debounce(() => {
-      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target) {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !this.editor) {
         return;
       }
 

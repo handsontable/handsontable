@@ -51,10 +51,11 @@ Handsontable.TimeValidator = function(value, callback) {
   }
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-
       let correctedValue = date.format(timeFormat);
+      let row = this.instance.runHooks('unmodifyRow', this.row);
+      let column = this.instance.runHooks('unmodifyCol', this.col);
 
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'timeValidator');
+      this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
     } else {
       valid = false;
