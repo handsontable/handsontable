@@ -392,7 +392,7 @@ describe('FillHandle', function () {
   });
 
 
-  it('should not replicate selected cell meta but respect defined type of cells when drag down (#3581, #3891)', function (done) {
+  it('should not replicate selected cell meta but respect defined type of cells when drag down (#3581, #3989)', function (done) {
     var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.style.backgroundColor = 'green';
