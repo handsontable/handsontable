@@ -243,9 +243,9 @@ class Autofill extends BasePlugin {
    *
    * @private
    */
-  addRow() {
+  addRow(lastRowIndex) {
     this.hot._registerTimeout(setTimeout(() => {
-      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, lastRowIndex + 1);
 
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW));
@@ -265,7 +265,7 @@ class Autofill extends BasePlugin {
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
         this.addingStarted = true;
 
-        this.addRow();
+        this.addRow(nrOfTableRows - 1);
       }
     }
   }
@@ -496,7 +496,8 @@ class Autofill extends BasePlugin {
     }
 
     if (this.mouseDragOutside && this.autoInsertRow) {
-      this.addRow();
+      const lastRowIndex = this.hot.countRows() - 1;
+      this.addRow(lastRowIndex);
     }
   }
 
