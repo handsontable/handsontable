@@ -392,7 +392,7 @@ describe('FillHandle', function () {
   });
 
 
-  it('should not replicate selected cell meta but respect defined type of cells when drag down', function (done) {
+  it('should not replicate selected cell meta but respect defined type of cells when drag down (#3581, #3891)', function (done) {
     var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.style.backgroundColor = 'green';
@@ -406,7 +406,7 @@ describe('FillHandle', function () {
         [3, "d", true]
       ],
       cell: [
-        {row: 0, col: 0, renderer: greenRenderer, type: 'text'}
+        {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true}
       ],
       columns: [
         {type: 'numeric'},
@@ -422,12 +422,14 @@ describe('FillHandle', function () {
 
     setTimeout(function () {
       expect(getCellMeta(1, 0).renderer).not.toBe(greenRenderer);
+      expect(getCellMeta(1, 0).readOnly).toEqual(false);
       expect(getCellMeta(1, 0).type).toEqual('numeric');
 
       // added row
 
       expect(getCellMeta(4, 0).type).toEqual('numeric');
       expect(getCellMeta(4, 0).renderer).not.toBe(greenRenderer);
+      expect(getCellMeta(4, 0).readOnly).toEqual(false);
       expect(getDataAtCell(4, 0)).toEqual(null);
 
       expect(getCellMeta(4, 2).type).toEqual('checkbox');
