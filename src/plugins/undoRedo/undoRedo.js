@@ -315,6 +315,7 @@ UndoRedo.RemoveRowAction = function(index, data) {
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
 UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
+  instance.addHookOnce('afterRender', undoneCallback);
   instance.alter('insert_row', this.index, this.data.length, 'undo');
 
   var source = instance.getSourceData();
@@ -323,7 +324,6 @@ UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   }
 
   instance.render();
-  instance.addHookOnce('afterRender', undoneCallback);
 };
 UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);
