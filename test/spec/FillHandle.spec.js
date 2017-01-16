@@ -391,53 +391,6 @@ describe('FillHandle', function () {
     }, 600);
   });
 
-
-  it('should not replicate selected cell meta but respect defined type of cells when drag down (#3581, #3989)', function (done) {
-    var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
-      td.style.backgroundColor = 'green';
-    };
-
-    handsontable({
-      data: [
-        [0, "a", true],
-        [1,"b", false],
-        [2, "c", true],
-        [3, "d", true]
-      ],
-      cell: [
-        {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true}
-      ],
-      columns: [
-        {type: 'numeric'},
-        {type: 'text'},
-        {type: 'checkbox'}
-      ]
-    });
-
-    selectCell(0, 0);
-
-    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
-    this.$container.find('tr:last-child td:eq(2)').simulate('mouseover');
-
-    setTimeout(function () {
-      expect(getCellMeta(1, 0).renderer).not.toBe(greenRenderer);
-      expect(getCellMeta(1, 0).readOnly).toEqual(false);
-      expect(getCellMeta(1, 0).type).toEqual('numeric');
-
-      // added row
-
-      expect(getCellMeta(4, 0).type).toEqual('numeric');
-      expect(getCellMeta(4, 0).renderer).not.toBe(greenRenderer);
-      expect(getCellMeta(4, 0).readOnly).toEqual(false);
-      expect(getDataAtCell(4, 0)).toEqual(null);
-
-      expect(getCellMeta(4, 2).type).toEqual('checkbox');
-      expect(getDataAtCell(4, 2)).toEqual(null);
-      done();
-    }, 300);
-  });
-
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', function (done) {
     var hot = handsontable({
       data: [
