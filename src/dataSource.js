@@ -45,7 +45,7 @@ class DataSource {
     if (toArray) {
       result = this.getByRange(
         {row: 0, col: 0},
-        {row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0)},
+        {row: Math.max(this.countRows() - 1, 0), col: Math.max(this.hot.countCols() - 1, 0)},
         true
       );
     }
@@ -156,7 +156,7 @@ class DataSource {
           let prop = this.colToProp(column);
 
           if (toArray) {
-            newRow.push(row[prop]);
+            newRow.push(getProperty(row, prop));
           } else {
             newRow[prop] = row[prop];
           }

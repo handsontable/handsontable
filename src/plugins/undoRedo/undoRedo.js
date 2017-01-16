@@ -49,7 +49,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    var originalData = plugin.instance.getSourceDataArray();
+    var originalData = plugin.instance.getSourceData();
 
     index = (originalData.length + index) % originalData.length;
 
@@ -315,9 +315,15 @@ UndoRedo.RemoveRowAction = function(index, data) {
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
 UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
-  instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
+  instance.alter('insert_row', this.index, this.data.length, 'undo');
+
+  var source = instance.getSourceData();
+  for (var i = 0; i < this.data.length; i++) {
+    source[this.index + i] = this.data[i];
+  }
+
+  instance.render();
   instance.addHookOnce('afterRender', undoneCallback);
-  instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
 };
 UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);
