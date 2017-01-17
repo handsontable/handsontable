@@ -1,5 +1,17 @@
 describe('manualRowMove', function () {
   var id = 'testContainer';
+  var arrayOfObjects = [
+    {id: 1, name: "Ted", lastName: "Right"},
+    {id: 2, name: "Frank", lastName: "Honest"},
+    {id: 3, name: "Joan", lastName: "Well"},
+    {id: 4, name: "Sid", lastName: "Strong"},
+    {id: 5, name: "Jane", lastName: "Neat"},
+    {id: 6, name: "Chuck", lastName: "Jackson"},
+    {id: 7, name: "Meg", lastName: "Jansen"},
+    {id: 8, name: "Rob", lastName: "Norris"},
+    {id: 9, name: "Sean", lastName: "O'Hara"},
+    {id: 10, name: "Eve", lastName: "Branson"}
+  ];
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
@@ -12,457 +24,366 @@ describe('manualRowMove', function () {
     }
   });
 
-  it('should change row order at init', function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve", lastName: "Branson"}
-      ],
-      manualRowMove: [1, 2, 0]
-    });
+  describe('init', function () {
+    it('should change row order at init', function () {
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: [1, 2, 0]
+      });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-  });
-
-  it("should be enabled after specifying it in updateSettings config", function () {
-    var hot = handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
-      ],
-      rowHeaders: true
-    });
-
-    updateSettings({manualRowMove: true});
-
-    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
-
-    expect($('.manualRowMover').size()).toBeGreaterThan(0);
-  });
-
-  it('should change the default row order with updateSettings', function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve", lastName: "Branson"}
-      ],
-      manualRowMove: true
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-
-    updateSettings({
-      manualRowMove: [2, 1, 0]
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-  });
-
-  it('should change row order with updateSettings', function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve", lastName: "Branson"}
-      ],
-      manualRowMove: [1, 2, 0]
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-
-    updateSettings({
-      manualRowMove: [2, 1, 0]
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-  });
-
-  it('should reset row order with updateSettings when undefined is passed', function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve", lastName: "Branson"}
-      ],
-      manualRowMove: [1, 2, 0]
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-
-    updateSettings({
-      manualRowMove: void 0
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-  });
-
-  it('should not change row order with updateSettings when `true` is passed', function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve", lastName: "Branson"}
-      ],
-      manualRowMove: [1, 2, 0]
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-
-    updateSettings({
-      manualRowMove: true
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-  });
-
-  it('should move rows for manualRowMove: true', function () {
-
-    this.$container.height(150);
-
-    var hot = handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve10", lastName: "Branson"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true
-    });
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-
-
-    var htCore = getHtCore();
-
-    selectCell(7, 0);
-
-    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
-
-    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
-
-    waits(500);
-
-    runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex);
-
-      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
-      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('9');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
     });
   });
 
-  it('should not move rows for manualRowMove: false', function () {
+  describe('updateSettings', function() {
+    it("should be enabled after specifying it in updateSettings config", function () {
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true
+      });
 
-    this.$container.height(150);
+      updateSettings({
+        manualRowMove: true
+      });
 
-    var hot = handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"},
-        {id: 10, name: "Eve10", lastName: "Branson"}
-      ],
-      rowHeaders: true,
-      manualRowMove: false
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
+
+      expect(this.$container.hasClass('after-selection--rows')).toBeGreaterThan(0);
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    it('should change the default row order with updateSettings', function () {
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: true
+      });
 
-    var htCore = getHtCore();
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    selectCell(7, 0);
+      updateSettings({
+        manualRowMove: [2, 1, 0]
+      });
 
-    var lastRenderedRowIndex = hot.view.wt.wtTable.getLastRenderedRow();
-    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    });
 
-    waits(500);
+    it('should change row order with updateSettings', function () {
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: [1, 2, 0]
+      });
 
-    runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastRenderedRowIndex - 1);
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
 
-      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-      expect(htCore.find('tbody tr:eq(' + (lastRenderedRowIndex) + ') td:eq(0)').text()).toEqual('10');
+      updateSettings({
+        manualRowMove: [2, 1, 0]
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    });
+
+    it('should reset row order with updateSettings when undefined is passed', function () {
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: [1, 2, 0]
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+
+      updateSettings({
+        manualRowMove: void 0
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    });
+
+    it('should not change row order with updateSettings when `true` is passed', function () {
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: [1, 2, 0]
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+
+      updateSettings({
+        manualRowMove: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
     });
   });
 
-  it('should trigger an afterRowMove event after row move', function () {
-    var afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+  describe('moving', function() {
+    it('should move row by API', function () {
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
 
-    this.$container.height(150);
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    var hot = handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true,
-      afterRowMove: afterMoveRowCallback
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+      hot.render();
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    it('should move many rows by API', function () {
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
 
-    var htCore = getHtCore();
-    var lastVisibleRowIndex = hot.view.wt.wtTable.getLastVisibleRow();
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    selectCell(7, 0);
+      hot.getPlugin('manualRowMove').moveRows([7, 9, 8], 0);
+      hot.render();
 
-    waits(500);
-
-    runs(function () {
-
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex);
-
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 2) + ') td:eq(0)').text()).toEqual('7');
-      expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('8');
-
-      expect(afterMoveRowCallback).toHaveBeenCalledWith(lastVisibleRowIndex, lastVisibleRowIndex - 1, void 0, void 0, void 0, void 0);
-    });
-  });
-
-  it("should not select the column when the user clicks the move handler", function() {
-    var hot = handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"},
-        {id: 6, name: "Chuck", lastName: "Jackson"},
-        {id: 7, name: "Meg", lastName: "Jansen"},
-        {id: 8, name: "Rob", lastName: "Norris"},
-        {id: 9, name: "Sean", lastName: "O'Hara"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('8');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
     });
 
-    var $rowHeader = this.$container.find('tbody tr:eq(2) th:eq(1)');
-    $rowHeader.simulate("mouseover");
+    it('should trigger an beforeRowMove event before row move', function () {
+      var beforeMoveRowCallback = jasmine.createSpy('beforeMoveRowCallback');
 
-    var $manualRowMover = this.$container.find('.manualRowMover');
-    $manualRowMover.eq(1).simulate('mousedown');
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        beforeRowMove: beforeMoveRowCallback
+      });
 
-    expect(hot.getSelected()).toEqual(undefined);
-  });
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-  it("should display the move handle in the correct place after the table has been scrolled", function () {
-    var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 20),
-      rowHeaders: true,
-      manualRowMove: true,
-      height: 100,
-      width: 200
+      hot.getPlugin('manualRowMove').moveRows([8,9,7], 0);
+      hot.render();
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('8');
+
+      expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    it('should trigger an afterRowMove event after row move', function () {
+      var afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-    var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.simulate("mouseover");
+      this.$container.height(150);
 
-    var $handle = this.$container.find('.manualRowMover');
-    $handle[0].style.background = "red";
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        afterRowMove: afterMoveRowCallback
+      });
 
-    expect($rowHeader.offset().left).toEqual($handle.offset().left);
-    expect($rowHeader.offset().top).toEqual($handle.offset().top);
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    $(mainHolder).scrollTop(200);
-    hot.render();
+      hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
+      hot.render();
 
-    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.simulate("mouseover");
-    expect($rowHeader.offset().left).toEqual($handle.offset().left);
-    expect($rowHeader.offset().top).toEqual($handle.offset().top);
-  });
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('8');
 
-  it("should move the first row to the second row", function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    var htCore = getHtCore();
+    it("should move the second row to the first row", function () {
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
 
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    moveFirstDisplayedRowAfterSecondRow(htCore, 0);
+      var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
 
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-  });
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(1).simulate('mouseup');
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(0).simulate('mouseover');
+      $rowsHeaders.eq(0).simulate('mousemove');
+      $rowsHeaders.eq(0).simulate('mouseup');
 
-  it("should move the second row to the third row", function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     });
 
-    var htCore = getHtCore();
+    it("should move the second row to the third row", function () {
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
 
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+      var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
 
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-  });
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(1).simulate('mouseup');
 
-  it("moving row should keep cell meta created using cells function", function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true,
-      cells: function (row, col) {
-        if (row == 1 && col == 0) {
-          this.readOnly = true;
+      var $guideline = this.$container.find('.ht__manualRowMove--guideline');
+
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(3).simulate('mouseover');
+      $rowsHeaders.eq(3).simulate('mousemove');
+      $rowsHeaders.eq(3).simulate('mouseup');
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    });
+
+    it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        colHeaders: true,
+        rowHeaders: true,
+        manualRowMove: true,
+        width: 600,
+        height: 600,
+        rowHeights: 47
+      });
+
+      var ev = {};
+
+      hot.selectCell(19, 0);
+
+      setTimeout(function () {
+        expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
+
+        var $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+
+        $rowsHeaders.eq(10).simulate('mousedown');
+        $rowsHeaders.eq(10).simulate('mouseup');
+        $rowsHeaders.eq(10).simulate('mousedown');
+        $rowsHeaders.eq(8).simulate('mouseover');
+        $rowsHeaders.eq(8).simulate('mousemove');
+        $rowsHeaders.eq(8).simulate('mouseup');
+      }, 50);
+
+      setTimeout(function () {
+        expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
+        done();
+      }, 150);
+    });
+
+    it("moving row should keep cell meta created using cells function", function () {
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        cells: function (row, col) {
+          if (row == 1 && col == 0) {
+            this.readOnly = true;
+          }
         }
-      }
+      });
+
+      var htCore = getHtCore();
+
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+
+      hot.getPlugin('manualRowMove').moveRow(1, 3);
+      hot.render();
+
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
     });
 
-    var htCore = getHtCore();
+    it("moving row should keep cell meta created using cell array", function () {
+      var hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        cell: [
+          {row: 1, col: 0, readOnly: true}
+        ]
+      });
 
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      var htCore = getHtCore();
 
-    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
 
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      hot.getPlugin('manualRowMove').moveRow(3, 1);
+      hot.render();
+
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+    });
   });
+  describe('undoRedo', function() {
+    it('should back changes', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+      });
+      hot.getPlugin('manualRowMove').moveRow(1, 4);
+      hot.render();
 
-  it("moving row should keep cell meta created using cell array", function () {
-    handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
-      ],
-      rowHeaders: true,
-      manualRowMove: true,
-      cell: [
-        {row: 1, col: 0, readOnly: true}
-      ]
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+
+      hot.undo();
+
+      expect(hot.getDataAtCell(1, 0)).toBe('A2');
     });
 
-    var htCore = getHtCore();
+    it('should revert changes', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+      });
+      hot.getPlugin('manualRowMove').moveRow(1, 4);
+      hot.render();
 
-    expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
 
-    moveFirstDisplayedRowAfterSecondRow(htCore, 1);
+      hot.undo();
 
-    expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
-  });
+      expect(hot.getDataAtCell(1, 0)).toBe('A2');
 
+      hot.redo();
+
+      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+    });
+  })
 });

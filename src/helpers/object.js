@@ -16,6 +16,10 @@ export function duckSchema(object) {
     schema = {};
 
     objectEach(object, function(value, key) {
+      if (key === '__children') {
+        return;
+      }
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         schema[key] = duckSchema(value);
 
@@ -280,4 +284,63 @@ export function getProperty(object, name) {
   });
 
   return result;
+}
+
+/**
+ * Return object length (recursively).
+ *
+ * @param {*} object Object for which we want get length.
+ * @returns {Number}
+ */
+export function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  let recursObjLen = function(obj) {
+    let result = 0;
+
+    if (isObject(obj)) {
+      objectEach(obj, (key) => {
+        result += recursObjLen(key);
+      });
+    } else {
+      result++;
+    }
+
+    return result;
+  };
+
+  return recursObjLen(object);
+}
+
+/**
+ * Create object with property where its value change will be observed.
+ *
+ * @param {*} [defaultValue=undefined] Default value.
+ * @param {String} [propertyToListen='value'] Property to listen.
+ * @returns {Object}
+ */
+export function createObjectPropListener(defaultValue, propertyToListen = 'value') {
+  const privateProperty = `_${propertyToListen}`;
+  const holder = {
+    _touched: false,
+    [privateProperty]: defaultValue,
+    isTouched() {
+      return this._touched;
+    }
+  };
+
+  Object.defineProperty(holder, propertyToListen, {
+    get: function() {
+      return this[privateProperty];
+    },
+    set: function(value) {
+      this._touched = true;
+      this[privateProperty] = value;
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  return holder;
 }

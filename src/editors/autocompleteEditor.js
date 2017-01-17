@@ -1,7 +1,7 @@
-import Handsontable from './../browser';
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
 import {stringify} from './../helpers/mixed';
-import {pivot} from './../helpers/array';
+import {stripTags} from './../helpers/string';
+import {pivot, arrayFilter, arrayMap} from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -85,20 +85,22 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer: function(TD, row, col, prop, value) {
-      let caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+    afterRenderer: function(TD, row, col, prop, value, cellProperties) {
+      let {filteringCaseSensitive, allowHtml} = _this.cellProperties;
       let indexOfMatch;
       let match;
+
       value = stringify(value);
 
-      if (value) {
-        indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+      if (value && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
 
-        if (indexOfMatch != -1) {
+        if (indexOfMatch !== -1) {
           match = value.substr(indexOfMatch, _this.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          value = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+      TD.innerHTML = value;
     },
     autoColumnSize: true,
     modifyColWidth: function(width, col) {
@@ -131,42 +133,20 @@ AutocompleteEditor.prototype.close = function() {
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
 
-  let source = this.cellProperties.source;
-  let hasFilter = this.cellProperties.filter;
-  let filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  const {source, filter, filteringCaseSensitive, allowHtml} = this.cellProperties;
+  const stripTagsEach = (choices) => arrayMap(choices, (choice) => stripTags(choice));
 
   if (typeof source == 'function') {
-    var _this = this;
-
-    source(query, function(choices) {
-      _this.updateChoicesList(choices);
+    source.call(this.cellProperties, query, (choices) => {
+      this.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
     });
 
   } else if (Array.isArray(source)) {
-    let choices;
-
-    if (!query || hasFilter === false) {
-      choices = source;
-    } else {
-      let lowerCaseQuery = query.toLowerCase();
-
-      choices = source.filter(function(choice) {
-
-        if (filteringCaseSensitive) {
-          return choice.indexOf(query) != -1;
-        } else {
-          return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
-        }
-
-      });
-    }
-
-    this.updateChoicesList(choices);
+    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
 
   } else {
     this.updateChoicesList([]);
   }
-
 };
 
 AutocompleteEditor.prototype.updateChoicesList = function(choices) {
@@ -176,22 +156,25 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   let filterSetting = this.cellProperties.filter;
   let orderByRelevance = null;
   let highlightIndex = null;
+  let flipped = null;
 
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   }
+  let orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
   if (filterSetting === false) {
-    if (orderByRelevance) {
+    if (orderByRelevanceLength) {
       highlightIndex = orderByRelevance[0];
-    } else {
-      highlightIndex = 0;
     }
   } else {
     let sorted = [];
 
     for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-      if (orderByRelevance) {
+      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+        break;
+      }
+      if (orderByRelevanceLength) {
         sorted.push(choices[orderByRelevance[i]]);
       } else {
         sorted.push(choices[i]);
@@ -224,6 +207,8 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   let textareaHeight = outerHeight(this.TEXTAREA);
   let dropdownHeight = this.getDropdownHeight();
   let trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+  let trimmingContainerScrollTop = trimmingContainer.scrollTop;
+  let headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
   let containerOffset = {
     row: 0,
     col: 0
@@ -233,14 +218,41 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
     containerOffset = offset(trimmingContainer);
   }
 
-  let spaceBelow = containerOffset.top + (trimmingContainer.scrollHeight - trimmingContainer.scrollTop);
-  let spaceAbove = containerOffset.top + trimmingContainer.scrollHeight;
-  let flipNeeded = (textareaOffset.top + textareaHeight + dropdownHeight > spaceBelow);
+  let spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+  let spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+  let flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
 
-  if (flipNeeded && spaceAbove > spaceBelow) {
+  if (flipNeeded) {
     this.flipDropdown(dropdownHeight);
   } else {
     this.unflipDropdown();
+  }
+
+  this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
+
+  return flipNeeded;
+};
+
+AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dropdownHeight) {
+  if (dropdownHeight > spaceAvailable) {
+    let tempHeight = 0;
+    let i = 0;
+    let lastRowHeight = 0;
+    let height = null;
+
+    do {
+      lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+      tempHeight += lastRowHeight;
+      i++;
+    } while (tempHeight < spaceAvailable);
+
+    height = tempHeight - lastRowHeight;
+
+    if (this.htEditor.flipped) {
+      this.htEditor.rootElement.style.top = parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height + 'px';
+    }
+
+    this.setDropdownHeight(tempHeight - lastRowHeight);
   }
 };
 
@@ -274,6 +286,12 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
   });
 
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+};
+
+AutocompleteEditor.prototype.setDropdownHeight = function(height) {
+  this.htEditor.updateSettings({
+    height: height
+  });
 };
 
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
@@ -316,7 +334,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   }
 
   for (i = 0; i < choicesCount; i++) {
-    currentItem = stringify(choices[i]);
+    currentItem = stripTags(stringify(choices[i]));
 
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);
@@ -387,6 +405,12 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   }
 
   return allowed;
+};
+
+AutocompleteEditor.prototype.discardEditor = function(result) {
+  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+
+  this.instance.view.render();
 };
 
 export {AutocompleteEditor};

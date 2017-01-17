@@ -1,6 +1,16 @@
 import {arrayReduce} from './array';
 
 /**
+ * Checks if given variable is function.
+ *
+ * @param {*} func Variable to check.
+ * @returns {Boolean}
+ */
+export function isFunction(func) {
+  return typeof func === 'function';
+}
+
+/**
  * Returns new function that, when called, has new context (`this` keyword).
  *
  * @param func Function to proxy.
@@ -96,7 +106,7 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
  * has passed without it being called.
  *
  * @param {Function} func Function to invoke.
- * @param {Number} wait Delay in miliseconds.
+ * @param {Number} wait Delay in milliseconds.
  * @returns {Function}
  */
 export function debounce(func, wait = 200) {

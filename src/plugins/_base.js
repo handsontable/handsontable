@@ -1,6 +1,7 @@
 import Handsontable from './../browser';
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
+import {registerIdentity, getTranslator} from './../utils/recordTranslator';
 import {getRegistredPluginNames, getPluginName} from './../plugins';
 
 const privatePool = new WeakMap();
@@ -22,6 +23,10 @@ class BasePlugin {
     defineGetter(this, 'hot', hotInstance, {
       writable: false
     });
+    defineGetter(this, 't', getTranslator(hotInstance), {
+      writable: false
+    });
+
     privatePool.set(this, {hooks: {}});
     initializedPlugins = null;
 
@@ -151,7 +156,7 @@ class BasePlugin {
   }
 
   /**
-   * Update the plugin's settings
+   * Updates the plugin to use the latest options you have specified.
    *
    * @private
    */
@@ -160,7 +165,7 @@ class BasePlugin {
   }
 
   /**
-   * Destroy plugin
+   * Destroy plugin.
    */
   destroy() {
     if (this.eventManager) {
@@ -169,10 +174,11 @@ class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (value, property) => {
-      if (property !== 'hot') {
+      if (property !== 'hot' && property !== 't') {
         this[property] = null;
       }
     });
+    delete this.t;
     delete this.hot;
   }
 }

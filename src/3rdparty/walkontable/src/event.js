@@ -1,9 +1,10 @@
-
 import {
-  closest,
+  closestDown,
   hasClass,
   isChildOf,
+  getParent,
 } from './../../../helpers/dom/element';
+import {partial} from './../../../helpers/function';
 import {isMobileBrowser} from './../../../helpers/browser';
 import {eventManager as eventManagerObject} from './../../../eventManager';
 
@@ -11,21 +12,30 @@ import {eventManager as eventManagerObject} from './../../../eventManager';
  *
  */
 function WalkontableEvent(instance) {
-  var that = this;
+  const that = this;
+  const eventManager = eventManagerObject(instance);
 
-  var eventManager = eventManagerObject(instance);
-
-  //reference to instance
   this.instance = instance;
 
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
 
   var onMouseDown = function(event) {
-    var cell = that.parentCell(event.realTarget);
+    const activeElement = document.activeElement;
+    const getParentNode = partial(getParent, event.realTarget);
+    const realTarget = event.realTarget;
 
-    if (hasClass(event.realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
+    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
+    if (realTarget === activeElement ||
+        getParentNode(0) === activeElement ||
+        getParentNode(1) === activeElement) {
+      return;
+    }
+
+    var cell = that.parentCell(realTarget);
+
+    if (hasClass(realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
@@ -121,7 +131,7 @@ function WalkontableEvent(instance) {
 
     if (that.instance.hasSetting('onCellMouseOver')) {
       table = that.instance.wtTable.TABLE;
-      td = closest(event.realTarget, ['TD', 'TH'], table);
+      td = closestDown(event.realTarget, ['TD', 'TH'], table);
       mainWOT = that.instance.cloneSource || that.instance;
 
       if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
@@ -153,18 +163,25 @@ function WalkontableEvent(instance) {
       if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
         if (hasClass(event.realTarget, 'corner')) {
           that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
+
         } else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
 
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
+
       } else if (cell.TD === dblClickOrigin[0]) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
+
         dblClickOrigin[1] = cell.TD;
         clearTimeout(that.dblClickTimeout[1]);
         that.dblClickTimeout[1] = setTimeout(function() {
           dblClickOrigin[1] = null;
         }, 500);
+
+      } else if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
       }
     }
   };
@@ -238,11 +255,9 @@ function WalkontableEvent(instance) {
 WalkontableEvent.prototype.parentCell = function(elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
-  var TD = closest(elem, ['TD', 'TH'], TABLE);
-  var referenceTABLE = closest(TD, ['TABLE']);
+  var TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
-  // Don't return cell when TD is not belong to the right table element (situations when table cell contain another hot instance)
-  if (TD && isChildOf(TD, TABLE) && referenceTABLE == TABLE) {
+  if (TD) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
 

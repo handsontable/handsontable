@@ -48,6 +48,15 @@ class GhostTable {
      * @default {null}
      */
     this.samples = null;
+    /**
+     * Ghost table settings.
+     *
+     * @type {Object}
+     * @default {Object}
+     */
+    this.settings = {
+      useHeaders: true
+    };
   }
 
   /**
@@ -76,6 +85,26 @@ class GhostTable {
   }
 
   /**
+   * Add a row consisting of the column headers.
+   */
+  addColumnHeadersRow(samples) {
+    if (this.hot.getColHeader(0) != null) {
+      const rowObject = {row: -1};
+      this.rows.push(rowObject);
+
+      this.container = this.createContainer(this.hot.rootElement.className);
+
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tHead.appendChild(this.createColumnHeadersRow());
+      this.container.container.appendChild(this.table.fragment);
+
+      rowObject.table = this.table.table;
+    }
+  }
+
+  /**
    * Add column.
    *
    * @param {Number} column Column index.
@@ -94,7 +123,7 @@ class GhostTable {
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
 
-    if (this.hot.getColHeader(column) !== null) {
+    if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -133,6 +162,52 @@ class GhostTable {
   }
 
   /**
+   * Set the Ghost Table settings to the provided object.
+   *
+   * @param {Object} settings New Ghost Table Settings
+   */
+  setSettings(settings) {
+    this.settings = settings;
+  }
+
+  /**
+   * Set a single setting of the Ghost Table.
+   *
+   * @param {String} name Setting name.
+   * @param {*} value Setting value.
+   */
+  setSetting(name, value) {
+    if (!this.settings) {
+      this.settings = {};
+    }
+
+    this.settings[name] = value;
+  }
+
+  /**
+   * Get the Ghost Table settings.
+   *
+   * @returns {Object|null}
+   */
+  getSettings() {
+    return this.settings;
+  }
+
+  /**
+   * Get a single Ghost Table setting.
+   *
+   * @param {String} name
+   * @returns {Boolean|null}
+   */
+  getSetting(name) {
+    if (this.settings) {
+      return this.settings[name];
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Create colgroup col elements.
    *
    * @returns {DocumentFragment}
@@ -141,7 +216,9 @@ class GhostTable {
     const d = document;
     const fragment = d.createDocumentFragment();
 
-    fragment.appendChild(this.createColElement(-1));
+    if (this.hot.hasRowHeaders()) {
+      fragment.appendChild(this.createColElement(-1));
+    }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
@@ -163,10 +240,11 @@ class GhostTable {
     const fragment = d.createDocumentFragment();
     const th = d.createElement('th');
 
-    if (this.hot.getRowHeader(row) !== null) {
+    if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
+
+      fragment.appendChild(th);
     }
-    fragment.appendChild(th);
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
@@ -181,6 +259,30 @@ class GhostTable {
 
         renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
+      });
+    });
+
+    return fragment;
+  }
+
+  createColumnHeadersRow() {
+    const d = document;
+    const fragment = d.createDocumentFragment();
+
+    if (this.hot.hasRowHeaders()) {
+      const th = d.createElement('th');
+      this.hot.view.appendColHeader(-1, th);
+      fragment.appendChild(th);
+    }
+
+    this.samples.forEach((sample) => {
+      arrayEach(sample.strings, (string) => {
+        let column = string.col;
+
+        const th = d.createElement('th');
+
+        this.hot.view.appendColHeader(column, th);
+        fragment.appendChild(th);
       });
     });
 
@@ -223,6 +325,7 @@ class GhostTable {
    */
   clean() {
     this.rows.length = 0;
+    this.rows[-1] = void 0;
     this.columns.length = 0;
 
     if (this.samples) {

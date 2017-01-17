@@ -27,7 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function outer (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof require == "function" && require;
-  var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","pikaday":"Pikaday"}') || {};
+  var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","numbro":"numbro","pikaday":"Pikaday"}') || {};
 
   function newRequire(name, jumped){
     if(!cache[name]) {
@@ -69,61 +69,65 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   return newRequire;
 })
 ({1:[function(_dereq_,module,exports){
+
+},{}],2:[function(_dereq_,module,exports){
 if (window.jQuery) {
-  $.fn.handsontable = function (action) {
-    var i,
-      ilen,
-      args,
-      output,
-      userSettings,
-      $this = this.first(), // Use only first element from list
-      instance = $this.data('handsontable');
+  (function ($) {
+    $.fn.handsontable = function (action) {
+      var i,
+        ilen,
+        args,
+        output,
+        userSettings,
+        $this = this.first(), // Use only first element from list
+        instance = $this.data('handsontable');
 
-    // Init case
-    if (typeof action !== 'string') {
-      userSettings = action || {};
+      // Init case
+      if (typeof action !== 'string') {
+        userSettings = action || {};
 
-      if (instance) {
-        instance.updateSettings(userSettings);
-
-      } else {
-        instance = new Handsontable.Core($this[0], userSettings);
-        $this.data('handsontable', instance);
-        instance.init();
-      }
-
-      return $this;
-
-    } else { // Action case
-      args = [];
-
-      if (arguments.length > 1) {
-        for (i = 1, ilen = arguments.length; i < ilen; i++) {
-          args.push(arguments[i]);
-        }
-      }
-
-      if (instance) {
-        if (typeof instance[action] !== 'undefined') {
-          output = instance[action].apply(instance, args);
-
-          if (action === 'destroy'){
-            $this.removeData();
-          }
+        if (instance) {
+          instance.updateSettings(userSettings);
 
         } else {
-          throw new Error('Handsontable do not provide action: ' + action);
+          instance = new Handsontable.Core($this[0], userSettings);
+          $this.data('handsontable', instance);
+          instance.init();
         }
-      }
 
-      return output;
-    }
-  };
+        return $this;
+
+      } else { // Action case
+        args = [];
+
+        if (arguments.length > 1) {
+          for (i = 1, ilen = arguments.length; i < ilen; i++) {
+            args.push(arguments[i]);
+          }
+        }
+
+        if (instance) {
+          if (typeof instance[action] !== 'undefined') {
+            output = instance[action].apply(instance, args);
+
+            if (action === 'destroy') {
+              $this.removeData();
+            }
+
+          } else {
+            throw new Error('Handsontable do not provide action: ' + action);
+          }
+        }
+
+        return output;
+      }
+    };
+  })(window.jQuery);
 }
 
 
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableBorder: {get: function() {
@@ -477,22 +481,23 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
-      this.cornerStyle.display = 'block';
+      this.cornerStyle.display = 'none';
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width) / 2) >= innerWidth(trimmingContainer);
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + 'px';
           this.cornerStyle.borderRightWidth = 0;
         }
       }
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) >= innerHeight(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height) / 2) >= innerHeight(trimmingContainer);
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + 'px';
           this.cornerStyle.borderBottomWidth = 0;
         }
       }
+      this.cornerStyle.display = 'block';
     }
     if (isMobileBrowser()) {
       this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
@@ -520,7 +525,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
 window.WalkontableBorder = WalkontableBorder;
 
 //# 
-},{"cell/coords":5,"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/dom/event":47,"overlay/_base.js":11}],3:[function(_dereq_,module,exports){
+},{"cell/coords":6,"eventManager":42,"helpers/browser":44,"helpers/dom/element":47,"helpers/dom/event":48,"overlay/_base.js":12}],4:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableViewportColumnsCalculator: {get: function() {
@@ -572,7 +577,8 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
-      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + viewportWidth) {
+      var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn == null) {
           this.startColumn = i;
         }
@@ -694,7 +700,7 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
 window.WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator;
 
 //# 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableViewportRowsCalculator: {get: function() {
@@ -785,7 +791,7 @@ var $WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
 window.WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
 
 //# 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableCellCoords: {get: function() {
@@ -835,7 +841,7 @@ var WalkontableCellCoords = function WalkontableCellCoords(row, col) {
 window.WalkontableCellCoords = WalkontableCellCoords;
 
 //# 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableCellRange: {get: function() {
@@ -865,15 +871,12 @@ var $WalkontableCellRange = WalkontableCellRange;
     return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
   },
   includes: function(cellCoords) {
+    var $__2 = cellCoords,
+        row = $__2.row,
+        col = $__2.col;
     var topLeft = this.getTopLeftCorner();
     var bottomRight = this.getBottomRightCorner();
-    if (cellCoords.row < 0) {
-      cellCoords.row = 0;
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = 0;
-    }
-    return topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col;
+    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
   },
   includesRange: function(testedRange) {
     return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
@@ -944,22 +947,22 @@ var $WalkontableCellRange = WalkontableCellRange;
     }
   },
   setDirection: function(direction) {
+    var $__2,
+        $__3,
+        $__4,
+        $__5;
     switch (direction) {
       case 'NW-SE':
-        this.from = this.getTopLeftCorner();
-        this.to = this.getBottomRightCorner();
+        ($__2 = [this.getTopLeftCorner(), this.getBottomRightCorner()], this.from = $__2[0], this.to = $__2[1], $__2);
         break;
       case 'NE-SW':
-        this.from = this.getTopRightCorner();
-        this.to = this.getBottomLeftCorner();
+        ($__3 = [this.getTopRightCorner(), this.getBottomLeftCorner()], this.from = $__3[0], this.to = $__3[1], $__3);
         break;
       case 'SE-NW':
-        this.from = this.getBottomRightCorner();
-        this.to = this.getTopLeftCorner();
+        ($__4 = [this.getBottomRightCorner(), this.getTopLeftCorner()], this.from = $__4[0], this.to = $__4[1], $__4);
         break;
       case 'SW-NE':
-        this.from = this.getBottomLeftCorner();
-        this.to = this.getTopRightCorner();
+        ($__5 = [this.getBottomLeftCorner(), this.getTopRightCorner()], this.from = $__5[0], this.to = $__5[1], $__5);
         break;
     }
   },
@@ -1093,7 +1096,7 @@ var $WalkontableCellRange = WalkontableCellRange;
 window.WalkontableCellRange = WalkontableCellRange;
 
 //# 
-},{"cell/coords":5}],7:[function(_dereq_,module,exports){
+},{"cell/coords":6}],8:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Walkontable: {get: function() {
@@ -1196,13 +1199,13 @@ var Walkontable = function Walkontable(settings) {
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
+      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
     } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay.clone) {
+      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
     }
@@ -1269,7 +1272,7 @@ var Walkontable = function Walkontable(settings) {
 window.Walkontable = Walkontable;
 
 //# 
-},{"event":8,"helpers/dom/element":46,"helpers/object":52,"helpers/string":54,"overlay/_base.js":11,"overlay/debug.js":12,"overlay/left.js":13,"overlay/top.js":14,"overlay/topLeftCorner.js":15,"overlays":16,"scroll":17,"settings":19,"table":20,"viewport":22}],8:[function(_dereq_,module,exports){
+},{"event":9,"helpers/dom/element":47,"helpers/object":53,"helpers/string":55,"overlay/_base.js":12,"overlay/debug.js":13,"overlay/left.js":14,"overlay/top.js":15,"overlay/topLeftCorner.js":16,"overlays":17,"scroll":18,"settings":20,"table":21,"viewport":23}],9:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableEvent: {get: function() {
@@ -1278,12 +1281,15 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    closest = $__0.closest,
+    closestDown = $__0.closestDown,
     hasClass = $__0.hasClass,
-    isChildOf = $__0.isChildOf;
+    isChildOf = $__0.isChildOf,
+    getParent = $__0.getParent;
+var partial = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).partial;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 function WalkontableEvent(instance) {
@@ -1293,9 +1299,15 @@ function WalkontableEvent(instance) {
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
   var onMouseDown = function(event) {
-    var cell = that.parentCell(event.realTarget);
-    if (hasClass(event.realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
+    var activeElement = document.activeElement;
+    var getParentNode = partial(getParent, event.realTarget);
+    var realTarget = event.realTarget;
+    if (realTarget === activeElement || getParentNode(0) === activeElement || getParentNode(1) === activeElement) {
+      return;
+    }
+    var cell = that.parentCell(realTarget);
+    if (hasClass(realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
@@ -1334,7 +1346,7 @@ function WalkontableEvent(instance) {
         mainWOT;
     if (that.instance.hasSetting('onCellMouseOver')) {
       table = that.instance.wtTable.TABLE;
-      td = closest(event.realTarget, ['TD', 'TH'], table);
+      td = closestDown(event.realTarget, ['TD', 'TH'], table);
       mainWOT = that.instance.cloneSource || that.instance;
       if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
         mainWOT.lastMouseOver = td;
@@ -1354,11 +1366,14 @@ function WalkontableEvent(instance) {
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
         dblClickOrigin[1] = cell.TD;
         clearTimeout(that.dblClickTimeout[1]);
         that.dblClickTimeout[1] = setTimeout(function() {
           dblClickOrigin[1] = null;
         }, 500);
+      } else if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
       }
     }
   };
@@ -1415,9 +1430,8 @@ function WalkontableEvent(instance) {
 WalkontableEvent.prototype.parentCell = function(elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
-  var TD = closest(elem, ['TD', 'TH'], TABLE);
-  var referenceTABLE = closest(TD, ['TABLE']);
-  if (TD && isChildOf(TD, TABLE) && referenceTABLE == TABLE) {
+  var TD = closestDown(elem, ['TD', 'TH'], TABLE);
+  if (TD) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
   } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
@@ -1435,7 +1449,7 @@ WalkontableEvent.prototype.parentCell = function(elem) {
 window.WalkontableEvent = WalkontableEvent;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46}],9:[function(_dereq_,module,exports){
+},{"eventManager":42,"helpers/browser":44,"helpers/dom/element":47,"helpers/function":50}],10:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableColumnFilter: {get: function() {
@@ -1478,7 +1492,7 @@ var WalkontableColumnFilter = function WalkontableColumnFilter(offset, total, co
 window.WalkontableColumnFilter = WalkontableColumnFilter;
 
 //# 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableRowFilter: {get: function() {
@@ -1521,7 +1535,7 @@ var WalkontableRowFilter = function WalkontableRowFilter(offset, total, countTH)
 window.WalkontableRowFilter = WalkontableRowFilter;
 
 //# 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableOverlay: {get: function() {
@@ -1531,11 +1545,13 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     getScrollableElement = $__0.getScrollableElement,
     getTrimmingContainer = $__0.getTrimmingContainer;
 var defineGetter = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__}).defineGetter;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 var registeredOverlays = {};
 var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
@@ -1549,11 +1565,20 @@ var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
   this.holder = this.wot.wtTable.holder;
   this.wtRootElement = this.wot.wtTable.wtRootElement;
   this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-  this.needFullRender = this.shouldBeRendered();
   this.areElementSizesAdjusted = false;
+  this.updateStateOfRendering();
 };
 var $WalkontableOverlay = WalkontableOverlay;
 ($traceurRuntime.createClass)(WalkontableOverlay, {
+  updateStateOfRendering: function() {
+    var previousState = this.needFullRender;
+    this.needFullRender = this.shouldBeRendered();
+    var changed = previousState !== this.needFullRender;
+    if (changed && !this.needFullRender) {
+      this.reset();
+    }
+    return changed;
+  },
   shouldBeRendered: function() {
     return true;
   },
@@ -1597,6 +1622,20 @@ var $WalkontableOverlay = WalkontableOverlay;
       this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
+  },
+  reset: function() {
+    if (!this.clone) {
+      return;
+    }
+    var holder = this.clone.wtTable.holder;
+    var hider = this.clone.wtTable.hider;
+    var holderStyle = holder.style;
+    var hidderStyle = hider.style;
+    var rootStyle = holder.parentNode.style;
+    arrayEach([holderStyle, hidderStyle, rootStyle], (function(style) {
+      style.width = '';
+      style.height = '';
+    }));
   },
   destroy: function() {
     eventManagerObject(this.clone).destroy();
@@ -1643,7 +1682,7 @@ var $WalkontableOverlay = WalkontableOverlay;
 window.WalkontableOverlay = WalkontableOverlay;
 
 //# 
-},{"eventManager":41,"helpers/dom/element":46,"helpers/object":52}],12:[function(_dereq_,module,exports){
+},{"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/object":53}],13:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableDebugOverlay: {get: function() {
@@ -1669,7 +1708,7 @@ window.WalkontableDebugOverlay = WalkontableDebugOverlay;
 WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_DEBUG, WalkontableDebugOverlay);
 
 //# 
-},{"_base":11,"helpers/dom/element":46}],13:[function(_dereq_,module,exports){
+},{"_base":12,"helpers/dom/element":47}],14:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableLeftOverlay: {get: function() {
@@ -1843,6 +1882,12 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     var masterParent = this.wot.wtTable.holder.parentNode;
     var rowHeaders = this.wot.getSetting('rowHeaders');
     var fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    var totalRows = this.wot.getSetting('totalRows');
+    if (totalRows) {
+      removeClass(masterParent, 'emptyRows');
+    } else {
+      addClass(masterParent, 'emptyRows');
+    }
     if (fixedColumnsLeft && !rowHeaders.length) {
       addClass(masterParent, 'innerBorderLeft');
     } else if (!fixedColumnsLeft && rowHeaders.length) {
@@ -1863,7 +1908,7 @@ window.WalkontableLeftOverlay = WalkontableLeftOverlay;
 WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);
 
 //# 
-},{"_base":11,"helpers/dom/element":46}],14:[function(_dereq_,module,exports){
+},{"_base":12,"helpers/dom/element":47}],15:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTopOverlay: {get: function() {
@@ -2038,8 +2083,14 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     return getScrollTop(this.mainTableScrollableElement);
   },
   adjustHeaderBordersPosition: function(position) {
+    var masterParent = this.wot.wtTable.holder.parentNode;
+    var totalColumns = this.wot.getSetting('totalColumns');
+    if (totalColumns) {
+      removeClass(masterParent, 'emptyColumns');
+    } else {
+      addClass(masterParent, 'emptyColumns');
+    }
     if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
-      var masterParent = this.wot.wtTable.holder.parentNode;
       var previousState = hasClass(masterParent, 'innerBorderTop');
       if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
@@ -2065,7 +2116,7 @@ window.WalkontableTopOverlay = WalkontableTopOverlay;
 WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP, WalkontableTopOverlay);
 
 //# 
-},{"_base":11,"helpers/dom/element":46}],15:[function(_dereq_,module,exports){
+},{"_base":12,"helpers/dom/element":47}],16:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTopLeftCornerOverlay: {get: function() {
@@ -2130,7 +2181,7 @@ window.WalkontableTopLeftCornerOverlay = WalkontableTopLeftCornerOverlay;
 WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, WalkontableTopLeftCornerOverlay);
 
 //# 
-},{"_base":11,"helpers/dom/element":46}],16:[function(_dereq_,module,exports){
+},{"_base":12,"helpers/dom/element":47}],17:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableOverlays: {get: function() {
@@ -2139,6 +2190,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
@@ -2147,6 +2199,7 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     getScrollbarWidth = $__0.getScrollbarWidth,
     getScrollLeft = $__0.getScrollLeft,
     getScrollTop = $__0.getScrollTop;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var isKey = ($___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__}).isKey;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).EventManager;
@@ -2157,24 +2210,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.wot.update('scrollbarWidth', getScrollbarWidth());
   this.wot.update('scrollbarHeight', getScrollbarWidth());
   this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
-  this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
-  if (typeof WalkontableBottomOverlay === 'undefined') {
-    this.bottomOverlay = {needFullRender: false};
-  } else {
-    this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
-  }
-  this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
-  if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-    this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
-  }
-  if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
-    this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
-  } else {
-    this.bottomLeftCornerOverlay = {needFullRender: false};
-  }
-  if (this.wot.getSetting('debug')) {
-    this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
-  }
+  this.prepareOverlays();
   this.destroyed = false;
   this.keyPressed = false;
   this.spreaderLastSize = {
@@ -2215,6 +2251,58 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.registerListeners();
 };
 ($traceurRuntime.createClass)(WalkontableOverlays, {
+  prepareOverlays: function() {
+    var syncScroll = false;
+    if (this.topOverlay) {
+      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
+    }
+    if (typeof WalkontableBottomOverlay === 'undefined') {
+      this.bottomOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (typeof WalkontableBottomLeftCornerOverlay === 'undefined') {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (this.bottomOverlay) {
+      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
+    }
+    if (this.leftOverlay) {
+      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
+    }
+    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.topLeftCornerOverlay) {
+        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.bottomLeftCornerOverlay) {
+        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.wot.getSetting('debug') && !this.debug) {
+      this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
+    }
+    return syncScroll;
+  },
   refreshAll: function() {
     if (!this.wot.drawn) {
       return;
@@ -2234,49 +2322,59 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     this.horizontalScrolling = false;
   },
   registerListeners: function() {
-    var $__4 = this;
+    var $__5 = this;
     var topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     var leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
     var listenersToRegister = [];
     listenersToRegister.push([document.documentElement, 'keydown', (function(event) {
-      return $__4.onKeyDown(event);
+      return $__5.onKeyDown(event);
     })]);
     listenersToRegister.push([document.documentElement, 'keyup', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([document, 'visibilitychange', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([topOverlayScrollable, 'scroll', (function(event) {
-      return $__4.onTableScroll(event);
+      return $__5.onTableScroll(event);
     })]);
     if (topOverlayScrollable !== leftOverlayScrollable) {
       listenersToRegister.push([leftOverlayScrollable, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.needFullRender) {
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.bottomOverlay.needFullRender) {
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.leftOverlay.needFullRender) {
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
+      })]);
+    }
+    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
+      })]);
+    }
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -2284,18 +2382,18 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         var overlay;
         var deltaY = event.wheelDeltaY || event.deltaY;
         var deltaX = event.wheelDeltaX || event.deltaX;
-        if ($__4.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        if ($__5.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
-        } else if ($__4.bottomOverlay.clone && $__4.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.bottomOverlay.clone && $__5.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
-        } else if ($__4.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
+        } else if ($__5.topLeftCornerOverlay && $__5.topLeftCornerOverlay.clone && $__5.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'topLeft';
+        } else if ($__5.bottomLeftCornerOverlay && $__5.bottomLeftCornerOverlay.clone && $__5.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottomLeft';
         }
-        if (overlay == 'top' && deltaY !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'left' && deltaX !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'bottom' && deltaY !== 0) {
+        if ((overlay == 'top' && deltaY !== 0) || (overlay == 'left' && deltaX !== 0) || (overlay == 'bottom' && deltaY !== 0) || ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
           event.preventDefault();
         }
       })]);
@@ -2340,11 +2438,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var topOverlay = this.topOverlay.clone.wtTable.holder;
     var bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     var leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    var eventMockup = {type: 'wheel'};
-    var tempElem = event.target;
+    var topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    var bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
+    var mouseWheelSpeedRatio = -0.2;
     var deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     var deltaX = event.wheelDeltaX || (-1) * event.deltaX;
-    var parentHolder;
+    var parentHolder = null;
+    var eventMockup = {type: 'wheel'};
+    var tempElem = event.target;
+    var delta = null;
     if (event.deltaMode === 1) {
       deltaY = deltaY * 120;
       deltaX = deltaX * 120;
@@ -2357,17 +2459,22 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       tempElem = tempElem.parentNode;
     }
     eventMockup.target = parentHolder;
-    if (parentHolder == topOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == bottomOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == leftOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
+    if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX, 'x');
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY, 'y');
+    } else {
+      if (parentHolder === topOverlay || parentHolder === bottomOverlay) {
+        delta = deltaY;
+      } else if (parentHolder === leftOverlay) {
+        delta = deltaX;
+      }
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * delta);
     }
     return false;
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
+    var fakeScrollDirection = arguments[2] !== (void 0) ? arguments[2] : null;
     if (this.destroyed) {
       return;
     }
@@ -2382,6 +2489,8 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var scrollValueChanged = false;
     var topOverlay;
     var leftOverlay;
+    var topLeftCornerOverlay;
+    var bottomLeftCornerOverlay;
     var bottomOverlay;
     var delegatedScroll = false;
     var preventOverflow = this.wot.getSetting('preventOverflow');
@@ -2393,6 +2502,12 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
     if (this.leftOverlay.needFullRender) {
       leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.topOverlay.needFullRender) {
+      topLeftCornerOverlay = this.topLeftCornerOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.bottomOverlay.needFullRender) {
+      bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone.wtTable.holder;
     }
     if (target === document) {
       target = window;
@@ -2506,6 +2621,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         scrollValueChanged = true;
         masterVertical.scrollLeft += fakeScrollValue;
       }
+    } else if (target === topLeftCornerOverlay || target === bottomLeftCornerOverlay) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
+        if (fakeScrollDirection === 'x') {
+          masterVertical.scrollLeft += fakeScrollValue;
+        } else if (fakeScrollDirection === 'y') {
+          masterVertical.scrollTop += fakeScrollValue;
+        }
+      }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
       if (this.delegatedScrollCallback) {
@@ -2520,11 +2644,17 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollWithMaster: function() {
     var master = this.topOverlay.mainTableScrollableElement;
+    var $__7 = master,
+        scrollLeft = $__7.scrollLeft,
+        scrollTop = $__7.scrollTop;
     if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
+      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+    }
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
     }
     if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
+      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
     }
   },
   updateMainScrollableElements: function() {
@@ -2606,13 +2736,29 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       this.bottomOverlay.applyToDOM();
     }
     this.leftOverlay.applyToDOM();
+  },
+  getParentOverlay: function(element) {
+    if (!element) {
+      return null;
+    }
+    var overlays = [this.topOverlay, this.leftOverlay, this.bottomOverlay, this.topLeftCornerOverlay, this.bottomLeftCornerOverlay];
+    var result = null;
+    arrayEach(overlays, (function(elem, i) {
+      if (!elem) {
+        return;
+      }
+      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) {
+        result = elem.clone;
+      }
+    }));
+    return result;
   }
 }, {});
 ;
 window.WalkontableOverlays = WalkontableOverlays;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/unicode":55}],17:[function(_dereq_,module,exports){
+},{"eventManager":42,"helpers/array":43,"helpers/browser":44,"helpers/dom/element":47,"helpers/unicode":56}],18:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableScroll: {get: function() {
@@ -2648,10 +2794,10 @@ var WalkontableScroll = function WalkontableScroll(wotInstance) {
         fixedRowsTop = $__3.fixedRowsTop,
         fixedRowsBottom = $__3.fixedRowsBottom,
         fixedColumnsLeft = $__3.fixedColumnsLeft;
-    if (coords.row < 0 || coords.row > totalRows - 1) {
+    if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
       throw new Error(("row " + coords.row + " does not exist"));
     }
-    if (coords.col < 0 || coords.col > totalColumns - 1) {
+    if (coords.col < 0 || coords.col > Math.max(totalColumns - 1, 0)) {
       throw new Error(("column " + coords.col + " does not exist"));
     }
     if (coords.row >= fixedRowsTop && coords.row < this.getFirstVisibleRow()) {
@@ -2794,7 +2940,7 @@ var WalkontableScroll = function WalkontableScroll(wotInstance) {
 window.WalkontableScroll = WalkontableScroll;
 
 //# 
-},{"helpers/dom/element":46,"helpers/number":51}],18:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47,"helpers/number":52}],19:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableSelection: {get: function() {
@@ -2879,8 +3025,15 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
       sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
       if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
         TH = wotInstance.wtTable.getColumnHeader(sourceCol);
-        if (TH && this.settings.highlightColumnClassName) {
-          addClass(TH, this.settings.highlightColumnClassName);
+        if (TH) {
+          var newClasses = [];
+          if (this.settings.highlightHeaderClassName) {
+            newClasses.push(this.settings.highlightHeaderClassName);
+          }
+          if (this.settings.highlightColumnClassName) {
+            newClasses.push(this.settings.highlightColumnClassName);
+          }
+          addClass(TH, newClasses);
         }
       }
     }
@@ -2888,12 +3041,19 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
       sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
       if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
         TH = wotInstance.wtTable.getRowHeader(sourceRow);
-        if (TH && this.settings.highlightRowClassName) {
-          addClass(TH, this.settings.highlightRowClassName);
+        if (TH) {
+          var newClasses$__5 = [];
+          if (this.settings.highlightHeaderClassName) {
+            newClasses$__5.push(this.settings.highlightHeaderClassName);
+          }
+          if (this.settings.highlightRowClassName) {
+            newClasses$__5.push(this.settings.highlightRowClassName);
+          }
+          addClass(TH, newClasses$__5);
         }
       }
-      for (var column$__5 = 0; column$__5 < renderedColumns; column$__5++) {
-        sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column$__5);
+      for (var column$__6 = 0; column$__6 < renderedColumns; column$__6++) {
+        sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column$__6);
         if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
           if (this.settings.className) {
             this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className);
@@ -2911,9 +3071,9 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
     }
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
     if (this.settings.border) {
-      var border$__6 = this.getBorder(wotInstance);
-      if (border$__6) {
-        border$__6.appear(corners);
+      var border$__7 = this.getBorder(wotInstance);
+      if (border$__7) {
+        border$__7.appear(corners);
       }
     }
   }
@@ -2922,7 +3082,7 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
 window.WalkontableSelection = WalkontableSelection;
 
 //# 
-},{"border":2,"cell/coords":5,"cell/range":6,"helpers/dom/element":46}],19:[function(_dereq_,module,exports){
+},{"border":3,"cell/coords":6,"cell/range":7,"helpers/dom/element":47}],20:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableSettings: {get: function() {
@@ -2977,6 +3137,7 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     viewportColumnCalculatorOverride: null,
     onCellMouseDown: null,
     onCellMouseOver: null,
+    onCellMouseUp: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
@@ -2990,12 +3151,14 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     onBeforeStretchingColumnWidth: (function(width) {
       return width;
     }),
+    onModifyRowHeaderWidth: null,
     scrollbarWidth: 10,
     scrollbarHeight: 10,
     renderAllRows: false,
     groups: false,
     rowHeaderWidth: null,
-    columnHeaderHeight: null
+    columnHeaderHeight: null,
+    headerClassName: null
   };
   this.settings = {};
   for (var i in this.defaults) {
@@ -3040,7 +3203,7 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
 window.WalkontableSettings = WalkontableSettings;
 
 //# 
-},{"helpers/dom/element":46}],20:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47}],21:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTable: {get: function() {
@@ -3049,6 +3212,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $__cell_47_coords__,
     $__cell_47_range__,
     $__filter_47_column__,
@@ -3064,12 +3228,14 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     removeTextNodes = $__0.removeTextNodes,
     overlayContainsElement = $__0.overlayContainsElement,
     closest = $__0.closest;
+var isFunction = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).isFunction;
 var WalkontableCellCoords = ($__cell_47_coords__ = _dereq_("cell/coords"), $__cell_47_coords__ && $__cell_47_coords__.__esModule && $__cell_47_coords__ || {default: $__cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__cell_47_range__ = _dereq_("cell/range"), $__cell_47_range__ && $__cell_47_range__.__esModule && $__cell_47_range__ || {default: $__cell_47_range__}).WalkontableCellRange;
 var WalkontableColumnFilter = ($__filter_47_column__ = _dereq_("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
 var WalkontableRowFilter = ($__filter_47_row__ = _dereq_("filter/row"), $__filter_47_row__ && $__filter_47_row__.__esModule && $__filter_47_row__ || {default: $__filter_47_row__}).WalkontableRowFilter;
 var WalkontableTableRenderer = ($__tableRenderer__ = _dereq_("tableRenderer"), $__tableRenderer__ && $__tableRenderer__.__esModule && $__tableRenderer__ || {default: $__tableRenderer__}).WalkontableTableRenderer;
 var WalkontableTable = function WalkontableTable(wotInstance, table) {
+  var $__7 = this;
   this.wot = wotInstance;
   this.instance = this.wot;
   this.TABLE = table;
@@ -3090,6 +3256,11 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
   this.rowFilter = null;
   this.columnFilter = null;
+  this.correctHeaderWidth = false;
+  var origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+  this.wot.wtSettings.settings.rowHeaderWidth = (function() {
+    return $__7._modifyRowHeaderWidth(origRowHeaderWidth);
+  });
 };
 ($traceurRuntime.createClass)(WalkontableTable, {
   fixTableDomTree: function() {
@@ -3177,17 +3348,34 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return !!this.wot.cloneSource;
   },
   draw: function(fastDraw) {
+    var $__9 = this.wot,
+        wtOverlays = $__9.wtOverlays,
+        wtViewport = $__9.wtViewport;
     var totalRows = this.instance.getSetting('totalRows');
+    var rowHeaders = this.wot.getSetting('rowHeaders').length;
+    var columnHeaders = this.wot.getSetting('columnHeaders').length;
+    var syncScroll = false;
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
+      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+      if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
+        var leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        var previousState = this.correctHeaderWidth;
+        this.correctHeaderWidth = leftScrollPos > 0;
+        if (previousState !== this.correctHeaderWidth) {
+          fastDraw = false;
+        }
+      }
+    }
+    if (!this.isWorkingOnClone()) {
+      syncScroll = wtOverlays.prepareOverlays();
     }
     if (fastDraw) {
       if (!this.isWorkingOnClone()) {
-        this.wot.wtViewport.createVisibleCalculators();
+        wtViewport.createVisibleCalculators();
       }
-      if (this.wot.wtOverlays) {
-        this.wot.wtOverlays.refresh(true);
+      if (wtOverlays) {
+        wtOverlays.refresh(true);
       }
     } else {
       if (this.isWorkingOnClone()) {
@@ -3201,32 +3389,35 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+        startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       var startColumn;
       if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+        startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw();
     }
     this.refreshSelections(fastDraw);
     if (!this.isWorkingOnClone()) {
-      this.wot.wtOverlays.topOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.bottomOverlay.clone) {
-        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      wtOverlays.topOverlay.resetFixedPosition();
+      if (wtOverlays.bottomOverlay.clone) {
+        wtOverlays.bottomOverlay.resetFixedPosition();
       }
-      this.wot.wtOverlays.leftOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.topLeftCornerOverlay) {
-        this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      wtOverlays.leftOverlay.resetFixedPosition();
+      if (wtOverlays.topLeftCornerOverlay) {
+        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
       }
-      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
-        this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+    }
+    if (syncScroll) {
+      wtOverlays.syncScrollWithMaster();
     }
     this.wot.drawn = true;
     return this;
@@ -3252,6 +3443,9 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         if (this.wot.selections[i].settings.className) {
           this.removeClassFromCells(this.wot.selections[i].settings.className);
         }
+        if (this.wot.selections[i].settings.highlightHeaderClassName) {
+          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+        }
         if (this.wot.selections[i].settings.highlightRowClassName) {
           this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
         }
@@ -3260,8 +3454,8 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         }
       }
     }
-    for (var i$__7 = 0; i$__7 < len; i$__7++) {
-      this.wot.selections[i$__7].draw(this.wot, fastDraw);
+    for (var i$__10 = 0; i$__10 < len; i$__10++) {
+      this.wot.selections[i$__10].draw(this.wot, fastDraw);
     }
   },
   getCell: function(coords) {
@@ -3345,19 +3539,19 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
   },
   isRowBeforeRenderedRows: function(row) {
-    return (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
   },
   isRowAfterViewport: function(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
   },
   isRowAfterRenderedRows: function(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
   },
   isColumnBeforeViewport: function(column) {
-    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   },
   isColumnAfterViewport: function(column) {
-    return (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
   },
   isLastRowFullyVisible: function() {
     return this.getLastVisibleRow() === this.getLastRenderedRow();
@@ -3435,13 +3629,32 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       }
     }
     return width;
+  },
+  _modifyRowHeaderWidth: function(rowHeaderWidthFactory) {
+    var widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
+    if (Array.isArray(widths)) {
+      widths = $traceurRuntime.spread(widths);
+      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
+    } else {
+      widths = this._correctRowHeaderWidth(widths);
+    }
+    return widths;
+  },
+  _correctRowHeaderWidth: function(width) {
+    if (typeof width !== 'number') {
+      width = this.wot.getSetting('defaultColumnWidth');
+    }
+    if (this.correctHeaderWidth) {
+      width++;
+    }
+    return width;
   }
 }, {});
 ;
 window.WalkontableTable = WalkontableTable;
 
 //# 
-},{"cell/coords":5,"cell/range":6,"filter/column":9,"filter/row":10,"helpers/dom/element":46,"tableRenderer":21}],21:[function(_dereq_,module,exports){
+},{"cell/coords":6,"cell/range":7,"filter/column":10,"filter/row":11,"helpers/dom/element":47,"helpers/function":50,"tableRenderer":22}],22:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTableRenderer: {get: function() {
@@ -3478,7 +3691,11 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
 ($traceurRuntime.createClass)(WalkontableTableRenderer, {
   render: function() {
     if (!this.wtTable.isWorkingOnClone()) {
-      this.wot.getSetting('beforeDraw', true);
+      var skipRender = {};
+      this.wot.getSetting('beforeDraw', true, skipRender);
+      if (skipRender.skipRender === true) {
+        return;
+      }
     }
     this.rowHeaders = this.wot.getSetting('rowHeaders');
     this.rowHeaderCount = this.rowHeaders.length;
@@ -3496,7 +3713,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.columnHeaders = [];
       this.columnHeaderCount = 0;
     }
-    if (totalColumns > 0) {
+    if (totalColumns >= 0) {
       this.adjustAvailableNodes();
       adjusted = true;
       this.renderColumnHeaders();
@@ -3505,9 +3722,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
       }
-      this.adjustColumnHeaderHeights();
       this.adjustColumnWidths(columnsToRender);
-      this.markOversizedColumns();
+      this.markOversizedColumnHeaders();
+      this.adjustColumnHeaderHeights();
     }
     if (!adjusted) {
       this.adjustAvailableNodes();
@@ -3519,26 +3736,30 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (!this.wtTable.isWorkingOnClone()) {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
+      this.wot.wtOverlays.applyToDOM();
       var hiderWidth = outerWidth(this.wtTable.hider);
       var tableWidth = outerWidth(this.wtTable.TABLE);
       if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
         this.adjustColumnWidths(columnsToRender);
       }
-      this.wot.wtOverlays.applyToDOM();
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         this.wot.wtViewport.containerWidth = null;
         var firstRendered = this.wtTable.getFirstRenderedColumn();
         var lastRendered = this.wtTable.getLastRenderedColumn();
+        var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
         var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
         if (rowHeaderWidthSetting != null) {
           for (var i = 0; i < this.rowHeaderCount; i++) {
-            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+            var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+            width = width == null ? defaultColumnWidth : width;
+            this.COLGROUP.childNodes[i].style.width = width + 'px';
           }
         }
         for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
-          var width = this.wtTable.getStretchedColumnWidth(i$__2);
+          var width$__3 = this.wtTable.getStretchedColumnWidth(i$__2);
           var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
-          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width$__3 + 'px';
         }
       }
       this.wot.getSetting('onDraw', true);
@@ -3626,9 +3847,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
     }
   },
-  markOversizedColumns: function() {
+  markOversizedColumnHeaders: function() {
     var overlayName = this.wot.getOverlayName();
-    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     var columnCount = this.wtTable.getRenderedColumnsCount();
@@ -3637,19 +3858,19 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
   },
   adjustColumnHeaderHeights: function() {
     var columnHeaders = this.wot.getSetting('columnHeaders');
-    var childs = this.wot.wtTable.THEAD.childNodes;
-    var oversizedCols = this.wot.wtViewport.oversizedColumnHeaders;
+    var children = this.wot.wtTable.THEAD.childNodes;
+    var oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
     for (var i = 0,
         len = columnHeaders.length; i < len; i++) {
-      if (oversizedCols[i]) {
-        if (childs[i].childNodes.length === 0) {
+      if (oversizedColumnHeaders[i]) {
+        if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        childs[i].childNodes[0].style.height = oversizedCols[i] + 'px';
+        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
       }
     }
   },
@@ -3671,6 +3892,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       currentHeaderHeight = innerHeight(currentHeader);
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+      if (Array.isArray(columnHeaderHeightSetting)) {
+        if (columnHeaderHeightSetting[level] != null) {
+          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+        }
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
@@ -3702,19 +3930,23 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var scrollbarCompensation = 0;
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
+    var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
-    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
     if (rowHeaderWidthSetting != null) {
       for (var i = 0; i < this.rowHeaderCount; i++) {
-        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+        var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+        width = width == null ? defaultColumnWidth : width;
+        this.COLGROUP.childNodes[i].style.width = width + 'px';
       }
     }
     for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
-      var width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      var width$__4 = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width$__4 + 'px';
     }
   },
   appendToTbody: function(TR) {
@@ -3766,7 +3998,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     this.adjustThead();
   },
   renderColumnHeaders: function() {
-    var overlayName = this.wot.getOverlayName();
     if (!this.columnHeaderCount) {
       return;
     }
@@ -3816,7 +4047,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
+        for (var i$__5 = this.columnHeaders.length; i$__5 < theadChildrenLength; i$__5++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -3867,7 +4098,7 @@ function replaceThWithTd(TH, TR) {
 window.WalkontableTableRenderer = WalkontableTableRenderer;
 
 //# 
-},{"helpers/dom/element":46}],22:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47}],23:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableViewport: {get: function() {
@@ -3897,7 +4128,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.instance = this.wot;
   this.oversizedRows = [];
   this.oversizedColumnHeaders = [];
-  this.isMarkedOversizedColumn = {};
+  this.hasOversizedColumnHeadersMarked = {};
   this.clientHeight = 0;
   this.containerWidth = NaN;
   this.rowHeaderWidth = NaN;
@@ -4039,6 +4270,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
         this.rowHeaderWidth = 0;
       }
     }
+    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
     return this.rowHeaderWidth;
   },
   getViewportWidth: function() {
@@ -4170,11 +4402,13 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
 window.WalkontableViewport = WalkontableViewport;
 
 //# 
-},{"browser":23,"calculator/viewportColumns":3,"calculator/viewportRows":4,"eventManager":41,"helpers/dom/element":46}],23:[function(_dereq_,module,exports){
+},{"browser":24,"calculator/viewportColumns":4,"calculator/viewportRows":5,"eventManager":42,"helpers/dom/element":47}],24:[function(_dereq_,module,exports){
 "use strict";
 var $__shims_47_runtime__,
     $__es6collections__,
     $__pluginHooks__,
+    $__numbro__,
+    $__moment__,
     $__core__,
     $__renderers_47__95_cellDecorator__,
     $__cellTypes__,
@@ -4204,6 +4438,16 @@ Handsontable.utils = {};
 ($__shims_47_runtime__ = _dereq_("shims/runtime"), $__shims_47_runtime__ && $__shims_47_runtime__.__esModule && $__shims_47_runtime__ || {default: $__shims_47_runtime__});
 ($__es6collections__ = _dereq_("es6collections"), $__es6collections__ && $__es6collections__.__esModule && $__es6collections__ || {default: $__es6collections__});
 var Hooks = ($__pluginHooks__ = _dereq_("pluginHooks"), $__pluginHooks__ && $__pluginHooks__.__esModule && $__pluginHooks__ || {default: $__pluginHooks__}).Hooks;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
+if (typeof window === 'object') {
+  if (typeof window.numbro === 'undefined') {
+    window.numbro = numbro;
+  }
+  if (typeof window.moment === 'undefined') {
+    window.moment = moment;
+  }
+}
 if (!Handsontable.hooks) {
   Handsontable.hooks = new Hooks();
 }
@@ -4228,9 +4472,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Thu Apr 28 2016 15:03:36 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Tue Jan 17 2017 13:30:27 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.24.3';
+Handsontable.version = '0.30.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -4257,7 +4501,7 @@ arrayHelpers.arrayEach(DOM, (function(helper) {
 }));
 
 //# 
-},{"cellTypes":24,"core":25,"es6collections":"es6collections","helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/date":45,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/feature":48,"helpers/function":49,"helpers/mixed":50,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"helpers/unicode":55,"pluginHooks":58,"plugins":59,"plugins/jqueryHandsontable":1,"renderers/_cellDecorator":93,"shims/runtime":100}],24:[function(_dereq_,module,exports){
+},{"cellTypes":25,"core":26,"es6collections":"es6collections","helpers/array":43,"helpers/browser":44,"helpers/data":45,"helpers/date":46,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/feature":49,"helpers/function":50,"helpers/mixed":51,"helpers/number":52,"helpers/object":53,"helpers/setting":54,"helpers/string":55,"helpers/unicode":56,"moment":"moment","numbro":"numbro","pluginHooks":60,"plugins":61,"plugins/jqueryHandsontable":2,"renderers/_cellDecorator":118,"shims/runtime":125}],25:[function(_dereq_,module,exports){
 "use strict";
 var $__helpers_47_browser__,
     $__editors__,
@@ -4367,12 +4611,14 @@ Handsontable.cellLookup = {validator: {
   }};
 
 //# 
-},{"browser":23,"editors":29,"editors/autocompleteEditor":31,"editors/checkboxEditor":32,"editors/dateEditor":33,"editors/dropdownEditor":34,"editors/handsontableEditor":35,"editors/mobileTextEditor":36,"editors/numericEditor":37,"editors/passwordEditor":38,"editors/selectEditor":39,"editors/textEditor":40,"helpers/browser":43,"renderers":92,"renderers/autocompleteRenderer":94,"renderers/checkboxRenderer":95,"renderers/htmlRenderer":96,"renderers/numericRenderer":97,"renderers/passwordRenderer":98,"renderers/textRenderer":99,"validators/autocompleteValidator":105,"validators/dateValidator":106,"validators/numericValidator":107,"validators/timeValidator":108}],25:[function(_dereq_,module,exports){
+},{"browser":24,"editors":30,"editors/autocompleteEditor":32,"editors/checkboxEditor":33,"editors/dateEditor":34,"editors/dropdownEditor":35,"editors/handsontableEditor":36,"editors/mobileTextEditor":37,"editors/numericEditor":38,"editors/passwordEditor":39,"editors/selectEditor":40,"editors/textEditor":41,"helpers/browser":44,"renderers":117,"renderers/autocompleteRenderer":119,"renderers/checkboxRenderer":120,"renderers/htmlRenderer":121,"renderers/numericRenderer":122,"renderers/passwordRenderer":123,"renderers/textRenderer":124,"validators/autocompleteValidator":131,"validators/dateValidator":132,"validators/numericValidator":133,"validators/timeValidator":134}],26:[function(_dereq_,module,exports){
 "use strict";
 var $__browser__,
-    $__numeral__,
+    $__numbro__,
     $__helpers_47_dom_47_element__,
     $__helpers_47_setting__,
+    $__helpers_47_function__,
+    $__helpers_47_mixed__,
     $__helpers_47_browser__,
     $__dataMap__,
     $__editorManager__,
@@ -4386,43 +4632,49 @@ var $__browser__,
     $__tableView__,
     $__dataSource__,
     $__helpers_47_data__,
+    $__utils_47_recordTranslator__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_range__,
-    $__3rdparty_47_walkontable_47_src_47_selection__,
     $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__;
 var Handsontable = ($__browser__ = _dereq_("browser"), $__browser__ && $__browser__.__esModule && $__browser__ || {default: $__browser__}).default;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
 var $__2 = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $__helpers_47_dom_47_element__ && $__helpers_47_dom_47_element__.__esModule && $__helpers_47_dom_47_element__ || {default: $__helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     empty = $__2.empty,
     isChildOfWebComponentTable = $__2.isChildOfWebComponentTable,
     removeClass = $__2.removeClass;
 var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
+var isFunction = ($__helpers_47_function__ = _dereq_("helpers/function"), $__helpers_47_function__ && $__helpers_47_function__.__esModule && $__helpers_47_function__ || {default: $__helpers_47_function__}).isFunction;
+var $__5 = ($__helpers_47_mixed__ = _dereq_("helpers/mixed"), $__helpers_47_mixed__ && $__helpers_47_mixed__.__esModule && $__helpers_47_mixed__ || {default: $__helpers_47_mixed__}),
+    isDefined = $__5.isDefined,
+    isUndefined = $__5.isUndefined;
 var isMobileBrowser = ($__helpers_47_browser__ = _dereq_("helpers/browser"), $__helpers_47_browser__ && $__helpers_47_browser__.__esModule && $__helpers_47_browser__ || {default: $__helpers_47_browser__}).isMobileBrowser;
 var DataMap = ($__dataMap__ = _dereq_("dataMap"), $__dataMap__ && $__dataMap__.__esModule && $__dataMap__ || {default: $__dataMap__}).DataMap;
 var EditorManager = ($__editorManager__ = _dereq_("editorManager"), $__editorManager__ && $__editorManager__.__esModule && $__editorManager__ || {default: $__editorManager__}).EditorManager;
 var eventManagerObject = ($__eventManager__ = _dereq_("eventManager"), $__eventManager__ && $__eventManager__.__esModule && $__eventManager__ || {default: $__eventManager__}).eventManager;
-var $__8 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
-    extend = $__8.extend,
-    duckSchema = $__8.duckSchema,
-    isObjectEquals = $__8.isObjectEquals,
-    deepClone = $__8.deepClone;
-var $__9 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
-    arrayFlatten = $__9.arrayFlatten,
-    arrayMap = $__9.arrayMap;
+var $__10 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
+    deepClone = $__10.deepClone,
+    duckSchema = $__10.duckSchema,
+    extend = $__10.extend,
+    isObject = $__10.isObject,
+    isObjectEquals = $__10.isObjectEquals,
+    deepObjectSize = $__10.deepObjectSize;
+var $__11 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
+    arrayFlatten = $__11.arrayFlatten,
+    arrayMap = $__11.arrayMap;
 var getPlugin = ($__plugins__ = _dereq_("plugins"), $__plugins__ && $__plugins__.__esModule && $__plugins__ || {default: $__plugins__}).getPlugin;
 var getRenderer = ($__renderers__ = _dereq_("renderers"), $__renderers__ && $__renderers__.__esModule && $__renderers__ || {default: $__renderers__}).getRenderer;
 var randomString = ($__helpers_47_string__ = _dereq_("helpers/string"), $__helpers_47_string__ && $__helpers_47_string__.__esModule && $__helpers_47_string__ || {default: $__helpers_47_string__}).randomString;
 var rangeEach = ($__helpers_47_number__ = _dereq_("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var TableView = ($__tableView__ = _dereq_("tableView"), $__tableView__ && $__tableView__.__esModule && $__tableView__ || {default: $__tableView__}).TableView;
 var DataSource = ($__dataSource__ = _dereq_("dataSource"), $__dataSource__ && $__dataSource__.__esModule && $__dataSource__ || {default: $__dataSource__}).DataSource;
-var $__16 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
-    translateRowsToColumns = $__16.translateRowsToColumns,
-    cellMethodLookupFactory = $__16.cellMethodLookupFactory,
-    spreadsheetColumnLabel = $__16.spreadsheetColumnLabel;
+var $__18 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
+    translateRowsToColumns = $__18.translateRowsToColumns,
+    cellMethodLookupFactory = $__18.cellMethodLookupFactory,
+    spreadsheetColumnLabel = $__18.spreadsheetColumnLabel;
+var getTranslator = ($__utils_47_recordTranslator__ = _dereq_("utils/recordTranslator"), $__utils_47_recordTranslator__ && $__utils_47_recordTranslator__.__esModule && $__utils_47_recordTranslator__ || {default: $__utils_47_recordTranslator__}).getTranslator;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__3rdparty_47_walkontable_47_src_47_cell_47_range__ = _dereq_("3rdparty/walkontable/src/cell/range"), $__3rdparty_47_walkontable_47_src_47_cell_47_range__ && $__3rdparty_47_walkontable_47_src_47_cell_47_range__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_range__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_range__}).WalkontableCellRange;
-var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = _dereq_("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 var WalkontableViewportColumnsCalculator = ($__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ = _dereq_("3rdparty/walkontable/src/calculator/viewportColumns"), $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__.__esModule && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ || {default: $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__}).WalkontableViewportColumnsCalculator;
 Handsontable.activeGuid = null;
 Handsontable.Core = function Core(rootElement, userSettings) {
@@ -4435,6 +4687,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance = this,
       GridSettings = function() {},
       eventManager = eventManagerObject(instance);
+  var recordTranslator = getTranslator(instance);
   extend(GridSettings.prototype, DefaultSettings.prototype);
   extend(GridSettings.prototype, userSettings);
   extend(GridSettings.prototype, expandType(userSettings));
@@ -4481,10 +4734,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       switch (action) {
         case 'insert_row':
-          if (instance.getSettings().maxRows === instance.countSourceRows()) {
+          var numberOfSourceRows = instance.countSourceRows();
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
-          delta = datamap.createRow(index, amount);
+          index = (isDefined(index)) ? index : numberOfSourceRows;
+          delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
@@ -4496,7 +4751,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
         case 'insert_col':
-          delta = datamap.createCol(index, amount);
+          delta = datamap.createCol(index, amount, source);
           for (var row = 0,
               len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {
@@ -4518,7 +4773,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
         case 'remove_row':
-          datamap.removeRow(index, amount);
+          datamap.removeRow(index, amount, source);
           priv.cellSettings.splice(index, amount);
           var totalRows = instance.countRows();
           var fixedRowsTop = instance.getSettings().fixedRowsTop;
@@ -4533,12 +4788,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           selection.refreshBorders();
           break;
         case 'remove_col':
-          var logicalColumnIndex = translateColIndex(index);
-          datamap.removeCol(index, amount);
-          for (var row$__22 = 0,
-              len$__23 = instance.countSourceRows(); row$__22 < len$__23; row$__22++) {
-            if (priv.cellSettings[row$__22]) {
-              priv.cellSettings[row$__22].splice(logicalColumnIndex, amount);
+          var logicalColumnIndex = recordTranslator.toPhysicalColumn(index);
+          datamap.removeCol(index, amount, source);
+          for (var row$__27 = 0,
+              len$__28 = instance.countSourceRows(); row$__27 < len$__28; row$__27++) {
+            if (priv.cellSettings[row$__27]) {
+              priv.cellSettings[row$__27].splice(logicalColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -4567,15 +4822,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (rows < priv.settings.minRows) {
           for (var r = 0,
               minRows = priv.settings.minRows; r < minRows - rows; r++) {
-            datamap.createRow(instance.countRows(), 1, true);
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
       if (priv.settings.minSpareRows) {
         var emptyRows = instance.countEmptyRows(true);
         if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
-            datamap.createRow(instance.countRows(), 1, true);
+          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -4586,12 +4841,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
       }
@@ -4766,7 +5021,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (source === 'autofill') {
                 var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
                 if (result) {
-                  value = typeof(result.value) === 'undefined' ? value : result.value;
+                  value = isUndefined(result.value) ? value : result.value;
                 }
               }
               if (value !== null && typeof value === 'object') {
@@ -4803,9 +5058,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       cols: false,
       rows: false
     },
-    setSelectedHeaders: function(rows, cols) {
+    setSelectedHeaders: function() {
+      var rows = arguments[0] !== (void 0) ? arguments[0] : false;
+      var cols = arguments[1] !== (void 0) ? arguments[1] : false;
+      var corner = arguments[2] !== (void 0) ? arguments[2] : false;
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
+      instance.selection.selectedHeader.corner = corner;
     },
     begin: function() {
       instance.selection.inProgress = true;
@@ -4823,6 +5082,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, 'beforeSetRangeStart', coords);
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
       selection.setRangeEnd(coords, null, keepEditorOpened);
+    },
+    setRangeStartOnly: function(coords) {
+      Handsontable.hooks.run(instance, 'beforeSetRangeStartOnly', coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
     },
     setRangeEnd: function(coords, scrollToCell, keepEditorOpened) {
       if (priv.selRange === null) {
@@ -4858,7 +5121,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
@@ -4995,11 +5258,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
       }
       editorManager.destroyEditor();
       selection.refreshBorders();
+      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       Handsontable.hooks.run(instance, 'afterDeselect');
     },
     selectAll: function() {
@@ -5081,15 +5345,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
+            if (isUndefined(cellProperties.language)) {
+              numbro.culture('en-US');
             } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              numeral.language('en');
+              numbro.culture('en-US');
             } else {
-              numeral.language(cellProperties.language);
+              numbro.culture(cellProperties.language);
             }
-            if (numeral.validate(changes[i][3])) {
-              changes[i][3] = numeral().unformat(changes[i][3]);
+            var delimiters = numbro.cultureData(numbro.culture()).delimiters;
+            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
+              changes[i][3] = parseFloat(changes[i][3]);
+            } else {
+              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
             }
           }
         }
@@ -5116,7 +5383,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var beforeChangeResult;
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.run(instance, 'beforeChange', changes, source);
-        if (typeof beforeChangeResult === 'function') {
+        if (isFunction(beforeChangeResult)) {
           console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length);
@@ -5131,6 +5398,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       return;
     }
     for (; 0 <= i; i--) {
+      var skipThisChange = false;
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -5140,8 +5408,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          datamap.createRow();
+          var numberOfCreatedRows = datamap.createRow();
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
         }
+      }
+      if (skipThisChange) {
+        continue;
       }
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
@@ -5156,6 +5431,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+    var activeEditor = instance.getActiveEditor();
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   }
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
@@ -5175,7 +5454,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         };
       })(validator);
     }
-    if (typeof validator == 'function') {
+    if (isFunction(validator)) {
       value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
       instance._registerTimeout(setTimeout(function() {
         validator.call(cellProperties, value, function(valid) {
@@ -5213,11 +5492,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
-      changes.push([input[i][0], prop, datamap.get(input[i][0], prop), input[i][2]]);
+      changes.push([input[i][0], prop, dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
     if (!source && typeof row === 'object') {
       source = col;
     }
+    instance.runHooks('afterSetDataAtCell', changes, source);
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
     });
@@ -5228,11 +5508,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         ilen,
         changes = [];
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      changes.push([input[i][0], input[i][1], datamap.get(input[i][0], input[i][1]), input[i][2]]);
+      changes.push([input[i][0], input[i][1], dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
     if (!source && typeof row === 'object') {
       source = prop;
     }
+    instance.runHooks('afterSetDataAtRowProp', changes, source);
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
     });
@@ -5281,30 +5562,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.loadData = function(data) {
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) {
-        data = [data];
-      }
-    } else if (data === null) {
-      data = [];
-      var row;
-      for (var r = 0,
-          rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0,
-            clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        data.push(row);
-      }
-    } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
-    }
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-    if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
+    if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
-    } else if (typeof priv.settings.dataSchema === 'function') {
+    } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -5313,6 +5573,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.destroy();
     }
     datamap = new DataMap(instance, priv, GridSettings);
+    if (typeof data === 'object' && data !== null) {
+      if (!(data.push && data.splice)) {
+        data = [data];
+      }
+    } else if (data === null) {
+      data = [];
+      var row;
+      var r = 0;
+      var rlen = 0;
+      var dataSchema = datamap.getSchema();
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = deepClone(dataSchema);
+          data.push(row);
+        } else if (instance.dataType === 'array') {
+          row = deepClone(dataSchema[0]);
+          data.push(row);
+        } else {
+          row = [];
+          for (var c = 0,
+              clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+          data.push(row);
+        }
+      }
+    } else {
+      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
+    }
+    priv.isPopulated = false;
+    GridSettings.prototype.data = data;
+    if (Array.isArray(data[0])) {
+      instance.dataType = 'array';
+    }
+    datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
@@ -5332,7 +5627,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.getData = function(r, c, r2, c2) {
-    if (typeof r === 'undefined') {
+    if (isUndefined(r)) {
       return datamap.getAll();
     } else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
@@ -5348,12 +5643,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return datamap.getSchema();
   };
   this.updateSettings = function(settings, init) {
-    var i,
-        clen;
-    if (typeof settings.rows !== 'undefined') {
+    var columnsAsFunc = false;
+    var i;
+    var j;
+    var clen;
+    if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
     }
-    if (typeof settings.cols !== 'undefined') {
+    if (isDefined(settings.cols)) {
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
     for (i in settings) {
@@ -5361,7 +5658,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue;
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
-          if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
+          if (isFunction(settings[i]) || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
         } else {
@@ -5379,34 +5676,46 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.createMap();
     }
     clen = instance.countCols();
+    if (settings.columns && isFunction(settings.columns)) {
+      clen = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
       priv.cellSettings.length = 0;
     }
     if (clen > 0) {
-      var proto,
-          column;
-      for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-        proto = priv.columnSettings[i].prototype;
+      var proto;
+      var column;
+      for (i = 0, j = 0; i < clen; i++) {
+        if (columnsAsFunc && !settings.columns(i)) {
+          continue;
+        }
+        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+        proto = priv.columnSettings[j].prototype;
         if (GridSettings.prototype.columns) {
-          column = GridSettings.prototype.columns[i];
+          if (columnsAsFunc) {
+            column = GridSettings.prototype.columns(i);
+          } else {
+            column = GridSettings.prototype.columns[j];
+          }
           if (column) {
             extend(proto, column);
             extend(proto, expandType(column));
           }
         }
+        j++;
       }
     }
-    if (typeof settings.cell !== 'undefined') {
-      for (i in settings.cell) {
-        if (settings.cell.hasOwnProperty(i)) {
-          var cell = settings.cell[i];
+    if (isDefined(settings.cell)) {
+      for (var key in settings.cell) {
+        if (settings.cell.hasOwnProperty(key)) {
+          var cell = settings.cell[key];
           instance.setCellMetaObject(cell.row, cell.col, cell);
         }
       }
     }
     Handsontable.hooks.run(instance, 'afterCellMetaReset');
-    if (typeof settings.className !== 'undefined') {
+    if (isDefined(settings.className)) {
       if (GridSettings.prototype.className) {
         removeClass(instance.rootElement, GridSettings.prototype.className);
       }
@@ -5419,7 +5728,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
     var height = settings.height;
-    if (typeof height == 'function') {
+    if (isFunction(height)) {
       height = height();
     }
     if (init) {
@@ -5429,9 +5738,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
     if (height === null) {
-      var initialStyle$__24 = instance.rootElement.getAttribute('data-initialstyle');
-      if (initialStyle$__24 && (initialStyle$__24.indexOf('height') > -1 || initialStyle$__24.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle$__24);
+      var initialStyle$__29 = instance.rootElement.getAttribute('data-initialstyle');
+      if (initialStyle$__29 && (initialStyle$__29.indexOf('height') > -1 || initialStyle$__29.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle$__29);
       } else {
         instance.rootElement.style.height = '';
         instance.rootElement.style.overflow = '';
@@ -5442,7 +5751,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     if (typeof settings.width != 'undefined') {
       var width = settings.width;
-      if (typeof width == 'function') {
+      if (isFunction(width)) {
         width = width();
       }
       instance.rootElement.style.width = width + 'px';
@@ -5463,7 +5772,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getValue = function() {
     var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
-      if (typeof GridSettings.prototype.getValue === 'function') {
+      if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
@@ -5515,6 +5824,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.propToCol = function(prop) {
     return datamap.propToCol(prop);
   };
+  this.toVisualRow = (function(row) {
+    return recordTranslator.toVisualRow(row);
+  });
+  this.toVisualColumn = (function(column) {
+    return recordTranslator.toVisualColumn(column);
+  });
+  this.toPhysicalRow = (function(row) {
+    return recordTranslator.toPhysicalRow(row);
+  });
+  this.toPhysicalColumn = (function(column) {
+    return recordTranslator.toPhysicalColumn(column);
+  });
   this.getDataAtCell = function(row, col) {
     return datamap.get(row, datamap.colToProp(col));
   };
@@ -5540,6 +5861,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     return data;
   };
+  this.getSourceDataArray = function(r, c, r2, c2) {
+    var data;
+    if (r === void 0) {
+      data = dataSource.getData(true);
+    } else {
+      data = dataSource.getByRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), true);
+    }
+    return data;
+  };
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
   };
@@ -5554,7 +5884,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return data[0];
   };
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    var $__21 = this;
+    var $__23 = this;
     var previousType = null;
     var currentType = null;
     if (rowFrom === void 0) {
@@ -5573,7 +5903,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (function(row) {
       var isTypeEqual = true;
       rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (function(column) {
-        var cellType = $__21.getCellMeta(row, column);
+        var cellType = $__23.getCellMeta(row, column);
         currentType = cellType.type;
         if (previousType) {
           isTypeEqual = previousType === currentType;
@@ -5593,6 +5923,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       delete priv.cellSettings[row][col][key];
     }
   };
+  this.spliceCellsMeta = function(index, deleteAmount) {
+    var $__26;
+    for (var items = [],
+        $__24 = 2; $__24 < arguments.length; $__24++)
+      items[$__24 - 2] = arguments[$__24];
+    ($__26 = priv.cellSettings).splice.apply($__26, $traceurRuntime.spread([index, deleteAmount], items));
+  };
   this.setCellMetaObject = function(row, col, prop) {
     if (typeof prop === 'object') {
       for (var key in prop) {
@@ -5604,6 +5941,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.setCellMeta = function(row, col, key, val) {
+    var $__25;
+    ($__25 = recordTranslator.toPhysical(row, col), row = $__25[0], col = $__25[1], $__25);
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
@@ -5617,12 +5956,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return arrayFlatten(priv.cellSettings);
   };
   this.getCellMeta = function(row, col) {
+    var $__25;
     var prop = datamap.colToProp(col),
         cellProperties;
     var visualRow = row;
     var visualCol = col;
-    row = translateRowIndex(row);
-    col = translateColIndex(col);
+    ($__25 = recordTranslator.toPhysical(row, col), row = $__25[0], col = $__25[1], $__25);
     if (!priv.columnSettings[col]) {
       priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
@@ -5651,15 +5990,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
     return cellProperties;
   };
+  this.getCellMetaAtRow = function(row) {
+    return priv.cellSettings[row];
+  };
   this.isColumnModificationAllowed = function() {
     return !(instance.dataType === 'object' || instance.getSettings().columns);
   };
-  function translateRowIndex(row) {
-    return Handsontable.hooks.run(instance, 'modifyRow', row);
-  }
-  function translateColIndex(col) {
-    return Handsontable.hooks.run(instance, 'modifyCol', col);
-  }
   var rendererLookup = cellMethodLookupFactory('renderer');
   this.getCellRenderer = function(row, col) {
     var renderer = rendererLookup.call(this, row, col);
@@ -5704,7 +6040,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }));
     } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
       rowHeader = rowHeader[row];
-    } else if (typeof rowHeader === 'function') {
+    } else if (isFunction(rowHeader)) {
       rowHeader = rowHeader(row);
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = row + 1;
@@ -5727,29 +6063,44 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return false;
   };
   this.getColHeader = function(col) {
+    var columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    var result = priv.settings.colHeaders;
     col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
     if (col === void 0) {
       var out = [];
-      for (var i = 0,
-          ilen = instance.countCols(); i < ilen; i++) {
+      var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      for (var i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
       }
-      return out;
+      result = out;
     } else {
+      var translateVisualIndexToColumns = function(col) {
+        var arr = [];
+        var columnsLen = instance.countSourceCols();
+        var index = 0;
+        for (; index < columnsLen; index++) {
+          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+        return arr[col];
+      };
       var baseCol = col;
       col = Handsontable.hooks.run(instance, 'modifyCol', col);
-      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-        return priv.settings.columns[col].title;
+      var prop = translateVisualIndexToColumns(col);
+      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+        result = priv.settings.columns(prop).title;
+      } else if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        result = priv.settings.columns[col].title;
       } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[col] !== void 0) {
-        return priv.settings.colHeaders[col];
-      } else if (typeof priv.settings.colHeaders === 'function') {
-        return priv.settings.colHeaders(col);
+        result = priv.settings.colHeaders[col];
+      } else if (isFunction(priv.settings.colHeaders)) {
+        result = priv.settings.colHeaders(col);
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        return spreadsheetColumnLabel(baseCol);
-      } else {
-        return priv.settings.colHeaders;
+        result = spreadsheetColumnLabel(baseCol);
       }
     }
+    return result;
   };
   this._getColWidthFromSettings = function(col) {
     var cellProperties = instance.getCellMeta(0, col);
@@ -5803,56 +6154,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return height;
   };
   this.countSourceRows = function() {
-    return instance.getSourceData() ? instance.getSourceData().length : 0;
+    var sourceLength = Handsontable.hooks.run(instance, 'modifySourceLength');
+    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+  };
+  this.countSourceCols = function() {
+    var len = 0;
+    var obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    if (isObject(obj)) {
+      len = deepObjectSize(obj);
+    } else {
+      len = obj.length || 0;
+    }
+    return len;
   };
   this.countRows = function() {
     return datamap.getLength();
   };
   this.countCols = function() {
-    if (instance.dataType === 'object' || instance.dataType === 'function') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
+    var dataHasLength = false;
+    var dataLen = 0;
+    if (instance.dataType === 'array') {
+      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    }
+    if (dataHasLength) {
+      dataLen = priv.settings.data[0].length;
+    }
+    if (priv.settings.columns) {
+      var columnsIsFunction = isFunction(priv.settings.columns);
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          var columnLen = 0;
+          for (var i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
+          }
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
+        }
       } else {
-        return datamap.colToPropCache.length;
+        dataLen = priv.settings.columns.length;
       }
-    } else if (instance.dataType === 'array') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
-      } else if (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
-        return priv.settings.data[0].length;
-      } else {
-        return 0;
+    } else {
+      if (instance.dataType === 'object' || instance.dataType === 'function') {
+        dataLen = datamap.colToPropCache.length;
       }
     }
-  };
-  this.getColspanOffset = function(col, level) {
-    var colspanSum = 0;
-    if (instance.colspanArray) {
-      for (var i = 0; i < col; i++) {
-        colspanSum += instance.colspanArray[level][i] - 1 || 0;
-      }
-      return colspanSum;
-    }
-    var colspanSum = 0;
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
-      if (TR.childNodes[i].hasAttribute('colspan')) {
-        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
-      }
-    }
-    return colspanSum;
-  };
-  this.getHeaderColspan = function(col, level) {
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
-    if (TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
-      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
-    }
-    return 0;
+    return dataLen;
   };
   this.rowOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedRow();
@@ -5911,14 +6260,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
     var coords;
-    changeListener = typeof changeListener === 'undefined' || changeListener === true;
+    changeListener = isUndefined(changeListener) || changeListener === true;
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
     }
     if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
       return false;
     }
-    if (typeof endRow !== 'undefined') {
+    if (isDefined(endRow)) {
       if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
         return false;
       }
@@ -5931,7 +6280,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (changeListener) {
       instance.listen();
     }
-    if (typeof endRow === 'undefined') {
+    if (isUndefined(endRow)) {
       selection.setRangeEnd(priv.selRange.from, scrollToCell);
     } else {
       selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);
@@ -5941,7 +6290,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
     arguments[1] = datamap.propToCol(arguments[1]);
-    if (typeof arguments[3] !== 'undefined') {
+    if (isDefined(arguments[3])) {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
     return instance.selectCell.apply(instance, arguments);
@@ -5950,6 +6299,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.deselect();
   };
   this.scrollViewportTo = function(row, column) {
+    var snapToBottom = arguments[2] !== (void 0) ? arguments[2] : false;
+    var snapToRight = arguments[3] !== (void 0) ? arguments[3] : false;
     if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
@@ -5958,16 +6309,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     var result = false;
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.scrollVertical(row);
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.scrollVertical(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     return result;
@@ -5987,7 +6338,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.destroy(instance);
     for (var i in instance) {
       if (instance.hasOwnProperty(i)) {
-        if (typeof instance[i] === 'function') {
+        if (isFunction(instance[i])) {
           instance[i] = postMortem;
         } else if (i !== 'guid') {
           instance[i] = null;
@@ -6095,6 +6446,7 @@ DefaultSettings.prototype = {
   persistentState: void 0,
   currentRowClassName: void 0,
   currentColClassName: void 0,
+  currentHeaderClassName: 'ht__highlight',
   className: void 0,
   tableClassName: void 0,
   stretchH: 'none',
@@ -6105,7 +6457,7 @@ DefaultSettings.prototype = {
         meta;
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
           return isObjectEquals(this.getSchema()[meta.prop], value);
@@ -6121,7 +6473,7 @@ DefaultSettings.prototype = {
         value;
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         return false;
       }
     }
@@ -6181,6 +6533,7 @@ DefaultSettings.prototype = {
   correctFormat: false,
   defaultDate: void 0,
   strict: void 0,
+  allowHtml: false,
   renderAllRows: void 0,
   preventOverflow: false,
   bindRowsWithHeaders: void 0,
@@ -6188,6 +6541,7 @@ DefaultSettings.prototype = {
   columnSummary: void 0,
   dropdownMenu: void 0,
   filters: void 0,
+  formulas: void 0,
   ganttChart: void 0,
   headerTooltips: void 0,
   hiddenColumns: void 0,
@@ -6205,7 +6559,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"dataMap":26,"dataSource":27,"editorManager":28,"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":46,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"numeral":"numeral","plugins":59,"renderers":92,"tableView":101}],26:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":4,"3rdparty/walkontable/src/cell/coords":6,"3rdparty/walkontable/src/cell/range":7,"browser":24,"dataMap":27,"dataSource":28,"editorManager":29,"eventManager":42,"helpers/array":43,"helpers/browser":44,"helpers/data":45,"helpers/dom/element":47,"helpers/function":50,"helpers/mixed":51,"helpers/number":52,"helpers/object":53,"helpers/setting":54,"helpers/string":55,"numbro":"numbro","plugins":61,"renderers":117,"tableView":126,"utils/recordTranslator":129}],27:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -6227,9 +6581,12 @@ var SheetClip = ($__SheetClip__ = _dereq_("SheetClip"), $__SheetClip__ && $__She
 var cellMethodLookupFactory = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}).cellMethodLookupFactory;
 var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
 var $__4 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
+    createObjectPropListener = $__4.createObjectPropListener,
     duckSchema = $__4.duckSchema,
     deepExtend = $__4.deepExtend,
-    deepClone = $__4.deepClone;
+    deepClone = $__4.deepClone,
+    isObject = $__4.isObject,
+    deepObjectSize = $__4.deepObjectSize;
 var $__5 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
     extendArray = $__5.extendArray,
     to2dArray = $__5.to2dArray;
@@ -6243,8 +6600,9 @@ function DataMap(instance, priv, GridSettings) {
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
   this.cachedLength = null;
+  this.skipCache = false;
   this.latestSourceRowsCount = 0;
-  if (this.dataSource[0]) {
+  if (this.dataSource && this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
   } else {
     this.duckSchema = {};
@@ -6253,6 +6611,9 @@ function DataMap(instance, priv, GridSettings) {
   this.interval = Interval.create((function() {
     return $__9.clearLengthCache();
   }), '15fps');
+  this.instance.addHook('skipLengthCache', (function(delay) {
+    return $__9.onSkipLengthCache(delay);
+  }));
 }
 DataMap.prototype.DESTINATION_RENDERER = 1;
 DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
@@ -6283,20 +6644,32 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
   return lastCol;
 };
 DataMap.prototype.createMap = function() {
-  var i,
-      ilen,
-      schema = this.getSchema();
+  var i;
+  var schema = this.getSchema();
   if (typeof schema === 'undefined') {
-    throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
+    throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
   }
   this.colToPropCache = [];
   this.propToColCache = new MultiMap();
   var columns = this.instance.getSettings().columns;
   if (columns) {
-    for (i = 0, ilen = columns.length; i < ilen; i++) {
-      if (typeof columns[i].data != 'undefined') {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache.set(columns[i].data, i);
+    var columnsLen = columns.length;
+    var filteredIndex = 0;
+    var columnsAsFunc = false;
+    var schemaLen = deepObjectSize(schema);
+    if (typeof columns === 'function') {
+      columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+      columnsAsFunc = true;
+    }
+    for (i = 0; i < columnsLen; i++) {
+      var column = columnsAsFunc ? columns(i) : columns[i];
+      if (isObject(column)) {
+        if (typeof column.data !== 'undefined') {
+          var index = columnsAsFunc ? filteredIndex : i;
+          this.colToPropCache[index] = column.data;
+          this.propToColCache.set(column.data, index);
+        }
+        filteredIndex++;
       }
     }
   } else {
@@ -6330,7 +6703,7 @@ DataMap.prototype.getSchema = function() {
   }
   return this.duckSchema;
 };
-DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
+DataMap.prototype.createRow = function(index, amount, source) {
   var row,
       colCount = this.instance.countCols(),
       numberOfCreatedRows = 0,
@@ -6341,6 +6714,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateRow', index, amount, source);
   currentIndex = index;
   var maxRows = this.instance.getSettings().maxRows;
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
@@ -6362,16 +6736,16 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
     if (index === this.instance.countSourceRows()) {
       this.dataSource.push(row);
     } else {
-      this.dataSource.splice(index, 0, row);
+      this.spliceData(index, 0, row);
     }
     numberOfCreatedRows++;
     currentIndex++;
   }
-  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, source);
   this.instance.forceFullRender = true;
   return numberOfCreatedRows;
 };
-DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
+DataMap.prototype.createCol = function(index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
   }
@@ -6386,16 +6760,21 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countCols()) {
     index = this.instance.countCols();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateCol', index, amount, source);
   currentIndex = index;
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
-      for (var r = 0; r < rlen; r++) {
-        if (typeof data[r] === 'undefined') {
-          data[r] = [];
+      if (rlen > 0) {
+        for (var r = 0; r < rlen; r++) {
+          if (typeof data[r] === 'undefined') {
+            data[r] = [];
+          }
+          data[r].push(null);
         }
-        data[r].push(null);
+      } else {
+        data.push([null]);
       }
       this.priv.columnSettings.push(constructor);
     } else {
@@ -6407,37 +6786,35 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
     numberOfCreatedCols++;
     currentIndex++;
   }
-  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, source);
   this.instance.forceFullRender = true;
   return numberOfCreatedCols;
 };
-DataMap.prototype.removeRow = function(index, amount) {
+DataMap.prototype.removeRow = function(index, amount, source) {
   if (!amount) {
     amount = 1;
   }
   if (typeof index !== 'number') {
     index = -amount;
   }
+  amount = Handsontable.hooks.run(this.instance, 'modifyRemovedAmount', amount, index);
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
   var logicRows = this.physicalRowsToLogical(index, amount);
-  var descendingLogicRows = logicRows.slice(0).sort(function(a, b) {
-    return b - a;
-  });
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
+  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows, source);
   if (actionWasNotCancelled === false) {
     return;
   }
   var data = this.dataSource;
   var newData;
-  newData = data.filter(function(row, index) {
-    return logicRows.indexOf(index) == -1;
-  });
-  data.length = 0;
-  Array.prototype.push.apply(data, newData);
-  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
+  newData = this.filterData(index, amount);
+  if (newData) {
+    data.length = 0;
+    Array.prototype.push.apply(data, newData);
+  }
+  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows, source);
   this.instance.forceFullRender = true;
 };
-DataMap.prototype.removeCol = function(index, amount) {
+DataMap.prototype.removeCol = function(index, amount, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
@@ -6452,7 +6829,7 @@ DataMap.prototype.removeCol = function(index, amount) {
   var descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {
     return b - a;
   });
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns);
+  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns, source);
   if (actionWasNotCancelled === false) {
     return;
   }
@@ -6480,7 +6857,7 @@ DataMap.prototype.removeCol = function(index, amount) {
       this.priv.columnSettings.splice(logicColumns[c$__13], 1);
     }
   }
-  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount, logicColumns, source);
   this.instance.forceFullRender = true;
 };
 DataMap.prototype.spliceCol = function(col, index, amount) {
@@ -6512,11 +6889,30 @@ DataMap.prototype.spliceRow = function(row, index, amount) {
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
   return removed;
 };
+DataMap.prototype.spliceData = function(index, amount, element) {
+  var continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataSplice', index, amount, element);
+  if (continueSplicing !== false) {
+    this.dataSource.splice(index, amount, element);
+  }
+};
+DataMap.prototype.filterData = function(index, amount) {
+  var logicRows = this.physicalRowsToLogical(index, amount);
+  var continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataFilter', index, amount, logicRows);
+  if (continueSplicing !== false) {
+    var newData = this.dataSource.filter(function(row, index) {
+      return logicRows.indexOf(index) == -1;
+    });
+    return newData;
+  }
+};
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
   var dataRow = this.dataSource[row];
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  var value = null;
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
-    return dataRow[prop];
+    value = dataRow[prop];
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = dataRow;
@@ -6530,11 +6926,18 @@ DataMap.prototype.get = function(row, prop) {
         return null;
       }
     }
-    return out;
+    value = out;
   } else if (typeof prop === 'function') {
-    return prop(this.dataSource.slice(row, row + 1)[0]);
+    value = prop(this.dataSource.slice(row, row + 1)[0]);
   }
-  return null;
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    var valueHolder = createObjectPropListener(value);
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'get');
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
+  return value;
 };
 var copyableLookup = cellMethodLookupFactory('copyable', false);
 DataMap.prototype.getCopyable = function(row, prop) {
@@ -6546,6 +6949,15 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
   var dataRow = this.dataSource[row];
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    var valueHolder = createObjectPropListener(value);
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'set');
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
     dataRow[prop] = value;
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -6604,9 +7016,16 @@ DataMap.prototype.clearLengthCache = function() {
 };
 DataMap.prototype.getLength = function() {
   var $__9 = this;
+  var maxRows,
+      maxRowsFromSettings = this.instance.getSettings().maxRows;
+  if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
+    maxRows = 0;
+  } else {
+    maxRows = maxRowsFromSettings || Infinity;
+  }
   var length = this.instance.countSourceRows();
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    var reValidate = false;
+    var reValidate = this.skipCache;
     this.interval.start();
     if (length !== this.latestSourceRowsCount) {
       reValidate = true;
@@ -6626,15 +7045,19 @@ DataMap.prototype.getLength = function() {
   } else {
     this.interval.stop();
   }
-  return length;
+  return Math.min(length, maxRows);
 };
 DataMap.prototype.getAll = function() {
   var start = {
     row: 0,
     col: 0
   };
+  var maxRows = this.instance.getSettings().maxRows;
+  if (maxRows === 0) {
+    return [];
+  }
   var end = {
-    row: Math.max(this.instance.countSourceRows() - 1, 0),
+    row: Math.min(Math.max(maxRows - 1, 0), Math.max(this.instance.countSourceRows() - 1, 0)),
     col: Math.max(this.instance.countCols() - 1, 0)
   };
   if (start.row - end.row === 0 && !this.instance.countSourceRows()) {
@@ -6648,8 +7071,7 @@ DataMap.prototype.getRange = function(start, end, destination) {
       c,
       clen,
       output = [],
-      row,
-      rowExists;
+      row;
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
   rlen = Math.max(start.row, end.row);
   clen = Math.max(start.col, end.col);
@@ -6657,7 +7079,6 @@ DataMap.prototype.getRange = function(start, end, destination) {
     row = [];
     var physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', r);
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
-      var rowValue;
       if (physicalRow === null) {
         break;
       }
@@ -6675,6 +7096,13 @@ DataMap.prototype.getText = function(start, end) {
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
+DataMap.prototype.onSkipLengthCache = function(delay) {
+  var $__9 = this;
+  this.skipCache = true;
+  setTimeout((function() {
+    $__9.skipCache = false;
+  }), delay);
+};
 DataMap.prototype.destroy = function() {
   this.interval.stop();
   this.interval = null;
@@ -6688,7 +7116,7 @@ DataMap.prototype.destroy = function() {
 ;
 
 //# 
-},{"SheetClip":"SheetClip","browser":23,"helpers/array":42,"helpers/data":44,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"multiMap":57,"utils/interval":103}],27:[function(_dereq_,module,exports){
+},{"SheetClip":"SheetClip","browser":24,"helpers/array":43,"helpers/data":45,"helpers/number":52,"helpers/object":53,"helpers/setting":54,"multiMap":59,"utils/interval":128}],28:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataSource: {get: function() {
@@ -6696,20 +7124,11 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__helpers_47_data__,
-    $__helpers_47_setting__,
-    $__helpers_47_object__,
+var $__helpers_47_object__,
     $__helpers_47_array__,
     $__helpers_47_number__;
-var cellMethodLookupFactory = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}).cellMethodLookupFactory;
-var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
-var $__2 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
-    duckSchema = $__2.duckSchema,
-    deepExtend = $__2.deepExtend,
-    getProperty = $__2.getProperty;
-var $__3 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
-    extendArray = $__3.extendArray,
-    arrayEach = $__3.arrayEach;
+var getProperty = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).getProperty;
+var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var rangeEach = ($__helpers_47_number__ = _dereq_("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var DataSource = function DataSource(hotInstance) {
   var dataSource = arguments[1] !== (void 0) ? arguments[1] : [];
@@ -6721,16 +7140,27 @@ var DataSource = function DataSource(hotInstance) {
 };
 ($traceurRuntime.createClass)(DataSource, {
   getData: function() {
-    return this.data;
+    var toArray = arguments[0] !== (void 0) ? arguments[0] : false;
+    var result = this.data;
+    if (toArray) {
+      result = this.getByRange({
+        row: 0,
+        col: 0
+      }, {
+        row: Math.max(this.countRows() - 1, 0),
+        col: Math.max(this.countColumns() - 1, 0)
+      }, true);
+    }
+    return result;
   },
   setData: function(data) {
     this.data = data;
   },
   getAtColumn: function(column) {
-    var $__5 = this;
+    var $__3 = this;
     var result = [];
     arrayEach(this.data, (function(row) {
-      var property = $__5.colToProp(column);
+      var property = $__3.colToProp(column);
       if (typeof property === 'string') {
         row = getProperty(row, property);
       } else {
@@ -6744,29 +7174,61 @@ var DataSource = function DataSource(hotInstance) {
     return this.data[row];
   },
   getAtCell: function(row, column) {
-    return this.data[row][this.colToProp(column)];
+    var result = null;
+    var modifyRowData = this.hot.runHooks('modifyRowData', row);
+    var dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    if (dataRow) {
+      var prop = this.colToProp(column);
+      if (typeof prop === 'string') {
+        result = getProperty(dataRow, prop);
+      } else if (typeof prop === 'function') {
+        result = prop(this.data.slice(row, row + 1)[0]);
+      } else {
+        result = dataRow[prop];
+      }
+    }
+    return result;
   },
   getByRange: function(start, end) {
-    var $__5 = this;
+    var toArray = arguments[2] !== (void 0) ? arguments[2] : false;
+    var $__3 = this;
     var startRow = Math.min(start.row, end.row);
     var startCol = Math.min(start.col, end.col);
     var endRow = Math.max(start.row, end.row);
     var endCol = Math.max(start.col, end.col);
     var result = [];
     rangeEach(startRow, endRow, (function(currentRow) {
-      var row = $__5.getAtRow(currentRow);
+      var row = $__3.getAtRow(currentRow);
       var newRow;
-      if ($__5.dataType === 'array') {
-        newRow = row.slice(startCol, endCol);
-      } else if ($__5.dataType === 'object') {
-        newRow = {};
+      if ($__3.dataType === 'array') {
+        newRow = row.slice(startCol, endCol + 1);
+      } else if ($__3.dataType === 'object') {
+        newRow = toArray ? [] : {};
         rangeEach(startCol, endCol, (function(column) {
-          var prop = $__5.colToProp(column);
-          newRow[prop] = row[prop];
+          var prop = $__3.colToProp(column);
+          if (toArray) {
+            newRow.push(row[prop]);
+          } else {
+            newRow[prop] = row[prop];
+          }
         }));
       }
       result.push(newRow);
     }));
+    return result;
+  },
+  countRows: function() {
+    return Array.isArray(this.data) ? this.data.length : 0;
+  },
+  countColumns: function() {
+    var result = 0;
+    if (Array.isArray(this.data)) {
+      if (this.dataType === 'array') {
+        result = this.data[0].length;
+      } else if (this.dataType === 'object') {
+        result = Object.keys(this.data[0]).length;
+      }
+    }
     return result;
   },
   destroy: function() {
@@ -6777,7 +7239,7 @@ var DataSource = function DataSource(hotInstance) {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/data":44,"helpers/number":51,"helpers/object":52,"helpers/setting":53}],28:[function(_dereq_,module,exports){
+},{"helpers/array":43,"helpers/number":52,"helpers/object":53}],29:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   EditorManager: {get: function() {
@@ -6993,7 +7455,9 @@ function EditorManager(instance, priv, selection) {
   function init() {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
     eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
-      instance.runHooks('afterDocumentKeyDown', event);
+      if (!destroyed) {
+        instance.runHooks('afterDocumentKeyDown', event);
+      }
     });
     function onDblClick(event, coords, elem) {
       if (elem.nodeName == 'TD') {
@@ -7034,7 +7498,7 @@ function EditorManager(instance, priv, selection) {
     col = priv.selRange.highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
-    originalValue = instance.getDataAtCell(row, col);
+    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
     if (editorClass) {
@@ -7075,7 +7539,7 @@ function EditorManager(instance, priv, selection) {
 }
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"browser":23,"editors":29,"eventManager":41,"helpers/dom/event":47,"helpers/unicode":55}],29:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"browser":24,"editors":30,"eventManager":42,"helpers/dom/event":48,"helpers/unicode":56}],30:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerEditor: {get: function() {
@@ -7159,7 +7623,7 @@ function hasEditor(editorName) {
 }
 
 //# 
-},{"browser":23,"helpers/string":54}],30:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/string":55}],31:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   BaseEditor: {get: function() {
@@ -7216,9 +7680,10 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.prop = prop;
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+  var invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
-  } else if (!document.activeElement) {
+  } else if (invalidActiveElement) {
     document.body.focus();
   }
   this.state = Handsontable.EditorState.VIRGIN;
@@ -7237,25 +7702,25 @@ BaseEditor.prototype.extend = function() {
   }
   return inherit(Editor, baseClass);
 };
-BaseEditor.prototype.saveValue = function(val, ctrlDown) {
-  var sel,
+BaseEditor.prototype.saveValue = function(value, ctrlDown) {
+  var selection,
       tmp;
   if (ctrlDown) {
-    sel = this.instance.getSelected();
-    if (sel[0] > sel[2]) {
-      tmp = sel[0];
-      sel[0] = sel[2];
-      sel[2] = tmp;
+    selection = this.instance.getSelected();
+    if (selection[0] > selection[2]) {
+      tmp = selection[0];
+      selection[0] = selection[2];
+      selection[2] = tmp;
     }
-    if (sel[1] > sel[3]) {
-      tmp = sel[1];
-      sel[1] = sel[3];
-      sel[3] = tmp;
+    if (selection[1] > selection[3]) {
+      tmp = selection[1];
+      selection[1] = selection[3];
+      selection[3] = tmp;
     }
-    this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
   } else {
-    this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
+    selection = [this.row, this.col, null, null];
   }
+  this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
 };
 BaseEditor.prototype.beginEditing = function(initialValue, event) {
   if (this.state != Handsontable.EditorState.VIRGIN) {
@@ -7270,6 +7735,7 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   this._opened = true;
   this.focus();
   this.instance.view.render();
+  this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {
   var _this = this,
@@ -7281,6 +7747,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
         previousCloseCallback(result);
       }
       callback(result);
+      _this.instance.view.render();
     };
   }
   if (this.isWaiting()) {
@@ -7374,7 +7841,7 @@ BaseEditor.prototype.checkEditorSection = function() {
 };
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"browser":23,"helpers/mixed":50}],31:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"browser":24,"helpers/mixed":51}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutocompleteEditor: {get: function() {
@@ -7382,19 +7849,22 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $___46__46__47_helpers_47_unicode__,
+var $___46__46__47_helpers_47_unicode__,
     $___46__46__47_helpers_47_mixed__,
+    $___46__46__47_helpers_47_string__,
     $___46__46__47_helpers_47_array__,
     $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_editors__,
     $__handsontableEditor__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
-var $__1 = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}),
-    KEY_CODES = $__1.KEY_CODES,
-    isPrintableChar = $__1.isPrintableChar;
+var $__0 = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}),
+    KEY_CODES = $__0.KEY_CODES,
+    isPrintableChar = $__0.isPrintableChar;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
-var pivot = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).pivot;
+var stripTags = ($___46__46__47_helpers_47_string__ = _dereq_("helpers/string"), $___46__46__47_helpers_47_string__ && $___46__46__47_helpers_47_string__.__esModule && $___46__46__47_helpers_47_string__ || {default: $___46__46__47_helpers_47_string__}).stripTags;
+var $__3 = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}),
+    pivot = $__3.pivot,
+    arrayFilter = $__3.arrayFilter,
+    arrayMap = $__3.arrayMap;
 var $__4 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
     addClass = $__4.addClass,
     getCaretPosition = $__4.getCaretPosition,
@@ -7454,18 +7924,21 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer: function(TD, row, col, prop, value) {
-      var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+    afterRenderer: function(TD, row, col, prop, value, cellProperties) {
+      var $__8 = _this.cellProperties,
+          filteringCaseSensitive = $__8.filteringCaseSensitive,
+          allowHtml = $__8.allowHtml;
       var indexOfMatch;
       var match;
       value = stringify(value);
-      if (value) {
-        indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
-        if (indexOfMatch != -1) {
+      if (value && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+        if (indexOfMatch !== -1) {
           match = value.substr(indexOfMatch, _this.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          value = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+      TD.innerHTML = value;
     },
     autoColumnSize: true,
     modifyColWidth: function(width, col) {
@@ -7488,30 +7961,24 @@ AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
+  var $__7 = this;
   this.query = query;
-  var source = this.cellProperties.source;
-  var hasFilter = this.cellProperties.filter;
-  var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  var $__8 = this.cellProperties,
+      source = $__8.source,
+      filter = $__8.filter,
+      filteringCaseSensitive = $__8.filteringCaseSensitive,
+      allowHtml = $__8.allowHtml;
+  var stripTagsEach = (function(choices) {
+    return arrayMap(choices, (function(choice) {
+      return stripTags(choice);
+    }));
+  });
   if (typeof source == 'function') {
-    var _this = this;
-    source(query, function(choices) {
-      _this.updateChoicesList(choices);
-    });
+    source.call(this.cellProperties, query, (function(choices) {
+      $__7.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
+    }));
   } else if (Array.isArray(source)) {
-    var choices;
-    if (!query || hasFilter === false) {
-      choices = source;
-    } else {
-      var lowerCaseQuery = query.toLowerCase();
-      choices = source.filter(function(choice) {
-        if (filteringCaseSensitive) {
-          return choice.indexOf(query) != -1;
-        } else {
-          return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
-        }
-      });
-    }
-    this.updateChoicesList(choices);
+    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
   } else {
     this.updateChoicesList([]);
   }
@@ -7523,20 +7990,23 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   var filterSetting = this.cellProperties.filter;
   var orderByRelevance = null;
   var highlightIndex = null;
+  var flipped = null;
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   }
+  var orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
   if (filterSetting === false) {
-    if (orderByRelevance) {
+    if (orderByRelevanceLength) {
       highlightIndex = orderByRelevance[0];
-    } else {
-      highlightIndex = 0;
     }
   } else {
     var sorted = [];
     for (var i = 0,
         choicesCount = choices.length; i < choicesCount; i++) {
-      if (orderByRelevance) {
+      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+        break;
+      }
+      if (orderByRelevanceLength) {
         sorted.push(choices[orderByRelevance[i]]);
       } else {
         sorted.push(choices[i]);
@@ -7561,6 +8031,8 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   var textareaHeight = outerHeight(this.TEXTAREA);
   var dropdownHeight = this.getDropdownHeight();
   var trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+  var trimmingContainerScrollTop = trimmingContainer.scrollTop;
+  var headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
   var containerOffset = {
     row: 0,
     col: 0
@@ -7568,13 +8040,33 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   if (trimmingContainer !== window) {
     containerOffset = offset(trimmingContainer);
   }
-  var spaceBelow = containerOffset.top + (trimmingContainer.scrollHeight - trimmingContainer.scrollTop);
-  var spaceAbove = containerOffset.top + trimmingContainer.scrollHeight;
-  var flipNeeded = (textareaOffset.top + textareaHeight + dropdownHeight > spaceBelow);
-  if (flipNeeded && spaceAbove > spaceBelow) {
+  var spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+  var spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+  var flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
+  if (flipNeeded) {
     this.flipDropdown(dropdownHeight);
   } else {
     this.unflipDropdown();
+  }
+  this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
+  return flipNeeded;
+};
+AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dropdownHeight) {
+  if (dropdownHeight > spaceAvailable) {
+    var tempHeight = 0;
+    var i = 0;
+    var lastRowHeight = 0;
+    var height = null;
+    do {
+      lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+      tempHeight += lastRowHeight;
+      i++;
+    } while (tempHeight < spaceAvailable);
+    height = tempHeight - lastRowHeight;
+    if (this.htEditor.flipped) {
+      this.htEditor.rootElement.style.top = parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height + 'px';
+    }
+    this.setDropdownHeight(tempHeight - lastRowHeight);
   }
 };
 AutocompleteEditor.prototype.flipDropdown = function(dropdownHeight) {
@@ -7599,6 +8091,9 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
     width: trimDropdown ? void 0 : currentDropdownWidth
   });
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+};
+AutocompleteEditor.prototype.setDropdownHeight = function(height) {
+  this.htEditor.updateSettings({height: height});
 };
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
   if (!restoreOriginalValue) {
@@ -7629,7 +8124,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     return result;
   }
   for (i = 0; i < choicesCount; i++) {
-    currentItem = stringify(choices[i]);
+    currentItem = stripTags(stringify(choices[i]));
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);
     } else {
@@ -7688,11 +8183,15 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   }
   return allowed;
 };
+AutocompleteEditor.prototype.discardEditor = function(result) {
+  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+  this.instance.view.render();
+};
 ;
 registerEditor('autocomplete', AutocompleteEditor);
 
 //# 
-},{"browser":23,"editors":29,"handsontableEditor":35,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/unicode":55}],32:[function(_dereq_,module,exports){
+},{"editors":30,"handsontableEditor":36,"helpers/array":43,"helpers/dom/element":47,"helpers/mixed":51,"helpers/string":55,"helpers/unicode":56}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CheckboxEditor: {get: function() {
@@ -7700,11 +8199,9 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $___46__46__47_editors__,
+var $___46__46__47_editors__,
     $___95_baseEditor__,
     $___46__46__47_helpers_47_dom_47_element__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var BaseEditor = ($___95_baseEditor__ = _dereq_("_baseEditor"), $___95_baseEditor__ && $___95_baseEditor__.__esModule && $___95_baseEditor__ || {default: $___95_baseEditor__}).BaseEditor;
 var hasClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).hasClass;
@@ -7733,7 +8230,7 @@ var $CheckboxEditor = CheckboxEditor;
 registerEditor('checkbox', CheckboxEditor);
 
 //# 
-},{"_baseEditor":30,"browser":23,"editors":29,"helpers/dom/element":46}],33:[function(_dereq_,module,exports){
+},{"_baseEditor":31,"editors":30,"helpers/dom/element":47}],34:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DateEditor: {get: function() {
@@ -7765,8 +8262,6 @@ var stopPropagation = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpe
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = _dereq_("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -7922,10 +8417,12 @@ var $DateEditor = DateEditor;
   }
 }, {}, TextEditor);
 ;
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 registerEditor('date', DateEditor);
 
 //# 
-},{"browser":23,"editors":29,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/object":52,"helpers/unicode":55,"moment":"moment","pikaday":"pikaday","textEditor":40}],34:[function(_dereq_,module,exports){
+},{"browser":24,"editors":30,"eventManager":42,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/object":53,"helpers/unicode":56,"moment":"moment","pikaday":"pikaday","textEditor":41}],35:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DropdownEditor: {get: function() {
@@ -7964,7 +8461,7 @@ Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
 registerEditor('dropdown', DropdownEditor);
 
 //# 
-},{"autocompleteEditor":31,"browser":23,"editors":29}],35:[function(_dereq_,module,exports){
+},{"autocompleteEditor":32,"browser":24,"editors":30}],36:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   HandsontableEditor: {get: function() {
@@ -8128,7 +8625,7 @@ HandsontableEditor.prototype.assignHooks = function() {
 registerEditor('handsontable', HandsontableEditor);
 
 //# 
-},{"browser":23,"editors":29,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/object":52,"helpers/unicode":55,"textEditor":40}],36:[function(_dereq_,module,exports){
+},{"browser":24,"editors":30,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/object":53,"helpers/unicode":56,"textEditor":41}],37:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MobileTextEditor: {get: function() {
@@ -8389,7 +8886,7 @@ MobileTextEditor.prototype.destroy = function() {
 registerEditor('mobile', MobileTextEditor);
 
 //# 
-},{"_baseEditor":30,"browser":23,"editors":29,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/unicode":55}],37:[function(_dereq_,module,exports){
+},{"_baseEditor":31,"browser":24,"editors":30,"eventManager":42,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/unicode":56}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   NumericEditor: {get: function() {
@@ -8397,15 +8894,11 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $__numeral__,
+var $__numbro__,
     $___46__46__47_editors__,
     $__textEditor__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var $__2 = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}),
-    getEditor = $__2.getEditor,
-    registerEditor = $__2.registerEditor;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var NumericEditor = function NumericEditor() {
   $traceurRuntime.superConstructor($NumericEditor).apply(this, arguments);
@@ -8414,9 +8907,9 @@ var $NumericEditor = NumericEditor;
 ($traceurRuntime.createClass)(NumericEditor, {beginEditing: function(initialValue) {
     if (typeof initialValue === 'undefined' && this.originalValue) {
       if (typeof this.cellProperties.language !== 'undefined') {
-        numeral.language(this.cellProperties.language);
+        numbro.culture(this.cellProperties.language);
       }
-      var decimalDelimiter = numeral.languageData().delimiters.decimal;
+      var decimalDelimiter = numbro.cultureData().delimiters.decimal;
       initialValue = ('' + this.originalValue).replace('.', decimalDelimiter);
     }
     $traceurRuntime.superGet(this, $NumericEditor.prototype, "beginEditing").call(this, initialValue);
@@ -8425,7 +8918,7 @@ var $NumericEditor = NumericEditor;
 registerEditor('numeric', NumericEditor);
 
 //# 
-},{"browser":23,"editors":29,"numeral":"numeral","textEditor":40}],38:[function(_dereq_,module,exports){
+},{"editors":30,"numbro":"numbro","textEditor":41}],39:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   PasswordEditor: {get: function() {
@@ -8462,7 +8955,7 @@ var $PasswordEditor = PasswordEditor;
 registerEditor('password', PasswordEditor);
 
 //# 
-},{"browser":23,"editors":29,"helpers/dom/element":46,"textEditor":40}],39:[function(_dereq_,module,exports){
+},{"browser":24,"editors":30,"helpers/dom/element":47,"textEditor":41}],40:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   SelectEditor: {get: function() {
@@ -8590,6 +9083,12 @@ SelectEditor.prototype.close = function() {
 SelectEditor.prototype.focus = function() {
   this.select.focus();
 };
+SelectEditor.prototype.refreshValue = function() {
+  var sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
 SelectEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;
@@ -8689,7 +9188,7 @@ SelectEditor.prototype.getEditedCell = function() {
 registerEditor('select', SelectEditor);
 
 //# 
-},{"_baseEditor":30,"browser":23,"editors":29,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/unicode":55}],40:[function(_dereq_,module,exports){
+},{"_baseEditor":31,"browser":24,"editors":30,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/unicode":56}],41:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TextEditor: {get: function() {
@@ -8899,6 +9398,12 @@ TextEditor.prototype.getEditedCell = function() {
   }
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
+TextEditor.prototype.refreshValue = function() {
+  var sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
 TextEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;
@@ -8912,7 +9417,8 @@ TextEditor.prototype.refreshDimensions = function() {
       containerOffset = offset(this.instance.rootElement),
       scrollableContainer = getScrollableElement(this.TD),
       totalRowsCount = this.instance.countRows(),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
+      editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
       settings = this.instance.getSettings(),
       rowHeadersCount = this.instance.hasRowHeaders(),
@@ -9009,7 +9515,7 @@ TextEditor.prototype.destroy = function() {
 registerEditor('text', TextEditor);
 
 //# 
-},{"_baseEditor":30,"autoResize":"autoResize","browser":23,"editors":29,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/unicode":55}],41:[function(_dereq_,module,exports){
+},{"_baseEditor":31,"autoResize":"autoResize","browser":24,"editors":30,"eventManager":42,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/unicode":56}],42:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   EventManager: {get: function() {
@@ -9197,7 +9703,7 @@ function eventManager(context) {
 }
 
 //# 
-},{"browser":23,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/feature":48}],42:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/feature":49}],43:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   to2dArray: {get: function() {
@@ -9238,6 +9744,9 @@ Object.defineProperties(exports, {
     }},
   arrayUnique: {get: function() {
       return arrayUnique;
+    }},
+  arrayIncludes: {get: function() {
+      return arrayIncludes;
     }},
   __esModule: {value: true}
 });
@@ -9354,9 +9863,28 @@ function arrayUnique(array) {
   }));
   return unique;
 }
+function arrayIncludes(array, searchElement, fromIndex) {
+  if (array == null) {
+    throw new TypeError('"array" is null or not defined');
+  }
+  var o = Object(array);
+  var len = o.length >>> 0;
+  if (len === 0) {
+    return false;
+  }
+  var n = fromIndex | 0;
+  var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+  while (k < len) {
+    if (o[k] === searchElement) {
+      return true;
+    }
+    k++;
+  }
+  return false;
+}
 
 //# 
-},{}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   isIE8: {get: function() {
@@ -9400,11 +9928,14 @@ function isMobileBrowser(userAgent) {
 }
 
 //# 
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   spreadsheetColumnLabel: {get: function() {
       return spreadsheetColumnLabel;
+    }},
+  spreadsheetColumnIndex: {get: function() {
+      return spreadsheetColumnIndex;
     }},
   createSpreadsheetData: {get: function() {
       return createSpreadsheetData;
@@ -9427,46 +9958,59 @@ var $___46__46__47_browser__,
     $__object__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var getPrototypeOf = ($__object__ = _dereq_("object"), $__object__ && $__object__.__esModule && $__object__ || {default: $__object__}).getPrototypeOf;
+var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 function spreadsheetColumnLabel(index) {
   var dividend = index + 1;
   var columnLabel = '';
   var modulo;
   while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
+    modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
+    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
   }
   return columnLabel;
 }
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-  var rows = [],
+function spreadsheetColumnIndex(label) {
+  var result = 0;
+  if (label) {
+    for (var i = 0,
+        j = label.length - 1; i < label.length; i += 1, j -= 1) {
+      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
+    }
+  }
+  --result;
+  return result;
+}
+function createSpreadsheetData() {
+  var rows = arguments[0] !== (void 0) ? arguments[0] : 100;
+  var columns = arguments[1] !== (void 0) ? arguments[1] : 4;
+  var _rows = [],
       i,
       j;
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rows; i++) {
     var row = [];
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < columns; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
-    rows.push(row);
+    _rows.push(row);
   }
-  return rows;
+  return _rows;
 }
-function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-  var rows = [],
+function createSpreadsheetObjectData() {
+  var rows = arguments[0] !== (void 0) ? arguments[0] : 100;
+  var colCount = arguments[1] !== (void 0) ? arguments[1] : 4;
+  var _rows = [],
       i,
       j;
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rows; i++) {
     var row = {};
     for (j = 0; j < colCount; j++) {
       row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
     }
-    rows.push(row);
+    _rows.push(row);
   }
-  return rows;
+  return _rows;
 }
 function createEmptySpreadsheetData(rows, columns) {
   var data = [];
@@ -9531,7 +10075,7 @@ function cellMethodLookupFactory(methodName, allowUndefined) {
 }
 
 //# 
-},{"browser":23,"object":52}],45:[function(_dereq_,module,exports){
+},{"browser":24,"object":53}],46:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   getNormalizedDate: {get: function() {
@@ -9548,11 +10092,17 @@ function getNormalizedDate(dateString) {
 }
 
 //# 
-},{}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  getParent: {get: function() {
+      return getParent;
+    }},
   closest: {get: function() {
       return closest;
+    }},
+  closestDown: {get: function() {
+      return closestDown;
     }},
   isChildOf: {get: function() {
       return isChildOf;
@@ -9689,6 +10239,24 @@ var $__0 = ($___46__46__47_browser__ = _dereq_("../browser"), $___46__46__47_bro
     isIE9 = $__0.isIE9,
     isSafari = $__0.isSafari;
 var hasCaptionProblem = ($___46__46__47_feature__ = _dereq_("../feature"), $___46__46__47_feature__ && $___46__46__47_feature__.__esModule && $___46__46__47_feature__ || {default: $___46__46__47_feature__}).hasCaptionProblem;
+function getParent(element) {
+  var level = arguments[1] !== (void 0) ? arguments[1] : 0;
+  var iteration = -1;
+  var parent = null;
+  while (element != null) {
+    if (iteration === level) {
+      parent = element;
+      break;
+    }
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+    } else {
+      iteration++;
+      element = element.parentNode;
+    }
+  }
+  return parent;
+}
 function closest(element, nodes, until) {
   while (element != null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
@@ -9701,6 +10269,23 @@ function closest(element, nodes, until) {
     }
   }
   return null;
+}
+function closestDown(element, nodes, until) {
+  var matched = [];
+  while (element) {
+    element = closest(element, nodes, until);
+    if (!element || (until && !until.contains(element))) {
+      break;
+    }
+    matched.push(element);
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+    } else {
+      element = element.parentNode;
+    }
+  }
+  var length = matched.length;
+  return length ? matched[length - 1] : null;
 }
 function isChildOf(child, parent) {
   var node = child.parentNode;
@@ -10160,17 +10745,18 @@ function setCaretPosition(element, pos, endPos) {
 }
 var cachedScrollbarWidth;
 function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('p');
-  inner.style.width = '100%';
+  var inner = document.createElement('div');
   inner.style.height = '200px';
+  inner.style.width = '100%';
   var outer = document.createElement('div');
+  outer.style.boxSizing = 'content-box';
+  outer.style.height = '150px';
+  outer.style.left = '0px';
+  outer.style.overflow = 'hidden';
   outer.style.position = 'absolute';
   outer.style.top = '0px';
-  outer.style.left = '0px';
-  outer.style.visibility = 'hidden';
   outer.style.width = '200px';
-  outer.style.height = '150px';
-  outer.style.overflow = 'hidden';
+  outer.style.visibility = 'hidden';
   outer.appendChild(inner);
   (document.body || document.documentElement).appendChild(outer);
   var w1 = inner.offsetWidth;
@@ -10229,7 +10815,7 @@ function isOutsideInput(element) {
 }
 
 //# 
-},{"../browser":43,"../feature":48}],47:[function(_dereq_,module,exports){
+},{"../browser":44,"../feature":49}],48:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   stopImmediatePropagation: {get: function() {
@@ -10246,6 +10832,12 @@ Object.defineProperties(exports, {
     }},
   pageY: {get: function() {
       return pageY;
+    }},
+  isRightClick: {get: function() {
+      return isRightClick;
+    }},
+  isLeftClick: {get: function() {
+      return isLeftClick;
     }},
   __esModule: {value: true}
 });
@@ -10279,9 +10871,15 @@ function pageY(event) {
   }
   return event.clientY + getWindowScrollTop();
 }
+function isRightClick(event) {
+  return event.button === 2;
+}
+function isLeftClick(event) {
+  return event.button === 0;
+}
 
 //# 
-},{"element":46}],48:[function(_dereq_,module,exports){
+},{"element":47}],49:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   requestAnimationFrame: {get: function() {
@@ -10391,9 +10989,12 @@ function getComparisonFunction(language) {
 }
 
 //# 
-},{}],49:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  isFunction: {get: function() {
+      return isFunction;
+    }},
   proxy: {get: function() {
       return proxy;
     }},
@@ -10422,6 +11023,9 @@ Object.defineProperties(exports, {
 });
 var $__array__;
 var arrayReduce = ($__array__ = _dereq_("array"), $__array__ && $__array__.__esModule && $__array__ || {default: $__array__}).arrayReduce;
+function isFunction(func) {
+  return typeof func === 'function';
+}
 function proxy(func, context) {
   return function() {
     return func.apply(context, arguments);
@@ -10560,11 +11164,17 @@ function curryRight(func) {
 }
 
 //# 
-},{"array":42}],50:[function(_dereq_,module,exports){
+},{"array":43}],51:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   stringify: {get: function() {
       return stringify;
+    }},
+  isDefined: {get: function() {
+      return isDefined;
+    }},
+  isUndefined: {get: function() {
+      return isUndefined;
     }},
   __esModule: {value: true}
 });
@@ -10586,9 +11196,15 @@ function stringify(value) {
       return value.toString();
   }
 }
+function isDefined(variable) {
+  return typeof variable !== 'undefined';
+}
+function isUndefined(variable) {
+  return typeof variable === 'undefined';
+}
 
 //# 
-},{}],51:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   isNumeric: {get: function() {
@@ -10642,7 +11258,7 @@ function valueAccordingPercent(value, percent) {
 }
 
 //# 
-},{}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   duckSchema: {get: function() {
@@ -10684,6 +11300,12 @@ Object.defineProperties(exports, {
   getProperty: {get: function() {
       return getProperty;
     }},
+  deepObjectSize: {get: function() {
+      return deepObjectSize;
+    }},
+  createObjectPropListener: {get: function() {
+      return createObjectPropListener;
+    }},
   __esModule: {value: true}
 });
 var $__array__;
@@ -10695,6 +11317,9 @@ function duckSchema(object) {
   } else {
     schema = {};
     objectEach(object, function(value, key) {
+      if (key === '__children') {
+        return;
+      }
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         schema[key] = duckSchema(value);
       } else if (Array.isArray(value)) {
@@ -10755,8 +11380,8 @@ function clone(object) {
 }
 function mixin(Base) {
   for (var mixins = [],
-      $__1 = 1; $__1 < arguments.length; $__1++)
-    mixins[$__1 - 1] = arguments[$__1];
+      $__2 = 1; $__2 < arguments.length; $__2++)
+    mixins[$__2 - 1] = arguments[$__2];
   if (!Base.MIXINS) {
     Base.MIXINS = [];
   }
@@ -10853,9 +11478,61 @@ function getProperty(object, name) {
   }));
   return result;
 }
+function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  var recursObjLen = function(obj) {
+    var result = 0;
+    if (isObject(obj)) {
+      objectEach(obj, (function(key) {
+        result += recursObjLen(key);
+      }));
+    } else {
+      result++;
+    }
+    return result;
+  };
+  return recursObjLen(object);
+}
+function createObjectPropListener(defaultValue) {
+  var propertyToListen = arguments[1] !== (void 0) ? arguments[1] : 'value';
+  var $__1;
+  var privateProperty = ("_" + propertyToListen);
+  var holder = ($__1 = {}, Object.defineProperty($__1, "_touched", {
+    value: false,
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), Object.defineProperty($__1, privateProperty, {
+    value: defaultValue,
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), Object.defineProperty($__1, "isTouched", {
+    value: function() {
+      return this._touched;
+    },
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), $__1);
+  Object.defineProperty(holder, propertyToListen, {
+    get: function() {
+      return this[privateProperty];
+    },
+    set: function(value) {
+      this._touched = true;
+      this[privateProperty] = value;
+    },
+    enumerable: true,
+    configurable: true
+  });
+  return holder;
+}
 
 //# 
-},{"array":42}],53:[function(_dereq_,module,exports){
+},{"array":43}],54:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   columnFactory: {get: function() {
@@ -10877,7 +11554,7 @@ function columnFactory(GridSettings, conflictList) {
 }
 
 //# 
-},{"object":52}],54:[function(_dereq_,module,exports){
+},{"object":53}],55:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   toUpperCaseFirst: {get: function() {
@@ -10903,6 +11580,9 @@ Object.defineProperties(exports, {
     }},
   padStart: {get: function() {
       return padStart;
+    }},
+  stripTags: {get: function() {
+      return stripTags;
     }},
   __esModule: {value: true}
 });
@@ -10990,9 +11670,14 @@ function padStart(string, maxLength) {
   return truncatedString + string;
 }
 ;
+var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
+function stripTags(string) {
+  string = string + '';
+  return string.replace(STRIP_TAGS_REGEX, '');
+}
 
 //# 
-},{"mixed":50,"number":51}],55:[function(_dereq_,module,exports){
+},{"mixed":51,"number":52}],56:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   KEY_CODES: {get: function() {
@@ -11081,7 +11766,110 @@ function isKey(keyCode, baseCode) {
 }
 
 //# 
-},{"array":42}],56:[function(_dereq_,module,exports){
+},{"array":43}],57:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  arrayMapper: {get: function() {
+      return arrayMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_browser__,
+    $___46__46__47_helpers_47_array__,
+    $___46__46__47_helpers_47_object__,
+    $___46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
+var $__1 = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}),
+    arrayEach = $__1.arrayEach,
+    arrayReduce = $__1.arrayReduce,
+    arrayMap = $__1.arrayMap,
+    arrayMax = $__1.arrayMax;
+var defineGetter = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).defineGetter;
+var rangeEach = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).rangeEach;
+var MIXIN_NAME = 'arrayMapper';
+var arrayMapper = {
+  _arrayMap: [],
+  getValueByIndex: function(index) {
+    var value;
+    return (value = this._arrayMap[index]) === void 0 ? null : value;
+  },
+  getIndexByValue: function(value) {
+    var index;
+    return (index = this._arrayMap.indexOf(value)) === -1 ? null : index;
+  },
+  insertItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    var newIndex = arrayMax(this._arrayMap) + 1;
+    var addedItems = [];
+    rangeEach(amount - 1, (function(count) {
+      addedItems.push($__4._arrayMap.splice(index + count, 0, newIndex + count));
+    }));
+    return addedItems;
+  },
+  removeItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    var removedItems = [];
+    if (Array.isArray(index)) {
+      var mapCopy = [].concat(this._arrayMap);
+      index.sort((function(a, b) {
+        return b - a;
+      }));
+      removedItems = arrayReduce(index, (function(acc, item) {
+        $__4._arrayMap.splice(item, 1);
+        return acc.concat(mapCopy.slice(item, item + 1));
+      }), []);
+    } else {
+      removedItems = this._arrayMap.splice(index, amount);
+    }
+    return removedItems;
+  },
+  unshiftItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var removedItems = this.removeItems(index, amount);
+    function countRowShift(logicalRow) {
+      return arrayReduce(removedItems, (function(count, removedLogicalRow) {
+        if (logicalRow > removedLogicalRow) {
+          count++;
+        }
+        return count;
+      }), 0);
+    }
+    this._arrayMap = arrayMap(this._arrayMap, (function(logicalRow, physicalRow) {
+      var rowShift = countRowShift(logicalRow);
+      if (rowShift) {
+        logicalRow -= rowShift;
+      }
+      return logicalRow;
+    }));
+  },
+  shiftItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    this._arrayMap = arrayMap(this._arrayMap, (function(row) {
+      if (row >= index) {
+        row += amount;
+      }
+      return row;
+    }));
+    rangeEach(amount - 1, (function(count) {
+      $__4._arrayMap.splice(index + count, 0, index + count);
+    }));
+  },
+  clearMap: function() {
+    this._arrayMap.length = 0;
+  }
+};
+defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+;
+Handsontable.utils.arrayMapper = arrayMapper;
+
+//# 
+},{"browser":24,"helpers/array":43,"helpers/number":52,"helpers/object":53}],58:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   localHooks: {get: function() {
@@ -11127,7 +11915,7 @@ defineGetter(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
 Handsontable.utils.localHooks = localHooks;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/object":52}],57:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/array":43,"helpers/object":53}],59:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MultiMap: {get: function() {
@@ -11179,7 +11967,7 @@ function MultiMap() {
 }
 
 //# 
-},{}],58:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Hooks: {get: function() {
@@ -11189,7 +11977,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'beforeContextMenuSetItems', 'afterDropdownMenuDefaultOptions', 'beforeDropdownMenuSetItems', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'beforeCreateCol', 'afterCreateCol', 'beforeCreateRow', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellCornerDblClick', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterSetDataAtCell', 'afterSetDataAtRowProp', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeOnCellMouseOver', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeStart', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'beforeValueRender', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'unmodifyRow', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'modifyData', 'modifyRowData', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'modifyAutofillRange', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter', 'modifyColumnHeaderHeight', 'beforeUndo', 'afterUndo', 'beforeRedo', 'afterRedo', 'modifyRowHeaderWidth', 'beforeAutofillInsidePopulate', 'modifyTransformStart', 'modifyTransformEnd', 'afterModifyTransformStart', 'afterModifyTransformEnd', 'beforeValueRender', 'afterViewportRowCalculatorOverride', 'afterViewportColumnCalculatorOverride', 'afterPluginsInitialized', 'manualRowHeights', 'skipLengthCache', 'afterTrimRow', 'afterUntrimRow', 'afterDropdownMenuShow', 'afterDropdownMenuHide', 'hiddenRow', 'hiddenColumn', 'beforeAddChild', 'afterAddChild', 'beforeDetachChild', 'afterDetachChild', 'afterBeginEditing'];
 var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -11328,7 +12116,7 @@ var Hooks = function Hooks() {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/object":52}],59:[function(_dereq_,module,exports){
+},{"helpers/array":43,"helpers/object":53}],61:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerPlugin: {get: function() {
@@ -11402,7 +12190,7 @@ function getPluginName(hotInstance, plugin) {
 ;
 
 //# 
-},{"browser":23,"helpers/object":52,"helpers/string":54}],60:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/object":53,"helpers/string":55}],62:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   default: {get: function() {
@@ -11413,20 +12201,25 @@ Object.defineProperties(exports, {
 var $___46__46__47_browser__,
     $___46__46__47_helpers_47_object__,
     $___46__46__47_helpers_47_array__,
+    $___46__46__47_utils_47_recordTranslator__,
     $___46__46__47_plugins__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var $__1 = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}),
     defineGetter = $__1.defineGetter,
     objectEach = $__1.objectEach;
 var arrayEach = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).arrayEach;
-var $__3 = ($___46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47_plugins__ && $___46__46__47_plugins__.__esModule && $___46__46__47_plugins__ || {default: $___46__46__47_plugins__}),
-    getRegistredPluginNames = $__3.getRegistredPluginNames,
-    getPluginName = $__3.getPluginName;
+var $__3 = ($___46__46__47_utils_47_recordTranslator__ = _dereq_("utils/recordTranslator"), $___46__46__47_utils_47_recordTranslator__ && $___46__46__47_utils_47_recordTranslator__.__esModule && $___46__46__47_utils_47_recordTranslator__ || {default: $___46__46__47_utils_47_recordTranslator__}),
+    registerIdentity = $__3.registerIdentity,
+    getTranslator = $__3.getTranslator;
+var $__4 = ($___46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47_plugins__ && $___46__46__47_plugins__.__esModule && $___46__46__47_plugins__ || {default: $___46__46__47_plugins__}),
+    getRegistredPluginNames = $__4.getRegistredPluginNames,
+    getPluginName = $__4.getPluginName;
 var privatePool = new WeakMap();
 var initializedPlugins = null;
 var BasePlugin = function BasePlugin(hotInstance) {
-  var $__4 = this;
+  var $__5 = this;
   defineGetter(this, 'hot', hotInstance, {writable: false});
+  defineGetter(this, 't', getTranslator(hotInstance), {writable: false});
   privatePool.set(this, {hooks: {}});
   initializedPlugins = null;
   this.pluginName = null;
@@ -11435,13 +12228,13 @@ var BasePlugin = function BasePlugin(hotInstance) {
   this.enabled = false;
   this.initialized = false;
   this.hot.addHook('afterPluginsInitialized', (function() {
-    return $__4.onAfterPluginsInitialized();
+    return $__5.onAfterPluginsInitialized();
   }));
   this.hot.addHook('afterUpdateSettings', (function() {
-    return $__4.onUpdateSettings();
+    return $__5.onUpdateSettings();
   }));
   this.hot.addHook('beforeInit', (function() {
-    return $__4.init();
+    return $__5.init();
   }));
 };
 ($traceurRuntime.createClass)(BasePlugin, {
@@ -11478,16 +12271,16 @@ var BasePlugin = function BasePlugin(hotInstance) {
     privatePool.get(this).hooks[name] = hooks;
   },
   removeHooks: function(name) {
-    var $__4 = this;
+    var $__5 = this;
     arrayEach(privatePool.get(this).hooks[name] || [], (function(callback) {
-      $__4.hot.removeHook(name, callback);
+      $__5.hot.removeHook(name, callback);
     }));
   },
   clearHooks: function() {
-    var $__4 = this;
+    var $__5 = this;
     var hooks = privatePool.get(this).hooks;
     objectEach(hooks, (function(callbacks, name) {
-      return $__4.removeHooks(name);
+      return $__5.removeHooks(name);
     }));
     hooks.length = 0;
   },
@@ -11520,16 +12313,17 @@ var BasePlugin = function BasePlugin(hotInstance) {
   },
   updatePlugin: function() {},
   destroy: function() {
-    var $__4 = this;
+    var $__5 = this;
     if (this.eventManager) {
       this.eventManager.destroy();
     }
     this.clearHooks();
     objectEach(this, (function(value, property) {
-      if (property !== 'hot') {
-        $__4[property] = null;
+      if (property !== 'hot' && property !== 't') {
+        $__5[property] = null;
       }
     }));
+    delete this.t;
     delete this.hot;
   }
 }, {});
@@ -11537,7 +12331,7 @@ var $__default = BasePlugin;
 Handsontable.plugins.BasePlugin = BasePlugin;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/object":52,"plugins":59}],61:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/array":43,"helpers/object":53,"plugins":61,"utils/recordTranslator":129}],63:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoColumnSize: {get: function() {
@@ -11600,9 +12394,8 @@ var $AutoColumnSize = AutoColumnSize;
       return;
     }
     var setting = this.hot.getSettings().autoColumnSize;
-    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
     this.addHook('afterLoadData', (function() {
       return $__11.onAfterLoadData();
@@ -11703,6 +12496,17 @@ var $AutoColumnSize = AutoColumnSize;
       loop();
     } else {
       this.inProgress = false;
+    }
+  },
+  setSamplingOptions: function() {
+    var setting = this.hot.getSettings().autoColumnSize;
+    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    var allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   },
   recalculateAllColumnsWidth: function() {
@@ -11819,7 +12623,7 @@ var $AutoColumnSize = AutoColumnSize;
 registerPlugin('autoColumnSize', AutoColumnSize);
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"_base":60,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":59,"utils/ghostTable":102,"utils/samplesGenerator":104}],62:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":4,"_base":62,"helpers/array":43,"helpers/dom/element":47,"helpers/feature":49,"helpers/number":52,"helpers/object":53,"helpers/string":55,"plugins":61,"utils/ghostTable":127,"utils/samplesGenerator":130}],64:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoRowSize: {get: function() {
@@ -11861,7 +12665,13 @@ var AutoRowSize = function AutoRowSize(hotInstance) {
   this.heights = [];
   this.ghostTable = new GhostTable(this.hot);
   this.samplesGenerator = new SamplesGenerator((function(row, col) {
-    return $__10.hot.getDataAtCell(row, col);
+    if (row >= 0) {
+      return $__10.hot.getDataAtCell(row, col);
+    } else if (row === -1) {
+      return $__10.hot.getColHeader(col);
+    } else {
+      return null;
+    }
   }));
   this.firstCalculation = true;
   this.inProgress = false;
@@ -11879,11 +12689,7 @@ var $AutoRowSize = AutoRowSize;
     if (this.enabled) {
       return;
     }
-    var setting = this.hot.getSettings().autoRowSize;
-    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
-    }
+    this.setSamplingOptions();
     this.addHook('afterLoadData', (function() {
       return $__10.onAfterLoadData();
     }));
@@ -11907,6 +12713,9 @@ var $AutoRowSize = AutoRowSize;
     }));
     this.addHook('modifyRowHeight', (function(height, row) {
       return $__10.getRowHeight(row, height);
+    }));
+    this.addHook('modifyColumnHeaderHeight', (function() {
+      return $__10.getColumnHeaderHeight();
     }));
     $traceurRuntime.superGet(this, $AutoRowSize.prototype, "enablePlugin").call(this);
   },
@@ -11935,6 +12744,10 @@ var $AutoRowSize = AutoRowSize;
         from: colRange,
         to: colRange
       };
+    }
+    if (this.hot.getColHeader(0) !== null) {
+      var samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+      this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
     rangeEach(rowRange.from, rowRange.to, (function(row) {
       if (force || $__10.heights[row] === void 0) {
@@ -11997,6 +12810,17 @@ var $AutoRowSize = AutoRowSize;
       this.inProgress = false;
     }
   },
+  setSamplingOptions: function() {
+    var setting = this.hot.getSettings().autoRowSize;
+    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    var allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
+    }
+  },
   recalculateAllRowsHeight: function() {
     if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
       this.clearCache();
@@ -12024,6 +12848,9 @@ var $AutoRowSize = AutoRowSize;
     }
     return height;
   },
+  getColumnHeaderHeight: function() {
+    return this.heights[-1];
+  },
   getFirstVisibleRow: function() {
     var wot = this.hot.view.wt;
     if (wot.wtViewport.rowsVisibleCalculator) {
@@ -12046,6 +12873,7 @@ var $AutoRowSize = AutoRowSize;
   },
   clearCache: function() {
     this.heights.length = 0;
+    this.heights[-1] = void 0;
   },
   clearCacheByRange: function(range) {
     var $__10 = this;
@@ -12138,7 +12966,7 @@ var $AutoRowSize = AutoRowSize;
 registerPlugin('autoRowSize', AutoRowSize);
 
 //# 
-},{"_base":60,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":59,"utils/ghostTable":102,"utils/samplesGenerator":104}],63:[function(_dereq_,module,exports){
+},{"_base":62,"helpers/array":43,"helpers/dom/element":47,"helpers/feature":49,"helpers/number":52,"helpers/object":53,"helpers/string":55,"plugins":61,"utils/ghostTable":127,"utils/samplesGenerator":130}],65:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Autofill: {get: function() {
@@ -12146,277 +12974,386 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_browser__,
+var $___46__46__47__95_base__,
+    $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_plugins__,
-    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__;
+    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
+    $__utils__;
+var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    offset = $__1.offset,
-    outerHeight = $__1.outerHeight,
-    outerWidth = $__1.outerWidth;
+var arrayIncludes = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayIncludes;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    offset = $__3.offset,
+    outerHeight = $__3.outerHeight,
+    outerWidth = $__3.outerWidth;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
+var $__7 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+    getDeltas = $__7.getDeltas,
+    getDragDirectionAndRange = $__7.getDragDirectionAndRange,
+    DIRECTIONS = $__7.DIRECTIONS,
+    getMappedFillHandleSetting = $__7.getMappedFillHandleSetting;
+var INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
+var INTERVAL_FOR_ADDING_ROW = 200;
+var Autofill = function Autofill(hotInstance) {
+  $traceurRuntime.superConstructor($Autofill).call(this, hotInstance);
+  this.eventManager = eventManagerObject(this);
+  this.addingStarted = false;
+  this.mouseDownOnCellCorner = false;
+  this.mouseDragOutside = false;
+  this.handleDraggedCells = 0;
+  this.directions = [];
+  this.autoInsertRow = false;
+};
+var $Autofill = Autofill;
+($traceurRuntime.createClass)(Autofill, {
+  isEnabled: function() {
+    return this.hot.getSettings().fillHandle;
+  },
+  enablePlugin: function() {
+    var $__8 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.mapSettings();
+    this.registerEvents();
+    this.addHook('afterOnCellCornerMouseDown', (function(event) {
+      return $__8.onAfterCellCornerMouseDown(event);
+    }));
+    this.addHook('afterOnCellCornerDblClick', (function(event) {
+      return $__8.onCellCornerDblClick(event);
+    }));
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD) {
+      return $__8.onBeforeCellMouseOver(coords);
+    }));
+    $traceurRuntime.superGet(this, $Autofill.prototype, "enablePlugin").call(this);
+  },
+  updatePlugin: function() {
+    this.disablePlugin();
+    this.enablePlugin();
+    $traceurRuntime.superGet(this, $Autofill.prototype, "updatePlugin").call(this);
+  },
+  disablePlugin: function() {
+    this.clearMappedSettings();
+    $traceurRuntime.superGet(this, $Autofill.prototype, "disablePlugin").call(this);
+  },
+  getSelectionData: function() {
+    var selRange = {
+      from: this.hot.getSelectedRange().from,
+      to: this.hot.getSelectedRange().to
+    };
+    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+  },
+  fillIn: function() {
+    if (this.hot.view.wt.selections.fill.isEmpty()) {
+      return false;
+    }
+    var cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+    this.resetSelectionOfDraggedArea();
+    var cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    var $__10 = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas),
+        directionOfDrag = $__10.directionOfDrag,
+        startOfDragCoords = $__10.startOfDragCoords,
+        endOfDragCoords = $__10.endOfDragCoords;
+    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
+      var selectionData = this.getSelectionData();
+      var deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+      this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      this.hot.populateFromArray(startOfDragCoords.row, startOfDragCoords.col, selectionData, endOfDragCoords.row, endOfDragCoords.col, 'autofill', null, directionOfDrag, deltas);
+      this.setSelection(cornersOfSelectionAndDragAreas);
+    } else {
+      this.hot.selection.refreshBorders();
+    }
+    return true;
+  },
+  reduceSelectionAreaIfNeeded: function(coords) {
+    if (coords.row < 0) {
+      coords.row = 0;
+    }
+    if (coords.col < 0) {
+      coords.col = 0;
+    }
+    return coords;
+  },
+  getCoordsOfDragAndDropBorders: function(coordsOfSelection) {
+    var topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
+    var bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+    var coords;
+    if (arrayIncludes(this.directions, DIRECTIONS.vertical) && (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+      coords = new WalkontableCellCoords(coordsOfSelection.row, bottomRightCorner.col);
+    } else if (arrayIncludes(this.directions, DIRECTIONS.horizontal)) {
+      coords = new WalkontableCellCoords(bottomRightCorner.row, coordsOfSelection.col);
+    } else {
+      return;
+    }
+    return this.reduceSelectionAreaIfNeeded(coords);
+  },
+  showBorder: function(coordsOfSelection) {
+    var coordsOfDragAndDropBorders = this.getCoordsOfDragAndDropBorders(coordsOfSelection);
+    if (coordsOfDragAndDropBorders) {
+      this.redrawBorders(coordsOfDragAndDropBorders);
+    }
+  },
+  addRow: function() {
+    var $__8 = this;
+    this.hot._registerTimeout(setTimeout((function() {
+      $__8.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      $__8.addingStarted = false;
+    }), INTERVAL_FOR_ADDING_ROW));
+  },
+  addNewRowIfNeeded: function() {
+    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
+      var cornersOfSelectedCells = this.hot.getSelected();
+      var cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+      var nrOfTableRows = this.hot.countRows();
+      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
+        this.addingStarted = true;
+        this.addRow();
+      }
+    }
+  },
+  getCornersOfSelectedCells: function() {
+    if (this.hot.selection.isMultiple()) {
+      return this.hot.view.wt.selections.area.getCorners();
+    } else {
+      return this.hot.view.wt.selections.current.getCorners();
+    }
+  },
+  getIndexOfLastAdjacentFilledInRow: function(cornersOfSelectedCells) {
+    var data = this.hot.getData();
+    var nrOfTableRows = this.hot.countRows();
+    var lastFilledInRowIndex;
+    for (var rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
+      for (var columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
+        var dataInCell = data[rowIndex][columnIndex];
+        if (dataInCell) {
+          return -1;
+        }
+      }
+      var dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
+      var dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
+      if (!!dataInNextLeftCell || !!dataInNextRightCell) {
+        lastFilledInRowIndex = rowIndex;
+      }
+    }
+    return lastFilledInRowIndex;
+  },
+  addSelectionFromStartAreaToSpecificRowIndex: function(selectStartArea, rowIndex) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(selectStartArea[0], selectStartArea[1]));
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(rowIndex, selectStartArea[3]));
+  },
+  setSelection: function(cornersOfArea) {
+    this.hot.selection.setRangeStart(new WalkontableCellCoords(cornersOfArea[0], cornersOfArea[1]));
+    this.hot.selection.setRangeEnd(new WalkontableCellCoords(cornersOfArea[2], cornersOfArea[3]));
+  },
+  selectAdjacent: function() {
+    var cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    var lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
+    if (lastFilledInRowIndex === -1) {
+      return false;
+    } else {
+      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+      return true;
+    }
+  },
+  resetSelectionOfDraggedArea: function() {
+    this.handleDraggedCells = 0;
+    this.hot.view.wt.selections.fill.clear();
+  },
+  redrawBorders: function(coords) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
+    this.hot.view.wt.selections.fill.add(coords);
+    this.hot.view.render();
+  },
+  getIfMouseWasDraggedOutside: function(event) {
+    var tableBottom = offset(this.hot.table).top - (window.pageYOffset || document.documentElement.scrollTop) + outerHeight(this.hot.table);
+    var tableRight = offset(this.hot.table).left - (window.pageXOffset || document.documentElement.scrollLeft) + outerWidth(this.hot.table);
+    return event.clientY > tableBottom && event.clientX <= tableRight;
+  },
+  registerEvents: function() {
+    var $__8 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__8.onMouseUp();
+    }));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__8.onMouseMove(event);
+    }));
+  },
+  onCellCornerDblClick: function() {
+    var selectionApplied = this.selectAdjacent();
+    if (selectionApplied) {
+      this.fillIn();
+    }
+  },
+  onAfterCellCornerMouseDown: function() {
+    this.handleDraggedCells = 1;
+    this.mouseDownOnCellCorner = true;
+  },
+  onBeforeCellMouseOver: function(coords) {
+    if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
+      this.handleDraggedCells++;
+      this.showBorder(coords);
+      this.addNewRowIfNeeded();
+    }
+  },
+  onMouseUp: function() {
+    if (this.handleDraggedCells) {
+      if (this.handleDraggedCells > 1) {
+        this.fillIn();
+      }
+      this.handleDraggedCells = 0;
+      this.mouseDownOnCellCorner = false;
+    }
+  },
+  onMouseMove: function(event) {
+    var mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
+    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
+      this.mouseDragOutside = true;
+      this.addingStarted = true;
+    } else {
+      this.mouseDragOutside = false;
+    }
+    if (this.mouseDragOutside && this.autoInsertRow) {
+      this.addRow();
+    }
+  },
+  clearMappedSettings: function() {
+    this.directions.length = 0;
+    this.autoInsertRow = false;
+  },
+  mapSettings: function() {
+    var mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+    this.directions = mappedSettings.directions;
+    this.autoInsertRow = mappedSettings.autoInsertRow;
+  },
+  destroy: function() {
+    $traceurRuntime.superGet(this, $Autofill.prototype, "destroy").call(this);
+  }
+}, {}, BasePlugin);
 ;
+registerPlugin('autofill', Autofill);
+Handsontable.hooks.register('modifyAutofillRange');
+Handsontable.hooks.register('beforeAutofill');
+
+//# 
+},{"3rdparty/walkontable/src/cell/coords":6,"_base":62,"browser":24,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"plugins":61,"utils":66}],66:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  DIRECTIONS: {get: function() {
+      return DIRECTIONS;
+    }},
+  getDeltas: {get: function() {
+      return getDeltas;
+    }},
+  getDragDirectionAndRange: {get: function() {
+      return getDragDirectionAndRange;
+    }},
+  getMappedFillHandleSetting: {get: function() {
+      return getMappedFillHandleSetting;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_mixed__;
+var isObject = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).isObject;
+var isDefined = ($___46__46__47__46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47__46__46__47_helpers_47_mixed__ && $___46__46__47__46__46__47_helpers_47_mixed__.__esModule && $___46__46__47__46__46__47_helpers_47_mixed__ || {default: $___46__46__47__46__46__47_helpers_47_mixed__}).isDefined;
+var DIRECTIONS = {
+  horizontal: 'horizontal',
+  vertical: 'vertical'
+};
 function getDeltas(start, end, data, direction) {
-  var rlength = data.length,
-      clength = data ? data[0].length : 0,
-      deltas = [],
-      arr = [],
-      diffRow,
-      diffCol,
-      startValue,
-      endValue,
-      delta;
-  diffRow = end.row - start.row;
-  diffCol = end.col - start.col;
+  var rowsLength = data.length;
+  var columnsLength = data ? data[0].length : 0;
+  var deltas = [];
+  var diffRow = end.row - start.row;
+  var diffCol = end.col - start.col;
   if (['down', 'up'].indexOf(direction) !== -1) {
+    var arr = [];
     for (var col = 0; col <= diffCol; col++) {
-      startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[rlength - 1][col], 10);
-      delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      var startValue = parseInt(data[0][col], 10);
+      var endValue = parseInt(data[rowsLength - 1][col], 10);
+      var delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
       arr.push(delta);
     }
     deltas.push(arr);
   }
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
-      startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][clength - 1], 10);
-      delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-      arr = [];
-      arr.push(delta);
-      deltas.push(arr);
+      var startValue$__2 = parseInt(data[row][0], 10);
+      var endValue$__3 = parseInt(data[row][columnsLength - 1], 10);
+      var delta$__4 = (direction === 'right' ? (endValue$__3 - startValue$__2) : (startValue$__2 - endValue$__3)) / (columnsLength - 1) || 0;
+      deltas.push([delta$__4]);
     }
   }
   return deltas;
 }
-function Autofill(instance) {
-  var _this = this,
-      mouseDownOnCellCorner = false,
-      wtOnCellCornerMouseDown,
-      wtOnCellMouseOver,
-      eventManager;
-  this.instance = instance;
-  this.addingStarted = false;
-  eventManager = eventManagerObject(instance);
-  function mouseUpCallback(event) {
-    if (!instance.autofill) {
-      return true;
-    }
-    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
-      if (instance.autofill.handle.isDragged > 1) {
-        instance.autofill.apply();
-      }
-      instance.autofill.handle.isDragged = 0;
-      mouseDownOnCellCorner = false;
-    }
+function getDragDirectionAndRange(startSelection, endSelection) {
+  var startOfDragCoords,
+      endOfDragCoords,
+      directionOfDrag;
+  if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
+    directionOfDrag = 'left';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], startSelection[1] - 1);
+  } else if (endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
+    directionOfDrag = 'right';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], startSelection[3] + 1);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
+  } else if (endSelection[0] < startSelection[0] && endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'up';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(startSelection[0] - 1, endSelection[3]);
+  } else if (endSelection[2] > startSelection[2] && endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'down';
+    startOfDragCoords = new WalkontableCellCoords(startSelection[2] + 1, endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
   }
-  function mouseMoveCallback(event) {
-    var tableBottom,
-        tableRight;
-    if (!_this.instance.autofill) {
-      return false;
-    }
-    tableBottom = offset(_this.instance.table).top - (window.pageYOffset || document.documentElement.scrollTop) + outerHeight(_this.instance.table);
-    tableRight = offset(_this.instance.table).left - (window.pageXOffset || document.documentElement.scrollLeft) + outerWidth(_this.instance.table);
-    if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom && event.clientX <= tableRight) {
-      _this.instance.mouseDragOutside = true;
-      _this.addingStarted = true;
+  return {
+    directionOfDrag: directionOfDrag,
+    startOfDragCoords: startOfDragCoords,
+    endOfDragCoords: endOfDragCoords
+  };
+}
+function getMappedFillHandleSetting(fillHandle) {
+  var mappedSettings = {};
+  if (fillHandle === true) {
+    mappedSettings.directions = Object.keys(DIRECTIONS);
+    mappedSettings.autoInsertRow = true;
+  } else if (isObject(fillHandle)) {
+    if (isDefined(fillHandle.autoInsertRow)) {
+      if (fillHandle.direction === DIRECTIONS.horizontal) {
+        mappedSettings.autoInsertRow = false;
+      } else {
+        mappedSettings.autoInsertRow = fillHandle.autoInsertRow;
+      }
     } else {
-      _this.instance.mouseDragOutside = false;
+      mappedSettings.autoInsertRow = false;
     }
-    if (_this.instance.mouseDragOutside && settings('autoInsertRow')) {
-      setTimeout(function() {
-        _this.addingStarted = false;
-        _this.instance.alter('insert_row');
-      }, 200);
+    if (isDefined(fillHandle.direction)) {
+      mappedSettings.directions = [fillHandle.direction];
+    } else {
+      mappedSettings.directions = Object.keys(DIRECTIONS);
     }
+  } else if (typeof fillHandle === 'string') {
+    mappedSettings.directions = [fillHandle];
+    mappedSettings.autoInsertRow = true;
+  } else {
+    mappedSettings.directions = [];
+    mappedSettings.autoInsertRow = false;
   }
-  eventManager.addEventListener(document, 'mouseup', mouseUpCallback);
-  eventManager.addEventListener(document, 'mousemove', mouseMoveCallback);
-  wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
-  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
-    instance.autofill.handle.isDragged = 1;
-    mouseDownOnCellCorner = true;
-    wtOnCellCornerMouseDown(event);
-  };
-  wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
-  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
-    if (instance.autofill && mouseDownOnCellCorner && !instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged) {
-      instance.autofill.handle.isDragged++;
-      instance.autofill.showBorder(coords);
-      instance.autofill.checkIfNewRowNeeded();
-    }
-    wtOnCellMouseOver(event, coords, TD, wt);
-  };
-  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function() {
-    instance.autofill.selectAdjacent();
-  };
+  return mappedSettings;
 }
-Autofill.prototype.init = function() {
-  this.handle = {};
-};
-Autofill.prototype.disable = function() {
-  this.handle.disabled = true;
-};
-Autofill.prototype.selectAdjacent = function() {
-  var select,
-      data,
-      r,
-      maxR,
-      c;
-  if (this.instance.selection.isMultiple()) {
-    select = this.instance.view.wt.selections.area.getCorners();
-  } else {
-    select = this.instance.view.wt.selections.current.getCorners();
-  }
-  data = this.instance.getData();
-  rows: for (r = select[2] + 1; r < this.instance.countRows(); r++) {
-    for (c = select[1]; c <= select[3]; c++) {
-      if (data[r][c]) {
-        break rows;
-      }
-    }
-    if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-      maxR = r;
-    }
-  }
-  if (maxR) {
-    this.instance.view.wt.selections.fill.clear();
-    this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(select[0], select[1]));
-    this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
-    this.apply();
-  }
-};
-Autofill.prototype.apply = function() {
-  var drag,
-      select,
-      start,
-      end,
-      _data,
-      direction,
-      deltas,
-      selRange;
-  this.handle.isDragged = 0;
-  if (this.instance.view.wt.selections.fill.isEmpty()) {
-    return;
-  }
-  drag = this.instance.view.wt.selections.fill.getCorners();
-  this.instance.view.wt.selections.fill.clear();
-  if (this.instance.selection.isMultiple()) {
-    select = this.instance.view.wt.selections.area.getCorners();
-  } else {
-    select = this.instance.view.wt.selections.current.getCorners();
-  }
-  Handsontable.hooks.run(this.instance, 'afterAutofillApplyValues', select, drag);
-  if (drag[0] === select[0] && drag[1] < select[1]) {
-    direction = 'left';
-    start = new WalkontableCellCoords(drag[0], drag[1]);
-    end = new WalkontableCellCoords(drag[2], select[1] - 1);
-  } else if (drag[0] === select[0] && drag[3] > select[3]) {
-    direction = 'right';
-    start = new WalkontableCellCoords(drag[0], select[3] + 1);
-    end = new WalkontableCellCoords(drag[2], drag[3]);
-  } else if (drag[0] < select[0] && drag[1] === select[1]) {
-    direction = 'up';
-    start = new WalkontableCellCoords(drag[0], drag[1]);
-    end = new WalkontableCellCoords(select[0] - 1, drag[3]);
-  } else if (drag[2] > select[2] && drag[1] === select[1]) {
-    direction = 'down';
-    start = new WalkontableCellCoords(select[2] + 1, drag[1]);
-    end = new WalkontableCellCoords(drag[2], drag[3]);
-  }
-  if (start && start.row > -1 && start.col > -1) {
-    selRange = {
-      from: this.instance.getSelectedRange().from,
-      to: this.instance.getSelectedRange().to
-    };
-    _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    deltas = getDeltas(start, end, _data, direction);
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
-    this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-    this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
-  } else {
-    this.instance.selection.refreshBorders();
-  }
-};
-Autofill.prototype.showBorder = function(coords) {
-  var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),
-      bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
-  if (settings('direction') !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-    coords = new WalkontableCellCoords(coords.row, bottomRight.col);
-  } else if (settings('direction') !== 'vertical') {
-    coords = new WalkontableCellCoords(bottomRight.row, coords.col);
-  } else {
-    return;
-  }
-  this.instance.view.wt.selections.fill.clear();
-  this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().from);
-  this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().to);
-  this.instance.view.wt.selections.fill.add(coords);
-  this.instance.view.render();
-};
-Autofill.prototype.checkIfNewRowNeeded = function() {
-  var fillCorners,
-      selection,
-      tableRows = this.instance.countRows(),
-      that = this;
-  if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false && settings('autoInsertRow')) {
-    selection = this.instance.getSelected();
-    fillCorners = this.instance.view.wt.selections.fill.getCorners();
-    if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
-      this.addingStarted = true;
-      this.instance._registerTimeout(setTimeout(function() {
-        that.instance.alter('insert_row');
-        that.addingStarted = false;
-      }, 200));
-    }
-  }
-};
-Handsontable.hooks.add('afterInit', function() {
-  var autofill = new Autofill(this);
-  settings = settingsFactory(this.getSettings().fillHandle);
-  if (settings('fillHandle') !== void 0) {
-    if (autofill.handle && settings('fillHandle') === false) {
-      autofill.disable();
-    } else if (!autofill.handle && settings('fillHandle') !== false) {
-      this.autofill = autofill;
-      this.autofill.init();
-    }
-  }
-});
-var settings;
-function settingsFactory(settings) {
-  return function(key) {
-    var result;
-    if (key === 'direction') {
-      if (typeof settings === 'string') {
-        result = settings;
-      } else if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-      } else {
-        result = true;
-      }
-    } else if (key === 'autoInsertRow') {
-      if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-      } else {
-        result = true;
-      }
-    } else if (key === 'fillHandle') {
-      result = settings ? true : false;
-    }
-    return result;
-  };
-}
-Handsontable.Autofill = Autofill;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"browser":23,"eventManager":41,"helpers/dom/element":46,"plugins":59}],64:[function(_dereq_,module,exports){
+},{"helpers/mixed":51,"helpers/object":53}],67:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ColumnSorting: {get: function() {
@@ -12425,22 +13362,24 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47_browser__,
+    $__moment__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__95_base__,
     $___46__46__47__46__46__47_plugins__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__1.addClass,
-    closest = $__1.closest,
-    hasClass = $__1.hasClass,
-    index = $__1.index,
-    removeClass = $__1.removeClass;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__2.arrayEach,
-    arrayMap = $__2.arrayMap,
-    arrayReduce = $__2.arrayReduce;
+var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
+var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__2.addClass,
+    closest = $__2.closest,
+    hasClass = $__2.hasClass,
+    index = $__2.index,
+    removeClass = $__2.removeClass;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
+    arrayEach = $__3.arrayEach,
+    arrayMap = $__3.arrayMap,
+    arrayReduce = $__3.arrayReduce;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
@@ -12457,7 +13396,7 @@ var $ColumnSorting = ColumnSorting;
     return !!(this.hot.getSettings().columnSorting);
   },
   enablePlugin: function() {
-    var $__6 = this;
+    var $__7 = this;
     if (this.enabled) {
       return;
     }
@@ -12470,21 +13409,26 @@ var $ColumnSorting = ColumnSorting;
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
       this.enableObserveChangesPlugin();
     }
-    this.bindColumnSortingAfterClick();
     this.addHook('afterTrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('afterUntrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('modifyRow', (function(row) {
-      return $__6.translateRow(row);
+      return $__7.translateRow(row);
+    }));
+    this.addHook('unmodifyRow', (function(row) {
+      return $__7.untranslateRow(row);
     }));
     this.addHook('afterUpdateSettings', (function() {
-      return $__6.onAfterUpdateSettings();
+      return $__7.onAfterUpdateSettings();
     }));
     this.addHook('afterGetColHeader', (function(col, TH) {
-      return $__6.getColHeader(col, TH);
+      return $__7.getColHeader(col, TH);
+    }));
+    this.addHook('afterOnCellMouseDown', (function(event, target) {
+      return $__7.onAfterOnCellMouseDown(event, target);
     }));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow.apply(_this, arguments);
@@ -12493,12 +13437,12 @@ var $ColumnSorting = ColumnSorting;
       _this.afterRemoveRow.apply(_this, arguments);
     });
     this.addHook('afterInit', (function() {
-      return $__6.sortBySettings();
+      return $__7.sortBySettings();
     }));
     this.addHook('afterLoadData', (function() {
-      $__6.hot.sortIndex = [];
-      if ($__6.hot.view) {
-        $__6.sortBySettings();
+      $__7.hot.sortIndex = [];
+      if ($__7.hot.view) {
+        $__7.sortBySettings();
       }
     }));
     if (this.hot.view) {
@@ -12557,9 +13501,9 @@ var $ColumnSorting = ColumnSorting;
     }
     this.updateOrderClass();
     this.updateSortIndicator();
+    Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
     this.hot.render();
     this.saveSortingState();
-    Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
   },
   saveSortingState: function() {
     var sortingState = {};
@@ -12587,44 +13531,13 @@ var $ColumnSorting = ColumnSorting;
     }
     this.sortOrderClass = orderClass;
   },
-  bindColumnSortingAfterClick: function() {
-    var $__6 = this;
-    if (this.bindedSortEvent) {
-      return;
-    }
-    var eventManager = eventManagerObject(this.hot),
-        _this = this;
-    this.bindedSortEvent = true;
-    eventManager.addEventListener(this.hot.rootElement, 'click', (function(e) {
-      if (hasClass(e.target, 'columnSorting')) {
-        var col = getColumn(e.target);
-        if (col !== $__6.lastSortedColumn) {
-          $__6.hot.sortOrder = true;
-        }
-        $__6.lastSortedColumn = col;
-        $__6.sortByColumn(col);
-      }
-    }));
-    function countRowHeaders() {
-      var tr = _this.hot.view.TBODY.querySelector('tr');
-      var length = 1;
-      if (tr) {
-        length = tr.querySelectorAll('th').length;
-      }
-      return length;
-    }
-    function getColumn(target) {
-      var TH = closest(target, 'TH');
-      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
-    }
-  },
   enableObserveChangesPlugin: function() {
     var _this = this;
     this.hot._registerTimeout(setTimeout(function() {
       _this.hot.updateSettings({observeChanges: true});
     }, 0));
   },
-  defaultSort: function(sortOrder) {
+  defaultSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -12645,6 +13558,9 @@ var $ColumnSorting = ColumnSorting;
         return sortOrder ? 1 : -1;
       } else if (!isNaN(a[1]) && isNaN(b[1])) {
         return sortOrder ? -1 : 1;
+      } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
+        a[1] = parseFloat(a[1]);
+        b[1] = parseFloat(b[1]);
       }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
@@ -12655,7 +13571,7 @@ var $ColumnSorting = ColumnSorting;
       return 0;
     };
   },
-  dateSort: function(sortOrder) {
+  dateSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -12666,18 +13582,24 @@ var $ColumnSorting = ColumnSorting;
       if (b[1] === null || b[1] === '') {
         return -1;
       }
-      var aDate = new Date(a[1]);
-      var bDate = new Date(b[1]);
-      if (aDate < bDate) {
+      var aDate = moment(a[1], columnMeta.dateFormat);
+      var bDate = moment(b[1], columnMeta.dateFormat);
+      if (!aDate.isValid()) {
+        return 1;
+      }
+      if (!bDate.isValid()) {
+        return -1;
+      }
+      if (bDate.isAfter(aDate)) {
         return sortOrder ? -1 : 1;
       }
-      if (aDate > bDate) {
+      if (bDate.isBefore(aDate)) {
         return sortOrder ? 1 : -1;
       }
       return 0;
     };
   },
-  numericSort: function(sortOrder) {
+  numericSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       var parsedA = parseFloat(a[1]);
       var parsedB = parseFloat(b[1]);
@@ -12707,8 +13629,15 @@ var $ColumnSorting = ColumnSorting;
         sortFunction;
     this.hot.sortingEnabled = false;
     this.hot.sortIndex.length = 0;
+    var nrOfRows;
+    var emptyRows = this.hot.countEmptyRows();
+    if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
+      nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
+    } else {
+      nrOfRows = this.hot.countRows() - emptyRows;
+    }
     for (var i = 0,
-        ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
+        ilen = nrOfRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
@@ -12726,9 +13655,9 @@ var $ColumnSorting = ColumnSorting;
           sortFunction = this.defaultSort;
       }
     }
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
-    for (var i$__8 = this.hot.sortIndex.length; i$__8 < this.hot.countRows(); i$__8++) {
-      this.hot.sortIndex.push([i$__8, this.hot.getDataAtCell(i$__8, this.hot.sortColumn)]);
+    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
+    for (var i$__9 = this.hot.sortIndex.length; i$__9 < this.hot.countRows(); i$__9++) {
+      this.hot.sortIndex.push([i$__9, this.hot.getDataAtCell(i$__9, this.hot.sortColumn)]);
     }
     this.hot.sortingEnabled = true;
   },
@@ -12755,6 +13684,9 @@ var $ColumnSorting = ColumnSorting;
     }
   },
   getColHeader: function(col, TH) {
+    if (col < 0 || !TH.parentNode) {
+      return false;
+    }
     var headerLink = TH.querySelector('.colHeader');
     var colspan = TH.getAttribute('colspan');
     var TRs = TH.parentNode.parentNode.childNodes;
@@ -12819,13 +13751,25 @@ var $ColumnSorting = ColumnSorting;
       return logicalRow;
     }));
     this.saveSortingState();
+  },
+  onAfterOnCellMouseDown: function(event, coords) {
+    if (coords.row > -1) {
+      return;
+    }
+    if (hasClass(event.realTarget, 'columnSorting')) {
+      if (coords.col !== this.lastSortedColumn) {
+        this.hot.sortOrder = true;
+      }
+      this.lastSortedColumn = coords.col;
+      this.sortByColumn(coords.col);
+    }
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('columnSorting', ColumnSorting);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":59}],65:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"moment":"moment","plugins":61}],68:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommentEditor: {get: function() {
@@ -12838,8 +13782,7 @@ var addClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_
 var CommentEditor = function CommentEditor() {
   this.editor = this.createEditor();
   this.editorStyle = this.editor.style;
-  this.editorStyle.position = 'absolute';
-  this.editorStyle.zIndex = 100;
+  this.hidden = true;
   this.hide();
 };
 var $CommentEditor = CommentEditor;
@@ -12848,11 +13791,29 @@ var $CommentEditor = CommentEditor;
     this.editorStyle.left = x + 'px';
     this.editorStyle.top = y + 'px';
   },
+  setSize: function(width, height) {
+    if (width && height) {
+      var input = this.getInputElement();
+      input.style.width = width + 'px';
+      input.style.height = height + 'px';
+    }
+  },
+  resetSize: function() {
+    var input = this.getInputElement();
+    input.style.width = '';
+    input.style.height = '';
+  },
+  setReadOnlyState: function(state) {
+    var input = this.getInputElement();
+    input.readOnly = state;
+  },
   show: function() {
     this.editorStyle.display = 'block';
+    this.hidden = false;
   },
   hide: function() {
     this.editorStyle.display = 'none';
+    this.hidden = true;
   },
   isVisible: function() {
     return this.editorStyle.display === 'block';
@@ -12913,8 +13874,9 @@ var $CommentEditor = CommentEditor;
 ;
 
 //# 
-},{"helpers/dom/element":46}],66:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47}],69:[function(_dereq_,module,exports){
 "use strict";
+var $__13;
 Object.defineProperties(exports, {
   Comments: {get: function() {
       return Comments;
@@ -12923,26 +13885,41 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $___46__46__47__46__46__47_plugins__,
     $___46__46__47__95_base__,
-    $__commentEditor__;
+    $__commentEditor__,
+    $___46__46__47_contextMenu_47_utils__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
 var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__1.addClass,
     closest = $__1.closest,
-    getWindowScrollLeft = $__1.getWindowScrollLeft,
-    getWindowScrollTop = $__1.getWindowScrollTop,
+    isChildOf = $__1.isChildOf,
     hasClass = $__1.hasClass,
-    offset = $__1.offset;
+    offset = $__1.offset,
+    outerWidth = $__1.outerWidth,
+    outerHeight = $__1.outerHeight,
+    getScrollableElement = $__1.getScrollableElement;
+var $__2 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
+    deepClone = $__2.deepClone,
+    deepExtend = $__2.deepExtend;
+var debounce = ($___46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47_helpers_47_function__}).debounce;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
-var $__4 = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}),
-    registerPlugin = $__4.registerPlugin,
-    getPlugin = $__4.getPlugin;
+var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var CommentEditor = ($__commentEditor__ = _dereq_("commentEditor"), $__commentEditor__ && $__commentEditor__.__esModule && $__commentEditor__ || {default: $__commentEditor__}).CommentEditor;
+var $__9 = ($___46__46__47_contextMenu_47_utils__ = _dereq_("contextMenu/utils"), $___46__46__47_contextMenu_47_utils__ && $___46__46__47_contextMenu_47_utils__.__esModule && $___46__46__47_contextMenu_47_utils__ || {default: $___46__46__47_contextMenu_47_utils__}),
+    checkSelectionConsistency = $__9.checkSelectionConsistency,
+    markLabelAsSelected = $__9.markLabelAsSelected;
+var privatePool = new WeakMap();
+var META_COMMENT = 'comment';
+var META_COMMENT_VALUE = 'value';
+var META_STYLE = 'style';
+var META_READONLY = 'readOnly';
 var Comments = function Comments(hotInstance) {
   $traceurRuntime.superConstructor($Comments).call(this, hotInstance);
   this.editor = null;
@@ -12951,14 +13928,23 @@ var Comments = function Comments(hotInstance) {
   this.mouseDown = false;
   this.contextMenuEvent = false;
   this.timer = null;
+  this.displayDelay = 250;
+  privatePool.set(this, {
+    tempEditorDimensions: {},
+    cellBelowCursor: null
+  });
 };
 var $Comments = Comments;
-($traceurRuntime.createClass)(Comments, {
-  isEnabled: function() {
-    return this.hot.getSettings().comments;
+($traceurRuntime.createClass)(Comments, ($__13 = {}, Object.defineProperty($__13, "isEnabled", {
+  value: function() {
+    return !!this.hot.getSettings().comments;
   },
-  enablePlugin: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "enablePlugin", {
+  value: function() {
+    var $__10 = this;
     if (this.enabled) {
       return;
     }
@@ -12969,248 +13955,493 @@ var $Comments = Comments;
       this.eventManager = new EventManager(this);
     }
     this.addHook('afterContextMenuDefaultOptions', (function(options) {
-      return $__7.addToContextMenu(options);
+      return $__10.addToContextMenu(options);
     }));
     this.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
-      return $__7.onAfterRenderer(TD, cellProperties);
+      return $__10.onAfterRenderer(TD, cellProperties);
     }));
     this.addHook('afterScrollHorizontally', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
     this.addHook('afterScrollVertically', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
-    this.addHook('afterColumnResize', (function() {
-      return $__7.refreshEditorPosition();
-    }));
-    this.addHook('afterRowResize', (function() {
-      return $__7.refreshEditorPosition();
+    this.addHook('afterBeginEditing', (function(args) {
+      return $__10.onAfterBeginEditing(args);
     }));
     this.registerListeners();
     $traceurRuntime.superGet(this, $Comments.prototype, "enablePlugin").call(this);
   },
-  disablePlugin: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "disablePlugin", {
+  value: function() {
     $traceurRuntime.superGet(this, $Comments.prototype, "disablePlugin").call(this);
   },
-  registerListeners: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "registerListeners", {
+  value: function() {
+    var $__10 = this;
     this.eventManager.addEventListener(document, 'mouseover', (function(event) {
-      return $__7.onMouseOver(event);
+      return $__10.onMouseOver(event);
     }));
     this.eventManager.addEventListener(document, 'mousedown', (function(event) {
-      return $__7.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(document, 'mousemove', (function(event) {
-      return $__7.onMouseMove(event);
+      return $__10.onMouseDown(event);
     }));
     this.eventManager.addEventListener(document, 'mouseup', (function(event) {
-      return $__7.onMouseUp(event);
+      return $__10.onMouseUp(event);
     }));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (function(event) {
-      return $__7.onEditorBlur(event);
+      return $__10.onEditorBlur(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (function(event) {
+      return $__10.onEditorMouseDown(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (function(event) {
+      return $__10.onEditorMouseUp(event);
     }));
   },
-  setRange: function(range) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setRange", {
+  value: function(range) {
     this.range = range;
   },
-  clearRange: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "clearRange", {
+  value: function() {
     this.range = {};
   },
-  targetIsCellWithComment: function(event) {
-    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCellWithComment", {
+  value: function(event) {
+    var closestCell = closest(event.target, 'TD', 'TBODY');
+    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
   },
-  targetIsCommentTextArea: function(event) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCommentTextArea", {
+  value: function(event) {
     return this.editor.getInputElement() === event.target;
   },
-  saveComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setComment", {
+  value: function(value) {
+    var $__13;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    var comment = this.editor.getValue();
+    var editorValue = this.editor.getValue();
+    var comment = '';
+    if (value != null) {
+      comment = value;
+    } else if (editorValue != null) {
+      comment = editorValue;
+    }
     var row = this.range.from.row;
     var col = this.range.from.col;
-    this.hot.setCellMeta(row, col, 'comment', comment);
+    this.updateCommentMeta(row, col, ($__13 = {}, Object.defineProperty($__13, META_COMMENT_VALUE, {
+      value: comment,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__13));
     this.hot.render();
   },
-  saveCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setCommentAtCell", {
+  value: function(row, col, value) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.saveComment();
+    this.setComment(value);
   },
-  removeComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeComment", {
+  value: function() {
+    var forceRender = arguments[0] !== (void 0) ? arguments[0] : true;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, 'comment');
-    this.hot.render();
+    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT, void 0);
+    if (forceRender) {
+      this.hot.render();
+    }
     this.hide();
   },
-  removeCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeCommentAtCell", {
+  value: function(row, col) {
+    var forceRender = arguments[2] !== (void 0) ? arguments[2] : true;
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.removeComment();
+    this.removeComment(forceRender);
   },
-  show: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getComment", {
+  value: function() {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentAtCell", {
+  value: function(row, column) {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "show", {
+  value: function() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     var meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
-    this.refreshEditorPosition(true);
-    this.editor.setValue(meta.comment || '');
-    this.editor.show();
+    this.refreshEditor(true);
+    this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
+    if (this.editor.hidden) {
+      this.editor.show();
+    }
     return true;
   },
-  showAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "showAtCell", {
+  value: function(row, col) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
     return this.show();
   },
-  hide: function() {
-    this.editor.hide();
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "hide", {
+  value: function() {
+    if (!this.editor.hidden) {
+      this.editor.hide();
+    }
   },
-  refreshEditorPosition: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "refreshEditor", {
+  value: function() {
     var force = arguments[0] !== (void 0) ? arguments[0] : false;
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
+    var scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
     var TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    var row = this.range.from.row;
+    var column = this.range.from.col;
     var cellOffset = offset(TD);
-    var lastColWidth = this.hot.getColWidth(this.range.from.col);
-    var cellTopOffset = cellOffset.top;
+    var lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    var cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     var cellLeftOffset = cellOffset.left;
-    var verticalCompensation = 0;
-    var horizontalCompensation = 0;
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
-      verticalCompensation = 20;
     }
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-      horizontalCompensation = 20;
     }
     var x = cellLeftOffset + lastColWidth;
     var y = cellTopOffset;
-    var rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
-    var holderPos = {
-      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + getWindowScrollLeft() - 15,
-      top: rect.top + getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + getWindowScrollTop()
-    };
-    if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
-      this.hide();
+    var commentStyle = this.getCommentMeta(row, column, META_STYLE);
+    var readOnly = this.getCommentMeta(row, column, META_READONLY);
+    if (commentStyle) {
+      this.editor.setSize(commentStyle.width, commentStyle.height);
     } else {
-      this.editor.setPosition(x, y);
+      this.editor.resetSize();
     }
+    this.editor.setReadOnlyState(readOnly);
+    this.editor.setPosition(x, y);
   },
-  onMouseDown: function(event) {
-    this.mouseDown = true;
-    if (!this.hot.view || !this.hot.view.wt) {
-      return;
-    }
-    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event) && !this.targetIsCellWithComment(event)) {
-      this.hide();
-    }
-    this.contextMenuEvent = false;
-  },
-  onMouseOver: function(event) {
-    if (this.mouseDown || this.editor.isFocused()) {
-      return;
-    }
-    if (this.targetIsCellWithComment(event)) {
-      var coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-      var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
-      this.setRange(range);
-      this.show();
-    } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-      this.hide();
-    }
-  },
-  onMouseMove: function(event) {
-    var $__7 = this;
-    if (this.targetIsCommentTextArea(event)) {
-      this.mouseDown = true;
-      clearTimeout(this.timer);
-      this.timer = setTimeout((function() {
-        $__7.mouseDown = false;
-      }), 200);
-    }
-  },
-  onMouseUp: function(event) {
-    this.mouseDown = false;
-  },
-  onAfterRenderer: function(TD, cellProperties) {
-    if (cellProperties.comment) {
-      addClass(TD, cellProperties.commentedCellClassName);
-    }
-  },
-  onEditorBlur: function(event) {
-    this.saveComment();
-  },
-  checkSelectionCommentsConsistency: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "checkSelectionCommentsConsistency", {
+  value: function() {
     var selected = this.hot.getSelectedRange();
     if (!selected) {
       return false;
     }
     var hasComment = false;
     var cell = selected.from;
-    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
+    if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
     }
     return hasComment;
   },
-  onContextMenuAddComment: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "updateCommentMeta", {
+  value: function(row, column, metaObject) {
+    var oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    var newComment;
+    if (oldComment) {
+      newComment = deepClone(oldComment);
+      deepExtend(newComment, metaObject);
+    } else {
+      newComment = metaObject;
+    }
+    this.hot.setCellMeta(row, column, META_COMMENT, newComment);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentMeta", {
+  value: function(row, column, property) {
+    var cellMeta = this.hot.getCellMeta(row, column);
+    if (!cellMeta[META_COMMENT]) {
+      return void 0;
+    }
+    return cellMeta[META_COMMENT][property];
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseDown", {
+  value: function(event) {
+    this.mouseDown = true;
+    if (!this.hot.view || !this.hot.view.wt) {
+      return;
+    }
+    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
+      var eventCell = closest(event.target, 'TD', 'TBODY');
+      var coordinates = null;
+      if (eventCell) {
+        coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+      }
+      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+        this.hide();
+      }
+    }
+    this.contextMenuEvent = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseOver", {
+  value: function(event) {
+    var $__10 = this;
+    if (this.mouseDown || this.editor.isFocused()) {
+      return;
+    }
+    var priv = privatePool.get(this);
+    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
+    debounce((function() {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !$__10.editor) {
+        return;
+      }
+      if ($__10.targetIsCellWithComment(event)) {
+        var coordinates = $__10.hot.view.wt.wtTable.getCoords(event.target);
+        var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
+        $__10.setRange(range);
+        $__10.show();
+      } else if (isChildOf(event.target, document) && !$__10.targetIsCommentTextArea(event) && !$__10.editor.isFocused()) {
+        $__10.hide();
+      }
+    }), this.displayDelay)();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseUp", {
+  value: function(event) {
+    this.mouseDown = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterRenderer", {
+  value: function(TD, cellProperties) {
+    if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
+      addClass(TD, cellProperties.commentedCellClassName);
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorBlur", {
+  value: function(event) {
+    this.setComment();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseDown", {
+  value: function(event) {
+    var priv = privatePool.get(this);
+    priv.tempEditorDimensions = {
+      width: outerWidth(event.target),
+      height: outerHeight(event.target)
+    };
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseUp", {
+  value: function(event) {
+    var $__13;
+    var priv = privatePool.get(this);
+    var currentWidth = outerWidth(event.target);
+    var currentHeight = outerHeight(event.target);
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, ($__13 = {}, Object.defineProperty($__13, META_STYLE, {
+        value: {
+          width: currentWidth,
+          height: currentHeight
+        },
+        configurable: true,
+        enumerable: true,
+        writable: true
+      }), $__13));
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuAddComment", {
+  value: function() {
+    var $__10 = this;
     var coords = this.hot.getSelectedRange();
     this.contextMenuEvent = true;
     this.setRange({from: coords.from});
     this.show();
     setTimeout((function() {
-      if ($__7.hot) {
-        $__7.hot.deselectCell();
-        $__7.editor.focus();
+      if ($__10.hot) {
+        $__10.hot.deselectCell();
+        $__10.editor.focus();
       }
     }), 10);
   },
-  onContextMenuRemoveComment: function(key, selection) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuRemoveComment", {
+  value: function(selection) {
     this.contextMenuEvent = true;
-    this.removeCommentAtCell(selection.start.row, selection.start.col);
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        this.removeCommentAtCell(i, j, false);
+      }
+    }
+    this.hot.render();
   },
-  addToContextMenu: function(defaultOptions) {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuMakeReadOnly", {
+  value: function(selection) {
+    var $__13;
+    this.contextMenuEvent = true;
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        var currentState = !!this.getCommentMeta(i, j, META_READONLY);
+        this.updateCommentMeta(i, j, ($__13 = {}, Object.defineProperty($__13, META_READONLY, {
+          value: !currentState,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        }), $__13));
+      }
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "addToContextMenu", {
+  value: function(defaultOptions) {
+    var $__10 = this;
     defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, {
       key: 'commentsAddEdit',
       name: (function() {
-        return $__7.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
+        return $__10.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
       }),
       callback: (function() {
-        return $__7.onContextMenuAddComment();
+        return $__10.onContextMenuAddComment();
       }),
       disabled: function() {
-        return this.getSelected() ? false : true;
+        return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
       }
     }, {
       key: 'commentsRemove',
       name: function() {
-        return 'Delete Comment';
+        return 'Delete comment';
       },
       callback: (function(key, selection) {
-        return $__7.onContextMenuRemoveComment(key, selection);
+        return $__10.onContextMenuRemoveComment(selection);
       }),
       disabled: (function() {
-        return !$__7.checkSelectionCommentsConsistency();
+        return $__10.hot.selection.selectedHeader.corner;
+      })
+    }, {
+      key: 'commentsReadOnly',
+      name: function() {
+        var $__11 = this;
+        var label = 'Read only comment';
+        var hasProperty = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+          var readOnlyProperty = $__11.getCellMeta(row, col)[META_COMMENT];
+          if (readOnlyProperty) {
+            readOnlyProperty = readOnlyProperty[META_READONLY];
+          }
+          if (readOnlyProperty) {
+            return true;
+          }
+        }));
+        if (hasProperty) {
+          label = markLabelAsSelected(label);
+        }
+        return label;
+      },
+      callback: (function(key, selection) {
+        return $__10.onContextMenuMakeReadOnly(selection);
+      }),
+      disabled: (function() {
+        return $__10.hot.selection.selectedHeader.corner || !$__10.checkSelectionCommentsConsistency();
       })
     });
   },
-  destroy: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterBeginEditing", {
+  value: function(row, column) {
+    this.hide();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "destroy", {
+  value: function() {
     if (this.editor) {
       this.editor.destroy();
     }
     $traceurRuntime.superGet(this, $Comments.prototype, "destroy").call(this);
-  }
-}, {}, BasePlugin);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__13), {}, BasePlugin);
 ;
 registerPlugin('comments', Comments);
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"_base":60,"browser":23,"commentEditor":65,"eventManager":41,"helpers/dom/element":46,"plugins":59}],67:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"_base":62,"browser":24,"commentEditor":68,"contextMenu/utils":88,"eventManager":42,"helpers/dom/element":47,"helpers/function":50,"helpers/object":53,"plugins":61}],70:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommandExecutor: {get: function() {
@@ -13283,7 +14514,7 @@ function findSubCommand(subCommandName, subCommands) {
 ;
 
 //# 
-},{"helpers/array":42}],68:[function(_dereq_,module,exports){
+},{"helpers/array":43}],71:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenu: {get: function() {
@@ -13364,6 +14595,7 @@ var $ContextMenu = ContextMenu;
         className: 'htContextMenu',
         keepInViewport: true
       });
+      $__12.hot.runHooks('beforeContextMenuSetItems', menuItems);
       $__12.menu.setMenuItems(menuItems);
       $__12.menu.addLocalHook('afterOpen', (function() {
         return $__12.onMenuAfterOpen();
@@ -13434,15 +14666,13 @@ var $ContextMenu = ContextMenu;
     }
     var element = event.realTarget;
     this.close();
+    if (hasClass(element, 'handsontableInput')) {
+      return;
+    }
     event.preventDefault();
     stopPropagation(event);
     if (!(showRowHeaders || showColHeaders)) {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {
-        return;
-      }
-    } else if (showRowHeaders && showColHeaders) {
-      var containsCornerHeader = element.parentNode.querySelectorAll('.cornerHeader').length > 0;
-      if (containsCornerHeader) {
         return;
       }
     }
@@ -13474,7 +14704,7 @@ Handsontable.hooks.register('afterContextMenuExecute');
 registerPlugin('contextMenu', ContextMenu);
 
 //# 
-},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"commandExecutor":70,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/dom/event":48,"itemsFactory":73,"menu":74,"plugins":61,"predefinedItems":75}],72:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Cursor: {get: function() {
@@ -13556,7 +14786,7 @@ Handsontable.plugins.utils = Handsontable.plugins.utils || {};
 Handsontable.plugins.utils.Cursor = Cursor;
 
 //# 
-},{"browser":23,"helpers/dom/element":46,"helpers/dom/event":47}],70:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/dom/element":47,"helpers/dom/event":48}],73:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ItemsFactory: {get: function() {
@@ -13661,7 +14891,7 @@ function getItems() {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/object":52,"predefinedItems":72}],71:[function(_dereq_,module,exports){
+},{"helpers/array":43,"helpers/object":53,"predefinedItems":75}],74:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Menu: {get: function() {
@@ -13816,6 +15046,9 @@ var $Menu = Menu;
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
+      if (this.parentMenu) {
+        this.parentMenu.hotMenu.listen();
+      }
     }
   },
   openSubMenu: function(row) {
@@ -13877,11 +15110,15 @@ var $Menu = Menu;
     }
     var selRange = this.hot.getSelectedRange();
     var normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    var autoClose = true;
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) || selectedItem.submenu) {
+      autoClose = false;
+    }
     this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
-    if (!(selectedItem.disabled === true || typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true || selectedItem.submenu)) {
+    if (autoClose) {
       this.close(true);
     }
   },
@@ -14021,7 +15258,7 @@ var $Menu = Menu;
         }));
       } else {
         this.eventManager.addEventListener(TD, 'mouseenter', (function() {
-          return hot.selectCell(row, col, void 0, void 0, void 0, false);
+          return hot.selectCell(row, col, void 0, void 0, false, false);
         }));
       }
     } else {
@@ -14033,7 +15270,7 @@ var $Menu = Menu;
         }));
       } else {
         this.eventManager.addEventListener(TD, 'mouseenter', (function() {
-          return hot.selectCell(row, col, void 0, void 0, void 0, false);
+          return hot.selectCell(row, col, void 0, void 0, false, false);
         }));
       }
     }
@@ -14140,6 +15377,7 @@ var $Menu = Menu;
     }), 0);
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
+    hiderStyle.height = holderStyle.height;
   },
   onDocumentMouseDown: function(event) {
     if (!this.isOpened()) {
@@ -14159,45 +15397,45 @@ mixin(Menu, localHooks);
 ;
 
 //# 
-},{"browser":23,"cursor":69,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/object":52,"helpers/unicode":55,"mixins/localHooks":56,"predefinedItems":72,"utils":73}],72:[function(_dereq_,module,exports){
+},{"browser":24,"cursor":72,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/function":50,"helpers/object":53,"helpers/unicode":56,"mixins/localHooks":58,"predefinedItems":75,"utils":88}],75:[function(_dereq_,module,exports){
 "use strict";
-var $__4;
+var $__13;
 Object.defineProperties(exports, {
-  ROW_ABOVE: {get: function() {
-      return ROW_ABOVE;
-    }},
-  ROW_BELOW: {get: function() {
-      return ROW_BELOW;
-    }},
-  COLUMN_LEFT: {get: function() {
-      return COLUMN_LEFT;
-    }},
-  COLUMN_RIGHT: {get: function() {
-      return COLUMN_RIGHT;
+  ALIGNMENT: {get: function() {
+      return $__predefinedItems_47_alignment__.KEY;
     }},
   CLEAR_COLUMN: {get: function() {
-      return CLEAR_COLUMN;
+      return $__predefinedItems_47_clearColumn__.KEY;
     }},
-  REMOVE_ROW: {get: function() {
-      return REMOVE_ROW;
+  COLUMN_LEFT: {get: function() {
+      return $__predefinedItems_47_columnLeft__.KEY;
     }},
-  REMOVE_COLUMN: {get: function() {
-      return REMOVE_COLUMN;
-    }},
-  UNDO: {get: function() {
-      return UNDO;
-    }},
-  REDO: {get: function() {
-      return REDO;
+  COLUMN_RIGHT: {get: function() {
+      return $__predefinedItems_47_columnRight__.KEY;
     }},
   READ_ONLY: {get: function() {
-      return READ_ONLY;
+      return $__predefinedItems_47_readOnly__.KEY;
     }},
-  ALIGNMENT: {get: function() {
-      return ALIGNMENT;
+  REDO: {get: function() {
+      return $__predefinedItems_47_redo__.KEY;
+    }},
+  REMOVE_COLUMN: {get: function() {
+      return $__predefinedItems_47_removeColumn__.KEY;
+    }},
+  REMOVE_ROW: {get: function() {
+      return $__predefinedItems_47_removeRow__.KEY;
+    }},
+  ROW_ABOVE: {get: function() {
+      return $__predefinedItems_47_rowAbove__.KEY;
+    }},
+  ROW_BELOW: {get: function() {
+      return $__predefinedItems_47_rowBelow__.KEY;
     }},
   SEPARATOR: {get: function() {
-      return SEPARATOR;
+      return $__predefinedItems_47_separator__.KEY;
+    }},
+  UNDO: {get: function() {
+      return $__predefinedItems_47_undo__.KEY;
     }},
   ITEMS: {get: function() {
       return ITEMS;
@@ -14211,35 +15449,145 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47_helpers_47_object__,
-    $___46__46__47__46__46__47_helpers_47_number__,
-    $__utils__;
-var $__0 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    objectEach = $__0.objectEach,
-    clone = $__0.clone;
-var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
-var $__2 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    align = $__2.align,
-    getAlignmentClasses = $__2.getAlignmentClasses,
-    getValidSelection = $__2.getValidSelection,
-    checkSelectionConsistency = $__2.checkSelectionConsistency,
-    markLabelAsSelected = $__2.markLabelAsSelected;
-var ROW_ABOVE = 'row_above';
-var ROW_BELOW = 'row_below';
-var COLUMN_LEFT = 'col_left';
-var COLUMN_RIGHT = 'col_right';
-var CLEAR_COLUMN = 'clear_column';
-var REMOVE_ROW = 'remove_row';
-var REMOVE_COLUMN = 'remove_col';
-var UNDO = 'undo';
-var REDO = 'redo';
-var READ_ONLY = 'make_read_only';
-var ALIGNMENT = 'alignment';
-var SEPARATOR = '---------';
+    $__predefinedItems_47_alignment__,
+    $__predefinedItems_47_clearColumn__,
+    $__predefinedItems_47_columnLeft__,
+    $__predefinedItems_47_columnRight__,
+    $__predefinedItems_47_readOnly__,
+    $__predefinedItems_47_redo__,
+    $__predefinedItems_47_removeColumn__,
+    $__predefinedItems_47_removeRow__,
+    $__predefinedItems_47_rowAbove__,
+    $__predefinedItems_47_rowBelow__,
+    $__predefinedItems_47_separator__,
+    $__predefinedItems_47_undo__,
+    $__predefinedItems_47_alignment__,
+    $__predefinedItems_47_clearColumn__,
+    $__predefinedItems_47_columnLeft__,
+    $__predefinedItems_47_columnRight__,
+    $__predefinedItems_47_readOnly__,
+    $__predefinedItems_47_redo__,
+    $__predefinedItems_47_removeColumn__,
+    $__predefinedItems_47_removeRow__,
+    $__predefinedItems_47_rowAbove__,
+    $__predefinedItems_47_rowBelow__,
+    $__predefinedItems_47_separator__,
+    $__predefinedItems_47_undo__;
+var objectEach = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).objectEach;
+var $__1 = ($__predefinedItems_47_alignment__ = _dereq_("predefinedItems/alignment"), $__predefinedItems_47_alignment__ && $__predefinedItems_47_alignment__.__esModule && $__predefinedItems_47_alignment__ || {default: $__predefinedItems_47_alignment__}),
+    alignmentItem = $__1.alignmentItem,
+    ALIGNMENT = $__1.KEY;
+var $__2 = ($__predefinedItems_47_clearColumn__ = _dereq_("predefinedItems/clearColumn"), $__predefinedItems_47_clearColumn__ && $__predefinedItems_47_clearColumn__.__esModule && $__predefinedItems_47_clearColumn__ || {default: $__predefinedItems_47_clearColumn__}),
+    clearColumnItem = $__2.clearColumnItem,
+    CLEAR_COLUMN = $__2.KEY;
+var $__3 = ($__predefinedItems_47_columnLeft__ = _dereq_("predefinedItems/columnLeft"), $__predefinedItems_47_columnLeft__ && $__predefinedItems_47_columnLeft__.__esModule && $__predefinedItems_47_columnLeft__ || {default: $__predefinedItems_47_columnLeft__}),
+    columnLeftItem = $__3.columnLeftItem,
+    COLUMN_LEFT = $__3.KEY;
+var $__4 = ($__predefinedItems_47_columnRight__ = _dereq_("predefinedItems/columnRight"), $__predefinedItems_47_columnRight__ && $__predefinedItems_47_columnRight__.__esModule && $__predefinedItems_47_columnRight__ || {default: $__predefinedItems_47_columnRight__}),
+    columnRightItem = $__4.columnRightItem,
+    COLUMN_RIGHT = $__4.KEY;
+var $__5 = ($__predefinedItems_47_readOnly__ = _dereq_("predefinedItems/readOnly"), $__predefinedItems_47_readOnly__ && $__predefinedItems_47_readOnly__.__esModule && $__predefinedItems_47_readOnly__ || {default: $__predefinedItems_47_readOnly__}),
+    readOnlyItem = $__5.readOnlyItem,
+    READ_ONLY = $__5.KEY;
+var $__6 = ($__predefinedItems_47_redo__ = _dereq_("predefinedItems/redo"), $__predefinedItems_47_redo__ && $__predefinedItems_47_redo__.__esModule && $__predefinedItems_47_redo__ || {default: $__predefinedItems_47_redo__}),
+    redoItem = $__6.redoItem,
+    REDO = $__6.KEY;
+var $__7 = ($__predefinedItems_47_removeColumn__ = _dereq_("predefinedItems/removeColumn"), $__predefinedItems_47_removeColumn__ && $__predefinedItems_47_removeColumn__.__esModule && $__predefinedItems_47_removeColumn__ || {default: $__predefinedItems_47_removeColumn__}),
+    removeColumnItem = $__7.removeColumnItem,
+    REMOVE_COLUMN = $__7.KEY;
+var $__8 = ($__predefinedItems_47_removeRow__ = _dereq_("predefinedItems/removeRow"), $__predefinedItems_47_removeRow__ && $__predefinedItems_47_removeRow__.__esModule && $__predefinedItems_47_removeRow__ || {default: $__predefinedItems_47_removeRow__}),
+    removeRowItem = $__8.removeRowItem,
+    REMOVE_ROW = $__8.KEY;
+var $__9 = ($__predefinedItems_47_rowAbove__ = _dereq_("predefinedItems/rowAbove"), $__predefinedItems_47_rowAbove__ && $__predefinedItems_47_rowAbove__.__esModule && $__predefinedItems_47_rowAbove__ || {default: $__predefinedItems_47_rowAbove__}),
+    rowAboveItem = $__9.rowAboveItem,
+    ROW_ABOVE = $__9.KEY;
+var $__10 = ($__predefinedItems_47_rowBelow__ = _dereq_("predefinedItems/rowBelow"), $__predefinedItems_47_rowBelow__ && $__predefinedItems_47_rowBelow__.__esModule && $__predefinedItems_47_rowBelow__ || {default: $__predefinedItems_47_rowBelow__}),
+    rowBelowItem = $__10.rowBelowItem,
+    ROW_BELOW = $__10.KEY;
+var $__11 = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__}),
+    separatorItem = $__11.separatorItem,
+    SEPARATOR = $__11.KEY;
+var $__12 = ($__predefinedItems_47_undo__ = _dereq_("predefinedItems/undo"), $__predefinedItems_47_undo__ && $__predefinedItems_47_undo__.__esModule && $__predefinedItems_47_undo__ || {default: $__predefinedItems_47_undo__}),
+    undoItem = $__12.undoItem,
+    UNDO = $__12.KEY;
+var $__predefinedItems_47_alignment__ = ($__predefinedItems_47_alignment__ = _dereq_("predefinedItems/alignment"), $__predefinedItems_47_alignment__ && $__predefinedItems_47_alignment__.__esModule && $__predefinedItems_47_alignment__ || {default: $__predefinedItems_47_alignment__});
+var $__predefinedItems_47_clearColumn__ = ($__predefinedItems_47_clearColumn__ = _dereq_("predefinedItems/clearColumn"), $__predefinedItems_47_clearColumn__ && $__predefinedItems_47_clearColumn__.__esModule && $__predefinedItems_47_clearColumn__ || {default: $__predefinedItems_47_clearColumn__});
+var $__predefinedItems_47_columnLeft__ = ($__predefinedItems_47_columnLeft__ = _dereq_("predefinedItems/columnLeft"), $__predefinedItems_47_columnLeft__ && $__predefinedItems_47_columnLeft__.__esModule && $__predefinedItems_47_columnLeft__ || {default: $__predefinedItems_47_columnLeft__});
+var $__predefinedItems_47_columnRight__ = ($__predefinedItems_47_columnRight__ = _dereq_("predefinedItems/columnRight"), $__predefinedItems_47_columnRight__ && $__predefinedItems_47_columnRight__.__esModule && $__predefinedItems_47_columnRight__ || {default: $__predefinedItems_47_columnRight__});
+var $__predefinedItems_47_readOnly__ = ($__predefinedItems_47_readOnly__ = _dereq_("predefinedItems/readOnly"), $__predefinedItems_47_readOnly__ && $__predefinedItems_47_readOnly__.__esModule && $__predefinedItems_47_readOnly__ || {default: $__predefinedItems_47_readOnly__});
+var $__predefinedItems_47_redo__ = ($__predefinedItems_47_redo__ = _dereq_("predefinedItems/redo"), $__predefinedItems_47_redo__ && $__predefinedItems_47_redo__.__esModule && $__predefinedItems_47_redo__ || {default: $__predefinedItems_47_redo__});
+var $__predefinedItems_47_removeColumn__ = ($__predefinedItems_47_removeColumn__ = _dereq_("predefinedItems/removeColumn"), $__predefinedItems_47_removeColumn__ && $__predefinedItems_47_removeColumn__.__esModule && $__predefinedItems_47_removeColumn__ || {default: $__predefinedItems_47_removeColumn__});
+var $__predefinedItems_47_removeRow__ = ($__predefinedItems_47_removeRow__ = _dereq_("predefinedItems/removeRow"), $__predefinedItems_47_removeRow__ && $__predefinedItems_47_removeRow__.__esModule && $__predefinedItems_47_removeRow__ || {default: $__predefinedItems_47_removeRow__});
+var $__predefinedItems_47_rowAbove__ = ($__predefinedItems_47_rowAbove__ = _dereq_("predefinedItems/rowAbove"), $__predefinedItems_47_rowAbove__ && $__predefinedItems_47_rowAbove__.__esModule && $__predefinedItems_47_rowAbove__ || {default: $__predefinedItems_47_rowAbove__});
+var $__predefinedItems_47_rowBelow__ = ($__predefinedItems_47_rowBelow__ = _dereq_("predefinedItems/rowBelow"), $__predefinedItems_47_rowBelow__ && $__predefinedItems_47_rowBelow__.__esModule && $__predefinedItems_47_rowBelow__ || {default: $__predefinedItems_47_rowBelow__});
+var $__predefinedItems_47_separator__ = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__});
+var $__predefinedItems_47_undo__ = ($__predefinedItems_47_undo__ = _dereq_("predefinedItems/undo"), $__predefinedItems_47_undo__ && $__predefinedItems_47_undo__.__esModule && $__predefinedItems_47_undo__ || {default: $__predefinedItems_47_undo__});
 var ITEMS = [ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY, ALIGNMENT, SEPARATOR];
+var _predefinedItems = ($__13 = {}, Object.defineProperty($__13, SEPARATOR, {
+  value: separatorItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ROW_ABOVE, {
+  value: rowAboveItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ROW_BELOW, {
+  value: rowBelowItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, COLUMN_LEFT, {
+  value: columnLeftItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, COLUMN_RIGHT, {
+  value: columnRightItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, CLEAR_COLUMN, {
+  value: clearColumnItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REMOVE_ROW, {
+  value: removeRowItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REMOVE_COLUMN, {
+  value: removeColumnItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, UNDO, {
+  value: undoItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REDO, {
+  value: redoItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, READ_ONLY, {
+  value: readOnlyItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ALIGNMENT, {
+  value: alignmentItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__13);
 function predefinedItems() {
   var items = {};
-  objectEach(_predefinedItems, (function(value, key) {
-    return items[key] = clone(value);
+  objectEach(_predefinedItems, (function(itemFactory, key) {
+    return items[key] = itemFactory();
   }));
   return items;
 }
@@ -14248,114 +15596,274 @@ function addItem(key, item) {
     _predefinedItems[key] = item;
   }
 }
-var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
-  value: {name: SEPARATOR},
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ROW_ABOVE, {
-  value: {
-    key: ROW_ABOVE,
-    name: 'Insert row above',
-    callback: function(key, selection) {
-      this.alter('insert_row', selection.start.row);
-    },
+
+//# 
+},{"helpers/object":53,"predefinedItems/alignment":76,"predefinedItems/clearColumn":77,"predefinedItems/columnLeft":78,"predefinedItems/columnRight":79,"predefinedItems/readOnly":80,"predefinedItems/redo":81,"predefinedItems/removeColumn":82,"predefinedItems/removeRow":83,"predefinedItems/rowAbove":84,"predefinedItems/rowBelow":85,"predefinedItems/separator":86,"predefinedItems/undo":87}],76:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  alignmentItem: {get: function() {
+      return alignmentItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__,
+    $__separator__;
+var $__0 = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}),
+    align = $__0.align,
+    getAlignmentClasses = $__0.getAlignmentClasses,
+    checkSelectionConsistency = $__0.checkSelectionConsistency,
+    markLabelAsSelected = $__0.markLabelAsSelected;
+var SEPARATOR = ($__separator__ = _dereq_("separator"), $__separator__ && $__separator__.__esModule && $__separator__ || {default: $__separator__}).KEY;
+var KEY = 'alignment';
+function alignmentItem() {
+  return {
+    key: KEY,
+    name: 'Alignment',
     disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.countRows() >= this.getSettings().maxRows) {
-        return true;
-      }
-      var rowCount = this.countRows();
-      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
-      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
+      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
     },
-    hidden: function() {
-      return !this.getSettings().allowInsertRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ROW_BELOW, {
-  value: {
-    key: ROW_BELOW,
-    name: 'Insert row below',
-    callback: function(key, selection) {
-      this.alter('insert_row', selection.end.row + 1);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.countRows() >= this.getSettings().maxRows) {
-        return true;
-      }
-      var rowCount = this.countRows();
-      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
-      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, COLUMN_LEFT, {
-  value: {
-    key: COLUMN_LEFT,
-    name: 'Insert column on the left',
-    callback: function(key, selection) {
-      this.alter('insert_col', selection.start.col);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected) {
-        return true;
-      }
-      if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      var onlyOneColumn = this.countCols() == 1;
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertColumn;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, COLUMN_RIGHT, {
-  value: {
-    key: COLUMN_RIGHT,
-    name: 'Insert column on the right',
-    callback: function(key, selection) {
-      this.alter('insert_col', selection.end.col + 1);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected) {
-        return true;
-      }
-      if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      var onlyOneColumn = this.countCols() == 1;
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertColumn;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, CLEAR_COLUMN, {
-  value: {
-    key: CLEAR_COLUMN,
+    submenu: {items: [{
+        key: (KEY + ":left"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Left';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htLeft') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htLeft';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":center"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Center';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htCenter') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htCenter';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":right"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Right';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htRight') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htRight';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":justify"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Justify';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htJustify') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htJustify';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {name: SEPARATOR}, {
+        key: (KEY + ":top"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Top';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htTop') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htTop';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":middle"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Middle';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htMiddle') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htMiddle';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":bottom"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Bottom';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htBottom') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htBottom';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }]}
+  };
+}
+
+//# 
+},{"separator":86,"utils":88}],77:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  clearColumnItem: {get: function() {
+      return clearColumnItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'clear_column';
+function clearColumnItem() {
+  return {
+    key: KEY,
     name: 'Clear column',
     callback: function(key, selection) {
       var column = selection.start.col;
@@ -14372,44 +15880,34 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REMOVE_ROW, {
-  value: {
-    key: REMOVE_ROW,
-    name: 'Remove row',
+  };
+}
+
+//# 
+},{"utils":88}],78:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  columnLeftItem: {get: function() {
+      return columnLeftItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'col_left';
+function columnLeftItem() {
+  return {
+    key: KEY,
+    name: 'Insert column on the left',
     callback: function(key, selection) {
-      var amount = selection.end.row - selection.start.row + 1;
-      this.alter('remove_row', selection.start.row, amount);
+      this.alter('insert_col', selection.start.col);
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected || this.selection.selectedHeader.cols) {
-        return true;
-      }
-      var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
-      return entireColumnSelection.join(',') === selected.join(',');
-    },
-    hidden: function() {
-      return !this.getSettings().allowRemoveRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REMOVE_COLUMN, {
-  value: {
-    key: REMOVE_COLUMN,
-    name: 'Remove column',
-    callback: function(key, selection) {
-      var amount = selection.end.col - selection.start.col + 1;
-      this.alter('remove_col', selection.start.col, amount);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.selection.selectedHeader.rows) {
+      if (!selected) {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
@@ -14417,51 +15915,81 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       }
       var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      return (selected[1] < 0 || rowSelected);
+      var onlyOneColumn = this.countCols() === 1;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
     hidden: function() {
-      return !this.getSettings().allowRemoveColumn;
+      return !this.getSettings().allowInsertColumn;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, UNDO, {
-  value: {
-    key: UNDO,
-    name: 'Undo',
-    callback: function() {
-      this.undo();
+  };
+}
+
+//# 
+},{"utils":88}],79:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  columnRightItem: {get: function() {
+      return columnRightItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'col_right';
+function columnRightItem() {
+  return {
+    key: KEY,
+    name: 'Insert column on the right',
+    callback: function(key, selection) {
+      this.alter('insert_col', selection.end.col + 1);
     },
     disabled: function() {
-      return this.undoRedo && !this.undoRedo.isUndoAvailable();
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REDO, {
-  value: {
-    key: REDO,
-    name: 'Redo',
-    callback: function() {
-      this.redo();
+      var selected = getValidSelection(this);
+      if (!selected) {
+        return true;
+      }
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+      var rowSelected = entireRowSelection.join(',') == selected.join(',');
+      var onlyOneColumn = this.countCols() === 1;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
-    disabled: function() {
-      return this.undoRedo && !this.undoRedo.isRedoAvailable();
+    hidden: function() {
+      return !this.getSettings().allowInsertColumn;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, READ_ONLY, {
-  value: {
-    key: READ_ONLY,
+  };
+}
+
+//# 
+},{"utils":88}],80:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  readOnlyItem: {get: function() {
+      return readOnlyItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var $__0 = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}),
+    checkSelectionConsistency = $__0.checkSelectionConsistency,
+    markLabelAsSelected = $__0.markLabelAsSelected;
+var KEY = 'make_read_only';
+function readOnlyItem() {
+  return {
+    key: KEY,
     name: function() {
-      var $__3 = this;
+      var $__1 = this;
       var label = 'Read only';
       var atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-        return $__3.getCellMeta(row, col).readOnly;
+        return $__1.getCellMeta(row, col).readOnly;
       }));
       if (atLeastOneReadOnly) {
         label = markLabelAsSelected(label);
@@ -14469,256 +15997,225 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       return label;
     },
     callback: function() {
-      var $__3 = this;
+      var $__1 = this;
       var range = this.getSelectedRange();
       var atLeastOneReadOnly = checkSelectionConsistency(range, (function(row, col) {
-        return $__3.getCellMeta(row, col).readOnly;
+        return $__1.getCellMeta(row, col).readOnly;
       }));
       range.forAll((function(row, col) {
-        $__3.getCellMeta(row, col).readOnly = atLeastOneReadOnly ? false : true;
+        $__1.setCellMeta(row, col, 'readOnly', atLeastOneReadOnly ? false : true);
       }));
       this.render();
     },
     disabled: function() {
-      return this.getSelectedRange() ? false : true;
+      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ALIGNMENT, {
-  value: {
-    key: ALIGNMENT,
-    name: 'Alignment',
-    disabled: function() {
-      return this.getSelectedRange() ? false : true;
-    },
-    submenu: {items: [{
-        key: (ALIGNMENT + ":left"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Left';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htLeft') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htLeft';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":center"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Center';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htCenter') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htCenter';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":right"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Right';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htRight') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htRight';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":justify"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Justify';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htJustify') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htJustify';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {name: SEPARATOR}, {
-        key: (ALIGNMENT + ":top"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Top';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htTop') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htTop';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":middle"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Middle';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htMiddle') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htMiddle';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":bottom"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Bottom';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htBottom') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htBottom';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }]}
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), $__4);
+  };
+}
 
 //# 
-},{"helpers/number":51,"helpers/object":52,"utils":73}],73:[function(_dereq_,module,exports){
+},{"utils":88}],81:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  redoItem: {get: function() {
+      return redoItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = 'redo';
+function redoItem() {
+  return {
+    key: KEY,
+    name: 'Redo',
+    callback: function() {
+      this.redo();
+    },
+    disabled: function() {
+      return this.undoRedo && !this.undoRedo.isRedoAvailable();
+    }
+  };
+}
+
+//# 
+},{}],82:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  removeColumnItem: {get: function() {
+      return removeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'remove_col';
+function removeColumnItem() {
+  return {
+    key: KEY,
+    name: 'Remove column',
+    callback: function(key, selection) {
+      var amount = selection.end.col - selection.start.col + 1;
+      this.alter('remove_col', selection.start.col, amount);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      var totalColumns = this.countCols();
+      return !selected || this.selection.selectedHeader.rows || this.selection.selectedHeader.corner || !this.isColumnModificationAllowed() || !totalColumns;
+    },
+    hidden: function() {
+      return !this.getSettings().allowRemoveColumn;
+    }
+  };
+}
+
+//# 
+},{"utils":88}],83:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  removeRowItem: {get: function() {
+      return removeRowItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'remove_row';
+function removeRowItem() {
+  return {
+    key: KEY,
+    name: 'Remove row',
+    callback: function(key, selection) {
+      var amount = selection.end.row - selection.start.row + 1;
+      this.alter('remove_row', selection.start.row, amount);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      var totalRows = this.countRows();
+      return !selected || this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowRemoveRow;
+    }
+  };
+}
+
+//# 
+},{"utils":88}],84:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  rowAboveItem: {get: function() {
+      return rowAboveItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'row_above';
+function rowAboveItem() {
+  return {
+    key: KEY,
+    name: 'Insert row above',
+    callback: function(key, selection) {
+      this.alter('insert_row', selection.start.row);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowInsertRow;
+    }
+  };
+}
+
+//# 
+},{"utils":88}],85:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  rowBelowItem: {get: function() {
+      return rowBelowItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'row_below';
+function rowBelowItem() {
+  return {
+    key: KEY,
+    name: 'Insert row below',
+    callback: function(key, selection) {
+      this.alter('insert_row', selection.end.row + 1);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowInsertRow;
+    }
+  };
+}
+
+//# 
+},{"utils":88}],86:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  separatorItem: {get: function() {
+      return separatorItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = '---------';
+function separatorItem() {
+  return {name: KEY};
+}
+
+//# 
+},{}],87:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  undoItem: {get: function() {
+      return undoItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = 'undo';
+function undoItem() {
+  return {
+    key: KEY,
+    name: 'Undo',
+    callback: function() {
+      this.undo();
+    },
+    disabled: function() {
+      return this.undoRedo && !this.undoRedo.isUndoAvailable();
+    }
+  };
+}
+
+//# 
+},{}],88:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   normalizeSelection: {get: function() {
@@ -14767,10 +16264,10 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
-    $__predefinedItems__;
+    $__predefinedItems_47_separator__;
 var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
-var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
+var SEPARATOR = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__}).KEY;
 function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
@@ -14909,7 +16406,7 @@ function filterSeparators(items) {
 }
 
 //# 
-},{"helpers/array":42,"helpers/dom/element":46,"predefinedItems":72}],74:[function(_dereq_,module,exports){
+},{"helpers/array":43,"helpers/dom/element":47,"predefinedItems/separator":86}],89:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenuCopyPaste: {get: function() {
@@ -14917,20 +16414,20 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_browser__,
+var $___46__46__47__95_base__,
+    $__zeroclipboard__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_plugins__,
-    $___46__46__47__95_base__,
-    $__zeroclipboard__;
-var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+    $___46__46__47_contextMenu_47_predefinedItems__;
+var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
+var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
 var removeClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).removeClass;
 var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
-var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
+var SEPARATOR = ($___46__46__47_contextMenu_47_predefinedItems__ = _dereq_("contextMenu/predefinedItems"), $___46__46__47_contextMenu_47_predefinedItems__ && $___46__46__47_contextMenu_47_predefinedItems__.__esModule && $___46__46__47_contextMenu_47_predefinedItems__ || {default: $___46__46__47_contextMenu_47_predefinedItems__}).SEPARATOR;
 var ContextMenuCopyPaste = function ContextMenuCopyPaste(hotInstance) {
   $traceurRuntime.superConstructor($ContextMenuCopyPaste).call(this, hotInstance);
   this.eventManager = new EventManager(this);
@@ -14991,14 +16488,20 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   onAfterContextMenuDefaultOptions: function(defaultOptions) {
     defaultOptions.items.unshift({
       key: 'copy',
-      name: 'Copy'
+      name: 'Copy',
+      disabled: function() {
+        return this.selection.selectedHeader.corner;
+      }
     }, {
       key: 'paste',
       name: 'Paste',
       callback: function() {
         this.copyPaste.triggerPaste();
+      },
+      disabled: function() {
+        return this.selection.selectedHeader.corner;
       }
-    }, Handsontable.plugins.ContextMenu.SEPARATOR);
+    }, {name: SEPARATOR});
   },
   onAfterContextMenuShow: function() {
     var $__7 = this;
@@ -15019,6 +16522,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeCurrentClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
       if (element) {
@@ -15030,6 +16536,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeZeroClipboardClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
       if (element) {
@@ -15043,7 +16552,7 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":59,"zeroclipboard":"zeroclipboard"}],75:[function(_dereq_,module,exports){
+},{"_base":62,"contextMenu/predefinedItems":75,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"plugins":61,"zeroclipboard":"zeroclipboard"}],90:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CopyPastePlugin: {get: function() {
@@ -15248,7 +16757,7 @@ Handsontable.hooks.register('modifyCopyableRange');
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"SheetClip":"SheetClip","browser":23,"copyPaste":"copyPaste","helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/number":51,"helpers/unicode":55,"plugins":59}],76:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"3rdparty/walkontable/src/cell/range":7,"SheetClip":"SheetClip","browser":24,"copyPaste":"copyPaste","helpers/array":43,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/function":50,"helpers/number":52,"helpers/unicode":56,"plugins":61}],91:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_plugins__,
@@ -15496,6 +17005,9 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   defaultOptions.items.push({
     key: 'borders',
     name: 'Borders',
+    disabled: function() {
+      return this.selection.selectedHeader.corner;
+    },
     submenu: {items: [{
         key: 'borders:top',
         name: function() {
@@ -15509,8 +17021,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'top');
           prepareBorder.call(this, this.getSelectedRange(), 'top', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:right',
         name: function() {
@@ -15524,8 +17035,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'right');
           prepareBorder.call(this, this.getSelectedRange(), 'right', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:bottom',
         name: function() {
@@ -15539,8 +17049,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'bottom');
           prepareBorder.call(this, this.getSelectedRange(), 'bottom', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:left',
         name: function() {
@@ -15554,8 +17063,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'left');
           prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:no_borders',
         name: 'Remove border(s)',
@@ -15587,7 +17095,7 @@ Handsontable.hooks.add('afterInit', function() {
 Handsontable.CustomBorders = CustomBorders;
 
 //# 
-},{"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"plugins":59}],77:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/range":7,"3rdparty/walkontable/src/selection":19,"browser":24,"plugins":61}],92:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DragToScroll: {get: function() {
@@ -15677,7 +17185,71 @@ Handsontable.hooks.add('afterOnCellCornerMouseDown', function() {
 Handsontable.plugins.DragToScroll = DragToScroll;
 
 //# 
-},{"browser":23,"eventManager":41,"plugins":59}],78:[function(_dereq_,module,exports){
+},{"browser":24,"eventManager":42,"plugins":61}],93:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  freezeColumnItem: {get: function() {
+      return freezeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+function freezeColumnItem(manualColumnFreezePlugin) {
+  return {
+    key: 'freeze_column',
+    name: 'Freeze this column',
+    callback: function() {
+      var selectedColumn = this.getSelectedRange().from.col;
+      manualColumnFreezePlugin.freezeColumn(selectedColumn);
+      this.render();
+      this.view.wt.wtOverlays.adjustElementsSize(true);
+    },
+    hidden: function() {
+      var selection = this.getSelectedRange();
+      var hide = false;
+      if (selection === void 0) {
+        hide = true;
+      } else if ((selection.from.col !== selection.to.col) || (selection.from.col <= this.getSettings().fixedColumnsLeft - 1)) {
+        hide = true;
+      }
+      return hide;
+    }
+  };
+}
+
+//# 
+},{}],94:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  unfreezeColumnItem: {get: function() {
+      return unfreezeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+function unfreezeColumnItem(manualColumnFreezePlugin) {
+  return {
+    key: 'unfreeze_column',
+    name: 'Unfreeze this column',
+    callback: function() {
+      var selectedColumn = this.getSelectedRange().from.col;
+      manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
+      this.render();
+      this.view.wt.wtOverlays.adjustElementsSize(true);
+    },
+    hidden: function() {
+      var selection = this.getSelectedRange();
+      var hide = false;
+      if (selection === void 0) {
+        hide = true;
+      } else if ((selection.from.col !== selection.to.col) || selection.from.col >= this.getSettings().fixedColumnsLeft) {
+        hide = true;
+      }
+      return hide;
+    }
+  };
+}
+
+//# 
+},{}],95:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnFreeze: {get: function() {
@@ -15687,14 +17259,25 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__95_base__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $__contextMenuItem_47_freezeColumn__,
+    $__contextMenuItem_47_unfreezeColumn__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var freezeColumnItem = ($__contextMenuItem_47_freezeColumn__ = _dereq_("contextMenuItem/freezeColumn"), $__contextMenuItem_47_freezeColumn__ && $__contextMenuItem_47_freezeColumn__.__esModule && $__contextMenuItem_47_freezeColumn__ || {default: $__contextMenuItem_47_freezeColumn__}).freezeColumnItem;
+var unfreezeColumnItem = ($__contextMenuItem_47_unfreezeColumn__ = _dereq_("contextMenuItem/unfreezeColumn"), $__contextMenuItem_47_unfreezeColumn__ && $__contextMenuItem_47_unfreezeColumn__.__esModule && $__contextMenuItem_47_unfreezeColumn__ || {default: $__contextMenuItem_47_unfreezeColumn__}).unfreezeColumnItem;
+var privatePool = new WeakMap();
 var ManualColumnFreeze = function ManualColumnFreeze(hotInstance) {
   $traceurRuntime.superConstructor($ManualColumnFreeze).call(this, hotInstance);
-  this.manualColumnMovePlugin = null;
+  privatePool.set(this, {
+    moveByFreeze: false,
+    afterFirstUse: false
+  });
   this.frozenColumnsBasePositions = [];
+  this.manualColumnMovePlugin = void 0;
 };
 var $ManualColumnFreeze = ManualColumnFreeze;
 ($traceurRuntime.createClass)(ManualColumnFreeze, {
@@ -15702,126 +17285,177 @@ var $ManualColumnFreeze = ManualColumnFreeze;
     return !!this.hot.getSettings().manualColumnFreeze;
   },
   enablePlugin: function() {
-    var $__3 = this;
+    var $__6 = this;
     if (this.enabled) {
       return;
     }
-    this.addHook('modifyCol', (function(col) {
-      return $__3.onModifyCol(col);
+    this.addHook('afterContextMenuDefaultOptions', (function(options) {
+      return $__6.addContextMenuEntry(options);
     }));
-    this.addHook('afterContextMenuDefaultOptions', (function(defaultOptions) {
-      return $__3.addContextMenuEntry(defaultOptions);
+    this.addHook('afterInit', (function() {
+      return $__6.onAfterInit();
+    }));
+    this.addHook('beforeColumnMove', (function(rows, target) {
+      return $__6.onBeforeColumnMove(rows, target);
     }));
     $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "enablePlugin").call(this);
   },
-  init: function() {
-    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "init").call(this);
-    this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
+  disablePlugin: function() {
+    var priv = privatePool.get(this);
+    priv.afterFirstUse = false;
+    priv.moveByFreeze = false;
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "disablePlugin").call(this);
   },
-  getManualColumnMovePlugin: function() {
+  updatePlugin: function() {
+    this.disablePlugin();
+    this.enablePlugin();
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "updatePlugin").call(this);
+  },
+  freezeColumn: function(column) {
+    var priv = privatePool.get(this);
+    var settings = this.hot.getSettings();
+    if (!priv.afterFirstUse) {
+      priv.afterFirstUse = true;
+    }
+    if (settings.fixedColumnsLeft === this.hot.countCols() || column <= settings.fixedColumnsLeft - 1) {
+      return;
+    }
+    priv.moveByFreeze = true;
+    if (column !== this.getMovePlugin().columnsMapper.getValueByIndex(column)) {
+      this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
+    }
+    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
+  },
+  unfreezeColumn: function(column) {
+    var priv = privatePool.get(this);
+    var settings = this.hot.getSettings();
+    if (!priv.afterFirstUse) {
+      priv.afterFirstUse = true;
+    }
+    if (settings.fixedColumnsLeft <= 0 || (column > settings.fixedColumnsLeft - 1)) {
+      return;
+    }
+    var returnCol = this.getBestColumnReturnPosition(column);
+    priv.moveByFreeze = true;
+    settings.fixedColumnsLeft--;
+    this.getMovePlugin().moveColumn(column, returnCol + 1);
+  },
+  getMovePlugin: function() {
     if (!this.manualColumnMovePlugin) {
       this.manualColumnMovePlugin = this.hot.getPlugin('manualColumnMove');
     }
     return this.manualColumnMovePlugin;
   },
-  onModifyCol: function(column) {
-    if (this.getManualColumnMovePlugin().isEnabled()) {
-      return column;
-    }
-    return this.getLogicalColumnIndex(column);
-  },
-  addContextMenuEntry: function(defaultOptions) {
-    var _this = this;
-    defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, {
-      key: 'freeze_column',
-      name: function() {
-        var selectedColumn = _this.hot.getSelected()[1];
-        if (selectedColumn > _this.fixedColumnsCount - 1) {
-          return 'Freeze this column';
-        } else {
-          return 'Unfreeze this column';
-        }
-      },
-      disabled: function() {
-        var selection = _this.hot.getSelected();
-        return selection[1] !== selection[3];
-      },
-      callback: function() {
-        var selectedColumn = _this.hot.getSelected()[1];
-        if (selectedColumn > _this.fixedColumnsCount - 1) {
-          _this.freezeColumn(selectedColumn);
-        } else {
-          _this.unfreezeColumn(selectedColumn);
-        }
-      }
-    });
-  },
-  freezeColumn: function(column) {
-    if (column <= this.fixedColumnsCount - 1) {
-      return;
-    }
-    if (column !== this.getLogicalColumnIndex(column)) {
-      this.frozenColumnsBasePositions[this.fixedColumnsCount] = column;
-    }
-    this.changeColumnPositions(column, this.fixedColumnsCount);
-    this.addFixedColumn();
-    this.hot.view.wt.wtOverlays.leftOverlay.refresh();
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
-  },
-  unfreezeColumn: function(column) {
-    if (column > this.fixedColumnsCount - 1) {
-      return;
-    }
-    var returnCol = this.getBestColumnReturnPosition(column);
-    this.changeColumnPositions(column, returnCol);
-    this.removeFixedColumn();
-    this.hot.view.wt.wtOverlays.leftOverlay.refresh();
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
-  },
-  addFixedColumn: function() {
-    this.hot.updateSettings({fixedColumnsLeft: this.fixedColumnsCount + 1});
-    this.fixedColumnsCount++;
-  },
-  removeFixedColumn: function() {
-    this.hot.updateSettings({fixedColumnsLeft: this.fixedColumnsCount - 1});
-    this.fixedColumnsCount--;
-  },
   getBestColumnReturnPosition: function(column) {
-    var i = this.fixedColumnsCount;
-    var j = this.getLogicalColumnIndex(i);
+    var movePlugin = this.getMovePlugin();
+    var settings = this.hot.getSettings();
+    var i = settings.fixedColumnsLeft;
+    var j = movePlugin.columnsMapper.getValueByIndex(i);
     var initialCol;
     if (this.frozenColumnsBasePositions[column] == null) {
-      initialCol = this.getLogicalColumnIndex(column);
+      initialCol = movePlugin.columnsMapper.getValueByIndex(column);
       while (j < initialCol) {
         i++;
-        j = this.getLogicalColumnIndex(i);
+        j = movePlugin.columnsMapper.getValueByIndex(i);
       }
     } else {
       initialCol = this.frozenColumnsBasePositions[column];
       this.frozenColumnsBasePositions[column] = void 0;
       while (j <= initialCol) {
         i++;
-        j = this.getLogicalColumnIndex(i);
+        j = movePlugin.columnsMapper.getValueByIndex(i);
       }
       i = j;
     }
     return i - 1;
   },
-  getVisibleColumnIndex: function(column) {
-    return this.getManualColumnMovePlugin().getVisibleColumnIndex(column);
+  addContextMenuEntry: function(options) {
+    options.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, freezeColumnItem(this), unfreezeColumnItem(this));
   },
-  getLogicalColumnIndex: function(column) {
-    return this.getManualColumnMovePlugin().getLogicalColumnIndex(column);
+  onAfterInit: function() {
+    if (!this.getMovePlugin().isEnabled()) {
+      this.getMovePlugin().enablePlugin();
+    }
   },
-  changeColumnPositions: function(sourceColumn, destinationColumn) {
-    this.getManualColumnMovePlugin().changeColumnPositions(sourceColumn, destinationColumn);
+  onBeforeColumnMove: function(rows, target) {
+    var priv = privatePool.get(this);
+    if (priv.afterFirstUse && !priv.moveByFreeze) {
+      var frozenLen = this.hot.getSettings().fixedColumnsLeft;
+      var disallowMoving = target < frozenLen;
+      if (!disallowMoving) {
+        arrayEach(rows, (function(value, index, array) {
+          if (value < frozenLen) {
+            disallowMoving = true;
+            return false;
+          }
+        }));
+      }
+      if (disallowMoving) {
+        return false;
+      }
+    }
+    if (priv.moveByFreeze) {
+      priv.moveByFreeze = false;
+    }
+  },
+  destroy: function() {
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('manualColumnFreeze', ManualColumnFreeze);
 
 //# 
-},{"_base":60,"browser":23,"plugins":59}],79:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"contextMenuItem/freezeColumn":93,"contextMenuItem/unfreezeColumn":94,"helpers/array":43,"plugins":61}],96:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  ColumnsMapper: {get: function() {
+      return ColumnsMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_mixins_47_arrayMapper__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+var arrayMapper = ($___46__46__47__46__46__47_mixins_47_arrayMapper__ = _dereq_("mixins/arrayMapper"), $___46__46__47__46__46__47_mixins_47_arrayMapper__ && $___46__46__47__46__46__47_mixins_47_arrayMapper__.__esModule && $___46__46__47__46__46__47_mixins_47_arrayMapper__ || {default: $___46__46__47__46__46__47_mixins_47_arrayMapper__}).arrayMapper;
+var arrayFilter = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayFilter;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
+var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
+var ColumnsMapper = function ColumnsMapper(manualColumnMove) {
+  this.manualColumnMove = manualColumnMove;
+};
+($traceurRuntime.createClass)(ColumnsMapper, {
+  createMap: function(length) {
+    var $__5 = this;
+    var originLength = length === void 0 ? this._arrayMap.length : length;
+    this._arrayMap.length = 0;
+    rangeEach(originLength - 1, (function(itemIndex) {
+      $__5._arrayMap[itemIndex] = itemIndex;
+    }));
+  },
+  destroy: function() {
+    this._arrayMap = null;
+  },
+  moveColumn: function(from, to) {
+    var indexToMove = this._arrayMap[from];
+    this._arrayMap[from] = null;
+    this._arrayMap.splice(to, 0, indexToMove);
+  },
+  clearNull: function() {
+    this._arrayMap = arrayFilter(this._arrayMap, (function(i) {
+      return i !== null;
+    }));
+  }
+}, {});
+mixin(ColumnsMapper, arrayMapper);
+;
+Handsontable.utils.ManualColumnMoveColumnsMapper = ColumnsMapper;
+
+//# 
+},{"browser":24,"helpers/array":43,"helpers/number":52,"helpers/object":53,"mixins/arrayMapper":57}],97:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnMove: {get: function() {
@@ -15831,50 +17465,52 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__95_base_46_js__,
     $___46__46__47__46__46__47_browser__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_number__,
     $___46__46__47__46__46__47_eventManager__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_event__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $__columnsMapper__,
+    $__ui_47_backlight__,
+    $__ui_47_guideline__;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__2.addClass,
-    hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
-var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__3.arrayEach,
-    arrayMap = $__3.arrayMap;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__3.addClass,
+    removeClass = $__3.removeClass,
+    offset = $__3.offset;
 var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__6 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__6.pageX,
-    pageY = $__6.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var ColumnsMapper = ($__columnsMapper__ = _dereq_("columnsMapper"), $__columnsMapper__ && $__columnsMapper__.__esModule && $__columnsMapper__ || {default: $__columnsMapper__}).ColumnsMapper;
+var BacklightUI = ($__ui_47_backlight__ = _dereq_("ui/backlight"), $__ui_47_backlight__ && $__ui_47_backlight__.__esModule && $__ui_47_backlight__ || {default: $__ui_47_backlight__}).BacklightUI;
+var GuidelineUI = ($__ui_47_guideline__ = _dereq_("ui/guideline"), $__ui_47_guideline__ && $__ui_47_guideline__.__esModule && $__ui_47_guideline__ || {default: $__ui_47_guideline__}).GuidelineUI;
 var privatePool = new WeakMap();
+var CSS_PLUGIN = 'ht__manualColumnMove';
+var CSS_SHOW_UI = 'show-ui';
+var CSS_ON_MOVING = 'on-moving--columns';
+var CSS_AFTER_SELECTION = 'after-selection--columns';
 var ManualColumnMove = function ManualColumnMove(hotInstance) {
-  var $__8 = this;
   $traceurRuntime.superConstructor($ManualColumnMove).call(this, hotInstance);
   privatePool.set(this, {
-    guideClassName: 'manualColumnMoverGuide',
-    handleClassName: 'manualColumnMover',
-    startOffset: null,
-    pressed: null,
-    startCol: null,
-    endCol: null,
-    currentCol: null,
-    startX: null,
-    startY: null
+    columnsToMove: [],
+    countCols: 0,
+    fixedColumns: 0,
+    pressed: void 0,
+    disallowMoving: void 0,
+    target: {
+      eventPageX: void 0,
+      coords: void 0,
+      TD: void 0,
+      col: void 0
+    }
   });
-  this.guideElement = null;
-  this.handleElement = null;
-  this.currentTH = null;
-  this.columnPositions = [];
+  this.removedColumns = [];
+  this.columnsMapper = new ColumnsMapper(this);
   this.eventManager = eventManagerObject(this);
-  this.addHook('init', (function() {
-    return $__8.onInit();
-  }));
+  this.backlight = new BacklightUI(hotInstance);
+  this.guideline = new GuidelineUI(hotInstance);
 };
 var $ManualColumnMove = ManualColumnMove;
 ($traceurRuntime.createClass)(ManualColumnMove, {
@@ -15882,285 +17518,515 @@ var $ManualColumnMove = ManualColumnMove;
     return !!this.hot.getSettings().manualColumnMove;
   },
   enablePlugin: function() {
-    var $__8 = this;
-    var priv = privatePool.get(this);
-    var initialSettings = this.hot.getSettings().manualColumnMove;
-    var loadedManualColumnPositions = this.loadManualColumnPositions();
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-    this.addHook('modifyCol', (function(col) {
-      return $__8.onModifyCol(col);
+    var $__10 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('beforeOnCellMouseDown', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations);
     }));
-    this.addHook('unmodifyCol', (function(col) {
-      return $__8.onUnmodifyCol(col);
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('afterScrollVertically', (function() {
+      return $__10.onAfterScrollVertically();
+    }));
+    this.addHook('modifyCol', (function(row, source) {
+      return $__10.onModifyCol(row, source);
+    }));
+    this.addHook('beforeRemoveCol', (function(index, amount) {
+      return $__10.onBeforeRemoveCol(index, amount);
     }));
     this.addHook('afterRemoveCol', (function(index, amount) {
-      return $__8.onAfterRemoveCol(index, amount);
+      return $__10.onAfterRemoveCol(index, amount);
     }));
     this.addHook('afterCreateCol', (function(index, amount) {
-      return $__8.onAfterCreateCol(index, amount);
+      return $__10.onAfterCreateCol(index, amount);
+    }));
+    this.addHook('unmodifyCol', (function(column) {
+      return $__10.onUnmodifyCol(column);
     }));
     this.registerEvents();
-    if (typeof loadedManualColumnPositions != 'undefined') {
-      this.columnPositions = loadedManualColumnPositions;
-    } else if (Array.isArray(initialSettings)) {
-      this.columnPositions = initialSettings;
-    } else if (!initialSettings || this.columnPositions === void 0) {
-      this.columnPositions = [];
-    }
+    addClass(this.hot.rootElement, CSS_PLUGIN);
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "enablePlugin").call(this);
   },
   updatePlugin: function() {
     this.disablePlugin();
     this.enablePlugin();
+    this.onAfterPluginsInitialized();
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "updatePlugin").call(this);
   },
   disablePlugin: function() {
-    var pluginSetting = this.hot.getSettings().manualColumnMove;
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.columnPositions = [];
+    var pluginSettings = this.hot.getSettings().manualColumnMove;
+    if (Array.isArray(pluginSettings)) {
+      this.columnsMapper.clearMap();
     }
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
+    this.unregisterEvents();
+    this.backlight.destroy();
+    this.guideline.destroy();
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "disablePlugin").call(this);
   },
+  moveColumn: function(column, target) {
+    this.moveColumns([column], target);
+  },
+  moveColumns: function(columns, target) {
+    var $__10 = this;
+    var priv = privatePool.get(this);
+    var beforeColumnHook = this.hot.runHooks('beforeColumnMove', columns, target);
+    priv.disallowMoving = !beforeColumnHook;
+    if (beforeColumnHook !== false) {
+      arrayEach(columns, (function(column, index, array) {
+        array[index] = $__10.columnsMapper.getValueByIndex(column);
+      }));
+      arrayEach(columns, (function(column, index) {
+        var actualPosition = $__10.columnsMapper.getIndexByValue(column);
+        if (actualPosition !== target) {
+          $__10.columnsMapper.moveColumn(actualPosition, target + index);
+        }
+      }));
+      this.columnsMapper.clearNull();
+    }
+    this.hot.runHooks('afterColumnMove', columns, target);
+  },
+  changeSelection: function(startColumn, endColumn) {
+    var selection = this.hot.selection;
+    var lastRowIndex = this.hot.countRows() - 1;
+    selection.setRangeStartOnly(new WalkontableCellCoords(0, startColumn));
+    selection.setRangeEnd(new WalkontableCellCoords(lastRowIndex, endColumn), false);
+  },
+  getColumnsWidth: function(from, to) {
+    var width = 0;
+    for (var i = from; i < to; i++) {
+      var columnWidth = 0;
+      if (i < 0) {
+        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+      } else {
+        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      }
+      width += columnWidth;
+    }
+    return width;
+  },
+  initialSettings: function() {
+    var pluginSettings = this.hot.getSettings().manualColumnMove;
+    if (Array.isArray(pluginSettings)) {
+      this.moveColumns(pluginSettings, 0);
+    } else if (pluginSettings !== void 0) {
+      var persistentState = this.persistentStateLoad();
+      if (persistentState.length) {
+        this.moveColumns(persistentState, 0);
+      }
+    }
+  },
+  isFixedColumnsLeft: function(column) {
+    return column < this.hot.getSettings().fixedColumnsLeft;
+  },
+  persistentStateSave: function() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+  },
+  persistentStateLoad: function() {
+    var storedState = {};
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+    return storedState.value ? storedState.value : [];
+  },
+  prepareColumnsToMoving: function(start, end) {
+    var selectedColumns = [];
+    rangeEach(start, end, (function(i) {
+      selectedColumns.push(i);
+    }));
+    return selectedColumns;
+  },
+  refreshPositions: function() {
+    var priv = privatePool.get(this);
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
+    var wtTable = this.hot.view.wt.wtTable;
+    var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    var scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
+    var tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
+    var mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
+    var hiderWidth = wtTable.hider.offsetWidth;
+    var tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
+    var backlightElemMarginLeft = this.backlight.getOffset().left;
+    var backlightElemWidth = this.backlight.getSize().width;
+    var rowHeaderWidth = 0;
+    if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
+      if (priv.coordsColumn < priv.countCols) {
+        priv.coordsColumn++;
+      }
+    }
+    if (priv.hasRowHeaders) {
+      rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
+    }
+    if (this.isFixedColumnsLeft(priv.coordsColumn)) {
+      tdOffsetLeft += scrollLeft;
+    }
+    tdOffsetLeft += rowHeaderWidth;
+    if (priv.coordsColumn < 0) {
+      if (priv.fixedColumns > 0) {
+        priv.target.col = 0;
+      } else {
+        priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      }
+    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
+      var newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
+      priv.target.col = newCoordsCol + 1;
+      tdOffsetLeft += priv.target.TD.offsetWidth;
+      if (priv.target.col > lastVisible) {
+        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
+      }
+    } else {
+      priv.target.col = priv.coordsColumn;
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+        this.hot.scrollViewportTo(void 0, firstVisible - 1);
+      }
+    }
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      this.hot.scrollViewportTo(void 0, firstVisible - 1);
+    }
+    var backlightLeft = mouseOffsetLeft;
+    var guidelineLeft = tdOffsetLeft;
+    if (mouseOffsetLeft + backlightElemWidth + backlightElemMarginLeft >= hiderWidth) {
+      backlightLeft = hiderWidth - backlightElemWidth - backlightElemMarginLeft;
+    } else if (mouseOffsetLeft + backlightElemMarginLeft < tbodyOffsetLeft + rowHeaderWidth) {
+      backlightLeft = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginLeft);
+    }
+    if (tdOffsetLeft >= hiderWidth - 1) {
+      guidelineLeft = hiderWidth - 1;
+    } else if (guidelineLeft === 0) {
+      guidelineLeft = 1;
+    } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
+      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
+    }
+    this.backlight.setPosition(null, backlightLeft);
+    this.guideline.setPosition(null, guidelineLeft);
+  },
   registerEvents: function() {
-    var $__8 = this;
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(event) {
-      return $__8.onMouseOver(event);
+    var $__10 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__10.onMouseMove(event);
     }));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(event) {
-      return $__8.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(window, 'mousemove', (function(event) {
-      return $__8.onMouseMove(event);
-    }));
-    this.eventManager.addEventListener(window, 'mouseup', (function(event) {
-      return $__8.onMouseUp(event);
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__10.onMouseUp();
     }));
   },
   unregisterEvents: function() {
     this.eventManager.clear();
   },
-  saveManualColumnPositions: function() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnPositions', this.columnPositions);
-  },
-  loadManualColumnPositions: function() {
-    var storedState = {};
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnPositions', storedState);
-    return storedState.value;
-  },
-  completeSettingsArray: function() {
-    var $__8 = this;
-    var columnCount = this.hot.countCols();
-    if (this.columnPositions.length === columnCount) {
+  onBeforeOnCellMouseDown: function(event, coords, TD, blockCalculations) {
+    var wtTable = this.hot.view.wt.wtTable;
+    var isHeaderSelection = this.hot.selection.selectedHeader.cols;
+    var selection = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    var isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
+      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
       return;
     }
-    rangeEach(0, columnCount - 1, (function(i) {
-      if ($__8.columnPositions.indexOf(i) === -1) {
-        $__8.columnPositions.push(i);
-      }
-    }));
-  },
-  setupHandlePosition: function(TH) {
-    var priv = privatePool.get(this);
-    var col = this.hot.view.wt.wtTable.getCoords(TH).col;
-    this.currentTH = TH;
-    if (col >= 0) {
-      var box = this.currentTH.getBoundingClientRect();
-      priv.currentCol = col;
-      priv.startOffset = box.left;
-      this.handleElement.style.top = box.top + 'px';
-      this.handleElement.style.left = priv.startOffset + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    var guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    var backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
-  },
-  refreshHandlePosition: function(TH, delta) {
-    var box = TH.getBoundingClientRect();
-    var handleWidth = 6;
-    if (delta > 0) {
-      this.handleElement.style.left = (box.left + box.width - handleWidth) + 'px';
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.col, to.col);
+    var end = Math.max(from.col, to.col);
+    if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
+      blockCalculations.column = true;
+      priv.pressed = true;
+      priv.target.eventPageX = event.pageX;
+      priv.coordsColumn = coords.col;
+      priv.target.TD = TD;
+      priv.target.col = coords.col;
+      priv.columnsToMove = this.prepareColumnsToMoving(start, end);
+      priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
+      priv.countCols = this.hot.countCols();
+      priv.fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+      priv.rootElementOffset = offset(this.hot.rootElement).left;
+      var countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
+      var topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+      var fixedColumns = coords.col < priv.fixedColumns;
+      var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+      var wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
+      var mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+      var leftOffset = Math.abs(this.getColumnsWidth(start, coords.col) + mouseOffset);
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
+      this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
+      this.backlight.setOffset(null, leftOffset * -1);
+      addClass(this.hot.rootElement, CSS_ON_MOVING);
     } else {
-      this.handleElement.style.left = box.left + 'px';
-    }
-  },
-  setupGuidePosition: function() {
-    var box = this.currentTH.getBoundingClientRect();
-    var priv = privatePool.get(this);
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-    this.guideElement.style.width = box.width + 'px';
-    this.guideElement.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
-    this.guideElement.style.top = this.handleElement.style.top;
-    this.guideElement.style.left = priv.startOffset + 'px';
-    this.hot.rootElement.appendChild(this.guideElement);
-  },
-  refreshGuidePosition: function(diff) {
-    var priv = privatePool.get(this);
-    this.guideElement.style.left = priv.startOffset + diff + 'px';
-  },
-  hideHandleAndGuide: function() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  },
-  checkColumnHeader: function(element) {
-    if (element != this.hot.rootElement) {
-      var parent = element.parentNode;
-      if (parent.tagName === 'THEAD') {
-        return true;
-      }
-      return this.checkColumnHeader(parent);
-    }
-    return false;
-  },
-  createPositionData: function(len) {
-    var positionArr = this.columnPositions;
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (function(i) {
-        positionArr[i] = i;
-      }));
-    }
-  },
-  getTHFromTargetElement: function(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
-      }
-    }
-    return null;
-  },
-  changeColumnPositions: function(columnIndex, destinationIndex) {
-    var maxLength = Math.max(columnIndex, destinationIndex);
-    if (maxLength > this.columnPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-    this.columnPositions.splice(destinationIndex, 0, this.columnPositions.splice(columnIndex, 1)[0]);
-  },
-  getVisibleColumnIndex: function(column) {
-    if (column > this.columnPositions.length - 1) {
-      this.createPositionData(column);
-    }
-    return this.columnPositions.indexOf(column);
-  },
-  getLogicalColumnIndex: function(column) {
-    return this.columnPositions[column];
-  },
-  onMouseOver: function(event) {
-    var priv = privatePool.get(this);
-    if (this.checkColumnHeader(event.target)) {
-      var th = this.getTHFromTargetElement(event.target);
-      if (th) {
-        if (priv.pressed) {
-          var col = this.hot.view.wt.wtTable.getCoords(th).col;
-          if (col >= 0) {
-            priv.endCol = col;
-            this.refreshHandlePosition(th, priv.endCol - priv.startCol);
-          }
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  },
-  onMouseDown: function(event) {
-    var priv = privatePool.get(this);
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startX = pageX(event);
-      this.setupGuidePosition();
-      priv.pressed = this.hot;
-      priv.startCol = priv.currentCol;
-      priv.endCol = priv.currentCol;
+      removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
     }
   },
   onMouseMove: function(event) {
     var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageX(event) - priv.startX);
-    }
-  },
-  onMouseUp: function(event) {
-    var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-      this.createPositionData(this.hot.countCols());
-      this.changeColumnPositions(priv.startCol, priv.endCol);
-      Handsontable.hooks.run(this.hot, 'beforeColumnMove', priv.startCol, priv.endCol);
-      this.hot.forceFullRender = true;
-      this.hot.view.render();
-      this.saveManualColumnPositions();
-      Handsontable.hooks.run(this.hot, 'afterColumnMove', priv.startCol, priv.endCol);
-      this.setupHandlePosition(this.currentTH);
-    }
-  },
-  onModifyCol: function(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
-    return this.getLogicalColumnIndex(col);
-  },
-  onUnmodifyCol: function(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
-    return this.getVisibleColumnIndex(col);
-  },
-  onAfterRemoveCol: function(index, amount) {
-    if (!this.isEnabled()) {
+    if (!priv.pressed) {
       return;
     }
-    var rmindx;
-    var colpos = this.columnPositions;
-    rmindx = colpos.splice(index, amount);
-    colpos = arrayMap(colpos, function(value, index) {
-      var i,
-          newpos = value;
-      arrayEach(rmindx, (function(elem, index) {
-        if (value > elem) {
-          newpos--;
-        }
-      }));
-      return newpos;
-    });
-    this.columnPositions = colpos;
+    if (event.realTarget === this.backlight.element) {
+      var width = this.backlight.getSize().width;
+      this.backlight.setSize(0);
+      setTimeout(function() {
+        this.backlight.setPosition(width);
+      });
+    }
+    priv.target.eventPageX = event.pageX;
+    this.refreshPositions();
+  },
+  onBeforeOnCellMouseOver: function(event, coords, TD, blockCalculations) {
+    var selectedRange = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selectedRange || !priv.pressed) {
+      return;
+    }
+    if (priv.columnsToMove.indexOf(coords.col) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOW_UI);
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOW_UI);
+    }
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.coordsColumn = coords.col;
+    priv.target.TD = TD;
+  },
+  onMouseUp: function() {
+    var priv = privatePool.get(this);
+    priv.coordsColumn = void 0;
+    priv.pressed = false;
+    priv.backlightWidth = 0;
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    if (this.hot.selection.selectedHeader.cols) {
+      addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+    }
+    if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {
+      return;
+    }
+    this.moveColumns(priv.columnsToMove, priv.target.col);
+    this.persistentStateSave();
+    this.hot.render();
+    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    if (!priv.disallowMoving) {
+      var selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
+      var selectionEnd = this.columnsMapper.getIndexByValue(priv.columnsToMove[priv.columnsToMove.length - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
+    priv.columnsToMove.length = 0;
+  },
+  onAfterScrollVertically: function() {
+    var wtTable = this.hot.view.wt.wtTable;
+    var headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
+    var scrollTop = wtTable.holder.scrollTop;
+    var posTop = headerHeight + scrollTop;
+    this.backlight.setPosition(posTop);
+    this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
   },
   onAfterCreateCol: function(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-    var colpos = this.columnPositions;
-    if (!colpos.length) {
-      return;
-    }
-    var addindx = [];
-    rangeEach(0, amount - 1, (function(i) {
-      addindx.push(index + i);
-    }));
-    if (index >= colpos.length) {
-      colpos.concat(addindx);
-    } else {
-      colpos = arrayMap(colpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-      colpos.splice.apply(colpos, [index, 0].concat(addindx));
-    }
-    this.columnPositions = colpos;
+    this.columnsMapper.shiftItems(index, amount);
   },
-  onInit: function() {
-    this.completeSettingsArray();
+  onBeforeRemoveCol: function(index, amount) {
+    var $__10 = this;
+    this.removedColumns.length = 0;
+    if (index !== false) {
+      rangeEach(index, index + amount - 1, (function(removedIndex) {
+        $__10.removedColumns.push($__10.hot.runHooks('modifyCol', removedIndex, $__10.pluginName));
+      }));
+    }
+  },
+  onAfterRemoveCol: function(index, amount) {
+    this.columnsMapper.unshiftItems(this.removedColumns);
+  },
+  onModifyCol: function(column, source) {
+    if (source !== this.pluginName) {
+      var columnInMapper = this.columnsMapper.getValueByIndex(column);
+      column = columnInMapper === null ? column : columnInMapper;
+    }
+    return column;
+  },
+  onUnmodifyCol: function(column) {
+    var indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+    return column;
+  },
+  onAfterPluginsInitialized: function() {
+    var countCols = this.hot.countCols();
+    var columnsMapperLen = this.columnsMapper._arrayMap.length;
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+    } else if (columnsMapperLen < countCols) {
+      var diff = countCols - columnsMapperLen;
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+    } else if (columnsMapperLen > countCols) {
+      var maxIndex = countCols - 1;
+      var columnsToRemove = [];
+      arrayEach(this.columnsMapper._arrayMap, (function(value, index, array) {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      }));
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
+  },
+  destroy: function() {
+    this.backlight.destroy();
+    this.guideline.destroy();
+    $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
-registerPlugin('manualColumnMove', ManualColumnMove);
+registerPlugin('ManualColumnMove', ManualColumnMove);
 Handsontable.hooks.register('beforeColumnMove');
 Handsontable.hooks.register('afterColumnMove');
 Handsontable.hooks.register('unmodifyCol');
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],80:[function(_dereq_,module,exports){
+},{"_base.js":62,"browser":24,"columnsMapper":96,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/number":52,"plugins":61,"ui/backlight":99,"ui/guideline":100}],98:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BaseUI: {get: function() {
+      return BaseUI;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47__46__46__47_helpers_47_number__;
+var isNumeric = ($___46__46__47__46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_number__}).isNumeric;
+var STATE_INITIALIZED = 0;
+var STATE_BUILT = 1;
+var STATE_APPENDED = 2;
+var UNIT = 'px';
+var BaseUI = function BaseUI(hotInstance) {
+  this.hot = hotInstance;
+  this._element = null;
+  this.state = STATE_INITIALIZED;
+};
+($traceurRuntime.createClass)(BaseUI, {
+  appendTo: function(wrapper) {
+    wrapper.appendChild(this._element);
+    this.state = STATE_APPENDED;
+  },
+  build: function() {
+    this._element = document.createElement('div');
+    this.state = STATE_BUILT;
+  },
+  destroy: function() {
+    if (this.isAppended()) {
+      this._element.parentElement.removeChild(this._element);
+    }
+    this._element = null;
+    this.state = STATE_INITIALIZED;
+  },
+  isAppended: function() {
+    return this.state === STATE_APPENDED;
+  },
+  isBuilt: function() {
+    return this.state >= STATE_BUILT;
+  },
+  setPosition: function(top, left) {
+    if (isNumeric(top)) {
+      this._element.style.top = top + UNIT;
+    }
+    if (isNumeric(left)) {
+      this._element.style.left = left + UNIT;
+    }
+  },
+  getPosition: function() {
+    return {
+      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+    };
+  },
+  setSize: function(width, height) {
+    if (isNumeric(width)) {
+      this._element.style.width = width + UNIT;
+    }
+    if (isNumeric(height)) {
+      this._element.style.height = height + UNIT;
+    }
+  },
+  getSize: function() {
+    return {
+      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+    };
+  },
+  setOffset: function(top, left) {
+    if (isNumeric(top)) {
+      this._element.style.marginTop = top + UNIT;
+    }
+    if (isNumeric(left)) {
+      this._element.style.marginLeft = left + UNIT;
+    }
+  },
+  getOffset: function() {
+    return {
+      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+    };
+  }
+}, {});
+;
+
+//# 
+},{"helpers/number":52}],99:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BacklightUI: {get: function() {
+      return BacklightUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
+var BacklightUI = function BacklightUI(hotInstance) {
+  $traceurRuntime.superConstructor($BacklightUI).call(this, hotInstance);
+};
+var $BacklightUI = BacklightUI;
+($traceurRuntime.createClass)(BacklightUI, {build: function() {
+    $traceurRuntime.superGet(this, $BacklightUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":98,"helpers/dom/element":47}],100:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  GuidelineUI: {get: function() {
+      return GuidelineUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
+var GuidelineUI = function GuidelineUI(hotInstance) {
+  $traceurRuntime.superConstructor($GuidelineUI).call(this, hotInstance);
+};
+var $GuidelineUI = GuidelineUI;
+($traceurRuntime.createClass)(GuidelineUI, {build: function() {
+    $traceurRuntime.superGet(this, $GuidelineUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":98,"helpers/dom/element":47}],101:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnResize: {get: function() {
@@ -16181,7 +18047,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerHeight = $__2.outerHeight;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16228,6 +18095,9 @@ var $ManualColumnResize = ManualColumnResize;
     this.addHook('beforeStretchingColumnWidth', (function(stretchedWidth, column) {
       return $__8.onBeforeStretchingColumnWidth(stretchedWidth, column);
     }));
+    this.addHook('beforeColumnResize', (function(currentColumn, newSize, isDoubleClick) {
+      return $__8.onBeforeColumnResize(currentColumn, newSize, isDoubleClick);
+    }));
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -16266,6 +18136,7 @@ var $ManualColumnResize = ManualColumnResize;
     }
     this.currentTH = TH;
     var col = this.hot.view.wt.wtTable.getCoords(TH).col;
+    var headerHeight = outerHeight(this.currentTH);
     if (col >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentCol = col;
@@ -16294,6 +18165,7 @@ var $ManualColumnResize = ManualColumnResize;
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
+      this.handle.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16301,11 +18173,14 @@ var $ManualColumnResize = ManualColumnResize;
     this.handle.style.left = this.startOffset + this.currentWidth + 'px';
   },
   setupGuidePosition: function() {
+    var handleHeight = parseInt(outerHeight(this.handle), 10);
+    var handleBottomPosition = parseInt(this.handle.style.top, 10) + handleHeight;
+    var maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = handleBottomPosition + 'px';
     this.guide.style.left = this.handle.style.left;
-    this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
+    this.guide.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -16489,13 +18364,16 @@ var $ManualColumnResize = ManualColumnResize;
       width = stretchedWidth;
     }
     return width;
+  },
+  onBeforeColumnResize: function() {
+    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('manualColumnResize', ManualColumnResize);
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],81:[function(_dereq_,module,exports){
+},{"_base.js":62,"browser":24,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/number":52,"plugins":61}],102:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowMove: {get: function() {
@@ -16505,46 +18383,50 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__95_base_46_js__,
     $___46__46__47__46__46__47_browser__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_number__,
     $___46__46__47__46__46__47_eventManager__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_event__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $__rowsMapper__,
+    $__ui_47_backlight__,
+    $__ui_47_guideline__;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__2.addClass,
-    hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
-var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__3.arrayEach,
-    arrayMap = $__3.arrayMap;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__3.addClass,
+    removeClass = $__3.removeClass,
+    offset = $__3.offset;
 var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__6 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__6.pageX,
-    pageY = $__6.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var RowsMapper = ($__rowsMapper__ = _dereq_("rowsMapper"), $__rowsMapper__ && $__rowsMapper__.__esModule && $__rowsMapper__ || {default: $__rowsMapper__}).RowsMapper;
+var BacklightUI = ($__ui_47_backlight__ = _dereq_("ui/backlight"), $__ui_47_backlight__ && $__ui_47_backlight__.__esModule && $__ui_47_backlight__ || {default: $__ui_47_backlight__}).BacklightUI;
+var GuidelineUI = ($__ui_47_guideline__ = _dereq_("ui/guideline"), $__ui_47_guideline__ && $__ui_47_guideline__.__esModule && $__ui_47_guideline__ || {default: $__ui_47_guideline__}).GuidelineUI;
 var privatePool = new WeakMap();
+var CSS_PLUGIN = 'ht__manualRowMove';
+var CSS_SHOW_UI = 'show-ui';
+var CSS_ON_MOVING = 'on-moving--rows';
+var CSS_AFTER_SELECTION = 'after-selection--rows';
 var ManualRowMove = function ManualRowMove(hotInstance) {
   $traceurRuntime.superConstructor($ManualRowMove).call(this, hotInstance);
   privatePool.set(this, {
-    guideClassName: 'manualRowMoverGuide',
-    handleClassName: 'manualRowMover',
-    startOffset: null,
-    pressed: null,
-    startRow: null,
-    endRow: null,
-    currentRow: null,
-    startX: null,
-    startY: null
+    rowsToMove: [],
+    pressed: void 0,
+    disallowMoving: void 0,
+    target: {
+      eventPageY: void 0,
+      coords: void 0,
+      TD: void 0,
+      row: void 0
+    }
   });
-  this.guideElement = null;
-  this.handleElement = null;
-  this.currentTH = null;
-  this.rowPositions = [];
+  this.removedRows = [];
+  this.rowsMapper = new RowsMapper(this);
   this.eventManager = eventManagerObject(this);
+  this.backlight = new BacklightUI(hotInstance);
+  this.guideline = new GuidelineUI(hotInstance);
 };
 var $ManualRowMove = ManualRowMove;
 ($traceurRuntime.createClass)(ManualRowMove, {
@@ -16552,274 +18434,538 @@ var $ManualRowMove = ManualRowMove;
     return !!this.hot.getSettings().manualRowMove;
   },
   enablePlugin: function() {
-    var $__8 = this;
-    var priv = privatePool.get(this);
-    var initialSettings = this.hot.getSettings().manualRowMove;
-    var loadedManualRowPositions = this.loadManualRowPositions();
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-    this.addHook('modifyRow', (function(row) {
-      return $__8.onModifyRow(row);
+    var $__10 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('beforeOnCellMouseDown', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('afterScrollHorizontally', (function() {
+      return $__10.onAfterScrollHorizontally();
+    }));
+    this.addHook('modifyRow', (function(row, source) {
+      return $__10.onModifyRow(row, source);
+    }));
+    this.addHook('beforeRemoveRow', (function(index, amount) {
+      return $__10.onBeforeRemoveRow(index, amount);
     }));
     this.addHook('afterRemoveRow', (function(index, amount) {
-      return $__8.onAfterRemoveRow(index, amount);
+      return $__10.onAfterRemoveRow(index, amount);
     }));
     this.addHook('afterCreateRow', (function(index, amount) {
-      return $__8.onAfterCreateRow(index, amount);
+      return $__10.onAfterCreateRow(index, amount);
     }));
-    this.addHook('init', (function() {
-      return $__8.onInit();
+    this.addHook('beforeColumnSort', (function(column, order) {
+      return $__10.onBeforeColumnSort(column, order);
+    }));
+    this.addHook('unmodifyRow', (function(row) {
+      return $__10.onUnmodifyRow(row);
     }));
     this.registerEvents();
-    if (typeof loadedManualRowPositions != 'undefined') {
-      this.rowPositions = loadedManualRowPositions;
-    } else if (Array.isArray(initialSettings)) {
-      this.rowPositions = initialSettings;
-    } else if (!initialSettings || this.rowPositions === void 0) {
-      this.rowPositions = [];
-    }
+    addClass(this.hot.rootElement, CSS_PLUGIN);
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "enablePlugin").call(this);
   },
   updatePlugin: function() {
     this.disablePlugin();
     this.enablePlugin();
+    this.onAfterPluginsInitialized();
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "updatePlugin").call(this);
   },
   disablePlugin: function() {
-    var pluginSetting = this.hot.getSettings().manualRowMove;
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.rowPositions = [];
+    var pluginSettings = this.hot.getSettings().manualRowMove;
+    if (Array.isArray(pluginSettings)) {
+      this.rowsMapper.clearMap();
     }
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
+    this.unregisterEvents();
+    this.backlight.destroy();
+    this.guideline.destroy();
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "disablePlugin").call(this);
   },
+  moveRow: function(row, target) {
+    this.moveRows([row], target);
+  },
+  moveRows: function(rows, target) {
+    var $__10 = this;
+    var priv = privatePool.get(this);
+    var beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
+    priv.disallowMoving = beforeMoveHook === false;
+    if (!priv.disallowMoving) {
+      arrayEach(rows, (function(row, index, array) {
+        array[index] = $__10.rowsMapper.getValueByIndex(row);
+      }));
+      arrayEach(rows, (function(row, index) {
+        var actualPosition = $__10.rowsMapper.getIndexByValue(row);
+        if (actualPosition !== target) {
+          $__10.rowsMapper.moveRow(actualPosition, target + index);
+        }
+      }));
+      this.rowsMapper.clearNull();
+    }
+    this.hot.runHooks('afterRowMove', rows, target);
+  },
+  changeSelection: function(startRow, endRow) {
+    var selection = this.hot.selection;
+    var lastColIndex = this.hot.countCols() - 1;
+    selection.setRangeStartOnly(new WalkontableCellCoords(startRow, 0));
+    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
+  },
+  getRowsHeight: function(from, to) {
+    var height = 0;
+    for (var i = from; i < to; i++) {
+      var rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+      height += rowHeight;
+    }
+    return height;
+  },
+  initialSettings: function() {
+    var pluginSettings = this.hot.getSettings().manualRowMove;
+    if (Array.isArray(pluginSettings)) {
+      this.moveRows(pluginSettings, 0);
+    } else if (pluginSettings !== void 0) {
+      var persistentState = this.persistentStateLoad();
+      if (persistentState.length) {
+        this.moveRows(persistentState, 0);
+      }
+    }
+  },
+  isFixedRowTop: function(row) {
+    return row < this.hot.getSettings().fixedRowsTop;
+  },
+  isFixedRowBottom: function(row) {
+    return row > this.hot.getSettings().fixedRowsBottom;
+  },
+  persistentStateSave: function() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+  },
+  persistentStateLoad: function() {
+    var storedState = {};
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
+    return storedState.value ? storedState.value : [];
+  },
+  prepareRowsToMoving: function() {
+    var selection = this.hot.getSelectedRange();
+    var selectedRows = [];
+    if (!selection) {
+      return selectedRows;
+    }
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.row, to.row);
+    var end = Math.max(from.row, to.row);
+    rangeEach(start, end, (function(i) {
+      selectedRows.push(i);
+    }));
+    return selectedRows;
+  },
+  refreshPositions: function() {
+    var priv = privatePool.get(this);
+    var coords = priv.target.coords;
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
+    var fixedRows = this.hot.getSettings().fixedRowsTop;
+    var countRows = this.hot.countRows();
+    if (coords.row < fixedRows && firstVisible > 0) {
+      this.hot.scrollViewportTo(firstVisible - 1);
+    }
+    if (coords.row >= lastVisible && lastVisible < countRows) {
+      this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
+    }
+    var wtTable = this.hot.view.wt.wtTable;
+    var TD = priv.target.TD;
+    var rootElementOffset = offset(this.hot.rootElement);
+    var tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    var mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
+    var hiderHeight = wtTable.hider.offsetHeight;
+    var tbodyOffsetTop = wtTable.TBODY.offsetTop;
+    var backlightElemMarginTop = this.backlight.getOffset().top;
+    var backlightElemHeight = this.backlight.getSize().height;
+    if ((rootElementOffset.top + wtTable.holder.offsetHeight) < priv.target.eventPageY) {
+      priv.target.coords.row++;
+    }
+    if (this.isFixedRowTop(coords.row)) {
+      tdOffsetTop += wtTable.holder.scrollTop;
+    }
+    if (coords.row < 0) {
+      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+      priv.target.row = coords.row + 1;
+      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
+    } else {
+      priv.target.row = coords.row;
+    }
+    var backlightTop = mouseOffsetTop;
+    var guidelineTop = tdOffsetTop;
+    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
+      backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
+    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
+      backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
+    }
+    if (tdOffsetTop >= hiderHeight - 1) {
+      guidelineTop = hiderHeight - 1;
+    }
+    var topOverlayHeight = 0;
+    if (this.hot.view.wt.wtOverlays.topOverlay) {
+      topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
+    }
+    if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
+      this.hot.scrollViewportTo(coords.row);
+    }
+    this.backlight.setPosition(backlightTop);
+    this.guideline.setPosition(guidelineTop);
+  },
   registerEvents: function() {
-    var $__8 = this;
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(event) {
-      return $__8.onMouseOver(event);
+    var $__10 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__10.onMouseMove(event);
     }));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(event) {
-      return $__8.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(window, 'mousemove', (function(event) {
-      return $__8.onMouseMove(event);
-    }));
-    this.eventManager.addEventListener(window, 'mouseup', (function(event) {
-      return $__8.onMouseUp(event);
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__10.onMouseUp();
     }));
   },
   unregisterEvents: function() {
     this.eventManager.clear();
   },
-  saveManualRowPositions: function() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowPositions', this.rowPositions);
+  onBeforeColumnSort: function(column, order) {
+    var priv = privatePool.get(this);
+    priv.disallowMoving = order !== void 0;
   },
-  loadManualRowPositions: function() {
-    var storedState = {};
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowPositions', storedState);
-    return storedState.value;
-  },
-  completeSettingsArray: function() {
-    var $__8 = this;
-    var rowCount = this.hot.countRows();
-    if (this.rowPositions.length === rowCount) {
+  onBeforeOnCellMouseDown: function(event, coords, TD, blockCalculations) {
+    var wtTable = this.hot.view.wt.wtTable;
+    var isHeaderSelection = this.hot.selection.selectedHeader.rows;
+    var selection = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
+      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
       return;
     }
-    rangeEach(0, rowCount - 1, (function(i) {
-      if ($__8.rowPositions.indexOf(i) === -1) {
-        $__8.rowPositions.push(i);
-      }
-    }));
-  },
-  setupHandlePosition: function(TH) {
-    var priv = privatePool.get(this);
-    var row = this.hot.view.wt.wtTable.getCoords(TH).row;
-    this.currentTH = TH;
-    if (row >= 0) {
-      var box = this.currentTH.getBoundingClientRect();
-      priv.currentRow = row;
-      priv.startOffset = box.top;
-      this.handleElement.style.top = priv.startOffset + 'px';
-      this.handleElement.style.left = box.left + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    var guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    var backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
-  },
-  refreshHandlePosition: function(TH, delta) {
-    var box = TH.getBoundingClientRect();
-    var handleHeight = 6;
-    if (delta > 0) {
-      this.handleElement.style.top = (box.top + box.height - handleHeight) + 'px';
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.row, to.row);
+    var end = Math.max(from.row, to.row);
+    if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
+      blockCalculations.row = true;
+      priv.pressed = true;
+      priv.target.eventPageY = event.pageY;
+      priv.target.coords = coords;
+      priv.target.TD = TD;
+      priv.rowsToMove = this.prepareRowsToMoving();
+      var leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
+      this.backlight.setPosition(null, leftPos);
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
+      addClass(this.hot.rootElement, CSS_ON_MOVING);
+      this.refreshPositions();
     } else {
-      this.handleElement.style.top = box.top + 'px';
-    }
-  },
-  setupGuidePosition: function() {
-    var box = this.currentTH.getBoundingClientRect();
-    var priv = privatePool.get(this);
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-    this.guideElement.style.height = box.height + 'px';
-    this.guideElement.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
-    this.guideElement.style.top = priv.startOffset + 'px';
-    this.guideElement.style.left = this.handleElement.style.left;
-    this.hot.rootElement.appendChild(this.guideElement);
-  },
-  refreshGuidePosition: function(diff) {
-    var priv = privatePool.get(this);
-    this.guideElement.style.top = priv.startOffset + diff + 'px';
-  },
-  hideHandleAndGuide: function() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  },
-  checkRowHeader: function(element) {
-    if (element != this.hot.rootElement) {
-      var parent = element.parentNode;
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-      return this.checkRowHeader(parent);
-    }
-    return false;
-  },
-  createPositionData: function(len) {
-    var positionArr = this.rowPositions;
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (function(i) {
-        positionArr[i] = i;
-      }));
-    }
-  },
-  getTHFromTargetElement: function(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
-      }
-    }
-    return null;
-  },
-  changeRowPositions: function(rowIndex, destinationIndex) {
-    var maxLength = Math.max(rowIndex, destinationIndex);
-    if (maxLength > this.rowPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-    this.rowPositions.splice(destinationIndex, 0, this.rowPositions.splice(rowIndex, 1)[0]);
-  },
-  getVisibleRowIndex: function(row) {
-    if (row > this.rowPositions.length - 1) {
-      this.createPositionData(row);
-    }
-    return this.rowPositions.indexOf(row);
-  },
-  getLogicalRowIndex: function(row) {
-    return this.rowPositions[row];
-  },
-  onMouseOver: function(event) {
-    var priv = privatePool.get(this);
-    if (this.checkRowHeader(event.target)) {
-      var th = this.getTHFromTargetElement(event.target);
-      if (th) {
-        if (priv.pressed) {
-          priv.endRow = this.hot.view.wt.wtTable.getCoords(th).row;
-          this.refreshHandlePosition(th, priv.endRow - priv.startRow);
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  },
-  onMouseDown: function(event) {
-    var priv = privatePool.get(this);
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startY = pageY(event);
-      this.setupGuidePosition();
-      priv.pressed = this.hot;
-      priv.startRow = priv.currentRow;
-      priv.endRow = priv.currentRow;
+      removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
     }
   },
   onMouseMove: function(event) {
     var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageY(event) - priv.startY);
-    }
-  },
-  onMouseUp: function(event) {
-    var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-      this.createPositionData(this.hot.countRows());
-      this.changeRowPositions(priv.startRow, priv.endRow);
-      Handsontable.hooks.run(this.hot, 'beforeRowMove', priv.startRow, priv.endRow);
-      this.hot.forceFullRender = true;
-      this.hot.view.render();
-      this.saveManualRowPositions();
-      Handsontable.hooks.run(this.hot, 'afterRowMove', priv.startRow, priv.endRow);
-      this.setupHandlePosition(this.currentTH);
-    }
-  },
-  onModifyRow: function(row) {
-    if (typeof this.getVisibleRowIndex(row) === 'undefined') {
-      this.createPositionData(row + 1);
-    }
-    return this.getLogicalRowIndex(row);
-  },
-  onAfterRemoveRow: function(index, amount) {
-    if (!this.isEnabled()) {
+    if (!priv.pressed) {
       return;
     }
-    var rmindx;
-    var rowpos = this.rowPositions;
-    rmindx = rowpos.splice(index, amount);
-    rowpos = arrayMap(rowpos, function(value, index) {
-      var newpos = value;
-      arrayEach(rmindx, (function(elem, index) {
-        if (value > elem) {
-          newpos--;
-        }
-      }));
-      return newpos;
-    });
-    this.rowPositions = rowpos;
+    if (event.realTarget === this.backlight.element) {
+      var height = this.backlight.getSize().height;
+      this.backlight.setSize(null, 0);
+      setTimeout(function() {
+        this.backlight.setPosition(null, height);
+      });
+    }
+    priv.target.eventPageY = event.pageY;
+    this.refreshPositions();
+  },
+  onBeforeOnCellMouseOver: function(event, coords, TD, blockCalculations) {
+    var selectedRange = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selectedRange || !priv.pressed) {
+      return;
+    }
+    if (priv.rowsToMove.indexOf(coords.row) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOW_UI);
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOW_UI);
+    }
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.target.coords = coords;
+    priv.target.TD = TD;
+  },
+  onMouseUp: function() {
+    var priv = privatePool.get(this);
+    priv.pressed = false;
+    priv.backlightHeight = 0;
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    if (this.hot.selection.selectedHeader.rows) {
+      addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+    }
+    if (priv.rowsToMove.length < 1) {
+      return;
+    }
+    var target = priv.target.row;
+    this.moveRows(priv.rowsToMove, target);
+    this.persistentStateSave();
+    this.hot.render();
+    if (!priv.disallowMoving) {
+      var selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+      var selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
+    priv.rowsToMove.length = 0;
+  },
+  onAfterScrollHorizontally: function() {
+    var wtTable = this.hot.view.wt.wtTable;
+    var headerWidth = wtTable.getColumnWidth(-1);
+    var scrollLeft = wtTable.holder.scrollLeft;
+    var posLeft = headerWidth + scrollLeft;
+    this.backlight.setPosition(null, posLeft);
+    this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
   },
   onAfterCreateRow: function(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-    var rowpos = this.rowPositions;
-    if (!rowpos.length) {
-      return;
-    }
-    var addindx = [];
-    for (var i = 0; i < amount; i++) {
-      addindx.push(index + i);
-    }
-    if (index >= rowpos.length) {
-      rowpos.concat(addindx);
-    } else {
-      rowpos = arrayMap(rowpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-      rowpos.splice.apply(rowpos, [index, 0].concat(addindx));
-    }
-    this.rowPositions = rowpos;
+    this.rowsMapper.shiftItems(index, amount);
   },
-  onInit: function() {
-    this.completeSettingsArray();
+  onBeforeRemoveRow: function(index, amount) {
+    var $__10 = this;
+    this.removedRows.length = 0;
+    if (index !== false) {
+      rangeEach(index, index + amount - 1, (function(removedIndex) {
+        $__10.removedRows.push($__10.hot.runHooks('modifyRow', removedIndex, $__10.pluginName));
+      }));
+    }
+  },
+  onAfterRemoveRow: function(index, amount) {
+    this.rowsMapper.unshiftItems(this.removedRows);
+  },
+  onModifyRow: function(row, source) {
+    if (source !== this.pluginName) {
+      row = this.rowsMapper.getValueByIndex(row);
+    }
+    return row;
+  },
+  onUnmodifyRow: function(row) {
+    return this.rowsMapper.getIndexByValue(row);
+  },
+  onAfterPluginsInitialized: function() {
+    if (this.rowsMapper._arrayMap.length === 0) {
+      this.rowsMapper.createMap(this.hot.countSourceRows() || this.hot.getSettings().startRows);
+    }
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
+  },
+  destroy: function() {
+    this.backlight.destroy();
+    this.guideline.destroy();
+    $traceurRuntime.superGet(this, $ManualRowMove.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('ManualRowMove', ManualRowMove);
 Handsontable.hooks.register('beforeRowMove');
 Handsontable.hooks.register('afterRowMove');
+Handsontable.hooks.register('unmodifyRow');
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],82:[function(_dereq_,module,exports){
+},{"_base.js":62,"browser":24,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/number":52,"plugins":61,"rowsMapper":103,"ui/backlight":105,"ui/guideline":106}],103:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  RowsMapper: {get: function() {
+      return RowsMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_mixins_47_arrayMapper__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+var arrayMapper = ($___46__46__47__46__46__47_mixins_47_arrayMapper__ = _dereq_("mixins/arrayMapper"), $___46__46__47__46__46__47_mixins_47_arrayMapper__ && $___46__46__47__46__46__47_mixins_47_arrayMapper__.__esModule && $___46__46__47__46__46__47_mixins_47_arrayMapper__ || {default: $___46__46__47__46__46__47_mixins_47_arrayMapper__}).arrayMapper;
+var arrayFilter = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayFilter;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
+var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
+var RowsMapper = function RowsMapper(manualRowMove) {
+  this.manualRowMove = manualRowMove;
+};
+($traceurRuntime.createClass)(RowsMapper, {
+  createMap: function(length) {
+    var $__5 = this;
+    var originLength = length === void 0 ? this._arrayMap.length : length;
+    this._arrayMap.length = 0;
+    rangeEach(originLength - 1, (function(itemIndex) {
+      $__5._arrayMap[itemIndex] = itemIndex;
+    }));
+  },
+  destroy: function() {
+    this._arrayMap = null;
+  },
+  moveRow: function(from, to) {
+    var indexToMove = this._arrayMap[from];
+    this._arrayMap[from] = null;
+    this._arrayMap.splice(to, 0, indexToMove);
+  },
+  clearNull: function() {
+    this._arrayMap = arrayFilter(this._arrayMap, (function(i) {
+      return i !== null;
+    }));
+  }
+}, {});
+mixin(RowsMapper, arrayMapper);
+;
+Handsontable.utils.ManualRowMoveRowsMapper = RowsMapper;
+
+//# 
+},{"browser":24,"helpers/array":43,"helpers/number":52,"helpers/object":53,"mixins/arrayMapper":57}],104:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BaseUI: {get: function() {
+      return BaseUI;
+    }},
+  __esModule: {value: true}
+});
+var STATE_INITIALIZED = 0;
+var STATE_BUILT = 1;
+var STATE_APPENDED = 2;
+var UNIT = 'px';
+var BaseUI = function BaseUI(hotInstance) {
+  this.hot = hotInstance;
+  this._element = null;
+  this.state = STATE_INITIALIZED;
+};
+($traceurRuntime.createClass)(BaseUI, {
+  appendTo: function(wrapper) {
+    wrapper.appendChild(this._element);
+    this.state = STATE_APPENDED;
+  },
+  build: function() {
+    this._element = document.createElement('div');
+    this.state = STATE_BUILT;
+  },
+  destroy: function() {
+    if (this.isAppended()) {
+      this._element.parentElement.removeChild(this._element);
+    }
+    this._element = null;
+    this.state = STATE_INITIALIZED;
+  },
+  isAppended: function() {
+    return this.state === STATE_APPENDED;
+  },
+  isBuilt: function() {
+    return this.state >= STATE_BUILT;
+  },
+  setPosition: function(top, left) {
+    if (top) {
+      this._element.style.top = top + UNIT;
+    }
+    if (left) {
+      this._element.style.left = left + UNIT;
+    }
+  },
+  getPosition: function() {
+    return {
+      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+    };
+  },
+  setSize: function(width, height) {
+    if (width) {
+      this._element.style.width = width + UNIT;
+    }
+    if (height) {
+      this._element.style.height = height + UNIT;
+    }
+  },
+  getSize: function() {
+    return {
+      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+    };
+  },
+  setOffset: function(top, left) {
+    if (top) {
+      this._element.style.marginTop = top + UNIT;
+    }
+    if (left) {
+      this._element.style.marginLeft = left + UNIT;
+    }
+  },
+  getOffset: function() {
+    return {
+      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+    };
+  }
+}, {});
+;
+
+//# 
+},{}],105:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BacklightUI: {get: function() {
+      return BacklightUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualRowMove--backlight';
+var BacklightUI = function BacklightUI(hotInstance) {
+  $traceurRuntime.superConstructor($BacklightUI).call(this, hotInstance);
+};
+var $BacklightUI = BacklightUI;
+($traceurRuntime.createClass)(BacklightUI, {build: function() {
+    $traceurRuntime.superGet(this, $BacklightUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":104,"helpers/dom/element":47}],106:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  GuidelineUI: {get: function() {
+      return GuidelineUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualRowMove--guideline';
+var GuidelineUI = function GuidelineUI(hotInstance) {
+  $traceurRuntime.superConstructor($GuidelineUI).call(this, hotInstance);
+};
+var $GuidelineUI = GuidelineUI;
+($traceurRuntime.createClass)(GuidelineUI, {build: function() {
+    $traceurRuntime.superGet(this, $GuidelineUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":104,"helpers/dom/element":47}],107:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowResize: {get: function() {
@@ -16840,7 +18986,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerWidth = $__2.outerWidth;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16919,6 +19066,7 @@ var $ManualRowResize = ManualRowResize;
     var $__8 = this;
     this.currentTH = TH;
     var row = this.hot.view.wt.wtTable.getCoords(TH).row;
+    var headerWidth = outerWidth(this.currentTH);
     if (row >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentRow = row;
@@ -16947,6 +19095,7 @@ var $ManualRowResize = ManualRowResize;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
+      this.handle.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16954,11 +19103,14 @@ var $ManualRowResize = ManualRowResize;
     this.handle.style.top = this.startOffset + this.currentHeight + 'px';
   },
   setupGuidePosition: function() {
+    var handleWidth = parseInt(outerWidth(this.handle), 10);
+    var handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    var maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
-    this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guide.style.left = handleRightPosition + 'px';
+    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -17130,7 +19282,7 @@ var $ManualRowResize = ManualRowResize;
 registerPlugin('manualRowResize', ManualRowResize);
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],83:[function(_dereq_,module,exports){
+},{"_base.js":62,"browser":24,"eventManager":42,"helpers/array":43,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/number":52,"plugins":61}],108:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MergeCells: {get: function() {
@@ -17464,7 +19616,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
       this.render();
     },
     disabled: function() {
-      return false;
+      return this.selection.selectedHeader.corner;
     }
   });
 };
@@ -17615,7 +19767,7 @@ var isMultipleSelection = function(isMultiple) {
   }
   return isMultiple;
 };
-function afterAutofillApplyValues(select, drag) {
+function modifyAutofillRange(select, drag) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (!mergeCellsSetting || this.selection.isMultiple()) {
     return;
@@ -17662,7 +19814,7 @@ Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContex
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
-Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
+Handsontable.hooks.add('modifyAutofillRange', modifyAutofillRange);
 Handsontable.hooks.add('afterCreateCol', onAfterCreateCol);
 Handsontable.hooks.add('afterRemoveCol', onAfterRemoveCol);
 Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
@@ -17670,7 +19822,7 @@ Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 Handsontable.MergeCells = MergeCells;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/table":20,"browser":23,"helpers/dom/event":47,"plugins":59}],84:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"3rdparty/walkontable/src/cell/range":7,"3rdparty/walkontable/src/table":21,"browser":24,"helpers/dom/event":48,"plugins":61}],109:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MultipleSelectionHandles: {get: function() {
@@ -17961,7 +20113,7 @@ var $MultipleSelectionHandles = MultipleSelectionHandles;
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"plugins":59}],85:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"eventManager":42,"helpers/browser":44,"helpers/dom/element":47,"plugins":61}],110:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataObserver: {get: function() {
@@ -18016,7 +20168,7 @@ mixin(DataObserver, localHooks);
 ;
 
 //# 
-},{"../../helpers/object":52,"../../mixins/localHooks":56,"jsonpatch":"jsonpatch","utils":87}],86:[function(_dereq_,module,exports){
+},{"../../helpers/object":53,"../../mixins/localHooks":58,"jsonpatch":"jsonpatch","utils":112}],111:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ObserveChanges: {get: function() {
@@ -18162,7 +20314,7 @@ var $ObserveChanges = ObserveChanges;
 registerPlugin('observeChanges', ObserveChanges);
 
 //# 
-},{"_base":60,"browser":23,"dataObserver":85,"helpers/array":42,"jsonpatch":"jsonpatch","plugins":59}],87:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"dataObserver":110,"helpers/array":43,"jsonpatch":"jsonpatch","plugins":61}],112:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   cleanPatches: {get: function() {
@@ -18221,7 +20373,7 @@ function parsePath(path) {
 }
 
 //# 
-},{"../../helpers/array":42}],88:[function(_dereq_,module,exports){
+},{"../../helpers/array":43}],113:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   HandsontablePersistentState: {get: function() {
@@ -18335,7 +20487,7 @@ Handsontable.hooks.add('beforeInit', htPersistentState.init);
 Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
 
 //# 
-},{"browser":23,"plugins":59}],89:[function(_dereq_,module,exports){
+},{"browser":24,"plugins":61}],114:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
@@ -18445,7 +20597,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 //# 
-},{"browser":23,"helpers/dom/element":46,"renderers":92}],90:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/dom/element":47,"renderers":117}],115:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TouchScroll: {get: function() {
@@ -18560,7 +20712,7 @@ var $TouchScroll = TouchScroll;
 registerPlugin('touchScroll', TouchScroll);
 
 //# 
-},{"_base":60,"browser":23,"helpers/dom/element":46,"plugins":59}],91:[function(_dereq_,module,exports){
+},{"_base":62,"browser":24,"helpers/dom/element":47,"plugins":61}],116:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_array__,
@@ -18580,52 +20732,61 @@ Handsontable.UndoRedo = function(instance) {
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
-  instance.addHook('afterChange', function(changes, origin) {
-    if (changes) {
-      var action = new Handsontable.UndoRedo.ChangeAction(changes);
-      plugin.done(action);
+  instance.addHook('afterChange', function(changes, source) {
+    if (changes && source !== 'undo' && source !== 'redo') {
+      plugin.done(new Handsontable.UndoRedo.ChangeAction(changes));
     }
   });
-  instance.addHook('afterCreateRow', function(index, amount, createdAutomatically) {
-    if (createdAutomatically) {
+  instance.addHook('afterCreateRow', function(index, amount, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
       return;
     }
     var action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
     plugin.done(action);
   });
-  instance.addHook('beforeRemoveRow', function(index, amount) {
-    var originalData = plugin.instance.getSourceData();
-    index = (originalData.length + index) % originalData.length;
-    var removedData = originalData.slice(index, index + amount);
-    var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
-    plugin.done(action);
-  });
-  instance.addHook('afterCreateCol', function(index, amount, createdAutomatically) {
-    if (createdAutomatically) {
+  instance.addHook('beforeRemoveRow', function(index, amount, logicRows, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
       return;
     }
-    var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
-    plugin.done(action);
+    var originalData = plugin.instance.getSourceDataArray();
+    index = (originalData.length + index) % originalData.length;
+    var removedData = deepClone(originalData.slice(index, index + amount));
+    plugin.done(new Handsontable.UndoRedo.RemoveRowAction(index, removedData));
   });
-  instance.addHook('beforeRemoveCol', function(index, amount) {
-    var originalData = plugin.instance.getData();
+  instance.addHook('afterCreateCol', function(index, amount, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
+      return;
+    }
+    plugin.done(new Handsontable.UndoRedo.CreateColumnAction(index, amount));
+  });
+  instance.addHook('beforeRemoveCol', function(index, amount, logicColumns, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
+      return;
+    }
+    var originalData = plugin.instance.getSourceDataArray();
     index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     var removedData = [];
     var headers = [];
     var indexes = [];
-    rangeEach(0, originalData.length - 1, (function(i) {
-      removedData[i] = originalData[i].slice(index, index + amount);
+    rangeEach(originalData.length - 1, (function(i) {
+      var column = [];
+      var origRow = originalData[i];
+      rangeEach(index, index + (amount - 1), (function(j) {
+        column.push(origRow[instance.runHooks('modifyCol', j)]);
+      }));
+      removedData.push(column);
     }));
-    rangeEach(0, amount - 1, (function(i) {
+    rangeEach(amount - 1, (function(i) {
       indexes.push(instance.runHooks('modifyCol', index + i));
     }));
     if (Array.isArray(instance.getSettings().colHeaders)) {
-      rangeEach(0, amount - 1, (function(i) {
+      rangeEach(amount - 1, (function(i) {
         headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
       }));
     }
     var manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-    var action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
+    var columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
+    var action = new Handsontable.UndoRedo.RemoveColumnAction(index, indexes, removedData, headers, columnsMap);
     plugin.done(action);
   });
   instance.addHook('beforeCellAlignment', function(stateBefore, range, type, alignment) {
@@ -18634,6 +20795,12 @@ Handsontable.UndoRedo = function(instance) {
   });
   instance.addHook('beforeFilter', function(formulaStacks) {
     plugin.done(new Handsontable.UndoRedo.FiltersAction(formulaStacks));
+  });
+  instance.addHook('beforeRowMove', function(movedRows, target) {
+    if (movedRows === false) {
+      return;
+    }
+    plugin.done(new Handsontable.UndoRedo.RowMoveAction(movedRows, target));
   });
 };
 Handsontable.UndoRedo.prototype.done = function(action) {
@@ -18645,23 +20812,37 @@ Handsontable.UndoRedo.prototype.done = function(action) {
 Handsontable.UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
     var action = this.doneActions.pop();
+    var actionClone = deepClone(action);
+    var instance = this.instance;
+    var continueAction = instance.runHooks('beforeUndo', actionClone);
+    if (continueAction === false) {
+      return;
+    }
     this.ignoreNewActions = true;
     var that = this;
     action.undo(this.instance, function() {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
+    instance.runHooks('afterUndo', actionClone);
   }
 };
 Handsontable.UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
     var action = this.undoneActions.pop();
+    var actionClone = deepClone(action);
+    var instance = this.instance;
+    var continueAction = instance.runHooks('beforeRedo', actionClone);
+    if (continueAction === false) {
+      return;
+    }
     this.ignoreNewActions = true;
     var that = this;
     action.redo(this.instance, function() {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
     });
+    instance.runHooks('afterRedo', actionClone);
   }
 };
 Handsontable.UndoRedo.prototype.isUndoAvailable = function() {
@@ -18679,6 +20860,7 @@ Handsontable.UndoRedo.Action.prototype.undo = function() {};
 Handsontable.UndoRedo.Action.prototype.redo = function() {};
 Handsontable.UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
+  this.actionType = 'change';
 };
 inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
@@ -18691,14 +20873,14 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
   }
   instance.addHookOnce('afterChange', undoneCallback);
   instance.setDataAtRowProp(data, null, null, 'undo');
-  for (var i = 0,
-      len = data.length; i < len; i++) {
-    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
-      instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
+  for (var i$__6 = 0,
+      len$__7 = data.length; i$__6 < len$__7; i$__6++) {
+    if (instance.getSettings().minSpareRows && data[i$__6][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+      instance.alter('remove_row', parseInt(data[i$__6][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
     }
-    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
-      instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
+    if (instance.getSettings().minSpareCols && data[i$__6][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+      instance.alter('remove_col', parseInt(data[i$__6][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
     }
   }
@@ -18715,6 +20897,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishC
 Handsontable.UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_row';
 };
 inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
@@ -18724,40 +20907,94 @@ Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undone
     this.index -= minSpareRows;
   }
   instance.addHookOnce('afterRemoveRow', undoneCallback);
-  instance.alter('remove_row', this.index, this.amount);
+  instance.alter('remove_row', this.index, this.amount, 'undo');
 };
 Handsontable.UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateRow', redoneCallback);
-  instance.alter('insert_row', this.index + 1, this.amount);
+  instance.alter('insert_row', this.index, this.amount, 'redo');
 };
 Handsontable.UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
   this.data = data;
+  this.actionType = 'remove_row';
 };
 inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
-  var spliceArgs = [this.index, 0];
-  Array.prototype.push.apply(spliceArgs, this.data);
-  Array.prototype.splice.apply(instance.getSourceData(), spliceArgs);
+  instance.alter('insert_row', this.index, this.data.length, 'undo');
   instance.addHookOnce('afterRender', undoneCallback);
-  instance.render();
+  instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'undo');
 };
 Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);
-  instance.alter('remove_row', this.index, this.data.length);
+  instance.alter('remove_row', this.index, this.data.length, 'redo');
 };
 Handsontable.UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_col';
 };
 inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) {
   instance.addHookOnce('afterRemoveCol', undoneCallback);
-  instance.alter('remove_col', this.index, this.amount);
+  instance.alter('remove_col', this.index, this.amount, 'undo');
 };
 Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateCol', redoneCallback);
-  instance.alter('insert_col', this.index + 1, this.amount);
+  instance.alter('insert_col', this.index, this.amount, 'redo');
+};
+Handsontable.UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
+  this.index = index;
+  this.indexes = indexes;
+  this.data = data;
+  this.amount = this.data[0].length;
+  this.headers = headers;
+  this.columnPositions = columnPositions.slice(0);
+  this.actionType = 'remove_col';
+};
+inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
+  var $__5 = this;
+  var row;
+  var ascendingIndexes = this.indexes.slice(0).sort();
+  var sortByIndexes = (function(elem, j, arr) {
+    return arr[$__5.indexes.indexOf(ascendingIndexes[j])];
+  });
+  var sortedData = [];
+  rangeEach(this.data.length - 1, (function(i) {
+    sortedData[i] = arrayMap($__5.data[i], sortByIndexes);
+  }));
+  var sortedHeaders = [];
+  sortedHeaders = arrayMap(this.headers, sortByIndexes);
+  var changes = [];
+  Handsontable.hooks.run(instance, 'beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'undo');
+  rangeEach(this.data.length - 1, (function(i) {
+    row = instance.getSourceDataAtRow(i);
+    rangeEach(ascendingIndexes.length - 1, (function(j) {
+      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
+      changes.push([i, ascendingIndexes[j], null, sortedData[i][j]]);
+    }));
+  }));
+  if (instance.getPlugin('formulas')) {
+    instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
+  }
+  if (typeof this.headers !== 'undefined') {
+    rangeEach(sortedHeaders.length - 1, (function(j) {
+      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
+    }));
+  }
+  if (instance.getPlugin('manualColumnMove')) {
+    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
+  }
+  instance.addHookOnce('afterRender', undoneCallback);
+  Handsontable.hooks.run(instance, 'afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'undo');
+  if (instance.getPlugin('formulas')) {
+    instance.getPlugin('formulas').recalculateFull();
+  }
+  instance.render();
+};
+Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
+  instance.addHookOnce('afterRemoveCol', redoneCallback);
+  instance.alter('remove_col', this.index, this.amount, 'redo');
 };
 Handsontable.UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -18786,50 +21023,9 @@ Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, un
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
-Handsontable.UndoRedo.RemoveColumnAction = function(indexes, data, headers, columnPositions) {
-  this.indexes = indexes;
-  this.data = data;
-  this.amount = this.data[0].length;
-  this.headers = headers;
-  this.columnPositions = columnPositions.slice(0);
-};
-inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
-Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
-  var $__5 = this;
-  var row;
-  var ascendingIndexes = this.indexes.slice(0).sort();
-  var sortByIndexes = (function(elem, j, arr) {
-    return arr[$__5.indexes.indexOf(ascendingIndexes[j])];
-  });
-  var sortedData = [];
-  rangeEach(0, this.data.length - 1, (function(i) {
-    sortedData[i] = arrayMap($__5.data[i], sortByIndexes);
-  }));
-  var sortedHeaders = [];
-  sortedHeaders = arrayMap(this.headers, sortByIndexes);
-  rangeEach(0, this.data.length - 1, (function(i) {
-    row = instance.getSourceDataAtRow(i);
-    rangeEach(0, ascendingIndexes.length - 1, (function(j) {
-      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
-    }));
-  }));
-  if (typeof this.headers != 'undefined') {
-    rangeEach(0, sortedHeaders.length - 1, (function(j) {
-      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
-    }));
-  }
-  if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnPositions = this.columnPositions;
-  }
-  instance.addHookOnce('afterRender', undoneCallback);
-  instance.render();
-};
-Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
-  instance.addHookOnce('afterRemoveCol', redoneCallback);
-  instance.alter('remove_col', instance.runHooks('unmodifyCol', this.indexes[0]), this.amount);
-};
 Handsontable.UndoRedo.FiltersAction = function(formulaStacks) {
   this.formulaStacks = formulaStacks;
+  this.actionType = 'filter';
 };
 inherit(Handsontable.UndoRedo.FiltersAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
@@ -18843,6 +21039,35 @@ Handsontable.UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCa
   instance.addHookOnce('afterRender', redoneCallback);
   filters.formulaCollection.importAllFormulas(this.formulaStacks);
   filters.filter();
+};
+Handsontable.UndoRedo.RowMoveAction = function(movedRows, target) {
+  this.rows = movedRows.slice();
+  this.target = target;
+};
+inherit(Handsontable.UndoRedo.RowMoveAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
+  var manualRowMove = instance.getPlugin('manualRowMove');
+  instance.addHookOnce('afterRender', undoneCallback);
+  var mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  var newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  var newRows = [];
+  var rowsLen = this.rows.length + mod;
+  for (var i = mod; i < rowsLen; i++) {
+    newRows.push(this.target + i);
+  }
+  manualRowMove.moveRows(newRows.slice(), newTarget);
+  instance.render();
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(this.rows[0], 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+};
+Handsontable.UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
+  var manualRowMove = instance.getPlugin('manualRowMove');
+  instance.addHookOnce('afterRender', redoneCallback);
+  manualRowMove.moveRows(this.rows.slice(), this.target);
+  instance.render();
+  var startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(startSelection, 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
 };
 function init() {
   var instance = this;
@@ -18908,9 +21133,13 @@ function removeExposedUndoRedoMethods(instance) {
 }
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
+Handsontable.hooks.register('beforeUndo');
+Handsontable.hooks.register('afterUndo');
+Handsontable.hooks.register('beforeRedo');
+Handsontable.hooks.register('afterRedo');
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/event":47,"helpers/number":51,"helpers/object":52}],92:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/array":43,"helpers/dom/event":48,"helpers/number":52,"helpers/object":53}],117:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerRenderer: {get: function() {
@@ -18960,7 +21189,7 @@ function hasRenderer(rendererName) {
 ;
 
 //# 
-},{"browser":23,"helpers/string":54}],93:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/string":55}],118:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   cellDecorator: {get: function() {
@@ -19001,7 +21230,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('base', cellDecorator);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],94:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47,"renderers":117}],119:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   autocompleteRenderer: {get: function() {
@@ -19035,7 +21264,11 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER) {
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var WRAPPER = clonableWRAPPER.cloneNode(true);
   var ARROW = clonableARROW.cloneNode(true);
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  if (cellProperties.allowHtml) {
+    getRenderer('html').apply(this, arguments);
+  } else {
+    getRenderer('text').apply(this, arguments);
+  }
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');
   if (!TD.firstChild) {
@@ -19058,7 +21291,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 registerRenderer('autocomplete', autocompleteRenderer);
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"eventManager":41,"helpers/dom/element":46,"renderers":92}],95:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"eventManager":42,"helpers/dom/element":47,"renderers":117}],120:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   checkboxRenderer: {get: function() {
@@ -19071,6 +21304,7 @@ var $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_eventManager__,
     $___46__46__47_renderers__,
     $___46__46__47_helpers_47_unicode__,
+    $___46__46__47_helpers_47_function__,
     $___46__46__47_helpers_47_dom_47_event__;
 var $__0 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
     empty = $__0.empty,
@@ -19081,16 +21315,17 @@ var EventManager = ($___46__46__47_eventManager__ = _dereq_("eventManager"), $__
 var $__3 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
     getRenderer = $__3.getRenderer,
     registerRenderer = $__3.registerRenderer;
-var KEY_CODES = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}).KEY_CODES;
-var $__5 = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47_helpers_47_dom_47_event__ && $___46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__5.stopPropagation,
-    stopImmediatePropagation = $__5.stopImmediatePropagation,
-    isImmediatePropagationStopped = $__5.isImmediatePropagationStopped;
+var isKey = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}).isKey;
+var partial = ($___46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47_helpers_47_function__ && $___46__46__47_helpers_47_function__.__esModule && $___46__46__47_helpers_47_function__ || {default: $___46__46__47_helpers_47_function__}).partial;
+var $__6 = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47_helpers_47_dom_47_event__ && $___46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47_helpers_47_dom_47_event__}),
+    stopImmediatePropagation = $__6.stopImmediatePropagation,
+    isImmediatePropagationStopped = $__6.isImmediatePropagationStopped;
 var isListeningKeyDownEvent = new WeakMap();
 var isCheckboxListenerAdded = new WeakMap();
 var BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var eventManager = new EventManager(instance);
+  getRenderer('base').apply(this, arguments);
+  var eventManager = registerEvents(instance);
   var input = createInput();
   var labelOptions = cellProperties.label;
   var badValue = false;
@@ -19133,47 +21368,55 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (badValue) {
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
-  if (!isCheckboxListenerAdded.has(instance)) {
-    if (cellProperties.readOnly) {
-      eventManager.addEventListener(instance.rootElement, 'click', preventDefault);
-    } else {
-      eventManager.addEventListener(instance.rootElement, 'mouseup', (function(event) {
-        return onMouseUp(event, instance);
-      }));
-      eventManager.addEventListener(instance.rootElement, 'change', (function(event) {
-        return onChange(event, instance);
-      }));
-    }
-    isCheckboxListenerAdded.set(instance, true);
-  }
   if (!isListeningKeyDownEvent.has(instance)) {
     isListeningKeyDownEvent.set(instance, true);
     instance.addHook('beforeKeyDown', onBeforeKeyDown);
   }
   function onBeforeKeyDown(event) {
-    var allowedKeys = [KEY_CODES.SPACE, KEY_CODES.ENTER, KEY_CODES.DELETE, KEY_CODES.BACKSPACE];
-    if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
+    var toggleKeys = 'SPACE|ENTER';
+    var switchOffKeys = 'DELETE|BACKSPACE';
+    var isKeyCode = partial(isKey, event.keyCode);
+    if (isKeyCode((toggleKeys + "|" + switchOffKeys)) && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(function() {
         stopImmediatePropagation(event);
         event.preventDefault();
       });
     }
-    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
+    if (isKeyCode(toggleKeys)) {
       toggleSelected();
     }
-    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
+    if (isKeyCode(switchOffKeys)) {
       toggleSelected(false);
     }
   }
   function toggleSelected() {
     var checked = arguments[0] !== (void 0) ? arguments[0] : null;
-    eachSelectedCheckboxCell(function(checkboxes) {
-      for (var i = 0,
-          len = checkboxes.length; i < len; i++) {
-        if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
-          return;
+    eachSelectedCheckboxCell(function() {
+      if (arguments.length > 1) {
+        var row$__7 = arguments[0];
+        var col$__8 = arguments[1];
+        var cellProperties$__9 = arguments[2];
+        if (cellProperties$__9.checkedTemplate) {
+          var dataAtCell = instance.getDataAtCell(row$__7, col$__8);
+          if (checked === null) {
+            if (dataAtCell === cellProperties$__9.checkedTemplate) {
+              instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.uncheckedTemplate);
+            } else if (dataAtCell === cellProperties$__9.uncheckedTemplate) {
+              instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.checkedTemplate);
+            }
+          } else {
+            instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.uncheckedTemplate);
+          }
         }
-        toggleCheckbox(checkboxes[i], checked);
+      } else {
+        var checkboxes = arguments[0];
+        for (var i = 0,
+            len = checkboxes.length; i < len; i++) {
+          if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+            return;
+          }
+          toggleCheckbox(checkboxes[i], checked);
+        }
       }
     });
   }
@@ -19195,15 +21438,39 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     var bottomRight = selRange.getBottomRightCorner();
     for (var row = topLeft.row; row <= bottomRight.row; row++) {
       for (var col = topLeft.col; col <= bottomRight.col; col++) {
+        var cellProperties$__10 = instance.getCellMeta(row, col);
+        if (cellProperties$__10.type !== 'checkbox') {
+          return;
+        }
         var cell = instance.getCell(row, col);
-        var cellProperties$__6 = instance.getCellMeta(row, col);
-        var checkboxes = cell.querySelectorAll('input[type=checkbox]');
-        if (checkboxes.length > 0 && !cellProperties$__6.readOnly) {
-          callback(checkboxes);
+        if (cell == null) {
+          callback(row, col, cellProperties$__10);
+        } else {
+          var checkboxes = cell.querySelectorAll('input[type=checkbox]');
+          if (checkboxes.length > 0 && !cellProperties$__10.readOnly) {
+            callback(checkboxes);
+          }
         }
       }
     }
   }
+}
+function registerEvents(instance) {
+  var eventManager = isCheckboxListenerAdded.get(instance);
+  if (!eventManager) {
+    eventManager = new EventManager(instance);
+    eventManager.addEventListener(instance.rootElement, 'click', (function(event) {
+      return onClick(event, instance);
+    }));
+    eventManager.addEventListener(instance.rootElement, 'mouseup', (function(event) {
+      return onMouseUp(event, instance);
+    }));
+    eventManager.addEventListener(instance.rootElement, 'change', (function(event) {
+      return onChange(event, instance);
+    }));
+    isCheckboxListenerAdded.set(instance, eventManager);
+  }
+  return eventManager;
 }
 function createInput() {
   var input = document.createElement('input');
@@ -19219,14 +21486,21 @@ function createLabel(text) {
   label.appendChild(document.createTextNode(text));
   return label.cloneNode(true);
 }
-function preventDefault(event) {
-  if (isCheckboxInput(event.target)) {
-    event.preventDefault();
-  }
-}
 function onMouseUp(event, instance) {
-  if (isCheckboxInput(event.target)) {
-    setTimeout(instance.listen, 10);
+  if (!isCheckboxInput(event.target)) {
+    return;
+  }
+  setTimeout(instance.listen, 10);
+}
+function onClick(event, instance) {
+  if (!isCheckboxInput(event.target)) {
+    return false;
+  }
+  var row = parseInt(event.target.getAttribute('data-row'), 10);
+  var col = parseInt(event.target.getAttribute('data-col'), 10);
+  var cellProperties = instance.getCellMeta(row, col);
+  if (cellProperties.readOnly) {
+    event.preventDefault();
   }
 }
 function onChange(event, instance) {
@@ -19236,7 +21510,23 @@ function onChange(event, instance) {
   var row = parseInt(event.target.getAttribute('data-row'), 10);
   var col = parseInt(event.target.getAttribute('data-col'), 10);
   var cellProperties = instance.getCellMeta(row, col);
-  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  if (!cellProperties.readOnly) {
+    var newCheckboxValue = null;
+    if (event.target.checked) {
+      if (cellProperties.checkedTemplate === void 0) {
+        newCheckboxValue = true;
+      } else {
+        newCheckboxValue = cellProperties.checkedTemplate;
+      }
+    } else {
+      if (cellProperties.uncheckedTemplate === void 0) {
+        newCheckboxValue = false;
+      } else {
+        newCheckboxValue = cellProperties.uncheckedTemplate;
+      }
+    }
+    instance.setDataAtCell(row, col, newCheckboxValue);
+  }
 }
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
@@ -19245,7 +21535,7 @@ function isCheckboxInput(element) {
 registerRenderer('checkbox', checkboxRenderer);
 
 //# 
-},{"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/string":54,"helpers/unicode":55,"renderers":92}],96:[function(_dereq_,module,exports){
+},{"eventManager":42,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/function":50,"helpers/string":55,"helpers/unicode":56,"renderers":117}],121:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   htmlRenderer: {get: function() {
@@ -19270,7 +21560,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('html', htmlRenderer);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],97:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47,"renderers":117}],122:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   numericRenderer: {get: function() {
@@ -19278,23 +21568,29 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__numeral__,
-    $___46__46__47_helpers_47_dom_47_element__,
+var $__numbro__,
     $___46__46__47_renderers__,
     $___46__46__47_helpers_47_number__;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var addClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).addClass;
-var $__2 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
-    getRenderer = $__2.getRenderer,
-    registerRenderer = $__2.registerRenderer;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var $__1 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
+    getRenderer = $__1.getRenderer,
+    registerRenderer = $__1.registerRenderer;
 var isNumeric = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).isNumeric;
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (isNumeric(value)) {
     if (typeof cellProperties.language !== 'undefined') {
-      numeral.language(cellProperties.language);
+      numbro.culture(cellProperties.language);
     }
-    value = numeral(value).format(cellProperties.format || '0');
-    addClass(TD, 'htNumeric');
+    value = numbro(value).format(cellProperties.format || '0');
+    var className = cellProperties.className || '';
+    var classArr = className.length ? className.split(' ') : [];
+    if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+      classArr.push('htRight');
+    }
+    if (classArr.indexOf('htNumeric') < 0) {
+      classArr.push('htNumeric');
+    }
+    cellProperties.className = classArr.join(' ');
   }
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
@@ -19302,7 +21598,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('numeric', numericRenderer);
 
 //# 
-},{"helpers/dom/element":46,"helpers/number":51,"numeral":"numeral","renderers":92}],98:[function(_dereq_,module,exports){
+},{"helpers/number":52,"numbro":"numbro","renderers":117}],123:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   passwordRenderer: {get: function() {
@@ -19329,7 +21625,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('password', passwordRenderer);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],99:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47,"renderers":117}],124:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   textRenderer: {get: function() {
@@ -19372,7 +21668,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('text', textRenderer);
 
 //# 
-},{"helpers/dom/element":46,"helpers/mixed":50,"renderers":92}],100:[function(_dereq_,module,exports){
+},{"helpers/dom/element":47,"helpers/mixed":51,"renderers":117}],125:[function(_dereq_,module,exports){
 // jscs:disable
 /* jshint ignore:start */
 (function(global) {
@@ -19389,9 +21685,6 @@ registerRenderer('text', textRenderer);
   var $getOwnPropertyDescriptor = $Object.getOwnPropertyDescriptor;
   var $getOwnPropertyNames = $Object.getOwnPropertyNames;
   var $keys = $Object.keys;
-  var $hasOwnProperty = $Object.prototype.hasOwnProperty;
-  var $preventExtensions = Object.preventExtensions;
-  var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
   function nonEnum(value) {
     return {
@@ -19494,14 +21787,6 @@ registerRenderer('text', textRenderer);
     getOwnHashObject(object);
     return $freeze.apply(this, arguments);
   }
-  function preventExtensions(object) {
-    getOwnHashObject(object);
-    return $preventExtensions.apply(this, arguments);
-  }
-  function seal(object) {
-    getOwnHashObject(object);
-    return $seal.apply(this, arguments);
-  }
   freeze(SymbolValue.prototype);
   function isSymbolString(s) {
     return symbolValues[s] || privateNames[s];
@@ -19510,21 +21795,6 @@ registerRenderer('text', textRenderer);
     if (isShimSymbol(name))
       return name[symbolInternalProperty];
     return name;
-  }
-  function removeSymbolKeys(array) {
-    var rv = [];
-    for (var i = 0; i < array.length; i++) {
-      if (!isSymbolString(array[i])) {
-        rv.push(array[i]);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyNames(object) {
-    return removeSymbolKeys($getOwnPropertyNames(object));
-  }
-  function keys(object) {
-    return removeSymbolKeys($keys(object));
   }
   function getOwnPropertySymbols(object) {
     var rv = [];
@@ -19537,31 +21807,8 @@ registerRenderer('text', textRenderer);
     }
     return rv;
   }
-  function getOwnPropertyDescriptor(object, name) {
-    return $getOwnPropertyDescriptor(object, toProperty(name));
-  }
-  function hasOwnProperty(name) {
-    return $hasOwnProperty.call(this, toProperty(name));
-  }
   function getOption(name) {
     return global.traceur && global.traceur.options[name];
-  }
-  function defineProperty(object, name, descriptor) {
-    if (isShimSymbol(name)) {
-      name = name[symbolInternalProperty];
-    }
-    $defineProperty(object, name, descriptor);
-    return object;
-  }
-  function polyfillObject(Object) {
-    $defineProperty(Object, 'defineProperty', {value: defineProperty});
-    $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
-    $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
-    $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
-    $defineProperty(Object, 'freeze', {value: freeze});
-    $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
-    $defineProperty(Object, 'seal', {value: seal});
-    $defineProperty(Object, 'keys', {value: keys});
   }
   function exportStar(object) {
     for (var i = 1; i < arguments.length; i++) {
@@ -19609,7 +21856,6 @@ registerRenderer('text', textRenderer);
     polyfillSymbol(global, Symbol);
     global.Reflect = global.Reflect || {};
     global.Reflect.global = global.Reflect.global || global;
-    polyfillObject(global.Object);
   }
   setupGlobals(global);
   global.$traceurRuntime = {
@@ -19777,7 +22023,7 @@ registerRenderer('text', textRenderer);
 })();
 /* jshint ignore:end */
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],126:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TableView: {get: function() {
@@ -19787,6 +22033,7 @@ Object.defineProperties(exports, {
 });
 var $__browser__,
     $__helpers_47_dom_47_element__,
+    $__helpers_47_object__,
     $__eventManager__,
     $__helpers_47_dom_47_event__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
@@ -19802,17 +22049,21 @@ var $__1 = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $__
     hasClass = $__1.hasClass,
     isChildOf = $__1.isChildOf,
     isInput = $__1.isInput,
-    isOutsideInput = $__1.isOutsideInput;
+    isOutsideInput = $__1.isOutsideInput,
+    removeClass = $__1.removeClass;
+var createObjectPropListener = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).createObjectPropListener;
 var eventManagerObject = ($__eventManager__ = _dereq_("eventManager"), $__eventManager__ && $__eventManager__.__esModule && $__eventManager__ || {default: $__eventManager__}).eventManager;
-var $__3 = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__}),
-    stopPropagation = $__3.stopPropagation,
-    isImmediatePropagationStopped = $__3.isImmediatePropagationStopped;
+var $__4 = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__}),
+    stopPropagation = $__4.stopPropagation,
+    isImmediatePropagationStopped = $__4.isImmediatePropagationStopped,
+    isRightClick = $__4.isRightClick,
+    isLeftClick = $__4.isLeftClick;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = _dereq_("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 var Walkontable = ($__3rdparty_47_walkontable_47_src_47_core__ = _dereq_("3rdparty/walkontable/src/core"), $__3rdparty_47_walkontable_47_src_47_core__ && $__3rdparty_47_walkontable_47_src_47_core__.__esModule && $__3rdparty_47_walkontable_47_src_47_core__ || {default: $__3rdparty_47_walkontable_47_src_47_core__}).Walkontable;
 Handsontable.TableView = TableView;
 function TableView(instance) {
-  var $__7 = this;
+  var $__8 = this;
   var that = this;
   this.eventManager = eventManagerObject(instance);
   this.instance = instance;
@@ -19870,6 +22121,7 @@ function TableView(instance) {
     }
   });
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -19895,7 +22147,8 @@ function TableView(instance) {
         next = next.parentNode;
       }
     }
-    if (that.settings.outsideClickDeselects) {
+    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ? that.settings.outsideClickDeselects(originalTarget) : that.settings.outsideClickDeselects;
+    if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
@@ -19944,6 +22197,7 @@ function TableView(instance) {
     }
   }), new WalkontableSelection({
     className: 'highlight',
+    highlightHeaderClassName: that.settings.currentHeaderClassName,
     highlightRowClassName: that.settings.currentRowClassName,
     highlightColumnClassName: that.settings.currentColClassName
   }), new WalkontableSelection({
@@ -19964,7 +22218,7 @@ function TableView(instance) {
     externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     preventOverflow: (function() {
-      return $__7.settings.preventOverflow;
+      return $__8.settings.preventOverflow;
     }),
     stretchH: function() {
       return that.settings.stretchH;
@@ -20015,89 +22269,159 @@ function TableView(instance) {
       var cellProperties = that.instance.getCellMeta(row, col);
       var prop = that.instance.colToProp(col);
       var value = that.instance.getDataAtRowProp(row, prop);
-      Handsontable.hooks.run(that.instance, 'beforeRenderer', TD, row, col, prop, value, cellProperties);
+      if (that.instance.hasHook('beforeValueRender')) {
+        value = that.instance.runHooks('beforeValueRender', value);
+      }
+      that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
       that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
+      that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
     },
     selections: selections,
     hideBorderOnMouseDownOver: function() {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      var colspanOffset;
-      var TR = TD.parentNode;
-      var THEAD = TR.parentNode;
-      var headerLevel;
-      var headerColspan;
+      var blockCalculations = {
+        row: false,
+        column: false,
+        cells: false
+      };
       instance.listen();
       that.activeWt = wt;
       isMouseDown = true;
-      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection(coords)) {
-          var nothing = 1;
-        } else if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD, blockCalculations);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      var actualSelection = instance.getSelectedRange();
+      var selection = instance.selection;
+      var selectedHeader = selection.selectedHeader;
+      if (event.shiftKey && actualSelection) {
+        if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
+          selection.setSelectedHeaders(false, false);
+          selection.setRangeEnd(coords);
+        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
+          selection.setSelectedHeaders(false, false);
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+        } else if (selectedHeader.cols && coords.row < 0 && !blockCalculations.column) {
+          selection.setRangeEnd(new WalkontableCellCoords(actualSelection.to.row, coords.col));
+        } else if (selectedHeader.rows && coords.col < 0 && !blockCalculations.row) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, actualSelection.to.col));
+        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) || (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
+          selection.setSelectedHeaders(true, false);
+          selection.setRangeStartOnly(new WalkontableCellCoords(actualSelection.from.row, 0));
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) || (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
+          selection.setSelectedHeaders(false, true);
+          selection.setRangeStartOnly(new WalkontableCellCoords(0, actualSelection.from.col));
+          selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        }
+      } else {
+        var doNewSelection = true;
+        if (actualSelection) {
+          var $__9 = actualSelection,
+              from = $__9.from,
+              to = $__9.to;
+          var coordsNotInSelection = !selection.inInSelection(coords);
+          if (coords.row < 0 && selectedHeader.cols) {
+            var start = Math.min(from.col, to.col);
+            var end = Math.max(from.col, to.col);
+            doNewSelection = (coords.col < start || coords.col > end);
+          } else if (coords.col < 0 && selectedHeader.rows) {
+            var start$__10 = Math.min(from.row, to.row);
+            var end$__11 = Math.max(from.row, to.row);
+            doNewSelection = (coords.row < start$__10 || coords.row > end$__11);
+          } else {
+            doNewSelection = coordsNotInSelection;
+          }
+        }
+        var rightClick = isRightClick(event);
+        var leftClick = isLeftClick(event) || event.type === 'touchstart';
+        if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
+          selection.setSelectedHeaders(false, true);
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
+            selection.setRangeEnd(new WalkontableCellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+          }
+        } else if (coords.col < 0 && coords.row >= 0 && !blockCalculations.row) {
+          selection.setSelectedHeaders(true, false);
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
+          }
+        } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setSelectedHeaders(false, false);
+            selection.setRangeStart(coords);
+          }
+        } else if (coords.col < 0 && coords.row < 0) {
+          coords.row = 0;
+          coords.col = 0;
+          selection.setSelectedHeaders(false, false, true);
+          selection.setRangeStart(coords);
+        }
+      }
+      if (selection.selectedHeader.rows) {
+        removeClass(instance.rootElement, 'ht__selection--columns');
+        addClass(instance.rootElement, 'ht__selection--rows');
+      } else if (selection.selectedHeader.cols) {
+        removeClass(instance.rootElement, 'ht__selection--rows');
+        addClass(instance.rootElement, 'ht__selection--columns');
+      } else {
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+      }
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+      that.activeWt = that.wt;
+    },
+    onCellMouseOver: function(event, coords, TD, wt) {
+      var blockCalculations = {
+        row: false,
+        column: false,
+        cell: false
+      };
+      that.activeWt = wt;
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      if (event.button === 0 && isMouseDown) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+          } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
           }
         } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-            if (coords.row < 0) {
-              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
-              instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
-            }
-            if (coords.col < 0) {
-              instance.selection.setSelectedHeaders(true, false);
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-            }
-          } else {
-            coords.row = coords.row < 0 ? 0 : coords.row;
-            coords.col = coords.col < 0 ? 0 : coords.col;
-            instance.selection.setSelectedHeaders(false, false);
-            instance.selection.setRangeStart(coords);
-          }
-        }
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
-        that.activeWt = that.wt;
-      }
-    },
-    onCellMouseOver: function(event, coords, TD, wt) {
-      that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) {
-        if (isMouseDown) {
-          instance.selection.setRangeEnd(coords);
-        }
-      } else {
-        if (isMouseDown) {
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-          }
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
+          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+          } else if (!blockCalculations.cell) {
+            instance.selection.setRangeEnd(coords);
           }
         }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
+    onCellMouseUp: function(event, coords, TD, wt) {
+      that.activeWt = wt;
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseUp', event, coords, TD);
+      Handsontable.hooks.run(instance, 'afterOnCellMouseUp', event, coords, TD);
+      that.activeWt = that.wt;
+    },
     onCellCornerMouseDown: function(event) {
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
     },
-    beforeDraw: function(force) {
-      that.beforeRender(force);
+    onCellCornerDblClick: function(event) {
+      event.preventDefault();
+      Handsontable.hooks.run(instance, 'afterOnCellCornerDblClick', event);
+    },
+    beforeDraw: function(force, skipRender) {
+      that.beforeRender(force, skipRender);
     },
     onDraw: function(force) {
       that.onDraw(force);
@@ -20119,6 +22443,9 @@ function TableView(instance) {
     },
     onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
       return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
+    },
+    onModifyRowHeaderWidth: function(rowHeaderWidth) {
+      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
     },
     viewportRowCalculatorOverride: function(calc) {
       var rows = instance.countRows();
@@ -20160,7 +22487,8 @@ function TableView(instance) {
       return that.settings.rowHeaderWidth;
     },
     columnHeaderHeight: function() {
-      return that.settings.columnHeaderHeight;
+      var columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
+      return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
   };
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);
@@ -20196,23 +22524,26 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
     return true;
   }
+  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
+    return true;
+  }
   return false;
 };
 TableView.prototype.isSelectedOnlyCell = function() {
-  var $__8 = this.instance.getSelected() || [],
-      row = $__8[0],
-      col = $__8[1],
-      rowEnd = $__8[2],
-      colEnd = $__8[3];
+  var $__9 = this.instance.getSelected() || [],
+      row = $__9[0],
+      col = $__9[1],
+      rowEnd = $__9[2],
+      colEnd = $__9[3];
   return row !== void 0 && row === rowEnd && col === colEnd;
 };
 TableView.prototype.isCellEdited = function() {
   var activeEditor = this.instance.getActiveEditor();
   return activeEditor && activeEditor.isOpened();
 };
-TableView.prototype.beforeRender = function(force) {
+TableView.prototype.beforeRender = function(force, skipRender) {
   if (force) {
-    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender);
+    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender, skipRender);
   }
 };
 TableView.prototype.onDraw = function(force) {
@@ -20277,7 +22608,16 @@ TableView.prototype.appendColHeader = function(col, TH) {
   Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };
 TableView.prototype.updateCellHeader = function(element, index, content) {
-  if (index > -1) {
+  var renderedIndex = index;
+  var parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+  if (element.parentNode) {
+    if (hasClass(element, 'colHeader')) {
+      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+    } else if (hasClass(element, 'rowHeader')) {
+      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+    }
+  }
+  if (renderedIndex > -1) {
     fastInnerHTML(element, content(index));
   } else {
     fastInnerText(element, String.fromCharCode(160));
@@ -20304,7 +22644,7 @@ TableView.prototype.destroy = function() {
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/core":7,"3rdparty/walkontable/src/selection":18,"browser":23,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47}],102:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":6,"3rdparty/walkontable/src/core":8,"3rdparty/walkontable/src/selection":19,"browser":24,"eventManager":42,"helpers/dom/element":47,"helpers/dom/event":48,"helpers/object":53}],127:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   GhostTable: {get: function() {
@@ -20334,6 +22674,7 @@ var GhostTable = function GhostTable(hotInstance) {
   this.rows = [];
   this.columns = [];
   this.samples = null;
+  this.settings = {useHeaders: true};
 };
 ($traceurRuntime.createClass)(GhostTable, {
   addRow: function(row, samples) {
@@ -20352,6 +22693,19 @@ var GhostTable = function GhostTable(hotInstance) {
     this.container.container.appendChild(this.table.fragment);
     rowObject.table = this.table.table;
   },
+  addColumnHeadersRow: function(samples) {
+    if (this.hot.getColHeader(0) != null) {
+      var rowObject = {row: -1};
+      this.rows.push(rowObject);
+      this.container = this.createContainer(this.hot.rootElement.className);
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tHead.appendChild(this.createColumnHeadersRow());
+      this.container.container.appendChild(this.table.fragment);
+      rowObject.table = this.table.table;
+    }
+  },
   addColumn: function(column, samples) {
     if (this.rows.length) {
       throw new Error('Doesn\'t support multi-dimensional table');
@@ -20363,7 +22717,7 @@ var GhostTable = function GhostTable(hotInstance) {
     this.columns.push(columnObject);
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
-    if (this.hot.getColHeader(column) !== null) {
+    if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -20386,11 +22740,32 @@ var GhostTable = function GhostTable(hotInstance) {
       callback(column.col, outerWidth(column.table));
     }));
   },
+  setSettings: function(settings) {
+    this.settings = settings;
+  },
+  setSetting: function(name, value) {
+    if (!this.settings) {
+      this.settings = {};
+    }
+    this.settings[name] = value;
+  },
+  getSettings: function() {
+    return this.settings;
+  },
+  getSetting: function(name) {
+    if (this.settings) {
+      return this.settings[name];
+    } else {
+      return null;
+    }
+  },
   createColGroupsCol: function() {
     var $__6 = this;
     var d = document;
     var fragment = d.createDocumentFragment();
-    fragment.appendChild(this.createColElement(-1));
+    if (this.hot.hasRowHeaders()) {
+      fragment.appendChild(this.createColElement(-1));
+    }
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         fragment.appendChild($__6.createColElement(string.col));
@@ -20403,10 +22778,10 @@ var GhostTable = function GhostTable(hotInstance) {
     var d = document;
     var fragment = d.createDocumentFragment();
     var th = d.createElement('th');
-    if (this.hot.getRowHeader(row) !== null) {
+    if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
+      fragment.appendChild(th);
     }
-    fragment.appendChild(th);
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         var column = string.col;
@@ -20417,6 +22792,25 @@ var GhostTable = function GhostTable(hotInstance) {
         var td = d.createElement('td');
         renderer($__6.hot, td, row, column, $__6.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
+      }));
+    }));
+    return fragment;
+  },
+  createColumnHeadersRow: function() {
+    var $__6 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    if (this.hot.hasRowHeaders()) {
+      var th = d.createElement('th');
+      this.hot.view.appendColHeader(-1, th);
+      fragment.appendChild(th);
+    }
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        var column = string.col;
+        var th = d.createElement('th');
+        $__6.hot.view.appendColHeader(column, th);
+        fragment.appendChild(th);
       }));
     }));
     return fragment;
@@ -20443,6 +22837,7 @@ var GhostTable = function GhostTable(hotInstance) {
   },
   clean: function() {
     this.rows.length = 0;
+    this.rows[-1] = void 0;
     this.columns.length = 0;
     if (this.samples) {
       this.samples.clear();
@@ -20530,7 +22925,7 @@ var GhostTable = function GhostTable(hotInstance) {
 Handsontable.utils.GhostTable = GhostTable;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],103:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/array":43,"helpers/dom/element":47,"helpers/mixed":51,"helpers/number":52,"helpers/object":53}],128:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Interval: {get: function() {
@@ -20539,28 +22934,20 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_browser__,
-    $___46__46__47_helpers_47_feature__,
-    $___46__46__47_helpers_47_array__,
-    $___46__46__47_helpers_47_object__,
-    $___46__46__47_helpers_47_number__,
-    $___46__46__47_helpers_47_mixed__;
+    $___46__46__47_helpers_47_feature__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var $__1 = ($___46__46__47_helpers_47_feature__ = _dereq_("helpers/feature"), $___46__46__47_helpers_47_feature__ && $___46__46__47_helpers_47_feature__.__esModule && $___46__46__47_helpers_47_feature__ || {default: $___46__46__47_helpers_47_feature__}),
     requestAnimationFrame = $__1.requestAnimationFrame,
     cancelAnimationFrame = $__1.cancelAnimationFrame;
-var arrayEach = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).arrayEach;
-var objectEach = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).objectEach;
-var rangeEach = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).rangeEach;
-var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
 var Interval = function Interval(func, delay) {
-  var $__6 = this;
+  var $__2 = this;
   this.timer = null;
   this.func = func;
   this.delay = parseDelay(delay);
   this.stopped = true;
   this._then = null;
   this._callback = (function() {
-    return $__6.__callback();
+    return $__2.__callback();
   });
 };
 var $Interval = Interval;
@@ -20607,7 +22994,91 @@ function parseDelay(delay) {
 Handsontable.utils.Interval = Interval;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/feature":48,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],104:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/feature":49}],129:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  registerIdentity: {get: function() {
+      return registerIdentity;
+    }},
+  getTranslator: {get: function() {
+      return getTranslator;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_browser__,
+    $___46__46__47_helpers_47_object__;
+var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
+var isObject = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).isObject;
+var RecordTranslator = function RecordTranslator(hot) {
+  this.hot = hot;
+};
+($traceurRuntime.createClass)(RecordTranslator, {
+  toVisualRow: function(row) {
+    return this.hot.runHooks('unmodifyRow', row);
+  },
+  toVisualColumn: function(column) {
+    return this.hot.runHooks('unmodifyCol', column);
+  },
+  toVisual: function(row, column) {
+    var result;
+    if (isObject(row)) {
+      result = {
+        row: this.toVisualRow(row.row),
+        column: this.toVisualColumn(row.column)
+      };
+    } else {
+      result = [this.toVisualRow(row), this.toVisualColumn(column)];
+    }
+    return result;
+  },
+  toPhysicalRow: function(row) {
+    return this.hot.runHooks('modifyRow', row);
+  },
+  toPhysicalColumn: function(column) {
+    return this.hot.runHooks('modifyCol', column);
+  },
+  toPhysical: function(row, column) {
+    var result;
+    if (isObject(row)) {
+      result = {
+        row: this.toPhysicalRow(row.row),
+        column: this.toPhysicalColumn(row.column)
+      };
+    } else {
+      result = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
+    }
+    return result;
+  }
+}, {});
+var identities = new WeakMap();
+var translatorSingletons = new WeakMap();
+function registerIdentity(identity, hot) {
+  identities.set(identity, hot);
+}
+function getTranslator(identity) {
+  var singleton;
+  if (!(identity instanceof Handsontable.Core)) {
+    if (!identities.has(identity)) {
+      throw Error('Record translator was not registered for this object identity');
+    }
+    identity = identities.get(identity);
+  }
+  if (translatorSingletons.has(identity)) {
+    singleton = translatorSingletons.get(identity);
+  } else {
+    singleton = new RecordTranslator(identity);
+    translatorSingletons.set(identity, singleton);
+  }
+  return singleton;
+}
+Handsontable.utils.RecordTranslator = RecordTranslator;
+Handsontable.utils.RecordTranslatorUtils = {
+  registerIdentity: registerIdentity,
+  getTranslator: getTranslator
+};
+
+//# 
+},{"browser":24,"helpers/object":53}],130:[function(_dereq_,module,exports){
 "use strict";
 var $__8;
 Object.defineProperties(exports, {
@@ -20637,6 +23108,7 @@ var SamplesGenerator = function SamplesGenerator(dataFactory) {
   this.samples = null;
   this.dataFactory = dataFactory;
   this.customSampleCount = null;
+  this.allowDuplicates = false;
 };
 var $SamplesGenerator = SamplesGenerator;
 ($traceurRuntime.createClass)(SamplesGenerator, ($__8 = {}, Object.defineProperty($__8, "getSampleCount", {
@@ -20645,6 +23117,20 @@ var $SamplesGenerator = SamplesGenerator;
       return this.customSampleCount;
     }
     return $SamplesGenerator.SAMPLE_COUNT;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__8, "setSampleCount", {
+  value: function(sampleCount) {
+    this.customSampleCount = sampleCount;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__8, "setAllowDuplicates", {
+  value: function(allowDuplicates) {
+    this.allowDuplicates = allowDuplicates;
   },
   configurable: true,
   enumerable: true,
@@ -20714,7 +23200,7 @@ var $SamplesGenerator = SamplesGenerator;
       var sample = samples.get(length);
       if (sample.needed) {
         var duplicate = sampledValues.indexOf(value) > -1;
-        if (!duplicate) {
+        if (!duplicate || $__6.allowDuplicates) {
           var computedKey = type === 'row' ? 'col' : 'row';
           sample.strings.push(($__8 = {}, Object.defineProperty($__8, "value", {
             value: value,
@@ -20744,13 +23230,20 @@ var $SamplesGenerator = SamplesGenerator;
 Handsontable.utils.SamplesGenerator = SamplesGenerator;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],105:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/array":43,"helpers/dom/element":47,"helpers/mixed":51,"helpers/number":52,"helpers/object":53}],131:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $___46__46__47_helpers_47_mixed__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
 Handsontable.AutocompleteValidator = function(value, callback) {
+  if (value == null) {
+    value = '';
+  }
+  if (this.allowEmpty && value === '') {
+    callback(true);
+    return;
+  }
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
       this.source(value, process(value, callback));
@@ -20763,15 +23256,11 @@ Handsontable.AutocompleteValidator = function(value, callback) {
 };
 function process(value, callback) {
   var originalVal = value;
-  var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
   return function(source) {
     var found = false;
     for (var s = 0,
         slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
-        found = true;
-        break;
-      } else if (lowercaseVal === stringify(source[s]).toLowerCase()) {
         found = true;
         break;
       }
@@ -20781,7 +23270,7 @@ function process(value, callback) {
 }
 
 //# 
-},{"browser":23,"helpers/mixed":50}],106:[function(_dereq_,module,exports){
+},{"browser":24,"helpers/mixed":51}],132:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $__moment__,
@@ -20797,7 +23286,7 @@ Handsontable.DateValidator = function(value, callback) {
   if (value == null) {
     value = '';
   }
-  var isValidDate = moment(new Date(value)).isValid();
+  var isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
   var isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
   if (this.allowEmpty && value === '') {
     isValidDate = true;
@@ -20812,7 +23301,9 @@ Handsontable.DateValidator = function(value, callback) {
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) {
       var correctedValue = correctFormat(value, this.dateFormat);
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');
+      var row = this.instance.runHooks('unmodifyRow', this.row);
+      var column = this.instance.runHooks('unmodifyCol', this.col);
+      this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
     } else {
       valid = false;
@@ -20821,21 +23312,20 @@ Handsontable.DateValidator = function(value, callback) {
   callback(valid);
 };
 var correctFormat = function correctFormat(value, dateFormat) {
-  var date = moment(getNormalizedDate(value));
-  var year = date.format('YYYY');
-  var yearNow = moment().format('YYYY');
-  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
-    if (!value.match(new RegExp(year))) {
-      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
-    }
-  } else if (year.length > 4) {
-    date.year((date.year() + '').substr(0, 4));
+  var dateFromDate = moment(getNormalizedDate(value));
+  var dateFromMoment = moment(value, dateFormat);
+  var isAlphanumeric = value.search(/[A-z]/g) > -1;
+  var date;
+  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) || !dateFromMoment.isValid() || isAlphanumeric) {
+    date = dateFromDate;
+  } else {
+    date = dateFromMoment;
   }
   return date.format(dateFormat);
 };
 
 //# 
-},{"../helpers/date":45,"browser":23,"editors":29,"moment":"moment"}],107:[function(_dereq_,module,exports){
+},{"../helpers/date":46,"browser":24,"editors":30,"moment":"moment"}],133:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
@@ -20853,7 +23343,7 @@ Handsontable.NumericValidator = function(value, callback) {
 };
 
 //# 
-},{"browser":23}],108:[function(_dereq_,module,exports){
+},{"browser":24}],134:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $__moment__;
@@ -20887,7 +23377,9 @@ Handsontable.TimeValidator = function(value, callback) {
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) {
       var correctedValue = date.format(timeFormat);
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'timeValidator');
+      var row = this.instance.runHooks('unmodifyRow', this.row);
+      var column = this.instance.runHooks('unmodifyCol', this.col);
+      this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
     } else {
       valid = false;
@@ -20897,7 +23389,7 @@ Handsontable.TimeValidator = function(value, callback) {
 };
 
 //# 
-},{"browser":23,"moment":"moment"}],"SheetClip":[function(_dereq_,module,exports){
+},{"browser":24,"moment":"moment"}],"SheetClip":[function(_dereq_,module,exports){
 /**
  * SheetClip - Spreadsheet Clipboard Parser
  * version 0.2
@@ -21171,6 +23663,7 @@ function autoResize() {
         observe(el, 'paste', delayedResize);
         observe(el, 'drop', delayedResize);
         observe(el, 'keydown', delayedResize);
+        observe(el, 'focus', resize);
       }
 
       resize();
@@ -21190,6 +23683,7 @@ function autoResize() {
       unObserve(el, 'paste', delayedResize);
       unObserve(el, 'drop', delayedResize);
       unObserve(el, 'keydown', delayedResize);
+      unObserve(el, 'focus', resize);
     },
     resize: resize
   };
@@ -21771,11 +24265,76 @@ CopyPasteClass.prototype.hasBeenDestroyed = function() {
 })(typeof exports != 'undefined' && typeof global != 'undefined' ? global : window);
 
 },{}],"jsonpatch":[function(_dereq_,module,exports){
-// json-patch-duplex.js 0.3.6
-// (c) 2013 Joachim Wester
-// MIT license
+/*!
+ * https://github.com/Starcounter-Jack/JSON-Patch
+ * json-patch-duplex.js version: 0.5.7
+ * (c) 2013 Joachim Wester
+ * MIT license
+ */
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var OriginalError = Error;
 var jsonpatch;
 (function (jsonpatch) {
+    var _objectKeys = function (obj) {
+        if (_isArray(obj)) {
+            var keys = new Array(obj.length);
+            for (var k = 0; k < keys.length; k++) {
+                keys[k] = "" + k;
+            }
+            return keys;
+        }
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
+            }
+        }
+        return keys;
+    };
+    function _equals(a, b) {
+        switch (typeof a) {
+            case 'undefined': //backward compatibility, but really I think we should return false
+            case 'boolean':
+            case 'string':
+            case 'number':
+                return a === b;
+            case 'object':
+                if (a === null)
+                    return b === null;
+                if (_isArray(a)) {
+                    if (!_isArray(b) || a.length !== b.length)
+                        return false;
+                    for (var i = 0, l = a.length; i < l; i++)
+                        if (!_equals(a[i], b[i]))
+                            return false;
+                    return true;
+                }
+                var bKeys = _objectKeys(b);
+                var bLength = bKeys.length;
+                if (_objectKeys(a).length !== bLength)
+                    return false;
+                for (var i = 0; i < bLength; i++)
+                    if (!_equals(a[i], b[i]))
+                        return false;
+                return true;
+            default:
+                return false;
+        }
+    }
+    /* We use a Javascript hash to store each
+     function. Each hash entry (property) uses
+     the operation identifiers specified in rfc6902.
+     In this way, we can map each patch operation
+     to its dedicated function in efficient way.
+     */
+    /* The operations applicable to an object */
     var objOps = {
         add: function (obj, key) {
             obj[key] = this.value;
@@ -21809,13 +24368,13 @@ var jsonpatch;
             return true;
         },
         test: function (obj, key) {
-            return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+            return _equals(obj[key], this.value);
         },
         _get: function (obj, key) {
             this.value = obj[key];
         }
     };
-
+    /* The operations applicable to an array. Many are the same as for the object */
     var arrOps = {
         add: function (arr, i) {
             arr.splice(i, 0, this.value);
@@ -21834,14 +24393,49 @@ var jsonpatch;
         test: objOps.test,
         _get: objOps._get
     };
-
+    /* The operations applicable to object root. Many are the same as for the object */
+    var rootOps = {
+        add: function (obj) {
+            rootOps.remove.call(this, obj);
+            for (var key in this.value) {
+                if (this.value.hasOwnProperty(key)) {
+                    obj[key] = this.value[key];
+                }
+            }
+            return true;
+        },
+        remove: function (obj) {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    objOps.remove.call(this, obj, key);
+                }
+            }
+            return true;
+        },
+        replace: function (obj) {
+            apply(obj, [
+                { op: "remove", path: this.path }
+            ]);
+            apply(obj, [
+                { op: "add", path: this.path, value: this.value }
+            ]);
+            return true;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: function (obj) {
+            return (JSON.stringify(obj) === JSON.stringify(this.value));
+        },
+        _get: function (obj) {
+            this.value = obj;
+        }
+    };
     var observeOps = {
         add: function (patches, path) {
             var patch = {
                 op: "add",
                 path: path + escapePathComponent(this.name),
-                value: this.object[this.name]
-            };
+                value: this.object[this.name] };
             patches.push(patch);
         },
         'delete': function (patches, path) {
@@ -21860,49 +24454,39 @@ var jsonpatch;
             patches.push(patch);
         }
     };
-
     function escapePathComponent(str) {
-        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) {
+        if (str.indexOf('/') === -1 && str.indexOf('~') === -1)
             return str;
-        }
-
         return str.replace(/~/g, '~0').replace(/\//g, '~1');
     }
-
     function _getPathRecursive(root, obj) {
         var found;
         for (var key in root) {
             if (root.hasOwnProperty(key)) {
                 if (root[key] === obj) {
                     return escapePathComponent(key) + '/';
-                } else if (typeof root[key] === 'object') {
+                }
+                else if (typeof root[key] === 'object') {
                     found = _getPathRecursive(root[key], obj);
-                    /* jshint ignore:start */
                     if (found != '') {
                         return escapePathComponent(key) + '/' + found;
                     }
-                    /* jshint ignore:end */
                 }
             }
         }
         return '';
     }
-
     function getPath(root, obj) {
         if (root === obj) {
             return '/';
         }
         var path = _getPathRecursive(root, obj);
         if (path === '') {
-            throw new Error("Object not found in root");
+            throw new OriginalError("Object not found in root");
         }
         return '/' + path;
     }
-
     var beforeDict = [];
-    /* jshint ignore:start */
-    jsonpatch.intervals;
-    /* jshint ignore:end */
     var Mirror = (function () {
         function Mirror(obj) {
             this.observers = [];
@@ -21910,7 +24494,6 @@ var jsonpatch;
         }
         return Mirror;
     })();
-
     var ObserverInfo = (function () {
         function ObserverInfo(callback, observer) {
             this.callback = callback;
@@ -21918,7 +24501,6 @@ var jsonpatch;
         }
         return ObserverInfo;
     })();
-
     function getMirror(obj) {
         for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
             if (beforeDict[i].obj === obj) {
@@ -21926,14 +24508,6 @@ var jsonpatch;
             }
         }
     }
-    function removeMirror(obj) {
-        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-            if (beforeDict[i] === obj) {
-              beforeDict.splice(i, 1);
-            }
-        }
-    }
-
     function getObserverFromMirror(mirror, callback) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].callback === callback) {
@@ -21941,188 +24515,116 @@ var jsonpatch;
             }
         }
     }
-
     function removeObserverFromMirror(mirror, observer) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].observer === observer) {
                 mirror.observers.splice(j, 1);
-
-                if (!mirror.observers.length) {
-                    removeMirror(mirror);
-                }
                 return;
             }
         }
     }
-
     function unobserve(root, observer) {
-        generate(observer);
-        if (Object.observe) {
-            _unobserve(observer, root);
-        } else {
-            clearTimeout(observer.next);
-        }
-
-        var mirror = getMirror(root);
-        removeObserverFromMirror(mirror, observer);
+        observer.unobserve();
     }
     jsonpatch.unobserve = unobserve;
-
+    function deepClone(obj) {
+        if (typeof obj === "object") {
+            return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+        }
+        else {
+            return obj; //no need to clone primitives
+        }
+    }
     function observe(obj, callback) {
         var patches = [];
         var root = obj;
         var observer;
         var mirror = getMirror(obj);
-
         if (!mirror) {
             mirror = new Mirror(obj);
             beforeDict.push(mirror);
-        } else {
+        }
+        else {
             observer = getObserverFromMirror(mirror, callback);
         }
-
         if (observer) {
             return observer;
         }
-
-        if (Object.observe) {
-            observer = function (arr) {
-                //This "refresh" is needed to begin observing new object properties
-                _unobserve(observer, obj);
-                _observe(observer, obj);
-
-                var a = 0, alen = arr.length;
-                /* jshint ignore:start */
-                while (a < alen) {
-                    if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
-                        var type = arr[a].type;
-
-                        switch (type) {
-                            case 'new':
-                                type = 'add';
-                                break;
-
-                            case 'deleted':
-                                type = 'delete';
-                                break;
-
-                            case 'updated':
-                                type = 'update';
-                                break;
-                        }
-
-                        observeOps[type].call(arr[a], patches, getPath(root, arr[a].object));
-                    }
-                    a++;
-                }
-                /* jshint ignore:end */
-
-                if (patches) {
-                    if (callback) {
-                        callback(patches);
-                    }
-                }
-                observer.patches = patches;
-                patches = [];
-            };
-        } else {
-            observer = {};
-
-            mirror.value = JSON.parse(JSON.stringify(obj));
-
-            if (callback) {
-                //callbacks.push(callback); this has no purpose
-                observer.callback = callback;
-                observer.next = null;
-                var intervals = this.intervals || [100, 1000, 10000, 60000];
-                var currentInterval = 0;
-
-                var dirtyCheck = function () {
-                    generate(observer);
-                };
-                var fastCheck = function () {
-                    clearTimeout(observer.next);
-                    observer.next = setTimeout(function () {
-                        dirtyCheck();
-                        currentInterval = 0;
-                        observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                    }, 0);
-                };
-                var slowCheck = function () {
-                    dirtyCheck();
-                    if (currentInterval == intervals.length) {
-                        currentInterval = intervals.length - 1;
-                    }
-                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                };
-                if (typeof window !== 'undefined') {
-                    if (window.addEventListener) {
-                        window.addEventListener('mousedown', fastCheck);
-                        window.addEventListener('mouseup', fastCheck);
-                        window.addEventListener('keydown', fastCheck);
-                    } else {
-                        window.attachEvent('onmousedown', fastCheck);
-                        window.attachEvent('onmouseup', fastCheck);
-                        window.attachEvent('onkeydown', fastCheck);
-                    }
-                }
-                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        observer = {};
+        mirror.value = deepClone(obj);
+        if (callback) {
+            observer.callback = callback;
+            observer.next = null;
+            var intervals = this.intervals || [100, 1000, 10000, 60000];
+            if (intervals.push === void 0) {
+                throw new OriginalError("jsonpatch.intervals must be an array");
             }
+            var currentInterval = 0;
+            var dirtyCheck = function () {
+                generate(observer);
+            };
+            var fastCheck = function () {
+                clearTimeout(observer.next);
+                observer.next = setTimeout(function () {
+                    dirtyCheck();
+                    currentInterval = 0;
+                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+                }, 0);
+            };
+            var slowCheck = function () {
+                dirtyCheck();
+                if (currentInterval == intervals.length)
+                    currentInterval = intervals.length - 1;
+                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+            };
+            if (typeof window !== 'undefined') {
+                if (window.addEventListener) {
+                    window.addEventListener('mousedown', fastCheck);
+                    window.addEventListener('mouseup', fastCheck);
+                    window.addEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.attachEvent('onmousedown', fastCheck);
+                    document.documentElement.attachEvent('onmouseup', fastCheck);
+                    document.documentElement.attachEvent('onkeydown', fastCheck);
+                }
+            }
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
         }
         observer.patches = patches;
         observer.object = obj;
-
+        observer.unobserve = function () {
+            generate(observer);
+            clearTimeout(observer.next);
+            removeObserverFromMirror(mirror, observer);
+            if (typeof window !== 'undefined') {
+                if (window.removeEventListener) {
+                    window.removeEventListener('mousedown', fastCheck);
+                    window.removeEventListener('mouseup', fastCheck);
+                    window.removeEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.detachEvent('onmousedown', fastCheck);
+                    document.documentElement.detachEvent('onmouseup', fastCheck);
+                    document.documentElement.detachEvent('onkeydown', fastCheck);
+                }
+            }
+        };
         mirror.observers.push(new ObserverInfo(callback, observer));
-
-        return _observe(observer, obj);
+        return observer;
     }
     jsonpatch.observe = observe;
-
-    /// Listen to changes on an object tree, accumulate patches
-    function _observe(observer, obj) {
-        if (Object.observe) {
-            Object.observe(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _observe(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
-    function _unobserve(observer, obj) {
-        if (Object.observe) {
-            Object.unobserve(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _unobserve(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
     function generate(observer) {
-        if (Object.observe) {
-            Object.deliverChangeRecords(observer);
-        } else {
-            var mirror;
-            for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if (beforeDict[i].obj === observer.object) {
-                    mirror = beforeDict[i];
-                    break;
-                }
+        var mirror;
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === observer.object) {
+                mirror = beforeDict[i];
+                break;
             }
-            if (mirror) {
-                _generate(mirror.value, observer.object, observer.patches, "");
-            }
+        }
+        _generate(mirror.value, observer.object, observer.patches, "");
+        if (observer.patches.length) {
+            apply(mirror.value, observer.patches);
         }
         var temp = observer.patches;
         if (temp.length > 0) {
@@ -22134,122 +24636,267 @@ var jsonpatch;
         return temp;
     }
     jsonpatch.generate = generate;
-
-    var _objectKeys;
-    if (Object.keys) {
-        _objectKeys = Object.keys;
-    } else {
-        _objectKeys = function (obj) {
-            var keys = [];
-            for (var o in obj) {
-                if (obj.hasOwnProperty(o)) {
-                    keys.push(o);
-                }
-            }
-            return keys;
-        };
-    }
-
     // Dirty check if obj is different from mirror, generate patches and update mirror
     function _generate(mirror, obj, patches, path) {
         var newKeys = _objectKeys(obj);
         var oldKeys = _objectKeys(mirror);
         var changed = false;
         var deleted = false;
-
+        //if ever "move" operation is implemented here, make sure this test runs OK: "should not generate the same patch twice (move)"
         for (var t = oldKeys.length - 1; t >= 0; t--) {
             var key = oldKeys[t];
             var oldVal = mirror[key];
             if (obj.hasOwnProperty(key)) {
                 var newVal = obj[key];
-                if (oldVal instanceof Object) {
+                if (typeof oldVal == "object" && oldVal != null && typeof newVal == "object" && newVal != null) {
                     _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
-                } else {
+                }
+                else {
                     if (oldVal != newVal) {
                         changed = true;
-                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: newVal });
-                        mirror[key] = newVal;
+                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal) });
                     }
                 }
-            } else {
+            }
+            else {
                 patches.push({ op: "remove", path: path + "/" + escapePathComponent(key) });
-                delete mirror[key];
-                deleted = true;
+                deleted = true; // property has been deleted
             }
         }
-
         if (!deleted && newKeys.length == oldKeys.length) {
             return;
         }
-
         for (var t = 0; t < newKeys.length; t++) {
             var key = newKeys[t];
             if (!mirror.hasOwnProperty(key)) {
-                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: obj[key] });
-                mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key]) });
             }
         }
     }
-
     var _isArray;
     if (Array.isArray) {
         _isArray = Array.isArray;
-    } else {
+    }
+    else {
         _isArray = function (obj) {
             return obj.push && typeof obj.length === 'number';
         };
     }
-
+    //3x faster than cached /^\d+$/.test(str)
+    function isInteger(str) {
+        var i = 0;
+        var len = str.length;
+        var charCode;
+        while (i < len) {
+            charCode = str.charCodeAt(i);
+            if (charCode >= 48 && charCode <= 57) {
+                i++;
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
     /// Apply a json-patch operation on an object tree
-    function apply(tree, patches) {
-        var result = false, p = 0, plen = patches.length, patch;
+    function apply(tree, patches, validate) {
+        var result = false, p = 0, plen = patches.length, patch, key;
         while (p < plen) {
             patch = patches[p];
-
-            // Find the object
-            var keys = patch.path.split('/');
-            var obj = tree;
-            var t = 1;
-            var len = keys.length;
-            while (true) {
-                if (_isArray(obj)) {
-                    var index = parseInt(keys[t], 10);
-                    t++;
-                    if (t >= len) {
-                        result = arrOps[patch.op].call(patch, obj, index, tree);
-                        break;
-                    }
-                    obj = obj[index];
-                } else {
-                    var key = keys[t];
-                    if (key.indexOf('~') != -1) {
-                        key = key.replace(/~1/g, '/').replace(/~0/g, '~');
-                    }
-                    t++;
-                    if (t >= len) {
-                        result = objOps[patch.op].call(patch, obj, key, tree);
-                        break;
-                    }
-                    obj = obj[key];
-                }
-            }
             p++;
+            // Find the object
+            var path = patch.path || "";
+            var keys = path.split('/');
+            var obj = tree;
+            var t = 1; //skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+            var len = keys.length;
+            var existingPathFragment = undefined;
+            while (true) {
+                key = keys[t];
+                if (validate) {
+                    if (existingPathFragment === undefined) {
+                        if (obj[key] === undefined) {
+                            existingPathFragment = keys.slice(0, t).join('/');
+                        }
+                        else if (t == len - 1) {
+                            existingPathFragment = patch.path;
+                        }
+                        if (existingPathFragment !== undefined) {
+                            this.validator(patch, p - 1, tree, existingPathFragment);
+                        }
+                    }
+                }
+                t++;
+                if (key === undefined) {
+                    if (t >= len) {
+                        result = rootOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                if (_isArray(obj)) {
+                    if (key === '-') {
+                        key = obj.length;
+                    }
+                    else {
+                        if (validate && !isInteger(key)) {
+                            throw new JsonPatchError("Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index", "OPERATION_PATH_ILLEGAL_ARRAY_INDEX", p - 1, patch.path, patch);
+                        }
+                        key = parseInt(key, 10);
+                    }
+                    if (t >= len) {
+                        if (validate && patch.op === "add" && key > obj.length) {
+                            throw new JsonPatchError("The specified index MUST NOT be greater than the number of elements in the array", "OPERATION_VALUE_OUT_OF_BOUNDS", p - 1, patch.path, patch);
+                        }
+                        result = arrOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                else {
+                    if (key && key.indexOf('~') != -1)
+                        key = key.replace(/~1/g, '/').replace(/~0/g, '~'); // escape chars
+                    if (t >= len) {
+                        result = objOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                obj = obj[key];
+            }
         }
         return result;
     }
     jsonpatch.apply = apply;
+    function compare(tree1, tree2) {
+        var patches = [];
+        _generate(tree1, tree2, patches, '');
+        return patches;
+    }
+    jsonpatch.compare = compare;
+    var JsonPatchError = (function (_super) {
+        __extends(JsonPatchError, _super);
+        function JsonPatchError(message, name, index, operation, tree) {
+            _super.call(this, message);
+            this.message = message;
+            this.name = name;
+            this.index = index;
+            this.operation = operation;
+            this.tree = tree;
+        }
+        return JsonPatchError;
+    })(OriginalError);
+    jsonpatch.JsonPatchError = JsonPatchError;
+    jsonpatch.Error = JsonPatchError;
+    /**
+     * Recursively checks whether an object has any undefined values inside.
+     */
+    function hasUndefined(obj) {
+        if (obj === undefined) {
+            return true;
+        }
+        if (typeof obj == "array" || typeof obj == "object") {
+            for (var i in obj) {
+                if (hasUndefined(obj[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Validates a single operation. Called from `jsonpatch.validate`. Throws `JsonPatchError` in case of an error.
+     * @param {object} operation - operation object (patch)
+     * @param {number} index - index of operation in the sequence
+     * @param {object} [tree] - object where the operation is supposed to be applied
+     * @param {string} [existingPathFragment] - comes along with `tree`
+     */
+    function validator(operation, index, tree, existingPathFragment) {
+        if (typeof operation !== 'object' || operation === null || _isArray(operation)) {
+            throw new JsonPatchError('Operation is not an object', 'OPERATION_NOT_AN_OBJECT', index, operation, tree);
+        }
+        else if (!objOps[operation.op]) {
+            throw new JsonPatchError('Operation `op` property is not one of operations defined in RFC-6902', 'OPERATION_OP_INVALID', index, operation, tree);
+        }
+        else if (typeof operation.path !== 'string') {
+            throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
+        }
+        else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
+            throw new JsonPatchError('Operation `from` property is not present (applicable in `move` and `copy` operations)', 'OPERATION_FROM_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && operation.value === undefined) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && hasUndefined(operation.value)) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED', index, operation, tree);
+        }
+        else if (tree) {
+            if (operation.op == "add") {
+                var pathLen = operation.path.split("/").length;
+                var existingPathLen = existingPathFragment.split("/").length;
+                if (pathLen !== existingPathLen + 1 && pathLen !== existingPathLen) {
+                    throw new JsonPatchError('Cannot perform an `add` operation at the desired path', 'OPERATION_PATH_CANNOT_ADD', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'replace' || operation.op === 'remove' || operation.op === '_get') {
+                if (operation.path !== existingPathFragment) {
+                    throw new JsonPatchError('Cannot perform the operation at a path that does not exist', 'OPERATION_PATH_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'move' || operation.op === 'copy') {
+                var existingValue = { op: "_get", path: operation.from, value: undefined };
+                var error = jsonpatch.validate([existingValue], tree);
+                if (error && error.name === 'OPERATION_PATH_UNRESOLVABLE') {
+                    throw new JsonPatchError('Cannot perform the operation from a path that does not exist', 'OPERATION_FROM_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+        }
+    }
+    jsonpatch.validator = validator;
+    /**
+     * Validates a sequence of operations. If `tree` parameter is provided, the sequence is additionally validated against the object tree.
+     * If error is encountered, returns a JsonPatchError object
+     * @param sequence
+     * @param tree
+     * @returns {JsonPatchError|undefined}
+     */
+    function validate(sequence, tree) {
+        try {
+            if (!_isArray(sequence)) {
+                throw new JsonPatchError('Patch sequence must be an array', 'SEQUENCE_NOT_AN_ARRAY');
+            }
+            if (tree) {
+                tree = JSON.parse(JSON.stringify(tree)); //clone tree so that we can safely try applying operations
+                apply.call(this, tree, sequence, true);
+            }
+            else {
+                for (var i = 0; i < sequence.length; i++) {
+                    this.validator(sequence[i], i);
+                }
+            }
+        }
+        catch (e) {
+            if (e instanceof JsonPatchError) {
+                return e;
+            }
+            else {
+                throw e;
+            }
+        }
+    }
+    jsonpatch.validate = validate;
 })(jsonpatch || (jsonpatch = {}));
-
 if (typeof exports !== "undefined") {
     exports.apply = jsonpatch.apply;
     exports.observe = jsonpatch.observe;
     exports.unobserve = jsonpatch.unobserve;
     exports.generate = jsonpatch.generate;
+    exports.compare = jsonpatch.compare;
+    exports.validate = jsonpatch.validate;
+    exports.validator = jsonpatch.validator;
+    exports.JsonPatchError = jsonpatch.JsonPatchError;
+    exports.Error = jsonpatch.Error;
 }
 
 },{}],"moment":[function(_dereq_,module,exports){
 //! moment.js
-//! version : 2.12.0
+//! version : 2.17.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -22258,2289 +24905,3230 @@ if (typeof exports !== "undefined") {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     global.moment = factory()
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
-    var hookCallback;
+var hookCallback;
 
-    function utils_hooks__hooks () {
-        return hookCallback.apply(null, arguments);
+function hooks () {
+    return hookCallback.apply(null, arguments);
+}
+
+// This is done to register the method called with moment()
+// without creating circular dependencies.
+function setHookCallback (callback) {
+    hookCallback = callback;
+}
+
+function isArray(input) {
+    return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';
+}
+
+function isObject(input) {
+    // IE8 will treat undefined and null as object if it wasn't for
+    // input != null
+    return input != null && Object.prototype.toString.call(input) === '[object Object]';
+}
+
+function isObjectEmpty(obj) {
+    var k;
+    for (k in obj) {
+        // even if its not own property I'd still call it non-empty
+        return false;
     }
+    return true;
+}
 
-    // This is done to register the method called with moment()
-    // without creating circular dependencies.
-    function setHookCallback (callback) {
-        hookCallback = callback;
+function isNumber(input) {
+    return typeof input === 'number' || Object.prototype.toString.call(input) === '[object Number]';
+}
+
+function isDate(input) {
+    return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';
+}
+
+function map(arr, fn) {
+    var res = [], i;
+    for (i = 0; i < arr.length; ++i) {
+        res.push(fn(arr[i], i));
     }
+    return res;
+}
 
-    function isArray(input) {
-        return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';
-    }
+function hasOwnProp(a, b) {
+    return Object.prototype.hasOwnProperty.call(a, b);
+}
 
-    function isDate(input) {
-        return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';
-    }
-
-    function map(arr, fn) {
-        var res = [], i;
-        for (i = 0; i < arr.length; ++i) {
-            res.push(fn(arr[i], i));
+function extend(a, b) {
+    for (var i in b) {
+        if (hasOwnProp(b, i)) {
+            a[i] = b[i];
         }
-        return res;
     }
 
-    function hasOwnProp(a, b) {
-        return Object.prototype.hasOwnProperty.call(a, b);
+    if (hasOwnProp(b, 'toString')) {
+        a.toString = b.toString;
     }
 
-    function extend(a, b) {
-        for (var i in b) {
-            if (hasOwnProp(b, i)) {
-                a[i] = b[i];
+    if (hasOwnProp(b, 'valueOf')) {
+        a.valueOf = b.valueOf;
+    }
+
+    return a;
+}
+
+function createUTC (input, format, locale, strict) {
+    return createLocalOrUTC(input, format, locale, strict, true).utc();
+}
+
+function defaultParsingFlags() {
+    // We need to deep clone this object.
+    return {
+        empty           : false,
+        unusedTokens    : [],
+        unusedInput     : [],
+        overflow        : -2,
+        charsLeftOver   : 0,
+        nullInput       : false,
+        invalidMonth    : null,
+        invalidFormat   : false,
+        userInvalidated : false,
+        iso             : false,
+        parsedDateParts : [],
+        meridiem        : null
+    };
+}
+
+function getParsingFlags(m) {
+    if (m._pf == null) {
+        m._pf = defaultParsingFlags();
+    }
+    return m._pf;
+}
+
+var some;
+if (Array.prototype.some) {
+    some = Array.prototype.some;
+} else {
+    some = function (fun) {
+        var t = Object(this);
+        var len = t.length >>> 0;
+
+        for (var i = 0; i < len; i++) {
+            if (i in t && fun.call(this, t[i], i, t)) {
+                return true;
             }
         }
 
-        if (hasOwnProp(b, 'toString')) {
-            a.toString = b.toString;
+        return false;
+    };
+}
+
+var some$1 = some;
+
+function isValid(m) {
+    if (m._isValid == null) {
+        var flags = getParsingFlags(m);
+        var parsedParts = some$1.call(flags.parsedDateParts, function (i) {
+            return i != null;
+        });
+        var isNowValid = !isNaN(m._d.getTime()) &&
+            flags.overflow < 0 &&
+            !flags.empty &&
+            !flags.invalidMonth &&
+            !flags.invalidWeekday &&
+            !flags.nullInput &&
+            !flags.invalidFormat &&
+            !flags.userInvalidated &&
+            (!flags.meridiem || (flags.meridiem && parsedParts));
+
+        if (m._strict) {
+            isNowValid = isNowValid &&
+                flags.charsLeftOver === 0 &&
+                flags.unusedTokens.length === 0 &&
+                flags.bigHour === undefined;
         }
 
-        if (hasOwnProp(b, 'valueOf')) {
-            a.valueOf = b.valueOf;
-        }
-
-        return a;
-    }
-
-    function create_utc__createUTC (input, format, locale, strict) {
-        return createLocalOrUTC(input, format, locale, strict, true).utc();
-    }
-
-    function defaultParsingFlags() {
-        // We need to deep clone this object.
-        return {
-            empty           : false,
-            unusedTokens    : [],
-            unusedInput     : [],
-            overflow        : -2,
-            charsLeftOver   : 0,
-            nullInput       : false,
-            invalidMonth    : null,
-            invalidFormat   : false,
-            userInvalidated : false,
-            iso             : false
-        };
-    }
-
-    function getParsingFlags(m) {
-        if (m._pf == null) {
-            m._pf = defaultParsingFlags();
-        }
-        return m._pf;
-    }
-
-    function valid__isValid(m) {
-        if (m._isValid == null) {
-            var flags = getParsingFlags(m);
-            m._isValid = !isNaN(m._d.getTime()) &&
-                flags.overflow < 0 &&
-                !flags.empty &&
-                !flags.invalidMonth &&
-                !flags.invalidWeekday &&
-                !flags.nullInput &&
-                !flags.invalidFormat &&
-                !flags.userInvalidated;
-
-            if (m._strict) {
-                m._isValid = m._isValid &&
-                    flags.charsLeftOver === 0 &&
-                    flags.unusedTokens.length === 0 &&
-                    flags.bigHour === undefined;
-            }
-        }
-        return m._isValid;
-    }
-
-    function valid__createInvalid (flags) {
-        var m = create_utc__createUTC(NaN);
-        if (flags != null) {
-            extend(getParsingFlags(m), flags);
+        if (Object.isFrozen == null || !Object.isFrozen(m)) {
+            m._isValid = isNowValid;
         }
         else {
-            getParsingFlags(m).userInvalidated = true;
+            return isNowValid;
         }
+    }
+    return m._isValid;
+}
 
-        return m;
+function createInvalid (flags) {
+    var m = createUTC(NaN);
+    if (flags != null) {
+        extend(getParsingFlags(m), flags);
+    }
+    else {
+        getParsingFlags(m).userInvalidated = true;
     }
 
-    function isUndefined(input) {
-        return input === void 0;
+    return m;
+}
+
+function isUndefined(input) {
+    return input === void 0;
+}
+
+// Plugins that add properties should also add the key here (null value),
+// so we can properly clone ourselves.
+var momentProperties = hooks.momentProperties = [];
+
+function copyConfig(to, from) {
+    var i, prop, val;
+
+    if (!isUndefined(from._isAMomentObject)) {
+        to._isAMomentObject = from._isAMomentObject;
+    }
+    if (!isUndefined(from._i)) {
+        to._i = from._i;
+    }
+    if (!isUndefined(from._f)) {
+        to._f = from._f;
+    }
+    if (!isUndefined(from._l)) {
+        to._l = from._l;
+    }
+    if (!isUndefined(from._strict)) {
+        to._strict = from._strict;
+    }
+    if (!isUndefined(from._tzm)) {
+        to._tzm = from._tzm;
+    }
+    if (!isUndefined(from._isUTC)) {
+        to._isUTC = from._isUTC;
+    }
+    if (!isUndefined(from._offset)) {
+        to._offset = from._offset;
+    }
+    if (!isUndefined(from._pf)) {
+        to._pf = getParsingFlags(from);
+    }
+    if (!isUndefined(from._locale)) {
+        to._locale = from._locale;
     }
 
-    // Plugins that add properties should also add the key here (null value),
-    // so we can properly clone ourselves.
-    var momentProperties = utils_hooks__hooks.momentProperties = [];
-
-    function copyConfig(to, from) {
-        var i, prop, val;
-
-        if (!isUndefined(from._isAMomentObject)) {
-            to._isAMomentObject = from._isAMomentObject;
-        }
-        if (!isUndefined(from._i)) {
-            to._i = from._i;
-        }
-        if (!isUndefined(from._f)) {
-            to._f = from._f;
-        }
-        if (!isUndefined(from._l)) {
-            to._l = from._l;
-        }
-        if (!isUndefined(from._strict)) {
-            to._strict = from._strict;
-        }
-        if (!isUndefined(from._tzm)) {
-            to._tzm = from._tzm;
-        }
-        if (!isUndefined(from._isUTC)) {
-            to._isUTC = from._isUTC;
-        }
-        if (!isUndefined(from._offset)) {
-            to._offset = from._offset;
-        }
-        if (!isUndefined(from._pf)) {
-            to._pf = getParsingFlags(from);
-        }
-        if (!isUndefined(from._locale)) {
-            to._locale = from._locale;
-        }
-
-        if (momentProperties.length > 0) {
-            for (i in momentProperties) {
-                prop = momentProperties[i];
-                val = from[prop];
-                if (!isUndefined(val)) {
-                    to[prop] = val;
-                }
+    if (momentProperties.length > 0) {
+        for (i in momentProperties) {
+            prop = momentProperties[i];
+            val = from[prop];
+            if (!isUndefined(val)) {
+                to[prop] = val;
             }
         }
-
-        return to;
     }
 
-    var updateInProgress = false;
+    return to;
+}
 
-    // Moment prototype object
-    function Moment(config) {
-        copyConfig(this, config);
-        this._d = new Date(config._d != null ? config._d.getTime() : NaN);
-        // Prevent infinite loop in case updateOffset creates new moment
-        // objects.
-        if (updateInProgress === false) {
-            updateInProgress = true;
-            utils_hooks__hooks.updateOffset(this);
-            updateInProgress = false;
+var updateInProgress = false;
+
+// Moment prototype object
+function Moment(config) {
+    copyConfig(this, config);
+    this._d = new Date(config._d != null ? config._d.getTime() : NaN);
+    if (!this.isValid()) {
+        this._d = new Date(NaN);
+    }
+    // Prevent infinite loop in case updateOffset creates new moment
+    // objects.
+    if (updateInProgress === false) {
+        updateInProgress = true;
+        hooks.updateOffset(this);
+        updateInProgress = false;
+    }
+}
+
+function isMoment (obj) {
+    return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
+}
+
+function absFloor (number) {
+    if (number < 0) {
+        // -0 -> 0
+        return Math.ceil(number) || 0;
+    } else {
+        return Math.floor(number);
+    }
+}
+
+function toInt(argumentForCoercion) {
+    var coercedNumber = +argumentForCoercion,
+        value = 0;
+
+    if (coercedNumber !== 0 && isFinite(coercedNumber)) {
+        value = absFloor(coercedNumber);
+    }
+
+    return value;
+}
+
+// compare two arrays, return the number of differences
+function compareArrays(array1, array2, dontConvert) {
+    var len = Math.min(array1.length, array2.length),
+        lengthDiff = Math.abs(array1.length - array2.length),
+        diffs = 0,
+        i;
+    for (i = 0; i < len; i++) {
+        if ((dontConvert && array1[i] !== array2[i]) ||
+            (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
+            diffs++;
         }
     }
+    return diffs + lengthDiff;
+}
 
-    function isMoment (obj) {
-        return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
+function warn(msg) {
+    if (hooks.suppressDeprecationWarnings === false &&
+            (typeof console !==  'undefined') && console.warn) {
+        console.warn('Deprecation warning: ' + msg);
     }
+}
 
-    function absFloor (number) {
-        if (number < 0) {
-            return Math.ceil(number);
-        } else {
-            return Math.floor(number);
+function deprecate(msg, fn) {
+    var firstTime = true;
+
+    return extend(function () {
+        if (hooks.deprecationHandler != null) {
+            hooks.deprecationHandler(null, msg);
         }
-    }
-
-    function toInt(argumentForCoercion) {
-        var coercedNumber = +argumentForCoercion,
-            value = 0;
-
-        if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-            value = absFloor(coercedNumber);
-        }
-
-        return value;
-    }
-
-    // compare two arrays, return the number of differences
-    function compareArrays(array1, array2, dontConvert) {
-        var len = Math.min(array1.length, array2.length),
-            lengthDiff = Math.abs(array1.length - array2.length),
-            diffs = 0,
-            i;
-        for (i = 0; i < len; i++) {
-            if ((dontConvert && array1[i] !== array2[i]) ||
-                (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
-                diffs++;
-            }
-        }
-        return diffs + lengthDiff;
-    }
-
-    function warn(msg) {
-        if (utils_hooks__hooks.suppressDeprecationWarnings === false &&
-                (typeof console !==  'undefined') && console.warn) {
-            console.warn('Deprecation warning: ' + msg);
-        }
-    }
-
-    function deprecate(msg, fn) {
-        var firstTime = true;
-
-        return extend(function () {
-            if (firstTime) {
-                warn(msg + '\nArguments: ' + Array.prototype.slice.call(arguments).join(', ') + '\n' + (new Error()).stack);
-                firstTime = false;
-            }
-            return fn.apply(this, arguments);
-        }, fn);
-    }
-
-    var deprecations = {};
-
-    function deprecateSimple(name, msg) {
-        if (!deprecations[name]) {
-            warn(msg);
-            deprecations[name] = true;
-        }
-    }
-
-    utils_hooks__hooks.suppressDeprecationWarnings = false;
-
-    function isFunction(input) {
-        return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';
-    }
-
-    function isObject(input) {
-        return Object.prototype.toString.call(input) === '[object Object]';
-    }
-
-    function locale_set__set (config) {
-        var prop, i;
-        for (i in config) {
-            prop = config[i];
-            if (isFunction(prop)) {
-                this[i] = prop;
-            } else {
-                this['_' + i] = prop;
-            }
-        }
-        this._config = config;
-        // Lenient ordinal parsing accepts just a number in addition to
-        // number + (possibly) stuff coming from _ordinalParseLenient.
-        this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);
-    }
-
-    function mergeConfigs(parentConfig, childConfig) {
-        var res = extend({}, parentConfig), prop;
-        for (prop in childConfig) {
-            if (hasOwnProp(childConfig, prop)) {
-                if (isObject(parentConfig[prop]) && isObject(childConfig[prop])) {
-                    res[prop] = {};
-                    extend(res[prop], parentConfig[prop]);
-                    extend(res[prop], childConfig[prop]);
-                } else if (childConfig[prop] != null) {
-                    res[prop] = childConfig[prop];
+        if (firstTime) {
+            var args = [];
+            var arg;
+            for (var i = 0; i < arguments.length; i++) {
+                arg = '';
+                if (typeof arguments[i] === 'object') {
+                    arg += '\n[' + i + '] ';
+                    for (var key in arguments[0]) {
+                        arg += key + ': ' + arguments[0][key] + ', ';
+                    }
+                    arg = arg.slice(0, -2); // Remove trailing comma and space
                 } else {
-                    delete res[prop];
+                    arg = arguments[i];
                 }
+                args.push(arg);
+            }
+            warn(msg + '\nArguments: ' + Array.prototype.slice.call(args).join('') + '\n' + (new Error()).stack);
+            firstTime = false;
+        }
+        return fn.apply(this, arguments);
+    }, fn);
+}
+
+var deprecations = {};
+
+function deprecateSimple(name, msg) {
+    if (hooks.deprecationHandler != null) {
+        hooks.deprecationHandler(name, msg);
+    }
+    if (!deprecations[name]) {
+        warn(msg);
+        deprecations[name] = true;
+    }
+}
+
+hooks.suppressDeprecationWarnings = false;
+hooks.deprecationHandler = null;
+
+function isFunction(input) {
+    return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';
+}
+
+function set (config) {
+    var prop, i;
+    for (i in config) {
+        prop = config[i];
+        if (isFunction(prop)) {
+            this[i] = prop;
+        } else {
+            this['_' + i] = prop;
+        }
+    }
+    this._config = config;
+    // Lenient ordinal parsing accepts just a number in addition to
+    // number + (possibly) stuff coming from _ordinalParseLenient.
+    this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);
+}
+
+function mergeConfigs(parentConfig, childConfig) {
+    var res = extend({}, parentConfig), prop;
+    for (prop in childConfig) {
+        if (hasOwnProp(childConfig, prop)) {
+            if (isObject(parentConfig[prop]) && isObject(childConfig[prop])) {
+                res[prop] = {};
+                extend(res[prop], parentConfig[prop]);
+                extend(res[prop], childConfig[prop]);
+            } else if (childConfig[prop] != null) {
+                res[prop] = childConfig[prop];
+            } else {
+                delete res[prop];
+            }
+        }
+    }
+    for (prop in parentConfig) {
+        if (hasOwnProp(parentConfig, prop) &&
+                !hasOwnProp(childConfig, prop) &&
+                isObject(parentConfig[prop])) {
+            // make sure changes to properties don't modify parent config
+            res[prop] = extend({}, res[prop]);
+        }
+    }
+    return res;
+}
+
+function Locale(config) {
+    if (config != null) {
+        this.set(config);
+    }
+}
+
+var keys;
+
+if (Object.keys) {
+    keys = Object.keys;
+} else {
+    keys = function (obj) {
+        var i, res = [];
+        for (i in obj) {
+            if (hasOwnProp(obj, i)) {
+                res.push(i);
             }
         }
         return res;
-    }
+    };
+}
 
-    function Locale(config) {
-        if (config != null) {
-            this.set(config);
-        }
-    }
+var keys$1 = keys;
 
-    // internal storage for locale config files
-    var locales = {};
-    var globalLocale;
+var defaultCalendar = {
+    sameDay : '[Today at] LT',
+    nextDay : '[Tomorrow at] LT',
+    nextWeek : 'dddd [at] LT',
+    lastDay : '[Yesterday at] LT',
+    lastWeek : '[Last] dddd [at] LT',
+    sameElse : 'L'
+};
 
-    function normalizeLocale(key) {
-        return key ? key.toLowerCase().replace('_', '-') : key;
-    }
+function calendar (key, mom, now) {
+    var output = this._calendar[key] || this._calendar['sameElse'];
+    return isFunction(output) ? output.call(mom, now) : output;
+}
 
-    // pick the locale from the array
-    // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-    // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-    function chooseLocale(names) {
-        var i = 0, j, next, locale, split;
+var defaultLongDateFormat = {
+    LTS  : 'h:mm:ss A',
+    LT   : 'h:mm A',
+    L    : 'MM/DD/YYYY',
+    LL   : 'MMMM D, YYYY',
+    LLL  : 'MMMM D, YYYY h:mm A',
+    LLLL : 'dddd, MMMM D, YYYY h:mm A'
+};
 
-        while (i < names.length) {
-            split = normalizeLocale(names[i]).split('-');
-            j = split.length;
-            next = normalizeLocale(names[i + 1]);
-            next = next ? next.split('-') : null;
-            while (j > 0) {
-                locale = loadLocale(split.slice(0, j).join('-'));
-                if (locale) {
-                    return locale;
-                }
-                if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                    //the next array item is better than a shallower substring of this one
-                    break;
-                }
-                j--;
-            }
-            i++;
-        }
-        return null;
-    }
+function longDateFormat (key) {
+    var format = this._longDateFormat[key],
+        formatUpper = this._longDateFormat[key.toUpperCase()];
 
-    function loadLocale(name) {
-        var oldLocale = null;
-        // TODO: Find a better way to register and load all the locales in Node
-        if (!locales[name] && (typeof module !== 'undefined') &&
-                module && module.exports) {
-            try {
-                oldLocale = globalLocale._abbr;
-                _dereq_('./locale/' + name);
-                // because defineLocale currently also sets the global locale, we
-                // want to undo that for lazy loaded locales
-                locale_locales__getSetGlobalLocale(oldLocale);
-            } catch (e) { }
-        }
-        return locales[name];
-    }
-
-    // This function will load locale and then set the global locale.  If
-    // no arguments are passed in, it will simply return the current global
-    // locale key.
-    function locale_locales__getSetGlobalLocale (key, values) {
-        var data;
-        if (key) {
-            if (isUndefined(values)) {
-                data = locale_locales__getLocale(key);
-            }
-            else {
-                data = defineLocale(key, values);
-            }
-
-            if (data) {
-                // moment.duration._locale = moment._locale = data;
-                globalLocale = data;
-            }
-        }
-
-        return globalLocale._abbr;
-    }
-
-    function defineLocale (name, config) {
-        if (config !== null) {
-            config.abbr = name;
-            if (locales[name] != null) {
-                deprecateSimple('defineLocaleOverride',
-                        'use moment.updateLocale(localeName, config) to change ' +
-                        'an existing locale. moment.defineLocale(localeName, ' +
-                        'config) should only be used for creating a new locale');
-                config = mergeConfigs(locales[name]._config, config);
-            } else if (config.parentLocale != null) {
-                if (locales[config.parentLocale] != null) {
-                    config = mergeConfigs(locales[config.parentLocale]._config, config);
-                } else {
-                    // treat as if there is no base config
-                    deprecateSimple('parentLocaleUndefined',
-                            'specified parentLocale is not defined yet');
-                }
-            }
-            locales[name] = new Locale(config);
-
-            // backwards compat for now: also set the locale
-            locale_locales__getSetGlobalLocale(name);
-
-            return locales[name];
-        } else {
-            // useful for testing
-            delete locales[name];
-            return null;
-        }
-    }
-
-    function updateLocale(name, config) {
-        if (config != null) {
-            var locale;
-            if (locales[name] != null) {
-                config = mergeConfigs(locales[name]._config, config);
-            }
-            locale = new Locale(config);
-            locale.parentLocale = locales[name];
-            locales[name] = locale;
-
-            // backwards compat for now: also set the locale
-            locale_locales__getSetGlobalLocale(name);
-        } else {
-            // pass null for config to unupdate, useful for tests
-            if (locales[name] != null) {
-                if (locales[name].parentLocale != null) {
-                    locales[name] = locales[name].parentLocale;
-                } else if (locales[name] != null) {
-                    delete locales[name];
-                }
-            }
-        }
-        return locales[name];
-    }
-
-    // returns locale data
-    function locale_locales__getLocale (key) {
-        var locale;
-
-        if (key && key._locale && key._locale._abbr) {
-            key = key._locale._abbr;
-        }
-
-        if (!key) {
-            return globalLocale;
-        }
-
-        if (!isArray(key)) {
-            //short-circuit everything else
-            locale = loadLocale(key);
-            if (locale) {
-                return locale;
-            }
-            key = [key];
-        }
-
-        return chooseLocale(key);
-    }
-
-    function locale_locales__listLocales() {
-        return Object.keys(locales);
-    }
-
-    var aliases = {};
-
-    function addUnitAlias (unit, shorthand) {
-        var lowerCase = unit.toLowerCase();
-        aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;
-    }
-
-    function normalizeUnits(units) {
-        return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;
-    }
-
-    function normalizeObjectUnits(inputObject) {
-        var normalizedInput = {},
-            normalizedProp,
-            prop;
-
-        for (prop in inputObject) {
-            if (hasOwnProp(inputObject, prop)) {
-                normalizedProp = normalizeUnits(prop);
-                if (normalizedProp) {
-                    normalizedInput[normalizedProp] = inputObject[prop];
-                }
-            }
-        }
-
-        return normalizedInput;
-    }
-
-    function makeGetSet (unit, keepTime) {
-        return function (value) {
-            if (value != null) {
-                get_set__set(this, unit, value);
-                utils_hooks__hooks.updateOffset(this, keepTime);
-                return this;
-            } else {
-                return get_set__get(this, unit);
-            }
-        };
-    }
-
-    function get_set__get (mom, unit) {
-        return mom.isValid() ?
-            mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
-    }
-
-    function get_set__set (mom, unit, value) {
-        if (mom.isValid()) {
-            mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
-        }
-    }
-
-    // MOMENTS
-
-    function getSet (units, value) {
-        var unit;
-        if (typeof units === 'object') {
-            for (unit in units) {
-                this.set(unit, units[unit]);
-            }
-        } else {
-            units = normalizeUnits(units);
-            if (isFunction(this[units])) {
-                return this[units](value);
-            }
-        }
-        return this;
-    }
-
-    function zeroFill(number, targetLength, forceSign) {
-        var absNumber = '' + Math.abs(number),
-            zerosToFill = targetLength - absNumber.length,
-            sign = number >= 0;
-        return (sign ? (forceSign ? '+' : '') : '-') +
-            Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;
-    }
-
-    var formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
-
-    var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;
-
-    var formatFunctions = {};
-
-    var formatTokenFunctions = {};
-
-    // token:    'M'
-    // padded:   ['MM', 2]
-    // ordinal:  'Mo'
-    // callback: function () { this.month() + 1 }
-    function addFormatToken (token, padded, ordinal, callback) {
-        var func = callback;
-        if (typeof callback === 'string') {
-            func = function () {
-                return this[callback]();
-            };
-        }
-        if (token) {
-            formatTokenFunctions[token] = func;
-        }
-        if (padded) {
-            formatTokenFunctions[padded[0]] = function () {
-                return zeroFill(func.apply(this, arguments), padded[1], padded[2]);
-            };
-        }
-        if (ordinal) {
-            formatTokenFunctions[ordinal] = function () {
-                return this.localeData().ordinal(func.apply(this, arguments), token);
-            };
-        }
-    }
-
-    function removeFormattingTokens(input) {
-        if (input.match(/\[[\s\S]/)) {
-            return input.replace(/^\[|\]$/g, '');
-        }
-        return input.replace(/\\/g, '');
-    }
-
-    function makeFormatFunction(format) {
-        var array = format.match(formattingTokens), i, length;
-
-        for (i = 0, length = array.length; i < length; i++) {
-            if (formatTokenFunctions[array[i]]) {
-                array[i] = formatTokenFunctions[array[i]];
-            } else {
-                array[i] = removeFormattingTokens(array[i]);
-            }
-        }
-
-        return function (mom) {
-            var output = '';
-            for (i = 0; i < length; i++) {
-                output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
-            }
-            return output;
-        };
-    }
-
-    // format date using native date object
-    function formatMoment(m, format) {
-        if (!m.isValid()) {
-            return m.localeData().invalidDate();
-        }
-
-        format = expandFormat(format, m.localeData());
-        formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);
-
-        return formatFunctions[format](m);
-    }
-
-    function expandFormat(format, locale) {
-        var i = 5;
-
-        function replaceLongDateFormatTokens(input) {
-            return locale.longDateFormat(input) || input;
-        }
-
-        localFormattingTokens.lastIndex = 0;
-        while (i >= 0 && localFormattingTokens.test(format)) {
-            format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
-            localFormattingTokens.lastIndex = 0;
-            i -= 1;
-        }
-
+    if (format || !formatUpper) {
         return format;
     }
 
-    var match1         = /\d/;            //       0 - 9
-    var match2         = /\d\d/;          //      00 - 99
-    var match3         = /\d{3}/;         //     000 - 999
-    var match4         = /\d{4}/;         //    0000 - 9999
-    var match6         = /[+-]?\d{6}/;    // -999999 - 999999
-    var match1to2      = /\d\d?/;         //       0 - 99
-    var match3to4      = /\d\d\d\d?/;     //     999 - 9999
-    var match5to6      = /\d\d\d\d\d\d?/; //   99999 - 999999
-    var match1to3      = /\d{1,3}/;       //       0 - 999
-    var match1to4      = /\d{1,4}/;       //       0 - 9999
-    var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999
+    this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
+        return val.slice(1);
+    });
 
-    var matchUnsigned  = /\d+/;           //       0 - inf
-    var matchSigned    = /[+-]?\d+/;      //    -inf - inf
+    return this._longDateFormat[key];
+}
 
-    var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z
-    var matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi; // +00 -00 +00:00 -00:00 +0000 -0000 or Z
+var defaultInvalidDate = 'Invalid date';
 
-    var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
+function invalidDate () {
+    return this._invalidDate;
+}
 
-    // any word (or two) characters or numbers including two/three word month in arabic.
-    // includes scottish gaelic two word and hyphenated months
-    var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+var defaultOrdinal = '%d';
+var defaultOrdinalParse = /\d{1,2}/;
+
+function ordinal (number) {
+    return this._ordinal.replace('%d', number);
+}
+
+var defaultRelativeTime = {
+    future : 'in %s',
+    past   : '%s ago',
+    s  : 'a few seconds',
+    m  : 'a minute',
+    mm : '%d minutes',
+    h  : 'an hour',
+    hh : '%d hours',
+    d  : 'a day',
+    dd : '%d days',
+    M  : 'a month',
+    MM : '%d months',
+    y  : 'a year',
+    yy : '%d years'
+};
+
+function relativeTime (number, withoutSuffix, string, isFuture) {
+    var output = this._relativeTime[string];
+    return (isFunction(output)) ?
+        output(number, withoutSuffix, string, isFuture) :
+        output.replace(/%d/i, number);
+}
+
+function pastFuture (diff, output) {
+    var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
+    return isFunction(format) ? format(output) : format.replace(/%s/i, output);
+}
+
+var aliases = {};
+
+function addUnitAlias (unit, shorthand) {
+    var lowerCase = unit.toLowerCase();
+    aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;
+}
+
+function normalizeUnits(units) {
+    return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;
+}
+
+function normalizeObjectUnits(inputObject) {
+    var normalizedInput = {},
+        normalizedProp,
+        prop;
+
+    for (prop in inputObject) {
+        if (hasOwnProp(inputObject, prop)) {
+            normalizedProp = normalizeUnits(prop);
+            if (normalizedProp) {
+                normalizedInput[normalizedProp] = inputObject[prop];
+            }
+        }
+    }
+
+    return normalizedInput;
+}
+
+var priorities = {};
+
+function addUnitPriority(unit, priority) {
+    priorities[unit] = priority;
+}
+
+function getPrioritizedUnits(unitsObj) {
+    var units = [];
+    for (var u in unitsObj) {
+        units.push({unit: u, priority: priorities[u]});
+    }
+    units.sort(function (a, b) {
+        return a.priority - b.priority;
+    });
+    return units;
+}
+
+function makeGetSet (unit, keepTime) {
+    return function (value) {
+        if (value != null) {
+            set$1(this, unit, value);
+            hooks.updateOffset(this, keepTime);
+            return this;
+        } else {
+            return get(this, unit);
+        }
+    };
+}
+
+function get (mom, unit) {
+    return mom.isValid() ?
+        mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
+}
+
+function set$1 (mom, unit, value) {
+    if (mom.isValid()) {
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+    }
+}
+
+// MOMENTS
+
+function stringGet (units) {
+    units = normalizeUnits(units);
+    if (isFunction(this[units])) {
+        return this[units]();
+    }
+    return this;
+}
 
 
-    var regexes = {};
+function stringSet (units, value) {
+    if (typeof units === 'object') {
+        units = normalizeObjectUnits(units);
+        var prioritized = getPrioritizedUnits(units);
+        for (var i = 0; i < prioritized.length; i++) {
+            this[prioritized[i].unit](units[prioritized[i].unit]);
+        }
+    } else {
+        units = normalizeUnits(units);
+        if (isFunction(this[units])) {
+            return this[units](value);
+        }
+    }
+    return this;
+}
 
-    function addRegexToken (token, regex, strictRegex) {
-        regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
-            return (isStrict && strictRegex) ? strictRegex : regex;
+function zeroFill(number, targetLength, forceSign) {
+    var absNumber = '' + Math.abs(number),
+        zerosToFill = targetLength - absNumber.length,
+        sign = number >= 0;
+    return (sign ? (forceSign ? '+' : '') : '-') +
+        Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;
+}
+
+var formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
+
+var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;
+
+var formatFunctions = {};
+
+var formatTokenFunctions = {};
+
+// token:    'M'
+// padded:   ['MM', 2]
+// ordinal:  'Mo'
+// callback: function () { this.month() + 1 }
+function addFormatToken (token, padded, ordinal, callback) {
+    var func = callback;
+    if (typeof callback === 'string') {
+        func = function () {
+            return this[callback]();
         };
     }
-
-    function getParseRegexForToken (token, config) {
-        if (!hasOwnProp(regexes, token)) {
-            return new RegExp(unescapeFormat(token));
-        }
-
-        return regexes[token](config._strict, config._locale);
+    if (token) {
+        formatTokenFunctions[token] = func;
     }
-
-    // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-    function unescapeFormat(s) {
-        return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
-            return p1 || p2 || p3 || p4;
-        }));
+    if (padded) {
+        formatTokenFunctions[padded[0]] = function () {
+            return zeroFill(func.apply(this, arguments), padded[1], padded[2]);
+        };
     }
-
-    function regexEscape(s) {
-        return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    if (ordinal) {
+        formatTokenFunctions[ordinal] = function () {
+            return this.localeData().ordinal(func.apply(this, arguments), token);
+        };
     }
+}
 
-    var tokens = {};
-
-    function addParseToken (token, callback) {
-        var i, func = callback;
-        if (typeof token === 'string') {
-            token = [token];
-        }
-        if (typeof callback === 'number') {
-            func = function (input, array) {
-                array[callback] = toInt(input);
-            };
-        }
-        for (i = 0; i < token.length; i++) {
-            tokens[token[i]] = func;
-        }
+function removeFormattingTokens(input) {
+    if (input.match(/\[[\s\S]/)) {
+        return input.replace(/^\[|\]$/g, '');
     }
+    return input.replace(/\\/g, '');
+}
 
-    function addWeekParseToken (token, callback) {
-        addParseToken(token, function (input, array, config, token) {
-            config._w = config._w || {};
-            callback(input, config._w, config, token);
-        });
-    }
+function makeFormatFunction(format) {
+    var array = format.match(formattingTokens), i, length;
 
-    function addTimeToArrayFromToken(token, input, config) {
-        if (input != null && hasOwnProp(tokens, token)) {
-            tokens[token](input, config._a, config, token);
-        }
-    }
-
-    var YEAR = 0;
-    var MONTH = 1;
-    var DATE = 2;
-    var HOUR = 3;
-    var MINUTE = 4;
-    var SECOND = 5;
-    var MILLISECOND = 6;
-    var WEEK = 7;
-    var WEEKDAY = 8;
-
-    function daysInMonth(year, month) {
-        return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-    }
-
-    // FORMATTING
-
-    addFormatToken('M', ['MM', 2], 'Mo', function () {
-        return this.month() + 1;
-    });
-
-    addFormatToken('MMM', 0, 0, function (format) {
-        return this.localeData().monthsShort(this, format);
-    });
-
-    addFormatToken('MMMM', 0, 0, function (format) {
-        return this.localeData().months(this, format);
-    });
-
-    // ALIASES
-
-    addUnitAlias('month', 'M');
-
-    // PARSING
-
-    addRegexToken('M',    match1to2);
-    addRegexToken('MM',   match1to2, match2);
-    addRegexToken('MMM',  function (isStrict, locale) {
-        return locale.monthsShortRegex(isStrict);
-    });
-    addRegexToken('MMMM', function (isStrict, locale) {
-        return locale.monthsRegex(isStrict);
-    });
-
-    addParseToken(['M', 'MM'], function (input, array) {
-        array[MONTH] = toInt(input) - 1;
-    });
-
-    addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {
-        var month = config._locale.monthsParse(input, token, config._strict);
-        // if we didn't find a month name, mark the date as invalid.
-        if (month != null) {
-            array[MONTH] = month;
+    for (i = 0, length = array.length; i < length; i++) {
+        if (formatTokenFunctions[array[i]]) {
+            array[i] = formatTokenFunctions[array[i]];
         } else {
-            getParsingFlags(config).invalidMonth = input;
+            array[i] = removeFormattingTokens(array[i]);
         }
+    }
+
+    return function (mom) {
+        var output = '', i;
+        for (i = 0; i < length; i++) {
+            output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
+        }
+        return output;
+    };
+}
+
+// format date using native date object
+function formatMoment(m, format) {
+    if (!m.isValid()) {
+        return m.localeData().invalidDate();
+    }
+
+    format = expandFormat(format, m.localeData());
+    formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);
+
+    return formatFunctions[format](m);
+}
+
+function expandFormat(format, locale) {
+    var i = 5;
+
+    function replaceLongDateFormatTokens(input) {
+        return locale.longDateFormat(input) || input;
+    }
+
+    localFormattingTokens.lastIndex = 0;
+    while (i >= 0 && localFormattingTokens.test(format)) {
+        format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
+        localFormattingTokens.lastIndex = 0;
+        i -= 1;
+    }
+
+    return format;
+}
+
+var match1         = /\d/;            //       0 - 9
+var match2         = /\d\d/;          //      00 - 99
+var match3         = /\d{3}/;         //     000 - 999
+var match4         = /\d{4}/;         //    0000 - 9999
+var match6         = /[+-]?\d{6}/;    // -999999 - 999999
+var match1to2      = /\d\d?/;         //       0 - 99
+var match3to4      = /\d\d\d\d?/;     //     999 - 9999
+var match5to6      = /\d\d\d\d\d\d?/; //   99999 - 999999
+var match1to3      = /\d{1,3}/;       //       0 - 999
+var match1to4      = /\d{1,4}/;       //       0 - 9999
+var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999
+
+var matchUnsigned  = /\d+/;           //       0 - inf
+var matchSigned    = /[+-]?\d+/;      //    -inf - inf
+
+var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z
+var matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi; // +00 -00 +00:00 -00:00 +0000 -0000 or Z
+
+var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
+
+// any word (or two) characters or numbers including two/three word month in arabic.
+// includes scottish gaelic two word and hyphenated months
+var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+
+
+var regexes = {};
+
+function addRegexToken (token, regex, strictRegex) {
+    regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
+        return (isStrict && strictRegex) ? strictRegex : regex;
+    };
+}
+
+function getParseRegexForToken (token, config) {
+    if (!hasOwnProp(regexes, token)) {
+        return new RegExp(unescapeFormat(token));
+    }
+
+    return regexes[token](config._strict, config._locale);
+}
+
+// Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+function unescapeFormat(s) {
+    return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+        return p1 || p2 || p3 || p4;
+    }));
+}
+
+function regexEscape(s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+var tokens = {};
+
+function addParseToken (token, callback) {
+    var i, func = callback;
+    if (typeof token === 'string') {
+        token = [token];
+    }
+    if (isNumber(callback)) {
+        func = function (input, array) {
+            array[callback] = toInt(input);
+        };
+    }
+    for (i = 0; i < token.length; i++) {
+        tokens[token[i]] = func;
+    }
+}
+
+function addWeekParseToken (token, callback) {
+    addParseToken(token, function (input, array, config, token) {
+        config._w = config._w || {};
+        callback(input, config._w, config, token);
     });
+}
 
-    // LOCALES
-
-    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
-    var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
-    function localeMonths (m, format) {
-        return isArray(this._months) ? this._months[m.month()] :
-            this._months[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
+function addTimeToArrayFromToken(token, input, config) {
+    if (input != null && hasOwnProp(tokens, token)) {
+        tokens[token](input, config._a, config, token);
     }
+}
 
-    var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
-    function localeMonthsShort (m, format) {
-        return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
-            this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
-    }
+var YEAR = 0;
+var MONTH = 1;
+var DATE = 2;
+var HOUR = 3;
+var MINUTE = 4;
+var SECOND = 5;
+var MILLISECOND = 6;
+var WEEK = 7;
+var WEEKDAY = 8;
 
-    function localeMonthsParse (monthName, format, strict) {
-        var i, mom, regex;
+var indexOf;
 
-        if (!this._monthsParse) {
-            this._monthsParse = [];
-            this._longMonthsParse = [];
-            this._shortMonthsParse = [];
-        }
-
-        for (i = 0; i < 12; i++) {
-            // make the regex if we don't have it already
-            mom = create_utc__createUTC([2000, i]);
-            if (strict && !this._longMonthsParse[i]) {
-                this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
-                this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
-            }
-            if (!strict && !this._monthsParse[i]) {
-                regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
-                this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
-            }
-            // test the regex
-            if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (!strict && this._monthsParse[i].test(monthName)) {
+if (Array.prototype.indexOf) {
+    indexOf = Array.prototype.indexOf;
+} else {
+    indexOf = function (o) {
+        // I know
+        var i;
+        for (i = 0; i < this.length; ++i) {
+            if (this[i] === o) {
                 return i;
             }
         }
+        return -1;
+    };
+}
+
+var indexOf$1 = indexOf;
+
+function daysInMonth(year, month) {
+    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
+
+// FORMATTING
+
+addFormatToken('M', ['MM', 2], 'Mo', function () {
+    return this.month() + 1;
+});
+
+addFormatToken('MMM', 0, 0, function (format) {
+    return this.localeData().monthsShort(this, format);
+});
+
+addFormatToken('MMMM', 0, 0, function (format) {
+    return this.localeData().months(this, format);
+});
+
+// ALIASES
+
+addUnitAlias('month', 'M');
+
+// PRIORITY
+
+addUnitPriority('month', 8);
+
+// PARSING
+
+addRegexToken('M',    match1to2);
+addRegexToken('MM',   match1to2, match2);
+addRegexToken('MMM',  function (isStrict, locale) {
+    return locale.monthsShortRegex(isStrict);
+});
+addRegexToken('MMMM', function (isStrict, locale) {
+    return locale.monthsRegex(isStrict);
+});
+
+addParseToken(['M', 'MM'], function (input, array) {
+    array[MONTH] = toInt(input) - 1;
+});
+
+addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {
+    var month = config._locale.monthsParse(input, token, config._strict);
+    // if we didn't find a month name, mark the date as invalid.
+    if (month != null) {
+        array[MONTH] = month;
+    } else {
+        getParsingFlags(config).invalidMonth = input;
+    }
+});
+
+// LOCALES
+
+var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
+var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
+function localeMonths (m, format) {
+    if (!m) {
+        return this._months;
+    }
+    return isArray(this._months) ? this._months[m.month()] :
+        this._months[(this._months.isFormat || MONTHS_IN_FORMAT).test(format) ? 'format' : 'standalone'][m.month()];
+}
+
+var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
+function localeMonthsShort (m, format) {
+    if (!m) {
+        return this._monthsShort;
+    }
+    return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
+        this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
+}
+
+function handleStrictParse(monthName, format, strict) {
+    var i, ii, mom, llc = monthName.toLocaleLowerCase();
+    if (!this._monthsParse) {
+        // this is not used
+        this._monthsParse = [];
+        this._longMonthsParse = [];
+        this._shortMonthsParse = [];
+        for (i = 0; i < 12; ++i) {
+            mom = createUTC([2000, i]);
+            this._shortMonthsParse[i] = this.monthsShort(mom, '').toLocaleLowerCase();
+            this._longMonthsParse[i] = this.months(mom, '').toLocaleLowerCase();
+        }
     }
 
-    // MOMENTS
-
-    function setMonth (mom, value) {
-        var dayOfMonth;
-
-        if (!mom.isValid()) {
-            // No op
-            return mom;
+    if (strict) {
+        if (format === 'MMM') {
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            return ii !== -1 ? ii : null;
         }
-
-        if (typeof value === 'string') {
-            if (/^\d+$/.test(value)) {
-                value = toInt(value);
-            } else {
-                value = mom.localeData().monthsParse(value);
-                // TODO: Another silent failure?
-                if (typeof value !== 'number') {
-                    return mom;
-                }
+    } else {
+        if (format === 'MMM') {
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            if (ii !== -1) {
+                return ii;
             }
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            return ii !== -1 ? ii : null;
         }
+    }
+}
 
-        dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));
-        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+function localeMonthsParse (monthName, format, strict) {
+    var i, mom, regex;
+
+    if (this._monthsParseExact) {
+        return handleStrictParse.call(this, monthName, format, strict);
+    }
+
+    if (!this._monthsParse) {
+        this._monthsParse = [];
+        this._longMonthsParse = [];
+        this._shortMonthsParse = [];
+    }
+
+    // TODO: add sorting
+    // Sorting makes sure if one month (or abbr) is a prefix of another
+    // see sorting in computeMonthsParse
+    for (i = 0; i < 12; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, i]);
+        if (strict && !this._longMonthsParse[i]) {
+            this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
+            this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
+        }
+        if (!strict && !this._monthsParse[i]) {
+            regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
+            this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
+        }
+        // test the regex
+        if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
+            return i;
+        } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
+            return i;
+        } else if (!strict && this._monthsParse[i].test(monthName)) {
+            return i;
+        }
+    }
+}
+
+// MOMENTS
+
+function setMonth (mom, value) {
+    var dayOfMonth;
+
+    if (!mom.isValid()) {
+        // No op
         return mom;
     }
 
-    function getSetMonth (value) {
-        if (value != null) {
-            setMonth(this, value);
-            utils_hooks__hooks.updateOffset(this, true);
-            return this;
+    if (typeof value === 'string') {
+        if (/^\d+$/.test(value)) {
+            value = toInt(value);
         } else {
-            return get_set__get(this, 'Month');
+            value = mom.localeData().monthsParse(value);
+            // TODO: Another silent failure?
+            if (!isNumber(value)) {
+                return mom;
+            }
         }
     }
 
-    function getDaysInMonth () {
-        return daysInMonth(this.year(), this.month());
+    dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));
+    mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+    return mom;
+}
+
+function getSetMonth (value) {
+    if (value != null) {
+        setMonth(this, value);
+        hooks.updateOffset(this, true);
+        return this;
+    } else {
+        return get(this, 'Month');
+    }
+}
+
+function getDaysInMonth () {
+    return daysInMonth(this.year(), this.month());
+}
+
+var defaultMonthsShortRegex = matchWord;
+function monthsShortRegex (isStrict) {
+    if (this._monthsParseExact) {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            computeMonthsParse.call(this);
+        }
+        if (isStrict) {
+            return this._monthsShortStrictRegex;
+        } else {
+            return this._monthsShortRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_monthsShortRegex')) {
+            this._monthsShortRegex = defaultMonthsShortRegex;
+        }
+        return this._monthsShortStrictRegex && isStrict ?
+            this._monthsShortStrictRegex : this._monthsShortRegex;
+    }
+}
+
+var defaultMonthsRegex = matchWord;
+function monthsRegex (isStrict) {
+    if (this._monthsParseExact) {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            computeMonthsParse.call(this);
+        }
+        if (isStrict) {
+            return this._monthsStrictRegex;
+        } else {
+            return this._monthsRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            this._monthsRegex = defaultMonthsRegex;
+        }
+        return this._monthsStrictRegex && isStrict ?
+            this._monthsStrictRegex : this._monthsRegex;
+    }
+}
+
+function computeMonthsParse () {
+    function cmpLenRev(a, b) {
+        return b.length - a.length;
     }
 
-    var defaultMonthsShortRegex = matchWord;
-    function monthsShortRegex (isStrict) {
-        if (this._monthsParseExact) {
-            if (!hasOwnProp(this, '_monthsRegex')) {
-                computeMonthsParse.call(this);
+    var shortPieces = [], longPieces = [], mixedPieces = [],
+        i, mom;
+    for (i = 0; i < 12; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, i]);
+        shortPieces.push(this.monthsShort(mom, ''));
+        longPieces.push(this.months(mom, ''));
+        mixedPieces.push(this.months(mom, ''));
+        mixedPieces.push(this.monthsShort(mom, ''));
+    }
+    // Sorting makes sure if one month (or abbr) is a prefix of another it
+    // will match the longer piece.
+    shortPieces.sort(cmpLenRev);
+    longPieces.sort(cmpLenRev);
+    mixedPieces.sort(cmpLenRev);
+    for (i = 0; i < 12; i++) {
+        shortPieces[i] = regexEscape(shortPieces[i]);
+        longPieces[i] = regexEscape(longPieces[i]);
+    }
+    for (i = 0; i < 24; i++) {
+        mixedPieces[i] = regexEscape(mixedPieces[i]);
+    }
+
+    this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+    this._monthsShortRegex = this._monthsRegex;
+    this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
+    this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+}
+
+// FORMATTING
+
+addFormatToken('Y', 0, 0, function () {
+    var y = this.year();
+    return y <= 9999 ? '' + y : '+' + y;
+});
+
+addFormatToken(0, ['YY', 2], 0, function () {
+    return this.year() % 100;
+});
+
+addFormatToken(0, ['YYYY',   4],       0, 'year');
+addFormatToken(0, ['YYYYY',  5],       0, 'year');
+addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
+
+// ALIASES
+
+addUnitAlias('year', 'y');
+
+// PRIORITIES
+
+addUnitPriority('year', 1);
+
+// PARSING
+
+addRegexToken('Y',      matchSigned);
+addRegexToken('YY',     match1to2, match2);
+addRegexToken('YYYY',   match1to4, match4);
+addRegexToken('YYYYY',  match1to6, match6);
+addRegexToken('YYYYYY', match1to6, match6);
+
+addParseToken(['YYYYY', 'YYYYYY'], YEAR);
+addParseToken('YYYY', function (input, array) {
+    array[YEAR] = input.length === 2 ? hooks.parseTwoDigitYear(input) : toInt(input);
+});
+addParseToken('YY', function (input, array) {
+    array[YEAR] = hooks.parseTwoDigitYear(input);
+});
+addParseToken('Y', function (input, array) {
+    array[YEAR] = parseInt(input, 10);
+});
+
+// HELPERS
+
+function daysInYear(year) {
+    return isLeapYear(year) ? 366 : 365;
+}
+
+function isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+// HOOKS
+
+hooks.parseTwoDigitYear = function (input) {
+    return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+};
+
+// MOMENTS
+
+var getSetYear = makeGetSet('FullYear', true);
+
+function getIsLeapYear () {
+    return isLeapYear(this.year());
+}
+
+function createDate (y, m, d, h, M, s, ms) {
+    //can't just apply() to create a date:
+    //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
+    var date = new Date(y, m, d, h, M, s, ms);
+
+    //the date constructor remaps years 0-99 to 1900-1999
+    if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
+        date.setFullYear(y);
+    }
+    return date;
+}
+
+function createUTCDate (y) {
+    var date = new Date(Date.UTC.apply(null, arguments));
+
+    //the Date.UTC function remaps years 0-99 to 1900-1999
+    if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
+        date.setUTCFullYear(y);
+    }
+    return date;
+}
+
+// start-of-first-week - start-of-year
+function firstWeekOffset(year, dow, doy) {
+    var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
+        fwd = 7 + dow - doy,
+        // first-week day local weekday -- which local weekday is fwd
+        fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
+
+    return -fwdlw + fwd - 1;
+}
+
+//http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
+    var localWeekday = (7 + weekday - dow) % 7,
+        weekOffset = firstWeekOffset(year, dow, doy),
+        dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
+        resYear, resDayOfYear;
+
+    if (dayOfYear <= 0) {
+        resYear = year - 1;
+        resDayOfYear = daysInYear(resYear) + dayOfYear;
+    } else if (dayOfYear > daysInYear(year)) {
+        resYear = year + 1;
+        resDayOfYear = dayOfYear - daysInYear(year);
+    } else {
+        resYear = year;
+        resDayOfYear = dayOfYear;
+    }
+
+    return {
+        year: resYear,
+        dayOfYear: resDayOfYear
+    };
+}
+
+function weekOfYear(mom, dow, doy) {
+    var weekOffset = firstWeekOffset(mom.year(), dow, doy),
+        week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
+        resWeek, resYear;
+
+    if (week < 1) {
+        resYear = mom.year() - 1;
+        resWeek = week + weeksInYear(resYear, dow, doy);
+    } else if (week > weeksInYear(mom.year(), dow, doy)) {
+        resWeek = week - weeksInYear(mom.year(), dow, doy);
+        resYear = mom.year() + 1;
+    } else {
+        resYear = mom.year();
+        resWeek = week;
+    }
+
+    return {
+        week: resWeek,
+        year: resYear
+    };
+}
+
+function weeksInYear(year, dow, doy) {
+    var weekOffset = firstWeekOffset(year, dow, doy),
+        weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
+    return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
+}
+
+// FORMATTING
+
+addFormatToken('w', ['ww', 2], 'wo', 'week');
+addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
+
+// ALIASES
+
+addUnitAlias('week', 'w');
+addUnitAlias('isoWeek', 'W');
+
+// PRIORITIES
+
+addUnitPriority('week', 5);
+addUnitPriority('isoWeek', 5);
+
+// PARSING
+
+addRegexToken('w',  match1to2);
+addRegexToken('ww', match1to2, match2);
+addRegexToken('W',  match1to2);
+addRegexToken('WW', match1to2, match2);
+
+addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
+    week[token.substr(0, 1)] = toInt(input);
+});
+
+// HELPERS
+
+// LOCALES
+
+function localeWeek (mom) {
+    return weekOfYear(mom, this._week.dow, this._week.doy).week;
+}
+
+var defaultLocaleWeek = {
+    dow : 0, // Sunday is the first day of the week.
+    doy : 6  // The week that contains Jan 1st is the first week of the year.
+};
+
+function localeFirstDayOfWeek () {
+    return this._week.dow;
+}
+
+function localeFirstDayOfYear () {
+    return this._week.doy;
+}
+
+// MOMENTS
+
+function getSetWeek (input) {
+    var week = this.localeData().week(this);
+    return input == null ? week : this.add((input - week) * 7, 'd');
+}
+
+function getSetISOWeek (input) {
+    var week = weekOfYear(this, 1, 4).week;
+    return input == null ? week : this.add((input - week) * 7, 'd');
+}
+
+// FORMATTING
+
+addFormatToken('d', 0, 'do', 'day');
+
+addFormatToken('dd', 0, 0, function (format) {
+    return this.localeData().weekdaysMin(this, format);
+});
+
+addFormatToken('ddd', 0, 0, function (format) {
+    return this.localeData().weekdaysShort(this, format);
+});
+
+addFormatToken('dddd', 0, 0, function (format) {
+    return this.localeData().weekdays(this, format);
+});
+
+addFormatToken('e', 0, 0, 'weekday');
+addFormatToken('E', 0, 0, 'isoWeekday');
+
+// ALIASES
+
+addUnitAlias('day', 'd');
+addUnitAlias('weekday', 'e');
+addUnitAlias('isoWeekday', 'E');
+
+// PRIORITY
+addUnitPriority('day', 11);
+addUnitPriority('weekday', 11);
+addUnitPriority('isoWeekday', 11);
+
+// PARSING
+
+addRegexToken('d',    match1to2);
+addRegexToken('e',    match1to2);
+addRegexToken('E',    match1to2);
+addRegexToken('dd',   function (isStrict, locale) {
+    return locale.weekdaysMinRegex(isStrict);
+});
+addRegexToken('ddd',   function (isStrict, locale) {
+    return locale.weekdaysShortRegex(isStrict);
+});
+addRegexToken('dddd',   function (isStrict, locale) {
+    return locale.weekdaysRegex(isStrict);
+});
+
+addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
+    var weekday = config._locale.weekdaysParse(input, token, config._strict);
+    // if we didn't get a weekday name, mark the date as invalid
+    if (weekday != null) {
+        week.d = weekday;
+    } else {
+        getParsingFlags(config).invalidWeekday = input;
+    }
+});
+
+addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
+    week[token] = toInt(input);
+});
+
+// HELPERS
+
+function parseWeekday(input, locale) {
+    if (typeof input !== 'string') {
+        return input;
+    }
+
+    if (!isNaN(input)) {
+        return parseInt(input, 10);
+    }
+
+    input = locale.weekdaysParse(input);
+    if (typeof input === 'number') {
+        return input;
+    }
+
+    return null;
+}
+
+function parseIsoWeekday(input, locale) {
+    if (typeof input === 'string') {
+        return locale.weekdaysParse(input) % 7 || 7;
+    }
+    return isNaN(input) ? null : input;
+}
+
+// LOCALES
+
+var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
+function localeWeekdays (m, format) {
+    if (!m) {
+        return this._weekdays;
+    }
+    return isArray(this._weekdays) ? this._weekdays[m.day()] :
+        this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
+}
+
+var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
+function localeWeekdaysShort (m) {
+    return (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;
+}
+
+var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
+function localeWeekdaysMin (m) {
+    return (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;
+}
+
+function handleStrictParse$1(weekdayName, format, strict) {
+    var i, ii, mom, llc = weekdayName.toLocaleLowerCase();
+    if (!this._weekdaysParse) {
+        this._weekdaysParse = [];
+        this._shortWeekdaysParse = [];
+        this._minWeekdaysParse = [];
+
+        for (i = 0; i < 7; ++i) {
+            mom = createUTC([2000, 1]).day(i);
+            this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();
+            this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();
+            this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();
+        }
+    }
+
+    if (strict) {
+        if (format === 'dddd') {
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else if (format === 'ddd') {
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        }
+    } else {
+        if (format === 'dddd') {
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
             }
-            if (isStrict) {
-                return this._monthsShortStrictRegex;
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else if (format === 'ddd') {
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        }
+    }
+}
+
+function localeWeekdaysParse (weekdayName, format, strict) {
+    var i, mom, regex;
+
+    if (this._weekdaysParseExact) {
+        return handleStrictParse$1.call(this, weekdayName, format, strict);
+    }
+
+    if (!this._weekdaysParse) {
+        this._weekdaysParse = [];
+        this._minWeekdaysParse = [];
+        this._shortWeekdaysParse = [];
+        this._fullWeekdaysParse = [];
+    }
+
+    for (i = 0; i < 7; i++) {
+        // make the regex if we don't have it already
+
+        mom = createUTC([2000, 1]).day(i);
+        if (strict && !this._fullWeekdaysParse[i]) {
+            this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
+            this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
+            this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
+        }
+        if (!this._weekdaysParse[i]) {
+            regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+            this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
+        }
+        // test the regex
+        if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
+            return i;
+        }
+    }
+}
+
+// MOMENTS
+
+function getSetDayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
+    if (input != null) {
+        input = parseWeekday(input, this.localeData());
+        return this.add(input - day, 'd');
+    } else {
+        return day;
+    }
+}
+
+function getSetLocaleDayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
+    return input == null ? weekday : this.add(input - weekday, 'd');
+}
+
+function getSetISODayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+
+    // behaves the same as moment#day except
+    // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
+    // as a setter, sunday should belong to the previous week.
+
+    if (input != null) {
+        var weekday = parseIsoWeekday(input, this.localeData());
+        return this.day(this.day() % 7 ? weekday : weekday - 7);
+    } else {
+        return this.day() || 7;
+    }
+}
+
+var defaultWeekdaysRegex = matchWord;
+function weekdaysRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysStrictRegex;
+        } else {
+            return this._weekdaysRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            this._weekdaysRegex = defaultWeekdaysRegex;
+        }
+        return this._weekdaysStrictRegex && isStrict ?
+            this._weekdaysStrictRegex : this._weekdaysRegex;
+    }
+}
+
+var defaultWeekdaysShortRegex = matchWord;
+function weekdaysShortRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysShortStrictRegex;
+        } else {
+            return this._weekdaysShortRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysShortRegex')) {
+            this._weekdaysShortRegex = defaultWeekdaysShortRegex;
+        }
+        return this._weekdaysShortStrictRegex && isStrict ?
+            this._weekdaysShortStrictRegex : this._weekdaysShortRegex;
+    }
+}
+
+var defaultWeekdaysMinRegex = matchWord;
+function weekdaysMinRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysMinStrictRegex;
+        } else {
+            return this._weekdaysMinRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysMinRegex')) {
+            this._weekdaysMinRegex = defaultWeekdaysMinRegex;
+        }
+        return this._weekdaysMinStrictRegex && isStrict ?
+            this._weekdaysMinStrictRegex : this._weekdaysMinRegex;
+    }
+}
+
+
+function computeWeekdaysParse () {
+    function cmpLenRev(a, b) {
+        return b.length - a.length;
+    }
+
+    var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],
+        i, mom, minp, shortp, longp;
+    for (i = 0; i < 7; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, 1]).day(i);
+        minp = this.weekdaysMin(mom, '');
+        shortp = this.weekdaysShort(mom, '');
+        longp = this.weekdays(mom, '');
+        minPieces.push(minp);
+        shortPieces.push(shortp);
+        longPieces.push(longp);
+        mixedPieces.push(minp);
+        mixedPieces.push(shortp);
+        mixedPieces.push(longp);
+    }
+    // Sorting makes sure if one weekday (or abbr) is a prefix of another it
+    // will match the longer piece.
+    minPieces.sort(cmpLenRev);
+    shortPieces.sort(cmpLenRev);
+    longPieces.sort(cmpLenRev);
+    mixedPieces.sort(cmpLenRev);
+    for (i = 0; i < 7; i++) {
+        shortPieces[i] = regexEscape(shortPieces[i]);
+        longPieces[i] = regexEscape(longPieces[i]);
+        mixedPieces[i] = regexEscape(mixedPieces[i]);
+    }
+
+    this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+    this._weekdaysShortRegex = this._weekdaysRegex;
+    this._weekdaysMinRegex = this._weekdaysRegex;
+
+    this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
+    this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+    this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');
+}
+
+// FORMATTING
+
+function hFormat() {
+    return this.hours() % 12 || 12;
+}
+
+function kFormat() {
+    return this.hours() || 24;
+}
+
+addFormatToken('H', ['HH', 2], 0, 'hour');
+addFormatToken('h', ['hh', 2], 0, hFormat);
+addFormatToken('k', ['kk', 2], 0, kFormat);
+
+addFormatToken('hmm', 0, 0, function () {
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
+});
+
+addFormatToken('hmmss', 0, 0, function () {
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
+        zeroFill(this.seconds(), 2);
+});
+
+addFormatToken('Hmm', 0, 0, function () {
+    return '' + this.hours() + zeroFill(this.minutes(), 2);
+});
+
+addFormatToken('Hmmss', 0, 0, function () {
+    return '' + this.hours() + zeroFill(this.minutes(), 2) +
+        zeroFill(this.seconds(), 2);
+});
+
+function meridiem (token, lowercase) {
+    addFormatToken(token, 0, 0, function () {
+        return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
+    });
+}
+
+meridiem('a', true);
+meridiem('A', false);
+
+// ALIASES
+
+addUnitAlias('hour', 'h');
+
+// PRIORITY
+addUnitPriority('hour', 13);
+
+// PARSING
+
+function matchMeridiem (isStrict, locale) {
+    return locale._meridiemParse;
+}
+
+addRegexToken('a',  matchMeridiem);
+addRegexToken('A',  matchMeridiem);
+addRegexToken('H',  match1to2);
+addRegexToken('h',  match1to2);
+addRegexToken('HH', match1to2, match2);
+addRegexToken('hh', match1to2, match2);
+
+addRegexToken('hmm', match3to4);
+addRegexToken('hmmss', match5to6);
+addRegexToken('Hmm', match3to4);
+addRegexToken('Hmmss', match5to6);
+
+addParseToken(['H', 'HH'], HOUR);
+addParseToken(['a', 'A'], function (input, array, config) {
+    config._isPm = config._locale.isPM(input);
+    config._meridiem = input;
+});
+addParseToken(['h', 'hh'], function (input, array, config) {
+    array[HOUR] = toInt(input);
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('hmm', function (input, array, config) {
+    var pos = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos));
+    array[MINUTE] = toInt(input.substr(pos));
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('hmmss', function (input, array, config) {
+    var pos1 = input.length - 4;
+    var pos2 = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos1));
+    array[MINUTE] = toInt(input.substr(pos1, 2));
+    array[SECOND] = toInt(input.substr(pos2));
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('Hmm', function (input, array, config) {
+    var pos = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos));
+    array[MINUTE] = toInt(input.substr(pos));
+});
+addParseToken('Hmmss', function (input, array, config) {
+    var pos1 = input.length - 4;
+    var pos2 = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos1));
+    array[MINUTE] = toInt(input.substr(pos1, 2));
+    array[SECOND] = toInt(input.substr(pos2));
+});
+
+// LOCALES
+
+function localeIsPM (input) {
+    // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
+    // Using charAt should be more compatible.
+    return ((input + '').toLowerCase().charAt(0) === 'p');
+}
+
+var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
+function localeMeridiem (hours, minutes, isLower) {
+    if (hours > 11) {
+        return isLower ? 'pm' : 'PM';
+    } else {
+        return isLower ? 'am' : 'AM';
+    }
+}
+
+
+// MOMENTS
+
+// Setting the hour should keep the time, because the user explicitly
+// specified which hour he wants. So trying to maintain the same hour (in
+// a new timezone) makes sense. Adding/subtracting hours does not follow
+// this rule.
+var getSetHour = makeGetSet('Hours', true);
+
+// months
+// week
+// weekdays
+// meridiem
+var baseConfig = {
+    calendar: defaultCalendar,
+    longDateFormat: defaultLongDateFormat,
+    invalidDate: defaultInvalidDate,
+    ordinal: defaultOrdinal,
+    ordinalParse: defaultOrdinalParse,
+    relativeTime: defaultRelativeTime,
+
+    months: defaultLocaleMonths,
+    monthsShort: defaultLocaleMonthsShort,
+
+    week: defaultLocaleWeek,
+
+    weekdays: defaultLocaleWeekdays,
+    weekdaysMin: defaultLocaleWeekdaysMin,
+    weekdaysShort: defaultLocaleWeekdaysShort,
+
+    meridiemParse: defaultLocaleMeridiemParse
+};
+
+// internal storage for locale config files
+var locales = {};
+var localeFamilies = {};
+var globalLocale;
+
+function normalizeLocale(key) {
+    return key ? key.toLowerCase().replace('_', '-') : key;
+}
+
+// pick the locale from the array
+// try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+// substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+function chooseLocale(names) {
+    var i = 0, j, next, locale, split;
+
+    while (i < names.length) {
+        split = normalizeLocale(names[i]).split('-');
+        j = split.length;
+        next = normalizeLocale(names[i + 1]);
+        next = next ? next.split('-') : null;
+        while (j > 0) {
+            locale = loadLocale(split.slice(0, j).join('-'));
+            if (locale) {
+                return locale;
+            }
+            if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                //the next array item is better than a shallower substring of this one
+                break;
+            }
+            j--;
+        }
+        i++;
+    }
+    return null;
+}
+
+function loadLocale(name) {
+    var oldLocale = null;
+    // TODO: Find a better way to register and load all the locales in Node
+    if (!locales[name] && (typeof module !== 'undefined') &&
+            module && module.exports) {
+        try {
+            oldLocale = globalLocale._abbr;
+            _dereq_('./locale/' + name);
+            // because defineLocale currently also sets the global locale, we
+            // want to undo that for lazy loaded locales
+            getSetGlobalLocale(oldLocale);
+        } catch (e) { }
+    }
+    return locales[name];
+}
+
+// This function will load locale and then set the global locale.  If
+// no arguments are passed in, it will simply return the current global
+// locale key.
+function getSetGlobalLocale (key, values) {
+    var data;
+    if (key) {
+        if (isUndefined(values)) {
+            data = getLocale(key);
+        }
+        else {
+            data = defineLocale(key, values);
+        }
+
+        if (data) {
+            // moment.duration._locale = moment._locale = data;
+            globalLocale = data;
+        }
+    }
+
+    return globalLocale._abbr;
+}
+
+function defineLocale (name, config) {
+    if (config !== null) {
+        var parentConfig = baseConfig;
+        config.abbr = name;
+        if (locales[name] != null) {
+            deprecateSimple('defineLocaleOverride',
+                    'use moment.updateLocale(localeName, config) to change ' +
+                    'an existing locale. moment.defineLocale(localeName, ' +
+                    'config) should only be used for creating a new locale ' +
+                    'See http://momentjs.com/guides/#/warnings/define-locale/ for more info.');
+            parentConfig = locales[name]._config;
+        } else if (config.parentLocale != null) {
+            if (locales[config.parentLocale] != null) {
+                parentConfig = locales[config.parentLocale]._config;
             } else {
-                return this._monthsShortRegex;
+                if (!localeFamilies[config.parentLocale]) {
+                    localeFamilies[config.parentLocale] = [];
+                }
+                localeFamilies[config.parentLocale].push({
+                    name: name,
+                    config: config
+                });
+                return null;
             }
-        } else {
-            return this._monthsShortStrictRegex && isStrict ?
-                this._monthsShortStrictRegex : this._monthsShortRegex;
+        }
+        locales[name] = new Locale(mergeConfigs(parentConfig, config));
+
+        if (localeFamilies[name]) {
+            localeFamilies[name].forEach(function (x) {
+                defineLocale(x.name, x.config);
+            });
+        }
+
+        // backwards compat for now: also set the locale
+        // make sure we set the locale AFTER all child locales have been
+        // created, so we won't end up with the child locale set.
+        getSetGlobalLocale(name);
+
+
+        return locales[name];
+    } else {
+        // useful for testing
+        delete locales[name];
+        return null;
+    }
+}
+
+function updateLocale(name, config) {
+    if (config != null) {
+        var locale, parentConfig = baseConfig;
+        // MERGE
+        if (locales[name] != null) {
+            parentConfig = locales[name]._config;
+        }
+        config = mergeConfigs(parentConfig, config);
+        locale = new Locale(config);
+        locale.parentLocale = locales[name];
+        locales[name] = locale;
+
+        // backwards compat for now: also set the locale
+        getSetGlobalLocale(name);
+    } else {
+        // pass null for config to unupdate, useful for tests
+        if (locales[name] != null) {
+            if (locales[name].parentLocale != null) {
+                locales[name] = locales[name].parentLocale;
+            } else if (locales[name] != null) {
+                delete locales[name];
+            }
         }
     }
+    return locales[name];
+}
 
-    var defaultMonthsRegex = matchWord;
-    function monthsRegex (isStrict) {
-        if (this._monthsParseExact) {
-            if (!hasOwnProp(this, '_monthsRegex')) {
-                computeMonthsParse.call(this);
-            }
-            if (isStrict) {
-                return this._monthsStrictRegex;
-            } else {
-                return this._monthsRegex;
-            }
-        } else {
-            return this._monthsStrictRegex && isStrict ?
-                this._monthsStrictRegex : this._monthsRegex;
-        }
+// returns locale data
+function getLocale (key) {
+    var locale;
+
+    if (key && key._locale && key._locale._abbr) {
+        key = key._locale._abbr;
     }
 
-    function computeMonthsParse () {
-        function cmpLenRev(a, b) {
-            return b.length - a.length;
-        }
-
-        var shortPieces = [], longPieces = [], mixedPieces = [],
-            i, mom;
-        for (i = 0; i < 12; i++) {
-            // make the regex if we don't have it already
-            mom = create_utc__createUTC([2000, i]);
-            shortPieces.push(this.monthsShort(mom, ''));
-            longPieces.push(this.months(mom, ''));
-            mixedPieces.push(this.months(mom, ''));
-            mixedPieces.push(this.monthsShort(mom, ''));
-        }
-        // Sorting makes sure if one month (or abbr) is a prefix of another it
-        // will match the longer piece.
-        shortPieces.sort(cmpLenRev);
-        longPieces.sort(cmpLenRev);
-        mixedPieces.sort(cmpLenRev);
-        for (i = 0; i < 12; i++) {
-            shortPieces[i] = regexEscape(shortPieces[i]);
-            longPieces[i] = regexEscape(longPieces[i]);
-            mixedPieces[i] = regexEscape(mixedPieces[i]);
-        }
-
-        this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
-        this._monthsShortRegex = this._monthsRegex;
-        this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')$', 'i');
-        this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')$', 'i');
+    if (!key) {
+        return globalLocale;
     }
 
-    function checkOverflow (m) {
-        var overflow;
-        var a = m._a;
-
-        if (a && getParsingFlags(m).overflow === -2) {
-            overflow =
-                a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :
-                a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :
-                a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
-                a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :
-                a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :
-                a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :
-                -1;
-
-            if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
-                overflow = DATE;
-            }
-            if (getParsingFlags(m)._overflowWeeks && overflow === -1) {
-                overflow = WEEK;
-            }
-            if (getParsingFlags(m)._overflowWeekday && overflow === -1) {
-                overflow = WEEKDAY;
-            }
-
-            getParsingFlags(m).overflow = overflow;
+    if (!isArray(key)) {
+        //short-circuit everything else
+        locale = loadLocale(key);
+        if (locale) {
+            return locale;
         }
-
-        return m;
+        key = [key];
     }
 
-    // iso 8601 regex
-    // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-    var extendedIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})-(?:\d\d-\d\d|W\d\d-\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?::\d\d(?::\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?/;
-    var basicIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})(?:\d\d\d\d|W\d\d\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?:\d\d(?:\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?/;
+    return chooseLocale(key);
+}
 
-    var tzRegex = /Z|[+-]\d\d(?::?\d\d)?/;
+function listLocales() {
+    return keys$1(locales);
+}
 
-    var isoDates = [
-        ['YYYYYY-MM-DD', /[+-]\d{6}-\d\d-\d\d/],
-        ['YYYY-MM-DD', /\d{4}-\d\d-\d\d/],
-        ['GGGG-[W]WW-E', /\d{4}-W\d\d-\d/],
-        ['GGGG-[W]WW', /\d{4}-W\d\d/, false],
-        ['YYYY-DDD', /\d{4}-\d{3}/],
-        ['YYYY-MM', /\d{4}-\d\d/, false],
-        ['YYYYYYMMDD', /[+-]\d{10}/],
-        ['YYYYMMDD', /\d{8}/],
-        // YYYYMM is NOT allowed by the standard
-        ['GGGG[W]WWE', /\d{4}W\d{3}/],
-        ['GGGG[W]WW', /\d{4}W\d{2}/, false],
-        ['YYYYDDD', /\d{7}/]
-    ];
+function checkOverflow (m) {
+    var overflow;
+    var a = m._a;
 
-    // iso time formats and regexes
-    var isoTimes = [
-        ['HH:mm:ss.SSSS', /\d\d:\d\d:\d\d\.\d+/],
-        ['HH:mm:ss,SSSS', /\d\d:\d\d:\d\d,\d+/],
-        ['HH:mm:ss', /\d\d:\d\d:\d\d/],
-        ['HH:mm', /\d\d:\d\d/],
-        ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],
-        ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],
-        ['HHmmss', /\d\d\d\d\d\d/],
-        ['HHmm', /\d\d\d\d/],
-        ['HH', /\d\d/]
-    ];
+    if (a && getParsingFlags(m).overflow === -2) {
+        overflow =
+            a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :
+            a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :
+            a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
+            a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :
+            a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :
+            a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :
+            -1;
 
-    var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;
+        if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
+            overflow = DATE;
+        }
+        if (getParsingFlags(m)._overflowWeeks && overflow === -1) {
+            overflow = WEEK;
+        }
+        if (getParsingFlags(m)._overflowWeekday && overflow === -1) {
+            overflow = WEEKDAY;
+        }
 
-    // date from iso format
-    function configFromISO(config) {
-        var i, l,
-            string = config._i,
-            match = extendedIsoRegex.exec(string) || basicIsoRegex.exec(string),
-            allowTime, dateFormat, timeFormat, tzFormat;
+        getParsingFlags(m).overflow = overflow;
+    }
 
-        if (match) {
-            getParsingFlags(config).iso = true;
+    return m;
+}
 
-            for (i = 0, l = isoDates.length; i < l; i++) {
-                if (isoDates[i][1].exec(match[1])) {
-                    dateFormat = isoDates[i][0];
-                    allowTime = isoDates[i][2] !== false;
+// iso 8601 regex
+// 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
+var extendedIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})-(?:\d\d-\d\d|W\d\d-\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?::\d\d(?::\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+var basicIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})(?:\d\d\d\d|W\d\d\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?:\d\d(?:\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+
+var tzRegex = /Z|[+-]\d\d(?::?\d\d)?/;
+
+var isoDates = [
+    ['YYYYYY-MM-DD', /[+-]\d{6}-\d\d-\d\d/],
+    ['YYYY-MM-DD', /\d{4}-\d\d-\d\d/],
+    ['GGGG-[W]WW-E', /\d{4}-W\d\d-\d/],
+    ['GGGG-[W]WW', /\d{4}-W\d\d/, false],
+    ['YYYY-DDD', /\d{4}-\d{3}/],
+    ['YYYY-MM', /\d{4}-\d\d/, false],
+    ['YYYYYYMMDD', /[+-]\d{10}/],
+    ['YYYYMMDD', /\d{8}/],
+    // YYYYMM is NOT allowed by the standard
+    ['GGGG[W]WWE', /\d{4}W\d{3}/],
+    ['GGGG[W]WW', /\d{4}W\d{2}/, false],
+    ['YYYYDDD', /\d{7}/]
+];
+
+// iso time formats and regexes
+var isoTimes = [
+    ['HH:mm:ss.SSSS', /\d\d:\d\d:\d\d\.\d+/],
+    ['HH:mm:ss,SSSS', /\d\d:\d\d:\d\d,\d+/],
+    ['HH:mm:ss', /\d\d:\d\d:\d\d/],
+    ['HH:mm', /\d\d:\d\d/],
+    ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],
+    ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],
+    ['HHmmss', /\d\d\d\d\d\d/],
+    ['HHmm', /\d\d\d\d/],
+    ['HH', /\d\d/]
+];
+
+var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;
+
+// date from iso format
+function configFromISO(config) {
+    var i, l,
+        string = config._i,
+        match = extendedIsoRegex.exec(string) || basicIsoRegex.exec(string),
+        allowTime, dateFormat, timeFormat, tzFormat;
+
+    if (match) {
+        getParsingFlags(config).iso = true;
+
+        for (i = 0, l = isoDates.length; i < l; i++) {
+            if (isoDates[i][1].exec(match[1])) {
+                dateFormat = isoDates[i][0];
+                allowTime = isoDates[i][2] !== false;
+                break;
+            }
+        }
+        if (dateFormat == null) {
+            config._isValid = false;
+            return;
+        }
+        if (match[3]) {
+            for (i = 0, l = isoTimes.length; i < l; i++) {
+                if (isoTimes[i][1].exec(match[3])) {
+                    // match[2] should be 'T' or space
+                    timeFormat = (match[2] || ' ') + isoTimes[i][0];
                     break;
                 }
             }
-            if (dateFormat == null) {
+            if (timeFormat == null) {
                 config._isValid = false;
                 return;
             }
-            if (match[3]) {
-                for (i = 0, l = isoTimes.length; i < l; i++) {
-                    if (isoTimes[i][1].exec(match[3])) {
-                        // match[2] should be 'T' or space
-                        timeFormat = (match[2] || ' ') + isoTimes[i][0];
-                        break;
-                    }
-                }
-                if (timeFormat == null) {
-                    config._isValid = false;
-                    return;
-                }
-            }
-            if (!allowTime && timeFormat != null) {
-                config._isValid = false;
-                return;
-            }
-            if (match[4]) {
-                if (tzRegex.exec(match[4])) {
-                    tzFormat = 'Z';
-                } else {
-                    config._isValid = false;
-                    return;
-                }
-            }
-            config._f = dateFormat + (timeFormat || '') + (tzFormat || '');
-            configFromStringAndFormat(config);
-        } else {
+        }
+        if (!allowTime && timeFormat != null) {
             config._isValid = false;
-        }
-    }
-
-    // date from iso format or fallback
-    function configFromString(config) {
-        var matched = aspNetJsonRegex.exec(config._i);
-
-        if (matched !== null) {
-            config._d = new Date(+matched[1]);
             return;
         }
-
-        configFromISO(config);
-        if (config._isValid === false) {
-            delete config._isValid;
-            utils_hooks__hooks.createFromInputFallback(config);
-        }
-    }
-
-    utils_hooks__hooks.createFromInputFallback = deprecate(
-        'moment construction falls back to js Date. This is ' +
-        'discouraged and will be removed in upcoming major ' +
-        'release. Please refer to ' +
-        'https://github.com/moment/moment/issues/1407 for more info.',
-        function (config) {
-            config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
-        }
-    );
-
-    function createDate (y, m, d, h, M, s, ms) {
-        //can't just apply() to create a date:
-        //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-        var date = new Date(y, m, d, h, M, s, ms);
-
-        //the date constructor remaps years 0-99 to 1900-1999
-        if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
-            date.setFullYear(y);
-        }
-        return date;
-    }
-
-    function createUTCDate (y) {
-        var date = new Date(Date.UTC.apply(null, arguments));
-
-        //the Date.UTC function remaps years 0-99 to 1900-1999
-        if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
-            date.setUTCFullYear(y);
-        }
-        return date;
-    }
-
-    // FORMATTING
-
-    addFormatToken('Y', 0, 0, function () {
-        var y = this.year();
-        return y <= 9999 ? '' + y : '+' + y;
-    });
-
-    addFormatToken(0, ['YY', 2], 0, function () {
-        return this.year() % 100;
-    });
-
-    addFormatToken(0, ['YYYY',   4],       0, 'year');
-    addFormatToken(0, ['YYYYY',  5],       0, 'year');
-    addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
-
-    // ALIASES
-
-    addUnitAlias('year', 'y');
-
-    // PARSING
-
-    addRegexToken('Y',      matchSigned);
-    addRegexToken('YY',     match1to2, match2);
-    addRegexToken('YYYY',   match1to4, match4);
-    addRegexToken('YYYYY',  match1to6, match6);
-    addRegexToken('YYYYYY', match1to6, match6);
-
-    addParseToken(['YYYYY', 'YYYYYY'], YEAR);
-    addParseToken('YYYY', function (input, array) {
-        array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);
-    });
-    addParseToken('YY', function (input, array) {
-        array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
-    });
-    addParseToken('Y', function (input, array) {
-        array[YEAR] = parseInt(input, 10);
-    });
-
-    // HELPERS
-
-    function daysInYear(year) {
-        return isLeapYear(year) ? 366 : 365;
-    }
-
-    function isLeapYear(year) {
-        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-    }
-
-    // HOOKS
-
-    utils_hooks__hooks.parseTwoDigitYear = function (input) {
-        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-    };
-
-    // MOMENTS
-
-    var getSetYear = makeGetSet('FullYear', false);
-
-    function getIsLeapYear () {
-        return isLeapYear(this.year());
-    }
-
-    // start-of-first-week - start-of-year
-    function firstWeekOffset(year, dow, doy) {
-        var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
-            fwd = 7 + dow - doy,
-            // first-week day local weekday -- which local weekday is fwd
-            fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
-
-        return -fwdlw + fwd - 1;
-    }
-
-    //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-    function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
-        var localWeekday = (7 + weekday - dow) % 7,
-            weekOffset = firstWeekOffset(year, dow, doy),
-            dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
-            resYear, resDayOfYear;
-
-        if (dayOfYear <= 0) {
-            resYear = year - 1;
-            resDayOfYear = daysInYear(resYear) + dayOfYear;
-        } else if (dayOfYear > daysInYear(year)) {
-            resYear = year + 1;
-            resDayOfYear = dayOfYear - daysInYear(year);
-        } else {
-            resYear = year;
-            resDayOfYear = dayOfYear;
-        }
-
-        return {
-            year: resYear,
-            dayOfYear: resDayOfYear
-        };
-    }
-
-    function weekOfYear(mom, dow, doy) {
-        var weekOffset = firstWeekOffset(mom.year(), dow, doy),
-            week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
-            resWeek, resYear;
-
-        if (week < 1) {
-            resYear = mom.year() - 1;
-            resWeek = week + weeksInYear(resYear, dow, doy);
-        } else if (week > weeksInYear(mom.year(), dow, doy)) {
-            resWeek = week - weeksInYear(mom.year(), dow, doy);
-            resYear = mom.year() + 1;
-        } else {
-            resYear = mom.year();
-            resWeek = week;
-        }
-
-        return {
-            week: resWeek,
-            year: resYear
-        };
-    }
-
-    function weeksInYear(year, dow, doy) {
-        var weekOffset = firstWeekOffset(year, dow, doy),
-            weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
-        return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
-    }
-
-    // Pick the first defined of two or three arguments.
-    function defaults(a, b, c) {
-        if (a != null) {
-            return a;
-        }
-        if (b != null) {
-            return b;
-        }
-        return c;
-    }
-
-    function currentDateArray(config) {
-        // hooks is actually the exported moment object
-        var nowValue = new Date(utils_hooks__hooks.now());
-        if (config._useUTC) {
-            return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
-        }
-        return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
-    }
-
-    // convert an array to a date.
-    // the array should mirror the parameters below
-    // note: all values past the year are optional and will default to the lowest possible value.
-    // [year, month, day , hour, minute, second, millisecond]
-    function configFromArray (config) {
-        var i, date, input = [], currentDate, yearToUse;
-
-        if (config._d) {
-            return;
-        }
-
-        currentDate = currentDateArray(config);
-
-        //compute day of the year from weeks and weekdays
-        if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            dayOfYearFromWeekInfo(config);
-        }
-
-        //if the day of the year is set, figure out what it is
-        if (config._dayOfYear) {
-            yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
-
-            if (config._dayOfYear > daysInYear(yearToUse)) {
-                getParsingFlags(config)._overflowDayOfYear = true;
+        if (match[4]) {
+            if (tzRegex.exec(match[4])) {
+                tzFormat = 'Z';
+            } else {
+                config._isValid = false;
+                return;
             }
-
-            date = createUTCDate(yearToUse, 0, config._dayOfYear);
-            config._a[MONTH] = date.getUTCMonth();
-            config._a[DATE] = date.getUTCDate();
         }
+        config._f = dateFormat + (timeFormat || '') + (tzFormat || '');
+        configFromStringAndFormat(config);
+    } else {
+        config._isValid = false;
+    }
+}
 
-        // Default to current date.
-        // * if no year, month, day of month are given, default to today
-        // * if day of month is given, default month and year
-        // * if month is given, default only year
-        // * if year is given, don't default anything
-        for (i = 0; i < 3 && config._a[i] == null; ++i) {
-            config._a[i] = input[i] = currentDate[i];
-        }
+// date from iso format or fallback
+function configFromString(config) {
+    var matched = aspNetJsonRegex.exec(config._i);
 
-        // Zero out whatever was not defaulted, including time
-        for (; i < 7; i++) {
-            config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
-        }
-
-        // Check for 24:00:00.000
-        if (config._a[HOUR] === 24 &&
-                config._a[MINUTE] === 0 &&
-                config._a[SECOND] === 0 &&
-                config._a[MILLISECOND] === 0) {
-            config._nextDay = true;
-            config._a[HOUR] = 0;
-        }
-
-        config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
-        // Apply timezone offset from input. The actual utcOffset can be changed
-        // with parseZone.
-        if (config._tzm != null) {
-            config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
-        }
-
-        if (config._nextDay) {
-            config._a[HOUR] = 24;
-        }
+    if (matched !== null) {
+        config._d = new Date(+matched[1]);
+        return;
     }
 
-    function dayOfYearFromWeekInfo(config) {
-        var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
+    configFromISO(config);
+    if (config._isValid === false) {
+        delete config._isValid;
+        hooks.createFromInputFallback(config);
+    }
+}
 
-        w = config._w;
-        if (w.GG != null || w.W != null || w.E != null) {
-            dow = 1;
-            doy = 4;
+hooks.createFromInputFallback = deprecate(
+    'value provided is not in a recognized ISO format. moment construction falls back to js Date(), ' +
+    'which is not reliable across all browsers and versions. Non ISO date formats are ' +
+    'discouraged and will be removed in an upcoming major release. Please refer to ' +
+    'http://momentjs.com/guides/#/warnings/js-date/ for more info.',
+    function (config) {
+        config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
+    }
+);
 
-            // TODO: We need to take the current isoWeekYear, but that depends on
-            // how we interpret now (local, utc, fixed offset). So create
-            // a now version of current config (take local/utc/offset flags, and
-            // create now).
-            weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(local__createLocal(), 1, 4).year);
-            week = defaults(w.W, 1);
-            weekday = defaults(w.E, 1);
-            if (weekday < 1 || weekday > 7) {
+// Pick the first defined of two or three arguments.
+function defaults(a, b, c) {
+    if (a != null) {
+        return a;
+    }
+    if (b != null) {
+        return b;
+    }
+    return c;
+}
+
+function currentDateArray(config) {
+    // hooks is actually the exported moment object
+    var nowValue = new Date(hooks.now());
+    if (config._useUTC) {
+        return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
+    }
+    return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
+}
+
+// convert an array to a date.
+// the array should mirror the parameters below
+// note: all values past the year are optional and will default to the lowest possible value.
+// [year, month, day , hour, minute, second, millisecond]
+function configFromArray (config) {
+    var i, date, input = [], currentDate, yearToUse;
+
+    if (config._d) {
+        return;
+    }
+
+    currentDate = currentDateArray(config);
+
+    //compute day of the year from weeks and weekdays
+    if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
+        dayOfYearFromWeekInfo(config);
+    }
+
+    //if the day of the year is set, figure out what it is
+    if (config._dayOfYear) {
+        yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
+
+        if (config._dayOfYear > daysInYear(yearToUse)) {
+            getParsingFlags(config)._overflowDayOfYear = true;
+        }
+
+        date = createUTCDate(yearToUse, 0, config._dayOfYear);
+        config._a[MONTH] = date.getUTCMonth();
+        config._a[DATE] = date.getUTCDate();
+    }
+
+    // Default to current date.
+    // * if no year, month, day of month are given, default to today
+    // * if day of month is given, default month and year
+    // * if month is given, default only year
+    // * if year is given, don't default anything
+    for (i = 0; i < 3 && config._a[i] == null; ++i) {
+        config._a[i] = input[i] = currentDate[i];
+    }
+
+    // Zero out whatever was not defaulted, including time
+    for (; i < 7; i++) {
+        config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
+    }
+
+    // Check for 24:00:00.000
+    if (config._a[HOUR] === 24 &&
+            config._a[MINUTE] === 0 &&
+            config._a[SECOND] === 0 &&
+            config._a[MILLISECOND] === 0) {
+        config._nextDay = true;
+        config._a[HOUR] = 0;
+    }
+
+    config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
+    // Apply timezone offset from input. The actual utcOffset can be changed
+    // with parseZone.
+    if (config._tzm != null) {
+        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
+    }
+
+    if (config._nextDay) {
+        config._a[HOUR] = 24;
+    }
+}
+
+function dayOfYearFromWeekInfo(config) {
+    var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
+
+    w = config._w;
+    if (w.GG != null || w.W != null || w.E != null) {
+        dow = 1;
+        doy = 4;
+
+        // TODO: We need to take the current isoWeekYear, but that depends on
+        // how we interpret now (local, utc, fixed offset). So create
+        // a now version of current config (take local/utc/offset flags, and
+        // create now).
+        weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);
+        week = defaults(w.W, 1);
+        weekday = defaults(w.E, 1);
+        if (weekday < 1 || weekday > 7) {
+            weekdayOverflow = true;
+        }
+    } else {
+        dow = config._locale._week.dow;
+        doy = config._locale._week.doy;
+
+        var curWeek = weekOfYear(createLocal(), dow, doy);
+
+        weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);
+
+        // Default to current week.
+        week = defaults(w.w, curWeek.week);
+
+        if (w.d != null) {
+            // weekday -- low day numbers are considered next week
+            weekday = w.d;
+            if (weekday < 0 || weekday > 6) {
+                weekdayOverflow = true;
+            }
+        } else if (w.e != null) {
+            // local weekday -- counting starts from begining of week
+            weekday = w.e + dow;
+            if (w.e < 0 || w.e > 6) {
                 weekdayOverflow = true;
             }
         } else {
-            dow = config._locale._week.dow;
-            doy = config._locale._week.doy;
-
-            weekYear = defaults(w.gg, config._a[YEAR], weekOfYear(local__createLocal(), dow, doy).year);
-            week = defaults(w.w, 1);
-
-            if (w.d != null) {
-                // weekday -- low day numbers are considered next week
-                weekday = w.d;
-                if (weekday < 0 || weekday > 6) {
-                    weekdayOverflow = true;
-                }
-            } else if (w.e != null) {
-                // local weekday -- counting starts from begining of week
-                weekday = w.e + dow;
-                if (w.e < 0 || w.e > 6) {
-                    weekdayOverflow = true;
-                }
-            } else {
-                // default to begining of week
-                weekday = dow;
-            }
-        }
-        if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
-            getParsingFlags(config)._overflowWeeks = true;
-        } else if (weekdayOverflow != null) {
-            getParsingFlags(config)._overflowWeekday = true;
-        } else {
-            temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
+            // default to begining of week
+            weekday = dow;
         }
     }
+    if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
+        getParsingFlags(config)._overflowWeeks = true;
+    } else if (weekdayOverflow != null) {
+        getParsingFlags(config)._overflowWeekday = true;
+    } else {
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
+    }
+}
 
-    // constant that refers to the ISO standard
-    utils_hooks__hooks.ISO_8601 = function () {};
+// constant that refers to the ISO standard
+hooks.ISO_8601 = function () {};
 
-    // date from string and format string
-    function configFromStringAndFormat(config) {
-        // TODO: Move this to another part of the creation flow to prevent circular deps
-        if (config._f === utils_hooks__hooks.ISO_8601) {
-            configFromISO(config);
-            return;
+// date from string and format string
+function configFromStringAndFormat(config) {
+    // TODO: Move this to another part of the creation flow to prevent circular deps
+    if (config._f === hooks.ISO_8601) {
+        configFromISO(config);
+        return;
+    }
+
+    config._a = [];
+    getParsingFlags(config).empty = true;
+
+    // This array is used to make a Date, either with `new Date` or `Date.UTC`
+    var string = '' + config._i,
+        i, parsedInput, tokens, token, skipped,
+        stringLength = string.length,
+        totalParsedInputLength = 0;
+
+    tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
+
+    for (i = 0; i < tokens.length; i++) {
+        token = tokens[i];
+        parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+        // console.log('token', token, 'parsedInput', parsedInput,
+        //         'regex', getParseRegexForToken(token, config));
+        if (parsedInput) {
+            skipped = string.substr(0, string.indexOf(parsedInput));
+            if (skipped.length > 0) {
+                getParsingFlags(config).unusedInput.push(skipped);
+            }
+            string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
+            totalParsedInputLength += parsedInput.length;
         }
-
-        config._a = [];
-        getParsingFlags(config).empty = true;
-
-        // This array is used to make a Date, either with `new Date` or `Date.UTC`
-        var string = '' + config._i,
-            i, parsedInput, tokens, token, skipped,
-            stringLength = string.length,
-            totalParsedInputLength = 0;
-
-        tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
-
-        for (i = 0; i < tokens.length; i++) {
-            token = tokens[i];
-            parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
-            // console.log('token', token, 'parsedInput', parsedInput,
-            //         'regex', getParseRegexForToken(token, config));
+        // don't parse if it's not a known token
+        if (formatTokenFunctions[token]) {
             if (parsedInput) {
-                skipped = string.substr(0, string.indexOf(parsedInput));
-                if (skipped.length > 0) {
-                    getParsingFlags(config).unusedInput.push(skipped);
-                }
-                string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
-                totalParsedInputLength += parsedInput.length;
+                getParsingFlags(config).empty = false;
             }
-            // don't parse if it's not a known token
-            if (formatTokenFunctions[token]) {
-                if (parsedInput) {
-                    getParsingFlags(config).empty = false;
-                }
-                else {
-                    getParsingFlags(config).unusedTokens.push(token);
-                }
-                addTimeToArrayFromToken(token, parsedInput, config);
-            }
-            else if (config._strict && !parsedInput) {
+            else {
                 getParsingFlags(config).unusedTokens.push(token);
             }
+            addTimeToArrayFromToken(token, parsedInput, config);
         }
-
-        // add remaining unparsed input length to the string
-        getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;
-        if (string.length > 0) {
-            getParsingFlags(config).unusedInput.push(string);
-        }
-
-        // clear _12h flag if hour is <= 12
-        if (getParsingFlags(config).bigHour === true &&
-                config._a[HOUR] <= 12 &&
-                config._a[HOUR] > 0) {
-            getParsingFlags(config).bigHour = undefined;
-        }
-        // handle meridiem
-        config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);
-
-        configFromArray(config);
-        checkOverflow(config);
-    }
-
-
-    function meridiemFixWrap (locale, hour, meridiem) {
-        var isPm;
-
-        if (meridiem == null) {
-            // nothing to do
-            return hour;
-        }
-        if (locale.meridiemHour != null) {
-            return locale.meridiemHour(hour, meridiem);
-        } else if (locale.isPM != null) {
-            // Fallback
-            isPm = locale.isPM(meridiem);
-            if (isPm && hour < 12) {
-                hour += 12;
-            }
-            if (!isPm && hour === 12) {
-                hour = 0;
-            }
-            return hour;
-        } else {
-            // this is not supposed to happen
-            return hour;
+        else if (config._strict && !parsedInput) {
+            getParsingFlags(config).unusedTokens.push(token);
         }
     }
 
-    // date from string and array of format strings
-    function configFromStringAndArray(config) {
-        var tempConfig,
-            bestMoment,
-
-            scoreToBeat,
-            i,
-            currentScore;
-
-        if (config._f.length === 0) {
-            getParsingFlags(config).invalidFormat = true;
-            config._d = new Date(NaN);
-            return;
-        }
-
-        for (i = 0; i < config._f.length; i++) {
-            currentScore = 0;
-            tempConfig = copyConfig({}, config);
-            if (config._useUTC != null) {
-                tempConfig._useUTC = config._useUTC;
-            }
-            tempConfig._f = config._f[i];
-            configFromStringAndFormat(tempConfig);
-
-            if (!valid__isValid(tempConfig)) {
-                continue;
-            }
-
-            // if there is any input that was not parsed add a penalty for that format
-            currentScore += getParsingFlags(tempConfig).charsLeftOver;
-
-            //or tokens
-            currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;
-
-            getParsingFlags(tempConfig).score = currentScore;
-
-            if (scoreToBeat == null || currentScore < scoreToBeat) {
-                scoreToBeat = currentScore;
-                bestMoment = tempConfig;
-            }
-        }
-
-        extend(config, bestMoment || tempConfig);
+    // add remaining unparsed input length to the string
+    getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;
+    if (string.length > 0) {
+        getParsingFlags(config).unusedInput.push(string);
     }
 
-    function configFromObject(config) {
-        if (config._d) {
-            return;
-        }
-
-        var i = normalizeObjectUnits(config._i);
-        config._a = map([i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond], function (obj) {
-            return obj && parseInt(obj, 10);
-        });
-
-        configFromArray(config);
+    // clear _12h flag if hour is <= 12
+    if (config._a[HOUR] <= 12 &&
+        getParsingFlags(config).bigHour === true &&
+        config._a[HOUR] > 0) {
+        getParsingFlags(config).bigHour = undefined;
     }
 
-    function createFromConfig (config) {
-        var res = new Moment(checkOverflow(prepareConfig(config)));
-        if (res._nextDay) {
-            // Adding is smart enough around DST
-            res.add(1, 'd');
-            res._nextDay = undefined;
-        }
+    getParsingFlags(config).parsedDateParts = config._a.slice(0);
+    getParsingFlags(config).meridiem = config._meridiem;
+    // handle meridiem
+    config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);
 
-        return res;
+    configFromArray(config);
+    checkOverflow(config);
+}
+
+
+function meridiemFixWrap (locale, hour, meridiem) {
+    var isPm;
+
+    if (meridiem == null) {
+        // nothing to do
+        return hour;
+    }
+    if (locale.meridiemHour != null) {
+        return locale.meridiemHour(hour, meridiem);
+    } else if (locale.isPM != null) {
+        // Fallback
+        isPm = locale.isPM(meridiem);
+        if (isPm && hour < 12) {
+            hour += 12;
+        }
+        if (!isPm && hour === 12) {
+            hour = 0;
+        }
+        return hour;
+    } else {
+        // this is not supposed to happen
+        return hour;
+    }
+}
+
+// date from string and array of format strings
+function configFromStringAndArray(config) {
+    var tempConfig,
+        bestMoment,
+
+        scoreToBeat,
+        i,
+        currentScore;
+
+    if (config._f.length === 0) {
+        getParsingFlags(config).invalidFormat = true;
+        config._d = new Date(NaN);
+        return;
     }
 
-    function prepareConfig (config) {
-        var input = config._i,
-            format = config._f;
+    for (i = 0; i < config._f.length; i++) {
+        currentScore = 0;
+        tempConfig = copyConfig({}, config);
+        if (config._useUTC != null) {
+            tempConfig._useUTC = config._useUTC;
+        }
+        tempConfig._f = config._f[i];
+        configFromStringAndFormat(tempConfig);
 
-        config._locale = config._locale || locale_locales__getLocale(config._l);
-
-        if (input === null || (format === undefined && input === '')) {
-            return valid__createInvalid({nullInput: true});
+        if (!isValid(tempConfig)) {
+            continue;
         }
 
-        if (typeof input === 'string') {
-            config._i = input = config._locale.preparse(input);
-        }
+        // if there is any input that was not parsed add a penalty for that format
+        currentScore += getParsingFlags(tempConfig).charsLeftOver;
 
-        if (isMoment(input)) {
-            return new Moment(checkOverflow(input));
-        } else if (isArray(format)) {
-            configFromStringAndArray(config);
-        } else if (format) {
-            configFromStringAndFormat(config);
-        } else if (isDate(input)) {
-            config._d = input;
-        } else {
-            configFromInput(config);
-        }
+        //or tokens
+        currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;
 
-        if (!valid__isValid(config)) {
-            config._d = null;
-        }
+        getParsingFlags(tempConfig).score = currentScore;
 
-        return config;
-    }
-
-    function configFromInput(config) {
-        var input = config._i;
-        if (input === undefined) {
-            config._d = new Date(utils_hooks__hooks.now());
-        } else if (isDate(input)) {
-            config._d = new Date(+input);
-        } else if (typeof input === 'string') {
-            configFromString(config);
-        } else if (isArray(input)) {
-            config._a = map(input.slice(0), function (obj) {
-                return parseInt(obj, 10);
-            });
-            configFromArray(config);
-        } else if (typeof(input) === 'object') {
-            configFromObject(config);
-        } else if (typeof(input) === 'number') {
-            // from milliseconds
-            config._d = new Date(input);
-        } else {
-            utils_hooks__hooks.createFromInputFallback(config);
+        if (scoreToBeat == null || currentScore < scoreToBeat) {
+            scoreToBeat = currentScore;
+            bestMoment = tempConfig;
         }
     }
 
-    function createLocalOrUTC (input, format, locale, strict, isUTC) {
-        var c = {};
+    extend(config, bestMoment || tempConfig);
+}
 
-        if (typeof(locale) === 'boolean') {
-            strict = locale;
-            locale = undefined;
-        }
-        // object construction must be done this way.
-        // https://github.com/moment/moment/issues/1423
-        c._isAMomentObject = true;
-        c._useUTC = c._isUTC = isUTC;
-        c._l = locale;
-        c._i = input;
-        c._f = format;
-        c._strict = strict;
-
-        return createFromConfig(c);
+function configFromObject(config) {
+    if (config._d) {
+        return;
     }
 
-    function local__createLocal (input, format, locale, strict) {
-        return createLocalOrUTC(input, format, locale, strict, false);
-    }
-
-    var prototypeMin = deprecate(
-         'moment().min is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',
-         function () {
-             var other = local__createLocal.apply(null, arguments);
-             if (this.isValid() && other.isValid()) {
-                 return other < this ? this : other;
-             } else {
-                 return valid__createInvalid();
-             }
-         }
-     );
-
-    var prototypeMax = deprecate(
-        'moment().max is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',
-        function () {
-            var other = local__createLocal.apply(null, arguments);
-            if (this.isValid() && other.isValid()) {
-                return other > this ? this : other;
-            } else {
-                return valid__createInvalid();
-            }
-        }
-    );
-
-    // Pick a moment m from moments so that m[fn](other) is true for all
-    // other. This relies on the function fn to be transitive.
-    //
-    // moments should either be an array of moment objects or an array, whose
-    // first element is an array of moment objects.
-    function pickBy(fn, moments) {
-        var res, i;
-        if (moments.length === 1 && isArray(moments[0])) {
-            moments = moments[0];
-        }
-        if (!moments.length) {
-            return local__createLocal();
-        }
-        res = moments[0];
-        for (i = 1; i < moments.length; ++i) {
-            if (!moments[i].isValid() || moments[i][fn](res)) {
-                res = moments[i];
-            }
-        }
-        return res;
-    }
-
-    // TODO: Use [].sort instead?
-    function min () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isBefore', args);
-    }
-
-    function max () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isAfter', args);
-    }
-
-    var now = function () {
-        return Date.now ? Date.now() : +(new Date());
-    };
-
-    function Duration (duration) {
-        var normalizedInput = normalizeObjectUnits(duration),
-            years = normalizedInput.year || 0,
-            quarters = normalizedInput.quarter || 0,
-            months = normalizedInput.month || 0,
-            weeks = normalizedInput.week || 0,
-            days = normalizedInput.day || 0,
-            hours = normalizedInput.hour || 0,
-            minutes = normalizedInput.minute || 0,
-            seconds = normalizedInput.second || 0,
-            milliseconds = normalizedInput.millisecond || 0;
-
-        // representation for dateAddRemove
-        this._milliseconds = +milliseconds +
-            seconds * 1e3 + // 1000
-            minutes * 6e4 + // 1000 * 60
-            hours * 36e5; // 1000 * 60 * 60
-        // Because of dateAddRemove treats 24 hours as different from a
-        // day when working around DST, we need to store them separately
-        this._days = +days +
-            weeks * 7;
-        // It is impossible translate months into days without knowing
-        // which months you are are talking about, so we have to store
-        // it separately.
-        this._months = +months +
-            quarters * 3 +
-            years * 12;
-
-        this._data = {};
-
-        this._locale = locale_locales__getLocale();
-
-        this._bubble();
-    }
-
-    function isDuration (obj) {
-        return obj instanceof Duration;
-    }
-
-    // FORMATTING
-
-    function offset (token, separator) {
-        addFormatToken(token, 0, 0, function () {
-            var offset = this.utcOffset();
-            var sign = '+';
-            if (offset < 0) {
-                offset = -offset;
-                sign = '-';
-            }
-            return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);
-        });
-    }
-
-    offset('Z', ':');
-    offset('ZZ', '');
-
-    // PARSING
-
-    addRegexToken('Z',  matchShortOffset);
-    addRegexToken('ZZ', matchShortOffset);
-    addParseToken(['Z', 'ZZ'], function (input, array, config) {
-        config._useUTC = true;
-        config._tzm = offsetFromString(matchShortOffset, input);
+    var i = normalizeObjectUnits(config._i);
+    config._a = map([i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond], function (obj) {
+        return obj && parseInt(obj, 10);
     });
 
-    // HELPERS
+    configFromArray(config);
+}
 
-    // timezone chunker
-    // '+10:00' > ['10',  '00']
-    // '-1530'  > ['-15', '30']
-    var chunkOffset = /([\+\-]|\d\d)/gi;
-
-    function offsetFromString(matcher, string) {
-        var matches = ((string || '').match(matcher) || []);
-        var chunk   = matches[matches.length - 1] || [];
-        var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];
-        var minutes = +(parts[1] * 60) + toInt(parts[2]);
-
-        return parts[0] === '+' ? minutes : -minutes;
+function createFromConfig (config) {
+    var res = new Moment(checkOverflow(prepareConfig(config)));
+    if (res._nextDay) {
+        // Adding is smart enough around DST
+        res.add(1, 'd');
+        res._nextDay = undefined;
     }
 
-    // Return a moment from input, that is local/utc/zone equivalent to model.
-    function cloneWithOffset(input, model) {
-        var res, diff;
-        if (model._isUTC) {
-            res = model.clone();
-            diff = (isMoment(input) || isDate(input) ? +input : +local__createLocal(input)) - (+res);
-            // Use low-level api, because this fn is low-level api.
-            res._d.setTime(+res._d + diff);
-            utils_hooks__hooks.updateOffset(res, false);
-            return res;
+    return res;
+}
+
+function prepareConfig (config) {
+    var input = config._i,
+        format = config._f;
+
+    config._locale = config._locale || getLocale(config._l);
+
+    if (input === null || (format === undefined && input === '')) {
+        return createInvalid({nullInput: true});
+    }
+
+    if (typeof input === 'string') {
+        config._i = input = config._locale.preparse(input);
+    }
+
+    if (isMoment(input)) {
+        return new Moment(checkOverflow(input));
+    } else if (isDate(input)) {
+        config._d = input;
+    } else if (isArray(format)) {
+        configFromStringAndArray(config);
+    } else if (format) {
+        configFromStringAndFormat(config);
+    }  else {
+        configFromInput(config);
+    }
+
+    if (!isValid(config)) {
+        config._d = null;
+    }
+
+    return config;
+}
+
+function configFromInput(config) {
+    var input = config._i;
+    if (input === undefined) {
+        config._d = new Date(hooks.now());
+    } else if (isDate(input)) {
+        config._d = new Date(input.valueOf());
+    } else if (typeof input === 'string') {
+        configFromString(config);
+    } else if (isArray(input)) {
+        config._a = map(input.slice(0), function (obj) {
+            return parseInt(obj, 10);
+        });
+        configFromArray(config);
+    } else if (typeof(input) === 'object') {
+        configFromObject(config);
+    } else if (isNumber(input)) {
+        // from milliseconds
+        config._d = new Date(input);
+    } else {
+        hooks.createFromInputFallback(config);
+    }
+}
+
+function createLocalOrUTC (input, format, locale, strict, isUTC) {
+    var c = {};
+
+    if (locale === true || locale === false) {
+        strict = locale;
+        locale = undefined;
+    }
+
+    if ((isObject(input) && isObjectEmpty(input)) ||
+            (isArray(input) && input.length === 0)) {
+        input = undefined;
+    }
+    // object construction must be done this way.
+    // https://github.com/moment/moment/issues/1423
+    c._isAMomentObject = true;
+    c._useUTC = c._isUTC = isUTC;
+    c._l = locale;
+    c._i = input;
+    c._f = format;
+    c._strict = strict;
+
+    return createFromConfig(c);
+}
+
+function createLocal (input, format, locale, strict) {
+    return createLocalOrUTC(input, format, locale, strict, false);
+}
+
+var prototypeMin = deprecate(
+    'moment().min is deprecated, use moment.max instead. http://momentjs.com/guides/#/warnings/min-max/',
+    function () {
+        var other = createLocal.apply(null, arguments);
+        if (this.isValid() && other.isValid()) {
+            return other < this ? this : other;
         } else {
-            return local__createLocal(input).local();
+            return createInvalid();
         }
     }
+);
 
-    function getDateOffset (m) {
-        // On Firefox.24 Date#getTimezoneOffset returns a floating point.
-        // https://github.com/moment/moment/pull/1871
-        return -Math.round(m._d.getTimezoneOffset() / 15) * 15;
-    }
-
-    // HOOKS
-
-    // This function will be called whenever a moment is mutated.
-    // It is intended to keep the offset in sync with the timezone.
-    utils_hooks__hooks.updateOffset = function () {};
-
-    // MOMENTS
-
-    // keepLocalTime = true means only change the timezone, without
-    // affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->
-    // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset
-    // +0200, so we adjust the time as needed, to be valid.
-    //
-    // Keeping the time actually adds/subtracts (one hour)
-    // from the actual represented time. That is why we call updateOffset
-    // a second time. In case it wants us to change the offset again
-    // _changeInProgress == true case, then we have to adjust, because
-    // there is no such time in the given timezone.
-    function getSetOffset (input, keepLocalTime) {
-        var offset = this._offset || 0,
-            localAdjust;
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        if (input != null) {
-            if (typeof input === 'string') {
-                input = offsetFromString(matchShortOffset, input);
-            } else if (Math.abs(input) < 16) {
-                input = input * 60;
-            }
-            if (!this._isUTC && keepLocalTime) {
-                localAdjust = getDateOffset(this);
-            }
-            this._offset = input;
-            this._isUTC = true;
-            if (localAdjust != null) {
-                this.add(localAdjust, 'm');
-            }
-            if (offset !== input) {
-                if (!keepLocalTime || this._changeInProgress) {
-                    add_subtract__addSubtract(this, create__createDuration(input - offset, 'm'), 1, false);
-                } else if (!this._changeInProgress) {
-                    this._changeInProgress = true;
-                    utils_hooks__hooks.updateOffset(this, true);
-                    this._changeInProgress = null;
-                }
-            }
-            return this;
+var prototypeMax = deprecate(
+    'moment().max is deprecated, use moment.min instead. http://momentjs.com/guides/#/warnings/min-max/',
+    function () {
+        var other = createLocal.apply(null, arguments);
+        if (this.isValid() && other.isValid()) {
+            return other > this ? this : other;
         } else {
-            return this._isUTC ? offset : getDateOffset(this);
+            return createInvalid();
         }
     }
+);
 
-    function getSetZone (input, keepLocalTime) {
-        if (input != null) {
-            if (typeof input !== 'string') {
-                input = -input;
+// Pick a moment m from moments so that m[fn](other) is true for all
+// other. This relies on the function fn to be transitive.
+//
+// moments should either be an array of moment objects or an array, whose
+// first element is an array of moment objects.
+function pickBy(fn, moments) {
+    var res, i;
+    if (moments.length === 1 && isArray(moments[0])) {
+        moments = moments[0];
+    }
+    if (!moments.length) {
+        return createLocal();
+    }
+    res = moments[0];
+    for (i = 1; i < moments.length; ++i) {
+        if (!moments[i].isValid() || moments[i][fn](res)) {
+            res = moments[i];
+        }
+    }
+    return res;
+}
+
+// TODO: Use [].sort instead?
+function min () {
+    var args = [].slice.call(arguments, 0);
+
+    return pickBy('isBefore', args);
+}
+
+function max () {
+    var args = [].slice.call(arguments, 0);
+
+    return pickBy('isAfter', args);
+}
+
+var now = function () {
+    return Date.now ? Date.now() : +(new Date());
+};
+
+function Duration (duration) {
+    var normalizedInput = normalizeObjectUnits(duration),
+        years = normalizedInput.year || 0,
+        quarters = normalizedInput.quarter || 0,
+        months = normalizedInput.month || 0,
+        weeks = normalizedInput.week || 0,
+        days = normalizedInput.day || 0,
+        hours = normalizedInput.hour || 0,
+        minutes = normalizedInput.minute || 0,
+        seconds = normalizedInput.second || 0,
+        milliseconds = normalizedInput.millisecond || 0;
+
+    // representation for dateAddRemove
+    this._milliseconds = +milliseconds +
+        seconds * 1e3 + // 1000
+        minutes * 6e4 + // 1000 * 60
+        hours * 1000 * 60 * 60; //using 1000 * 60 * 60 instead of 36e5 to avoid floating point rounding errors https://github.com/moment/moment/issues/2978
+    // Because of dateAddRemove treats 24 hours as different from a
+    // day when working around DST, we need to store them separately
+    this._days = +days +
+        weeks * 7;
+    // It is impossible translate months into days without knowing
+    // which months you are are talking about, so we have to store
+    // it separately.
+    this._months = +months +
+        quarters * 3 +
+        years * 12;
+
+    this._data = {};
+
+    this._locale = getLocale();
+
+    this._bubble();
+}
+
+function isDuration (obj) {
+    return obj instanceof Duration;
+}
+
+function absRound (number) {
+    if (number < 0) {
+        return Math.round(-1 * number) * -1;
+    } else {
+        return Math.round(number);
+    }
+}
+
+// FORMATTING
+
+function offset (token, separator) {
+    addFormatToken(token, 0, 0, function () {
+        var offset = this.utcOffset();
+        var sign = '+';
+        if (offset < 0) {
+            offset = -offset;
+            sign = '-';
+        }
+        return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);
+    });
+}
+
+offset('Z', ':');
+offset('ZZ', '');
+
+// PARSING
+
+addRegexToken('Z',  matchShortOffset);
+addRegexToken('ZZ', matchShortOffset);
+addParseToken(['Z', 'ZZ'], function (input, array, config) {
+    config._useUTC = true;
+    config._tzm = offsetFromString(matchShortOffset, input);
+});
+
+// HELPERS
+
+// timezone chunker
+// '+10:00' > ['10',  '00']
+// '-1530'  > ['-15', '30']
+var chunkOffset = /([\+\-]|\d\d)/gi;
+
+function offsetFromString(matcher, string) {
+    var matches = (string || '').match(matcher);
+
+    if (matches === null) {
+        return null;
+    }
+
+    var chunk   = matches[matches.length - 1] || [];
+    var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];
+    var minutes = +(parts[1] * 60) + toInt(parts[2]);
+
+    return minutes === 0 ?
+      0 :
+      parts[0] === '+' ? minutes : -minutes;
+}
+
+// Return a moment from input, that is local/utc/zone equivalent to model.
+function cloneWithOffset(input, model) {
+    var res, diff;
+    if (model._isUTC) {
+        res = model.clone();
+        diff = (isMoment(input) || isDate(input) ? input.valueOf() : createLocal(input).valueOf()) - res.valueOf();
+        // Use low-level api, because this fn is low-level api.
+        res._d.setTime(res._d.valueOf() + diff);
+        hooks.updateOffset(res, false);
+        return res;
+    } else {
+        return createLocal(input).local();
+    }
+}
+
+function getDateOffset (m) {
+    // On Firefox.24 Date#getTimezoneOffset returns a floating point.
+    // https://github.com/moment/moment/pull/1871
+    return -Math.round(m._d.getTimezoneOffset() / 15) * 15;
+}
+
+// HOOKS
+
+// This function will be called whenever a moment is mutated.
+// It is intended to keep the offset in sync with the timezone.
+hooks.updateOffset = function () {};
+
+// MOMENTS
+
+// keepLocalTime = true means only change the timezone, without
+// affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->
+// 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset
+// +0200, so we adjust the time as needed, to be valid.
+//
+// Keeping the time actually adds/subtracts (one hour)
+// from the actual represented time. That is why we call updateOffset
+// a second time. In case it wants us to change the offset again
+// _changeInProgress == true case, then we have to adjust, because
+// there is no such time in the given timezone.
+function getSetOffset (input, keepLocalTime) {
+    var offset = this._offset || 0,
+        localAdjust;
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    if (input != null) {
+        if (typeof input === 'string') {
+            input = offsetFromString(matchShortOffset, input);
+            if (input === null) {
+                return this;
             }
-
-            this.utcOffset(input, keepLocalTime);
-
-            return this;
-        } else {
-            return -this.utcOffset();
+        } else if (Math.abs(input) < 16) {
+            input = input * 60;
         }
-    }
-
-    function setOffsetToUTC (keepLocalTime) {
-        return this.utcOffset(0, keepLocalTime);
-    }
-
-    function setOffsetToLocal (keepLocalTime) {
-        if (this._isUTC) {
-            this.utcOffset(0, keepLocalTime);
-            this._isUTC = false;
-
-            if (keepLocalTime) {
-                this.subtract(getDateOffset(this), 'm');
+        if (!this._isUTC && keepLocalTime) {
+            localAdjust = getDateOffset(this);
+        }
+        this._offset = input;
+        this._isUTC = true;
+        if (localAdjust != null) {
+            this.add(localAdjust, 'm');
+        }
+        if (offset !== input) {
+            if (!keepLocalTime || this._changeInProgress) {
+                addSubtract(this, createDuration(input - offset, 'm'), 1, false);
+            } else if (!this._changeInProgress) {
+                this._changeInProgress = true;
+                hooks.updateOffset(this, true);
+                this._changeInProgress = null;
             }
         }
         return this;
+    } else {
+        return this._isUTC ? offset : getDateOffset(this);
     }
+}
 
-    function setOffsetToParsedOffset () {
-        if (this._tzm) {
-            this.utcOffset(this._tzm);
-        } else if (typeof this._i === 'string') {
-            this.utcOffset(offsetFromString(matchOffset, this._i));
+function getSetZone (input, keepLocalTime) {
+    if (input != null) {
+        if (typeof input !== 'string') {
+            input = -input;
         }
+
+        this.utcOffset(input, keepLocalTime);
+
         return this;
+    } else {
+        return -this.utcOffset();
     }
+}
 
-    function hasAlignedHourOffset (input) {
-        if (!this.isValid()) {
-            return false;
+function setOffsetToUTC (keepLocalTime) {
+    return this.utcOffset(0, keepLocalTime);
+}
+
+function setOffsetToLocal (keepLocalTime) {
+    if (this._isUTC) {
+        this.utcOffset(0, keepLocalTime);
+        this._isUTC = false;
+
+        if (keepLocalTime) {
+            this.subtract(getDateOffset(this), 'm');
         }
-        input = input ? local__createLocal(input).utcOffset() : 0;
-
-        return (this.utcOffset() - input) % 60 === 0;
     }
+    return this;
+}
 
-    function isDaylightSavingTime () {
-        return (
-            this.utcOffset() > this.clone().month(0).utcOffset() ||
-            this.utcOffset() > this.clone().month(5).utcOffset()
-        );
+function setOffsetToParsedOffset () {
+    if (this._tzm != null) {
+        this.utcOffset(this._tzm);
+    } else if (typeof this._i === 'string') {
+        var tZone = offsetFromString(matchOffset, this._i);
+        if (tZone != null) {
+            this.utcOffset(tZone);
+        }
+        else {
+            this.utcOffset(0, true);
+        }
     }
+    return this;
+}
 
-    function isDaylightSavingTimeShifted () {
-        if (!isUndefined(this._isDSTShifted)) {
-            return this._isDSTShifted;
-        }
+function hasAlignedHourOffset (input) {
+    if (!this.isValid()) {
+        return false;
+    }
+    input = input ? createLocal(input).utcOffset() : 0;
 
-        var c = {};
+    return (this.utcOffset() - input) % 60 === 0;
+}
 
-        copyConfig(c, this);
-        c = prepareConfig(c);
+function isDaylightSavingTime () {
+    return (
+        this.utcOffset() > this.clone().month(0).utcOffset() ||
+        this.utcOffset() > this.clone().month(5).utcOffset()
+    );
+}
 
-        if (c._a) {
-            var other = c._isUTC ? create_utc__createUTC(c._a) : local__createLocal(c._a);
-            this._isDSTShifted = this.isValid() &&
-                compareArrays(c._a, other.toArray()) > 0;
-        } else {
-            this._isDSTShifted = false;
-        }
-
+function isDaylightSavingTimeShifted () {
+    if (!isUndefined(this._isDSTShifted)) {
         return this._isDSTShifted;
     }
 
-    function isLocal () {
-        return this.isValid() ? !this._isUTC : false;
+    var c = {};
+
+    copyConfig(c, this);
+    c = prepareConfig(c);
+
+    if (c._a) {
+        var other = c._isUTC ? createUTC(c._a) : createLocal(c._a);
+        this._isDSTShifted = this.isValid() &&
+            compareArrays(c._a, other.toArray()) > 0;
+    } else {
+        this._isDSTShifted = false;
     }
 
-    function isUtcOffset () {
-        return this.isValid() ? this._isUTC : false;
-    }
+    return this._isDSTShifted;
+}
 
-    function isUtc () {
-        return this.isValid() ? this._isUTC && this._offset === 0 : false;
-    }
+function isLocal () {
+    return this.isValid() ? !this._isUTC : false;
+}
 
-    // ASP.NET json date format regex
-    var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
+function isUtcOffset () {
+    return this.isValid() ? this._isUTC : false;
+}
 
-    // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
-    // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
-    // and further modified to allow for strings containing both week and day
-    var isoRegex = /^(-)?P(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)W)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?$/;
+function isUtc () {
+    return this.isValid() ? this._isUTC && this._offset === 0 : false;
+}
 
-    function create__createDuration (input, key) {
-        var duration = input,
-            // matching against regexp is expensive, do it on demand
-            match = null,
-            sign,
-            ret,
-            diffRes;
+// ASP.NET json date format regex
+var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;
 
-        if (isDuration(input)) {
-            duration = {
-                ms : input._milliseconds,
-                d  : input._days,
-                M  : input._months
-            };
-        } else if (typeof input === 'number') {
-            duration = {};
-            if (key) {
-                duration[key] = input;
-            } else {
-                duration.milliseconds = input;
-            }
-        } else if (!!(match = aspNetRegex.exec(input))) {
-            sign = (match[1] === '-') ? -1 : 1;
-            duration = {
-                y  : 0,
-                d  : toInt(match[DATE])        * sign,
-                h  : toInt(match[HOUR])        * sign,
-                m  : toInt(match[MINUTE])      * sign,
-                s  : toInt(match[SECOND])      * sign,
-                ms : toInt(match[MILLISECOND]) * sign
-            };
-        } else if (!!(match = isoRegex.exec(input))) {
-            sign = (match[1] === '-') ? -1 : 1;
-            duration = {
-                y : parseIso(match[2], sign),
-                M : parseIso(match[3], sign),
-                w : parseIso(match[4], sign),
-                d : parseIso(match[5], sign),
-                h : parseIso(match[6], sign),
-                m : parseIso(match[7], sign),
-                s : parseIso(match[8], sign)
-            };
-        } else if (duration == null) {// checks for null or undefined
-            duration = {};
-        } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {
-            diffRes = momentsDifference(local__createLocal(duration.from), local__createLocal(duration.to));
+// from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
+// somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
+// and further modified to allow for strings containing both week and day
+var isoRegex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
 
-            duration = {};
-            duration.ms = diffRes.milliseconds;
-            duration.M = diffRes.months;
-        }
+function createDuration (input, key) {
+    var duration = input,
+        // matching against regexp is expensive, do it on demand
+        match = null,
+        sign,
+        ret,
+        diffRes;
 
-        ret = new Duration(duration);
-
-        if (isDuration(input) && hasOwnProp(input, '_locale')) {
-            ret._locale = input._locale;
-        }
-
-        return ret;
-    }
-
-    create__createDuration.fn = Duration.prototype;
-
-    function parseIso (inp, sign) {
-        // We'd normally use ~~inp for this, but unfortunately it also
-        // converts floats to ints.
-        // inp may be undefined, so careful calling replace on it.
-        var res = inp && parseFloat(inp.replace(',', '.'));
-        // apply sign while we're at it
-        return (isNaN(res) ? 0 : res) * sign;
-    }
-
-    function positiveMomentsDifference(base, other) {
-        var res = {milliseconds: 0, months: 0};
-
-        res.months = other.month() - base.month() +
-            (other.year() - base.year()) * 12;
-        if (base.clone().add(res.months, 'M').isAfter(other)) {
-            --res.months;
-        }
-
-        res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
-
-        return res;
-    }
-
-    function momentsDifference(base, other) {
-        var res;
-        if (!(base.isValid() && other.isValid())) {
-            return {milliseconds: 0, months: 0};
-        }
-
-        other = cloneWithOffset(other, base);
-        if (base.isBefore(other)) {
-            res = positiveMomentsDifference(base, other);
-        } else {
-            res = positiveMomentsDifference(other, base);
-            res.milliseconds = -res.milliseconds;
-            res.months = -res.months;
-        }
-
-        return res;
-    }
-
-    function absRound (number) {
-        if (number < 0) {
-            return Math.round(-1 * number) * -1;
-        } else {
-            return Math.round(number);
-        }
-    }
-
-    // TODO: remove 'name' arg after deprecation is removed
-    function createAdder(direction, name) {
-        return function (val, period) {
-            var dur, tmp;
-            //invert the arguments, but complain about it
-            if (period !== null && !isNaN(+period)) {
-                deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
-                tmp = val; val = period; period = tmp;
-            }
-
-            val = typeof val === 'string' ? +val : val;
-            dur = create__createDuration(val, period);
-            add_subtract__addSubtract(this, dur, direction);
-            return this;
+    if (isDuration(input)) {
+        duration = {
+            ms : input._milliseconds,
+            d  : input._days,
+            M  : input._months
         };
-    }
-
-    function add_subtract__addSubtract (mom, duration, isAdding, updateOffset) {
-        var milliseconds = duration._milliseconds,
-            days = absRound(duration._days),
-            months = absRound(duration._months);
-
-        if (!mom.isValid()) {
-            // No op
-            return;
-        }
-
-        updateOffset = updateOffset == null ? true : updateOffset;
-
-        if (milliseconds) {
-            mom._d.setTime(+mom._d + milliseconds * isAdding);
-        }
-        if (days) {
-            get_set__set(mom, 'Date', get_set__get(mom, 'Date') + days * isAdding);
-        }
-        if (months) {
-            setMonth(mom, get_set__get(mom, 'Month') + months * isAdding);
-        }
-        if (updateOffset) {
-            utils_hooks__hooks.updateOffset(mom, days || months);
-        }
-    }
-
-    var add_subtract__add      = createAdder(1, 'add');
-    var add_subtract__subtract = createAdder(-1, 'subtract');
-
-    function moment_calendar__calendar (time, formats) {
-        // We want to compare the start of today, vs this.
-        // Getting start-of-today depends on whether we're local/utc/offset or not.
-        var now = time || local__createLocal(),
-            sod = cloneWithOffset(now, this).startOf('day'),
-            diff = this.diff(sod, 'days', true),
-            format = diff < -6 ? 'sameElse' :
-                diff < -1 ? 'lastWeek' :
-                diff < 0 ? 'lastDay' :
-                diff < 1 ? 'sameDay' :
-                diff < 2 ? 'nextDay' :
-                diff < 7 ? 'nextWeek' : 'sameElse';
-
-        var output = formats && (isFunction(formats[format]) ? formats[format]() : formats[format]);
-
-        return this.format(output || this.localeData().calendar(format, this, local__createLocal(now)));
-    }
-
-    function clone () {
-        return new Moment(this);
-    }
-
-    function isAfter (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input);
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
-        }
-        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
-        if (units === 'millisecond') {
-            return +this > +localInput;
+    } else if (isNumber(input)) {
+        duration = {};
+        if (key) {
+            duration[key] = input;
         } else {
-            return +localInput < +this.clone().startOf(units);
+            duration.milliseconds = input;
         }
+    } else if (!!(match = aspNetRegex.exec(input))) {
+        sign = (match[1] === '-') ? -1 : 1;
+        duration = {
+            y  : 0,
+            d  : toInt(match[DATE])                         * sign,
+            h  : toInt(match[HOUR])                         * sign,
+            m  : toInt(match[MINUTE])                       * sign,
+            s  : toInt(match[SECOND])                       * sign,
+            ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
+        };
+    } else if (!!(match = isoRegex.exec(input))) {
+        sign = (match[1] === '-') ? -1 : 1;
+        duration = {
+            y : parseIso(match[2], sign),
+            M : parseIso(match[3], sign),
+            w : parseIso(match[4], sign),
+            d : parseIso(match[5], sign),
+            h : parseIso(match[6], sign),
+            m : parseIso(match[7], sign),
+            s : parseIso(match[8], sign)
+        };
+    } else if (duration == null) {// checks for null or undefined
+        duration = {};
+    } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {
+        diffRes = momentsDifference(createLocal(duration.from), createLocal(duration.to));
+
+        duration = {};
+        duration.ms = diffRes.milliseconds;
+        duration.M = diffRes.months;
     }
 
-    function isBefore (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input);
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
+    ret = new Duration(duration);
+
+    if (isDuration(input) && hasOwnProp(input, '_locale')) {
+        ret._locale = input._locale;
+    }
+
+    return ret;
+}
+
+createDuration.fn = Duration.prototype;
+
+function parseIso (inp, sign) {
+    // We'd normally use ~~inp for this, but unfortunately it also
+    // converts floats to ints.
+    // inp may be undefined, so careful calling replace on it.
+    var res = inp && parseFloat(inp.replace(',', '.'));
+    // apply sign while we're at it
+    return (isNaN(res) ? 0 : res) * sign;
+}
+
+function positiveMomentsDifference(base, other) {
+    var res = {milliseconds: 0, months: 0};
+
+    res.months = other.month() - base.month() +
+        (other.year() - base.year()) * 12;
+    if (base.clone().add(res.months, 'M').isAfter(other)) {
+        --res.months;
+    }
+
+    res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
+
+    return res;
+}
+
+function momentsDifference(base, other) {
+    var res;
+    if (!(base.isValid() && other.isValid())) {
+        return {milliseconds: 0, months: 0};
+    }
+
+    other = cloneWithOffset(other, base);
+    if (base.isBefore(other)) {
+        res = positiveMomentsDifference(base, other);
+    } else {
+        res = positiveMomentsDifference(other, base);
+        res.milliseconds = -res.milliseconds;
+        res.months = -res.months;
+    }
+
+    return res;
+}
+
+// TODO: remove 'name' arg after deprecation is removed
+function createAdder(direction, name) {
+    return function (val, period) {
+        var dur, tmp;
+        //invert the arguments, but complain about it
+        if (period !== null && !isNaN(+period)) {
+            deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period). ' +
+            'See http://momentjs.com/guides/#/warnings/add-inverted-param/ for more info.');
+            tmp = val; val = period; period = tmp;
         }
-        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
-        if (units === 'millisecond') {
-            return +this < +localInput;
+
+        val = typeof val === 'string' ? +val : val;
+        dur = createDuration(val, period);
+        addSubtract(this, dur, direction);
+        return this;
+    };
+}
+
+function addSubtract (mom, duration, isAdding, updateOffset) {
+    var milliseconds = duration._milliseconds,
+        days = absRound(duration._days),
+        months = absRound(duration._months);
+
+    if (!mom.isValid()) {
+        // No op
+        return;
+    }
+
+    updateOffset = updateOffset == null ? true : updateOffset;
+
+    if (milliseconds) {
+        mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);
+    }
+    if (days) {
+        set$1(mom, 'Date', get(mom, 'Date') + days * isAdding);
+    }
+    if (months) {
+        setMonth(mom, get(mom, 'Month') + months * isAdding);
+    }
+    if (updateOffset) {
+        hooks.updateOffset(mom, days || months);
+    }
+}
+
+var add      = createAdder(1, 'add');
+var subtract = createAdder(-1, 'subtract');
+
+function getCalendarFormat(myMoment, now) {
+    var diff = myMoment.diff(now, 'days', true);
+    return diff < -6 ? 'sameElse' :
+            diff < -1 ? 'lastWeek' :
+            diff < 0 ? 'lastDay' :
+            diff < 1 ? 'sameDay' :
+            diff < 2 ? 'nextDay' :
+            diff < 7 ? 'nextWeek' : 'sameElse';
+}
+
+function calendar$1 (time, formats) {
+    // We want to compare the start of today, vs this.
+    // Getting start-of-today depends on whether we're local/utc/offset or not.
+    var now = time || createLocal(),
+        sod = cloneWithOffset(now, this).startOf('day'),
+        format = hooks.calendarFormat(this, sod) || 'sameElse';
+
+    var output = formats && (isFunction(formats[format]) ? formats[format].call(this, now) : formats[format]);
+
+    return this.format(output || this.localeData().calendar(format, this, createLocal(now)));
+}
+
+function clone () {
+    return new Moment(this);
+}
+
+function isAfter (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input);
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() > localInput.valueOf();
+    } else {
+        return localInput.valueOf() < this.clone().startOf(units).valueOf();
+    }
+}
+
+function isBefore (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input);
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() < localInput.valueOf();
+    } else {
+        return this.clone().endOf(units).valueOf() < localInput.valueOf();
+    }
+}
+
+function isBetween (from, to, units, inclusivity) {
+    inclusivity = inclusivity || '()';
+    return (inclusivity[0] === '(' ? this.isAfter(from, units) : !this.isBefore(from, units)) &&
+        (inclusivity[1] === ')' ? this.isBefore(to, units) : !this.isAfter(to, units));
+}
+
+function isSame (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input),
+        inputMs;
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(units || 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() === localInput.valueOf();
+    } else {
+        inputMs = localInput.valueOf();
+        return this.clone().startOf(units).valueOf() <= inputMs && inputMs <= this.clone().endOf(units).valueOf();
+    }
+}
+
+function isSameOrAfter (input, units) {
+    return this.isSame(input, units) || this.isAfter(input,units);
+}
+
+function isSameOrBefore (input, units) {
+    return this.isSame(input, units) || this.isBefore(input,units);
+}
+
+function diff (input, units, asFloat) {
+    var that,
+        zoneDelta,
+        delta, output;
+
+    if (!this.isValid()) {
+        return NaN;
+    }
+
+    that = cloneWithOffset(input, this);
+
+    if (!that.isValid()) {
+        return NaN;
+    }
+
+    zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4;
+
+    units = normalizeUnits(units);
+
+    if (units === 'year' || units === 'month' || units === 'quarter') {
+        output = monthDiff(this, that);
+        if (units === 'quarter') {
+            output = output / 3;
+        } else if (units === 'year') {
+            output = output / 12;
+        }
+    } else {
+        delta = this - that;
+        output = units === 'second' ? delta / 1e3 : // 1000
+            units === 'minute' ? delta / 6e4 : // 1000 * 60
+            units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60
+            units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
+            units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
+            delta;
+    }
+    return asFloat ? output : absFloor(output);
+}
+
+function monthDiff (a, b) {
+    // difference in months
+    var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),
+        // b is in (anchor - 1 month, anchor + 1 month)
+        anchor = a.clone().add(wholeMonthDiff, 'months'),
+        anchor2, adjust;
+
+    if (b - anchor < 0) {
+        anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');
+        // linear across the month
+        adjust = (b - anchor) / (anchor - anchor2);
+    } else {
+        anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');
+        // linear across the month
+        adjust = (b - anchor) / (anchor2 - anchor);
+    }
+
+    //check for negative zero, return zero if negative zero
+    return -(wholeMonthDiff + adjust) || 0;
+}
+
+hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
+hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:ss[Z]';
+
+function toString () {
+    return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
+}
+
+function toISOString () {
+    var m = this.clone().utc();
+    if (0 < m.year() && m.year() <= 9999) {
+        if (isFunction(Date.prototype.toISOString)) {
+            // native implementation is ~50x faster, use it when we can
+            return this.toDate().toISOString();
         } else {
-            return +this.clone().endOf(units) < +localInput;
+            return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
         }
+    } else {
+        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
     }
+}
 
-    function isBetween (from, to, units) {
-        return this.isAfter(from, units) && this.isBefore(to, units);
+/**
+ * Return a human readable representation of a moment that can
+ * also be evaluated to get a new moment which is the same
+ *
+ * @link https://nodejs.org/dist/latest/docs/api/util.html#util_custom_inspect_function_on_objects
+ */
+function inspect () {
+    if (!this.isValid()) {
+        return 'moment.invalid(/* ' + this._i + ' */)';
     }
+    var func = 'moment';
+    var zone = '';
+    if (!this.isLocal()) {
+        func = this.utcOffset() === 0 ? 'moment.utc' : 'moment.parseZone';
+        zone = 'Z';
+    }
+    var prefix = '[' + func + '("]';
+    var year = (0 < this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';
+    var datetime = '-MM-DD[T]HH:mm:ss.SSS';
+    var suffix = zone + '[")]';
 
-    function isSame (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input),
-            inputMs;
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
+    return this.format(prefix + year + datetime + suffix);
+}
+
+function format (inputString) {
+    if (!inputString) {
+        inputString = this.isUtc() ? hooks.defaultFormatUtc : hooks.defaultFormat;
+    }
+    var output = formatMoment(this, inputString);
+    return this.localeData().postformat(output);
+}
+
+function from (time, withoutSuffix) {
+    if (this.isValid() &&
+            ((isMoment(time) && time.isValid()) ||
+             createLocal(time).isValid())) {
+        return createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
+    } else {
+        return this.localeData().invalidDate();
+    }
+}
+
+function fromNow (withoutSuffix) {
+    return this.from(createLocal(), withoutSuffix);
+}
+
+function to (time, withoutSuffix) {
+    if (this.isValid() &&
+            ((isMoment(time) && time.isValid()) ||
+             createLocal(time).isValid())) {
+        return createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);
+    } else {
+        return this.localeData().invalidDate();
+    }
+}
+
+function toNow (withoutSuffix) {
+    return this.to(createLocal(), withoutSuffix);
+}
+
+// If passed a locale key, it will set the locale for this
+// instance.  Otherwise, it will return the locale configuration
+// variables for this instance.
+function locale (key) {
+    var newLocaleData;
+
+    if (key === undefined) {
+        return this._locale._abbr;
+    } else {
+        newLocaleData = getLocale(key);
+        if (newLocaleData != null) {
+            this._locale = newLocaleData;
         }
-        units = normalizeUnits(units || 'millisecond');
-        if (units === 'millisecond') {
-            return +this === +localInput;
-        } else {
-            inputMs = +localInput;
-            return +(this.clone().startOf(units)) <= inputMs && inputMs <= +(this.clone().endOf(units));
-        }
+        return this;
     }
+}
 
-    function isSameOrAfter (input, units) {
-        return this.isSame(input, units) || this.isAfter(input,units);
-    }
-
-    function isSameOrBefore (input, units) {
-        return this.isSame(input, units) || this.isBefore(input,units);
-    }
-
-    function diff (input, units, asFloat) {
-        var that,
-            zoneDelta,
-            delta, output;
-
-        if (!this.isValid()) {
-            return NaN;
-        }
-
-        that = cloneWithOffset(input, this);
-
-        if (!that.isValid()) {
-            return NaN;
-        }
-
-        zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4;
-
-        units = normalizeUnits(units);
-
-        if (units === 'year' || units === 'month' || units === 'quarter') {
-            output = monthDiff(this, that);
-            if (units === 'quarter') {
-                output = output / 3;
-            } else if (units === 'year') {
-                output = output / 12;
-            }
-        } else {
-            delta = this - that;
-            output = units === 'second' ? delta / 1e3 : // 1000
-                units === 'minute' ? delta / 6e4 : // 1000 * 60
-                units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60
-                units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
-                units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
-                delta;
-        }
-        return asFloat ? output : absFloor(output);
-    }
-
-    function monthDiff (a, b) {
-        // difference in months
-        var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),
-            // b is in (anchor - 1 month, anchor + 1 month)
-            anchor = a.clone().add(wholeMonthDiff, 'months'),
-            anchor2, adjust;
-
-        if (b - anchor < 0) {
-            anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');
-            // linear across the month
-            adjust = (b - anchor) / (anchor - anchor2);
-        } else {
-            anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');
-            // linear across the month
-            adjust = (b - anchor) / (anchor2 - anchor);
-        }
-
-        return -(wholeMonthDiff + adjust);
-    }
-
-    utils_hooks__hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
-
-    function toString () {
-        return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
-    }
-
-    function moment_format__toISOString () {
-        var m = this.clone().utc();
-        if (0 < m.year() && m.year() <= 9999) {
-            if (isFunction(Date.prototype.toISOString)) {
-                // native implementation is ~50x faster, use it when we can
-                return this.toDate().toISOString();
-            } else {
-                return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-            }
-        } else {
-            return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-        }
-    }
-
-    function format (inputString) {
-        var output = formatMoment(this, inputString || utils_hooks__hooks.defaultFormat);
-        return this.localeData().postformat(output);
-    }
-
-    function from (time, withoutSuffix) {
-        if (this.isValid() &&
-                ((isMoment(time) && time.isValid()) ||
-                 local__createLocal(time).isValid())) {
-            return create__createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
-        } else {
-            return this.localeData().invalidDate();
-        }
-    }
-
-    function fromNow (withoutSuffix) {
-        return this.from(local__createLocal(), withoutSuffix);
-    }
-
-    function to (time, withoutSuffix) {
-        if (this.isValid() &&
-                ((isMoment(time) && time.isValid()) ||
-                 local__createLocal(time).isValid())) {
-            return create__createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);
-        } else {
-            return this.localeData().invalidDate();
-        }
-    }
-
-    function toNow (withoutSuffix) {
-        return this.to(local__createLocal(), withoutSuffix);
-    }
-
-    // If passed a locale key, it will set the locale for this
-    // instance.  Otherwise, it will return the locale configuration
-    // variables for this instance.
-    function locale (key) {
-        var newLocaleData;
-
+var lang = deprecate(
+    'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
+    function (key) {
         if (key === undefined) {
-            return this._locale._abbr;
+            return this.localeData();
         } else {
-            newLocaleData = locale_locales__getLocale(key);
-            if (newLocaleData != null) {
-                this._locale = newLocaleData;
-            }
-            return this;
+            return this.locale(key);
         }
     }
+);
 
-    var lang = deprecate(
-        'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
-        function (key) {
-            if (key === undefined) {
-                return this.localeData();
-            } else {
-                return this.locale(key);
-            }
-        }
-    );
+function localeData () {
+    return this._locale;
+}
 
-    function localeData () {
-        return this._locale;
-    }
-
-    function startOf (units) {
-        units = normalizeUnits(units);
-        // the following switch intentionally omits break keywords
-        // to utilize falling through the cases.
-        switch (units) {
+function startOf (units) {
+    units = normalizeUnits(units);
+    // the following switch intentionally omits break keywords
+    // to utilize falling through the cases.
+    switch (units) {
         case 'year':
             this.month(0);
             /* falls through */
@@ -24551,6 +28139,7 @@ if (typeof exports !== "undefined") {
         case 'week':
         case 'isoWeek':
         case 'day':
+        case 'date':
             this.hours(0);
             /* falls through */
         case 'hour':
@@ -24561,1415 +28150,1193 @@ if (typeof exports !== "undefined") {
             /* falls through */
         case 'second':
             this.milliseconds(0);
-        }
+    }
 
-        // weeks are a special case
-        if (units === 'week') {
-            this.weekday(0);
-        }
-        if (units === 'isoWeek') {
-            this.isoWeekday(1);
-        }
+    // weeks are a special case
+    if (units === 'week') {
+        this.weekday(0);
+    }
+    if (units === 'isoWeek') {
+        this.isoWeekday(1);
+    }
 
-        // quarters are also special
-        if (units === 'quarter') {
-            this.month(Math.floor(this.month() / 3) * 3);
-        }
+    // quarters are also special
+    if (units === 'quarter') {
+        this.month(Math.floor(this.month() / 3) * 3);
+    }
 
+    return this;
+}
+
+function endOf (units) {
+    units = normalizeUnits(units);
+    if (units === undefined || units === 'millisecond') {
         return this;
     }
 
-    function endOf (units) {
-        units = normalizeUnits(units);
-        if (units === undefined || units === 'millisecond') {
-            return this;
-        }
-        return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+    // 'date' is an alias for 'day', so it should be considered as such.
+    if (units === 'date') {
+        units = 'day';
     }
 
-    function to_type__valueOf () {
-        return +this._d - ((this._offset || 0) * 60000);
-    }
+    return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+}
 
-    function unix () {
-        return Math.floor(+this / 1000);
-    }
+function valueOf () {
+    return this._d.valueOf() - ((this._offset || 0) * 60000);
+}
 
-    function toDate () {
-        return this._offset ? new Date(+this) : this._d;
-    }
+function unix () {
+    return Math.floor(this.valueOf() / 1000);
+}
 
-    function toArray () {
-        var m = this;
-        return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];
-    }
+function toDate () {
+    return new Date(this.valueOf());
+}
 
-    function toObject () {
-        var m = this;
-        return {
-            years: m.year(),
-            months: m.month(),
-            date: m.date(),
-            hours: m.hours(),
-            minutes: m.minutes(),
-            seconds: m.seconds(),
-            milliseconds: m.milliseconds()
-        };
-    }
+function toArray () {
+    var m = this;
+    return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];
+}
 
-    function toJSON () {
-        // new Date(NaN).toJSON() === null
-        return this.isValid() ? this.toISOString() : null;
-    }
-
-    function moment_valid__isValid () {
-        return valid__isValid(this);
-    }
-
-    function parsingFlags () {
-        return extend({}, getParsingFlags(this));
-    }
-
-    function invalidAt () {
-        return getParsingFlags(this).overflow;
-    }
-
-    function creationData() {
-        return {
-            input: this._i,
-            format: this._f,
-            locale: this._locale,
-            isUTC: this._isUTC,
-            strict: this._strict
-        };
-    }
-
-    // FORMATTING
-
-    addFormatToken(0, ['gg', 2], 0, function () {
-        return this.weekYear() % 100;
-    });
-
-    addFormatToken(0, ['GG', 2], 0, function () {
-        return this.isoWeekYear() % 100;
-    });
-
-    function addWeekYearFormatToken (token, getter) {
-        addFormatToken(0, [token, token.length], 0, getter);
-    }
-
-    addWeekYearFormatToken('gggg',     'weekYear');
-    addWeekYearFormatToken('ggggg',    'weekYear');
-    addWeekYearFormatToken('GGGG',  'isoWeekYear');
-    addWeekYearFormatToken('GGGGG', 'isoWeekYear');
-
-    // ALIASES
-
-    addUnitAlias('weekYear', 'gg');
-    addUnitAlias('isoWeekYear', 'GG');
-
-    // PARSING
-
-    addRegexToken('G',      matchSigned);
-    addRegexToken('g',      matchSigned);
-    addRegexToken('GG',     match1to2, match2);
-    addRegexToken('gg',     match1to2, match2);
-    addRegexToken('GGGG',   match1to4, match4);
-    addRegexToken('gggg',   match1to4, match4);
-    addRegexToken('GGGGG',  match1to6, match6);
-    addRegexToken('ggggg',  match1to6, match6);
-
-    addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {
-        week[token.substr(0, 2)] = toInt(input);
-    });
-
-    addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {
-        week[token] = utils_hooks__hooks.parseTwoDigitYear(input);
-    });
-
-    // MOMENTS
-
-    function getSetWeekYear (input) {
-        return getSetWeekYearHelper.call(this,
-                input,
-                this.week(),
-                this.weekday(),
-                this.localeData()._week.dow,
-                this.localeData()._week.doy);
-    }
-
-    function getSetISOWeekYear (input) {
-        return getSetWeekYearHelper.call(this,
-                input, this.isoWeek(), this.isoWeekday(), 1, 4);
-    }
-
-    function getISOWeeksInYear () {
-        return weeksInYear(this.year(), 1, 4);
-    }
-
-    function getWeeksInYear () {
-        var weekInfo = this.localeData()._week;
-        return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
-    }
-
-    function getSetWeekYearHelper(input, week, weekday, dow, doy) {
-        var weeksTarget;
-        if (input == null) {
-            return weekOfYear(this, dow, doy).year;
-        } else {
-            weeksTarget = weeksInYear(input, dow, doy);
-            if (week > weeksTarget) {
-                week = weeksTarget;
-            }
-            return setWeekAll.call(this, input, week, weekday, dow, doy);
-        }
-    }
-
-    function setWeekAll(weekYear, week, weekday, dow, doy) {
-        var dayOfYearData = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy),
-            date = createUTCDate(dayOfYearData.year, 0, dayOfYearData.dayOfYear);
-
-        this.year(date.getUTCFullYear());
-        this.month(date.getUTCMonth());
-        this.date(date.getUTCDate());
-        return this;
-    }
-
-    // FORMATTING
-
-    addFormatToken('Q', 0, 'Qo', 'quarter');
-
-    // ALIASES
-
-    addUnitAlias('quarter', 'Q');
-
-    // PARSING
-
-    addRegexToken('Q', match1);
-    addParseToken('Q', function (input, array) {
-        array[MONTH] = (toInt(input) - 1) * 3;
-    });
-
-    // MOMENTS
-
-    function getSetQuarter (input) {
-        return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
-    }
-
-    // FORMATTING
-
-    addFormatToken('w', ['ww', 2], 'wo', 'week');
-    addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
-
-    // ALIASES
-
-    addUnitAlias('week', 'w');
-    addUnitAlias('isoWeek', 'W');
-
-    // PARSING
-
-    addRegexToken('w',  match1to2);
-    addRegexToken('ww', match1to2, match2);
-    addRegexToken('W',  match1to2);
-    addRegexToken('WW', match1to2, match2);
-
-    addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
-        week[token.substr(0, 1)] = toInt(input);
-    });
-
-    // HELPERS
-
-    // LOCALES
-
-    function localeWeek (mom) {
-        return weekOfYear(mom, this._week.dow, this._week.doy).week;
-    }
-
-    var defaultLocaleWeek = {
-        dow : 0, // Sunday is the first day of the week.
-        doy : 6  // The week that contains Jan 1st is the first week of the year.
+function toObject () {
+    var m = this;
+    return {
+        years: m.year(),
+        months: m.month(),
+        date: m.date(),
+        hours: m.hours(),
+        minutes: m.minutes(),
+        seconds: m.seconds(),
+        milliseconds: m.milliseconds()
     };
-
-    function localeFirstDayOfWeek () {
-        return this._week.dow;
-    }
-
-    function localeFirstDayOfYear () {
-        return this._week.doy;
-    }
-
-    // MOMENTS
-
-    function getSetWeek (input) {
-        var week = this.localeData().week(this);
-        return input == null ? week : this.add((input - week) * 7, 'd');
-    }
-
-    function getSetISOWeek (input) {
-        var week = weekOfYear(this, 1, 4).week;
-        return input == null ? week : this.add((input - week) * 7, 'd');
-    }
-
-    // FORMATTING
-
-    addFormatToken('D', ['DD', 2], 'Do', 'date');
-
-    // ALIASES
-
-    addUnitAlias('date', 'D');
-
-    // PARSING
-
-    addRegexToken('D',  match1to2);
-    addRegexToken('DD', match1to2, match2);
-    addRegexToken('Do', function (isStrict, locale) {
-        return isStrict ? locale._ordinalParse : locale._ordinalParseLenient;
-    });
-
-    addParseToken(['D', 'DD'], DATE);
-    addParseToken('Do', function (input, array) {
-        array[DATE] = toInt(input.match(match1to2)[0], 10);
-    });
-
-    // MOMENTS
-
-    var getSetDayOfMonth = makeGetSet('Date', true);
-
-    // FORMATTING
-
-    addFormatToken('d', 0, 'do', 'day');
-
-    addFormatToken('dd', 0, 0, function (format) {
-        return this.localeData().weekdaysMin(this, format);
-    });
-
-    addFormatToken('ddd', 0, 0, function (format) {
-        return this.localeData().weekdaysShort(this, format);
-    });
-
-    addFormatToken('dddd', 0, 0, function (format) {
-        return this.localeData().weekdays(this, format);
-    });
-
-    addFormatToken('e', 0, 0, 'weekday');
-    addFormatToken('E', 0, 0, 'isoWeekday');
-
-    // ALIASES
-
-    addUnitAlias('day', 'd');
-    addUnitAlias('weekday', 'e');
-    addUnitAlias('isoWeekday', 'E');
-
-    // PARSING
-
-    addRegexToken('d',    match1to2);
-    addRegexToken('e',    match1to2);
-    addRegexToken('E',    match1to2);
-    addRegexToken('dd',   matchWord);
-    addRegexToken('ddd',  matchWord);
-    addRegexToken('dddd', matchWord);
-
-    addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
-        var weekday = config._locale.weekdaysParse(input, token, config._strict);
-        // if we didn't get a weekday name, mark the date as invalid
-        if (weekday != null) {
-            week.d = weekday;
-        } else {
-            getParsingFlags(config).invalidWeekday = input;
-        }
-    });
-
-    addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
-        week[token] = toInt(input);
-    });
-
-    // HELPERS
-
-    function parseWeekday(input, locale) {
-        if (typeof input !== 'string') {
-            return input;
-        }
-
-        if (!isNaN(input)) {
-            return parseInt(input, 10);
-        }
-
-        input = locale.weekdaysParse(input);
-        if (typeof input === 'number') {
-            return input;
-        }
-
-        return null;
-    }
-
-    // LOCALES
-
-    var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
-    function localeWeekdays (m, format) {
-        return isArray(this._weekdays) ? this._weekdays[m.day()] :
-            this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
-    }
-
-    var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
-    function localeWeekdaysShort (m) {
-        return this._weekdaysShort[m.day()];
-    }
-
-    var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
-    function localeWeekdaysMin (m) {
-        return this._weekdaysMin[m.day()];
-    }
-
-    function localeWeekdaysParse (weekdayName, format, strict) {
-        var i, mom, regex;
-
-        if (!this._weekdaysParse) {
-            this._weekdaysParse = [];
-            this._minWeekdaysParse = [];
-            this._shortWeekdaysParse = [];
-            this._fullWeekdaysParse = [];
-        }
-
-        for (i = 0; i < 7; i++) {
-            // make the regex if we don't have it already
-
-            mom = local__createLocal([2000, 1]).day(i);
-            if (strict && !this._fullWeekdaysParse[i]) {
-                this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
-                this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
-                this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
-            }
-            if (!this._weekdaysParse[i]) {
-                regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
-            }
-            // test the regex
-            if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
-                return i;
-            }
-        }
-    }
-
-    // MOMENTS
-
-    function getSetDayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
-        if (input != null) {
-            input = parseWeekday(input, this.localeData());
-            return this.add(input - day, 'd');
-        } else {
-            return day;
-        }
-    }
-
-    function getSetLocaleDayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
-        return input == null ? weekday : this.add(input - weekday, 'd');
-    }
-
-    function getSetISODayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        // behaves the same as moment#day except
-        // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
-        // as a setter, sunday should belong to the previous week.
-        return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
-    }
-
-    // FORMATTING
-
-    addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');
-
-    // ALIASES
-
-    addUnitAlias('dayOfYear', 'DDD');
-
-    // PARSING
-
-    addRegexToken('DDD',  match1to3);
-    addRegexToken('DDDD', match3);
-    addParseToken(['DDD', 'DDDD'], function (input, array, config) {
-        config._dayOfYear = toInt(input);
-    });
-
-    // HELPERS
-
-    // MOMENTS
-
-    function getSetDayOfYear (input) {
-        var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;
-        return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
-    }
-
-    // FORMATTING
-
-    function hFormat() {
-        return this.hours() % 12 || 12;
-    }
-
-    addFormatToken('H', ['HH', 2], 0, 'hour');
-    addFormatToken('h', ['hh', 2], 0, hFormat);
-
-    addFormatToken('hmm', 0, 0, function () {
-        return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
-    });
-
-    addFormatToken('hmmss', 0, 0, function () {
-        return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
-            zeroFill(this.seconds(), 2);
-    });
-
-    addFormatToken('Hmm', 0, 0, function () {
-        return '' + this.hours() + zeroFill(this.minutes(), 2);
-    });
-
-    addFormatToken('Hmmss', 0, 0, function () {
-        return '' + this.hours() + zeroFill(this.minutes(), 2) +
-            zeroFill(this.seconds(), 2);
-    });
-
-    function meridiem (token, lowercase) {
-        addFormatToken(token, 0, 0, function () {
-            return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
-        });
-    }
-
-    meridiem('a', true);
-    meridiem('A', false);
-
-    // ALIASES
-
-    addUnitAlias('hour', 'h');
-
-    // PARSING
-
-    function matchMeridiem (isStrict, locale) {
-        return locale._meridiemParse;
-    }
-
-    addRegexToken('a',  matchMeridiem);
-    addRegexToken('A',  matchMeridiem);
-    addRegexToken('H',  match1to2);
-    addRegexToken('h',  match1to2);
-    addRegexToken('HH', match1to2, match2);
-    addRegexToken('hh', match1to2, match2);
-
-    addRegexToken('hmm', match3to4);
-    addRegexToken('hmmss', match5to6);
-    addRegexToken('Hmm', match3to4);
-    addRegexToken('Hmmss', match5to6);
-
-    addParseToken(['H', 'HH'], HOUR);
-    addParseToken(['a', 'A'], function (input, array, config) {
-        config._isPm = config._locale.isPM(input);
-        config._meridiem = input;
-    });
-    addParseToken(['h', 'hh'], function (input, array, config) {
-        array[HOUR] = toInt(input);
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('hmm', function (input, array, config) {
-        var pos = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos));
-        array[MINUTE] = toInt(input.substr(pos));
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('hmmss', function (input, array, config) {
-        var pos1 = input.length - 4;
-        var pos2 = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos1));
-        array[MINUTE] = toInt(input.substr(pos1, 2));
-        array[SECOND] = toInt(input.substr(pos2));
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('Hmm', function (input, array, config) {
-        var pos = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos));
-        array[MINUTE] = toInt(input.substr(pos));
-    });
-    addParseToken('Hmmss', function (input, array, config) {
-        var pos1 = input.length - 4;
-        var pos2 = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos1));
-        array[MINUTE] = toInt(input.substr(pos1, 2));
-        array[SECOND] = toInt(input.substr(pos2));
-    });
-
-    // LOCALES
-
-    function localeIsPM (input) {
-        // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
-        // Using charAt should be more compatible.
-        return ((input + '').toLowerCase().charAt(0) === 'p');
-    }
-
-    var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
-    function localeMeridiem (hours, minutes, isLower) {
-        if (hours > 11) {
-            return isLower ? 'pm' : 'PM';
-        } else {
-            return isLower ? 'am' : 'AM';
-        }
-    }
-
-
-    // MOMENTS
-
-    // Setting the hour should keep the time, because the user explicitly
-    // specified which hour he wants. So trying to maintain the same hour (in
-    // a new timezone) makes sense. Adding/subtracting hours does not follow
-    // this rule.
-    var getSetHour = makeGetSet('Hours', true);
-
-    // FORMATTING
-
-    addFormatToken('m', ['mm', 2], 0, 'minute');
-
-    // ALIASES
-
-    addUnitAlias('minute', 'm');
-
-    // PARSING
-
-    addRegexToken('m',  match1to2);
-    addRegexToken('mm', match1to2, match2);
-    addParseToken(['m', 'mm'], MINUTE);
-
-    // MOMENTS
-
-    var getSetMinute = makeGetSet('Minutes', false);
-
-    // FORMATTING
-
-    addFormatToken('s', ['ss', 2], 0, 'second');
-
-    // ALIASES
-
-    addUnitAlias('second', 's');
-
-    // PARSING
-
-    addRegexToken('s',  match1to2);
-    addRegexToken('ss', match1to2, match2);
-    addParseToken(['s', 'ss'], SECOND);
-
-    // MOMENTS
-
-    var getSetSecond = makeGetSet('Seconds', false);
-
-    // FORMATTING
-
-    addFormatToken('S', 0, 0, function () {
-        return ~~(this.millisecond() / 100);
-    });
-
-    addFormatToken(0, ['SS', 2], 0, function () {
-        return ~~(this.millisecond() / 10);
-    });
-
-    addFormatToken(0, ['SSS', 3], 0, 'millisecond');
-    addFormatToken(0, ['SSSS', 4], 0, function () {
-        return this.millisecond() * 10;
-    });
-    addFormatToken(0, ['SSSSS', 5], 0, function () {
-        return this.millisecond() * 100;
-    });
-    addFormatToken(0, ['SSSSSS', 6], 0, function () {
-        return this.millisecond() * 1000;
-    });
-    addFormatToken(0, ['SSSSSSS', 7], 0, function () {
-        return this.millisecond() * 10000;
-    });
-    addFormatToken(0, ['SSSSSSSS', 8], 0, function () {
-        return this.millisecond() * 100000;
-    });
-    addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {
-        return this.millisecond() * 1000000;
-    });
-
-
-    // ALIASES
-
-    addUnitAlias('millisecond', 'ms');
-
-    // PARSING
-
-    addRegexToken('S',    match1to3, match1);
-    addRegexToken('SS',   match1to3, match2);
-    addRegexToken('SSS',  match1to3, match3);
-
-    var token;
-    for (token = 'SSSS'; token.length <= 9; token += 'S') {
-        addRegexToken(token, matchUnsigned);
-    }
-
-    function parseMs(input, array) {
-        array[MILLISECOND] = toInt(('0.' + input) * 1000);
-    }
-
-    for (token = 'S'; token.length <= 9; token += 'S') {
-        addParseToken(token, parseMs);
-    }
-    // MOMENTS
-
-    var getSetMillisecond = makeGetSet('Milliseconds', false);
-
-    // FORMATTING
-
-    addFormatToken('z',  0, 0, 'zoneAbbr');
-    addFormatToken('zz', 0, 0, 'zoneName');
-
-    // MOMENTS
-
-    function getZoneAbbr () {
-        return this._isUTC ? 'UTC' : '';
-    }
-
-    function getZoneName () {
-        return this._isUTC ? 'Coordinated Universal Time' : '';
-    }
-
-    var momentPrototype__proto = Moment.prototype;
-
-    momentPrototype__proto.add               = add_subtract__add;
-    momentPrototype__proto.calendar          = moment_calendar__calendar;
-    momentPrototype__proto.clone             = clone;
-    momentPrototype__proto.diff              = diff;
-    momentPrototype__proto.endOf             = endOf;
-    momentPrototype__proto.format            = format;
-    momentPrototype__proto.from              = from;
-    momentPrototype__proto.fromNow           = fromNow;
-    momentPrototype__proto.to                = to;
-    momentPrototype__proto.toNow             = toNow;
-    momentPrototype__proto.get               = getSet;
-    momentPrototype__proto.invalidAt         = invalidAt;
-    momentPrototype__proto.isAfter           = isAfter;
-    momentPrototype__proto.isBefore          = isBefore;
-    momentPrototype__proto.isBetween         = isBetween;
-    momentPrototype__proto.isSame            = isSame;
-    momentPrototype__proto.isSameOrAfter     = isSameOrAfter;
-    momentPrototype__proto.isSameOrBefore    = isSameOrBefore;
-    momentPrototype__proto.isValid           = moment_valid__isValid;
-    momentPrototype__proto.lang              = lang;
-    momentPrototype__proto.locale            = locale;
-    momentPrototype__proto.localeData        = localeData;
-    momentPrototype__proto.max               = prototypeMax;
-    momentPrototype__proto.min               = prototypeMin;
-    momentPrototype__proto.parsingFlags      = parsingFlags;
-    momentPrototype__proto.set               = getSet;
-    momentPrototype__proto.startOf           = startOf;
-    momentPrototype__proto.subtract          = add_subtract__subtract;
-    momentPrototype__proto.toArray           = toArray;
-    momentPrototype__proto.toObject          = toObject;
-    momentPrototype__proto.toDate            = toDate;
-    momentPrototype__proto.toISOString       = moment_format__toISOString;
-    momentPrototype__proto.toJSON            = toJSON;
-    momentPrototype__proto.toString          = toString;
-    momentPrototype__proto.unix              = unix;
-    momentPrototype__proto.valueOf           = to_type__valueOf;
-    momentPrototype__proto.creationData      = creationData;
-
-    // Year
-    momentPrototype__proto.year       = getSetYear;
-    momentPrototype__proto.isLeapYear = getIsLeapYear;
-
-    // Week Year
-    momentPrototype__proto.weekYear    = getSetWeekYear;
-    momentPrototype__proto.isoWeekYear = getSetISOWeekYear;
-
-    // Quarter
-    momentPrototype__proto.quarter = momentPrototype__proto.quarters = getSetQuarter;
-
-    // Month
-    momentPrototype__proto.month       = getSetMonth;
-    momentPrototype__proto.daysInMonth = getDaysInMonth;
-
-    // Week
-    momentPrototype__proto.week           = momentPrototype__proto.weeks        = getSetWeek;
-    momentPrototype__proto.isoWeek        = momentPrototype__proto.isoWeeks     = getSetISOWeek;
-    momentPrototype__proto.weeksInYear    = getWeeksInYear;
-    momentPrototype__proto.isoWeeksInYear = getISOWeeksInYear;
-
-    // Day
-    momentPrototype__proto.date       = getSetDayOfMonth;
-    momentPrototype__proto.day        = momentPrototype__proto.days             = getSetDayOfWeek;
-    momentPrototype__proto.weekday    = getSetLocaleDayOfWeek;
-    momentPrototype__proto.isoWeekday = getSetISODayOfWeek;
-    momentPrototype__proto.dayOfYear  = getSetDayOfYear;
-
-    // Hour
-    momentPrototype__proto.hour = momentPrototype__proto.hours = getSetHour;
-
-    // Minute
-    momentPrototype__proto.minute = momentPrototype__proto.minutes = getSetMinute;
-
-    // Second
-    momentPrototype__proto.second = momentPrototype__proto.seconds = getSetSecond;
-
-    // Millisecond
-    momentPrototype__proto.millisecond = momentPrototype__proto.milliseconds = getSetMillisecond;
-
-    // Offset
-    momentPrototype__proto.utcOffset            = getSetOffset;
-    momentPrototype__proto.utc                  = setOffsetToUTC;
-    momentPrototype__proto.local                = setOffsetToLocal;
-    momentPrototype__proto.parseZone            = setOffsetToParsedOffset;
-    momentPrototype__proto.hasAlignedHourOffset = hasAlignedHourOffset;
-    momentPrototype__proto.isDST                = isDaylightSavingTime;
-    momentPrototype__proto.isDSTShifted         = isDaylightSavingTimeShifted;
-    momentPrototype__proto.isLocal              = isLocal;
-    momentPrototype__proto.isUtcOffset          = isUtcOffset;
-    momentPrototype__proto.isUtc                = isUtc;
-    momentPrototype__proto.isUTC                = isUtc;
-
-    // Timezone
-    momentPrototype__proto.zoneAbbr = getZoneAbbr;
-    momentPrototype__proto.zoneName = getZoneName;
-
-    // Deprecations
-    momentPrototype__proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);
-    momentPrototype__proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);
-    momentPrototype__proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);
-    momentPrototype__proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. https://github.com/moment/moment/issues/1779', getSetZone);
-
-    var momentPrototype = momentPrototype__proto;
-
-    function moment__createUnix (input) {
-        return local__createLocal(input * 1000);
-    }
-
-    function moment__createInZone () {
-        return local__createLocal.apply(null, arguments).parseZone();
-    }
-
-    var defaultCalendar = {
-        sameDay : '[Today at] LT',
-        nextDay : '[Tomorrow at] LT',
-        nextWeek : 'dddd [at] LT',
-        lastDay : '[Yesterday at] LT',
-        lastWeek : '[Last] dddd [at] LT',
-        sameElse : 'L'
+}
+
+function toJSON () {
+    // new Date(NaN).toJSON() === null
+    return this.isValid() ? this.toISOString() : null;
+}
+
+function isValid$1 () {
+    return isValid(this);
+}
+
+function parsingFlags () {
+    return extend({}, getParsingFlags(this));
+}
+
+function invalidAt () {
+    return getParsingFlags(this).overflow;
+}
+
+function creationData() {
+    return {
+        input: this._i,
+        format: this._f,
+        locale: this._locale,
+        isUTC: this._isUTC,
+        strict: this._strict
     };
+}
 
-    function locale_calendar__calendar (key, mom, now) {
-        var output = this._calendar[key];
-        return isFunction(output) ? output.call(mom, now) : output;
-    }
+// FORMATTING
 
-    var defaultLongDateFormat = {
-        LTS  : 'h:mm:ss A',
-        LT   : 'h:mm A',
-        L    : 'MM/DD/YYYY',
-        LL   : 'MMMM D, YYYY',
-        LLL  : 'MMMM D, YYYY h:mm A',
-        LLLL : 'dddd, MMMM D, YYYY h:mm A'
-    };
+addFormatToken(0, ['gg', 2], 0, function () {
+    return this.weekYear() % 100;
+});
 
-    function longDateFormat (key) {
-        var format = this._longDateFormat[key],
-            formatUpper = this._longDateFormat[key.toUpperCase()];
+addFormatToken(0, ['GG', 2], 0, function () {
+    return this.isoWeekYear() % 100;
+});
 
-        if (format || !formatUpper) {
-            return format;
+function addWeekYearFormatToken (token, getter) {
+    addFormatToken(0, [token, token.length], 0, getter);
+}
+
+addWeekYearFormatToken('gggg',     'weekYear');
+addWeekYearFormatToken('ggggg',    'weekYear');
+addWeekYearFormatToken('GGGG',  'isoWeekYear');
+addWeekYearFormatToken('GGGGG', 'isoWeekYear');
+
+// ALIASES
+
+addUnitAlias('weekYear', 'gg');
+addUnitAlias('isoWeekYear', 'GG');
+
+// PRIORITY
+
+addUnitPriority('weekYear', 1);
+addUnitPriority('isoWeekYear', 1);
+
+
+// PARSING
+
+addRegexToken('G',      matchSigned);
+addRegexToken('g',      matchSigned);
+addRegexToken('GG',     match1to2, match2);
+addRegexToken('gg',     match1to2, match2);
+addRegexToken('GGGG',   match1to4, match4);
+addRegexToken('gggg',   match1to4, match4);
+addRegexToken('GGGGG',  match1to6, match6);
+addRegexToken('ggggg',  match1to6, match6);
+
+addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {
+    week[token.substr(0, 2)] = toInt(input);
+});
+
+addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {
+    week[token] = hooks.parseTwoDigitYear(input);
+});
+
+// MOMENTS
+
+function getSetWeekYear (input) {
+    return getSetWeekYearHelper.call(this,
+            input,
+            this.week(),
+            this.weekday(),
+            this.localeData()._week.dow,
+            this.localeData()._week.doy);
+}
+
+function getSetISOWeekYear (input) {
+    return getSetWeekYearHelper.call(this,
+            input, this.isoWeek(), this.isoWeekday(), 1, 4);
+}
+
+function getISOWeeksInYear () {
+    return weeksInYear(this.year(), 1, 4);
+}
+
+function getWeeksInYear () {
+    var weekInfo = this.localeData()._week;
+    return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+}
+
+function getSetWeekYearHelper(input, week, weekday, dow, doy) {
+    var weeksTarget;
+    if (input == null) {
+        return weekOfYear(this, dow, doy).year;
+    } else {
+        weeksTarget = weeksInYear(input, dow, doy);
+        if (week > weeksTarget) {
+            week = weeksTarget;
         }
+        return setWeekAll.call(this, input, week, weekday, dow, doy);
+    }
+}
 
-        this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
-            return val.slice(1);
-        });
+function setWeekAll(weekYear, week, weekday, dow, doy) {
+    var dayOfYearData = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy),
+        date = createUTCDate(dayOfYearData.year, 0, dayOfYearData.dayOfYear);
 
-        return this._longDateFormat[key];
+    this.year(date.getUTCFullYear());
+    this.month(date.getUTCMonth());
+    this.date(date.getUTCDate());
+    return this;
+}
+
+// FORMATTING
+
+addFormatToken('Q', 0, 'Qo', 'quarter');
+
+// ALIASES
+
+addUnitAlias('quarter', 'Q');
+
+// PRIORITY
+
+addUnitPriority('quarter', 7);
+
+// PARSING
+
+addRegexToken('Q', match1);
+addParseToken('Q', function (input, array) {
+    array[MONTH] = (toInt(input) - 1) * 3;
+});
+
+// MOMENTS
+
+function getSetQuarter (input) {
+    return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
+}
+
+// FORMATTING
+
+addFormatToken('D', ['DD', 2], 'Do', 'date');
+
+// ALIASES
+
+addUnitAlias('date', 'D');
+
+// PRIOROITY
+addUnitPriority('date', 9);
+
+// PARSING
+
+addRegexToken('D',  match1to2);
+addRegexToken('DD', match1to2, match2);
+addRegexToken('Do', function (isStrict, locale) {
+    return isStrict ? locale._ordinalParse : locale._ordinalParseLenient;
+});
+
+addParseToken(['D', 'DD'], DATE);
+addParseToken('Do', function (input, array) {
+    array[DATE] = toInt(input.match(match1to2)[0], 10);
+});
+
+// MOMENTS
+
+var getSetDayOfMonth = makeGetSet('Date', true);
+
+// FORMATTING
+
+addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');
+
+// ALIASES
+
+addUnitAlias('dayOfYear', 'DDD');
+
+// PRIORITY
+addUnitPriority('dayOfYear', 4);
+
+// PARSING
+
+addRegexToken('DDD',  match1to3);
+addRegexToken('DDDD', match3);
+addParseToken(['DDD', 'DDDD'], function (input, array, config) {
+    config._dayOfYear = toInt(input);
+});
+
+// HELPERS
+
+// MOMENTS
+
+function getSetDayOfYear (input) {
+    var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;
+    return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
+}
+
+// FORMATTING
+
+addFormatToken('m', ['mm', 2], 0, 'minute');
+
+// ALIASES
+
+addUnitAlias('minute', 'm');
+
+// PRIORITY
+
+addUnitPriority('minute', 14);
+
+// PARSING
+
+addRegexToken('m',  match1to2);
+addRegexToken('mm', match1to2, match2);
+addParseToken(['m', 'mm'], MINUTE);
+
+// MOMENTS
+
+var getSetMinute = makeGetSet('Minutes', false);
+
+// FORMATTING
+
+addFormatToken('s', ['ss', 2], 0, 'second');
+
+// ALIASES
+
+addUnitAlias('second', 's');
+
+// PRIORITY
+
+addUnitPriority('second', 15);
+
+// PARSING
+
+addRegexToken('s',  match1to2);
+addRegexToken('ss', match1to2, match2);
+addParseToken(['s', 'ss'], SECOND);
+
+// MOMENTS
+
+var getSetSecond = makeGetSet('Seconds', false);
+
+// FORMATTING
+
+addFormatToken('S', 0, 0, function () {
+    return ~~(this.millisecond() / 100);
+});
+
+addFormatToken(0, ['SS', 2], 0, function () {
+    return ~~(this.millisecond() / 10);
+});
+
+addFormatToken(0, ['SSS', 3], 0, 'millisecond');
+addFormatToken(0, ['SSSS', 4], 0, function () {
+    return this.millisecond() * 10;
+});
+addFormatToken(0, ['SSSSS', 5], 0, function () {
+    return this.millisecond() * 100;
+});
+addFormatToken(0, ['SSSSSS', 6], 0, function () {
+    return this.millisecond() * 1000;
+});
+addFormatToken(0, ['SSSSSSS', 7], 0, function () {
+    return this.millisecond() * 10000;
+});
+addFormatToken(0, ['SSSSSSSS', 8], 0, function () {
+    return this.millisecond() * 100000;
+});
+addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {
+    return this.millisecond() * 1000000;
+});
+
+
+// ALIASES
+
+addUnitAlias('millisecond', 'ms');
+
+// PRIORITY
+
+addUnitPriority('millisecond', 16);
+
+// PARSING
+
+addRegexToken('S',    match1to3, match1);
+addRegexToken('SS',   match1to3, match2);
+addRegexToken('SSS',  match1to3, match3);
+
+var token;
+for (token = 'SSSS'; token.length <= 9; token += 'S') {
+    addRegexToken(token, matchUnsigned);
+}
+
+function parseMs(input, array) {
+    array[MILLISECOND] = toInt(('0.' + input) * 1000);
+}
+
+for (token = 'S'; token.length <= 9; token += 'S') {
+    addParseToken(token, parseMs);
+}
+// MOMENTS
+
+var getSetMillisecond = makeGetSet('Milliseconds', false);
+
+// FORMATTING
+
+addFormatToken('z',  0, 0, 'zoneAbbr');
+addFormatToken('zz', 0, 0, 'zoneName');
+
+// MOMENTS
+
+function getZoneAbbr () {
+    return this._isUTC ? 'UTC' : '';
+}
+
+function getZoneName () {
+    return this._isUTC ? 'Coordinated Universal Time' : '';
+}
+
+var proto = Moment.prototype;
+
+proto.add               = add;
+proto.calendar          = calendar$1;
+proto.clone             = clone;
+proto.diff              = diff;
+proto.endOf             = endOf;
+proto.format            = format;
+proto.from              = from;
+proto.fromNow           = fromNow;
+proto.to                = to;
+proto.toNow             = toNow;
+proto.get               = stringGet;
+proto.invalidAt         = invalidAt;
+proto.isAfter           = isAfter;
+proto.isBefore          = isBefore;
+proto.isBetween         = isBetween;
+proto.isSame            = isSame;
+proto.isSameOrAfter     = isSameOrAfter;
+proto.isSameOrBefore    = isSameOrBefore;
+proto.isValid           = isValid$1;
+proto.lang              = lang;
+proto.locale            = locale;
+proto.localeData        = localeData;
+proto.max               = prototypeMax;
+proto.min               = prototypeMin;
+proto.parsingFlags      = parsingFlags;
+proto.set               = stringSet;
+proto.startOf           = startOf;
+proto.subtract          = subtract;
+proto.toArray           = toArray;
+proto.toObject          = toObject;
+proto.toDate            = toDate;
+proto.toISOString       = toISOString;
+proto.inspect           = inspect;
+proto.toJSON            = toJSON;
+proto.toString          = toString;
+proto.unix              = unix;
+proto.valueOf           = valueOf;
+proto.creationData      = creationData;
+
+// Year
+proto.year       = getSetYear;
+proto.isLeapYear = getIsLeapYear;
+
+// Week Year
+proto.weekYear    = getSetWeekYear;
+proto.isoWeekYear = getSetISOWeekYear;
+
+// Quarter
+proto.quarter = proto.quarters = getSetQuarter;
+
+// Month
+proto.month       = getSetMonth;
+proto.daysInMonth = getDaysInMonth;
+
+// Week
+proto.week           = proto.weeks        = getSetWeek;
+proto.isoWeek        = proto.isoWeeks     = getSetISOWeek;
+proto.weeksInYear    = getWeeksInYear;
+proto.isoWeeksInYear = getISOWeeksInYear;
+
+// Day
+proto.date       = getSetDayOfMonth;
+proto.day        = proto.days             = getSetDayOfWeek;
+proto.weekday    = getSetLocaleDayOfWeek;
+proto.isoWeekday = getSetISODayOfWeek;
+proto.dayOfYear  = getSetDayOfYear;
+
+// Hour
+proto.hour = proto.hours = getSetHour;
+
+// Minute
+proto.minute = proto.minutes = getSetMinute;
+
+// Second
+proto.second = proto.seconds = getSetSecond;
+
+// Millisecond
+proto.millisecond = proto.milliseconds = getSetMillisecond;
+
+// Offset
+proto.utcOffset            = getSetOffset;
+proto.utc                  = setOffsetToUTC;
+proto.local                = setOffsetToLocal;
+proto.parseZone            = setOffsetToParsedOffset;
+proto.hasAlignedHourOffset = hasAlignedHourOffset;
+proto.isDST                = isDaylightSavingTime;
+proto.isLocal              = isLocal;
+proto.isUtcOffset          = isUtcOffset;
+proto.isUtc                = isUtc;
+proto.isUTC                = isUtc;
+
+// Timezone
+proto.zoneAbbr = getZoneAbbr;
+proto.zoneName = getZoneName;
+
+// Deprecations
+proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);
+proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);
+proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);
+proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. http://momentjs.com/guides/#/warnings/zone/', getSetZone);
+proto.isDSTShifted = deprecate('isDSTShifted is deprecated. See http://momentjs.com/guides/#/warnings/dst-shifted/ for more information', isDaylightSavingTimeShifted);
+
+function createUnix (input) {
+    return createLocal(input * 1000);
+}
+
+function createInZone () {
+    return createLocal.apply(null, arguments).parseZone();
+}
+
+function preParsePostFormat (string) {
+    return string;
+}
+
+var proto$1 = Locale.prototype;
+
+proto$1.calendar        = calendar;
+proto$1.longDateFormat  = longDateFormat;
+proto$1.invalidDate     = invalidDate;
+proto$1.ordinal         = ordinal;
+proto$1.preparse        = preParsePostFormat;
+proto$1.postformat      = preParsePostFormat;
+proto$1.relativeTime    = relativeTime;
+proto$1.pastFuture      = pastFuture;
+proto$1.set             = set;
+
+// Month
+proto$1.months            =        localeMonths;
+proto$1.monthsShort       =        localeMonthsShort;
+proto$1.monthsParse       =        localeMonthsParse;
+proto$1.monthsRegex       = monthsRegex;
+proto$1.monthsShortRegex  = monthsShortRegex;
+
+// Week
+proto$1.week = localeWeek;
+proto$1.firstDayOfYear = localeFirstDayOfYear;
+proto$1.firstDayOfWeek = localeFirstDayOfWeek;
+
+// Day of Week
+proto$1.weekdays       =        localeWeekdays;
+proto$1.weekdaysMin    =        localeWeekdaysMin;
+proto$1.weekdaysShort  =        localeWeekdaysShort;
+proto$1.weekdaysParse  =        localeWeekdaysParse;
+
+proto$1.weekdaysRegex       =        weekdaysRegex;
+proto$1.weekdaysShortRegex  =        weekdaysShortRegex;
+proto$1.weekdaysMinRegex    =        weekdaysMinRegex;
+
+// Hours
+proto$1.isPM = localeIsPM;
+proto$1.meridiem = localeMeridiem;
+
+function get$1 (format, index, field, setter) {
+    var locale = getLocale();
+    var utc = createUTC().set(setter, index);
+    return locale[field](utc, format);
+}
+
+function listMonthsImpl (format, index, field) {
+    if (isNumber(format)) {
+        index = format;
+        format = undefined;
     }
 
-    var defaultInvalidDate = 'Invalid date';
+    format = format || '';
 
-    function invalidDate () {
-        return this._invalidDate;
+    if (index != null) {
+        return get$1(format, index, field, 'month');
     }
 
-    var defaultOrdinal = '%d';
-    var defaultOrdinalParse = /\d{1,2}/;
-
-    function ordinal (number) {
-        return this._ordinal.replace('%d', number);
+    var i;
+    var out = [];
+    for (i = 0; i < 12; i++) {
+        out[i] = get$1(format, i, field, 'month');
     }
+    return out;
+}
 
-    function preParsePostFormat (string) {
-        return string;
-    }
-
-    var defaultRelativeTime = {
-        future : 'in %s',
-        past   : '%s ago',
-        s  : 'a few seconds',
-        m  : 'a minute',
-        mm : '%d minutes',
-        h  : 'an hour',
-        hh : '%d hours',
-        d  : 'a day',
-        dd : '%d days',
-        M  : 'a month',
-        MM : '%d months',
-        y  : 'a year',
-        yy : '%d years'
-    };
-
-    function relative__relativeTime (number, withoutSuffix, string, isFuture) {
-        var output = this._relativeTime[string];
-        return (isFunction(output)) ?
-            output(number, withoutSuffix, string, isFuture) :
-            output.replace(/%d/i, number);
-    }
-
-    function pastFuture (diff, output) {
-        var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
-        return isFunction(format) ? format(output) : format.replace(/%s/i, output);
-    }
-
-    var prototype__proto = Locale.prototype;
-
-    prototype__proto._calendar       = defaultCalendar;
-    prototype__proto.calendar        = locale_calendar__calendar;
-    prototype__proto._longDateFormat = defaultLongDateFormat;
-    prototype__proto.longDateFormat  = longDateFormat;
-    prototype__proto._invalidDate    = defaultInvalidDate;
-    prototype__proto.invalidDate     = invalidDate;
-    prototype__proto._ordinal        = defaultOrdinal;
-    prototype__proto.ordinal         = ordinal;
-    prototype__proto._ordinalParse   = defaultOrdinalParse;
-    prototype__proto.preparse        = preParsePostFormat;
-    prototype__proto.postformat      = preParsePostFormat;
-    prototype__proto._relativeTime   = defaultRelativeTime;
-    prototype__proto.relativeTime    = relative__relativeTime;
-    prototype__proto.pastFuture      = pastFuture;
-    prototype__proto.set             = locale_set__set;
-
-    // Month
-    prototype__proto.months            =        localeMonths;
-    prototype__proto._months           = defaultLocaleMonths;
-    prototype__proto.monthsShort       =        localeMonthsShort;
-    prototype__proto._monthsShort      = defaultLocaleMonthsShort;
-    prototype__proto.monthsParse       =        localeMonthsParse;
-    prototype__proto._monthsRegex      = defaultMonthsRegex;
-    prototype__proto.monthsRegex       = monthsRegex;
-    prototype__proto._monthsShortRegex = defaultMonthsShortRegex;
-    prototype__proto.monthsShortRegex  = monthsShortRegex;
-
-    // Week
-    prototype__proto.week = localeWeek;
-    prototype__proto._week = defaultLocaleWeek;
-    prototype__proto.firstDayOfYear = localeFirstDayOfYear;
-    prototype__proto.firstDayOfWeek = localeFirstDayOfWeek;
-
-    // Day of Week
-    prototype__proto.weekdays       =        localeWeekdays;
-    prototype__proto._weekdays      = defaultLocaleWeekdays;
-    prototype__proto.weekdaysMin    =        localeWeekdaysMin;
-    prototype__proto._weekdaysMin   = defaultLocaleWeekdaysMin;
-    prototype__proto.weekdaysShort  =        localeWeekdaysShort;
-    prototype__proto._weekdaysShort = defaultLocaleWeekdaysShort;
-    prototype__proto.weekdaysParse  =        localeWeekdaysParse;
-
-    // Hours
-    prototype__proto.isPM = localeIsPM;
-    prototype__proto._meridiemParse = defaultLocaleMeridiemParse;
-    prototype__proto.meridiem = localeMeridiem;
-
-    function lists__get (format, index, field, setter) {
-        var locale = locale_locales__getLocale();
-        var utc = create_utc__createUTC().set(setter, index);
-        return locale[field](utc, format);
-    }
-
-    function list (format, index, field, count, setter) {
-        if (typeof format === 'number') {
+// ()
+// (5)
+// (fmt, 5)
+// (fmt)
+// (true)
+// (true, 5)
+// (true, fmt, 5)
+// (true, fmt)
+function listWeekdaysImpl (localeSorted, format, index, field) {
+    if (typeof localeSorted === 'boolean') {
+        if (isNumber(format)) {
             index = format;
             format = undefined;
         }
 
         format = format || '';
+    } else {
+        format = localeSorted;
+        index = format;
+        localeSorted = false;
 
-        if (index != null) {
-            return lists__get(format, index, field, setter);
+        if (isNumber(format)) {
+            index = format;
+            format = undefined;
         }
 
-        var i;
-        var out = [];
-        for (i = 0; i < count; i++) {
-            out[i] = lists__get(format, i, field, setter);
+        format = format || '';
+    }
+
+    var locale = getLocale(),
+        shift = localeSorted ? locale._week.dow : 0;
+
+    if (index != null) {
+        return get$1(format, (index + shift) % 7, field, 'day');
+    }
+
+    var i;
+    var out = [];
+    for (i = 0; i < 7; i++) {
+        out[i] = get$1(format, (i + shift) % 7, field, 'day');
+    }
+    return out;
+}
+
+function listMonths (format, index) {
+    return listMonthsImpl(format, index, 'months');
+}
+
+function listMonthsShort (format, index) {
+    return listMonthsImpl(format, index, 'monthsShort');
+}
+
+function listWeekdays (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdays');
+}
+
+function listWeekdaysShort (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysShort');
+}
+
+function listWeekdaysMin (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysMin');
+}
+
+getSetGlobalLocale('en', {
+    ordinalParse: /\d{1,2}(th|st|nd|rd)/,
+    ordinal : function (number) {
+        var b = number % 10,
+            output = (toInt(number % 100 / 10) === 1) ? 'th' :
+            (b === 1) ? 'st' :
+            (b === 2) ? 'nd' :
+            (b === 3) ? 'rd' : 'th';
+        return number + output;
+    }
+});
+
+// Side effect imports
+hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', getSetGlobalLocale);
+hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', getLocale);
+
+var mathAbs = Math.abs;
+
+function abs () {
+    var data           = this._data;
+
+    this._milliseconds = mathAbs(this._milliseconds);
+    this._days         = mathAbs(this._days);
+    this._months       = mathAbs(this._months);
+
+    data.milliseconds  = mathAbs(data.milliseconds);
+    data.seconds       = mathAbs(data.seconds);
+    data.minutes       = mathAbs(data.minutes);
+    data.hours         = mathAbs(data.hours);
+    data.months        = mathAbs(data.months);
+    data.years         = mathAbs(data.years);
+
+    return this;
+}
+
+function addSubtract$1 (duration, input, value, direction) {
+    var other = createDuration(input, value);
+
+    duration._milliseconds += direction * other._milliseconds;
+    duration._days         += direction * other._days;
+    duration._months       += direction * other._months;
+
+    return duration._bubble();
+}
+
+// supports only 2.0-style add(1, 's') or add(duration)
+function add$1 (input, value) {
+    return addSubtract$1(this, input, value, 1);
+}
+
+// supports only 2.0-style subtract(1, 's') or subtract(duration)
+function subtract$1 (input, value) {
+    return addSubtract$1(this, input, value, -1);
+}
+
+function absCeil (number) {
+    if (number < 0) {
+        return Math.floor(number);
+    } else {
+        return Math.ceil(number);
+    }
+}
+
+function bubble () {
+    var milliseconds = this._milliseconds;
+    var days         = this._days;
+    var months       = this._months;
+    var data         = this._data;
+    var seconds, minutes, hours, years, monthsFromDays;
+
+    // if we have a mix of positive and negative values, bubble down first
+    // check: https://github.com/moment/moment/issues/2166
+    if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||
+            (milliseconds <= 0 && days <= 0 && months <= 0))) {
+        milliseconds += absCeil(monthsToDays(months) + days) * 864e5;
+        days = 0;
+        months = 0;
+    }
+
+    // The following code bubbles up values, see the tests for
+    // examples of what that means.
+    data.milliseconds = milliseconds % 1000;
+
+    seconds           = absFloor(milliseconds / 1000);
+    data.seconds      = seconds % 60;
+
+    minutes           = absFloor(seconds / 60);
+    data.minutes      = minutes % 60;
+
+    hours             = absFloor(minutes / 60);
+    data.hours        = hours % 24;
+
+    days += absFloor(hours / 24);
+
+    // convert days to months
+    monthsFromDays = absFloor(daysToMonths(days));
+    months += monthsFromDays;
+    days -= absCeil(monthsToDays(monthsFromDays));
+
+    // 12 months -> 1 year
+    years = absFloor(months / 12);
+    months %= 12;
+
+    data.days   = days;
+    data.months = months;
+    data.years  = years;
+
+    return this;
+}
+
+function daysToMonths (days) {
+    // 400 years have 146097 days (taking into account leap year rules)
+    // 400 years have 12 months === 4800
+    return days * 4800 / 146097;
+}
+
+function monthsToDays (months) {
+    // the reverse of daysToMonths
+    return months * 146097 / 4800;
+}
+
+function as (units) {
+    var days;
+    var months;
+    var milliseconds = this._milliseconds;
+
+    units = normalizeUnits(units);
+
+    if (units === 'month' || units === 'year') {
+        days   = this._days   + milliseconds / 864e5;
+        months = this._months + daysToMonths(days);
+        return units === 'month' ? months : months / 12;
+    } else {
+        // handle milliseconds separately because of floating point math errors (issue #1867)
+        days = this._days + Math.round(monthsToDays(this._months));
+        switch (units) {
+            case 'week'   : return days / 7     + milliseconds / 6048e5;
+            case 'day'    : return days         + milliseconds / 864e5;
+            case 'hour'   : return days * 24    + milliseconds / 36e5;
+            case 'minute' : return days * 1440  + milliseconds / 6e4;
+            case 'second' : return days * 86400 + milliseconds / 1000;
+            // Math.floor prevents floating point math errors here
+            case 'millisecond': return Math.floor(days * 864e5) + milliseconds;
+            default: throw new Error('Unknown unit ' + units);
         }
-        return out;
     }
+}
 
-    function lists__listMonths (format, index) {
-        return list(format, index, 'months', 12, 'month');
-    }
+// TODO: Use this.as('ms')?
+function valueOf$1 () {
+    return (
+        this._milliseconds +
+        this._days * 864e5 +
+        (this._months % 12) * 2592e6 +
+        toInt(this._months / 12) * 31536e6
+    );
+}
 
-    function lists__listMonthsShort (format, index) {
-        return list(format, index, 'monthsShort', 12, 'month');
-    }
-
-    function lists__listWeekdays (format, index) {
-        return list(format, index, 'weekdays', 7, 'day');
-    }
-
-    function lists__listWeekdaysShort (format, index) {
-        return list(format, index, 'weekdaysShort', 7, 'day');
-    }
-
-    function lists__listWeekdaysMin (format, index) {
-        return list(format, index, 'weekdaysMin', 7, 'day');
-    }
-
-    locale_locales__getSetGlobalLocale('en', {
-        ordinalParse: /\d{1,2}(th|st|nd|rd)/,
-        ordinal : function (number) {
-            var b = number % 10,
-                output = (toInt(number % 100 / 10) === 1) ? 'th' :
-                (b === 1) ? 'st' :
-                (b === 2) ? 'nd' :
-                (b === 3) ? 'rd' : 'th';
-            return number + output;
-        }
-    });
-
-    // Side effect imports
-    utils_hooks__hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', locale_locales__getSetGlobalLocale);
-    utils_hooks__hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', locale_locales__getLocale);
-
-    var mathAbs = Math.abs;
-
-    function duration_abs__abs () {
-        var data           = this._data;
-
-        this._milliseconds = mathAbs(this._milliseconds);
-        this._days         = mathAbs(this._days);
-        this._months       = mathAbs(this._months);
-
-        data.milliseconds  = mathAbs(data.milliseconds);
-        data.seconds       = mathAbs(data.seconds);
-        data.minutes       = mathAbs(data.minutes);
-        data.hours         = mathAbs(data.hours);
-        data.months        = mathAbs(data.months);
-        data.years         = mathAbs(data.years);
-
-        return this;
-    }
-
-    function duration_add_subtract__addSubtract (duration, input, value, direction) {
-        var other = create__createDuration(input, value);
-
-        duration._milliseconds += direction * other._milliseconds;
-        duration._days         += direction * other._days;
-        duration._months       += direction * other._months;
-
-        return duration._bubble();
-    }
-
-    // supports only 2.0-style add(1, 's') or add(duration)
-    function duration_add_subtract__add (input, value) {
-        return duration_add_subtract__addSubtract(this, input, value, 1);
-    }
-
-    // supports only 2.0-style subtract(1, 's') or subtract(duration)
-    function duration_add_subtract__subtract (input, value) {
-        return duration_add_subtract__addSubtract(this, input, value, -1);
-    }
-
-    function absCeil (number) {
-        if (number < 0) {
-            return Math.floor(number);
-        } else {
-            return Math.ceil(number);
-        }
-    }
-
-    function bubble () {
-        var milliseconds = this._milliseconds;
-        var days         = this._days;
-        var months       = this._months;
-        var data         = this._data;
-        var seconds, minutes, hours, years, monthsFromDays;
-
-        // if we have a mix of positive and negative values, bubble down first
-        // check: https://github.com/moment/moment/issues/2166
-        if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||
-                (milliseconds <= 0 && days <= 0 && months <= 0))) {
-            milliseconds += absCeil(monthsToDays(months) + days) * 864e5;
-            days = 0;
-            months = 0;
-        }
-
-        // The following code bubbles up values, see the tests for
-        // examples of what that means.
-        data.milliseconds = milliseconds % 1000;
-
-        seconds           = absFloor(milliseconds / 1000);
-        data.seconds      = seconds % 60;
-
-        minutes           = absFloor(seconds / 60);
-        data.minutes      = minutes % 60;
-
-        hours             = absFloor(minutes / 60);
-        data.hours        = hours % 24;
-
-        days += absFloor(hours / 24);
-
-        // convert days to months
-        monthsFromDays = absFloor(daysToMonths(days));
-        months += monthsFromDays;
-        days -= absCeil(monthsToDays(monthsFromDays));
-
-        // 12 months -> 1 year
-        years = absFloor(months / 12);
-        months %= 12;
-
-        data.days   = days;
-        data.months = months;
-        data.years  = years;
-
-        return this;
-    }
-
-    function daysToMonths (days) {
-        // 400 years have 146097 days (taking into account leap year rules)
-        // 400 years have 12 months === 4800
-        return days * 4800 / 146097;
-    }
-
-    function monthsToDays (months) {
-        // the reverse of daysToMonths
-        return months * 146097 / 4800;
-    }
-
-    function as (units) {
-        var days;
-        var months;
-        var milliseconds = this._milliseconds;
-
-        units = normalizeUnits(units);
-
-        if (units === 'month' || units === 'year') {
-            days   = this._days   + milliseconds / 864e5;
-            months = this._months + daysToMonths(days);
-            return units === 'month' ? months : months / 12;
-        } else {
-            // handle milliseconds separately because of floating point math errors (issue #1867)
-            days = this._days + Math.round(monthsToDays(this._months));
-            switch (units) {
-                case 'week'   : return days / 7     + milliseconds / 6048e5;
-                case 'day'    : return days         + milliseconds / 864e5;
-                case 'hour'   : return days * 24    + milliseconds / 36e5;
-                case 'minute' : return days * 1440  + milliseconds / 6e4;
-                case 'second' : return days * 86400 + milliseconds / 1000;
-                // Math.floor prevents floating point math errors here
-                case 'millisecond': return Math.floor(days * 864e5) + milliseconds;
-                default: throw new Error('Unknown unit ' + units);
-            }
-        }
-    }
-
-    // TODO: Use this.as('ms')?
-    function duration_as__valueOf () {
-        return (
-            this._milliseconds +
-            this._days * 864e5 +
-            (this._months % 12) * 2592e6 +
-            toInt(this._months / 12) * 31536e6
-        );
-    }
-
-    function makeAs (alias) {
-        return function () {
-            return this.as(alias);
-        };
-    }
-
-    var asMilliseconds = makeAs('ms');
-    var asSeconds      = makeAs('s');
-    var asMinutes      = makeAs('m');
-    var asHours        = makeAs('h');
-    var asDays         = makeAs('d');
-    var asWeeks        = makeAs('w');
-    var asMonths       = makeAs('M');
-    var asYears        = makeAs('y');
-
-    function duration_get__get (units) {
-        units = normalizeUnits(units);
-        return this[units + 's']();
-    }
-
-    function makeGetter(name) {
-        return function () {
-            return this._data[name];
-        };
-    }
-
-    var milliseconds = makeGetter('milliseconds');
-    var seconds      = makeGetter('seconds');
-    var minutes      = makeGetter('minutes');
-    var hours        = makeGetter('hours');
-    var days         = makeGetter('days');
-    var months       = makeGetter('months');
-    var years        = makeGetter('years');
-
-    function weeks () {
-        return absFloor(this.days() / 7);
-    }
-
-    var round = Math.round;
-    var thresholds = {
-        s: 45,  // seconds to minute
-        m: 45,  // minutes to hour
-        h: 22,  // hours to day
-        d: 26,  // days to month
-        M: 11   // months to year
+function makeAs (alias) {
+    return function () {
+        return this.as(alias);
     };
+}
 
-    // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-    function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
-        return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+var asMilliseconds = makeAs('ms');
+var asSeconds      = makeAs('s');
+var asMinutes      = makeAs('m');
+var asHours        = makeAs('h');
+var asDays         = makeAs('d');
+var asWeeks        = makeAs('w');
+var asMonths       = makeAs('M');
+var asYears        = makeAs('y');
+
+function get$2 (units) {
+    units = normalizeUnits(units);
+    return this[units + 's']();
+}
+
+function makeGetter(name) {
+    return function () {
+        return this._data[name];
+    };
+}
+
+var milliseconds = makeGetter('milliseconds');
+var seconds      = makeGetter('seconds');
+var minutes      = makeGetter('minutes');
+var hours        = makeGetter('hours');
+var days         = makeGetter('days');
+var months       = makeGetter('months');
+var years        = makeGetter('years');
+
+function weeks () {
+    return absFloor(this.days() / 7);
+}
+
+var round = Math.round;
+var thresholds = {
+    s: 45,  // seconds to minute
+    m: 45,  // minutes to hour
+    h: 22,  // hours to day
+    d: 26,  // days to month
+    M: 11   // months to year
+};
+
+// helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
+function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
+    return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+}
+
+function relativeTime$1 (posNegDuration, withoutSuffix, locale) {
+    var duration = createDuration(posNegDuration).abs();
+    var seconds  = round(duration.as('s'));
+    var minutes  = round(duration.as('m'));
+    var hours    = round(duration.as('h'));
+    var days     = round(duration.as('d'));
+    var months   = round(duration.as('M'));
+    var years    = round(duration.as('y'));
+
+    var a = seconds < thresholds.s && ['s', seconds]  ||
+            minutes <= 1           && ['m']           ||
+            minutes < thresholds.m && ['mm', minutes] ||
+            hours   <= 1           && ['h']           ||
+            hours   < thresholds.h && ['hh', hours]   ||
+            days    <= 1           && ['d']           ||
+            days    < thresholds.d && ['dd', days]    ||
+            months  <= 1           && ['M']           ||
+            months  < thresholds.M && ['MM', months]  ||
+            years   <= 1           && ['y']           || ['yy', years];
+
+    a[2] = withoutSuffix;
+    a[3] = +posNegDuration > 0;
+    a[4] = locale;
+    return substituteTimeAgo.apply(null, a);
+}
+
+// This function allows you to set the rounding function for relative time strings
+function getSetRelativeTimeRounding (roundingFunction) {
+    if (roundingFunction === undefined) {
+        return round;
     }
-
-    function duration_humanize__relativeTime (posNegDuration, withoutSuffix, locale) {
-        var duration = create__createDuration(posNegDuration).abs();
-        var seconds  = round(duration.as('s'));
-        var minutes  = round(duration.as('m'));
-        var hours    = round(duration.as('h'));
-        var days     = round(duration.as('d'));
-        var months   = round(duration.as('M'));
-        var years    = round(duration.as('y'));
-
-        var a = seconds < thresholds.s && ['s', seconds]  ||
-                minutes <= 1           && ['m']           ||
-                minutes < thresholds.m && ['mm', minutes] ||
-                hours   <= 1           && ['h']           ||
-                hours   < thresholds.h && ['hh', hours]   ||
-                days    <= 1           && ['d']           ||
-                days    < thresholds.d && ['dd', days]    ||
-                months  <= 1           && ['M']           ||
-                months  < thresholds.M && ['MM', months]  ||
-                years   <= 1           && ['y']           || ['yy', years];
-
-        a[2] = withoutSuffix;
-        a[3] = +posNegDuration > 0;
-        a[4] = locale;
-        return substituteTimeAgo.apply(null, a);
-    }
-
-    // This function allows you to set a threshold for relative time strings
-    function duration_humanize__getSetRelativeTimeThreshold (threshold, limit) {
-        if (thresholds[threshold] === undefined) {
-            return false;
-        }
-        if (limit === undefined) {
-            return thresholds[threshold];
-        }
-        thresholds[threshold] = limit;
+    if (typeof(roundingFunction) === 'function') {
+        round = roundingFunction;
         return true;
     }
+    return false;
+}
 
-    function humanize (withSuffix) {
-        var locale = this.localeData();
-        var output = duration_humanize__relativeTime(this, !withSuffix, locale);
+// This function allows you to set a threshold for relative time strings
+function getSetRelativeTimeThreshold (threshold, limit) {
+    if (thresholds[threshold] === undefined) {
+        return false;
+    }
+    if (limit === undefined) {
+        return thresholds[threshold];
+    }
+    thresholds[threshold] = limit;
+    return true;
+}
 
-        if (withSuffix) {
-            output = locale.pastFuture(+this, output);
-        }
+function humanize (withSuffix) {
+    var locale = this.localeData();
+    var output = relativeTime$1(this, !withSuffix, locale);
 
-        return locale.postformat(output);
+    if (withSuffix) {
+        output = locale.pastFuture(+this, output);
     }
 
-    var iso_string__abs = Math.abs;
+    return locale.postformat(output);
+}
 
-    function iso_string__toISOString() {
-        // for ISO strings we do not use the normal bubbling rules:
-        //  * milliseconds bubble up until they become hours
-        //  * days do not bubble at all
-        //  * months bubble up until they become years
-        // This is because there is no context-free conversion between hours and days
-        // (think of clock changes)
-        // and also not between days and months (28-31 days per month)
-        var seconds = iso_string__abs(this._milliseconds) / 1000;
-        var days         = iso_string__abs(this._days);
-        var months       = iso_string__abs(this._months);
-        var minutes, hours, years;
+var abs$1 = Math.abs;
 
-        // 3600 seconds -> 60 minutes -> 1 hour
-        minutes           = absFloor(seconds / 60);
-        hours             = absFloor(minutes / 60);
-        seconds %= 60;
-        minutes %= 60;
+function toISOString$1() {
+    // for ISO strings we do not use the normal bubbling rules:
+    //  * milliseconds bubble up until they become hours
+    //  * days do not bubble at all
+    //  * months bubble up until they become years
+    // This is because there is no context-free conversion between hours and days
+    // (think of clock changes)
+    // and also not between days and months (28-31 days per month)
+    var seconds = abs$1(this._milliseconds) / 1000;
+    var days         = abs$1(this._days);
+    var months       = abs$1(this._months);
+    var minutes, hours, years;
 
-        // 12 months -> 1 year
-        years  = absFloor(months / 12);
-        months %= 12;
+    // 3600 seconds -> 60 minutes -> 1 hour
+    minutes           = absFloor(seconds / 60);
+    hours             = absFloor(minutes / 60);
+    seconds %= 60;
+    minutes %= 60;
+
+    // 12 months -> 1 year
+    years  = absFloor(months / 12);
+    months %= 12;
 
 
-        // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-        var Y = years;
-        var M = months;
-        var D = days;
-        var h = hours;
-        var m = minutes;
-        var s = seconds;
-        var total = this.asSeconds();
+    // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
+    var Y = years;
+    var M = months;
+    var D = days;
+    var h = hours;
+    var m = minutes;
+    var s = seconds;
+    var total = this.asSeconds();
 
-        if (!total) {
-            // this is the same as C#'s (Noda) and python (isodate)...
-            // but not other JS (goog.date)
-            return 'P0D';
-        }
-
-        return (total < 0 ? '-' : '') +
-            'P' +
-            (Y ? Y + 'Y' : '') +
-            (M ? M + 'M' : '') +
-            (D ? D + 'D' : '') +
-            ((h || m || s) ? 'T' : '') +
-            (h ? h + 'H' : '') +
-            (m ? m + 'M' : '') +
-            (s ? s + 'S' : '');
+    if (!total) {
+        // this is the same as C#'s (Noda) and python (isodate)...
+        // but not other JS (goog.date)
+        return 'P0D';
     }
 
-    var duration_prototype__proto = Duration.prototype;
+    return (total < 0 ? '-' : '') +
+        'P' +
+        (Y ? Y + 'Y' : '') +
+        (M ? M + 'M' : '') +
+        (D ? D + 'D' : '') +
+        ((h || m || s) ? 'T' : '') +
+        (h ? h + 'H' : '') +
+        (m ? m + 'M' : '') +
+        (s ? s + 'S' : '');
+}
 
-    duration_prototype__proto.abs            = duration_abs__abs;
-    duration_prototype__proto.add            = duration_add_subtract__add;
-    duration_prototype__proto.subtract       = duration_add_subtract__subtract;
-    duration_prototype__proto.as             = as;
-    duration_prototype__proto.asMilliseconds = asMilliseconds;
-    duration_prototype__proto.asSeconds      = asSeconds;
-    duration_prototype__proto.asMinutes      = asMinutes;
-    duration_prototype__proto.asHours        = asHours;
-    duration_prototype__proto.asDays         = asDays;
-    duration_prototype__proto.asWeeks        = asWeeks;
-    duration_prototype__proto.asMonths       = asMonths;
-    duration_prototype__proto.asYears        = asYears;
-    duration_prototype__proto.valueOf        = duration_as__valueOf;
-    duration_prototype__proto._bubble        = bubble;
-    duration_prototype__proto.get            = duration_get__get;
-    duration_prototype__proto.milliseconds   = milliseconds;
-    duration_prototype__proto.seconds        = seconds;
-    duration_prototype__proto.minutes        = minutes;
-    duration_prototype__proto.hours          = hours;
-    duration_prototype__proto.days           = days;
-    duration_prototype__proto.weeks          = weeks;
-    duration_prototype__proto.months         = months;
-    duration_prototype__proto.years          = years;
-    duration_prototype__proto.humanize       = humanize;
-    duration_prototype__proto.toISOString    = iso_string__toISOString;
-    duration_prototype__proto.toString       = iso_string__toISOString;
-    duration_prototype__proto.toJSON         = iso_string__toISOString;
-    duration_prototype__proto.locale         = locale;
-    duration_prototype__proto.localeData     = localeData;
+var proto$2 = Duration.prototype;
 
-    // Deprecations
-    duration_prototype__proto.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', iso_string__toISOString);
-    duration_prototype__proto.lang = lang;
+proto$2.abs            = abs;
+proto$2.add            = add$1;
+proto$2.subtract       = subtract$1;
+proto$2.as             = as;
+proto$2.asMilliseconds = asMilliseconds;
+proto$2.asSeconds      = asSeconds;
+proto$2.asMinutes      = asMinutes;
+proto$2.asHours        = asHours;
+proto$2.asDays         = asDays;
+proto$2.asWeeks        = asWeeks;
+proto$2.asMonths       = asMonths;
+proto$2.asYears        = asYears;
+proto$2.valueOf        = valueOf$1;
+proto$2._bubble        = bubble;
+proto$2.get            = get$2;
+proto$2.milliseconds   = milliseconds;
+proto$2.seconds        = seconds;
+proto$2.minutes        = minutes;
+proto$2.hours          = hours;
+proto$2.days           = days;
+proto$2.weeks          = weeks;
+proto$2.months         = months;
+proto$2.years          = years;
+proto$2.humanize       = humanize;
+proto$2.toISOString    = toISOString$1;
+proto$2.toString       = toISOString$1;
+proto$2.toJSON         = toISOString$1;
+proto$2.locale         = locale;
+proto$2.localeData     = localeData;
 
-    // Side effect imports
+// Deprecations
+proto$2.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', toISOString$1);
+proto$2.lang = lang;
 
-    // FORMATTING
+// Side effect imports
 
-    addFormatToken('X', 0, 0, 'unix');
-    addFormatToken('x', 0, 0, 'valueOf');
+// FORMATTING
 
-    // PARSING
+addFormatToken('X', 0, 0, 'unix');
+addFormatToken('x', 0, 0, 'valueOf');
 
-    addRegexToken('x', matchSigned);
-    addRegexToken('X', matchTimestamp);
-    addParseToken('X', function (input, array, config) {
-        config._d = new Date(parseFloat(input, 10) * 1000);
-    });
-    addParseToken('x', function (input, array, config) {
-        config._d = new Date(toInt(input));
-    });
+// PARSING
 
-    // Side effect imports
+addRegexToken('x', matchSigned);
+addRegexToken('X', matchTimestamp);
+addParseToken('X', function (input, array, config) {
+    config._d = new Date(parseFloat(input, 10) * 1000);
+});
+addParseToken('x', function (input, array, config) {
+    config._d = new Date(toInt(input));
+});
+
+// Side effect imports
 
 
-    utils_hooks__hooks.version = '2.12.0';
+hooks.version = '2.17.1';
 
-    setHookCallback(local__createLocal);
+setHookCallback(createLocal);
 
-    utils_hooks__hooks.fn                    = momentPrototype;
-    utils_hooks__hooks.min                   = min;
-    utils_hooks__hooks.max                   = max;
-    utils_hooks__hooks.now                   = now;
-    utils_hooks__hooks.utc                   = create_utc__createUTC;
-    utils_hooks__hooks.unix                  = moment__createUnix;
-    utils_hooks__hooks.months                = lists__listMonths;
-    utils_hooks__hooks.isDate                = isDate;
-    utils_hooks__hooks.locale                = locale_locales__getSetGlobalLocale;
-    utils_hooks__hooks.invalid               = valid__createInvalid;
-    utils_hooks__hooks.duration              = create__createDuration;
-    utils_hooks__hooks.isMoment              = isMoment;
-    utils_hooks__hooks.weekdays              = lists__listWeekdays;
-    utils_hooks__hooks.parseZone             = moment__createInZone;
-    utils_hooks__hooks.localeData            = locale_locales__getLocale;
-    utils_hooks__hooks.isDuration            = isDuration;
-    utils_hooks__hooks.monthsShort           = lists__listMonthsShort;
-    utils_hooks__hooks.weekdaysMin           = lists__listWeekdaysMin;
-    utils_hooks__hooks.defineLocale          = defineLocale;
-    utils_hooks__hooks.updateLocale          = updateLocale;
-    utils_hooks__hooks.locales               = locale_locales__listLocales;
-    utils_hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;
-    utils_hooks__hooks.normalizeUnits        = normalizeUnits;
-    utils_hooks__hooks.relativeTimeThreshold = duration_humanize__getSetRelativeTimeThreshold;
-    utils_hooks__hooks.prototype             = momentPrototype;
+hooks.fn                    = proto;
+hooks.min                   = min;
+hooks.max                   = max;
+hooks.now                   = now;
+hooks.utc                   = createUTC;
+hooks.unix                  = createUnix;
+hooks.months                = listMonths;
+hooks.isDate                = isDate;
+hooks.locale                = getSetGlobalLocale;
+hooks.invalid               = createInvalid;
+hooks.duration              = createDuration;
+hooks.isMoment              = isMoment;
+hooks.weekdays              = listWeekdays;
+hooks.parseZone             = createInZone;
+hooks.localeData            = getLocale;
+hooks.isDuration            = isDuration;
+hooks.monthsShort           = listMonthsShort;
+hooks.weekdaysMin           = listWeekdaysMin;
+hooks.defineLocale          = defineLocale;
+hooks.updateLocale          = updateLocale;
+hooks.locales               = listLocales;
+hooks.weekdaysShort         = listWeekdaysShort;
+hooks.normalizeUnits        = normalizeUnits;
+hooks.relativeTimeRounding = getSetRelativeTimeRounding;
+hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;
+hooks.calendarFormat        = getCalendarFormat;
+hooks.prototype             = proto;
 
-    var _moment = utils_hooks__hooks;
+return hooks;
 
-    return _moment;
+})));
 
-}));
-},{}],"numeral":[function(_dereq_,module,exports){
+},{}],"numbro":[function(_dereq_,module,exports){
 /*!
- * numeral.js
- * version : 1.5.3
- * author : Adam Draper
+ * numbro.js
+ * version : 1.9.3
+ * author : Företagsplatsen AB
  * license : MIT
- * http://adamwdraper.github.com/Numeral-js/
+ * http://www.foretagsplatsen.se
  */
 
 (function () {
+    'use strict';
 
     /************************************
         Constants
     ************************************/
 
-    var numeral,
-        VERSION = '1.5.3',
-        // internal storage for language config files
-        languages = {},
-        currentLanguage = 'en',
+    var numbro,
+        VERSION = '1.9.3',
+        binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
+        decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+        bytes = {
+            general: { scale: 1024, suffixes: decimalSuffixes, marker: 'bd' },
+            binary:  { scale: 1024, suffixes: binarySuffixes, marker: 'b' },
+            decimal: { scale: 1000, suffixes: decimalSuffixes, marker: 'd' }
+        },
+        // general must be before the others because it reuses their characters!
+        byteFormatOrder = [ bytes.general, bytes.binary, bytes.decimal ],
+    // internal storage for culture config files
+        cultures = {},
+    // Todo: Remove in 2.0.0
+        languages = cultures,
+        currentCulture = 'en-US',
         zeroFormat = null,
         defaultFormat = '0,0',
+        defaultCurrencyFormat = '0$',
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports);
-
+        hasModule = (typeof module !== 'undefined' && module.exports),
+    // default culture
+        enUS = {
+            delimiters: {
+                thousands: ',',
+                decimal: '.'
+            },
+            abbreviations: {
+                thousand: 'k',
+                million: 'm',
+                billion: 'b',
+                trillion: 't'
+            },
+            ordinal: function(number) {
+                var b = number % 10;
+                return (~~(number % 100 / 10) === 1) ? 'th' :
+                    (b === 1) ? 'st' :
+                        (b === 2) ? 'nd' :
+                            (b === 3) ? 'rd' : 'th';
+            },
+            currency: {
+                symbol: '$',
+                position: 'prefix'
+            },
+            defaults: {
+                currencyFormat: ',0000 a'
+            },
+            formats: {
+                fourDigits: '0000 a',
+                fullWithTwoDecimals: '$ ,0.00',
+                fullWithTwoDecimalsNoCurrency: ',0.00'
+            }
+        };
 
     /************************************
         Constructors
     ************************************/
 
 
-    // Numeral prototype object
-    function Numeral (number) {
+    // Numbro prototype object
+    function Numbro(number) {
         this._value = number;
+    }
+
+    function zeroes(count) {
+        var i, ret = '';
+
+        for (i = 0; i < count; i++) {
+            ret += '0';
+        }
+
+        return ret;
+    }
+    /**
+     * Implementation of toFixed() for numbers with exponents
+     * This function may return negative representations for zero values e.g. "-0.0"
+     */
+    function toFixedLargeSmall(value, precision) {
+        var mantissa,
+            beforeDec,
+            afterDec,
+            exponent,
+            prefix,
+            endStr,
+            zerosStr,
+            str;
+
+        str = value.toString();
+
+        mantissa = str.split('e')[0];
+        exponent = str.split('e')[1];
+
+        beforeDec = mantissa.split('.')[0];
+        afterDec = mantissa.split('.')[1] || '';
+
+        if (+exponent > 0) {
+            // exponent is positive - add zeros after the numbers
+            str = beforeDec + afterDec + zeroes(exponent - afterDec.length);
+        } else {
+            // exponent is negative
+
+            if (+beforeDec < 0) {
+                prefix = '-0';
+            } else {
+                prefix = '0';
+            }
+
+            // tack on the decimal point if needed
+            if (precision > 0) {
+                prefix += '.';
+            }
+
+            zerosStr = zeroes((-1 * exponent) - 1);
+            // substring off the end to satisfy the precision
+            endStr = (zerosStr + Math.abs(beforeDec) + afterDec).substr(0, precision);
+            str = prefix + endStr;
+        }
+
+        // only add percision 0's if the exponent is positive
+        if (+exponent > 0 && precision > 0) {
+            str += '.' + zeroes(precision);
+        }
+
+        return str;
     }
 
     /**
@@ -25977,15 +29344,26 @@ if (typeof exports !== "undefined") {
      *
      * Fixes binary rounding issues (eg. (0.615).toFixed(2) === '0.61') that present
      * problems for accounting- and finance-related software.
+     *
+     * Also removes negative signs for zero-formatted numbers. e.g. -0.01 w/ precision 1 -> 0.0
      */
-    function toFixed (value, precision, roundingFunction, optionals) {
+    function toFixed(value, precision, roundingFunction, optionals) {
         var power = Math.pow(10, precision),
             optionalsRegExp,
             output;
 
-        //roundingFunction = (roundingFunction !== undefined ? roundingFunction : Math.round);
-        // Multiply up by precision, round accurately, then divide and use native toFixed():
-        output = (roundingFunction(value * power) / power).toFixed(precision);
+        if (value.toString().indexOf('e') > -1) {
+            // toFixed returns scientific notation for numbers above 1e21 and below 1e-7
+            output = toFixedLargeSmall(value, precision);
+            // remove the leading negative sign if it exists and should not be present (e.g. -0.00)
+            if (output.charAt(0) === '-' && +output >= 0) {
+                output = output.substr(1); // chop off the '-'
+            }
+        }
+        else {
+            // Multiply up by precision, round accurately, then divide and use native toFixed():
+            output = (roundingFunction(value + 'e+' + precision) / power).toFixed(precision);
+        }
 
         if (optionals) {
             optionalsRegExp = new RegExp('0{1,' + optionals + '}$');
@@ -26000,15 +29378,16 @@ if (typeof exports !== "undefined") {
     ************************************/
 
     // determine what type of formatting we need to do
-    function formatNumeral (n, format, roundingFunction) {
-        var output;
+    function formatNumbro(n, format, roundingFunction) {
+        var output,
+            escapedFormat = format.replace(/\{[^\{\}]*\}/g, '');
 
         // figure out what kind of format we are dealing with
-        if (format.indexOf('$') > -1) { // currency!!!!!
-            output = formatCurrency(n, format, roundingFunction);
-        } else if (format.indexOf('%') > -1) { // percentage
+        if (escapedFormat.indexOf('$') > -1) { // currency!!!!!
+            output = formatCurrency(n, cultures[currentCulture].currency.symbol, format, roundingFunction);
+        } else if (escapedFormat.indexOf('%') > -1) { // percentage
             output = formatPercentage(n, format, roundingFunction);
-        } else if (format.indexOf(':') > -1) { // time
+        } else if (escapedFormat.indexOf(':') > -1) { // time
             output = formatTime(n, format);
         } else { // plain ol' numbers or bytes
             output = formatNumber(n._value, format, roundingFunction);
@@ -26019,13 +29398,12 @@ if (typeof exports !== "undefined") {
     }
 
     // revert to number
-    function unformatNumeral (n, string) {
+    function unformatNumbro(n, string) {
         var stringOriginal = string,
             thousandRegExp,
             millionRegExp,
             billionRegExp,
             trillionRegExp,
-            suffixes = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
             bytesMultiplier = false,
             power;
 
@@ -26035,85 +29413,153 @@ if (typeof exports !== "undefined") {
             if (string === zeroFormat) {
                 n._value = 0;
             } else {
-                if (languages[currentLanguage].delimiters.decimal !== '.') {
-                    string = string.replace(/\./g,'').replace(languages[currentLanguage].delimiters.decimal, '.');
+                if (cultures[currentCulture].delimiters.decimal !== '.') {
+                    string = string.replace(/\./g, '').replace(cultures[currentCulture].delimiters.decimal, '.');
                 }
 
                 // see if abbreviations are there so that we can multiply to the correct number
-                thousandRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.thousand + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                millionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.million + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                billionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.billion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                trillionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.trillion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
+                thousandRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.thousand +
+                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
+                millionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.million +
+                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
+                billionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.billion +
+                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
+                trillionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.trillion +
+                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
 
                 // see if bytes are there so that we can multiply to the correct number
-                for (power = 0; power <= suffixes.length; power++) {
-                    bytesMultiplier = (string.indexOf(suffixes[power]) > -1) ? Math.pow(1024, power + 1) : false;
-
-                    if (bytesMultiplier) {
-                        break;
+                for (power = 1; power < binarySuffixes.length && !bytesMultiplier; ++power) {
+                    if (string.indexOf(binarySuffixes[power]) > -1) {
+                        bytesMultiplier = Math.pow(1024, power);
+                    } else if (string.indexOf(decimalSuffixes[power]) > -1) {
+                        bytesMultiplier = Math.pow(1000, power);
                     }
                 }
 
-                // do some math to create our number
-                n._value = ((bytesMultiplier) ? bytesMultiplier : 1) * ((stringOriginal.match(thousandRegExp)) ? Math.pow(10, 3) : 1) * ((stringOriginal.match(millionRegExp)) ? Math.pow(10, 6) : 1) * ((stringOriginal.match(billionRegExp)) ? Math.pow(10, 9) : 1) * ((stringOriginal.match(trillionRegExp)) ? Math.pow(10, 12) : 1) * ((string.indexOf('%') > -1) ? 0.01 : 1) * (((string.split('-').length + Math.min(string.split('(').length-1, string.split(')').length-1)) % 2)? 1: -1) * Number(string.replace(/[^0-9\.]+/g, ''));
+                var str = string.replace(/[^0-9\.]+/g, '');
+                if (str === '') {
+                    // An empty string is not a number.
+                    n._value = NaN;
 
-                // round if we are talking about bytes
-                n._value = (bytesMultiplier) ? Math.ceil(n._value) : n._value;
+                } else {
+                    // do some math to create our number
+                    n._value = ((bytesMultiplier) ? bytesMultiplier : 1) *
+                        ((stringOriginal.match(thousandRegExp)) ? Math.pow(10, 3) : 1) *
+                        ((stringOriginal.match(millionRegExp)) ? Math.pow(10, 6) : 1) *
+                        ((stringOriginal.match(billionRegExp)) ? Math.pow(10, 9) : 1) *
+                        ((stringOriginal.match(trillionRegExp)) ? Math.pow(10, 12) : 1) *
+                        ((string.indexOf('%') > -1) ? 0.01 : 1) *
+                        (((string.split('-').length +
+                            Math.min(string.split('(').length - 1, string.split(')').length - 1)) % 2) ? 1 : -1) *
+                        Number(str);
+
+                    // round if we are talking about bytes
+                    n._value = (bytesMultiplier) ? Math.ceil(n._value) : n._value;
+                }
             }
         }
         return n._value;
     }
 
-    function formatCurrency (n, format, roundingFunction) {
-        var symbolIndex = format.indexOf('$'),
+    function formatCurrency(n, currencySymbol, originalFormat, roundingFunction) {
+        var format = originalFormat,
+            symbolIndex = format.indexOf('$'),
             openParenIndex = format.indexOf('('),
+            plusSignIndex = format.indexOf('+'),
             minusSignIndex = format.indexOf('-'),
             space = '',
+            decimalSeparator = '',
             spliceIndex,
             output;
 
-        // check for space before or after currency
-        if (format.indexOf(' $') > -1) {
-            space = ' ';
-            format = format.replace(' $', '');
-        } else if (format.indexOf('$ ') > -1) {
-            space = ' ';
-            format = format.replace('$ ', '');
-        } else {
-            format = format.replace('$', '');
-        }
-
-        // format the number
-        output = formatNumber(n._value, format, roundingFunction);
-
-        // position the symbol
-        if (symbolIndex <= 1) {
-            if (output.indexOf('(') > -1 || output.indexOf('-') > -1) {
-                output = output.split('');
-                spliceIndex = 1;
-                if (symbolIndex < openParenIndex || symbolIndex < minusSignIndex){
-                    // the symbol appears before the "(" or "-"
-                    spliceIndex = 0;
+        if(format.indexOf('$') === -1){
+            // Use defaults instead of the format provided
+            if (cultures[currentCulture].currency.position === 'infix') {
+                decimalSeparator = currencySymbol;
+                if (cultures[currentCulture].currency.spaceSeparated) {
+                    decimalSeparator = ' ' + decimalSeparator + ' ';
                 }
-                output.splice(spliceIndex, 0, languages[currentLanguage].currency.symbol + space);
-                output = output.join('');
-            } else {
-                output = languages[currentLanguage].currency.symbol + space + output;
+            } else if (cultures[currentCulture].currency.spaceSeparated) {
+                space = ' ';
             }
         } else {
-            if (output.indexOf(')') > -1) {
-                output = output.split('');
-                output.splice(-1, 0, space + languages[currentLanguage].currency.symbol);
-                output = output.join('');
+            // check for space before or after currency
+            if (format.indexOf(' $') > -1) {
+                space = ' ';
+                format = format.replace(' $', '');
+            } else if (format.indexOf('$ ') > -1) {
+                space = ' ';
+                format = format.replace('$ ', '');
             } else {
-                output = output + space + languages[currentLanguage].currency.symbol;
+                format = format.replace('$', '');
+            }
+        }
+
+        // Format The Number
+        output = formatNumber(n._value, format, roundingFunction, decimalSeparator);
+
+        if (originalFormat.indexOf('$') === -1) {
+            // Use defaults instead of the format provided
+            switch (cultures[currentCulture].currency.position) {
+                case 'postfix':
+                    if (output.indexOf(')') > -1) {
+                        output = output.split('');
+                        output.splice(-1, 0, space + currencySymbol);
+                        output = output.join('');
+                    } else {
+                        output = output + space + currencySymbol;
+                    }
+                    break;
+                case 'infix':
+                    break;
+                case 'prefix':
+                    if (output.indexOf('(') > -1 || output.indexOf('-') > -1) {
+                        output = output.split('');
+                        spliceIndex = Math.max(openParenIndex, minusSignIndex) + 1;
+
+                        output.splice(spliceIndex, 0, currencySymbol + space);
+                        output = output.join('');
+                    } else {
+                        output = currencySymbol + space + output;
+                    }
+                    break;
+                default:
+                    throw Error('Currency position should be among ["prefix", "infix", "postfix"]');
+            }
+        } else {
+            // position the symbol
+            if (symbolIndex <= 1) {
+                if (output.indexOf('(') > -1 || output.indexOf('+') > -1 || output.indexOf('-') > -1) {
+                    output = output.split('');
+                    spliceIndex = 1;
+                    if (symbolIndex < openParenIndex || symbolIndex < plusSignIndex || symbolIndex < minusSignIndex) {
+                        // the symbol appears before the "(", "+" or "-"
+                        spliceIndex = 0;
+                    }
+                    output.splice(spliceIndex, 0, currencySymbol + space);
+                    output = output.join('');
+                } else {
+                    output = currencySymbol + space + output;
+                }
+            } else {
+                if (output.indexOf(')') > -1) {
+                    output = output.split('');
+                    output.splice(-1, 0, space + currencySymbol);
+                    output = output.join('');
+                } else {
+                    output = output + space + currencySymbol;
+                }
             }
         }
 
         return output;
     }
 
-    function formatPercentage (n, format, roundingFunction) {
+    function formatForeignCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction) {
+        return formatCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction);
+    }
+
+    function formatPercentage(n, format, roundingFunction) {
         var space = '',
             output,
             value = n._value * 100;
@@ -26128,7 +29574,7 @@ if (typeof exports !== "undefined") {
 
         output = formatNumber(value, format, roundingFunction);
 
-        if (output.indexOf(')') > -1 ) {
+        if (output.indexOf(')') > -1) {
             output = output.split('');
             output.splice(-1, 0, space + '%');
             output = output.join('');
@@ -26139,14 +29585,16 @@ if (typeof exports !== "undefined") {
         return output;
     }
 
-    function formatTime (n) {
-        var hours = Math.floor(n._value/60/60),
-            minutes = Math.floor((n._value - (hours * 60 * 60))/60),
+    function formatTime(n) {
+        var hours = Math.floor(n._value / 60 / 60),
+            minutes = Math.floor((n._value - (hours * 60 * 60)) / 60),
             seconds = Math.round(n._value - (hours * 60 * 60) - (minutes * 60));
-        return hours + ':' + ((minutes < 10) ? '0' + minutes : minutes) + ':' + ((seconds < 10) ? '0' + seconds : seconds);
+        return hours + ':' +
+            ((minutes < 10) ? '0' + minutes : minutes) + ':' +
+            ((seconds < 10) ? '0' + seconds : seconds);
     }
 
-    function unformatTime (string) {
+    function unformatTime(string) {
         var timeArray = string.split(':'),
             seconds = 0;
         // turn hours and minutes into seconds and add them all up
@@ -26166,7 +29614,36 @@ if (typeof exports !== "undefined") {
         return Number(seconds);
     }
 
-    function formatNumber (value, format, roundingFunction) {
+    function formatByteUnits (value, suffixes, scale) {
+        var suffix = suffixes[0],
+            power,
+            min,
+            max,
+            abs = Math.abs(value);
+
+        if (abs >= scale) {
+            for (power = 1; power < suffixes.length; ++power) {
+                min = Math.pow(scale, power);
+                max = Math.pow(scale, power + 1);
+
+                if (abs >= min && abs < max) {
+                    suffix = suffixes[power];
+                    value = value / min;
+                    break;
+                }
+            }
+
+            // values greater than or equal to [scale] YB never set the suffix
+            if (suffix === suffixes[0]) {
+                value = value / Math.pow(scale, suffixes.length - 1);
+                suffix = suffixes[suffixes.length - 1];
+            }
+        }
+
+        return { value: value, suffix: suffix };
+    }
+
+    function formatNumber (value, format, roundingFunction, sep) {
         var negP = false,
             signed = false,
             optDec = false,
@@ -26177,208 +29654,399 @@ if (typeof exports !== "undefined") {
             abbrT = false, // force abbreviation to trillions
             abbrForce = false, // force abbreviation
             bytes = '',
+            byteFormat,
+            units,
             ord = '',
             abs = Math.abs(value),
-            suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            min,
-            max,
-            power,
+            totalLength,
+            length,
+            minimumPrecision,
+            pow,
             w,
+            intPrecision,
             precision,
+            prefix,
+            postfix,
             thousands,
             d = '',
-            neg = false;
+            forcedNeg = false,
+            neg = false,
+            indexOpenP,
+            size,
+            indexMinus,
+            paren = '',
+            minlen,
+            i;
 
         // check if number is zero and a custom zero format has been set
         if (value === 0 && zeroFormat !== null) {
             return zeroFormat;
+        }
+
+        if (!isFinite(value)) {
+            return '' + value;
+        }
+
+        if (format.indexOf('{') === 0) {
+            var end = format.indexOf('}');
+            if (end === -1) {
+                throw Error('Format should also contain a "}"');
+            }
+            prefix = format.slice(1, end);
+            format = format.slice(end + 1);
         } else {
-            // see if we should use parentheses for negative number or if we should prefix with a sign
-            // if both are present we default to parentheses
-            if (format.indexOf('(') > -1) {
-                negP = true;
-                format = format.slice(1, -1);
-            } else if (format.indexOf('+') > -1) {
-                signed = true;
-                format = format.replace(/\+/g, '');
+            prefix = '';
+        }
+
+        if (format.indexOf('}') === format.length - 1) {
+            var start = format.indexOf('{');
+            if (start === -1) {
+                throw Error('Format should also contain a "{"');
+            }
+            postfix = format.slice(start + 1, -1);
+            format = format.slice(0, start + 1);
+        } else {
+            postfix = '';
+        }
+
+        // check for min length
+        var info;
+        if (format.indexOf('.') === -1) {
+            info = format.match(/([0-9]+).*/);
+        } else {
+            info = format.match(/([0-9]+)\..*/);
+        }
+        minlen = info === null ? -1 : info[1].length;
+
+        // see if we should use parentheses for negative number or if we should prefix with a sign
+        // if both are present we default to parentheses
+        if (format.indexOf('-') !== -1) {
+            forcedNeg = true;
+        }
+        if (format.indexOf('(') > -1) {
+            negP = true;
+            format = format.slice(1, -1);
+        } else if (format.indexOf('+') > -1) {
+            signed = true;
+            format = format.replace(/\+/g, '');
+        }
+
+        // see if abbreviation is wanted
+        if (format.indexOf('a') > -1) {
+            intPrecision = format.split('.')[0].match(/[0-9]+/g) || ['0'];
+            intPrecision = parseInt(intPrecision[0], 10);
+
+            // check if abbreviation is specified
+            abbrK = format.indexOf('aK') >= 0;
+            abbrM = format.indexOf('aM') >= 0;
+            abbrB = format.indexOf('aB') >= 0;
+            abbrT = format.indexOf('aT') >= 0;
+            abbrForce = abbrK || abbrM || abbrB || abbrT;
+
+            // check for space before abbreviation
+            if (format.indexOf(' a') > -1) {
+                abbr = ' ';
+                format = format.replace(' a', '');
+            } else {
+                format = format.replace('a', '');
             }
 
-            // see if abbreviation is wanted
-            if (format.indexOf('a') > -1) {
-                // check if abbreviation is specified
-                abbrK = format.indexOf('aK') >= 0;
-                abbrM = format.indexOf('aM') >= 0;
-                abbrB = format.indexOf('aB') >= 0;
-                abbrT = format.indexOf('aT') >= 0;
-                abbrForce = abbrK || abbrM || abbrB || abbrT;
+            totalLength = Math.floor(Math.log(abs) / Math.LN10) + 1;
 
-                // check for space before abbreviation
-                if (format.indexOf(' a') > -1) {
-                    abbr = ' ';
-                    format = format.replace(' a', '');
-                } else {
-                    format = format.replace('a', '');
+            minimumPrecision = totalLength % 3;
+            minimumPrecision = minimumPrecision === 0 ? 3 : minimumPrecision;
+
+            if (intPrecision && abs !== 0) {
+
+                length = Math.floor(Math.log(abs) / Math.LN10) + 1 - intPrecision;
+
+                pow = 3 * ~~((Math.min(intPrecision, totalLength) - minimumPrecision) / 3);
+
+                abs = abs / Math.pow(10, pow);
+
+                if (format.indexOf('.') === -1 && intPrecision > 3) {
+                    format += '[.]';
+
+                    size = length === 0 ? 0 : 3 * ~~(length / 3) - length;
+                    size = size < 0 ? size + 3 : size;
+
+                    format += zeroes(size);
                 }
+            }
 
+            if (Math.floor(Math.log(Math.abs(value)) / Math.LN10) + 1 !== intPrecision) {
                 if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
                     // trillion
-                    abbr = abbr + languages[currentLanguage].abbreviations.trillion;
+                    abbr = abbr + cultures[currentCulture].abbreviations.trillion;
                     value = value / Math.pow(10, 12);
                 } else if (abs < Math.pow(10, 12) && abs >= Math.pow(10, 9) && !abbrForce || abbrB) {
                     // billion
-                    abbr = abbr + languages[currentLanguage].abbreviations.billion;
+                    abbr = abbr + cultures[currentCulture].abbreviations.billion;
                     value = value / Math.pow(10, 9);
                 } else if (abs < Math.pow(10, 9) && abs >= Math.pow(10, 6) && !abbrForce || abbrM) {
                     // million
-                    abbr = abbr + languages[currentLanguage].abbreviations.million;
+                    abbr = abbr + cultures[currentCulture].abbreviations.million;
                     value = value / Math.pow(10, 6);
                 } else if (abs < Math.pow(10, 6) && abs >= Math.pow(10, 3) && !abbrForce || abbrK) {
                     // thousand
-                    abbr = abbr + languages[currentLanguage].abbreviations.thousand;
+                    abbr = abbr + cultures[currentCulture].abbreviations.thousand;
                     value = value / Math.pow(10, 3);
                 }
             }
+        }
 
-            // see if we are formatting bytes
-            if (format.indexOf('b') > -1) {
+        // see if we are formatting
+        //   binary-decimal bytes (1024 MB), binary bytes (1024 MiB), or decimal bytes (1000 MB)
+        for (i = 0; i < byteFormatOrder.length; ++i) {
+            byteFormat = byteFormatOrder[i];
+
+            if (format.indexOf(byteFormat.marker) > -1) {
                 // check for space before
-                if (format.indexOf(' b') > -1) {
+                if (format.indexOf(' ' + byteFormat.marker) >-1) {
                     bytes = ' ';
-                    format = format.replace(' b', '');
-                } else {
-                    format = format.replace('b', '');
                 }
 
-                for (power = 0; power <= suffixes.length; power++) {
-                    min = Math.pow(1024, power);
-                    max = Math.pow(1024, power+1);
+                // remove the marker (with the space if it had one)
+                format = format.replace(bytes + byteFormat.marker, '');
 
-                    if (value >= min && value < max) {
-                        bytes = bytes + suffixes[power];
-                        if (min > 0) {
-                            value = value / min;
-                        }
-                        break;
-                    }
-                }
+                units = formatByteUnits(value, byteFormat.suffixes, byteFormat.scale);
+
+                value = units.value;
+                bytes = bytes + units.suffix;
+
+                break;
+            }
+        }
+
+        // see if ordinal is wanted
+        if (format.indexOf('o') > -1) {
+            // check for space before
+            if (format.indexOf(' o') > -1) {
+                ord = ' ';
+                format = format.replace(' o', '');
+            } else {
+                format = format.replace('o', '');
             }
 
-            // see if ordinal is wanted
-            if (format.indexOf('o') > -1) {
-                // check for space before
-                if (format.indexOf(' o') > -1) {
-                    ord = ' ';
-                    format = format.replace(' o', '');
-                } else {
-                    format = format.replace('o', '');
-                }
-
-                ord = ord + languages[currentLanguage].ordinal(value);
+            if (cultures[currentCulture].ordinal) {
+                ord = ord + cultures[currentCulture].ordinal(value);
             }
+        }
 
-            if (format.indexOf('[.]') > -1) {
-                optDec = true;
-                format = format.replace('[.]', '.');
-            }
+        if (format.indexOf('[.]') > -1) {
+            optDec = true;
+            format = format.replace('[.]', '.');
+        }
 
-            w = value.toString().split('.')[0];
-            precision = format.split('.')[1];
-            thousands = format.indexOf(',');
+        w = value.toString().split('.')[0];
+        precision = format.split('.')[1];
+        thousands = format.indexOf(',');
 
-            if (precision) {
+        if (precision) {
+            if (precision.indexOf('*') !== -1) {
+                d = toFixed(value, value.toString().split('.')[1].length, roundingFunction);
+            } else {
                 if (precision.indexOf('[') > -1) {
                     precision = precision.replace(']', '');
                     precision = precision.split('[');
-                    d = toFixed(value, (precision[0].length + precision[1].length), roundingFunction, precision[1].length);
+                    d = toFixed(value, (precision[0].length + precision[1].length), roundingFunction,
+                        precision[1].length);
                 } else {
                     d = toFixed(value, precision.length, roundingFunction);
                 }
+            }
 
-                w = d.split('.')[0];
+            w = d.split('.')[0];
 
-                if (d.split('.')[1].length) {
-                    d = languages[currentLanguage].delimiters.decimal + d.split('.')[1];
-                } else {
-                    d = '';
-                }
-
-                if (optDec && Number(d.slice(1)) === 0) {
-                    d = '';
-                }
+            if (d.split('.')[1].length) {
+                var p = sep ? abbr + sep : cultures[currentCulture].delimiters.decimal;
+                d = p + d.split('.')[1];
             } else {
-                w = toFixed(value, null, roundingFunction);
+                d = '';
             }
 
-            // format number
-            if (w.indexOf('-') > -1) {
-                w = w.slice(1);
-                neg = true;
+            if (optDec && Number(d.slice(1)) === 0) {
+                d = '';
             }
-
-            if (thousands > -1) {
-                w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' + languages[currentLanguage].delimiters.thousands);
-            }
-
-            if (format.indexOf('.') === 0) {
-                w = '';
-            }
-
-            return ((negP && neg) ? '(' : '') + ((!negP && neg) ? '-' : '') + ((!neg && signed) ? '+' : '') + w + d + ((ord) ? ord : '') + ((abbr) ? abbr : '') + ((bytes) ? bytes : '') + ((negP && neg) ? ')' : '');
+        } else {
+            w = toFixed(value, 0, roundingFunction);
         }
+
+        // format number
+        if (w.indexOf('-') > -1) {
+            w = w.slice(1);
+            neg = true;
+        }
+
+        if (w.length < minlen) {
+            w = zeroes(minlen - w.length) + w;
+        }
+
+        if (thousands > -1) {
+            w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' +
+                cultures[currentCulture].delimiters.thousands);
+        }
+
+        if (format.indexOf('.') === 0) {
+            w = '';
+        }
+
+        indexOpenP = format.indexOf('(');
+        indexMinus = format.indexOf('-');
+
+        if (indexOpenP < indexMinus) {
+            paren = ((negP && neg) ? '(' : '') + (((forcedNeg && neg) || (!negP && neg)) ? '-' : '');
+        } else {
+            paren = (((forcedNeg && neg) || (!negP && neg)) ? '-' : '') + ((negP && neg) ? '(' : '');
+        }
+
+        return prefix +
+            paren + ((!neg && signed && value !== 0) ? '+' : '') +
+            w + d +
+            ((ord) ? ord : '') +
+            ((abbr && !sep) ? abbr : '') +
+            ((bytes) ? bytes : '') +
+            ((negP && neg) ? ')' : '') +
+            postfix;
     }
 
     /************************************
         Top Level Functions
     ************************************/
 
-    numeral = function (input) {
-        if (numeral.isNumeral(input)) {
+    numbro = function(input) {
+        if (numbro.isNumbro(input)) {
             input = input.value();
         } else if (input === 0 || typeof input === 'undefined') {
             input = 0;
         } else if (!Number(input)) {
-            input = numeral.fn.unformat(input);
+            input = numbro.fn.unformat(input);
         }
 
-        return new Numeral(Number(input));
+        return new Numbro(Number(input));
     };
 
     // version number
-    numeral.version = VERSION;
+    numbro.version = VERSION;
 
-    // compare numeral object
-    numeral.isNumeral = function (obj) {
-        return obj instanceof Numeral;
+    // compare numbro object
+    numbro.isNumbro = function(obj) {
+        return obj instanceof Numbro;
     };
 
-    // This function will load languages and then set the global language.  If
-    // no arguments are passed in, it will simply return the current global
-    // language key.
-    numeral.language = function (key, values) {
+    /**
+     * This function allow the user to set a new language with a fallback if
+     * the language does not exist. If no fallback language is provided,
+     * it fallbacks to english.
+     *
+     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
+     * `setCulture` should be used instead.
+     */
+    numbro.setLanguage = function(newLanguage, fallbackLanguage) {
+        console.warn('`setLanguage` is deprecated since version 1.6.0. Use `setCulture` instead');
+        var key = newLanguage,
+            prefix = newLanguage.split('-')[0],
+            matchingLanguage = null;
+        if (!languages[key]) {
+            Object.keys(languages).forEach(function(language) {
+                if (!matchingLanguage && language.split('-')[0] === prefix) {
+                    matchingLanguage = language;
+                }
+            });
+            key = matchingLanguage || fallbackLanguage || 'en-US';
+        }
+        chooseCulture(key);
+    };
+
+    /**
+     * This function allow the user to set a new culture with a fallback if
+     * the culture does not exist. If no fallback culture is provided,
+     * it falls back to "en-US".
+     */
+    numbro.setCulture = function(newCulture, fallbackCulture) {
+        var key = newCulture,
+            suffix = newCulture.split('-')[1],
+            matchingCulture = null;
+        if (!cultures[key]) {
+            if (suffix) {
+                Object.keys(cultures).forEach(function(language) {
+                    if (!matchingCulture && language.split('-')[1] === suffix) {
+                        matchingCulture = language;
+                    }
+                });
+            }
+
+            key = matchingCulture || fallbackCulture || 'en-US';
+        }
+        chooseCulture(key);
+    };
+
+    /**
+     * This function will load languages and then set the global language.  If
+     * no arguments are passed in, it will simply return the current global
+     * language key.
+     *
+     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
+     * `culture` should be used instead.
+     */
+    numbro.language = function(key, values) {
+        console.warn('`language` is deprecated since version 1.6.0. Use `culture` instead');
+
         if (!key) {
-            return currentLanguage;
+            return currentCulture;
         }
 
         if (key && !values) {
-            if(!languages[key]) {
+            if (!languages[key]) {
                 throw new Error('Unknown language : ' + key);
             }
-            currentLanguage = key;
+            chooseCulture(key);
         }
 
         if (values || !languages[key]) {
-            loadLanguage(key, values);
+            setCulture(key, values);
         }
 
-        return numeral;
+        return numbro;
     };
 
-    // This function provides access to the loaded language data.  If
-    // no arguments are passed in, it will simply return the current
-    // global language object.
-    numeral.languageData = function (key) {
+    /**
+     * This function will load cultures and then set the global culture.  If
+     * no arguments are passed in, it will simply return the current global
+     * culture code.
+     */
+    numbro.culture = function(code, values) {
+        if (!code) {
+            return currentCulture;
+        }
+
+        if (code && !values) {
+            if (!cultures[code]) {
+                throw new Error('Unknown culture : ' + code);
+            }
+            chooseCulture(code);
+        }
+
+        if (values || !cultures[code]) {
+            setCulture(code, values);
+        }
+
+        return numbro;
+    };
+
+    /**
+     * This function provides access to the loaded language data.  If
+     * no arguments are passed in, it will simply return the current
+     * global language object.
+     *
+     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
+     * `culture` should be used instead.
+     */
+    numbro.languageData = function(key) {
+        console.warn('`languageData` is deprecated since version 1.6.0. Use `cultureData` instead');
+
         if (!key) {
-            return languages[currentLanguage];
+            return languages[currentCulture];
         }
 
         if (!languages[key]) {
@@ -26388,91 +30056,107 @@ if (typeof exports !== "undefined") {
         return languages[key];
     };
 
-    numeral.language('en', {
-        delimiters: {
-            thousands: ',',
-            decimal: '.'
-        },
-        abbreviations: {
-            thousand: 'k',
-            million: 'm',
-            billion: 'b',
-            trillion: 't'
-        },
-        ordinal: function (number) {
-            var b = number % 10;
-            return (~~ (number % 100 / 10) === 1) ? 'th' :
-                (b === 1) ? 'st' :
-                (b === 2) ? 'nd' :
-                (b === 3) ? 'rd' : 'th';
-        },
-        currency: {
-            symbol: '$'
+    /**
+     * This function provides access to the loaded culture data.  If
+     * no arguments are passed in, it will simply return the current
+     * global culture object.
+     */
+    numbro.cultureData = function(code) {
+        if (!code) {
+            return cultures[currentCulture];
         }
-    });
 
-    numeral.zeroFormat = function (format) {
+        if (!cultures[code]) {
+            throw new Error('Unknown culture : ' + code);
+        }
+
+        return cultures[code];
+    };
+
+    numbro.culture('en-US', enUS);
+
+    /**
+     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
+     * `cultures` should be used instead.
+     */
+    numbro.languages = function() {
+        console.warn('`languages` is deprecated since version 1.6.0. Use `cultures` instead');
+
+        return languages;
+    };
+
+    numbro.cultures = function() {
+        return cultures;
+    };
+
+    numbro.zeroFormat = function(format) {
         zeroFormat = typeof(format) === 'string' ? format : null;
     };
 
-    numeral.defaultFormat = function (format) {
+    numbro.defaultFormat = function(format) {
         defaultFormat = typeof(format) === 'string' ? format : '0.0';
     };
 
-    numeral.validate = function(val, culture) {
+    numbro.defaultCurrencyFormat = function (format) {
+        defaultCurrencyFormat = typeof(format) === 'string' ? format : '0$';
+    };
+
+    numbro.validate = function(val, culture) {
 
         var _decimalSep,
-          _thousandSep,
-          _currSymbol,
-          _valArray,
-          _abbrObj,
-          _thousandRegEx,
-          languageData,
-          temp;
+            _thousandSep,
+            _currSymbol,
+            _valArray,
+            _abbrObj,
+            _thousandRegEx,
+            cultureData,
+            temp;
 
         //coerce val to string
         if (typeof val !== 'string') {
             val += '';
             if (console.warn) {
-                console.warn('Numeral.js: Value is not string. It has been co-erced to: ', val);
+                console.warn('Numbro.js: Value is not string. It has been co-erced to: ', val);
             }
         }
 
         //trim whitespaces from either sides
         val = val.trim();
 
+        //replace the initial '+' or '-' sign if present
+        val = val.replace(/^[+-]?/, '');
+
+        //if val is just digits return true
+        if ( !! val.match(/^\d+$/)) {
+            return true;
+        }
 
         //if val is empty return false
         if (val === '') {
             return false;
         }
 
-        //replace the initial '+' or '-' sign if present
-        val = val.replace(/^[+-]?/, '');
-
-
-        //get the decimal and thousands separator from numeral.languageData
+        //get the decimal and thousands separator from numbro.cultureData
         try {
-            //check if the culture is understood by numeral. if not, default it to current language
-            languageData = numeral.languageData(culture);
+            //check if the culture is understood by numbro. if not, default it to current culture
+            cultureData = numbro.cultureData(culture);
         } catch (e) {
-            languageData = numeral.languageData(numeral.language());
+            cultureData = numbro.cultureData(numbro.culture());
         }
 
-        //setup the delimiters and currency symbol based on culture/language
-        _currSymbol = languageData.currency.symbol;
-        _abbrObj = languageData.abbreviations;
-        _decimalSep = languageData.delimiters.decimal;
-        if (languageData.delimiters.thousands === '.') {
+        //setup the delimiters and currency symbol based on culture
+        _currSymbol = cultureData.currency.symbol;
+        _abbrObj = cultureData.abbreviations;
+        _decimalSep = cultureData.delimiters.decimal;
+        if (cultureData.delimiters.thousands === '.') {
             _thousandSep = '\\.';
         } else {
-            _thousandSep = languageData.delimiters.thousands;
+            _thousandSep = cultureData.delimiters.thousands;
         }
 
-        //validating currency symbol
+        // validating currency symbol
         temp = val.match(/^[^\d\.\,]+/);
         if (temp !== null) {
-            //chuck the currency symbol away
             val = val.substr(1);
             if (temp[0] !== _currSymbol) {
                 return false;
@@ -26482,16 +30166,13 @@ if (typeof exports !== "undefined") {
         //validating abbreviation symbol
         temp = val.match(/[^\d]+$/);
         if (temp !== null) {
-            val = val.slice(0, - 1);
-            if (temp[0] !== _abbrObj.thousand && temp[0] !== _abbrObj.million && temp[0] !== _abbrObj.billion && temp[0] !== _abbrObj.trillion) {
+            val = val.slice(0, -1);
+            if (temp[0] !== _abbrObj.thousand && temp[0] !== _abbrObj.million &&
+                    temp[0] !== _abbrObj.billion && temp[0] !== _abbrObj.trillion) {
                 return false;
             }
         }
 
-        //if val is just digits the return true
-        if ( !! val.match(/^\d+$/)) {
-            return true;
-        }
         _thousandRegEx = new RegExp(_thousandSep + '{2}');
 
         if (!val.match(/[^\d.,]/g)) {
@@ -26502,13 +30183,19 @@ if (typeof exports !== "undefined") {
                 if (_valArray.length < 2) {
                     return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx));
                 } else {
-                    // for values without leading zero eg. .984
                     if (_valArray[0] === '') {
-                        return ( !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
+                        // for values without leading zero eg. .984
+                        return (!_valArray[0].match(_thousandRegEx) &&
+                            !!_valArray[1].match(/^\d+$/));
+
                     } else if (_valArray[0].length === 1) {
-                        return ( !! _valArray[0].match(/^\d+$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
+                        return ( !! _valArray[0].match(/^\d+$/) &&
+                            !_valArray[0].match(_thousandRegEx) &&
+                            !! _valArray[1].match(/^\d+$/));
                     } else {
-                        return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
+                        return ( !! _valArray[0].match(/^\d+.*\d$/) &&
+                            !_valArray[0].match(_thousandRegEx) &&
+                            !! _valArray[1].match(/^\d+$/));
                     }
                 }
             }
@@ -26517,12 +30204,57 @@ if (typeof exports !== "undefined") {
         return false;
     };
 
+    /**
+     * * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
+     * `loadCulturesInNode` should be used instead.
+     */
+    numbro.loadLanguagesInNode = function() {
+        console.warn('`loadLanguagesInNode` is deprecated since version 1.6.0. Use `loadCulturesInNode` instead');
+
+        numbro.loadCulturesInNode();
+    };
+
+    numbro.loadCulturesInNode = function() {
+        // TODO: Rename the folder in 2.0.0
+        var cultures = _dereq_('./languages');
+
+        for(var langLocaleCode in cultures) {
+            if(langLocaleCode) {
+                numbro.culture(langLocaleCode, cultures[langLocaleCode]);
+            }
+        }
+    };
+
     /************************************
         Helpers
     ************************************/
 
-    function loadLanguage(key, values) {
-        languages[key] = values;
+    function setCulture(code, values) {
+        cultures[code] = values;
+    }
+
+    function chooseCulture(code) {
+        currentCulture = code;
+        var defaults = cultures[code].defaults;
+        if (defaults && defaults.format) {
+            numbro.defaultFormat(defaults.format);
+        }
+        if (defaults && defaults.currencyFormat) {
+            numbro.defaultCurrencyFormat(defaults.currencyFormat);
+        }
+    }
+
+    function inNodejsRuntime() {
+        return (typeof process !== 'undefined') &&
+            (process.browser === undefined) &&
+            process.title &&
+            (
+                process.title.indexOf('node') === 0 ||
+                process.title.indexOf('meteor-tool') > 0 ||
+                process.title === 'grunt' ||
+                process.title === 'gulp'
+            ) &&
+            (typeof _dereq_ !== 'undefined');
     }
 
     /************************************
@@ -26537,8 +30269,7 @@ if (typeof exports !== "undefined") {
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#Compatibility
      */
     if ('function' !== typeof Array.prototype.reduce) {
-        Array.prototype.reduce = function (callback, opt_initialValue) {
-            'use strict';
+        Array.prototype.reduce = function(callback, optInitialValue) {
 
             if (null === this || 'undefined' === typeof this) {
                 // At the moment all modern browsers, that support strict mode, have
@@ -26557,7 +30288,7 @@ if (typeof exports !== "undefined") {
                 isValueSet = false;
 
             if (1 < arguments.length) {
-                value = opt_initialValue;
+                value = optInitialValue;
                 isValueSet = true;
             }
 
@@ -26601,84 +30332,120 @@ if (typeof exports !== "undefined") {
      */
     function correctionFactor() {
         var args = Array.prototype.slice.call(arguments);
-        return args.reduce(function (prev, next) {
+        return args.reduce(function(prev, next) {
             var mp = multiplier(prev),
                 mn = multiplier(next);
-        return mp > mn ? mp : mn;
+            return mp > mn ? mp : mn;
         }, -Infinity);
     }
 
-
     /************************************
-        Numeral Prototype
+        Numbro Prototype
     ************************************/
 
 
-    numeral.fn = Numeral.prototype = {
+    numbro.fn = Numbro.prototype = {
 
-        clone : function () {
-            return numeral(this);
+        clone: function() {
+            return numbro(this);
         },
 
-        format : function (inputString, roundingFunction) {
-            return formatNumeral(this,
-                  inputString ? inputString : defaultFormat,
-                  (roundingFunction !== undefined) ? roundingFunction : Math.round
-              );
+        format: function(inputString, roundingFunction) {
+            return formatNumbro(this,
+                inputString ? inputString : defaultFormat,
+                (roundingFunction !== undefined) ? roundingFunction : Math.round
+            );
         },
 
-        unformat : function (inputString) {
-            if (Object.prototype.toString.call(inputString) === '[object Number]') {
+        formatCurrency: function(inputString, roundingFunction) {
+            return formatCurrency(this,
+                cultures[currentCulture].currency.symbol,
+                inputString ? inputString : defaultCurrencyFormat,
+                (roundingFunction !== undefined) ? roundingFunction : Math.round
+            );
+        },
+
+        formatForeignCurrency: function(currencySymbol, inputString, roundingFunction) {
+            return formatForeignCurrency(this,
+                currencySymbol,
+                inputString ? inputString : defaultCurrencyFormat,
+                (roundingFunction !== undefined) ? roundingFunction : Math.round
+            );
+        },
+
+        unformat: function(inputString) {
+            if (typeof inputString === 'number') {
                 return inputString;
+            } else if (typeof inputString === 'string') {
+                var result = unformatNumbro(this, inputString);
+
+                // Any unparseable string (represented as NaN in the result) is
+                // converted into undefined.
+                return isNaN(result) ? undefined : result;
+            } else {
+                return undefined;
             }
-            return unformatNumeral(this, inputString ? inputString : defaultFormat);
         },
 
-        value : function () {
+        binaryByteUnits: function() {
+            return formatByteUnits(this._value, bytes.binary.suffixes, bytes.binary.scale).suffix;
+        },
+
+        byteUnits: function() {
+            return formatByteUnits(this._value, bytes.general.suffixes, bytes.general.scale).suffix;
+        },
+
+        decimalByteUnits: function() {
+            return formatByteUnits(this._value, bytes.decimal.suffixes, bytes.decimal.scale).suffix;
+        },
+
+        value: function() {
             return this._value;
         },
 
-        valueOf : function () {
+        valueOf: function() {
             return this._value;
         },
 
-        set : function (value) {
+        set: function(value) {
             this._value = Number(value);
             return this;
         },
 
-        add : function (value) {
+        add: function(value) {
             var corrFactor = correctionFactor.call(null, this._value, value);
 
-            function cback(accum, curr, currI, O) {
+            function cback(accum, curr) {
                 return accum + corrFactor * curr;
             }
             this._value = [this._value, value].reduce(cback, 0) / corrFactor;
             return this;
         },
 
-        subtract : function (value) {
+        subtract: function(value) {
             var corrFactor = correctionFactor.call(null, this._value, value);
 
-            function cback(accum, curr, currI, O) {
+            function cback(accum, curr) {
                 return accum - corrFactor * curr;
             }
             this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;
             return this;
         },
 
-        multiply : function (value) {
-            function cback(accum, curr, currI, O) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) * (curr * corrFactor) /
-                    (corrFactor * corrFactor);
+        multiply: function(value) {
+            function cback(accum, curr) {
+                var corrFactor = correctionFactor(accum, curr),
+                    result = accum * corrFactor;
+                result *= curr * corrFactor;
+                result /= corrFactor * corrFactor;
+                return result;
             }
             this._value = [this._value, value].reduce(cback, 1);
             return this;
         },
 
-        divide : function (value) {
-            function cback(accum, curr, currI, O) {
+        divide: function(value) {
+            function cback(accum, curr) {
                 var corrFactor = correctionFactor(accum, curr);
                 return (accum * corrFactor) / (curr * corrFactor);
             }
@@ -26686,38 +30453,44 @@ if (typeof exports !== "undefined") {
             return this;
         },
 
-        difference : function (value) {
-            return Math.abs(numeral(this._value).subtract(value).value());
+        difference: function(value) {
+            return Math.abs(numbro(this._value).subtract(value).value());
         }
 
     };
 
     /************************************
-        Exposing Numeral
+        Exposing Numbro
     ************************************/
+
+    if (inNodejsRuntime()) {
+        //Todo: Rename the folder in 2.0.0
+        numbro.loadCulturesInNode();
+    }
 
     // CommonJS module is defined
     if (hasModule) {
-        module.exports = numeral;
+        module.exports = numbro;
+    } else {
+        /*global ender:false */
+        if (typeof ender === 'undefined') {
+            // here, `this` means `window` in the browser, or `global` on the server
+            // add `numbro` as a global object via a string identifier,
+            // for Closure Compiler 'advanced' mode
+            this.numbro = numbro;
+        }
+
+        /*global define:false */
+        if (typeof define === 'function' && define.amd) {
+            define([], function() {
+                return numbro;
+            });
+        }
     }
 
-    /*global ender:false */
-    if (typeof ender === 'undefined') {
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `numeral` as a global object via a string identifier,
-        // for Closure Compiler 'advanced' mode
-        this['numeral'] = numeral;
-    }
+}.call(typeof window === 'undefined' ? this : window));
 
-    /*global define:false */
-    if (typeof define === 'function' && define.amd) {
-        define([], function () {
-            return numeral;
-        });
-    }
-}).call(window);
-
-},{}],"pikaday":[function(_dereq_,module,exports){
+},{"languages":1}],"pikaday":[function(_dereq_,module,exports){
 /*!
  * Pikaday
  *
@@ -26922,6 +30695,9 @@ if (typeof exports !== "undefined") {
         // first day of week (0: Sunday, 1: Monday etc)
         firstDay: 0,
 
+        // the default flag for moment's strict date parsing
+        formatStrict: false,
+
         // the minimum/earliest date that can be selected
         minDate: null,
         // the maximum/latest date that can be selected
@@ -26949,6 +30725,9 @@ if (typeof exports !== "undefined") {
 
         // Render the month after year in the calendar title
         showMonthAfterYear: false,
+
+        // Render days of the calendar grid that fall in the next or previous month
+        showDaysInNextAndPreviousMonths: false,
 
         // how many months are visible
         numberOfMonths: 1,
@@ -26994,10 +30773,15 @@ if (typeof exports !== "undefined") {
 
     renderDay = function(opts)
     {
-        if (opts.isEmpty) {
-            return '<td class="is-empty"></td>';
-        }
         var arr = [];
+        var ariaSelected = 'false';
+        if (opts.isEmpty) {
+            if (opts.showDaysInNextAndPreviousMonths) {
+                arr.push('is-outside-current-month');
+            } else {
+                return '<td class="is-empty"></td>';
+            }
+        }
         if (opts.isDisabled) {
             arr.push('is-disabled');
         }
@@ -27006,6 +30790,7 @@ if (typeof exports !== "undefined") {
         }
         if (opts.isSelected) {
             arr.push('is-selected');
+            ariaSelected = 'true';
         }
         if (opts.isInRange) {
             arr.push('is-inrange');
@@ -27016,7 +30801,7 @@ if (typeof exports !== "undefined") {
         if (opts.isEndRange) {
             arr.push('is-endrange');
         }
-        return '<td data-day="' + opts.day + '" class="' + arr.join(' ') + '">' +
+        return '<td data-day="' + opts.day + '" class="' + arr.join(' ') + '" aria-selected="' + ariaSelected + '">' +
                  '<button class="pika-button pika-day" type="button" ' +
                     'data-pika-year="' + opts.year + '" data-pika-month="' + opts.month + '" data-pika-day="' + opts.day + '">' +
                         opts.day +
@@ -27050,16 +30835,16 @@ if (typeof exports !== "undefined") {
         for (i = 0; i < 7; i++) {
             arr.push('<th scope="col"><abbr title="' + renderDayName(opts, i) + '">' + renderDayName(opts, i, true) + '</abbr></th>');
         }
-        return '<thead>' + (opts.isRTL ? arr.reverse() : arr).join('') + '</thead>';
+        return '<thead><tr>' + (opts.isRTL ? arr.reverse() : arr).join('') + '</tr></thead>';
     },
 
-    renderTitle = function(instance, c, year, month, refYear)
+    renderTitle = function(instance, c, year, month, refYear, randId)
     {
         var i, j, arr,
             opts = instance._o,
             isMinYear = year === opts.minYear,
             isMaxYear = year === opts.maxYear,
-            html = '<div class="pika-title">',
+            html = '<div id="' + randId + '" class="pika-title" role="heading" aria-live="assertive">',
             monthHtml,
             yearHtml,
             prev = true,
@@ -27067,10 +30852,11 @@ if (typeof exports !== "undefined") {
 
         for (arr = [], i = 0; i < 12; i++) {
             arr.push('<option value="' + (year === refYear ? i - c : 12 + i - c) + '"' +
-                (i === month ? ' selected': '') +
-                ((isMinYear && i < opts.minMonth) || (isMaxYear && i > opts.maxMonth) ? 'disabled' : '') + '>' +
+                (i === month ? ' selected="selected"': '') +
+                ((isMinYear && i < opts.minMonth) || (isMaxYear && i > opts.maxMonth) ? 'disabled="disabled"' : '') + '>' +
                 opts.i18n.months[i] + '</option>');
         }
+
         monthHtml = '<div class="pika-label">' + opts.i18n.months[month] + '<select class="pika-select pika-select-month" tabindex="-1">' + arr.join('') + '</select></div>';
 
         if (isArray(opts.yearRange)) {
@@ -27083,7 +30869,7 @@ if (typeof exports !== "undefined") {
 
         for (arr = []; i < j && i <= opts.maxYear; i++) {
             if (i >= opts.minYear) {
-                arr.push('<option value="' + i + '"' + (i === year ? ' selected': '') + '>' + (i) + '</option>');
+                arr.push('<option value="' + i + '"' + (i === year ? ' selected="selected"': '') + '>' + (i) + '</option>');
             }
         }
         yearHtml = '<div class="pika-label">' + year + opts.yearSuffix + '<select class="pika-select pika-select-year" tabindex="-1">' + arr.join('') + '</select></div>';
@@ -27112,9 +30898,9 @@ if (typeof exports !== "undefined") {
         return html += '</div>';
     },
 
-    renderTable = function(opts, data)
+    renderTable = function(opts, data, randId)
     {
-        return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + '</table>';
+        return '<table cellpadding="0" cellspacing="0" class="pika-table" role="grid" aria-labelledby="' + randId + '">' + renderHead(opts) + renderBody(data) + '</table>';
     },
 
 
@@ -27138,7 +30924,7 @@ if (typeof exports !== "undefined") {
             }
 
             if (!hasClass(target, 'is-disabled')) {
-                if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
+                if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty') && !hasClass(target.parentNode, 'is-disabled')) {
                     self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
                     if (opts.bound) {
                         sto(function() {
@@ -27184,6 +30970,34 @@ if (typeof exports !== "undefined") {
             }
         };
 
+        self._onKeyChange = function(e)
+        {
+            e = e || window.event;
+
+            if (self.isVisible()) {
+
+                switch(e.keyCode){
+                    case 13:
+                    case 27:
+                        opts.field.blur();
+                        break;
+                    case 37:
+                        e.preventDefault();
+                        self.adjustDate('subtract', 1);
+                        break;
+                    case 38:
+                        self.adjustDate('subtract', 7);
+                        break;
+                    case 39:
+                        self.adjustDate('add', 1);
+                        break;
+                    case 40:
+                        self.adjustDate('add', 7);
+                        break;
+                }
+            }
+        };
+
         self._onInputChange = function(e)
         {
             var date;
@@ -27192,7 +31006,7 @@ if (typeof exports !== "undefined") {
                 return;
             }
             if (hasMoment) {
-                date = moment(opts.field.value, opts.format);
+                date = moment(opts.field.value, opts.format, opts.formatStrict);
                 date = (date && date.isValid()) ? date.toDate() : null;
             }
             else {
@@ -27266,6 +31080,7 @@ if (typeof exports !== "undefined") {
         addEvent(self.el, 'mousedown', self._onMouseDown, true);
         addEvent(self.el, 'touchend', self._onMouseDown, true);
         addEvent(self.el, 'change', self._onChange);
+        addEvent(document, 'keydown', self._onKeyChange);
 
         if (opts.field) {
             if (opts.container) {
@@ -27402,11 +31217,11 @@ if (typeof exports !== "undefined") {
         },
 
         /**
-         * return a Date object of the current selection
+         * return a Date object of the current selection with fallback for the current date
          */
         getDate: function()
         {
-            return isDate(this._d) ? new Date(this._d.getTime()) : null;
+            return isDate(this._d) ? new Date(this._d.getTime()) : new Date();
         },
 
         /**
@@ -27487,6 +31302,30 @@ if (typeof exports !== "undefined") {
             this.adjustCalendars();
         },
 
+        adjustDate: function(sign, days) {
+
+            var day = this.getDate();
+            var difference = parseInt(days)*24*60*60*1000;
+
+            var newDay;
+
+            if (sign === 'add') {
+                newDay = new Date(day.valueOf() + difference);
+            } else if (sign === 'subtract') {
+                newDay = new Date(day.valueOf() - difference);
+            }
+
+            if (hasMoment) {
+                if (sign === 'add') {
+                    newDay = moment(day).add(days, "days").toDate();
+                } else if (sign === 'subtract') {
+                    newDay = moment(day).subtract(days, "days").toDate();
+                }
+            }
+
+            this.setDate(newDay);
+        },
+
         adjustCalendars: function() {
             this.calendars[0] = adjustCalendar(this.calendars[0]);
             for (var c = 1; c < this._o.numberOfMonths; c++) {
@@ -27542,10 +31381,18 @@ if (typeof exports !== "undefined") {
          */
         setMinDate: function(value)
         {
-            setToStartOfDay(value);
-            this._o.minDate = value;
-            this._o.minYear  = value.getFullYear();
-            this._o.minMonth = value.getMonth();
+            if(value instanceof Date) {
+                setToStartOfDay(value);
+                this._o.minDate = value;
+                this._o.minYear  = value.getFullYear();
+                this._o.minMonth = value.getMonth();
+            } else {
+                this._o.minDate = defaults.minDate;
+                this._o.minYear  = defaults.minYear;
+                this._o.minMonth = defaults.minMonth;
+                this._o.startRange = defaults.startRange;
+            }
+
             this.draw();
         },
 
@@ -27554,10 +31401,18 @@ if (typeof exports !== "undefined") {
          */
         setMaxDate: function(value)
         {
-            setToStartOfDay(value);
-            this._o.maxDate = value;
-            this._o.maxYear = value.getFullYear();
-            this._o.maxMonth = value.getMonth();
+            if(value instanceof Date) {
+                setToStartOfDay(value);
+                this._o.maxDate = value;
+                this._o.maxYear = value.getFullYear();
+                this._o.maxMonth = value.getMonth();
+            } else {
+                this._o.maxDate = defaults.maxDate;
+                this._o.maxYear = defaults.maxYear;
+                this._o.maxMonth = defaults.maxMonth;
+                this._o.endRange = defaults.endRange;
+            }
+
             this.draw();
         },
 
@@ -27584,7 +31439,8 @@ if (typeof exports !== "undefined") {
                 maxYear = opts.maxYear,
                 minMonth = opts.minMonth,
                 maxMonth = opts.maxMonth,
-                html = '';
+                html = '',
+                randId;
 
             if (this._y <= minYear) {
                 this._y = minYear;
@@ -27599,8 +31455,10 @@ if (typeof exports !== "undefined") {
                 }
             }
 
+            randId = 'pika-title-' + Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 2);
+
             for (var c = 0; c < opts.numberOfMonths; c++) {
-                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year) + this.render(this.calendars[c].year, this.calendars[c].month) + '</div>';
+                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year, randId) + this.render(this.calendars[c].year, this.calendars[c].month, randId) + '</div>';
             }
 
             this.el.innerHTML = html;
@@ -27614,10 +31472,12 @@ if (typeof exports !== "undefined") {
             }
 
             if (typeof this._o.onDraw === 'function') {
-                var self = this;
-                sto(function() {
-                    self._o.onDraw.call(self);
-                }, 0);
+                this._o.onDraw(this);
+            }
+            
+            if (opts.bound) {
+                // let the screen reader user know to use arrow keys
+                opts.field.setAttribute('aria-label', 'Use the arrow keys to pick a date');
             }
         },
 
@@ -27675,7 +31535,7 @@ if (typeof exports !== "undefined") {
         /**
          * render HTML for a particular month
          */
-        render: function(year, month)
+        render: function(year, month, randId)
         {
             var opts   = this._o,
                 now    = new Date(),
@@ -27690,6 +31550,11 @@ if (typeof exports !== "undefined") {
                     before += 7;
                 }
             }
+            var previousMonth = month === 0 ? 11 : month - 1,
+                nextMonth = month === 11 ? 0 : month + 1,
+                yearOfPreviousMonth = month === 0 ? year - 1 : year,
+                yearOfNextMonth = month === 11 ? year + 1 : year,
+                daysInPreviousMonth = getDaysInMonth(yearOfPreviousMonth, previousMonth);
             var cells = days + before,
                 after = cells;
             while(after > 7) {
@@ -27702,24 +31567,41 @@ if (typeof exports !== "undefined") {
                     isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
                     isToday = compareDates(day, now),
                     isEmpty = i < before || i >= (days + before),
+                    dayNumber = 1 + (i - before),
+                    monthNumber = month,
+                    yearNumber = year,
                     isStartRange = opts.startRange && compareDates(opts.startRange, day),
                     isEndRange = opts.endRange && compareDates(opts.endRange, day),
                     isInRange = opts.startRange && opts.endRange && opts.startRange < day && day < opts.endRange,
                     isDisabled = (opts.minDate && day < opts.minDate) ||
                                  (opts.maxDate && day > opts.maxDate) ||
                                  (opts.disableWeekends && isWeekend(day)) ||
-                                 (opts.disableDayFn && opts.disableDayFn(day)),
-                    dayConfig = {
-                        day: 1 + (i - before),
-                        month: month,
-                        year: year,
+                                 (opts.disableDayFn && opts.disableDayFn(day));
+
+                if (isEmpty) {
+                    if (i < before) {
+                        dayNumber = daysInPreviousMonth + dayNumber;
+                        monthNumber = previousMonth;
+                        yearNumber = yearOfPreviousMonth;
+                    } else {
+                        dayNumber = dayNumber - days;
+                        monthNumber = nextMonth;
+                        yearNumber = yearOfNextMonth;
+                    }
+                }
+
+                var dayConfig = {
+                        day: dayNumber,
+                        month: monthNumber,
+                        year: yearNumber,
                         isSelected: isSelected,
                         isToday: isToday,
                         isDisabled: isDisabled,
                         isEmpty: isEmpty,
                         isStartRange: isStartRange,
                         isEndRange: isEndRange,
-                        isInRange: isInRange
+                        isInRange: isInRange,
+                        showDaysInNextAndPreviousMonths: opts.showDaysInNextAndPreviousMonths
                     };
 
                 row.push(renderDay(dayConfig));
@@ -27733,7 +31615,7 @@ if (typeof exports !== "undefined") {
                     r = 0;
                 }
             }
-            return renderTable(opts, data);
+            return renderTable(opts, data, randId);
         },
 
         isVisible: function()
@@ -27743,7 +31625,7 @@ if (typeof exports !== "undefined") {
 
         show: function()
         {
-            if (!this._v) {
+            if (!this.isVisible()) {
                 removeClass(this.el, 'is-hidden');
                 this._v = true;
                 this.draw();
@@ -27806,11 +31688,11 @@ if (typeof exports !== "undefined") {
 },{"moment":"moment"}],"zeroclipboard":[function(_dereq_,module,exports){
 /*!
  * ZeroClipboard
- * The ZeroClipboard library provides an easy way to copy text to the clipboard using an invisible Adobe Flash movie and a JavaScript interface.
- * Copyright (c) 2009-2014 Jon Rohan, James M. Greene
+ * The ZeroClipboard library provides an easy way to copy text to the clipboard using an invisible Adobe Flash movie and a JavaScript interface
+ * Copyright (c) 2009-2016 Jon Rohan, James M. Greene
  * Licensed MIT
  * http://zeroclipboard.org/
- * v2.2.0
+ * v2.3.0
  */
 (function(window, undefined) {
   "use strict";
@@ -27818,7 +31700,7 @@ if (typeof exports !== "undefined") {
  * Store references to critically important global functions that may be
  * overridden on certain web pages.
  */
-  var _window = window, _document = _window.document, _navigator = _window.navigator, _setTimeout = _window.setTimeout, _clearTimeout = _window.clearTimeout, _setInterval = _window.setInterval, _clearInterval = _window.clearInterval, _getComputedStyle = _window.getComputedStyle, _encodeURIComponent = _window.encodeURIComponent, _ActiveXObject = _window.ActiveXObject, _Error = _window.Error, _parseInt = _window.Number.parseInt || _window.parseInt, _parseFloat = _window.Number.parseFloat || _window.parseFloat, _isNaN = _window.Number.isNaN || _window.isNaN, _now = _window.Date.now, _keys = _window.Object.keys, _defineProperty = _window.Object.defineProperty, _hasOwn = _window.Object.prototype.hasOwnProperty, _slice = _window.Array.prototype.slice, _unwrap = function() {
+  var _window = window, _document = _window.document, _navigator = _window.navigator, _setTimeout = _window.setTimeout, _clearTimeout = _window.clearTimeout, _setInterval = _window.setInterval, _clearInterval = _window.clearInterval, _getComputedStyle = _window.getComputedStyle, _encodeURIComponent = _window.encodeURIComponent, _ActiveXObject = _window.ActiveXObject, _Error = _window.Error, _parseInt = _window.Number.parseInt || _window.parseInt, _parseFloat = _window.Number.parseFloat || _window.parseFloat, _isNaN = _window.Number.isNaN || _window.isNaN, _now = _window.Date.now, _keys = _window.Object.keys, _hasOwn = _window.Object.prototype.hasOwnProperty, _slice = _window.Array.prototype.slice, _unwrap = function() {
     var unwrapper = function(el) {
       return el;
     };
@@ -28026,7 +31908,7 @@ if (typeof exports !== "undefined") {
     if (scripts.length === 1) {
       return scripts[0].src || undefined;
     }
-    if ("readyState" in scripts[0]) {
+    if ("readyState" in (scripts[0] || document.createElement("script"))) {
       for (i = scripts.length; i--; ) {
         if (scripts[i].readyState === "interactive" && (jsPath = scripts[i].src)) {
           return jsPath;
@@ -28078,12 +31960,28 @@ if (typeof exports !== "undefined") {
     return jsDir + "ZeroClipboard.swf";
   };
   /**
+ * Is the client's operating system some version of Windows?
+ *
+ * @returns Boolean
+ * @private
+ */
+  var _isWindows = function() {
+    var isWindowsRegex = /win(dows|[\s]?(nt|me|ce|xp|vista|[\d]+))/i;
+    return !!_navigator && (isWindowsRegex.test(_navigator.appVersion || "") || isWindowsRegex.test(_navigator.platform || "") || (_navigator.userAgent || "").indexOf("Windows") !== -1);
+  };
+  /**
  * Keep track of if the page is framed (in an `iframe`). This can never change.
  * @private
  */
   var _pageIsFramed = function() {
-    return window.opener == null && (!!window.top && window != window.top || !!window.parent && window != window.parent);
+    return _window.opener == null && (!!_window.top && _window != _window.top || !!_window.parent && _window != _window.parent);
   }();
+  /**
+ * Keep track of if the page is XHTML (vs. HTML), which requires that everything
+ * be rendering in XML mode.
+ * @private
+ */
+  var _pageIsXhtml = _document.documentElement.nodeName === "html";
   /**
  * Keep track of the state of the Flash object.
  * @private
@@ -28092,9 +31990,10 @@ if (typeof exports !== "undefined") {
     bridge: null,
     version: "0.0.0",
     pluginType: "unknown",
+    sandboxed: null,
     disabled: null,
     outdated: null,
-    sandboxed: null,
+    insecure: null,
     unavailable: null,
     degraded: null,
     deactivated: null,
@@ -28153,9 +32052,10 @@ if (typeof exports !== "undefined") {
   var _eventMessages = {
     ready: "Flash communication is established",
     error: {
+      "flash-sandboxed": "Attempting to run Flash in a sandboxed iframe, which is impossible",
       "flash-disabled": "Flash is disabled or not installed. May also be attempting to run Flash in a sandboxed iframe, which is impossible.",
       "flash-outdated": "Flash is too outdated to support ZeroClipboard",
-      "flash-sandboxed": "Attempting to run Flash in a sandboxed iframe, which is impossible",
+      "flash-insecure": "Flash will be unable to communicate due to a protocol mismatch between your `swfPath` configuration and the page",
       "flash-unavailable": "Flash is unable to communicate bidirectionally with JavaScript",
       "flash-degraded": "Flash is unable to preserve data fidelity when communicating with JavaScript",
       "flash-deactivated": "Flash is too outdated for your browser and/or is configured as click-to-activate.\nThis may also mean that the ZeroClipboard SWF object could not be loaded, so please check your `swfPath` configuration and/or network connectivity.\nMay also be attempting to run Flash in a sandboxed iframe, which is impossible.",
@@ -28163,7 +32063,8 @@ if (typeof exports !== "undefined") {
       "version-mismatch": "ZeroClipboard JS version number does not match ZeroClipboard SWF version number",
       "clipboard-error": "At least one error was thrown while ZeroClipboard was attempting to inject your data into the clipboard",
       "config-mismatch": "ZeroClipboard configuration does not match Flash's reality",
-      "swf-not-found": "The ZeroClipboard SWF object could not be loaded, so please check your `swfPath` configuration and/or network connectivity"
+      "swf-not-found": "The ZeroClipboard SWF object could not be loaded, so please check your `swfPath` configuration and/or network connectivity",
+      "browser-unsupported": "The browser does not support the required HTML DOM and JavaScript features"
     }
   };
   /**
@@ -28177,7 +32078,7 @@ if (typeof exports !== "undefined") {
  * variable's property values being updated.
  * @private
  */
-  var _flashStateErrorNames = [ "flash-disabled", "flash-outdated", "flash-sandboxed", "flash-unavailable", "flash-degraded", "flash-deactivated", "flash-overdue" ];
+  var _flashStateErrorNames = [ "flash-sandboxed", "flash-disabled", "flash-outdated", "flash-insecure", "flash-unavailable", "flash-degraded", "flash-deactivated", "flash-overdue" ];
   /**
  * A RegExp to match the `name` property of `error` events related to Flash.
  * @private
@@ -28190,7 +32091,9 @@ if (typeof exports !== "undefined") {
  * which is enabled.
  * @private
  */
-  var _flashStateEnabledErrorNameMatchingRegex = new RegExp("^flash-(" + _flashStateErrorNames.slice(1).map(function(errorName) {
+  var _flashStateEnabledErrorNameMatchingRegex = new RegExp("^flash-(" + _flashStateErrorNames.filter(function(errorName) {
+    return errorName !== "flash-disabled";
+  }).map(function(errorName) {
     return errorName.replace(/^flash-/, "");
   }).join("|") + ")$");
   /**
@@ -28199,12 +32102,13 @@ if (typeof exports !== "undefined") {
  */
   var _globalConfig = {
     swfPath: _getDefaultSwfPath(),
-    trustedDomains: window.location.host ? [ window.location.host ] : [],
+    trustedDomains: _window.location.host ? [ _window.location.host ] : [],
     cacheBust: true,
     forceEnhancedClipboard: false,
     flashLoadTimeout: 3e4,
     autoActivate: true,
     bubbleEvents: true,
+    fixLineEndings: true,
     containerId: "global-zeroclipboard-html-bridge",
     containerClass: "global-zeroclipboard-container",
     swfObjectId: "global-zeroclipboard-flash-bridge",
@@ -28219,24 +32123,22 @@ if (typeof exports !== "undefined") {
  * @private
  */
   var _config = function(options) {
-    if (typeof options === "object" && options !== null) {
-      for (var prop in options) {
-        if (_hasOwn.call(options, prop)) {
-          if (/^(?:forceHandCursor|title|zIndex|bubbleEvents)$/.test(prop)) {
-            _globalConfig[prop] = options[prop];
-          } else if (_flashState.bridge == null) {
-            if (prop === "containerId" || prop === "swfObjectId") {
-              if (_isValidHtml4Id(options[prop])) {
-                _globalConfig[prop] = options[prop];
-              } else {
-                throw new Error("The specified `" + prop + "` value is not valid as an HTML4 Element ID");
-              }
-            } else {
+    if (typeof options === "object" && options && !("length" in options)) {
+      _keys(options).forEach(function(prop) {
+        if (/^(?:forceHandCursor|title|zIndex|bubbleEvents|fixLineEndings)$/.test(prop)) {
+          _globalConfig[prop] = options[prop];
+        } else if (_flashState.bridge == null) {
+          if (prop === "containerId" || prop === "swfObjectId") {
+            if (_isValidHtml4Id(options[prop])) {
               _globalConfig[prop] = options[prop];
+            } else {
+              throw new Error("The specified `" + prop + "` value is not valid as an HTML4 Element ID");
             }
+          } else {
+            _globalConfig[prop] = options[prop];
           }
         }
-      }
+      });
     }
     if (typeof options === "string" && options) {
       if (_hasOwn.call(_globalConfig, options)) {
@@ -28253,7 +32155,9 @@ if (typeof exports !== "undefined") {
   var _state = function() {
     _detectSandbox();
     return {
-      browser: _pick(_navigator, [ "userAgent", "platform", "appName" ]),
+      browser: _extend(_pick(_navigator, [ "userAgent", "platform", "appName", "appVersion" ]), {
+        isSupported: _isBrowserSupported()
+      }),
       flash: _omit(_flashState, [ "bridge" ]),
       zeroclipboard: {
         version: ZeroClipboard.version,
@@ -28262,11 +32166,18 @@ if (typeof exports !== "undefined") {
     };
   };
   /**
+ * Does this browser support all of the necessary DOM and JS features necessary?
+ * @private
+ */
+  var _isBrowserSupported = function() {
+    return !!(_document.addEventListener && _window.Object.keys && _window.Array.prototype.map);
+  };
+  /**
  * The underlying implementation of `ZeroClipboard.isFlashUnusable`.
  * @private
  */
   var _isFlashUnusable = function() {
-    return !!(_flashState.disabled || _flashState.outdated || _flashState.sandboxed || _flashState.unavailable || _flashState.degraded || _flashState.deactivated);
+    return !!(_flashState.sandboxed || _flashState.disabled || _flashState.outdated || _flashState.unavailable || _flashState.degraded || _flashState.deactivated);
   };
   /**
  * The underlying implementation of `ZeroClipboard.on`.
@@ -28276,14 +32187,15 @@ if (typeof exports !== "undefined") {
     var i, len, events, added = {};
     if (typeof eventType === "string" && eventType) {
       events = eventType.toLowerCase().split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && typeof listener === "undefined") {
-      for (i in eventType) {
-        if (_hasOwn.call(eventType, i) && typeof i === "string" && i && typeof eventType[i] === "function") {
-          ZeroClipboard.on(i, eventType[i]);
+    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
+      _keys(eventType).forEach(function(key) {
+        var listener = eventType[key];
+        if (typeof listener === "function") {
+          ZeroClipboard.on(key, listener);
         }
-      }
+      });
     }
-    if (events && events.length) {
+    if (events && events.length && listener) {
       for (i = 0, len = events.length; i < len; i++) {
         eventType = events[i].replace(/^on/, "");
         added[eventType] = true;
@@ -28298,6 +32210,12 @@ if (typeof exports !== "undefined") {
         });
       }
       if (added.error) {
+        if (!_isBrowserSupported()) {
+          ZeroClipboard.emit({
+            type: "error",
+            name: "browser-unsupported"
+          });
+        }
         for (i = 0, len = _flashStateErrorNames.length; i < len; i++) {
           if (_flashState[_flashStateErrorNames[i].replace(/^flash-/, "")] === true) {
             ZeroClipboard.emit({
@@ -28328,17 +32246,18 @@ if (typeof exports !== "undefined") {
     if (arguments.length === 0) {
       events = _keys(_handlers);
     } else if (typeof eventType === "string" && eventType) {
-      events = eventType.split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && typeof listener === "undefined") {
-      for (i in eventType) {
-        if (_hasOwn.call(eventType, i) && typeof i === "string" && i && typeof eventType[i] === "function") {
-          ZeroClipboard.off(i, eventType[i]);
+      events = eventType.toLowerCase().split(/\s+/);
+    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
+      _keys(eventType).forEach(function(key) {
+        var listener = eventType[key];
+        if (typeof listener === "function") {
+          ZeroClipboard.off(key, listener);
         }
-      }
+      });
     }
     if (events && events.length) {
       for (i = 0, len = events.length; i < len; i++) {
-        eventType = events[i].toLowerCase().replace(/^on/, "");
+        eventType = events[i].replace(/^on/, "");
         perEventHandlers = _handlers[eventType];
         if (perEventHandlers && perEventHandlers.length) {
           if (listener) {
@@ -28397,11 +32316,27 @@ if (typeof exports !== "undefined") {
     return returnVal;
   };
   /**
+ * Get the protocol of the configured SWF path.
+ * @private
+ */
+  var _getSwfPathProtocol = function() {
+    var swfPath = _globalConfig.swfPath || "", swfPathFirstTwoChars = swfPath.slice(0, 2), swfProtocol = swfPath.slice(0, swfPath.indexOf("://") + 1);
+    return swfPathFirstTwoChars === "\\\\" ? "file:" : swfPathFirstTwoChars === "//" || swfProtocol === "" ? _window.location.protocol : swfProtocol;
+  };
+  /**
  * The underlying implementation of `ZeroClipboard.create`.
  * @private
  */
   var _create = function() {
-    var previousState = _flashState.sandboxed;
+    var maxWait, swfProtocol, previousState = _flashState.sandboxed;
+    if (!_isBrowserSupported()) {
+      _flashState.ready = false;
+      ZeroClipboard.emit({
+        type: "error",
+        name: "browser-unsupported"
+      });
+      return;
+    }
     _detectSandbox();
     if (typeof _flashState.ready !== "boolean") {
       _flashState.ready = false;
@@ -28413,22 +32348,30 @@ if (typeof exports !== "undefined") {
         name: "flash-sandboxed"
       });
     } else if (!ZeroClipboard.isFlashUnusable() && _flashState.bridge === null) {
-      var maxWait = _globalConfig.flashLoadTimeout;
-      if (typeof maxWait === "number" && maxWait >= 0) {
-        _flashCheckTimeout = _setTimeout(function() {
-          if (typeof _flashState.deactivated !== "boolean") {
-            _flashState.deactivated = true;
-          }
-          if (_flashState.deactivated === true) {
-            ZeroClipboard.emit({
-              type: "error",
-              name: "flash-deactivated"
-            });
-          }
-        }, maxWait);
+      swfProtocol = _getSwfPathProtocol();
+      if (swfProtocol && swfProtocol !== _window.location.protocol) {
+        ZeroClipboard.emit({
+          type: "error",
+          name: "flash-insecure"
+        });
+      } else {
+        maxWait = _globalConfig.flashLoadTimeout;
+        if (typeof maxWait === "number" && maxWait >= 0) {
+          _flashCheckTimeout = _setTimeout(function() {
+            if (typeof _flashState.deactivated !== "boolean") {
+              _flashState.deactivated = true;
+            }
+            if (_flashState.deactivated === true) {
+              ZeroClipboard.emit({
+                type: "error",
+                name: "flash-deactivated"
+              });
+            }
+          }, maxWait);
+        }
+        _flashState.overdue = false;
+        _embedSwf();
       }
-      _flashState.overdue = false;
-      _embedSwf();
     }
   };
   /**
@@ -28459,7 +32402,7 @@ if (typeof exports !== "undefined") {
     }
     for (var dataFormat in dataObj) {
       if (typeof dataFormat === "string" && dataFormat && _hasOwn.call(dataObj, dataFormat) && typeof dataObj[dataFormat] === "string" && dataObj[dataFormat]) {
-        _clipData[dataFormat] = dataObj[dataFormat];
+        _clipData[dataFormat] = _fixLineEndings(dataObj[dataFormat]);
       }
     }
   };
@@ -28595,6 +32538,12 @@ if (typeof exports !== "undefined") {
       if (_flashStateEnabledErrorNameMatchingRegex.test(event.name)) {
         _extend(event, {
           version: _flashState.version
+        });
+      }
+      if (event.name === "flash-insecure") {
+        _extend(event, {
+          pageProtocol: _window.location.protocol,
+          swfProtocol: _getSwfPathProtocol()
         });
       }
     }
@@ -28752,10 +32701,21 @@ if (typeof exports !== "undefined") {
       if (typeof isSandboxed === "boolean") {
         _flashState.sandboxed = isSandboxed;
       }
-      if (_flashStateErrorNames.indexOf(event.name) !== -1) {
+      if (event.name === "browser-unsupported") {
+        _extend(_flashState, {
+          disabled: false,
+          outdated: false,
+          unavailable: false,
+          degraded: false,
+          deactivated: false,
+          overdue: false,
+          ready: false
+        });
+      } else if (_flashStateErrorNames.indexOf(event.name) !== -1) {
         _extend(_flashState, {
           disabled: event.name === "flash-disabled",
           outdated: event.name === "flash-outdated",
+          insecure: event.name === "flash-insecure",
           unavailable: event.name === "flash-unavailable",
           degraded: event.name === "flash-degraded",
           deactivated: event.name === "flash-deactivated",
@@ -28767,6 +32727,7 @@ if (typeof exports !== "undefined") {
         _extend(_flashState, {
           disabled: false,
           outdated: false,
+          insecure: false,
           unavailable: false,
           degraded: false,
           deactivated: false,
@@ -28781,9 +32742,10 @@ if (typeof exports !== "undefined") {
       _zcSwfVersion = event.swfVersion;
       var wasDeactivated = _flashState.deactivated === true;
       _extend(_flashState, {
+        sandboxed: false,
         disabled: false,
         outdated: false,
-        sandboxed: false,
+        insecure: false,
         unavailable: false,
         degraded: false,
         deactivated: false,
@@ -28999,6 +32961,36 @@ if (typeof exports !== "undefined") {
     return htmlBridge || null;
   };
   /**
+ *
+ * @private
+ */
+  var _escapeXmlValue = function(val) {
+    if (typeof val !== "string" || !val) {
+      return val;
+    }
+    return val.replace(/["&'<>]/g, function(chr) {
+      switch (chr) {
+       case '"':
+        return "&quot;";
+
+       case "&":
+        return "&amp;";
+
+       case "'":
+        return "&apos;";
+
+       case "<":
+        return "&lt;";
+
+       case ">":
+        return "&gt;";
+
+       default:
+        return chr;
+      }
+    });
+  };
+  /**
  * Create the SWF object.
  *
  * @returns The SWF object reference.
@@ -29013,6 +33005,9 @@ if (typeof exports !== "undefined") {
         jsVersion: ZeroClipboard.version
       }, _globalConfig));
       var swfUrl = _globalConfig.swfPath + _cacheBust(_globalConfig.swfPath, _globalConfig);
+      if (_pageIsXhtml) {
+        swfUrl = _escapeXmlValue(swfUrl);
+      }
       container = _createHtmlBridge();
       var divToBeReplaced = _document.createElement("div");
       container.appendChild(divToBeReplaced);
@@ -29079,6 +33074,7 @@ if (typeof exports !== "undefined") {
       _flashState.ready = null;
       _flashState.bridge = null;
       _flashState.deactivated = null;
+      _flashState.insecure = null;
       _zcSwfVersion = undefined;
     }
   };
@@ -29326,18 +33322,15 @@ if (typeof exports !== "undefined") {
       classNames = value.split(/\s+/);
     }
     if (element && element.nodeType === 1 && classNames.length > 0) {
-      if (element.classList) {
-        for (c = 0, cl = classNames.length; c < cl; c++) {
-          element.classList.add(classNames[c]);
+      className = (" " + (element.className || "") + " ").replace(/[\t\r\n\f]/g, " ");
+      for (c = 0, cl = classNames.length; c < cl; c++) {
+        if (className.indexOf(" " + classNames[c] + " ") === -1) {
+          className += classNames[c] + " ";
         }
-      } else if (element.hasOwnProperty("className")) {
-        className = " " + element.className + " ";
-        for (c = 0, cl = classNames.length; c < cl; c++) {
-          if (className.indexOf(" " + classNames[c] + " ") === -1) {
-            className += classNames[c] + " ";
-          }
-        }
-        element.className = className.replace(/^\s+|\s+$/g, "");
+      }
+      className = className.replace(/^\s+|\s+$/g, "");
+      if (className !== element.className) {
+        element.className = className;
       }
     }
     return element;
@@ -29354,16 +33347,15 @@ if (typeof exports !== "undefined") {
       classNames = value.split(/\s+/);
     }
     if (element && element.nodeType === 1 && classNames.length > 0) {
-      if (element.classList && element.classList.length > 0) {
-        for (c = 0, cl = classNames.length; c < cl; c++) {
-          element.classList.remove(classNames[c]);
-        }
-      } else if (element.className) {
-        className = (" " + element.className + " ").replace(/[\r\n\t]/g, " ");
+      if (element.className) {
+        className = (" " + element.className + " ").replace(/[\t\r\n\f]/g, " ");
         for (c = 0, cl = classNames.length; c < cl; c++) {
           className = className.replace(" " + classNames[c] + " ", " ");
         }
-        element.className = className.replace(/^\s+|\s+$/g, "");
+        className = className.replace(/^\s+|\s+$/g, "");
+        if (className !== element.className) {
+          element.className = className;
+        }
       }
     }
     return element;
@@ -29432,6 +33424,9 @@ if (typeof exports !== "undefined") {
       return false;
     }
     var styles = _getComputedStyle(el, null);
+    if (!styles) {
+      return false;
+    }
     var hasCssHeight = _parseFloat(styles.height) > 0;
     var hasCssWidth = _parseFloat(styles.width) > 0;
     var hasCssTop = _parseFloat(styles.top) >= 0;
@@ -29506,6 +33501,25 @@ if (typeof exports !== "undefined") {
     return typeof zIndex === "number" ? zIndex : "auto";
   };
   /**
+ * Ensure OS-compliant line endings, i.e. "\r\n" on Windows, "\n" elsewhere
+ *
+ * @returns string
+ * @private
+ */
+  var _fixLineEndings = function(content) {
+    var replaceRegex = /(\r\n|\r|\n)/g;
+    if (typeof content === "string" && _globalConfig.fixLineEndings === true) {
+      if (_isWindows()) {
+        if (/((^|[^\r])\n|\r([^\n]|$))/.test(content)) {
+          content = content.replace(replaceRegex, "\r\n");
+        }
+      } else if (/\r/.test(content)) {
+        content = content.replace(replaceRegex, "\n");
+      }
+    }
+    return content;
+  };
+  /**
  * Attempt to detect if ZeroClipboard is executing inside of a sandboxed iframe.
  * If it is, Flash Player cannot be used, so ZeroClipboard is dead in the water.
  *
@@ -29513,7 +33527,7 @@ if (typeof exports !== "undefined") {
  * @see {@link https://github.com/zeroclipboard/zeroclipboard/issues/511}
  * @see {@link http://zeroclipboard.org/test-iframes.html}
  *
- * @returns `true` (is sandboxed), `false` (is not sandboxed), or `null` (uncertain) 
+ * @returns `true` (is sandboxed), `false` (is not sandboxed), or `null` (uncertain)
  * @private
  */
   var _detectSandbox = function(doNotReassessFlashSupport) {
@@ -29658,12 +33672,7 @@ if (typeof exports !== "undefined") {
  * @readonly
  * @property {string}
  */
-  _defineProperty(ZeroClipboard, "version", {
-    value: "2.2.0",
-    writable: false,
-    configurable: true,
-    enumerable: true
-  });
+  ZeroClipboard.version = "2.3.0";
   /**
  * Update or get a copy of the ZeroClipboard global configuration.
  * Returns a copy of the current/updated configuration.
@@ -29820,7 +33829,8 @@ if (typeof exports !== "undefined") {
  *   _clientMeta[client.id] = {
  *     instance: client,
  *     elements: [],
- *     handlers: {}
+ *     handlers: {},
+ *     coreWildcardHandler: function(event) { return client.emit(event); }
  *   };
  */
   var _clientMeta = {};
@@ -29859,19 +33869,21 @@ if (typeof exports !== "undefined") {
  * @private
  */
   var _clientConstructor = function(elements) {
-    var client = this;
+    var meta, client = this;
     client.id = "" + _clientIdCounter++;
-    _clientMeta[client.id] = {
+    meta = {
       instance: client,
       elements: [],
-      handlers: {}
+      handlers: {},
+      coreWildcardHandler: function(event) {
+        return client.emit(event);
+      }
     };
+    _clientMeta[client.id] = meta;
     if (elements) {
       client.clip(elements);
     }
-    ZeroClipboard.on("*", function(event) {
-      return client.emit(event);
-    });
+    ZeroClipboard.on("*", meta.coreWildcardHandler);
     ZeroClipboard.on("destroy", function() {
       client.destroy();
     });
@@ -29882,20 +33894,21 @@ if (typeof exports !== "undefined") {
  * @private
  */
   var _clientOn = function(eventType, listener) {
-    var i, len, events, added = {}, meta = _clientMeta[this.id], handlers = meta && meta.handlers;
+    var i, len, events, added = {}, client = this, meta = _clientMeta[client.id], handlers = meta && meta.handlers;
     if (!meta) {
       throw new Error("Attempted to add new listener(s) to a destroyed ZeroClipboard client instance");
     }
     if (typeof eventType === "string" && eventType) {
       events = eventType.toLowerCase().split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && typeof listener === "undefined") {
-      for (i in eventType) {
-        if (_hasOwn.call(eventType, i) && typeof i === "string" && i && typeof eventType[i] === "function") {
-          this.on(i, eventType[i]);
+    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
+      _keys(eventType).forEach(function(key) {
+        var listener = eventType[key];
+        if (typeof listener === "function") {
+          client.on(key, listener);
         }
-      }
+      });
     }
-    if (events && events.length) {
+    if (events && events.length && listener) {
       for (i = 0, len = events.length; i < len; i++) {
         eventType = events[i].replace(/^on/, "");
         added[eventType] = true;
@@ -29931,27 +33944,28 @@ if (typeof exports !== "undefined") {
         }
       }
     }
-    return this;
+    return client;
   };
   /**
  * The underlying implementation of `ZeroClipboard.Client.prototype.off`.
  * @private
  */
   var _clientOff = function(eventType, listener) {
-    var i, len, foundIndex, events, perEventHandlers, meta = _clientMeta[this.id], handlers = meta && meta.handlers;
+    var i, len, foundIndex, events, perEventHandlers, client = this, meta = _clientMeta[client.id], handlers = meta && meta.handlers;
     if (!handlers) {
-      return this;
+      return client;
     }
     if (arguments.length === 0) {
       events = _keys(handlers);
     } else if (typeof eventType === "string" && eventType) {
       events = eventType.split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && typeof listener === "undefined") {
-      for (i in eventType) {
-        if (_hasOwn.call(eventType, i) && typeof i === "string" && i && typeof eventType[i] === "function") {
-          this.off(i, eventType[i]);
+    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
+      _keys(eventType).forEach(function(key) {
+        var listener = eventType[key];
+        if (typeof listener === "function") {
+          client.off(key, listener);
         }
-      }
+      });
     }
     if (events && events.length) {
       for (i = 0, len = events.length; i < len; i++) {
@@ -29970,7 +33984,7 @@ if (typeof exports !== "undefined") {
         }
       }
     }
-    return this;
+    return client;
   };
   /**
  * The underlying implementation of `ZeroClipboard.Client.prototype.handlers`.
@@ -29992,16 +34006,17 @@ if (typeof exports !== "undefined") {
  * @private
  */
   var _clientEmit = function(event) {
-    if (_clientShouldEmit.call(this, event)) {
+    var eventCopy, client = this;
+    if (_clientShouldEmit.call(client, event)) {
       if (typeof event === "object" && event && typeof event.type === "string" && event.type) {
         event = _extend({}, event);
       }
-      var eventCopy = _extend({}, _createEvent(event), {
-        client: this
+      eventCopy = _extend({}, _createEvent(event), {
+        client: client
       });
-      _clientDispatchCallbacks.call(this, eventCopy);
+      _clientDispatchCallbacks.call(client, eventCopy);
     }
-    return this;
+    return client;
   };
   /**
  * The underlying implementation of `ZeroClipboard.Client.prototype.clip`.
@@ -30083,11 +34098,13 @@ if (typeof exports !== "undefined") {
  * @private
  */
   var _clientDestroy = function() {
-    if (!_clientMeta[this.id]) {
+    var meta = _clientMeta[this.id];
+    if (!meta) {
       return;
     }
     this.unclip();
     this.off();
+    ZeroClipboard.off("*", meta.coreWildcardHandler);
     delete _clientMeta[this.id];
   };
   /**
@@ -30385,5 +34402,5 @@ if (typeof exports !== "undefined") {
 })(function() {
   return this || window;
 }());
-},{}]},{},[23,61,63,62,64,85,86,87,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,88,89,90,91,105,106,107,108,94,95,96,97,98,99,31,35,32,33,40,34,36,37,38,39])(23)
+},{}]},{},[24,63,65,66,64,67,110,111,112,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,99,100,101,102,103,105,106,107,108,109,113,114,115,116,131,132,133,134,119,120,121,122,123,124,32,36,33,34,41,35,37,38,39,40])(24)
 });

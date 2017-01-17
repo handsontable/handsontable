@@ -4,6 +4,7 @@ import {
   getTrimmingContainer,
 } from './../../../../helpers/dom/element';
 import {defineGetter} from './../../../../helpers/object';
+import {arrayEach} from './../../../../helpers/array';
 import {eventManager as eventManagerObject} from './../../../../eventManager';
 
 const registeredOverlays = {};
@@ -130,8 +131,27 @@ class WalkontableOverlay {
     this.holder = this.wot.wtTable.holder;
     this.wtRootElement = this.wot.wtTable.wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-    this.needFullRender = this.shouldBeRendered();
     this.areElementSizesAdjusted = false;
+    this.updateStateOfRendering();
+  }
+
+  /**
+   * Update internal state of object with an information about the need of full rendering of the overlay.
+   *
+   * @returns {Boolean} Returns `true` if the state has changed since the last check.
+   */
+  updateStateOfRendering() {
+    const previousState = this.needFullRender;
+
+    this.needFullRender = this.shouldBeRendered();
+
+    const changed = previousState !== this.needFullRender;
+
+    if (changed && !this.needFullRender) {
+      this.reset();
+    }
+
+    return changed;
   }
 
   /**
@@ -214,6 +234,25 @@ class WalkontableOverlay {
       this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
+  }
+
+  /**
+   * Reset overlay styles to initial values.
+   */
+  reset() {
+    if (!this.clone) {
+      return;
+    }
+    const holder = this.clone.wtTable.holder;
+    const hider = this.clone.wtTable.hider;
+    let holderStyle = holder.style;
+    let hidderStyle = hider.style;
+    let rootStyle = holder.parentNode.style;
+
+    arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
+      style.width = '';
+      style.height = '';
+    });
   }
 
   /**

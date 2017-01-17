@@ -64,18 +64,12 @@ class WalkontableCellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
+    let {row, col} = cellCoords;
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
 
-    if (cellCoords.row < 0) {
-      cellCoords.row = 0;
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = 0;
-    }
-
-    return topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row &&
-        topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col;
+    return topLeft.row <= row && bottomRight.row >= row &&
+        topLeft.col <= col && bottomRight.col >= col;
   }
 
   /**
@@ -216,20 +210,16 @@ class WalkontableCellRange {
   setDirection(direction) {
     switch (direction) {
       case 'NW-SE':
-        this.from = this.getTopLeftCorner();
-        this.to = this.getBottomRightCorner();
+        [this.from, this.to] = [this.getTopLeftCorner(), this.getBottomRightCorner()];
         break;
       case 'NE-SW':
-        this.from = this.getTopRightCorner();
-        this.to = this.getBottomLeftCorner();
+        [this.from, this.to] = [this.getTopRightCorner(), this.getBottomLeftCorner()];
         break;
       case 'SE-NW':
-        this.from = this.getBottomRightCorner();
-        this.to = this.getTopLeftCorner();
+        [this.from, this.to] = [this.getBottomRightCorner(), this.getTopLeftCorner()];
         break;
       case 'SW-NE':
-        this.from = this.getBottomLeftCorner();
-        this.to = this.getTopRightCorner();
+        [this.from, this.to] = [this.getBottomLeftCorner(), this.getTopRightCorner()];
         break;
     }
   }

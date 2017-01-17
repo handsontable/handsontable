@@ -88,7 +88,7 @@ class AutoColumnSize extends BasePlugin {
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
     /**
-     * `true` if only the first calculation was performed.
+     * `true` only if the first calculation was performed
      *
      * @type {Boolean}
      */
@@ -122,10 +122,9 @@ class AutoColumnSize extends BasePlugin {
     }
 
     let setting = this.hot.getSettings().autoColumnSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
 
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
@@ -144,7 +143,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate columns width.
+   * Calculate a columns width.
    *
    * @param {Number|Object} colRange Column range object.
    * @param {Number|Object} rowRange Row range object.
@@ -228,6 +227,25 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Set the sampling options.
+   *
+   * @private
+   */
+  setSamplingOptions() {
+    let setting = this.hot.getSettings().autoColumnSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
+    }
+  }
+
+  /**
    * Recalculate all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
@@ -238,7 +256,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get value which tells how much columns will be calculated synchronously. Rest columns will be calculated asynchronously.
+   * Get value which tells how many columns should be calculated synchronously. Rest of the columns will be calculated asynchronously.
    *
    * @returns {Number}
    */
@@ -261,7 +279,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get calculated column height.
+   * Get the calculated column width.
    *
    * @param {Number} col Column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
@@ -283,7 +301,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get first visible column.
+   * Get the first visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -301,7 +319,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get last visible column.
+   * Get the last visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */

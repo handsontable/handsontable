@@ -27,7 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function outer (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof require == "function" && require;
-  var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","pikaday":"Pikaday"}') || {};
+  var globalNS = JSON.parse('{"zeroclipboard":"ZeroClipboard","moment":"moment","numbro":"numbro","pikaday":"Pikaday"}') || {};
 
   function newRequire(name, jumped){
     if(!cache[name]) {
@@ -70,55 +70,57 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 })
 ({1:[function(_dereq_,module,exports){
 if (window.jQuery) {
-  $.fn.handsontable = function (action) {
-    var i,
-      ilen,
-      args,
-      output,
-      userSettings,
-      $this = this.first(), // Use only first element from list
-      instance = $this.data('handsontable');
+  (function ($) {
+    $.fn.handsontable = function (action) {
+      var i,
+        ilen,
+        args,
+        output,
+        userSettings,
+        $this = this.first(), // Use only first element from list
+        instance = $this.data('handsontable');
 
-    // Init case
-    if (typeof action !== 'string') {
-      userSettings = action || {};
+      // Init case
+      if (typeof action !== 'string') {
+        userSettings = action || {};
 
-      if (instance) {
-        instance.updateSettings(userSettings);
-
-      } else {
-        instance = new Handsontable.Core($this[0], userSettings);
-        $this.data('handsontable', instance);
-        instance.init();
-      }
-
-      return $this;
-
-    } else { // Action case
-      args = [];
-
-      if (arguments.length > 1) {
-        for (i = 1, ilen = arguments.length; i < ilen; i++) {
-          args.push(arguments[i]);
-        }
-      }
-
-      if (instance) {
-        if (typeof instance[action] !== 'undefined') {
-          output = instance[action].apply(instance, args);
-
-          if (action === 'destroy'){
-            $this.removeData();
-          }
+        if (instance) {
+          instance.updateSettings(userSettings);
 
         } else {
-          throw new Error('Handsontable do not provide action: ' + action);
+          instance = new Handsontable.Core($this[0], userSettings);
+          $this.data('handsontable', instance);
+          instance.init();
         }
-      }
 
-      return output;
-    }
-  };
+        return $this;
+
+      } else { // Action case
+        args = [];
+
+        if (arguments.length > 1) {
+          for (i = 1, ilen = arguments.length; i < ilen; i++) {
+            args.push(arguments[i]);
+          }
+        }
+
+        if (instance) {
+          if (typeof instance[action] !== 'undefined') {
+            output = instance[action].apply(instance, args);
+
+            if (action === 'destroy') {
+              $this.removeData();
+            }
+
+          } else {
+            throw new Error('Handsontable do not provide action: ' + action);
+          }
+        }
+
+        return output;
+      }
+    };
+  })(window.jQuery);
 }
 
 
@@ -477,22 +479,23 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
       this.cornerStyle.left = left + width - 4 + 'px';
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
-      this.cornerStyle.display = 'block';
+      this.cornerStyle.display = 'none';
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) >= innerWidth(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width) / 2) >= innerWidth(trimmingContainer);
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width) / 2) + 'px';
           this.cornerStyle.borderRightWidth = 0;
         }
       }
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) >= innerHeight(trimmingContainer);
+        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height) / 2) >= innerHeight(trimmingContainer);
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height) / 2) + 'px';
           this.cornerStyle.borderBottomWidth = 0;
         }
       }
+      this.cornerStyle.display = 'block';
     }
     if (isMobileBrowser()) {
       this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
@@ -572,7 +575,8 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
-      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + viewportWidth) {
+      var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn == null) {
           this.startColumn = i;
         }
@@ -865,15 +869,12 @@ var $WalkontableCellRange = WalkontableCellRange;
     return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
   },
   includes: function(cellCoords) {
+    var $__2 = cellCoords,
+        row = $__2.row,
+        col = $__2.col;
     var topLeft = this.getTopLeftCorner();
     var bottomRight = this.getBottomRightCorner();
-    if (cellCoords.row < 0) {
-      cellCoords.row = 0;
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = 0;
-    }
-    return topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col;
+    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
   },
   includesRange: function(testedRange) {
     return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
@@ -944,22 +945,22 @@ var $WalkontableCellRange = WalkontableCellRange;
     }
   },
   setDirection: function(direction) {
+    var $__2,
+        $__3,
+        $__4,
+        $__5;
     switch (direction) {
       case 'NW-SE':
-        this.from = this.getTopLeftCorner();
-        this.to = this.getBottomRightCorner();
+        ($__2 = [this.getTopLeftCorner(), this.getBottomRightCorner()], this.from = $__2[0], this.to = $__2[1], $__2);
         break;
       case 'NE-SW':
-        this.from = this.getTopRightCorner();
-        this.to = this.getBottomLeftCorner();
+        ($__3 = [this.getTopRightCorner(), this.getBottomLeftCorner()], this.from = $__3[0], this.to = $__3[1], $__3);
         break;
       case 'SE-NW':
-        this.from = this.getBottomRightCorner();
-        this.to = this.getTopLeftCorner();
+        ($__4 = [this.getBottomRightCorner(), this.getTopLeftCorner()], this.from = $__4[0], this.to = $__4[1], $__4);
         break;
       case 'SW-NE':
-        this.from = this.getBottomLeftCorner();
-        this.to = this.getTopRightCorner();
+        ($__5 = [this.getBottomLeftCorner(), this.getTopRightCorner()], this.from = $__5[0], this.to = $__5[1], $__5);
         break;
     }
   },
@@ -1196,13 +1197,13 @@ var Walkontable = function Walkontable(settings) {
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
+      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
     } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay.clone) {
+      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
     }
@@ -1278,12 +1279,15 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    closest = $__0.closest,
+    closestDown = $__0.closestDown,
     hasClass = $__0.hasClass,
-    isChildOf = $__0.isChildOf;
+    isChildOf = $__0.isChildOf,
+    getParent = $__0.getParent;
+var partial = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).partial;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 function WalkontableEvent(instance) {
@@ -1293,9 +1297,15 @@ function WalkontableEvent(instance) {
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
   var onMouseDown = function(event) {
-    var cell = that.parentCell(event.realTarget);
-    if (hasClass(event.realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
+    var activeElement = document.activeElement;
+    var getParentNode = partial(getParent, event.realTarget);
+    var realTarget = event.realTarget;
+    if (realTarget === activeElement || getParentNode(0) === activeElement || getParentNode(1) === activeElement) {
+      return;
+    }
+    var cell = that.parentCell(realTarget);
+    if (hasClass(realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
@@ -1334,7 +1344,7 @@ function WalkontableEvent(instance) {
         mainWOT;
     if (that.instance.hasSetting('onCellMouseOver')) {
       table = that.instance.wtTable.TABLE;
-      td = closest(event.realTarget, ['TD', 'TH'], table);
+      td = closestDown(event.realTarget, ['TD', 'TH'], table);
       mainWOT = that.instance.cloneSource || that.instance;
       if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
         mainWOT.lastMouseOver = td;
@@ -1354,11 +1364,14 @@ function WalkontableEvent(instance) {
         dblClickOrigin[0] = null;
         dblClickOrigin[1] = null;
       } else if (cell.TD === dblClickOrigin[0]) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
         dblClickOrigin[1] = cell.TD;
         clearTimeout(that.dblClickTimeout[1]);
         that.dblClickTimeout[1] = setTimeout(function() {
           dblClickOrigin[1] = null;
         }, 500);
+      } else if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
       }
     }
   };
@@ -1415,9 +1428,8 @@ function WalkontableEvent(instance) {
 WalkontableEvent.prototype.parentCell = function(elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
-  var TD = closest(elem, ['TD', 'TH'], TABLE);
-  var referenceTABLE = closest(TD, ['TABLE']);
-  if (TD && isChildOf(TD, TABLE) && referenceTABLE == TABLE) {
+  var TD = closestDown(elem, ['TD', 'TH'], TABLE);
+  if (TD) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
   } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
@@ -1435,7 +1447,7 @@ WalkontableEvent.prototype.parentCell = function(elem) {
 window.WalkontableEvent = WalkontableEvent;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46}],9:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/function":49}],9:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableColumnFilter: {get: function() {
@@ -1531,11 +1543,13 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     getScrollableElement = $__0.getScrollableElement,
     getTrimmingContainer = $__0.getTrimmingContainer;
 var defineGetter = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__}).defineGetter;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 var registeredOverlays = {};
 var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
@@ -1549,11 +1563,20 @@ var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
   this.holder = this.wot.wtTable.holder;
   this.wtRootElement = this.wot.wtTable.wtRootElement;
   this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-  this.needFullRender = this.shouldBeRendered();
   this.areElementSizesAdjusted = false;
+  this.updateStateOfRendering();
 };
 var $WalkontableOverlay = WalkontableOverlay;
 ($traceurRuntime.createClass)(WalkontableOverlay, {
+  updateStateOfRendering: function() {
+    var previousState = this.needFullRender;
+    this.needFullRender = this.shouldBeRendered();
+    var changed = previousState !== this.needFullRender;
+    if (changed && !this.needFullRender) {
+      this.reset();
+    }
+    return changed;
+  },
   shouldBeRendered: function() {
     return true;
   },
@@ -1597,6 +1620,20 @@ var $WalkontableOverlay = WalkontableOverlay;
       this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
+  },
+  reset: function() {
+    if (!this.clone) {
+      return;
+    }
+    var holder = this.clone.wtTable.holder;
+    var hider = this.clone.wtTable.hider;
+    var holderStyle = holder.style;
+    var hidderStyle = hider.style;
+    var rootStyle = holder.parentNode.style;
+    arrayEach([holderStyle, hidderStyle, rootStyle], (function(style) {
+      style.width = '';
+      style.height = '';
+    }));
   },
   destroy: function() {
     eventManagerObject(this.clone).destroy();
@@ -1643,7 +1680,7 @@ var $WalkontableOverlay = WalkontableOverlay;
 window.WalkontableOverlay = WalkontableOverlay;
 
 //# 
-},{"eventManager":41,"helpers/dom/element":46,"helpers/object":52}],12:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/object":52}],12:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableDebugOverlay: {get: function() {
@@ -1843,6 +1880,12 @@ var $WalkontableLeftOverlay = WalkontableLeftOverlay;
     var masterParent = this.wot.wtTable.holder.parentNode;
     var rowHeaders = this.wot.getSetting('rowHeaders');
     var fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    var totalRows = this.wot.getSetting('totalRows');
+    if (totalRows) {
+      removeClass(masterParent, 'emptyRows');
+    } else {
+      addClass(masterParent, 'emptyRows');
+    }
     if (fixedColumnsLeft && !rowHeaders.length) {
       addClass(masterParent, 'innerBorderLeft');
     } else if (!fixedColumnsLeft && rowHeaders.length) {
@@ -2038,8 +2081,14 @@ var $WalkontableTopOverlay = WalkontableTopOverlay;
     return getScrollTop(this.mainTableScrollableElement);
   },
   adjustHeaderBordersPosition: function(position) {
+    var masterParent = this.wot.wtTable.holder.parentNode;
+    var totalColumns = this.wot.getSetting('totalColumns');
+    if (totalColumns) {
+      removeClass(masterParent, 'emptyColumns');
+    } else {
+      addClass(masterParent, 'emptyColumns');
+    }
     if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
-      var masterParent = this.wot.wtTable.holder.parentNode;
       var previousState = hasClass(masterParent, 'innerBorderTop');
       if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
@@ -2139,6 +2188,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
@@ -2147,6 +2197,7 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     getScrollbarWidth = $__0.getScrollbarWidth,
     getScrollLeft = $__0.getScrollLeft,
     getScrollTop = $__0.getScrollTop;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var isKey = ($___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_unicode__}).isKey;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var EventManager = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).EventManager;
@@ -2157,24 +2208,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.wot.update('scrollbarWidth', getScrollbarWidth());
   this.wot.update('scrollbarHeight', getScrollbarWidth());
   this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
-  this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
-  if (typeof WalkontableBottomOverlay === 'undefined') {
-    this.bottomOverlay = {needFullRender: false};
-  } else {
-    this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
-  }
-  this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
-  if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-    this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
-  }
-  if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
-    this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
-  } else {
-    this.bottomLeftCornerOverlay = {needFullRender: false};
-  }
-  if (this.wot.getSetting('debug')) {
-    this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
-  }
+  this.prepareOverlays();
   this.destroyed = false;
   this.keyPressed = false;
   this.spreaderLastSize = {
@@ -2215,6 +2249,58 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.registerListeners();
 };
 ($traceurRuntime.createClass)(WalkontableOverlays, {
+  prepareOverlays: function() {
+    var syncScroll = false;
+    if (this.topOverlay) {
+      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
+    }
+    if (typeof WalkontableBottomOverlay === 'undefined') {
+      this.bottomOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (typeof WalkontableBottomLeftCornerOverlay === 'undefined') {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (this.bottomOverlay) {
+      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
+    }
+    if (this.leftOverlay) {
+      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
+    }
+    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.topLeftCornerOverlay) {
+        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.bottomLeftCornerOverlay) {
+        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.wot.getSetting('debug') && !this.debug) {
+      this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
+    }
+    return syncScroll;
+  },
   refreshAll: function() {
     if (!this.wot.drawn) {
       return;
@@ -2234,49 +2320,59 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     this.horizontalScrolling = false;
   },
   registerListeners: function() {
-    var $__4 = this;
+    var $__5 = this;
     var topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     var leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
     var listenersToRegister = [];
     listenersToRegister.push([document.documentElement, 'keydown', (function(event) {
-      return $__4.onKeyDown(event);
+      return $__5.onKeyDown(event);
     })]);
     listenersToRegister.push([document.documentElement, 'keyup', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([document, 'visibilitychange', (function() {
-      return $__4.onKeyUp();
+      return $__5.onKeyUp();
     })]);
     listenersToRegister.push([topOverlayScrollable, 'scroll', (function(event) {
-      return $__4.onTableScroll(event);
+      return $__5.onTableScroll(event);
     })]);
     if (topOverlayScrollable !== leftOverlayScrollable) {
       listenersToRegister.push([leftOverlayScrollable, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.needFullRender) {
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.bottomOverlay.needFullRender) {
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.leftOverlay.needFullRender) {
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
       })]);
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (function(event) {
-        return $__4.onTableScroll(event);
+        return $__5.onTableScroll(event);
+      })]);
+    }
+    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
+      })]);
+    }
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
       })]);
     }
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -2284,18 +2380,18 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         var overlay;
         var deltaY = event.wheelDeltaY || event.deltaY;
         var deltaX = event.wheelDeltaX || event.deltaX;
-        if ($__4.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        if ($__5.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
-        } else if ($__4.bottomOverlay.clone && $__4.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.bottomOverlay.clone && $__5.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'bottom';
-        } else if ($__4.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+        } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
+        } else if ($__5.topLeftCornerOverlay && $__5.topLeftCornerOverlay.clone && $__5.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'topLeft';
+        } else if ($__5.bottomLeftCornerOverlay && $__5.bottomLeftCornerOverlay.clone && $__5.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottomLeft';
         }
-        if (overlay == 'top' && deltaY !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'left' && deltaX !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'bottom' && deltaY !== 0) {
+        if ((overlay == 'top' && deltaY !== 0) || (overlay == 'left' && deltaX !== 0) || (overlay == 'bottom' && deltaY !== 0) || ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
           event.preventDefault();
         }
       })]);
@@ -2340,11 +2436,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var topOverlay = this.topOverlay.clone.wtTable.holder;
     var bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     var leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    var eventMockup = {type: 'wheel'};
-    var tempElem = event.target;
+    var topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    var bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
+    var mouseWheelSpeedRatio = -0.2;
     var deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     var deltaX = event.wheelDeltaX || (-1) * event.deltaX;
-    var parentHolder;
+    var parentHolder = null;
+    var eventMockup = {type: 'wheel'};
+    var tempElem = event.target;
+    var delta = null;
     if (event.deltaMode === 1) {
       deltaY = deltaY * 120;
       deltaX = deltaX * 120;
@@ -2357,17 +2457,22 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       tempElem = tempElem.parentNode;
     }
     eventMockup.target = parentHolder;
-    if (parentHolder == topOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == bottomOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == leftOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
+    if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX, 'x');
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY, 'y');
+    } else {
+      if (parentHolder === topOverlay || parentHolder === bottomOverlay) {
+        delta = deltaY;
+      } else if (parentHolder === leftOverlay) {
+        delta = deltaX;
+      }
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * delta);
     }
     return false;
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
+    var fakeScrollDirection = arguments[2] !== (void 0) ? arguments[2] : null;
     if (this.destroyed) {
       return;
     }
@@ -2382,6 +2487,8 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var scrollValueChanged = false;
     var topOverlay;
     var leftOverlay;
+    var topLeftCornerOverlay;
+    var bottomLeftCornerOverlay;
     var bottomOverlay;
     var delegatedScroll = false;
     var preventOverflow = this.wot.getSetting('preventOverflow');
@@ -2393,6 +2500,12 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
     if (this.leftOverlay.needFullRender) {
       leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.topOverlay.needFullRender) {
+      topLeftCornerOverlay = this.topLeftCornerOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.bottomOverlay.needFullRender) {
+      bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone.wtTable.holder;
     }
     if (target === document) {
       target = window;
@@ -2506,6 +2619,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         scrollValueChanged = true;
         masterVertical.scrollLeft += fakeScrollValue;
       }
+    } else if (target === topLeftCornerOverlay || target === bottomLeftCornerOverlay) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
+        if (fakeScrollDirection === 'x') {
+          masterVertical.scrollLeft += fakeScrollValue;
+        } else if (fakeScrollDirection === 'y') {
+          masterVertical.scrollTop += fakeScrollValue;
+        }
+      }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
       if (this.delegatedScrollCallback) {
@@ -2520,11 +2642,17 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollWithMaster: function() {
     var master = this.topOverlay.mainTableScrollableElement;
+    var $__7 = master,
+        scrollLeft = $__7.scrollLeft,
+        scrollTop = $__7.scrollTop;
     if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
+      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+    }
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
     }
     if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
+      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
     }
   },
   updateMainScrollableElements: function() {
@@ -2606,13 +2734,29 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       this.bottomOverlay.applyToDOM();
     }
     this.leftOverlay.applyToDOM();
+  },
+  getParentOverlay: function(element) {
+    if (!element) {
+      return null;
+    }
+    var overlays = [this.topOverlay, this.leftOverlay, this.bottomOverlay, this.topLeftCornerOverlay, this.bottomLeftCornerOverlay];
+    var result = null;
+    arrayEach(overlays, (function(elem, i) {
+      if (!elem) {
+        return;
+      }
+      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) {
+        result = elem.clone;
+      }
+    }));
+    return result;
   }
 }, {});
 ;
 window.WalkontableOverlays = WalkontableOverlays;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/unicode":55}],17:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/dom/element":46,"helpers/unicode":55}],17:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableScroll: {get: function() {
@@ -2648,10 +2792,10 @@ var WalkontableScroll = function WalkontableScroll(wotInstance) {
         fixedRowsTop = $__3.fixedRowsTop,
         fixedRowsBottom = $__3.fixedRowsBottom,
         fixedColumnsLeft = $__3.fixedColumnsLeft;
-    if (coords.row < 0 || coords.row > totalRows - 1) {
+    if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
       throw new Error(("row " + coords.row + " does not exist"));
     }
-    if (coords.col < 0 || coords.col > totalColumns - 1) {
+    if (coords.col < 0 || coords.col > Math.max(totalColumns - 1, 0)) {
       throw new Error(("column " + coords.col + " does not exist"));
     }
     if (coords.row >= fixedRowsTop && coords.row < this.getFirstVisibleRow()) {
@@ -2879,8 +3023,15 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
       sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
       if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
         TH = wotInstance.wtTable.getColumnHeader(sourceCol);
-        if (TH && this.settings.highlightColumnClassName) {
-          addClass(TH, this.settings.highlightColumnClassName);
+        if (TH) {
+          var newClasses = [];
+          if (this.settings.highlightHeaderClassName) {
+            newClasses.push(this.settings.highlightHeaderClassName);
+          }
+          if (this.settings.highlightColumnClassName) {
+            newClasses.push(this.settings.highlightColumnClassName);
+          }
+          addClass(TH, newClasses);
         }
       }
     }
@@ -2888,12 +3039,19 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
       sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
       if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
         TH = wotInstance.wtTable.getRowHeader(sourceRow);
-        if (TH && this.settings.highlightRowClassName) {
-          addClass(TH, this.settings.highlightRowClassName);
+        if (TH) {
+          var newClasses$__5 = [];
+          if (this.settings.highlightHeaderClassName) {
+            newClasses$__5.push(this.settings.highlightHeaderClassName);
+          }
+          if (this.settings.highlightRowClassName) {
+            newClasses$__5.push(this.settings.highlightRowClassName);
+          }
+          addClass(TH, newClasses$__5);
         }
       }
-      for (var column$__5 = 0; column$__5 < renderedColumns; column$__5++) {
-        sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column$__5);
+      for (var column$__6 = 0; column$__6 < renderedColumns; column$__6++) {
+        sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column$__6);
         if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
           if (this.settings.className) {
             this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className);
@@ -2911,9 +3069,9 @@ var WalkontableSelection = function WalkontableSelection(settings, cellRange) {
     }
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
     if (this.settings.border) {
-      var border$__6 = this.getBorder(wotInstance);
-      if (border$__6) {
-        border$__6.appear(corners);
+      var border$__7 = this.getBorder(wotInstance);
+      if (border$__7) {
+        border$__7.appear(corners);
       }
     }
   }
@@ -2977,6 +3135,7 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     viewportColumnCalculatorOverride: null,
     onCellMouseDown: null,
     onCellMouseOver: null,
+    onCellMouseUp: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
@@ -2990,12 +3149,14 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     onBeforeStretchingColumnWidth: (function(width) {
       return width;
     }),
+    onModifyRowHeaderWidth: null,
     scrollbarWidth: 10,
     scrollbarHeight: 10,
     renderAllRows: false,
     groups: false,
     rowHeaderWidth: null,
-    columnHeaderHeight: null
+    columnHeaderHeight: null,
+    headerClassName: null
   };
   this.settings = {};
   for (var i in this.defaults) {
@@ -3049,6 +3210,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $__cell_47_coords__,
     $__cell_47_range__,
     $__filter_47_column__,
@@ -3064,12 +3226,14 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     removeTextNodes = $__0.removeTextNodes,
     overlayContainsElement = $__0.overlayContainsElement,
     closest = $__0.closest;
+var isFunction = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).isFunction;
 var WalkontableCellCoords = ($__cell_47_coords__ = _dereq_("cell/coords"), $__cell_47_coords__ && $__cell_47_coords__.__esModule && $__cell_47_coords__ || {default: $__cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__cell_47_range__ = _dereq_("cell/range"), $__cell_47_range__ && $__cell_47_range__.__esModule && $__cell_47_range__ || {default: $__cell_47_range__}).WalkontableCellRange;
 var WalkontableColumnFilter = ($__filter_47_column__ = _dereq_("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
 var WalkontableRowFilter = ($__filter_47_row__ = _dereq_("filter/row"), $__filter_47_row__ && $__filter_47_row__.__esModule && $__filter_47_row__ || {default: $__filter_47_row__}).WalkontableRowFilter;
 var WalkontableTableRenderer = ($__tableRenderer__ = _dereq_("tableRenderer"), $__tableRenderer__ && $__tableRenderer__.__esModule && $__tableRenderer__ || {default: $__tableRenderer__}).WalkontableTableRenderer;
 var WalkontableTable = function WalkontableTable(wotInstance, table) {
+  var $__7 = this;
   this.wot = wotInstance;
   this.instance = this.wot;
   this.TABLE = table;
@@ -3090,6 +3254,11 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
   this.rowFilter = null;
   this.columnFilter = null;
+  this.correctHeaderWidth = false;
+  var origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+  this.wot.wtSettings.settings.rowHeaderWidth = (function() {
+    return $__7._modifyRowHeaderWidth(origRowHeaderWidth);
+  });
 };
 ($traceurRuntime.createClass)(WalkontableTable, {
   fixTableDomTree: function() {
@@ -3177,17 +3346,34 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return !!this.wot.cloneSource;
   },
   draw: function(fastDraw) {
+    var $__9 = this.wot,
+        wtOverlays = $__9.wtOverlays,
+        wtViewport = $__9.wtViewport;
     var totalRows = this.instance.getSetting('totalRows');
+    var rowHeaders = this.wot.getSetting('rowHeaders').length;
+    var columnHeaders = this.wot.getSetting('columnHeaders').length;
+    var syncScroll = false;
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
+      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+      if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
+        var leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        var previousState = this.correctHeaderWidth;
+        this.correctHeaderWidth = leftScrollPos > 0;
+        if (previousState !== this.correctHeaderWidth) {
+          fastDraw = false;
+        }
+      }
+    }
+    if (!this.isWorkingOnClone()) {
+      syncScroll = wtOverlays.prepareOverlays();
     }
     if (fastDraw) {
       if (!this.isWorkingOnClone()) {
-        this.wot.wtViewport.createVisibleCalculators();
+        wtViewport.createVisibleCalculators();
       }
-      if (this.wot.wtOverlays) {
-        this.wot.wtOverlays.refresh(true);
+      if (wtOverlays) {
+        wtOverlays.refresh(true);
       }
     } else {
       if (this.isWorkingOnClone()) {
@@ -3201,32 +3387,35 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+        startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       var startColumn;
       if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+        startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw();
     }
     this.refreshSelections(fastDraw);
     if (!this.isWorkingOnClone()) {
-      this.wot.wtOverlays.topOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.bottomOverlay.clone) {
-        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      wtOverlays.topOverlay.resetFixedPosition();
+      if (wtOverlays.bottomOverlay.clone) {
+        wtOverlays.bottomOverlay.resetFixedPosition();
       }
-      this.wot.wtOverlays.leftOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.topLeftCornerOverlay) {
-        this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      wtOverlays.leftOverlay.resetFixedPosition();
+      if (wtOverlays.topLeftCornerOverlay) {
+        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
       }
-      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
-        this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+    }
+    if (syncScroll) {
+      wtOverlays.syncScrollWithMaster();
     }
     this.wot.drawn = true;
     return this;
@@ -3252,6 +3441,9 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         if (this.wot.selections[i].settings.className) {
           this.removeClassFromCells(this.wot.selections[i].settings.className);
         }
+        if (this.wot.selections[i].settings.highlightHeaderClassName) {
+          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+        }
         if (this.wot.selections[i].settings.highlightRowClassName) {
           this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
         }
@@ -3260,8 +3452,8 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         }
       }
     }
-    for (var i$__7 = 0; i$__7 < len; i$__7++) {
-      this.wot.selections[i$__7].draw(this.wot, fastDraw);
+    for (var i$__10 = 0; i$__10 < len; i$__10++) {
+      this.wot.selections[i$__10].draw(this.wot, fastDraw);
     }
   },
   getCell: function(coords) {
@@ -3345,19 +3537,19 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
   },
   isRowBeforeRenderedRows: function(row) {
-    return (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
   },
   isRowAfterViewport: function(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
   },
   isRowAfterRenderedRows: function(row) {
-    return (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
   },
   isColumnBeforeViewport: function(column) {
-    return this.columnFilter.sourceToRendered(column) < 0 && column >= 0;
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   },
   isColumnAfterViewport: function(column) {
-    return (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
   },
   isLastRowFullyVisible: function() {
     return this.getLastVisibleRow() === this.getLastRenderedRow();
@@ -3435,13 +3627,32 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       }
     }
     return width;
+  },
+  _modifyRowHeaderWidth: function(rowHeaderWidthFactory) {
+    var widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
+    if (Array.isArray(widths)) {
+      widths = $traceurRuntime.spread(widths);
+      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
+    } else {
+      widths = this._correctRowHeaderWidth(widths);
+    }
+    return widths;
+  },
+  _correctRowHeaderWidth: function(width) {
+    if (typeof width !== 'number') {
+      width = this.wot.getSetting('defaultColumnWidth');
+    }
+    if (this.correctHeaderWidth) {
+      width++;
+    }
+    return width;
   }
 }, {});
 ;
 window.WalkontableTable = WalkontableTable;
 
 //# 
-},{"cell/coords":5,"cell/range":6,"filter/column":9,"filter/row":10,"helpers/dom/element":46,"tableRenderer":21}],21:[function(_dereq_,module,exports){
+},{"cell/coords":5,"cell/range":6,"filter/column":9,"filter/row":10,"helpers/dom/element":46,"helpers/function":49,"tableRenderer":21}],21:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTableRenderer: {get: function() {
@@ -3478,7 +3689,11 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
 ($traceurRuntime.createClass)(WalkontableTableRenderer, {
   render: function() {
     if (!this.wtTable.isWorkingOnClone()) {
-      this.wot.getSetting('beforeDraw', true);
+      var skipRender = {};
+      this.wot.getSetting('beforeDraw', true, skipRender);
+      if (skipRender.skipRender === true) {
+        return;
+      }
     }
     this.rowHeaders = this.wot.getSetting('rowHeaders');
     this.rowHeaderCount = this.rowHeaders.length;
@@ -3496,7 +3711,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.columnHeaders = [];
       this.columnHeaderCount = 0;
     }
-    if (totalColumns > 0) {
+    if (totalColumns >= 0) {
       this.adjustAvailableNodes();
       adjusted = true;
       this.renderColumnHeaders();
@@ -3505,9 +3720,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
       }
-      this.adjustColumnHeaderHeights();
       this.adjustColumnWidths(columnsToRender);
-      this.markOversizedColumns();
+      this.markOversizedColumnHeaders();
+      this.adjustColumnHeaderHeights();
     }
     if (!adjusted) {
       this.adjustAvailableNodes();
@@ -3519,26 +3734,30 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (!this.wtTable.isWorkingOnClone()) {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
+      this.wot.wtOverlays.applyToDOM();
       var hiderWidth = outerWidth(this.wtTable.hider);
       var tableWidth = outerWidth(this.wtTable.TABLE);
       if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
         this.adjustColumnWidths(columnsToRender);
       }
-      this.wot.wtOverlays.applyToDOM();
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         this.wot.wtViewport.containerWidth = null;
         var firstRendered = this.wtTable.getFirstRenderedColumn();
         var lastRendered = this.wtTable.getLastRenderedColumn();
+        var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
         var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
         if (rowHeaderWidthSetting != null) {
           for (var i = 0; i < this.rowHeaderCount; i++) {
-            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+            var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+            width = width == null ? defaultColumnWidth : width;
+            this.COLGROUP.childNodes[i].style.width = width + 'px';
           }
         }
         for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
-          var width = this.wtTable.getStretchedColumnWidth(i$__2);
+          var width$__3 = this.wtTable.getStretchedColumnWidth(i$__2);
           var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
-          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width$__3 + 'px';
         }
       }
       this.wot.getSetting('onDraw', true);
@@ -3626,9 +3845,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
     }
   },
-  markOversizedColumns: function() {
+  markOversizedColumnHeaders: function() {
     var overlayName = this.wot.getOverlayName();
-    if (!this.columnHeaderCount || this.wot.wtViewport.isMarkedOversizedColumn[overlayName] || this.wtTable.isWorkingOnClone()) {
+    if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
     var columnCount = this.wtTable.getRenderedColumnsCount();
@@ -3637,19 +3856,19 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.markIfOversizedColumnHeader(renderedColumnIndex);
       }
     }
-    this.wot.wtViewport.isMarkedOversizedColumn[overlayName] = true;
+    this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
   },
   adjustColumnHeaderHeights: function() {
     var columnHeaders = this.wot.getSetting('columnHeaders');
-    var childs = this.wot.wtTable.THEAD.childNodes;
-    var oversizedCols = this.wot.wtViewport.oversizedColumnHeaders;
+    var children = this.wot.wtTable.THEAD.childNodes;
+    var oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
     for (var i = 0,
         len = columnHeaders.length; i < len; i++) {
-      if (oversizedCols[i]) {
-        if (childs[i].childNodes.length === 0) {
+      if (oversizedColumnHeaders[i]) {
+        if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        childs[i].childNodes[0].style.height = oversizedCols[i] + 'px';
+        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
       }
     }
   },
@@ -3671,6 +3890,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       currentHeaderHeight = innerHeight(currentHeader);
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+      if (Array.isArray(columnHeaderHeightSetting)) {
+        if (columnHeaderHeightSetting[level] != null) {
+          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+        }
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
@@ -3702,19 +3928,23 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var scrollbarCompensation = 0;
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
+    var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
-    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
     if (rowHeaderWidthSetting != null) {
       for (var i = 0; i < this.rowHeaderCount; i++) {
-        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+        var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+        width = width == null ? defaultColumnWidth : width;
+        this.COLGROUP.childNodes[i].style.width = width + 'px';
       }
     }
     for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
-      var width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      var width$__4 = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width$__4 + 'px';
     }
   },
   appendToTbody: function(TR) {
@@ -3766,7 +3996,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     this.adjustThead();
   },
   renderColumnHeaders: function() {
-    var overlayName = this.wot.getOverlayName();
     if (!this.columnHeaderCount) {
       return;
     }
@@ -3816,7 +4045,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
+        for (var i$__5 = this.columnHeaders.length; i$__5 < theadChildrenLength; i$__5++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -3897,7 +4126,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.instance = this.wot;
   this.oversizedRows = [];
   this.oversizedColumnHeaders = [];
-  this.isMarkedOversizedColumn = {};
+  this.hasOversizedColumnHeadersMarked = {};
   this.clientHeight = 0;
   this.containerWidth = NaN;
   this.rowHeaderWidth = NaN;
@@ -4039,6 +4268,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
         this.rowHeaderWidth = 0;
       }
     }
+    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
     return this.rowHeaderWidth;
   },
   getViewportWidth: function() {
@@ -4175,6 +4405,8 @@ window.WalkontableViewport = WalkontableViewport;
 var $__shims_47_runtime__,
     $__es6collections__,
     $__pluginHooks__,
+    $__numbro__,
+    $__moment__,
     $__core__,
     $__renderers_47__95_cellDecorator__,
     $__cellTypes__,
@@ -4204,6 +4436,16 @@ Handsontable.utils = {};
 ($__shims_47_runtime__ = _dereq_("shims/runtime"), $__shims_47_runtime__ && $__shims_47_runtime__.__esModule && $__shims_47_runtime__ || {default: $__shims_47_runtime__});
 ($__es6collections__ = _dereq_("es6collections"), $__es6collections__ && $__es6collections__.__esModule && $__es6collections__ || {default: $__es6collections__});
 var Hooks = ($__pluginHooks__ = _dereq_("pluginHooks"), $__pluginHooks__ && $__pluginHooks__.__esModule && $__pluginHooks__ || {default: $__pluginHooks__}).Hooks;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
+if (typeof window === 'object') {
+  if (typeof window.numbro === 'undefined') {
+    window.numbro = numbro;
+  }
+  if (typeof window.moment === 'undefined') {
+    window.moment = moment;
+  }
+}
 if (!Handsontable.hooks) {
   Handsontable.hooks = new Hooks();
 }
@@ -4228,9 +4470,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Thu Apr 28 2016 15:03:36 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Tue Jan 17 2017 13:30:27 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.24.3';
+Handsontable.version = '0.30.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -4257,7 +4499,7 @@ arrayHelpers.arrayEach(DOM, (function(helper) {
 }));
 
 //# 
-},{"cellTypes":24,"core":25,"es6collections":"es6collections","helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/date":45,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/feature":48,"helpers/function":49,"helpers/mixed":50,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"helpers/unicode":55,"pluginHooks":58,"plugins":59,"plugins/jqueryHandsontable":1,"renderers/_cellDecorator":93,"shims/runtime":100}],24:[function(_dereq_,module,exports){
+},{"cellTypes":24,"core":25,"es6collections":"es6collections","helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/date":45,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/feature":48,"helpers/function":49,"helpers/mixed":50,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"helpers/unicode":55,"moment":undefined,"numbro":undefined,"pluginHooks":59,"plugins":60,"plugins/jqueryHandsontable":1,"renderers/_cellDecorator":117,"shims/runtime":124}],24:[function(_dereq_,module,exports){
 "use strict";
 var $__helpers_47_browser__,
     $__editors__,
@@ -4367,12 +4609,14 @@ Handsontable.cellLookup = {validator: {
   }};
 
 //# 
-},{"browser":23,"editors":29,"editors/autocompleteEditor":31,"editors/checkboxEditor":32,"editors/dateEditor":33,"editors/dropdownEditor":34,"editors/handsontableEditor":35,"editors/mobileTextEditor":36,"editors/numericEditor":37,"editors/passwordEditor":38,"editors/selectEditor":39,"editors/textEditor":40,"helpers/browser":43,"renderers":92,"renderers/autocompleteRenderer":94,"renderers/checkboxRenderer":95,"renderers/htmlRenderer":96,"renderers/numericRenderer":97,"renderers/passwordRenderer":98,"renderers/textRenderer":99,"validators/autocompleteValidator":105,"validators/dateValidator":106,"validators/numericValidator":107,"validators/timeValidator":108}],25:[function(_dereq_,module,exports){
+},{"browser":23,"editors":29,"editors/autocompleteEditor":31,"editors/checkboxEditor":32,"editors/dateEditor":33,"editors/dropdownEditor":34,"editors/handsontableEditor":35,"editors/mobileTextEditor":36,"editors/numericEditor":37,"editors/passwordEditor":38,"editors/selectEditor":39,"editors/textEditor":40,"helpers/browser":43,"renderers":116,"renderers/autocompleteRenderer":118,"renderers/checkboxRenderer":119,"renderers/htmlRenderer":120,"renderers/numericRenderer":121,"renderers/passwordRenderer":122,"renderers/textRenderer":123,"validators/autocompleteValidator":130,"validators/dateValidator":131,"validators/numericValidator":132,"validators/timeValidator":133}],25:[function(_dereq_,module,exports){
 "use strict";
 var $__browser__,
-    $__numeral__,
+    $__numbro__,
     $__helpers_47_dom_47_element__,
     $__helpers_47_setting__,
+    $__helpers_47_function__,
+    $__helpers_47_mixed__,
     $__helpers_47_browser__,
     $__dataMap__,
     $__editorManager__,
@@ -4386,43 +4630,49 @@ var $__browser__,
     $__tableView__,
     $__dataSource__,
     $__helpers_47_data__,
+    $__utils_47_recordTranslator__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_range__,
-    $__3rdparty_47_walkontable_47_src_47_selection__,
     $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__;
 var Handsontable = ($__browser__ = _dereq_("browser"), $__browser__ && $__browser__.__esModule && $__browser__ || {default: $__browser__}).default;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
 var $__2 = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $__helpers_47_dom_47_element__ && $__helpers_47_dom_47_element__.__esModule && $__helpers_47_dom_47_element__ || {default: $__helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     empty = $__2.empty,
     isChildOfWebComponentTable = $__2.isChildOfWebComponentTable,
     removeClass = $__2.removeClass;
 var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
+var isFunction = ($__helpers_47_function__ = _dereq_("helpers/function"), $__helpers_47_function__ && $__helpers_47_function__.__esModule && $__helpers_47_function__ || {default: $__helpers_47_function__}).isFunction;
+var $__5 = ($__helpers_47_mixed__ = _dereq_("helpers/mixed"), $__helpers_47_mixed__ && $__helpers_47_mixed__.__esModule && $__helpers_47_mixed__ || {default: $__helpers_47_mixed__}),
+    isDefined = $__5.isDefined,
+    isUndefined = $__5.isUndefined;
 var isMobileBrowser = ($__helpers_47_browser__ = _dereq_("helpers/browser"), $__helpers_47_browser__ && $__helpers_47_browser__.__esModule && $__helpers_47_browser__ || {default: $__helpers_47_browser__}).isMobileBrowser;
 var DataMap = ($__dataMap__ = _dereq_("dataMap"), $__dataMap__ && $__dataMap__.__esModule && $__dataMap__ || {default: $__dataMap__}).DataMap;
 var EditorManager = ($__editorManager__ = _dereq_("editorManager"), $__editorManager__ && $__editorManager__.__esModule && $__editorManager__ || {default: $__editorManager__}).EditorManager;
 var eventManagerObject = ($__eventManager__ = _dereq_("eventManager"), $__eventManager__ && $__eventManager__.__esModule && $__eventManager__ || {default: $__eventManager__}).eventManager;
-var $__8 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
-    extend = $__8.extend,
-    duckSchema = $__8.duckSchema,
-    isObjectEquals = $__8.isObjectEquals,
-    deepClone = $__8.deepClone;
-var $__9 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
-    arrayFlatten = $__9.arrayFlatten,
-    arrayMap = $__9.arrayMap;
+var $__10 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
+    deepClone = $__10.deepClone,
+    duckSchema = $__10.duckSchema,
+    extend = $__10.extend,
+    isObject = $__10.isObject,
+    isObjectEquals = $__10.isObjectEquals,
+    deepObjectSize = $__10.deepObjectSize;
+var $__11 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
+    arrayFlatten = $__11.arrayFlatten,
+    arrayMap = $__11.arrayMap;
 var getPlugin = ($__plugins__ = _dereq_("plugins"), $__plugins__ && $__plugins__.__esModule && $__plugins__ || {default: $__plugins__}).getPlugin;
 var getRenderer = ($__renderers__ = _dereq_("renderers"), $__renderers__ && $__renderers__.__esModule && $__renderers__ || {default: $__renderers__}).getRenderer;
 var randomString = ($__helpers_47_string__ = _dereq_("helpers/string"), $__helpers_47_string__ && $__helpers_47_string__.__esModule && $__helpers_47_string__ || {default: $__helpers_47_string__}).randomString;
 var rangeEach = ($__helpers_47_number__ = _dereq_("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var TableView = ($__tableView__ = _dereq_("tableView"), $__tableView__ && $__tableView__.__esModule && $__tableView__ || {default: $__tableView__}).TableView;
 var DataSource = ($__dataSource__ = _dereq_("dataSource"), $__dataSource__ && $__dataSource__.__esModule && $__dataSource__ || {default: $__dataSource__}).DataSource;
-var $__16 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
-    translateRowsToColumns = $__16.translateRowsToColumns,
-    cellMethodLookupFactory = $__16.cellMethodLookupFactory,
-    spreadsheetColumnLabel = $__16.spreadsheetColumnLabel;
+var $__18 = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
+    translateRowsToColumns = $__18.translateRowsToColumns,
+    cellMethodLookupFactory = $__18.cellMethodLookupFactory,
+    spreadsheetColumnLabel = $__18.spreadsheetColumnLabel;
+var getTranslator = ($__utils_47_recordTranslator__ = _dereq_("utils/recordTranslator"), $__utils_47_recordTranslator__ && $__utils_47_recordTranslator__.__esModule && $__utils_47_recordTranslator__ || {default: $__utils_47_recordTranslator__}).getTranslator;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__3rdparty_47_walkontable_47_src_47_cell_47_range__ = _dereq_("3rdparty/walkontable/src/cell/range"), $__3rdparty_47_walkontable_47_src_47_cell_47_range__ && $__3rdparty_47_walkontable_47_src_47_cell_47_range__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_range__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_range__}).WalkontableCellRange;
-var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = _dereq_("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 var WalkontableViewportColumnsCalculator = ($__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ = _dereq_("3rdparty/walkontable/src/calculator/viewportColumns"), $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__.__esModule && $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__ || {default: $__3rdparty_47_walkontable_47_src_47_calculator_47_viewportColumns__}).WalkontableViewportColumnsCalculator;
 Handsontable.activeGuid = null;
 Handsontable.Core = function Core(rootElement, userSettings) {
@@ -4435,6 +4685,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       instance = this,
       GridSettings = function() {},
       eventManager = eventManagerObject(instance);
+  var recordTranslator = getTranslator(instance);
   extend(GridSettings.prototype, DefaultSettings.prototype);
   extend(GridSettings.prototype, userSettings);
   extend(GridSettings.prototype, expandType(userSettings));
@@ -4481,10 +4732,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       switch (action) {
         case 'insert_row':
-          if (instance.getSettings().maxRows === instance.countSourceRows()) {
+          var numberOfSourceRows = instance.countSourceRows();
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
-          delta = datamap.createRow(index, amount);
+          index = (isDefined(index)) ? index : numberOfSourceRows;
+          delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
@@ -4496,7 +4749,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
         case 'insert_col':
-          delta = datamap.createCol(index, amount);
+          delta = datamap.createCol(index, amount, source);
           for (var row = 0,
               len = instance.countSourceRows(); row < len; row++) {
             if (priv.cellSettings[row]) {
@@ -4518,7 +4771,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           }
           break;
         case 'remove_row':
-          datamap.removeRow(index, amount);
+          datamap.removeRow(index, amount, source);
           priv.cellSettings.splice(index, amount);
           var totalRows = instance.countRows();
           var fixedRowsTop = instance.getSettings().fixedRowsTop;
@@ -4533,12 +4786,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           selection.refreshBorders();
           break;
         case 'remove_col':
-          var logicalColumnIndex = translateColIndex(index);
-          datamap.removeCol(index, amount);
-          for (var row$__22 = 0,
-              len$__23 = instance.countSourceRows(); row$__22 < len$__23; row$__22++) {
-            if (priv.cellSettings[row$__22]) {
-              priv.cellSettings[row$__22].splice(logicalColumnIndex, amount);
+          var logicalColumnIndex = recordTranslator.toPhysicalColumn(index);
+          datamap.removeCol(index, amount, source);
+          for (var row$__27 = 0,
+              len$__28 = instance.countSourceRows(); row$__27 < len$__28; row$__27++) {
+            if (priv.cellSettings[row$__27]) {
+              priv.cellSettings[row$__27].splice(logicalColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -4567,15 +4820,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (rows < priv.settings.minRows) {
           for (var r = 0,
               minRows = priv.settings.minRows; r < minRows - rows; r++) {
-            datamap.createRow(instance.countRows(), 1, true);
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
       if (priv.settings.minSpareRows) {
         var emptyRows = instance.countEmptyRows(true);
         if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
-            datamap.createRow(instance.countRows(), 1, true);
+          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -4586,12 +4839,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         }
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
           for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, true);
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
       }
@@ -4766,7 +5019,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (source === 'autofill') {
                 var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
                 if (result) {
-                  value = typeof(result.value) === 'undefined' ? value : result.value;
+                  value = isUndefined(result.value) ? value : result.value;
                 }
               }
               if (value !== null && typeof value === 'object') {
@@ -4803,9 +5056,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       cols: false,
       rows: false
     },
-    setSelectedHeaders: function(rows, cols) {
+    setSelectedHeaders: function() {
+      var rows = arguments[0] !== (void 0) ? arguments[0] : false;
+      var cols = arguments[1] !== (void 0) ? arguments[1] : false;
+      var corner = arguments[2] !== (void 0) ? arguments[2] : false;
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
+      instance.selection.selectedHeader.corner = corner;
     },
     begin: function() {
       instance.selection.inProgress = true;
@@ -4823,6 +5080,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       Handsontable.hooks.run(instance, 'beforeSetRangeStart', coords);
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
       selection.setRangeEnd(coords, null, keepEditorOpened);
+    },
+    setRangeStartOnly: function(coords) {
+      Handsontable.hooks.run(instance, 'beforeSetRangeStartOnly', coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
     },
     setRangeEnd: function(coords, scrollToCell, keepEditorOpened) {
       if (priv.selRange === null) {
@@ -4858,7 +5119,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selRange.from);
         instance.view.wt.selections.highlight.add(priv.selRange.to);
@@ -4995,11 +5256,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
       }
       editorManager.destroyEditor();
       selection.refreshBorders();
+      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
       Handsontable.hooks.run(instance, 'afterDeselect');
     },
     selectAll: function() {
@@ -5081,15 +5343,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
-            if (typeof cellProperties.language == 'undefined') {
-              numeral.language('en');
+            if (isUndefined(cellProperties.language)) {
+              numbro.culture('en-US');
             } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              numeral.language('en');
+              numbro.culture('en-US');
             } else {
-              numeral.language(cellProperties.language);
+              numbro.culture(cellProperties.language);
             }
-            if (numeral.validate(changes[i][3])) {
-              changes[i][3] = numeral().unformat(changes[i][3]);
+            var delimiters = numbro.cultureData(numbro.culture()).delimiters;
+            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
+              changes[i][3] = parseFloat(changes[i][3]);
+            } else {
+              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
             }
           }
         }
@@ -5116,7 +5381,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var beforeChangeResult;
       if (changes.length) {
         beforeChangeResult = Handsontable.hooks.run(instance, 'beforeChange', changes, source);
-        if (typeof beforeChangeResult === 'function') {
+        if (isFunction(beforeChangeResult)) {
           console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length);
@@ -5131,6 +5396,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       return;
     }
     for (; 0 <= i; i--) {
+      var skipThisChange = false;
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -5140,8 +5406,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          datamap.createRow();
+          var numberOfCreatedRows = datamap.createRow();
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
         }
+      }
+      if (skipThisChange) {
+        continue;
       }
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
@@ -5156,6 +5429,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+    var activeEditor = instance.getActiveEditor();
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   }
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
@@ -5175,7 +5452,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         };
       })(validator);
     }
-    if (typeof validator == 'function') {
+    if (isFunction(validator)) {
       value = Handsontable.hooks.run(instance, 'beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
       instance._registerTimeout(setTimeout(function() {
         validator.call(cellProperties, value, function(valid) {
@@ -5213,11 +5490,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
-      changes.push([input[i][0], prop, datamap.get(input[i][0], prop), input[i][2]]);
+      changes.push([input[i][0], prop, dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
     if (!source && typeof row === 'object') {
       source = col;
     }
+    instance.runHooks('afterSetDataAtCell', changes, source);
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
     });
@@ -5228,11 +5506,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         ilen,
         changes = [];
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      changes.push([input[i][0], input[i][1], datamap.get(input[i][0], input[i][1]), input[i][2]]);
+      changes.push([input[i][0], input[i][1], dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
     if (!source && typeof row === 'object') {
       source = prop;
     }
+    instance.runHooks('afterSetDataAtRowProp', changes, source);
     validateChanges(changes, source, function() {
       applyChanges(changes, source);
     });
@@ -5281,30 +5560,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.loadData = function(data) {
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) {
-        data = [data];
-      }
-    } else if (data === null) {
-      data = [];
-      var row;
-      for (var r = 0,
-          rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0,
-            clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        data.push(row);
-      }
-    } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
-    }
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-    if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
+    if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
-    } else if (typeof priv.settings.dataSchema === 'function') {
+    } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -5313,6 +5571,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.destroy();
     }
     datamap = new DataMap(instance, priv, GridSettings);
+    if (typeof data === 'object' && data !== null) {
+      if (!(data.push && data.splice)) {
+        data = [data];
+      }
+    } else if (data === null) {
+      data = [];
+      var row;
+      var r = 0;
+      var rlen = 0;
+      var dataSchema = datamap.getSchema();
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = deepClone(dataSchema);
+          data.push(row);
+        } else if (instance.dataType === 'array') {
+          row = deepClone(dataSchema[0]);
+          data.push(row);
+        } else {
+          row = [];
+          for (var c = 0,
+              clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+          data.push(row);
+        }
+      }
+    } else {
+      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
+    }
+    priv.isPopulated = false;
+    GridSettings.prototype.data = data;
+    if (Array.isArray(data[0])) {
+      instance.dataType = 'array';
+    }
+    datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
@@ -5332,7 +5625,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.getData = function(r, c, r2, c2) {
-    if (typeof r === 'undefined') {
+    if (isUndefined(r)) {
       return datamap.getAll();
     } else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
@@ -5348,12 +5641,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return datamap.getSchema();
   };
   this.updateSettings = function(settings, init) {
-    var i,
-        clen;
-    if (typeof settings.rows !== 'undefined') {
+    var columnsAsFunc = false;
+    var i;
+    var j;
+    var clen;
+    if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
     }
-    if (typeof settings.cols !== 'undefined') {
+    if (isDefined(settings.cols)) {
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
     for (i in settings) {
@@ -5361,7 +5656,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue;
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
-          if (typeof settings[i] === 'function' || Array.isArray(settings[i])) {
+          if (isFunction(settings[i]) || Array.isArray(settings[i])) {
             instance.addHook(i, settings[i]);
           }
         } else {
@@ -5379,34 +5674,46 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.createMap();
     }
     clen = instance.countCols();
+    if (settings.columns && isFunction(settings.columns)) {
+      clen = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
       priv.cellSettings.length = 0;
     }
     if (clen > 0) {
-      var proto,
-          column;
-      for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-        proto = priv.columnSettings[i].prototype;
+      var proto;
+      var column;
+      for (i = 0, j = 0; i < clen; i++) {
+        if (columnsAsFunc && !settings.columns(i)) {
+          continue;
+        }
+        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+        proto = priv.columnSettings[j].prototype;
         if (GridSettings.prototype.columns) {
-          column = GridSettings.prototype.columns[i];
+          if (columnsAsFunc) {
+            column = GridSettings.prototype.columns(i);
+          } else {
+            column = GridSettings.prototype.columns[j];
+          }
           if (column) {
             extend(proto, column);
             extend(proto, expandType(column));
           }
         }
+        j++;
       }
     }
-    if (typeof settings.cell !== 'undefined') {
-      for (i in settings.cell) {
-        if (settings.cell.hasOwnProperty(i)) {
-          var cell = settings.cell[i];
+    if (isDefined(settings.cell)) {
+      for (var key in settings.cell) {
+        if (settings.cell.hasOwnProperty(key)) {
+          var cell = settings.cell[key];
           instance.setCellMetaObject(cell.row, cell.col, cell);
         }
       }
     }
     Handsontable.hooks.run(instance, 'afterCellMetaReset');
-    if (typeof settings.className !== 'undefined') {
+    if (isDefined(settings.className)) {
       if (GridSettings.prototype.className) {
         removeClass(instance.rootElement, GridSettings.prototype.className);
       }
@@ -5419,7 +5726,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
     var height = settings.height;
-    if (typeof height == 'function') {
+    if (isFunction(height)) {
       height = height();
     }
     if (init) {
@@ -5429,9 +5736,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
     if (height === null) {
-      var initialStyle$__24 = instance.rootElement.getAttribute('data-initialstyle');
-      if (initialStyle$__24 && (initialStyle$__24.indexOf('height') > -1 || initialStyle$__24.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle$__24);
+      var initialStyle$__29 = instance.rootElement.getAttribute('data-initialstyle');
+      if (initialStyle$__29 && (initialStyle$__29.indexOf('height') > -1 || initialStyle$__29.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle$__29);
       } else {
         instance.rootElement.style.height = '';
         instance.rootElement.style.overflow = '';
@@ -5442,7 +5749,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     if (typeof settings.width != 'undefined') {
       var width = settings.width;
-      if (typeof width == 'function') {
+      if (isFunction(width)) {
         width = width();
       }
       instance.rootElement.style.width = width + 'px';
@@ -5463,7 +5770,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.getValue = function() {
     var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
-      if (typeof GridSettings.prototype.getValue === 'function') {
+      if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
@@ -5515,6 +5822,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   this.propToCol = function(prop) {
     return datamap.propToCol(prop);
   };
+  this.toVisualRow = (function(row) {
+    return recordTranslator.toVisualRow(row);
+  });
+  this.toVisualColumn = (function(column) {
+    return recordTranslator.toVisualColumn(column);
+  });
+  this.toPhysicalRow = (function(row) {
+    return recordTranslator.toPhysicalRow(row);
+  });
+  this.toPhysicalColumn = (function(column) {
+    return recordTranslator.toPhysicalColumn(column);
+  });
   this.getDataAtCell = function(row, col) {
     return datamap.get(row, datamap.colToProp(col));
   };
@@ -5540,6 +5859,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     return data;
   };
+  this.getSourceDataArray = function(r, c, r2, c2) {
+    var data;
+    if (r === void 0) {
+      data = dataSource.getData(true);
+    } else {
+      data = dataSource.getByRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), true);
+    }
+    return data;
+  };
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
   };
@@ -5554,7 +5882,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return data[0];
   };
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    var $__21 = this;
+    var $__23 = this;
     var previousType = null;
     var currentType = null;
     if (rowFrom === void 0) {
@@ -5573,7 +5901,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (function(row) {
       var isTypeEqual = true;
       rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (function(column) {
-        var cellType = $__21.getCellMeta(row, column);
+        var cellType = $__23.getCellMeta(row, column);
         currentType = cellType.type;
         if (previousType) {
           isTypeEqual = previousType === currentType;
@@ -5593,6 +5921,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       delete priv.cellSettings[row][col][key];
     }
   };
+  this.spliceCellsMeta = function(index, deleteAmount) {
+    var $__26;
+    for (var items = [],
+        $__24 = 2; $__24 < arguments.length; $__24++)
+      items[$__24 - 2] = arguments[$__24];
+    ($__26 = priv.cellSettings).splice.apply($__26, $traceurRuntime.spread([index, deleteAmount], items));
+  };
   this.setCellMetaObject = function(row, col, prop) {
     if (typeof prop === 'object') {
       for (var key in prop) {
@@ -5604,6 +5939,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.setCellMeta = function(row, col, key, val) {
+    var $__25;
+    ($__25 = recordTranslator.toPhysical(row, col), row = $__25[0], col = $__25[1], $__25);
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
@@ -5617,12 +5954,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return arrayFlatten(priv.cellSettings);
   };
   this.getCellMeta = function(row, col) {
+    var $__25;
     var prop = datamap.colToProp(col),
         cellProperties;
     var visualRow = row;
     var visualCol = col;
-    row = translateRowIndex(row);
-    col = translateColIndex(col);
+    ($__25 = recordTranslator.toPhysical(row, col), row = $__25[0], col = $__25[1], $__25);
     if (!priv.columnSettings[col]) {
       priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
@@ -5651,15 +5988,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
     return cellProperties;
   };
+  this.getCellMetaAtRow = function(row) {
+    return priv.cellSettings[row];
+  };
   this.isColumnModificationAllowed = function() {
     return !(instance.dataType === 'object' || instance.getSettings().columns);
   };
-  function translateRowIndex(row) {
-    return Handsontable.hooks.run(instance, 'modifyRow', row);
-  }
-  function translateColIndex(col) {
-    return Handsontable.hooks.run(instance, 'modifyCol', col);
-  }
   var rendererLookup = cellMethodLookupFactory('renderer');
   this.getCellRenderer = function(row, col) {
     var renderer = rendererLookup.call(this, row, col);
@@ -5704,7 +6038,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }));
     } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
       rowHeader = rowHeader[row];
-    } else if (typeof rowHeader === 'function') {
+    } else if (isFunction(rowHeader)) {
       rowHeader = rowHeader(row);
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = row + 1;
@@ -5727,29 +6061,44 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return false;
   };
   this.getColHeader = function(col) {
+    var columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    var result = priv.settings.colHeaders;
     col = Handsontable.hooks.run(instance, 'modifyColHeader', col);
     if (col === void 0) {
       var out = [];
-      for (var i = 0,
-          ilen = instance.countCols(); i < ilen; i++) {
+      var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      for (var i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
       }
-      return out;
+      result = out;
     } else {
+      var translateVisualIndexToColumns = function(col) {
+        var arr = [];
+        var columnsLen = instance.countSourceCols();
+        var index = 0;
+        for (; index < columnsLen; index++) {
+          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+        return arr[col];
+      };
       var baseCol = col;
       col = Handsontable.hooks.run(instance, 'modifyCol', col);
-      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-        return priv.settings.columns[col].title;
+      var prop = translateVisualIndexToColumns(col);
+      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+        result = priv.settings.columns(prop).title;
+      } else if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        result = priv.settings.columns[col].title;
       } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[col] !== void 0) {
-        return priv.settings.colHeaders[col];
-      } else if (typeof priv.settings.colHeaders === 'function') {
-        return priv.settings.colHeaders(col);
+        result = priv.settings.colHeaders[col];
+      } else if (isFunction(priv.settings.colHeaders)) {
+        result = priv.settings.colHeaders(col);
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        return spreadsheetColumnLabel(baseCol);
-      } else {
-        return priv.settings.colHeaders;
+        result = spreadsheetColumnLabel(baseCol);
       }
     }
+    return result;
   };
   this._getColWidthFromSettings = function(col) {
     var cellProperties = instance.getCellMeta(0, col);
@@ -5803,56 +6152,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return height;
   };
   this.countSourceRows = function() {
-    return instance.getSourceData() ? instance.getSourceData().length : 0;
+    var sourceLength = Handsontable.hooks.run(instance, 'modifySourceLength');
+    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+  };
+  this.countSourceCols = function() {
+    var len = 0;
+    var obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    if (isObject(obj)) {
+      len = deepObjectSize(obj);
+    } else {
+      len = obj.length || 0;
+    }
+    return len;
   };
   this.countRows = function() {
     return datamap.getLength();
   };
   this.countCols = function() {
-    if (instance.dataType === 'object' || instance.dataType === 'function') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
+    var dataHasLength = false;
+    var dataLen = 0;
+    if (instance.dataType === 'array') {
+      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    }
+    if (dataHasLength) {
+      dataLen = priv.settings.data[0].length;
+    }
+    if (priv.settings.columns) {
+      var columnsIsFunction = isFunction(priv.settings.columns);
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          var columnLen = 0;
+          for (var i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
+          }
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
+        }
       } else {
-        return datamap.colToPropCache.length;
+        dataLen = priv.settings.columns.length;
       }
-    } else if (instance.dataType === 'array') {
-      if (priv.settings.columns && priv.settings.columns.length) {
-        return priv.settings.columns.length;
-      } else if (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
-        return priv.settings.data[0].length;
-      } else {
-        return 0;
+    } else {
+      if (instance.dataType === 'object' || instance.dataType === 'function') {
+        dataLen = datamap.colToPropCache.length;
       }
     }
-  };
-  this.getColspanOffset = function(col, level) {
-    var colspanSum = 0;
-    if (instance.colspanArray) {
-      for (var i = 0; i < col; i++) {
-        colspanSum += instance.colspanArray[level][i] - 1 || 0;
-      }
-      return colspanSum;
-    }
-    var colspanSum = 0;
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    for (var i = rowHeadersCount; i < rowHeadersCount + col; i++) {
-      if (TR.childNodes[i].hasAttribute('colspan')) {
-        colspanSum += parseInt(TR.childNodes[i].getAttribute('colspan'), 10) - 1;
-      }
-    }
-    return colspanSum;
-  };
-  this.getHeaderColspan = function(col, level) {
-    var TRindex = instance.view.wt.wtTable.THEAD.childNodes.length - level - 1;
-    var rowHeadersCount = instance.view.wt.wtSettings.settings.rowHeaders().length;
-    var TR = instance.view.wt.wtTable.THEAD.querySelector('tr:nth-child(' + parseInt(TRindex + 1, 10) + ')');
-    var offsettedColIndex = rowHeadersCount + col - instance.view.wt.wtViewport.columnsRenderCalculator.startColumn;
-    if (TR.childNodes[offsettedColIndex].hasAttribute('colspan')) {
-      return parseInt(TR.childNodes[offsettedColIndex].getAttribute('colspan'), 10);
-    }
-    return 0;
+    return dataLen;
   };
   this.rowOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedRow();
@@ -5911,14 +6258,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
     var coords;
-    changeListener = typeof changeListener === 'undefined' || changeListener === true;
+    changeListener = isUndefined(changeListener) || changeListener === true;
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
     }
     if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
       return false;
     }
-    if (typeof endRow !== 'undefined') {
+    if (isDefined(endRow)) {
       if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
         return false;
       }
@@ -5931,7 +6278,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     if (changeListener) {
       instance.listen();
     }
-    if (typeof endRow === 'undefined') {
+    if (isUndefined(endRow)) {
       selection.setRangeEnd(priv.selRange.from, scrollToCell);
     } else {
       selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);
@@ -5941,7 +6288,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
     arguments[1] = datamap.propToCol(arguments[1]);
-    if (typeof arguments[3] !== 'undefined') {
+    if (isDefined(arguments[3])) {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
     return instance.selectCell.apply(instance, arguments);
@@ -5950,6 +6297,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.deselect();
   };
   this.scrollViewportTo = function(row, column) {
+    var snapToBottom = arguments[2] !== (void 0) ? arguments[2] : false;
+    var snapToRight = arguments[3] !== (void 0) ? arguments[3] : false;
     if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
@@ -5958,16 +6307,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     var result = false;
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.scrollVertical(row);
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.scrollVertical(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     return result;
@@ -5987,7 +6336,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.destroy(instance);
     for (var i in instance) {
       if (instance.hasOwnProperty(i)) {
-        if (typeof instance[i] === 'function') {
+        if (isFunction(instance[i])) {
           instance[i] = postMortem;
         } else if (i !== 'guid') {
           instance[i] = null;
@@ -6095,6 +6444,7 @@ DefaultSettings.prototype = {
   persistentState: void 0,
   currentRowClassName: void 0,
   currentColClassName: void 0,
+  currentHeaderClassName: 'ht__highlight',
   className: void 0,
   tableClassName: void 0,
   stretchH: 'none',
@@ -6105,7 +6455,7 @@ DefaultSettings.prototype = {
         meta;
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
           return isObjectEquals(this.getSchema()[meta.prop], value);
@@ -6121,7 +6471,7 @@ DefaultSettings.prototype = {
         value;
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
-      if (value !== '' && value !== null && typeof value !== 'undefined') {
+      if (value !== '' && value !== null && isDefined(value)) {
         return false;
       }
     }
@@ -6181,6 +6531,7 @@ DefaultSettings.prototype = {
   correctFormat: false,
   defaultDate: void 0,
   strict: void 0,
+  allowHtml: false,
   renderAllRows: void 0,
   preventOverflow: false,
   bindRowsWithHeaders: void 0,
@@ -6188,6 +6539,7 @@ DefaultSettings.prototype = {
   columnSummary: void 0,
   dropdownMenu: void 0,
   filters: void 0,
+  formulas: void 0,
   ganttChart: void 0,
   headerTooltips: void 0,
   hiddenColumns: void 0,
@@ -6205,7 +6557,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"dataMap":26,"dataSource":27,"editorManager":28,"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":46,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"numeral":"numeral","plugins":59,"renderers":92,"tableView":101}],26:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"browser":23,"dataMap":26,"dataSource":27,"editorManager":28,"eventManager":41,"helpers/array":42,"helpers/browser":43,"helpers/data":44,"helpers/dom/element":46,"helpers/function":49,"helpers/mixed":50,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"helpers/string":54,"numbro":undefined,"plugins":60,"renderers":116,"tableView":125,"utils/recordTranslator":128}],26:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -6227,9 +6579,12 @@ var SheetClip = ($__SheetClip__ = _dereq_("SheetClip"), $__SheetClip__ && $__She
 var cellMethodLookupFactory = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}).cellMethodLookupFactory;
 var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
 var $__4 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
+    createObjectPropListener = $__4.createObjectPropListener,
     duckSchema = $__4.duckSchema,
     deepExtend = $__4.deepExtend,
-    deepClone = $__4.deepClone;
+    deepClone = $__4.deepClone,
+    isObject = $__4.isObject,
+    deepObjectSize = $__4.deepObjectSize;
 var $__5 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
     extendArray = $__5.extendArray,
     to2dArray = $__5.to2dArray;
@@ -6243,8 +6598,9 @@ function DataMap(instance, priv, GridSettings) {
   this.GridSettings = GridSettings;
   this.dataSource = this.instance.getSettings().data;
   this.cachedLength = null;
+  this.skipCache = false;
   this.latestSourceRowsCount = 0;
-  if (this.dataSource[0]) {
+  if (this.dataSource && this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
   } else {
     this.duckSchema = {};
@@ -6253,6 +6609,9 @@ function DataMap(instance, priv, GridSettings) {
   this.interval = Interval.create((function() {
     return $__9.clearLengthCache();
   }), '15fps');
+  this.instance.addHook('skipLengthCache', (function(delay) {
+    return $__9.onSkipLengthCache(delay);
+  }));
 }
 DataMap.prototype.DESTINATION_RENDERER = 1;
 DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
@@ -6283,20 +6642,32 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
   return lastCol;
 };
 DataMap.prototype.createMap = function() {
-  var i,
-      ilen,
-      schema = this.getSchema();
+  var i;
+  var schema = this.getSchema();
   if (typeof schema === 'undefined') {
-    throw new Error('trying to create `columns` definition but you didnt\' provide `schema` nor `data`');
+    throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
   }
   this.colToPropCache = [];
   this.propToColCache = new MultiMap();
   var columns = this.instance.getSettings().columns;
   if (columns) {
-    for (i = 0, ilen = columns.length; i < ilen; i++) {
-      if (typeof columns[i].data != 'undefined') {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache.set(columns[i].data, i);
+    var columnsLen = columns.length;
+    var filteredIndex = 0;
+    var columnsAsFunc = false;
+    var schemaLen = deepObjectSize(schema);
+    if (typeof columns === 'function') {
+      columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+      columnsAsFunc = true;
+    }
+    for (i = 0; i < columnsLen; i++) {
+      var column = columnsAsFunc ? columns(i) : columns[i];
+      if (isObject(column)) {
+        if (typeof column.data !== 'undefined') {
+          var index = columnsAsFunc ? filteredIndex : i;
+          this.colToPropCache[index] = column.data;
+          this.propToColCache.set(column.data, index);
+        }
+        filteredIndex++;
       }
     }
   } else {
@@ -6330,7 +6701,7 @@ DataMap.prototype.getSchema = function() {
   }
   return this.duckSchema;
 };
-DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
+DataMap.prototype.createRow = function(index, amount, source) {
   var row,
       colCount = this.instance.countCols(),
       numberOfCreatedRows = 0,
@@ -6341,6 +6712,7 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateRow', index, amount, source);
   currentIndex = index;
   var maxRows = this.instance.getSettings().maxRows;
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
@@ -6362,16 +6734,16 @@ DataMap.prototype.createRow = function(index, amount, createdAutomatically) {
     if (index === this.instance.countSourceRows()) {
       this.dataSource.push(row);
     } else {
-      this.dataSource.splice(index, 0, row);
+      this.spliceData(index, 0, row);
     }
     numberOfCreatedRows++;
     currentIndex++;
   }
-  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, source);
   this.instance.forceFullRender = true;
   return numberOfCreatedRows;
 };
-DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
+DataMap.prototype.createCol = function(index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
   }
@@ -6386,16 +6758,21 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
   if (typeof index !== 'number' || index >= this.instance.countCols()) {
     index = this.instance.countCols();
   }
+  Handsontable.hooks.run(this.instance, 'beforeCreateCol', index, amount, source);
   currentIndex = index;
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
-      for (var r = 0; r < rlen; r++) {
-        if (typeof data[r] === 'undefined') {
-          data[r] = [];
+      if (rlen > 0) {
+        for (var r = 0; r < rlen; r++) {
+          if (typeof data[r] === 'undefined') {
+            data[r] = [];
+          }
+          data[r].push(null);
         }
-        data[r].push(null);
+      } else {
+        data.push([null]);
       }
       this.priv.columnSettings.push(constructor);
     } else {
@@ -6407,37 +6784,35 @@ DataMap.prototype.createCol = function(index, amount, createdAutomatically) {
     numberOfCreatedCols++;
     currentIndex++;
   }
-  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
+  Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, source);
   this.instance.forceFullRender = true;
   return numberOfCreatedCols;
 };
-DataMap.prototype.removeRow = function(index, amount) {
+DataMap.prototype.removeRow = function(index, amount, source) {
   if (!amount) {
     amount = 1;
   }
   if (typeof index !== 'number') {
     index = -amount;
   }
+  amount = Handsontable.hooks.run(this.instance, 'modifyRemovedAmount', amount, index);
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
   var logicRows = this.physicalRowsToLogical(index, amount);
-  var descendingLogicRows = logicRows.slice(0).sort(function(a, b) {
-    return b - a;
-  });
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows);
+  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveRow', index, amount, logicRows, source);
   if (actionWasNotCancelled === false) {
     return;
   }
   var data = this.dataSource;
   var newData;
-  newData = data.filter(function(row, index) {
-    return logicRows.indexOf(index) == -1;
-  });
-  data.length = 0;
-  Array.prototype.push.apply(data, newData);
-  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows);
+  newData = this.filterData(index, amount);
+  if (newData) {
+    data.length = 0;
+    Array.prototype.push.apply(data, newData);
+  }
+  Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount, logicRows, source);
   this.instance.forceFullRender = true;
 };
-DataMap.prototype.removeCol = function(index, amount) {
+DataMap.prototype.removeCol = function(index, amount, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
@@ -6452,7 +6827,7 @@ DataMap.prototype.removeCol = function(index, amount) {
   var descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {
     return b - a;
   });
-  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns);
+  var actionWasNotCancelled = Handsontable.hooks.run(this.instance, 'beforeRemoveCol', index, amount, logicColumns, source);
   if (actionWasNotCancelled === false) {
     return;
   }
@@ -6480,7 +6855,7 @@ DataMap.prototype.removeCol = function(index, amount) {
       this.priv.columnSettings.splice(logicColumns[c$__13], 1);
     }
   }
-  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
+  Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount, logicColumns, source);
   this.instance.forceFullRender = true;
 };
 DataMap.prototype.spliceCol = function(col, index, amount) {
@@ -6512,11 +6887,30 @@ DataMap.prototype.spliceRow = function(row, index, amount) {
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
   return removed;
 };
+DataMap.prototype.spliceData = function(index, amount, element) {
+  var continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataSplice', index, amount, element);
+  if (continueSplicing !== false) {
+    this.dataSource.splice(index, amount, element);
+  }
+};
+DataMap.prototype.filterData = function(index, amount) {
+  var logicRows = this.physicalRowsToLogical(index, amount);
+  var continueSplicing = Handsontable.hooks.run(this.instance, 'beforeDataFilter', index, amount, logicRows);
+  if (continueSplicing !== false) {
+    var newData = this.dataSource.filter(function(row, index) {
+      return logicRows.indexOf(index) == -1;
+    });
+    return newData;
+  }
+};
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
   var dataRow = this.dataSource[row];
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  var value = null;
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
-    return dataRow[prop];
+    value = dataRow[prop];
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = dataRow;
@@ -6530,11 +6924,18 @@ DataMap.prototype.get = function(row, prop) {
         return null;
       }
     }
-    return out;
+    value = out;
   } else if (typeof prop === 'function') {
-    return prop(this.dataSource.slice(row, row + 1)[0]);
+    value = prop(this.dataSource.slice(row, row + 1)[0]);
   }
-  return null;
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    var valueHolder = createObjectPropListener(value);
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'get');
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
+  return value;
 };
 var copyableLookup = cellMethodLookupFactory('copyable', false);
 DataMap.prototype.getCopyable = function(row, prop) {
@@ -6546,6 +6947,15 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
   var dataRow = this.dataSource[row];
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
+  dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  if (Handsontable.hooks.has('modifyData', this.instance)) {
+    var valueHolder = createObjectPropListener(value);
+    Handsontable.hooks.run(this.instance, 'modifyData', row, this.propToCol(prop), valueHolder, 'set');
+    if (valueHolder.isTouched()) {
+      value = valueHolder.value;
+    }
+  }
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
     dataRow[prop] = value;
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -6604,9 +7014,16 @@ DataMap.prototype.clearLengthCache = function() {
 };
 DataMap.prototype.getLength = function() {
   var $__9 = this;
+  var maxRows,
+      maxRowsFromSettings = this.instance.getSettings().maxRows;
+  if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
+    maxRows = 0;
+  } else {
+    maxRows = maxRowsFromSettings || Infinity;
+  }
   var length = this.instance.countSourceRows();
   if (Handsontable.hooks.has('modifyRow', this.instance)) {
-    var reValidate = false;
+    var reValidate = this.skipCache;
     this.interval.start();
     if (length !== this.latestSourceRowsCount) {
       reValidate = true;
@@ -6626,15 +7043,19 @@ DataMap.prototype.getLength = function() {
   } else {
     this.interval.stop();
   }
-  return length;
+  return Math.min(length, maxRows);
 };
 DataMap.prototype.getAll = function() {
   var start = {
     row: 0,
     col: 0
   };
+  var maxRows = this.instance.getSettings().maxRows;
+  if (maxRows === 0) {
+    return [];
+  }
   var end = {
-    row: Math.max(this.instance.countSourceRows() - 1, 0),
+    row: Math.min(Math.max(maxRows - 1, 0), Math.max(this.instance.countSourceRows() - 1, 0)),
     col: Math.max(this.instance.countCols() - 1, 0)
   };
   if (start.row - end.row === 0 && !this.instance.countSourceRows()) {
@@ -6648,8 +7069,7 @@ DataMap.prototype.getRange = function(start, end, destination) {
       c,
       clen,
       output = [],
-      row,
-      rowExists;
+      row;
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
   rlen = Math.max(start.row, end.row);
   clen = Math.max(start.col, end.col);
@@ -6657,7 +7077,6 @@ DataMap.prototype.getRange = function(start, end, destination) {
     row = [];
     var physicalRow = Handsontable.hooks.run(this.instance, 'modifyRow', r);
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
-      var rowValue;
       if (physicalRow === null) {
         break;
       }
@@ -6675,6 +7094,13 @@ DataMap.prototype.getText = function(start, end) {
 DataMap.prototype.getCopyableText = function(start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
+DataMap.prototype.onSkipLengthCache = function(delay) {
+  var $__9 = this;
+  this.skipCache = true;
+  setTimeout((function() {
+    $__9.skipCache = false;
+  }), delay);
+};
 DataMap.prototype.destroy = function() {
   this.interval.stop();
   this.interval = null;
@@ -6688,7 +7114,7 @@ DataMap.prototype.destroy = function() {
 ;
 
 //# 
-},{"SheetClip":"SheetClip","browser":23,"helpers/array":42,"helpers/data":44,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"multiMap":57,"utils/interval":103}],27:[function(_dereq_,module,exports){
+},{"SheetClip":"SheetClip","browser":23,"helpers/array":42,"helpers/data":44,"helpers/number":51,"helpers/object":52,"helpers/setting":53,"multiMap":58,"utils/interval":127}],27:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataSource: {get: function() {
@@ -6696,20 +7122,11 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__helpers_47_data__,
-    $__helpers_47_setting__,
-    $__helpers_47_object__,
+var $__helpers_47_object__,
     $__helpers_47_array__,
     $__helpers_47_number__;
-var cellMethodLookupFactory = ($__helpers_47_data__ = _dereq_("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}).cellMethodLookupFactory;
-var columnFactory = ($__helpers_47_setting__ = _dereq_("helpers/setting"), $__helpers_47_setting__ && $__helpers_47_setting__.__esModule && $__helpers_47_setting__ || {default: $__helpers_47_setting__}).columnFactory;
-var $__2 = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}),
-    duckSchema = $__2.duckSchema,
-    deepExtend = $__2.deepExtend,
-    getProperty = $__2.getProperty;
-var $__3 = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}),
-    extendArray = $__3.extendArray,
-    arrayEach = $__3.arrayEach;
+var getProperty = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).getProperty;
+var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var rangeEach = ($__helpers_47_number__ = _dereq_("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var DataSource = function DataSource(hotInstance) {
   var dataSource = arguments[1] !== (void 0) ? arguments[1] : [];
@@ -6721,16 +7138,27 @@ var DataSource = function DataSource(hotInstance) {
 };
 ($traceurRuntime.createClass)(DataSource, {
   getData: function() {
-    return this.data;
+    var toArray = arguments[0] !== (void 0) ? arguments[0] : false;
+    var result = this.data;
+    if (toArray) {
+      result = this.getByRange({
+        row: 0,
+        col: 0
+      }, {
+        row: Math.max(this.countRows() - 1, 0),
+        col: Math.max(this.countColumns() - 1, 0)
+      }, true);
+    }
+    return result;
   },
   setData: function(data) {
     this.data = data;
   },
   getAtColumn: function(column) {
-    var $__5 = this;
+    var $__3 = this;
     var result = [];
     arrayEach(this.data, (function(row) {
-      var property = $__5.colToProp(column);
+      var property = $__3.colToProp(column);
       if (typeof property === 'string') {
         row = getProperty(row, property);
       } else {
@@ -6744,29 +7172,61 @@ var DataSource = function DataSource(hotInstance) {
     return this.data[row];
   },
   getAtCell: function(row, column) {
-    return this.data[row][this.colToProp(column)];
+    var result = null;
+    var modifyRowData = this.hot.runHooks('modifyRowData', row);
+    var dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    if (dataRow) {
+      var prop = this.colToProp(column);
+      if (typeof prop === 'string') {
+        result = getProperty(dataRow, prop);
+      } else if (typeof prop === 'function') {
+        result = prop(this.data.slice(row, row + 1)[0]);
+      } else {
+        result = dataRow[prop];
+      }
+    }
+    return result;
   },
   getByRange: function(start, end) {
-    var $__5 = this;
+    var toArray = arguments[2] !== (void 0) ? arguments[2] : false;
+    var $__3 = this;
     var startRow = Math.min(start.row, end.row);
     var startCol = Math.min(start.col, end.col);
     var endRow = Math.max(start.row, end.row);
     var endCol = Math.max(start.col, end.col);
     var result = [];
     rangeEach(startRow, endRow, (function(currentRow) {
-      var row = $__5.getAtRow(currentRow);
+      var row = $__3.getAtRow(currentRow);
       var newRow;
-      if ($__5.dataType === 'array') {
-        newRow = row.slice(startCol, endCol);
-      } else if ($__5.dataType === 'object') {
-        newRow = {};
+      if ($__3.dataType === 'array') {
+        newRow = row.slice(startCol, endCol + 1);
+      } else if ($__3.dataType === 'object') {
+        newRow = toArray ? [] : {};
         rangeEach(startCol, endCol, (function(column) {
-          var prop = $__5.colToProp(column);
-          newRow[prop] = row[prop];
+          var prop = $__3.colToProp(column);
+          if (toArray) {
+            newRow.push(row[prop]);
+          } else {
+            newRow[prop] = row[prop];
+          }
         }));
       }
       result.push(newRow);
     }));
+    return result;
+  },
+  countRows: function() {
+    return Array.isArray(this.data) ? this.data.length : 0;
+  },
+  countColumns: function() {
+    var result = 0;
+    if (Array.isArray(this.data)) {
+      if (this.dataType === 'array') {
+        result = this.data[0].length;
+      } else if (this.dataType === 'object') {
+        result = Object.keys(this.data[0]).length;
+      }
+    }
     return result;
   },
   destroy: function() {
@@ -6777,7 +7237,7 @@ var DataSource = function DataSource(hotInstance) {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/data":44,"helpers/number":51,"helpers/object":52,"helpers/setting":53}],28:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/number":51,"helpers/object":52}],28:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   EditorManager: {get: function() {
@@ -6993,7 +7453,9 @@ function EditorManager(instance, priv, selection) {
   function init() {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
     eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
-      instance.runHooks('afterDocumentKeyDown', event);
+      if (!destroyed) {
+        instance.runHooks('afterDocumentKeyDown', event);
+      }
     });
     function onDblClick(event, coords, elem) {
       if (elem.nodeName == 'TD') {
@@ -7034,7 +7496,7 @@ function EditorManager(instance, priv, selection) {
     col = priv.selRange.highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
-    originalValue = instance.getDataAtCell(row, col);
+    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
     if (editorClass) {
@@ -7216,9 +7678,10 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.prop = prop;
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+  var invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
-  } else if (!document.activeElement) {
+  } else if (invalidActiveElement) {
     document.body.focus();
   }
   this.state = Handsontable.EditorState.VIRGIN;
@@ -7237,25 +7700,25 @@ BaseEditor.prototype.extend = function() {
   }
   return inherit(Editor, baseClass);
 };
-BaseEditor.prototype.saveValue = function(val, ctrlDown) {
-  var sel,
+BaseEditor.prototype.saveValue = function(value, ctrlDown) {
+  var selection,
       tmp;
   if (ctrlDown) {
-    sel = this.instance.getSelected();
-    if (sel[0] > sel[2]) {
-      tmp = sel[0];
-      sel[0] = sel[2];
-      sel[2] = tmp;
+    selection = this.instance.getSelected();
+    if (selection[0] > selection[2]) {
+      tmp = selection[0];
+      selection[0] = selection[2];
+      selection[2] = tmp;
     }
-    if (sel[1] > sel[3]) {
-      tmp = sel[1];
-      sel[1] = sel[3];
-      sel[3] = tmp;
+    if (selection[1] > selection[3]) {
+      tmp = selection[1];
+      selection[1] = selection[3];
+      selection[3] = tmp;
     }
-    this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
   } else {
-    this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
+    selection = [this.row, this.col, null, null];
   }
+  this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
 };
 BaseEditor.prototype.beginEditing = function(initialValue, event) {
   if (this.state != Handsontable.EditorState.VIRGIN) {
@@ -7270,6 +7733,7 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   this._opened = true;
   this.focus();
   this.instance.view.render();
+  this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {
   var _this = this,
@@ -7281,6 +7745,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
         previousCloseCallback(result);
       }
       callback(result);
+      _this.instance.view.render();
     };
   }
   if (this.isWaiting()) {
@@ -7382,19 +7847,22 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $___46__46__47_helpers_47_unicode__,
+var $___46__46__47_helpers_47_unicode__,
     $___46__46__47_helpers_47_mixed__,
+    $___46__46__47_helpers_47_string__,
     $___46__46__47_helpers_47_array__,
     $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_editors__,
     $__handsontableEditor__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
-var $__1 = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}),
-    KEY_CODES = $__1.KEY_CODES,
-    isPrintableChar = $__1.isPrintableChar;
+var $__0 = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}),
+    KEY_CODES = $__0.KEY_CODES,
+    isPrintableChar = $__0.isPrintableChar;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
-var pivot = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).pivot;
+var stripTags = ($___46__46__47_helpers_47_string__ = _dereq_("helpers/string"), $___46__46__47_helpers_47_string__ && $___46__46__47_helpers_47_string__.__esModule && $___46__46__47_helpers_47_string__ || {default: $___46__46__47_helpers_47_string__}).stripTags;
+var $__3 = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}),
+    pivot = $__3.pivot,
+    arrayFilter = $__3.arrayFilter,
+    arrayMap = $__3.arrayMap;
 var $__4 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
     addClass = $__4.addClass,
     getCaretPosition = $__4.getCaretPosition,
@@ -7454,18 +7922,21 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer: function(TD, row, col, prop, value) {
-      var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+    afterRenderer: function(TD, row, col, prop, value, cellProperties) {
+      var $__8 = _this.cellProperties,
+          filteringCaseSensitive = $__8.filteringCaseSensitive,
+          allowHtml = $__8.allowHtml;
       var indexOfMatch;
       var match;
       value = stringify(value);
-      if (value) {
-        indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
-        if (indexOfMatch != -1) {
+      if (value && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+        if (indexOfMatch !== -1) {
           match = value.substr(indexOfMatch, _this.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          value = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+      TD.innerHTML = value;
     },
     autoColumnSize: true,
     modifyColWidth: function(width, col) {
@@ -7488,30 +7959,24 @@ AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
+  var $__7 = this;
   this.query = query;
-  var source = this.cellProperties.source;
-  var hasFilter = this.cellProperties.filter;
-  var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  var $__8 = this.cellProperties,
+      source = $__8.source,
+      filter = $__8.filter,
+      filteringCaseSensitive = $__8.filteringCaseSensitive,
+      allowHtml = $__8.allowHtml;
+  var stripTagsEach = (function(choices) {
+    return arrayMap(choices, (function(choice) {
+      return stripTags(choice);
+    }));
+  });
   if (typeof source == 'function') {
-    var _this = this;
-    source(query, function(choices) {
-      _this.updateChoicesList(choices);
-    });
+    source.call(this.cellProperties, query, (function(choices) {
+      $__7.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
+    }));
   } else if (Array.isArray(source)) {
-    var choices;
-    if (!query || hasFilter === false) {
-      choices = source;
-    } else {
-      var lowerCaseQuery = query.toLowerCase();
-      choices = source.filter(function(choice) {
-        if (filteringCaseSensitive) {
-          return choice.indexOf(query) != -1;
-        } else {
-          return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
-        }
-      });
-    }
-    this.updateChoicesList(choices);
+    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
   } else {
     this.updateChoicesList([]);
   }
@@ -7523,20 +7988,23 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   var filterSetting = this.cellProperties.filter;
   var orderByRelevance = null;
   var highlightIndex = null;
+  var flipped = null;
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   }
+  var orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
   if (filterSetting === false) {
-    if (orderByRelevance) {
+    if (orderByRelevanceLength) {
       highlightIndex = orderByRelevance[0];
-    } else {
-      highlightIndex = 0;
     }
   } else {
     var sorted = [];
     for (var i = 0,
         choicesCount = choices.length; i < choicesCount; i++) {
-      if (orderByRelevance) {
+      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+        break;
+      }
+      if (orderByRelevanceLength) {
         sorted.push(choices[orderByRelevance[i]]);
       } else {
         sorted.push(choices[i]);
@@ -7561,6 +8029,8 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   var textareaHeight = outerHeight(this.TEXTAREA);
   var dropdownHeight = this.getDropdownHeight();
   var trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+  var trimmingContainerScrollTop = trimmingContainer.scrollTop;
+  var headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
   var containerOffset = {
     row: 0,
     col: 0
@@ -7568,13 +8038,33 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   if (trimmingContainer !== window) {
     containerOffset = offset(trimmingContainer);
   }
-  var spaceBelow = containerOffset.top + (trimmingContainer.scrollHeight - trimmingContainer.scrollTop);
-  var spaceAbove = containerOffset.top + trimmingContainer.scrollHeight;
-  var flipNeeded = (textareaOffset.top + textareaHeight + dropdownHeight > spaceBelow);
-  if (flipNeeded && spaceAbove > spaceBelow) {
+  var spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+  var spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+  var flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
+  if (flipNeeded) {
     this.flipDropdown(dropdownHeight);
   } else {
     this.unflipDropdown();
+  }
+  this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
+  return flipNeeded;
+};
+AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dropdownHeight) {
+  if (dropdownHeight > spaceAvailable) {
+    var tempHeight = 0;
+    var i = 0;
+    var lastRowHeight = 0;
+    var height = null;
+    do {
+      lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+      tempHeight += lastRowHeight;
+      i++;
+    } while (tempHeight < spaceAvailable);
+    height = tempHeight - lastRowHeight;
+    if (this.htEditor.flipped) {
+      this.htEditor.rootElement.style.top = parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height + 'px';
+    }
+    this.setDropdownHeight(tempHeight - lastRowHeight);
   }
 };
 AutocompleteEditor.prototype.flipDropdown = function(dropdownHeight) {
@@ -7599,6 +8089,9 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
     width: trimDropdown ? void 0 : currentDropdownWidth
   });
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+};
+AutocompleteEditor.prototype.setDropdownHeight = function(height) {
+  this.htEditor.updateSettings({height: height});
 };
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
   if (!restoreOriginalValue) {
@@ -7629,7 +8122,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     return result;
   }
   for (i = 0; i < choicesCount; i++) {
-    currentItem = stringify(choices[i]);
+    currentItem = stripTags(stringify(choices[i]));
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);
     } else {
@@ -7688,11 +8181,15 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   }
   return allowed;
 };
+AutocompleteEditor.prototype.discardEditor = function(result) {
+  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+  this.instance.view.render();
+};
 ;
 registerEditor('autocomplete', AutocompleteEditor);
 
 //# 
-},{"browser":23,"editors":29,"handsontableEditor":35,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/unicode":55}],32:[function(_dereq_,module,exports){
+},{"editors":29,"handsontableEditor":35,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/string":54,"helpers/unicode":55}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CheckboxEditor: {get: function() {
@@ -7700,11 +8197,9 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $___46__46__47_editors__,
+var $___46__46__47_editors__,
     $___95_baseEditor__,
     $___46__46__47_helpers_47_dom_47_element__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var BaseEditor = ($___95_baseEditor__ = _dereq_("_baseEditor"), $___95_baseEditor__ && $___95_baseEditor__.__esModule && $___95_baseEditor__ || {default: $___95_baseEditor__}).BaseEditor;
 var hasClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).hasClass;
@@ -7733,7 +8228,7 @@ var $CheckboxEditor = CheckboxEditor;
 registerEditor('checkbox', CheckboxEditor);
 
 //# 
-},{"_baseEditor":30,"browser":23,"editors":29,"helpers/dom/element":46}],33:[function(_dereq_,module,exports){
+},{"_baseEditor":30,"editors":29,"helpers/dom/element":46}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DateEditor: {get: function() {
@@ -7765,8 +8260,6 @@ var stopPropagation = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpe
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = _dereq_("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -7922,6 +8415,8 @@ var $DateEditor = DateEditor;
   }
 }, {}, TextEditor);
 ;
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 registerEditor('date', DateEditor);
 
 //# 
@@ -8397,15 +8892,11 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47_browser__,
-    $__numeral__,
+var $__numbro__,
     $___46__46__47_editors__,
     $__textEditor__;
-var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var $__2 = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}),
-    getEditor = $__2.getEditor,
-    registerEditor = $__2.registerEditor;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var NumericEditor = function NumericEditor() {
   $traceurRuntime.superConstructor($NumericEditor).apply(this, arguments);
@@ -8414,9 +8905,9 @@ var $NumericEditor = NumericEditor;
 ($traceurRuntime.createClass)(NumericEditor, {beginEditing: function(initialValue) {
     if (typeof initialValue === 'undefined' && this.originalValue) {
       if (typeof this.cellProperties.language !== 'undefined') {
-        numeral.language(this.cellProperties.language);
+        numbro.culture(this.cellProperties.language);
       }
-      var decimalDelimiter = numeral.languageData().delimiters.decimal;
+      var decimalDelimiter = numbro.cultureData().delimiters.decimal;
       initialValue = ('' + this.originalValue).replace('.', decimalDelimiter);
     }
     $traceurRuntime.superGet(this, $NumericEditor.prototype, "beginEditing").call(this, initialValue);
@@ -8425,7 +8916,7 @@ var $NumericEditor = NumericEditor;
 registerEditor('numeric', NumericEditor);
 
 //# 
-},{"browser":23,"editors":29,"numeral":"numeral","textEditor":40}],38:[function(_dereq_,module,exports){
+},{"editors":29,"numbro":undefined,"textEditor":40}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   PasswordEditor: {get: function() {
@@ -8589,6 +9080,12 @@ SelectEditor.prototype.close = function() {
 };
 SelectEditor.prototype.focus = function() {
   this.select.focus();
+};
+SelectEditor.prototype.refreshValue = function() {
+  var sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+  this.setValue(sourceData);
+  this.refreshDimensions();
 };
 SelectEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
@@ -8899,6 +9396,12 @@ TextEditor.prototype.getEditedCell = function() {
   }
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
+TextEditor.prototype.refreshValue = function() {
+  var sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
 TextEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;
@@ -8912,7 +9415,8 @@ TextEditor.prototype.refreshDimensions = function() {
       containerOffset = offset(this.instance.rootElement),
       scrollableContainer = getScrollableElement(this.TD),
       totalRowsCount = this.instance.countRows(),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
+      editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
       settings = this.instance.getSettings(),
       rowHeadersCount = this.instance.hasRowHeaders(),
@@ -9239,6 +9743,9 @@ Object.defineProperties(exports, {
   arrayUnique: {get: function() {
       return arrayUnique;
     }},
+  arrayIncludes: {get: function() {
+      return arrayIncludes;
+    }},
   __esModule: {value: true}
 });
 function to2dArray(arr) {
@@ -9354,6 +9861,25 @@ function arrayUnique(array) {
   }));
   return unique;
 }
+function arrayIncludes(array, searchElement, fromIndex) {
+  if (array == null) {
+    throw new TypeError('"array" is null or not defined');
+  }
+  var o = Object(array);
+  var len = o.length >>> 0;
+  if (len === 0) {
+    return false;
+  }
+  var n = fromIndex | 0;
+  var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+  while (k < len) {
+    if (o[k] === searchElement) {
+      return true;
+    }
+    k++;
+  }
+  return false;
+}
 
 //# 
 },{}],43:[function(_dereq_,module,exports){
@@ -9406,6 +9932,9 @@ Object.defineProperties(exports, {
   spreadsheetColumnLabel: {get: function() {
       return spreadsheetColumnLabel;
     }},
+  spreadsheetColumnIndex: {get: function() {
+      return spreadsheetColumnIndex;
+    }},
   createSpreadsheetData: {get: function() {
       return createSpreadsheetData;
     }},
@@ -9427,46 +9956,59 @@ var $___46__46__47_browser__,
     $__object__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var getPrototypeOf = ($__object__ = _dereq_("object"), $__object__ && $__object__.__esModule && $__object__ || {default: $__object__}).getPrototypeOf;
+var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 function spreadsheetColumnLabel(index) {
   var dividend = index + 1;
   var columnLabel = '';
   var modulo;
   while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
+    modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
+    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
   }
   return columnLabel;
 }
-function createSpreadsheetData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-  var rows = [],
+function spreadsheetColumnIndex(label) {
+  var result = 0;
+  if (label) {
+    for (var i = 0,
+        j = label.length - 1; i < label.length; i += 1, j -= 1) {
+      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
+    }
+  }
+  --result;
+  return result;
+}
+function createSpreadsheetData() {
+  var rows = arguments[0] !== (void 0) ? arguments[0] : 100;
+  var columns = arguments[1] !== (void 0) ? arguments[1] : 4;
+  var _rows = [],
       i,
       j;
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rows; i++) {
     var row = [];
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < columns; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
-    rows.push(row);
+    _rows.push(row);
   }
-  return rows;
+  return _rows;
 }
-function createSpreadsheetObjectData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
-  var rows = [],
+function createSpreadsheetObjectData() {
+  var rows = arguments[0] !== (void 0) ? arguments[0] : 100;
+  var colCount = arguments[1] !== (void 0) ? arguments[1] : 4;
+  var _rows = [],
       i,
       j;
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rows; i++) {
     var row = {};
     for (j = 0; j < colCount; j++) {
       row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
     }
-    rows.push(row);
+    _rows.push(row);
   }
-  return rows;
+  return _rows;
 }
 function createEmptySpreadsheetData(rows, columns) {
   var data = [];
@@ -9551,8 +10093,14 @@ function getNormalizedDate(dateString) {
 },{}],46:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  getParent: {get: function() {
+      return getParent;
+    }},
   closest: {get: function() {
       return closest;
+    }},
+  closestDown: {get: function() {
+      return closestDown;
     }},
   isChildOf: {get: function() {
       return isChildOf;
@@ -9689,6 +10237,24 @@ var $__0 = ($___46__46__47_browser__ = _dereq_("../browser"), $___46__46__47_bro
     isIE9 = $__0.isIE9,
     isSafari = $__0.isSafari;
 var hasCaptionProblem = ($___46__46__47_feature__ = _dereq_("../feature"), $___46__46__47_feature__ && $___46__46__47_feature__.__esModule && $___46__46__47_feature__ || {default: $___46__46__47_feature__}).hasCaptionProblem;
+function getParent(element) {
+  var level = arguments[1] !== (void 0) ? arguments[1] : 0;
+  var iteration = -1;
+  var parent = null;
+  while (element != null) {
+    if (iteration === level) {
+      parent = element;
+      break;
+    }
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+    } else {
+      iteration++;
+      element = element.parentNode;
+    }
+  }
+  return parent;
+}
 function closest(element, nodes, until) {
   while (element != null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
@@ -9701,6 +10267,23 @@ function closest(element, nodes, until) {
     }
   }
   return null;
+}
+function closestDown(element, nodes, until) {
+  var matched = [];
+  while (element) {
+    element = closest(element, nodes, until);
+    if (!element || (until && !until.contains(element))) {
+      break;
+    }
+    matched.push(element);
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+    } else {
+      element = element.parentNode;
+    }
+  }
+  var length = matched.length;
+  return length ? matched[length - 1] : null;
 }
 function isChildOf(child, parent) {
   var node = child.parentNode;
@@ -10160,17 +10743,18 @@ function setCaretPosition(element, pos, endPos) {
 }
 var cachedScrollbarWidth;
 function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('p');
-  inner.style.width = '100%';
+  var inner = document.createElement('div');
   inner.style.height = '200px';
+  inner.style.width = '100%';
   var outer = document.createElement('div');
+  outer.style.boxSizing = 'content-box';
+  outer.style.height = '150px';
+  outer.style.left = '0px';
+  outer.style.overflow = 'hidden';
   outer.style.position = 'absolute';
   outer.style.top = '0px';
-  outer.style.left = '0px';
-  outer.style.visibility = 'hidden';
   outer.style.width = '200px';
-  outer.style.height = '150px';
-  outer.style.overflow = 'hidden';
+  outer.style.visibility = 'hidden';
   outer.appendChild(inner);
   (document.body || document.documentElement).appendChild(outer);
   var w1 = inner.offsetWidth;
@@ -10247,6 +10831,12 @@ Object.defineProperties(exports, {
   pageY: {get: function() {
       return pageY;
     }},
+  isRightClick: {get: function() {
+      return isRightClick;
+    }},
+  isLeftClick: {get: function() {
+      return isLeftClick;
+    }},
   __esModule: {value: true}
 });
 var $__element__;
@@ -10278,6 +10868,12 @@ function pageY(event) {
     return event.pageY;
   }
   return event.clientY + getWindowScrollTop();
+}
+function isRightClick(event) {
+  return event.button === 2;
+}
+function isLeftClick(event) {
+  return event.button === 0;
 }
 
 //# 
@@ -10394,6 +10990,9 @@ function getComparisonFunction(language) {
 },{}],49:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  isFunction: {get: function() {
+      return isFunction;
+    }},
   proxy: {get: function() {
       return proxy;
     }},
@@ -10422,6 +11021,9 @@ Object.defineProperties(exports, {
 });
 var $__array__;
 var arrayReduce = ($__array__ = _dereq_("array"), $__array__ && $__array__.__esModule && $__array__ || {default: $__array__}).arrayReduce;
+function isFunction(func) {
+  return typeof func === 'function';
+}
 function proxy(func, context) {
   return function() {
     return func.apply(context, arguments);
@@ -10566,6 +11168,12 @@ Object.defineProperties(exports, {
   stringify: {get: function() {
       return stringify;
     }},
+  isDefined: {get: function() {
+      return isDefined;
+    }},
+  isUndefined: {get: function() {
+      return isUndefined;
+    }},
   __esModule: {value: true}
 });
 function stringify(value) {
@@ -10585,6 +11193,12 @@ function stringify(value) {
     default:
       return value.toString();
   }
+}
+function isDefined(variable) {
+  return typeof variable !== 'undefined';
+}
+function isUndefined(variable) {
+  return typeof variable === 'undefined';
 }
 
 //# 
@@ -10684,6 +11298,12 @@ Object.defineProperties(exports, {
   getProperty: {get: function() {
       return getProperty;
     }},
+  deepObjectSize: {get: function() {
+      return deepObjectSize;
+    }},
+  createObjectPropListener: {get: function() {
+      return createObjectPropListener;
+    }},
   __esModule: {value: true}
 });
 var $__array__;
@@ -10695,6 +11315,9 @@ function duckSchema(object) {
   } else {
     schema = {};
     objectEach(object, function(value, key) {
+      if (key === '__children') {
+        return;
+      }
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         schema[key] = duckSchema(value);
       } else if (Array.isArray(value)) {
@@ -10755,8 +11378,8 @@ function clone(object) {
 }
 function mixin(Base) {
   for (var mixins = [],
-      $__1 = 1; $__1 < arguments.length; $__1++)
-    mixins[$__1 - 1] = arguments[$__1];
+      $__2 = 1; $__2 < arguments.length; $__2++)
+    mixins[$__2 - 1] = arguments[$__2];
   if (!Base.MIXINS) {
     Base.MIXINS = [];
   }
@@ -10853,6 +11476,58 @@ function getProperty(object, name) {
   }));
   return result;
 }
+function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  var recursObjLen = function(obj) {
+    var result = 0;
+    if (isObject(obj)) {
+      objectEach(obj, (function(key) {
+        result += recursObjLen(key);
+      }));
+    } else {
+      result++;
+    }
+    return result;
+  };
+  return recursObjLen(object);
+}
+function createObjectPropListener(defaultValue) {
+  var propertyToListen = arguments[1] !== (void 0) ? arguments[1] : 'value';
+  var $__1;
+  var privateProperty = ("_" + propertyToListen);
+  var holder = ($__1 = {}, Object.defineProperty($__1, "_touched", {
+    value: false,
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), Object.defineProperty($__1, privateProperty, {
+    value: defaultValue,
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), Object.defineProperty($__1, "isTouched", {
+    value: function() {
+      return this._touched;
+    },
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), $__1);
+  Object.defineProperty(holder, propertyToListen, {
+    get: function() {
+      return this[privateProperty];
+    },
+    set: function(value) {
+      this._touched = true;
+      this[privateProperty] = value;
+    },
+    enumerable: true,
+    configurable: true
+  });
+  return holder;
+}
 
 //# 
 },{"array":42}],53:[function(_dereq_,module,exports){
@@ -10903,6 +11578,9 @@ Object.defineProperties(exports, {
     }},
   padStart: {get: function() {
       return padStart;
+    }},
+  stripTags: {get: function() {
+      return stripTags;
     }},
   __esModule: {value: true}
 });
@@ -10990,6 +11668,11 @@ function padStart(string, maxLength) {
   return truncatedString + string;
 }
 ;
+var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
+function stripTags(string) {
+  string = string + '';
+  return string.replace(STRIP_TAGS_REGEX, '');
+}
 
 //# 
 },{"mixed":50,"number":51}],55:[function(_dereq_,module,exports){
@@ -11084,6 +11767,109 @@ function isKey(keyCode, baseCode) {
 },{"array":42}],56:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  arrayMapper: {get: function() {
+      return arrayMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_browser__,
+    $___46__46__47_helpers_47_array__,
+    $___46__46__47_helpers_47_object__,
+    $___46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
+var $__1 = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}),
+    arrayEach = $__1.arrayEach,
+    arrayReduce = $__1.arrayReduce,
+    arrayMap = $__1.arrayMap,
+    arrayMax = $__1.arrayMax;
+var defineGetter = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).defineGetter;
+var rangeEach = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).rangeEach;
+var MIXIN_NAME = 'arrayMapper';
+var arrayMapper = {
+  _arrayMap: [],
+  getValueByIndex: function(index) {
+    var value;
+    return (value = this._arrayMap[index]) === void 0 ? null : value;
+  },
+  getIndexByValue: function(value) {
+    var index;
+    return (index = this._arrayMap.indexOf(value)) === -1 ? null : index;
+  },
+  insertItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    var newIndex = arrayMax(this._arrayMap) + 1;
+    var addedItems = [];
+    rangeEach(amount - 1, (function(count) {
+      addedItems.push($__4._arrayMap.splice(index + count, 0, newIndex + count));
+    }));
+    return addedItems;
+  },
+  removeItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    var removedItems = [];
+    if (Array.isArray(index)) {
+      var mapCopy = [].concat(this._arrayMap);
+      index.sort((function(a, b) {
+        return b - a;
+      }));
+      removedItems = arrayReduce(index, (function(acc, item) {
+        $__4._arrayMap.splice(item, 1);
+        return acc.concat(mapCopy.slice(item, item + 1));
+      }), []);
+    } else {
+      removedItems = this._arrayMap.splice(index, amount);
+    }
+    return removedItems;
+  },
+  unshiftItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var removedItems = this.removeItems(index, amount);
+    function countRowShift(logicalRow) {
+      return arrayReduce(removedItems, (function(count, removedLogicalRow) {
+        if (logicalRow > removedLogicalRow) {
+          count++;
+        }
+        return count;
+      }), 0);
+    }
+    this._arrayMap = arrayMap(this._arrayMap, (function(logicalRow, physicalRow) {
+      var rowShift = countRowShift(logicalRow);
+      if (rowShift) {
+        logicalRow -= rowShift;
+      }
+      return logicalRow;
+    }));
+  },
+  shiftItems: function(index) {
+    var amount = arguments[1] !== (void 0) ? arguments[1] : 1;
+    var $__4 = this;
+    this._arrayMap = arrayMap(this._arrayMap, (function(row) {
+      if (row >= index) {
+        row += amount;
+      }
+      return row;
+    }));
+    rangeEach(amount - 1, (function(count) {
+      $__4._arrayMap.splice(index + count, 0, index + count);
+    }));
+  },
+  clearMap: function() {
+    this._arrayMap.length = 0;
+  }
+};
+defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+;
+Handsontable.utils.arrayMapper = arrayMapper;
+
+//# 
+},{"browser":23,"helpers/array":42,"helpers/number":51,"helpers/object":52}],57:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
   localHooks: {get: function() {
       return localHooks;
     }},
@@ -11127,7 +11913,7 @@ defineGetter(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
 Handsontable.utils.localHooks = localHooks;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/object":52}],57:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/array":42,"helpers/object":52}],58:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MultiMap: {get: function() {
@@ -11179,7 +11965,7 @@ function MultiMap() {
 }
 
 //# 
-},{}],58:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Hooks: {get: function() {
@@ -11189,7 +11975,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'afterCreateCol', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'beforeContextMenuSetItems', 'afterDropdownMenuDefaultOptions', 'beforeDropdownMenuSetItems', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'beforeCreateCol', 'afterCreateCol', 'beforeCreateRow', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellCornerDblClick', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterSetDataAtCell', 'afterSetDataAtRowProp', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeOnCellMouseOver', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeStart', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'beforeValueRender', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'unmodifyRow', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'modifyData', 'modifyRowData', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'modifyAutofillRange', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter', 'modifyColumnHeaderHeight', 'beforeUndo', 'afterUndo', 'beforeRedo', 'afterRedo', 'modifyRowHeaderWidth', 'beforeAutofillInsidePopulate', 'modifyTransformStart', 'modifyTransformEnd', 'afterModifyTransformStart', 'afterModifyTransformEnd', 'beforeValueRender', 'afterViewportRowCalculatorOverride', 'afterViewportColumnCalculatorOverride', 'afterPluginsInitialized', 'manualRowHeights', 'skipLengthCache', 'afterTrimRow', 'afterUntrimRow', 'afterDropdownMenuShow', 'afterDropdownMenuHide', 'hiddenRow', 'hiddenColumn', 'beforeAddChild', 'afterAddChild', 'beforeDetachChild', 'afterDetachChild', 'afterBeginEditing'];
 var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -11328,7 +12114,7 @@ var Hooks = function Hooks() {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/object":52}],59:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/object":52}],60:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerPlugin: {get: function() {
@@ -11402,7 +12188,7 @@ function getPluginName(hotInstance, plugin) {
 ;
 
 //# 
-},{"browser":23,"helpers/object":52,"helpers/string":54}],60:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/object":52,"helpers/string":54}],61:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   default: {get: function() {
@@ -11413,20 +12199,25 @@ Object.defineProperties(exports, {
 var $___46__46__47_browser__,
     $___46__46__47_helpers_47_object__,
     $___46__46__47_helpers_47_array__,
+    $___46__46__47_utils_47_recordTranslator__,
     $___46__46__47_plugins__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var $__1 = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}),
     defineGetter = $__1.defineGetter,
     objectEach = $__1.objectEach;
 var arrayEach = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).arrayEach;
-var $__3 = ($___46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47_plugins__ && $___46__46__47_plugins__.__esModule && $___46__46__47_plugins__ || {default: $___46__46__47_plugins__}),
-    getRegistredPluginNames = $__3.getRegistredPluginNames,
-    getPluginName = $__3.getPluginName;
+var $__3 = ($___46__46__47_utils_47_recordTranslator__ = _dereq_("utils/recordTranslator"), $___46__46__47_utils_47_recordTranslator__ && $___46__46__47_utils_47_recordTranslator__.__esModule && $___46__46__47_utils_47_recordTranslator__ || {default: $___46__46__47_utils_47_recordTranslator__}),
+    registerIdentity = $__3.registerIdentity,
+    getTranslator = $__3.getTranslator;
+var $__4 = ($___46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47_plugins__ && $___46__46__47_plugins__.__esModule && $___46__46__47_plugins__ || {default: $___46__46__47_plugins__}),
+    getRegistredPluginNames = $__4.getRegistredPluginNames,
+    getPluginName = $__4.getPluginName;
 var privatePool = new WeakMap();
 var initializedPlugins = null;
 var BasePlugin = function BasePlugin(hotInstance) {
-  var $__4 = this;
+  var $__5 = this;
   defineGetter(this, 'hot', hotInstance, {writable: false});
+  defineGetter(this, 't', getTranslator(hotInstance), {writable: false});
   privatePool.set(this, {hooks: {}});
   initializedPlugins = null;
   this.pluginName = null;
@@ -11435,13 +12226,13 @@ var BasePlugin = function BasePlugin(hotInstance) {
   this.enabled = false;
   this.initialized = false;
   this.hot.addHook('afterPluginsInitialized', (function() {
-    return $__4.onAfterPluginsInitialized();
+    return $__5.onAfterPluginsInitialized();
   }));
   this.hot.addHook('afterUpdateSettings', (function() {
-    return $__4.onUpdateSettings();
+    return $__5.onUpdateSettings();
   }));
   this.hot.addHook('beforeInit', (function() {
-    return $__4.init();
+    return $__5.init();
   }));
 };
 ($traceurRuntime.createClass)(BasePlugin, {
@@ -11478,16 +12269,16 @@ var BasePlugin = function BasePlugin(hotInstance) {
     privatePool.get(this).hooks[name] = hooks;
   },
   removeHooks: function(name) {
-    var $__4 = this;
+    var $__5 = this;
     arrayEach(privatePool.get(this).hooks[name] || [], (function(callback) {
-      $__4.hot.removeHook(name, callback);
+      $__5.hot.removeHook(name, callback);
     }));
   },
   clearHooks: function() {
-    var $__4 = this;
+    var $__5 = this;
     var hooks = privatePool.get(this).hooks;
     objectEach(hooks, (function(callbacks, name) {
-      return $__4.removeHooks(name);
+      return $__5.removeHooks(name);
     }));
     hooks.length = 0;
   },
@@ -11520,16 +12311,17 @@ var BasePlugin = function BasePlugin(hotInstance) {
   },
   updatePlugin: function() {},
   destroy: function() {
-    var $__4 = this;
+    var $__5 = this;
     if (this.eventManager) {
       this.eventManager.destroy();
     }
     this.clearHooks();
     objectEach(this, (function(value, property) {
-      if (property !== 'hot') {
-        $__4[property] = null;
+      if (property !== 'hot' && property !== 't') {
+        $__5[property] = null;
       }
     }));
+    delete this.t;
     delete this.hot;
   }
 }, {});
@@ -11537,7 +12329,7 @@ var $__default = BasePlugin;
 Handsontable.plugins.BasePlugin = BasePlugin;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/object":52,"plugins":59}],61:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/array":42,"helpers/object":52,"plugins":60,"utils/recordTranslator":128}],62:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoColumnSize: {get: function() {
@@ -11600,9 +12392,8 @@ var $AutoColumnSize = AutoColumnSize;
       return;
     }
     var setting = this.hot.getSettings().autoColumnSize;
-    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
+    if (setting && setting.useHeaders != null) {
+      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
     this.addHook('afterLoadData', (function() {
       return $__11.onAfterLoadData();
@@ -11703,6 +12494,17 @@ var $AutoColumnSize = AutoColumnSize;
       loop();
     } else {
       this.inProgress = false;
+    }
+  },
+  setSamplingOptions: function() {
+    var setting = this.hot.getSettings().autoColumnSize;
+    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    var allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   },
   recalculateAllColumnsWidth: function() {
@@ -11819,7 +12621,7 @@ var $AutoColumnSize = AutoColumnSize;
 registerPlugin('autoColumnSize', AutoColumnSize);
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"_base":60,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":59,"utils/ghostTable":102,"utils/samplesGenerator":104}],62:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"_base":61,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":60,"utils/ghostTable":126,"utils/samplesGenerator":129}],63:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   AutoRowSize: {get: function() {
@@ -11861,7 +12663,13 @@ var AutoRowSize = function AutoRowSize(hotInstance) {
   this.heights = [];
   this.ghostTable = new GhostTable(this.hot);
   this.samplesGenerator = new SamplesGenerator((function(row, col) {
-    return $__10.hot.getDataAtCell(row, col);
+    if (row >= 0) {
+      return $__10.hot.getDataAtCell(row, col);
+    } else if (row === -1) {
+      return $__10.hot.getColHeader(col);
+    } else {
+      return null;
+    }
   }));
   this.firstCalculation = true;
   this.inProgress = false;
@@ -11879,11 +12687,7 @@ var $AutoRowSize = AutoRowSize;
     if (this.enabled) {
       return;
     }
-    var setting = this.hot.getSettings().autoRowSize;
-    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
-    }
+    this.setSamplingOptions();
     this.addHook('afterLoadData', (function() {
       return $__10.onAfterLoadData();
     }));
@@ -11907,6 +12711,9 @@ var $AutoRowSize = AutoRowSize;
     }));
     this.addHook('modifyRowHeight', (function(height, row) {
       return $__10.getRowHeight(row, height);
+    }));
+    this.addHook('modifyColumnHeaderHeight', (function() {
+      return $__10.getColumnHeaderHeight();
     }));
     $traceurRuntime.superGet(this, $AutoRowSize.prototype, "enablePlugin").call(this);
   },
@@ -11935,6 +12742,10 @@ var $AutoRowSize = AutoRowSize;
         from: colRange,
         to: colRange
       };
+    }
+    if (this.hot.getColHeader(0) !== null) {
+      var samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+      this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
     rangeEach(rowRange.from, rowRange.to, (function(row) {
       if (force || $__10.heights[row] === void 0) {
@@ -11997,6 +12808,17 @@ var $AutoRowSize = AutoRowSize;
       this.inProgress = false;
     }
   },
+  setSamplingOptions: function() {
+    var setting = this.hot.getSettings().autoRowSize;
+    var samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    var allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
+    }
+  },
   recalculateAllRowsHeight: function() {
     if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
       this.clearCache();
@@ -12024,6 +12846,9 @@ var $AutoRowSize = AutoRowSize;
     }
     return height;
   },
+  getColumnHeaderHeight: function() {
+    return this.heights[-1];
+  },
   getFirstVisibleRow: function() {
     var wot = this.hot.view.wt;
     if (wot.wtViewport.rowsVisibleCalculator) {
@@ -12046,6 +12871,7 @@ var $AutoRowSize = AutoRowSize;
   },
   clearCache: function() {
     this.heights.length = 0;
+    this.heights[-1] = void 0;
   },
   clearCacheByRange: function(range) {
     var $__10 = this;
@@ -12138,7 +12964,7 @@ var $AutoRowSize = AutoRowSize;
 registerPlugin('autoRowSize', AutoRowSize);
 
 //# 
-},{"_base":60,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":59,"utils/ghostTable":102,"utils/samplesGenerator":104}],63:[function(_dereq_,module,exports){
+},{"_base":61,"helpers/array":42,"helpers/dom/element":46,"helpers/feature":48,"helpers/number":51,"helpers/object":52,"helpers/string":54,"plugins":60,"utils/ghostTable":126,"utils/samplesGenerator":129}],64:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Autofill: {get: function() {
@@ -12146,277 +12972,386 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_browser__,
+var $___46__46__47__95_base__,
+    $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_plugins__,
-    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__;
+    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
+    $__utils__;
+var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    offset = $__1.offset,
-    outerHeight = $__1.outerHeight,
-    outerWidth = $__1.outerWidth;
+var arrayIncludes = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayIncludes;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    offset = $__3.offset,
+    outerHeight = $__3.outerHeight,
+    outerWidth = $__3.outerWidth;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
+var $__7 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+    getDeltas = $__7.getDeltas,
+    getDragDirectionAndRange = $__7.getDragDirectionAndRange,
+    DIRECTIONS = $__7.DIRECTIONS,
+    getMappedFillHandleSetting = $__7.getMappedFillHandleSetting;
+var INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
+var INTERVAL_FOR_ADDING_ROW = 200;
+var Autofill = function Autofill(hotInstance) {
+  $traceurRuntime.superConstructor($Autofill).call(this, hotInstance);
+  this.eventManager = eventManagerObject(this);
+  this.addingStarted = false;
+  this.mouseDownOnCellCorner = false;
+  this.mouseDragOutside = false;
+  this.handleDraggedCells = 0;
+  this.directions = [];
+  this.autoInsertRow = false;
+};
+var $Autofill = Autofill;
+($traceurRuntime.createClass)(Autofill, {
+  isEnabled: function() {
+    return this.hot.getSettings().fillHandle;
+  },
+  enablePlugin: function() {
+    var $__8 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.mapSettings();
+    this.registerEvents();
+    this.addHook('afterOnCellCornerMouseDown', (function(event) {
+      return $__8.onAfterCellCornerMouseDown(event);
+    }));
+    this.addHook('afterOnCellCornerDblClick', (function(event) {
+      return $__8.onCellCornerDblClick(event);
+    }));
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD) {
+      return $__8.onBeforeCellMouseOver(coords);
+    }));
+    $traceurRuntime.superGet(this, $Autofill.prototype, "enablePlugin").call(this);
+  },
+  updatePlugin: function() {
+    this.disablePlugin();
+    this.enablePlugin();
+    $traceurRuntime.superGet(this, $Autofill.prototype, "updatePlugin").call(this);
+  },
+  disablePlugin: function() {
+    this.clearMappedSettings();
+    $traceurRuntime.superGet(this, $Autofill.prototype, "disablePlugin").call(this);
+  },
+  getSelectionData: function() {
+    var selRange = {
+      from: this.hot.getSelectedRange().from,
+      to: this.hot.getSelectedRange().to
+    };
+    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+  },
+  fillIn: function() {
+    if (this.hot.view.wt.selections.fill.isEmpty()) {
+      return false;
+    }
+    var cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+    this.resetSelectionOfDraggedArea();
+    var cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    var $__10 = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas),
+        directionOfDrag = $__10.directionOfDrag,
+        startOfDragCoords = $__10.startOfDragCoords,
+        endOfDragCoords = $__10.endOfDragCoords;
+    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
+      var selectionData = this.getSelectionData();
+      var deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+      this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      this.hot.populateFromArray(startOfDragCoords.row, startOfDragCoords.col, selectionData, endOfDragCoords.row, endOfDragCoords.col, 'autofill', null, directionOfDrag, deltas);
+      this.setSelection(cornersOfSelectionAndDragAreas);
+    } else {
+      this.hot.selection.refreshBorders();
+    }
+    return true;
+  },
+  reduceSelectionAreaIfNeeded: function(coords) {
+    if (coords.row < 0) {
+      coords.row = 0;
+    }
+    if (coords.col < 0) {
+      coords.col = 0;
+    }
+    return coords;
+  },
+  getCoordsOfDragAndDropBorders: function(coordsOfSelection) {
+    var topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
+    var bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+    var coords;
+    if (arrayIncludes(this.directions, DIRECTIONS.vertical) && (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+      coords = new WalkontableCellCoords(coordsOfSelection.row, bottomRightCorner.col);
+    } else if (arrayIncludes(this.directions, DIRECTIONS.horizontal)) {
+      coords = new WalkontableCellCoords(bottomRightCorner.row, coordsOfSelection.col);
+    } else {
+      return;
+    }
+    return this.reduceSelectionAreaIfNeeded(coords);
+  },
+  showBorder: function(coordsOfSelection) {
+    var coordsOfDragAndDropBorders = this.getCoordsOfDragAndDropBorders(coordsOfSelection);
+    if (coordsOfDragAndDropBorders) {
+      this.redrawBorders(coordsOfDragAndDropBorders);
+    }
+  },
+  addRow: function() {
+    var $__8 = this;
+    this.hot._registerTimeout(setTimeout((function() {
+      $__8.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      $__8.addingStarted = false;
+    }), INTERVAL_FOR_ADDING_ROW));
+  },
+  addNewRowIfNeeded: function() {
+    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
+      var cornersOfSelectedCells = this.hot.getSelected();
+      var cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+      var nrOfTableRows = this.hot.countRows();
+      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
+        this.addingStarted = true;
+        this.addRow();
+      }
+    }
+  },
+  getCornersOfSelectedCells: function() {
+    if (this.hot.selection.isMultiple()) {
+      return this.hot.view.wt.selections.area.getCorners();
+    } else {
+      return this.hot.view.wt.selections.current.getCorners();
+    }
+  },
+  getIndexOfLastAdjacentFilledInRow: function(cornersOfSelectedCells) {
+    var data = this.hot.getData();
+    var nrOfTableRows = this.hot.countRows();
+    var lastFilledInRowIndex;
+    for (var rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
+      for (var columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
+        var dataInCell = data[rowIndex][columnIndex];
+        if (dataInCell) {
+          return -1;
+        }
+      }
+      var dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
+      var dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
+      if (!!dataInNextLeftCell || !!dataInNextRightCell) {
+        lastFilledInRowIndex = rowIndex;
+      }
+    }
+    return lastFilledInRowIndex;
+  },
+  addSelectionFromStartAreaToSpecificRowIndex: function(selectStartArea, rowIndex) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(selectStartArea[0], selectStartArea[1]));
+    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(rowIndex, selectStartArea[3]));
+  },
+  setSelection: function(cornersOfArea) {
+    this.hot.selection.setRangeStart(new WalkontableCellCoords(cornersOfArea[0], cornersOfArea[1]));
+    this.hot.selection.setRangeEnd(new WalkontableCellCoords(cornersOfArea[2], cornersOfArea[3]));
+  },
+  selectAdjacent: function() {
+    var cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    var lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
+    if (lastFilledInRowIndex === -1) {
+      return false;
+    } else {
+      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+      return true;
+    }
+  },
+  resetSelectionOfDraggedArea: function() {
+    this.handleDraggedCells = 0;
+    this.hot.view.wt.selections.fill.clear();
+  },
+  redrawBorders: function(coords) {
+    this.hot.view.wt.selections.fill.clear();
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
+    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
+    this.hot.view.wt.selections.fill.add(coords);
+    this.hot.view.render();
+  },
+  getIfMouseWasDraggedOutside: function(event) {
+    var tableBottom = offset(this.hot.table).top - (window.pageYOffset || document.documentElement.scrollTop) + outerHeight(this.hot.table);
+    var tableRight = offset(this.hot.table).left - (window.pageXOffset || document.documentElement.scrollLeft) + outerWidth(this.hot.table);
+    return event.clientY > tableBottom && event.clientX <= tableRight;
+  },
+  registerEvents: function() {
+    var $__8 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__8.onMouseUp();
+    }));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__8.onMouseMove(event);
+    }));
+  },
+  onCellCornerDblClick: function() {
+    var selectionApplied = this.selectAdjacent();
+    if (selectionApplied) {
+      this.fillIn();
+    }
+  },
+  onAfterCellCornerMouseDown: function() {
+    this.handleDraggedCells = 1;
+    this.mouseDownOnCellCorner = true;
+  },
+  onBeforeCellMouseOver: function(coords) {
+    if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
+      this.handleDraggedCells++;
+      this.showBorder(coords);
+      this.addNewRowIfNeeded();
+    }
+  },
+  onMouseUp: function() {
+    if (this.handleDraggedCells) {
+      if (this.handleDraggedCells > 1) {
+        this.fillIn();
+      }
+      this.handleDraggedCells = 0;
+      this.mouseDownOnCellCorner = false;
+    }
+  },
+  onMouseMove: function(event) {
+    var mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
+    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
+      this.mouseDragOutside = true;
+      this.addingStarted = true;
+    } else {
+      this.mouseDragOutside = false;
+    }
+    if (this.mouseDragOutside && this.autoInsertRow) {
+      this.addRow();
+    }
+  },
+  clearMappedSettings: function() {
+    this.directions.length = 0;
+    this.autoInsertRow = false;
+  },
+  mapSettings: function() {
+    var mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+    this.directions = mappedSettings.directions;
+    this.autoInsertRow = mappedSettings.autoInsertRow;
+  },
+  destroy: function() {
+    $traceurRuntime.superGet(this, $Autofill.prototype, "destroy").call(this);
+  }
+}, {}, BasePlugin);
 ;
+registerPlugin('autofill', Autofill);
+Handsontable.hooks.register('modifyAutofillRange');
+Handsontable.hooks.register('beforeAutofill');
+
+//# 
+},{"3rdparty/walkontable/src/cell/coords":5,"_base":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":60,"utils":65}],65:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  DIRECTIONS: {get: function() {
+      return DIRECTIONS;
+    }},
+  getDeltas: {get: function() {
+      return getDeltas;
+    }},
+  getDragDirectionAndRange: {get: function() {
+      return getDragDirectionAndRange;
+    }},
+  getMappedFillHandleSetting: {get: function() {
+      return getMappedFillHandleSetting;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_mixed__;
+var isObject = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).isObject;
+var isDefined = ($___46__46__47__46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47__46__46__47_helpers_47_mixed__ && $___46__46__47__46__46__47_helpers_47_mixed__.__esModule && $___46__46__47__46__46__47_helpers_47_mixed__ || {default: $___46__46__47__46__46__47_helpers_47_mixed__}).isDefined;
+var DIRECTIONS = {
+  horizontal: 'horizontal',
+  vertical: 'vertical'
+};
 function getDeltas(start, end, data, direction) {
-  var rlength = data.length,
-      clength = data ? data[0].length : 0,
-      deltas = [],
-      arr = [],
-      diffRow,
-      diffCol,
-      startValue,
-      endValue,
-      delta;
-  diffRow = end.row - start.row;
-  diffCol = end.col - start.col;
+  var rowsLength = data.length;
+  var columnsLength = data ? data[0].length : 0;
+  var deltas = [];
+  var diffRow = end.row - start.row;
+  var diffCol = end.col - start.col;
   if (['down', 'up'].indexOf(direction) !== -1) {
+    var arr = [];
     for (var col = 0; col <= diffCol; col++) {
-      startValue = parseInt(data[0][col], 10);
-      endValue = parseInt(data[rlength - 1][col], 10);
-      delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rlength - 1) || 0;
+      var startValue = parseInt(data[0][col], 10);
+      var endValue = parseInt(data[rowsLength - 1][col], 10);
+      var delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
       arr.push(delta);
     }
     deltas.push(arr);
   }
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (var row = 0; row <= diffRow; row++) {
-      startValue = parseInt(data[row][0], 10);
-      endValue = parseInt(data[row][clength - 1], 10);
-      delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (clength - 1) || 0;
-      arr = [];
-      arr.push(delta);
-      deltas.push(arr);
+      var startValue$__2 = parseInt(data[row][0], 10);
+      var endValue$__3 = parseInt(data[row][columnsLength - 1], 10);
+      var delta$__4 = (direction === 'right' ? (endValue$__3 - startValue$__2) : (startValue$__2 - endValue$__3)) / (columnsLength - 1) || 0;
+      deltas.push([delta$__4]);
     }
   }
   return deltas;
 }
-function Autofill(instance) {
-  var _this = this,
-      mouseDownOnCellCorner = false,
-      wtOnCellCornerMouseDown,
-      wtOnCellMouseOver,
-      eventManager;
-  this.instance = instance;
-  this.addingStarted = false;
-  eventManager = eventManagerObject(instance);
-  function mouseUpCallback(event) {
-    if (!instance.autofill) {
-      return true;
-    }
-    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
-      if (instance.autofill.handle.isDragged > 1) {
-        instance.autofill.apply();
-      }
-      instance.autofill.handle.isDragged = 0;
-      mouseDownOnCellCorner = false;
-    }
+function getDragDirectionAndRange(startSelection, endSelection) {
+  var startOfDragCoords,
+      endOfDragCoords,
+      directionOfDrag;
+  if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
+    directionOfDrag = 'left';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], startSelection[1] - 1);
+  } else if (endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
+    directionOfDrag = 'right';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], startSelection[3] + 1);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
+  } else if (endSelection[0] < startSelection[0] && endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'up';
+    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(startSelection[0] - 1, endSelection[3]);
+  } else if (endSelection[2] > startSelection[2] && endSelection[1] === startSelection[1]) {
+    directionOfDrag = 'down';
+    startOfDragCoords = new WalkontableCellCoords(startSelection[2] + 1, endSelection[1]);
+    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
   }
-  function mouseMoveCallback(event) {
-    var tableBottom,
-        tableRight;
-    if (!_this.instance.autofill) {
-      return false;
-    }
-    tableBottom = offset(_this.instance.table).top - (window.pageYOffset || document.documentElement.scrollTop) + outerHeight(_this.instance.table);
-    tableRight = offset(_this.instance.table).left - (window.pageXOffset || document.documentElement.scrollLeft) + outerWidth(_this.instance.table);
-    if (_this.addingStarted === false && _this.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom && event.clientX <= tableRight) {
-      _this.instance.mouseDragOutside = true;
-      _this.addingStarted = true;
+  return {
+    directionOfDrag: directionOfDrag,
+    startOfDragCoords: startOfDragCoords,
+    endOfDragCoords: endOfDragCoords
+  };
+}
+function getMappedFillHandleSetting(fillHandle) {
+  var mappedSettings = {};
+  if (fillHandle === true) {
+    mappedSettings.directions = Object.keys(DIRECTIONS);
+    mappedSettings.autoInsertRow = true;
+  } else if (isObject(fillHandle)) {
+    if (isDefined(fillHandle.autoInsertRow)) {
+      if (fillHandle.direction === DIRECTIONS.horizontal) {
+        mappedSettings.autoInsertRow = false;
+      } else {
+        mappedSettings.autoInsertRow = fillHandle.autoInsertRow;
+      }
     } else {
-      _this.instance.mouseDragOutside = false;
+      mappedSettings.autoInsertRow = false;
     }
-    if (_this.instance.mouseDragOutside && settings('autoInsertRow')) {
-      setTimeout(function() {
-        _this.addingStarted = false;
-        _this.instance.alter('insert_row');
-      }, 200);
+    if (isDefined(fillHandle.direction)) {
+      mappedSettings.directions = [fillHandle.direction];
+    } else {
+      mappedSettings.directions = Object.keys(DIRECTIONS);
     }
+  } else if (typeof fillHandle === 'string') {
+    mappedSettings.directions = [fillHandle];
+    mappedSettings.autoInsertRow = true;
+  } else {
+    mappedSettings.directions = [];
+    mappedSettings.autoInsertRow = false;
   }
-  eventManager.addEventListener(document, 'mouseup', mouseUpCallback);
-  eventManager.addEventListener(document, 'mousemove', mouseMoveCallback);
-  wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
-  this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
-    instance.autofill.handle.isDragged = 1;
-    mouseDownOnCellCorner = true;
-    wtOnCellCornerMouseDown(event);
-  };
-  wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
-  this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
-    if (instance.autofill && mouseDownOnCellCorner && !instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged) {
-      instance.autofill.handle.isDragged++;
-      instance.autofill.showBorder(coords);
-      instance.autofill.checkIfNewRowNeeded();
-    }
-    wtOnCellMouseOver(event, coords, TD, wt);
-  };
-  this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function() {
-    instance.autofill.selectAdjacent();
-  };
+  return mappedSettings;
 }
-Autofill.prototype.init = function() {
-  this.handle = {};
-};
-Autofill.prototype.disable = function() {
-  this.handle.disabled = true;
-};
-Autofill.prototype.selectAdjacent = function() {
-  var select,
-      data,
-      r,
-      maxR,
-      c;
-  if (this.instance.selection.isMultiple()) {
-    select = this.instance.view.wt.selections.area.getCorners();
-  } else {
-    select = this.instance.view.wt.selections.current.getCorners();
-  }
-  data = this.instance.getData();
-  rows: for (r = select[2] + 1; r < this.instance.countRows(); r++) {
-    for (c = select[1]; c <= select[3]; c++) {
-      if (data[r][c]) {
-        break rows;
-      }
-    }
-    if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-      maxR = r;
-    }
-  }
-  if (maxR) {
-    this.instance.view.wt.selections.fill.clear();
-    this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(select[0], select[1]));
-    this.instance.view.wt.selections.fill.add(new WalkontableCellCoords(maxR, select[3]));
-    this.apply();
-  }
-};
-Autofill.prototype.apply = function() {
-  var drag,
-      select,
-      start,
-      end,
-      _data,
-      direction,
-      deltas,
-      selRange;
-  this.handle.isDragged = 0;
-  if (this.instance.view.wt.selections.fill.isEmpty()) {
-    return;
-  }
-  drag = this.instance.view.wt.selections.fill.getCorners();
-  this.instance.view.wt.selections.fill.clear();
-  if (this.instance.selection.isMultiple()) {
-    select = this.instance.view.wt.selections.area.getCorners();
-  } else {
-    select = this.instance.view.wt.selections.current.getCorners();
-  }
-  Handsontable.hooks.run(this.instance, 'afterAutofillApplyValues', select, drag);
-  if (drag[0] === select[0] && drag[1] < select[1]) {
-    direction = 'left';
-    start = new WalkontableCellCoords(drag[0], drag[1]);
-    end = new WalkontableCellCoords(drag[2], select[1] - 1);
-  } else if (drag[0] === select[0] && drag[3] > select[3]) {
-    direction = 'right';
-    start = new WalkontableCellCoords(drag[0], select[3] + 1);
-    end = new WalkontableCellCoords(drag[2], drag[3]);
-  } else if (drag[0] < select[0] && drag[1] === select[1]) {
-    direction = 'up';
-    start = new WalkontableCellCoords(drag[0], drag[1]);
-    end = new WalkontableCellCoords(select[0] - 1, drag[3]);
-  } else if (drag[2] > select[2] && drag[1] === select[1]) {
-    direction = 'down';
-    start = new WalkontableCellCoords(select[2] + 1, drag[1]);
-    end = new WalkontableCellCoords(drag[2], drag[3]);
-  }
-  if (start && start.row > -1 && start.col > -1) {
-    selRange = {
-      from: this.instance.getSelectedRange().from,
-      to: this.instance.getSelectedRange().to
-    };
-    _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    deltas = getDeltas(start, end, _data, direction);
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
-    this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-    this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
-  } else {
-    this.instance.selection.refreshBorders();
-  }
-};
-Autofill.prototype.showBorder = function(coords) {
-  var topLeft = this.instance.getSelectedRange().getTopLeftCorner(),
-      bottomRight = this.instance.getSelectedRange().getBottomRightCorner();
-  if (settings('direction') !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-    coords = new WalkontableCellCoords(coords.row, bottomRight.col);
-  } else if (settings('direction') !== 'vertical') {
-    coords = new WalkontableCellCoords(bottomRight.row, coords.col);
-  } else {
-    return;
-  }
-  this.instance.view.wt.selections.fill.clear();
-  this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().from);
-  this.instance.view.wt.selections.fill.add(this.instance.getSelectedRange().to);
-  this.instance.view.wt.selections.fill.add(coords);
-  this.instance.view.render();
-};
-Autofill.prototype.checkIfNewRowNeeded = function() {
-  var fillCorners,
-      selection,
-      tableRows = this.instance.countRows(),
-      that = this;
-  if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false && settings('autoInsertRow')) {
-    selection = this.instance.getSelected();
-    fillCorners = this.instance.view.wt.selections.fill.getCorners();
-    if (selection[2] < tableRows - 1 && fillCorners[2] === tableRows - 1) {
-      this.addingStarted = true;
-      this.instance._registerTimeout(setTimeout(function() {
-        that.instance.alter('insert_row');
-        that.addingStarted = false;
-      }, 200));
-    }
-  }
-};
-Handsontable.hooks.add('afterInit', function() {
-  var autofill = new Autofill(this);
-  settings = settingsFactory(this.getSettings().fillHandle);
-  if (settings('fillHandle') !== void 0) {
-    if (autofill.handle && settings('fillHandle') === false) {
-      autofill.disable();
-    } else if (!autofill.handle && settings('fillHandle') !== false) {
-      this.autofill = autofill;
-      this.autofill.init();
-    }
-  }
-});
-var settings;
-function settingsFactory(settings) {
-  return function(key) {
-    var result;
-    if (key === 'direction') {
-      if (typeof settings === 'string') {
-        result = settings;
-      } else if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-      } else {
-        result = true;
-      }
-    } else if (key === 'autoInsertRow') {
-      if (typeof settings === 'object' && settings[key] !== void 0) {
-        result = settings[key];
-      } else {
-        result = true;
-      }
-    } else if (key === 'fillHandle') {
-      result = settings ? true : false;
-    }
-    return result;
-  };
-}
-Handsontable.Autofill = Autofill;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"browser":23,"eventManager":41,"helpers/dom/element":46,"plugins":59}],64:[function(_dereq_,module,exports){
+},{"helpers/mixed":50,"helpers/object":52}],66:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ColumnSorting: {get: function() {
@@ -12425,22 +13360,24 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47_browser__,
+    $__moment__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__95_base__,
     $___46__46__47__46__46__47_plugins__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__1.addClass,
-    closest = $__1.closest,
-    hasClass = $__1.hasClass,
-    index = $__1.index,
-    removeClass = $__1.removeClass;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__2.arrayEach,
-    arrayMap = $__2.arrayMap,
-    arrayReduce = $__2.arrayReduce;
+var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
+var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__2.addClass,
+    closest = $__2.closest,
+    hasClass = $__2.hasClass,
+    index = $__2.index,
+    removeClass = $__2.removeClass;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
+    arrayEach = $__3.arrayEach,
+    arrayMap = $__3.arrayMap,
+    arrayReduce = $__3.arrayReduce;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
@@ -12457,7 +13394,7 @@ var $ColumnSorting = ColumnSorting;
     return !!(this.hot.getSettings().columnSorting);
   },
   enablePlugin: function() {
-    var $__6 = this;
+    var $__7 = this;
     if (this.enabled) {
       return;
     }
@@ -12470,21 +13407,26 @@ var $ColumnSorting = ColumnSorting;
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
       this.enableObserveChangesPlugin();
     }
-    this.bindColumnSortingAfterClick();
     this.addHook('afterTrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('afterUntrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('modifyRow', (function(row) {
-      return $__6.translateRow(row);
+      return $__7.translateRow(row);
+    }));
+    this.addHook('unmodifyRow', (function(row) {
+      return $__7.untranslateRow(row);
     }));
     this.addHook('afterUpdateSettings', (function() {
-      return $__6.onAfterUpdateSettings();
+      return $__7.onAfterUpdateSettings();
     }));
     this.addHook('afterGetColHeader', (function(col, TH) {
-      return $__6.getColHeader(col, TH);
+      return $__7.getColHeader(col, TH);
+    }));
+    this.addHook('afterOnCellMouseDown', (function(event, target) {
+      return $__7.onAfterOnCellMouseDown(event, target);
     }));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow.apply(_this, arguments);
@@ -12493,12 +13435,12 @@ var $ColumnSorting = ColumnSorting;
       _this.afterRemoveRow.apply(_this, arguments);
     });
     this.addHook('afterInit', (function() {
-      return $__6.sortBySettings();
+      return $__7.sortBySettings();
     }));
     this.addHook('afterLoadData', (function() {
-      $__6.hot.sortIndex = [];
-      if ($__6.hot.view) {
-        $__6.sortBySettings();
+      $__7.hot.sortIndex = [];
+      if ($__7.hot.view) {
+        $__7.sortBySettings();
       }
     }));
     if (this.hot.view) {
@@ -12557,9 +13499,9 @@ var $ColumnSorting = ColumnSorting;
     }
     this.updateOrderClass();
     this.updateSortIndicator();
+    Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
     this.hot.render();
     this.saveSortingState();
-    Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
   },
   saveSortingState: function() {
     var sortingState = {};
@@ -12587,44 +13529,13 @@ var $ColumnSorting = ColumnSorting;
     }
     this.sortOrderClass = orderClass;
   },
-  bindColumnSortingAfterClick: function() {
-    var $__6 = this;
-    if (this.bindedSortEvent) {
-      return;
-    }
-    var eventManager = eventManagerObject(this.hot),
-        _this = this;
-    this.bindedSortEvent = true;
-    eventManager.addEventListener(this.hot.rootElement, 'click', (function(e) {
-      if (hasClass(e.target, 'columnSorting')) {
-        var col = getColumn(e.target);
-        if (col !== $__6.lastSortedColumn) {
-          $__6.hot.sortOrder = true;
-        }
-        $__6.lastSortedColumn = col;
-        $__6.sortByColumn(col);
-      }
-    }));
-    function countRowHeaders() {
-      var tr = _this.hot.view.TBODY.querySelector('tr');
-      var length = 1;
-      if (tr) {
-        length = tr.querySelectorAll('th').length;
-      }
-      return length;
-    }
-    function getColumn(target) {
-      var TH = closest(target, 'TH');
-      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
-    }
-  },
   enableObserveChangesPlugin: function() {
     var _this = this;
     this.hot._registerTimeout(setTimeout(function() {
       _this.hot.updateSettings({observeChanges: true});
     }, 0));
   },
-  defaultSort: function(sortOrder) {
+  defaultSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -12645,6 +13556,9 @@ var $ColumnSorting = ColumnSorting;
         return sortOrder ? 1 : -1;
       } else if (!isNaN(a[1]) && isNaN(b[1])) {
         return sortOrder ? -1 : 1;
+      } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
+        a[1] = parseFloat(a[1]);
+        b[1] = parseFloat(b[1]);
       }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
@@ -12655,7 +13569,7 @@ var $ColumnSorting = ColumnSorting;
       return 0;
     };
   },
-  dateSort: function(sortOrder) {
+  dateSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -12666,18 +13580,24 @@ var $ColumnSorting = ColumnSorting;
       if (b[1] === null || b[1] === '') {
         return -1;
       }
-      var aDate = new Date(a[1]);
-      var bDate = new Date(b[1]);
-      if (aDate < bDate) {
+      var aDate = moment(a[1], columnMeta.dateFormat);
+      var bDate = moment(b[1], columnMeta.dateFormat);
+      if (!aDate.isValid()) {
+        return 1;
+      }
+      if (!bDate.isValid()) {
+        return -1;
+      }
+      if (bDate.isAfter(aDate)) {
         return sortOrder ? -1 : 1;
       }
-      if (aDate > bDate) {
+      if (bDate.isBefore(aDate)) {
         return sortOrder ? 1 : -1;
       }
       return 0;
     };
   },
-  numericSort: function(sortOrder) {
+  numericSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       var parsedA = parseFloat(a[1]);
       var parsedB = parseFloat(b[1]);
@@ -12707,8 +13627,15 @@ var $ColumnSorting = ColumnSorting;
         sortFunction;
     this.hot.sortingEnabled = false;
     this.hot.sortIndex.length = 0;
+    var nrOfRows;
+    var emptyRows = this.hot.countEmptyRows();
+    if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
+      nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
+    } else {
+      nrOfRows = this.hot.countRows() - emptyRows;
+    }
     for (var i = 0,
-        ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
+        ilen = nrOfRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
     colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
@@ -12726,9 +13653,9 @@ var $ColumnSorting = ColumnSorting;
           sortFunction = this.defaultSort;
       }
     }
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
-    for (var i$__8 = this.hot.sortIndex.length; i$__8 < this.hot.countRows(); i$__8++) {
-      this.hot.sortIndex.push([i$__8, this.hot.getDataAtCell(i$__8, this.hot.sortColumn)]);
+    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
+    for (var i$__9 = this.hot.sortIndex.length; i$__9 < this.hot.countRows(); i$__9++) {
+      this.hot.sortIndex.push([i$__9, this.hot.getDataAtCell(i$__9, this.hot.sortColumn)]);
     }
     this.hot.sortingEnabled = true;
   },
@@ -12755,6 +13682,9 @@ var $ColumnSorting = ColumnSorting;
     }
   },
   getColHeader: function(col, TH) {
+    if (col < 0 || !TH.parentNode) {
+      return false;
+    }
     var headerLink = TH.querySelector('.colHeader');
     var colspan = TH.getAttribute('colspan');
     var TRs = TH.parentNode.parentNode.childNodes;
@@ -12819,13 +13749,25 @@ var $ColumnSorting = ColumnSorting;
       return logicalRow;
     }));
     this.saveSortingState();
+  },
+  onAfterOnCellMouseDown: function(event, coords) {
+    if (coords.row > -1) {
+      return;
+    }
+    if (hasClass(event.realTarget, 'columnSorting')) {
+      if (coords.col !== this.lastSortedColumn) {
+        this.hot.sortOrder = true;
+      }
+      this.lastSortedColumn = coords.col;
+      this.sortByColumn(coords.col);
+    }
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('columnSorting', ColumnSorting);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":59}],65:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"moment":undefined,"plugins":60}],67:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommentEditor: {get: function() {
@@ -12838,8 +13780,7 @@ var addClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_
 var CommentEditor = function CommentEditor() {
   this.editor = this.createEditor();
   this.editorStyle = this.editor.style;
-  this.editorStyle.position = 'absolute';
-  this.editorStyle.zIndex = 100;
+  this.hidden = true;
   this.hide();
 };
 var $CommentEditor = CommentEditor;
@@ -12848,11 +13789,29 @@ var $CommentEditor = CommentEditor;
     this.editorStyle.left = x + 'px';
     this.editorStyle.top = y + 'px';
   },
+  setSize: function(width, height) {
+    if (width && height) {
+      var input = this.getInputElement();
+      input.style.width = width + 'px';
+      input.style.height = height + 'px';
+    }
+  },
+  resetSize: function() {
+    var input = this.getInputElement();
+    input.style.width = '';
+    input.style.height = '';
+  },
+  setReadOnlyState: function(state) {
+    var input = this.getInputElement();
+    input.readOnly = state;
+  },
   show: function() {
     this.editorStyle.display = 'block';
+    this.hidden = false;
   },
   hide: function() {
     this.editorStyle.display = 'none';
+    this.hidden = true;
   },
   isVisible: function() {
     return this.editorStyle.display === 'block';
@@ -12913,8 +13872,9 @@ var $CommentEditor = CommentEditor;
 ;
 
 //# 
-},{"helpers/dom/element":46}],66:[function(_dereq_,module,exports){
+},{"helpers/dom/element":46}],68:[function(_dereq_,module,exports){
 "use strict";
+var $__13;
 Object.defineProperties(exports, {
   Comments: {get: function() {
       return Comments;
@@ -12923,26 +13883,41 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $___46__46__47__46__46__47_plugins__,
     $___46__46__47__95_base__,
-    $__commentEditor__;
+    $__commentEditor__,
+    $___46__46__47_contextMenu_47_utils__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
 var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__1.addClass,
     closest = $__1.closest,
-    getWindowScrollLeft = $__1.getWindowScrollLeft,
-    getWindowScrollTop = $__1.getWindowScrollTop,
+    isChildOf = $__1.isChildOf,
     hasClass = $__1.hasClass,
-    offset = $__1.offset;
+    offset = $__1.offset,
+    outerWidth = $__1.outerWidth,
+    outerHeight = $__1.outerHeight,
+    getScrollableElement = $__1.getScrollableElement;
+var $__2 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
+    deepClone = $__2.deepClone,
+    deepExtend = $__2.deepExtend;
+var debounce = ($___46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47_helpers_47_function__}).debounce;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
-var $__4 = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}),
-    registerPlugin = $__4.registerPlugin,
-    getPlugin = $__4.getPlugin;
+var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var CommentEditor = ($__commentEditor__ = _dereq_("commentEditor"), $__commentEditor__ && $__commentEditor__.__esModule && $__commentEditor__ || {default: $__commentEditor__}).CommentEditor;
+var $__9 = ($___46__46__47_contextMenu_47_utils__ = _dereq_("contextMenu/utils"), $___46__46__47_contextMenu_47_utils__ && $___46__46__47_contextMenu_47_utils__.__esModule && $___46__46__47_contextMenu_47_utils__ || {default: $___46__46__47_contextMenu_47_utils__}),
+    checkSelectionConsistency = $__9.checkSelectionConsistency,
+    markLabelAsSelected = $__9.markLabelAsSelected;
+var privatePool = new WeakMap();
+var META_COMMENT = 'comment';
+var META_COMMENT_VALUE = 'value';
+var META_STYLE = 'style';
+var META_READONLY = 'readOnly';
 var Comments = function Comments(hotInstance) {
   $traceurRuntime.superConstructor($Comments).call(this, hotInstance);
   this.editor = null;
@@ -12951,14 +13926,23 @@ var Comments = function Comments(hotInstance) {
   this.mouseDown = false;
   this.contextMenuEvent = false;
   this.timer = null;
+  this.displayDelay = 250;
+  privatePool.set(this, {
+    tempEditorDimensions: {},
+    cellBelowCursor: null
+  });
 };
 var $Comments = Comments;
-($traceurRuntime.createClass)(Comments, {
-  isEnabled: function() {
-    return this.hot.getSettings().comments;
+($traceurRuntime.createClass)(Comments, ($__13 = {}, Object.defineProperty($__13, "isEnabled", {
+  value: function() {
+    return !!this.hot.getSettings().comments;
   },
-  enablePlugin: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "enablePlugin", {
+  value: function() {
+    var $__10 = this;
     if (this.enabled) {
       return;
     }
@@ -12969,248 +13953,493 @@ var $Comments = Comments;
       this.eventManager = new EventManager(this);
     }
     this.addHook('afterContextMenuDefaultOptions', (function(options) {
-      return $__7.addToContextMenu(options);
+      return $__10.addToContextMenu(options);
     }));
     this.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
-      return $__7.onAfterRenderer(TD, cellProperties);
+      return $__10.onAfterRenderer(TD, cellProperties);
     }));
     this.addHook('afterScrollHorizontally', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
     this.addHook('afterScrollVertically', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
-    this.addHook('afterColumnResize', (function() {
-      return $__7.refreshEditorPosition();
-    }));
-    this.addHook('afterRowResize', (function() {
-      return $__7.refreshEditorPosition();
+    this.addHook('afterBeginEditing', (function(args) {
+      return $__10.onAfterBeginEditing(args);
     }));
     this.registerListeners();
     $traceurRuntime.superGet(this, $Comments.prototype, "enablePlugin").call(this);
   },
-  disablePlugin: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "disablePlugin", {
+  value: function() {
     $traceurRuntime.superGet(this, $Comments.prototype, "disablePlugin").call(this);
   },
-  registerListeners: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "registerListeners", {
+  value: function() {
+    var $__10 = this;
     this.eventManager.addEventListener(document, 'mouseover', (function(event) {
-      return $__7.onMouseOver(event);
+      return $__10.onMouseOver(event);
     }));
     this.eventManager.addEventListener(document, 'mousedown', (function(event) {
-      return $__7.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(document, 'mousemove', (function(event) {
-      return $__7.onMouseMove(event);
+      return $__10.onMouseDown(event);
     }));
     this.eventManager.addEventListener(document, 'mouseup', (function(event) {
-      return $__7.onMouseUp(event);
+      return $__10.onMouseUp(event);
     }));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (function(event) {
-      return $__7.onEditorBlur(event);
+      return $__10.onEditorBlur(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (function(event) {
+      return $__10.onEditorMouseDown(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (function(event) {
+      return $__10.onEditorMouseUp(event);
     }));
   },
-  setRange: function(range) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setRange", {
+  value: function(range) {
     this.range = range;
   },
-  clearRange: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "clearRange", {
+  value: function() {
     this.range = {};
   },
-  targetIsCellWithComment: function(event) {
-    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCellWithComment", {
+  value: function(event) {
+    var closestCell = closest(event.target, 'TD', 'TBODY');
+    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
   },
-  targetIsCommentTextArea: function(event) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCommentTextArea", {
+  value: function(event) {
     return this.editor.getInputElement() === event.target;
   },
-  saveComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setComment", {
+  value: function(value) {
+    var $__13;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    var comment = this.editor.getValue();
+    var editorValue = this.editor.getValue();
+    var comment = '';
+    if (value != null) {
+      comment = value;
+    } else if (editorValue != null) {
+      comment = editorValue;
+    }
     var row = this.range.from.row;
     var col = this.range.from.col;
-    this.hot.setCellMeta(row, col, 'comment', comment);
+    this.updateCommentMeta(row, col, ($__13 = {}, Object.defineProperty($__13, META_COMMENT_VALUE, {
+      value: comment,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__13));
     this.hot.render();
   },
-  saveCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setCommentAtCell", {
+  value: function(row, col, value) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.saveComment();
+    this.setComment(value);
   },
-  removeComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeComment", {
+  value: function() {
+    var forceRender = arguments[0] !== (void 0) ? arguments[0] : true;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, 'comment');
-    this.hot.render();
+    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT, void 0);
+    if (forceRender) {
+      this.hot.render();
+    }
     this.hide();
   },
-  removeCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeCommentAtCell", {
+  value: function(row, col) {
+    var forceRender = arguments[2] !== (void 0) ? arguments[2] : true;
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.removeComment();
+    this.removeComment(forceRender);
   },
-  show: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getComment", {
+  value: function() {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentAtCell", {
+  value: function(row, column) {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "show", {
+  value: function() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     var meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
-    this.refreshEditorPosition(true);
-    this.editor.setValue(meta.comment || '');
-    this.editor.show();
+    this.refreshEditor(true);
+    this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
+    if (this.editor.hidden) {
+      this.editor.show();
+    }
     return true;
   },
-  showAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "showAtCell", {
+  value: function(row, col) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
     return this.show();
   },
-  hide: function() {
-    this.editor.hide();
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "hide", {
+  value: function() {
+    if (!this.editor.hidden) {
+      this.editor.hide();
+    }
   },
-  refreshEditorPosition: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "refreshEditor", {
+  value: function() {
     var force = arguments[0] !== (void 0) ? arguments[0] : false;
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
+    var scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
     var TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    var row = this.range.from.row;
+    var column = this.range.from.col;
     var cellOffset = offset(TD);
-    var lastColWidth = this.hot.getColWidth(this.range.from.col);
-    var cellTopOffset = cellOffset.top;
+    var lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    var cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     var cellLeftOffset = cellOffset.left;
-    var verticalCompensation = 0;
-    var horizontalCompensation = 0;
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
-      verticalCompensation = 20;
     }
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-      horizontalCompensation = 20;
     }
     var x = cellLeftOffset + lastColWidth;
     var y = cellTopOffset;
-    var rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
-    var holderPos = {
-      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + getWindowScrollLeft() - 15,
-      top: rect.top + getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + getWindowScrollTop()
-    };
-    if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
-      this.hide();
+    var commentStyle = this.getCommentMeta(row, column, META_STYLE);
+    var readOnly = this.getCommentMeta(row, column, META_READONLY);
+    if (commentStyle) {
+      this.editor.setSize(commentStyle.width, commentStyle.height);
     } else {
-      this.editor.setPosition(x, y);
+      this.editor.resetSize();
     }
+    this.editor.setReadOnlyState(readOnly);
+    this.editor.setPosition(x, y);
   },
-  onMouseDown: function(event) {
-    this.mouseDown = true;
-    if (!this.hot.view || !this.hot.view.wt) {
-      return;
-    }
-    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event) && !this.targetIsCellWithComment(event)) {
-      this.hide();
-    }
-    this.contextMenuEvent = false;
-  },
-  onMouseOver: function(event) {
-    if (this.mouseDown || this.editor.isFocused()) {
-      return;
-    }
-    if (this.targetIsCellWithComment(event)) {
-      var coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-      var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
-      this.setRange(range);
-      this.show();
-    } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-      this.hide();
-    }
-  },
-  onMouseMove: function(event) {
-    var $__7 = this;
-    if (this.targetIsCommentTextArea(event)) {
-      this.mouseDown = true;
-      clearTimeout(this.timer);
-      this.timer = setTimeout((function() {
-        $__7.mouseDown = false;
-      }), 200);
-    }
-  },
-  onMouseUp: function(event) {
-    this.mouseDown = false;
-  },
-  onAfterRenderer: function(TD, cellProperties) {
-    if (cellProperties.comment) {
-      addClass(TD, cellProperties.commentedCellClassName);
-    }
-  },
-  onEditorBlur: function(event) {
-    this.saveComment();
-  },
-  checkSelectionCommentsConsistency: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "checkSelectionCommentsConsistency", {
+  value: function() {
     var selected = this.hot.getSelectedRange();
     if (!selected) {
       return false;
     }
     var hasComment = false;
     var cell = selected.from;
-    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
+    if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
     }
     return hasComment;
   },
-  onContextMenuAddComment: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "updateCommentMeta", {
+  value: function(row, column, metaObject) {
+    var oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    var newComment;
+    if (oldComment) {
+      newComment = deepClone(oldComment);
+      deepExtend(newComment, metaObject);
+    } else {
+      newComment = metaObject;
+    }
+    this.hot.setCellMeta(row, column, META_COMMENT, newComment);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentMeta", {
+  value: function(row, column, property) {
+    var cellMeta = this.hot.getCellMeta(row, column);
+    if (!cellMeta[META_COMMENT]) {
+      return void 0;
+    }
+    return cellMeta[META_COMMENT][property];
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseDown", {
+  value: function(event) {
+    this.mouseDown = true;
+    if (!this.hot.view || !this.hot.view.wt) {
+      return;
+    }
+    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
+      var eventCell = closest(event.target, 'TD', 'TBODY');
+      var coordinates = null;
+      if (eventCell) {
+        coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+      }
+      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+        this.hide();
+      }
+    }
+    this.contextMenuEvent = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseOver", {
+  value: function(event) {
+    var $__10 = this;
+    if (this.mouseDown || this.editor.isFocused()) {
+      return;
+    }
+    var priv = privatePool.get(this);
+    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
+    debounce((function() {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !$__10.editor) {
+        return;
+      }
+      if ($__10.targetIsCellWithComment(event)) {
+        var coordinates = $__10.hot.view.wt.wtTable.getCoords(event.target);
+        var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
+        $__10.setRange(range);
+        $__10.show();
+      } else if (isChildOf(event.target, document) && !$__10.targetIsCommentTextArea(event) && !$__10.editor.isFocused()) {
+        $__10.hide();
+      }
+    }), this.displayDelay)();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseUp", {
+  value: function(event) {
+    this.mouseDown = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterRenderer", {
+  value: function(TD, cellProperties) {
+    if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
+      addClass(TD, cellProperties.commentedCellClassName);
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorBlur", {
+  value: function(event) {
+    this.setComment();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseDown", {
+  value: function(event) {
+    var priv = privatePool.get(this);
+    priv.tempEditorDimensions = {
+      width: outerWidth(event.target),
+      height: outerHeight(event.target)
+    };
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseUp", {
+  value: function(event) {
+    var $__13;
+    var priv = privatePool.get(this);
+    var currentWidth = outerWidth(event.target);
+    var currentHeight = outerHeight(event.target);
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, ($__13 = {}, Object.defineProperty($__13, META_STYLE, {
+        value: {
+          width: currentWidth,
+          height: currentHeight
+        },
+        configurable: true,
+        enumerable: true,
+        writable: true
+      }), $__13));
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuAddComment", {
+  value: function() {
+    var $__10 = this;
     var coords = this.hot.getSelectedRange();
     this.contextMenuEvent = true;
     this.setRange({from: coords.from});
     this.show();
     setTimeout((function() {
-      if ($__7.hot) {
-        $__7.hot.deselectCell();
-        $__7.editor.focus();
+      if ($__10.hot) {
+        $__10.hot.deselectCell();
+        $__10.editor.focus();
       }
     }), 10);
   },
-  onContextMenuRemoveComment: function(key, selection) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuRemoveComment", {
+  value: function(selection) {
     this.contextMenuEvent = true;
-    this.removeCommentAtCell(selection.start.row, selection.start.col);
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        this.removeCommentAtCell(i, j, false);
+      }
+    }
+    this.hot.render();
   },
-  addToContextMenu: function(defaultOptions) {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuMakeReadOnly", {
+  value: function(selection) {
+    var $__13;
+    this.contextMenuEvent = true;
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        var currentState = !!this.getCommentMeta(i, j, META_READONLY);
+        this.updateCommentMeta(i, j, ($__13 = {}, Object.defineProperty($__13, META_READONLY, {
+          value: !currentState,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        }), $__13));
+      }
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "addToContextMenu", {
+  value: function(defaultOptions) {
+    var $__10 = this;
     defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, {
       key: 'commentsAddEdit',
       name: (function() {
-        return $__7.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
+        return $__10.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
       }),
       callback: (function() {
-        return $__7.onContextMenuAddComment();
+        return $__10.onContextMenuAddComment();
       }),
       disabled: function() {
-        return this.getSelected() ? false : true;
+        return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
       }
     }, {
       key: 'commentsRemove',
       name: function() {
-        return 'Delete Comment';
+        return 'Delete comment';
       },
       callback: (function(key, selection) {
-        return $__7.onContextMenuRemoveComment(key, selection);
+        return $__10.onContextMenuRemoveComment(selection);
       }),
       disabled: (function() {
-        return !$__7.checkSelectionCommentsConsistency();
+        return $__10.hot.selection.selectedHeader.corner;
+      })
+    }, {
+      key: 'commentsReadOnly',
+      name: function() {
+        var $__11 = this;
+        var label = 'Read only comment';
+        var hasProperty = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+          var readOnlyProperty = $__11.getCellMeta(row, col)[META_COMMENT];
+          if (readOnlyProperty) {
+            readOnlyProperty = readOnlyProperty[META_READONLY];
+          }
+          if (readOnlyProperty) {
+            return true;
+          }
+        }));
+        if (hasProperty) {
+          label = markLabelAsSelected(label);
+        }
+        return label;
+      },
+      callback: (function(key, selection) {
+        return $__10.onContextMenuMakeReadOnly(selection);
+      }),
+      disabled: (function() {
+        return $__10.hot.selection.selectedHeader.corner || !$__10.checkSelectionCommentsConsistency();
       })
     });
   },
-  destroy: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterBeginEditing", {
+  value: function(row, column) {
+    this.hide();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "destroy", {
+  value: function() {
     if (this.editor) {
       this.editor.destroy();
     }
     $traceurRuntime.superGet(this, $Comments.prototype, "destroy").call(this);
-  }
-}, {}, BasePlugin);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__13), {}, BasePlugin);
 ;
 registerPlugin('comments', Comments);
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"_base":60,"browser":23,"commentEditor":65,"eventManager":41,"helpers/dom/element":46,"plugins":59}],67:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"_base":61,"browser":23,"commentEditor":67,"contextMenu/utils":87,"eventManager":41,"helpers/dom/element":46,"helpers/function":49,"helpers/object":52,"plugins":60}],69:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommandExecutor: {get: function() {
@@ -13283,7 +14512,7 @@ function findSubCommand(subCommandName, subCommands) {
 ;
 
 //# 
-},{"helpers/array":42}],68:[function(_dereq_,module,exports){
+},{"helpers/array":42}],70:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenu: {get: function() {
@@ -13364,6 +14593,7 @@ var $ContextMenu = ContextMenu;
         className: 'htContextMenu',
         keepInViewport: true
       });
+      $__12.hot.runHooks('beforeContextMenuSetItems', menuItems);
       $__12.menu.setMenuItems(menuItems);
       $__12.menu.addLocalHook('afterOpen', (function() {
         return $__12.onMenuAfterOpen();
@@ -13434,15 +14664,13 @@ var $ContextMenu = ContextMenu;
     }
     var element = event.realTarget;
     this.close();
+    if (hasClass(element, 'handsontableInput')) {
+      return;
+    }
     event.preventDefault();
     stopPropagation(event);
     if (!(showRowHeaders || showColHeaders)) {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {
-        return;
-      }
-    } else if (showRowHeaders && showColHeaders) {
-      var containsCornerHeader = element.parentNode.querySelectorAll('.cornerHeader').length > 0;
-      if (containsCornerHeader) {
         return;
       }
     }
@@ -13474,7 +14702,7 @@ Handsontable.hooks.register('afterContextMenuExecute');
 registerPlugin('contextMenu', ContextMenu);
 
 //# 
-},{"_base":60,"browser":23,"commandExecutor":67,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"itemsFactory":70,"menu":71,"plugins":59,"predefinedItems":72}],69:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"commandExecutor":69,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"itemsFactory":72,"menu":73,"plugins":60,"predefinedItems":74}],71:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Cursor: {get: function() {
@@ -13556,7 +14784,7 @@ Handsontable.plugins.utils = Handsontable.plugins.utils || {};
 Handsontable.plugins.utils.Cursor = Cursor;
 
 //# 
-},{"browser":23,"helpers/dom/element":46,"helpers/dom/event":47}],70:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/dom/element":46,"helpers/dom/event":47}],72:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ItemsFactory: {get: function() {
@@ -13661,7 +14889,7 @@ function getItems() {
 ;
 
 //# 
-},{"helpers/array":42,"helpers/object":52,"predefinedItems":72}],71:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/object":52,"predefinedItems":74}],73:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Menu: {get: function() {
@@ -13816,6 +15044,9 @@ var $Menu = Menu;
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
+      if (this.parentMenu) {
+        this.parentMenu.hotMenu.listen();
+      }
     }
   },
   openSubMenu: function(row) {
@@ -13877,11 +15108,15 @@ var $Menu = Menu;
     }
     var selRange = this.hot.getSelectedRange();
     var normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    var autoClose = true;
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) || selectedItem.submenu) {
+      autoClose = false;
+    }
     this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
-    if (!(selectedItem.disabled === true || typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true || selectedItem.submenu)) {
+    if (autoClose) {
       this.close(true);
     }
   },
@@ -14021,7 +15256,7 @@ var $Menu = Menu;
         }));
       } else {
         this.eventManager.addEventListener(TD, 'mouseenter', (function() {
-          return hot.selectCell(row, col, void 0, void 0, void 0, false);
+          return hot.selectCell(row, col, void 0, void 0, false, false);
         }));
       }
     } else {
@@ -14033,7 +15268,7 @@ var $Menu = Menu;
         }));
       } else {
         this.eventManager.addEventListener(TD, 'mouseenter', (function() {
-          return hot.selectCell(row, col, void 0, void 0, void 0, false);
+          return hot.selectCell(row, col, void 0, void 0, false, false);
         }));
       }
     }
@@ -14140,6 +15375,7 @@ var $Menu = Menu;
     }), 0);
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
+    hiderStyle.height = holderStyle.height;
   },
   onDocumentMouseDown: function(event) {
     if (!this.isOpened()) {
@@ -14159,45 +15395,45 @@ mixin(Menu, localHooks);
 ;
 
 //# 
-},{"browser":23,"cursor":69,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/object":52,"helpers/unicode":55,"mixins/localHooks":56,"predefinedItems":72,"utils":73}],72:[function(_dereq_,module,exports){
+},{"browser":23,"cursor":71,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/object":52,"helpers/unicode":55,"mixins/localHooks":57,"predefinedItems":74,"utils":87}],74:[function(_dereq_,module,exports){
 "use strict";
-var $__4;
+var $__13;
 Object.defineProperties(exports, {
-  ROW_ABOVE: {get: function() {
-      return ROW_ABOVE;
-    }},
-  ROW_BELOW: {get: function() {
-      return ROW_BELOW;
-    }},
-  COLUMN_LEFT: {get: function() {
-      return COLUMN_LEFT;
-    }},
-  COLUMN_RIGHT: {get: function() {
-      return COLUMN_RIGHT;
+  ALIGNMENT: {get: function() {
+      return $__predefinedItems_47_alignment__.KEY;
     }},
   CLEAR_COLUMN: {get: function() {
-      return CLEAR_COLUMN;
+      return $__predefinedItems_47_clearColumn__.KEY;
     }},
-  REMOVE_ROW: {get: function() {
-      return REMOVE_ROW;
+  COLUMN_LEFT: {get: function() {
+      return $__predefinedItems_47_columnLeft__.KEY;
     }},
-  REMOVE_COLUMN: {get: function() {
-      return REMOVE_COLUMN;
-    }},
-  UNDO: {get: function() {
-      return UNDO;
-    }},
-  REDO: {get: function() {
-      return REDO;
+  COLUMN_RIGHT: {get: function() {
+      return $__predefinedItems_47_columnRight__.KEY;
     }},
   READ_ONLY: {get: function() {
-      return READ_ONLY;
+      return $__predefinedItems_47_readOnly__.KEY;
     }},
-  ALIGNMENT: {get: function() {
-      return ALIGNMENT;
+  REDO: {get: function() {
+      return $__predefinedItems_47_redo__.KEY;
+    }},
+  REMOVE_COLUMN: {get: function() {
+      return $__predefinedItems_47_removeColumn__.KEY;
+    }},
+  REMOVE_ROW: {get: function() {
+      return $__predefinedItems_47_removeRow__.KEY;
+    }},
+  ROW_ABOVE: {get: function() {
+      return $__predefinedItems_47_rowAbove__.KEY;
+    }},
+  ROW_BELOW: {get: function() {
+      return $__predefinedItems_47_rowBelow__.KEY;
     }},
   SEPARATOR: {get: function() {
-      return SEPARATOR;
+      return $__predefinedItems_47_separator__.KEY;
+    }},
+  UNDO: {get: function() {
+      return $__predefinedItems_47_undo__.KEY;
     }},
   ITEMS: {get: function() {
       return ITEMS;
@@ -14211,35 +15447,145 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47_helpers_47_object__,
-    $___46__46__47__46__46__47_helpers_47_number__,
-    $__utils__;
-var $__0 = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}),
-    objectEach = $__0.objectEach,
-    clone = $__0.clone;
-var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
-var $__2 = ($__utils__ = _dereq_("utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    align = $__2.align,
-    getAlignmentClasses = $__2.getAlignmentClasses,
-    getValidSelection = $__2.getValidSelection,
-    checkSelectionConsistency = $__2.checkSelectionConsistency,
-    markLabelAsSelected = $__2.markLabelAsSelected;
-var ROW_ABOVE = 'row_above';
-var ROW_BELOW = 'row_below';
-var COLUMN_LEFT = 'col_left';
-var COLUMN_RIGHT = 'col_right';
-var CLEAR_COLUMN = 'clear_column';
-var REMOVE_ROW = 'remove_row';
-var REMOVE_COLUMN = 'remove_col';
-var UNDO = 'undo';
-var REDO = 'redo';
-var READ_ONLY = 'make_read_only';
-var ALIGNMENT = 'alignment';
-var SEPARATOR = '---------';
+    $__predefinedItems_47_alignment__,
+    $__predefinedItems_47_clearColumn__,
+    $__predefinedItems_47_columnLeft__,
+    $__predefinedItems_47_columnRight__,
+    $__predefinedItems_47_readOnly__,
+    $__predefinedItems_47_redo__,
+    $__predefinedItems_47_removeColumn__,
+    $__predefinedItems_47_removeRow__,
+    $__predefinedItems_47_rowAbove__,
+    $__predefinedItems_47_rowBelow__,
+    $__predefinedItems_47_separator__,
+    $__predefinedItems_47_undo__,
+    $__predefinedItems_47_alignment__,
+    $__predefinedItems_47_clearColumn__,
+    $__predefinedItems_47_columnLeft__,
+    $__predefinedItems_47_columnRight__,
+    $__predefinedItems_47_readOnly__,
+    $__predefinedItems_47_redo__,
+    $__predefinedItems_47_removeColumn__,
+    $__predefinedItems_47_removeRow__,
+    $__predefinedItems_47_rowAbove__,
+    $__predefinedItems_47_rowBelow__,
+    $__predefinedItems_47_separator__,
+    $__predefinedItems_47_undo__;
+var objectEach = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).objectEach;
+var $__1 = ($__predefinedItems_47_alignment__ = _dereq_("predefinedItems/alignment"), $__predefinedItems_47_alignment__ && $__predefinedItems_47_alignment__.__esModule && $__predefinedItems_47_alignment__ || {default: $__predefinedItems_47_alignment__}),
+    alignmentItem = $__1.alignmentItem,
+    ALIGNMENT = $__1.KEY;
+var $__2 = ($__predefinedItems_47_clearColumn__ = _dereq_("predefinedItems/clearColumn"), $__predefinedItems_47_clearColumn__ && $__predefinedItems_47_clearColumn__.__esModule && $__predefinedItems_47_clearColumn__ || {default: $__predefinedItems_47_clearColumn__}),
+    clearColumnItem = $__2.clearColumnItem,
+    CLEAR_COLUMN = $__2.KEY;
+var $__3 = ($__predefinedItems_47_columnLeft__ = _dereq_("predefinedItems/columnLeft"), $__predefinedItems_47_columnLeft__ && $__predefinedItems_47_columnLeft__.__esModule && $__predefinedItems_47_columnLeft__ || {default: $__predefinedItems_47_columnLeft__}),
+    columnLeftItem = $__3.columnLeftItem,
+    COLUMN_LEFT = $__3.KEY;
+var $__4 = ($__predefinedItems_47_columnRight__ = _dereq_("predefinedItems/columnRight"), $__predefinedItems_47_columnRight__ && $__predefinedItems_47_columnRight__.__esModule && $__predefinedItems_47_columnRight__ || {default: $__predefinedItems_47_columnRight__}),
+    columnRightItem = $__4.columnRightItem,
+    COLUMN_RIGHT = $__4.KEY;
+var $__5 = ($__predefinedItems_47_readOnly__ = _dereq_("predefinedItems/readOnly"), $__predefinedItems_47_readOnly__ && $__predefinedItems_47_readOnly__.__esModule && $__predefinedItems_47_readOnly__ || {default: $__predefinedItems_47_readOnly__}),
+    readOnlyItem = $__5.readOnlyItem,
+    READ_ONLY = $__5.KEY;
+var $__6 = ($__predefinedItems_47_redo__ = _dereq_("predefinedItems/redo"), $__predefinedItems_47_redo__ && $__predefinedItems_47_redo__.__esModule && $__predefinedItems_47_redo__ || {default: $__predefinedItems_47_redo__}),
+    redoItem = $__6.redoItem,
+    REDO = $__6.KEY;
+var $__7 = ($__predefinedItems_47_removeColumn__ = _dereq_("predefinedItems/removeColumn"), $__predefinedItems_47_removeColumn__ && $__predefinedItems_47_removeColumn__.__esModule && $__predefinedItems_47_removeColumn__ || {default: $__predefinedItems_47_removeColumn__}),
+    removeColumnItem = $__7.removeColumnItem,
+    REMOVE_COLUMN = $__7.KEY;
+var $__8 = ($__predefinedItems_47_removeRow__ = _dereq_("predefinedItems/removeRow"), $__predefinedItems_47_removeRow__ && $__predefinedItems_47_removeRow__.__esModule && $__predefinedItems_47_removeRow__ || {default: $__predefinedItems_47_removeRow__}),
+    removeRowItem = $__8.removeRowItem,
+    REMOVE_ROW = $__8.KEY;
+var $__9 = ($__predefinedItems_47_rowAbove__ = _dereq_("predefinedItems/rowAbove"), $__predefinedItems_47_rowAbove__ && $__predefinedItems_47_rowAbove__.__esModule && $__predefinedItems_47_rowAbove__ || {default: $__predefinedItems_47_rowAbove__}),
+    rowAboveItem = $__9.rowAboveItem,
+    ROW_ABOVE = $__9.KEY;
+var $__10 = ($__predefinedItems_47_rowBelow__ = _dereq_("predefinedItems/rowBelow"), $__predefinedItems_47_rowBelow__ && $__predefinedItems_47_rowBelow__.__esModule && $__predefinedItems_47_rowBelow__ || {default: $__predefinedItems_47_rowBelow__}),
+    rowBelowItem = $__10.rowBelowItem,
+    ROW_BELOW = $__10.KEY;
+var $__11 = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__}),
+    separatorItem = $__11.separatorItem,
+    SEPARATOR = $__11.KEY;
+var $__12 = ($__predefinedItems_47_undo__ = _dereq_("predefinedItems/undo"), $__predefinedItems_47_undo__ && $__predefinedItems_47_undo__.__esModule && $__predefinedItems_47_undo__ || {default: $__predefinedItems_47_undo__}),
+    undoItem = $__12.undoItem,
+    UNDO = $__12.KEY;
+var $__predefinedItems_47_alignment__ = ($__predefinedItems_47_alignment__ = _dereq_("predefinedItems/alignment"), $__predefinedItems_47_alignment__ && $__predefinedItems_47_alignment__.__esModule && $__predefinedItems_47_alignment__ || {default: $__predefinedItems_47_alignment__});
+var $__predefinedItems_47_clearColumn__ = ($__predefinedItems_47_clearColumn__ = _dereq_("predefinedItems/clearColumn"), $__predefinedItems_47_clearColumn__ && $__predefinedItems_47_clearColumn__.__esModule && $__predefinedItems_47_clearColumn__ || {default: $__predefinedItems_47_clearColumn__});
+var $__predefinedItems_47_columnLeft__ = ($__predefinedItems_47_columnLeft__ = _dereq_("predefinedItems/columnLeft"), $__predefinedItems_47_columnLeft__ && $__predefinedItems_47_columnLeft__.__esModule && $__predefinedItems_47_columnLeft__ || {default: $__predefinedItems_47_columnLeft__});
+var $__predefinedItems_47_columnRight__ = ($__predefinedItems_47_columnRight__ = _dereq_("predefinedItems/columnRight"), $__predefinedItems_47_columnRight__ && $__predefinedItems_47_columnRight__.__esModule && $__predefinedItems_47_columnRight__ || {default: $__predefinedItems_47_columnRight__});
+var $__predefinedItems_47_readOnly__ = ($__predefinedItems_47_readOnly__ = _dereq_("predefinedItems/readOnly"), $__predefinedItems_47_readOnly__ && $__predefinedItems_47_readOnly__.__esModule && $__predefinedItems_47_readOnly__ || {default: $__predefinedItems_47_readOnly__});
+var $__predefinedItems_47_redo__ = ($__predefinedItems_47_redo__ = _dereq_("predefinedItems/redo"), $__predefinedItems_47_redo__ && $__predefinedItems_47_redo__.__esModule && $__predefinedItems_47_redo__ || {default: $__predefinedItems_47_redo__});
+var $__predefinedItems_47_removeColumn__ = ($__predefinedItems_47_removeColumn__ = _dereq_("predefinedItems/removeColumn"), $__predefinedItems_47_removeColumn__ && $__predefinedItems_47_removeColumn__.__esModule && $__predefinedItems_47_removeColumn__ || {default: $__predefinedItems_47_removeColumn__});
+var $__predefinedItems_47_removeRow__ = ($__predefinedItems_47_removeRow__ = _dereq_("predefinedItems/removeRow"), $__predefinedItems_47_removeRow__ && $__predefinedItems_47_removeRow__.__esModule && $__predefinedItems_47_removeRow__ || {default: $__predefinedItems_47_removeRow__});
+var $__predefinedItems_47_rowAbove__ = ($__predefinedItems_47_rowAbove__ = _dereq_("predefinedItems/rowAbove"), $__predefinedItems_47_rowAbove__ && $__predefinedItems_47_rowAbove__.__esModule && $__predefinedItems_47_rowAbove__ || {default: $__predefinedItems_47_rowAbove__});
+var $__predefinedItems_47_rowBelow__ = ($__predefinedItems_47_rowBelow__ = _dereq_("predefinedItems/rowBelow"), $__predefinedItems_47_rowBelow__ && $__predefinedItems_47_rowBelow__.__esModule && $__predefinedItems_47_rowBelow__ || {default: $__predefinedItems_47_rowBelow__});
+var $__predefinedItems_47_separator__ = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__});
+var $__predefinedItems_47_undo__ = ($__predefinedItems_47_undo__ = _dereq_("predefinedItems/undo"), $__predefinedItems_47_undo__ && $__predefinedItems_47_undo__.__esModule && $__predefinedItems_47_undo__ || {default: $__predefinedItems_47_undo__});
 var ITEMS = [ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY, ALIGNMENT, SEPARATOR];
+var _predefinedItems = ($__13 = {}, Object.defineProperty($__13, SEPARATOR, {
+  value: separatorItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ROW_ABOVE, {
+  value: rowAboveItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ROW_BELOW, {
+  value: rowBelowItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, COLUMN_LEFT, {
+  value: columnLeftItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, COLUMN_RIGHT, {
+  value: columnRightItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, CLEAR_COLUMN, {
+  value: clearColumnItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REMOVE_ROW, {
+  value: removeRowItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REMOVE_COLUMN, {
+  value: removeColumnItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, UNDO, {
+  value: undoItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, REDO, {
+  value: redoItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, READ_ONLY, {
+  value: readOnlyItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, ALIGNMENT, {
+  value: alignmentItem,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__13);
 function predefinedItems() {
   var items = {};
-  objectEach(_predefinedItems, (function(value, key) {
-    return items[key] = clone(value);
+  objectEach(_predefinedItems, (function(itemFactory, key) {
+    return items[key] = itemFactory();
   }));
   return items;
 }
@@ -14248,114 +15594,274 @@ function addItem(key, item) {
     _predefinedItems[key] = item;
   }
 }
-var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
-  value: {name: SEPARATOR},
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ROW_ABOVE, {
-  value: {
-    key: ROW_ABOVE,
-    name: 'Insert row above',
-    callback: function(key, selection) {
-      this.alter('insert_row', selection.start.row);
-    },
+
+//# 
+},{"helpers/object":52,"predefinedItems/alignment":75,"predefinedItems/clearColumn":76,"predefinedItems/columnLeft":77,"predefinedItems/columnRight":78,"predefinedItems/readOnly":79,"predefinedItems/redo":80,"predefinedItems/removeColumn":81,"predefinedItems/removeRow":82,"predefinedItems/rowAbove":83,"predefinedItems/rowBelow":84,"predefinedItems/separator":85,"predefinedItems/undo":86}],75:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  alignmentItem: {get: function() {
+      return alignmentItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__,
+    $__separator__;
+var $__0 = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}),
+    align = $__0.align,
+    getAlignmentClasses = $__0.getAlignmentClasses,
+    checkSelectionConsistency = $__0.checkSelectionConsistency,
+    markLabelAsSelected = $__0.markLabelAsSelected;
+var SEPARATOR = ($__separator__ = _dereq_("separator"), $__separator__ && $__separator__.__esModule && $__separator__ || {default: $__separator__}).KEY;
+var KEY = 'alignment';
+function alignmentItem() {
+  return {
+    key: KEY,
+    name: 'Alignment',
     disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.countRows() >= this.getSettings().maxRows) {
-        return true;
-      }
-      var rowCount = this.countRows();
-      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
-      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
+      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
     },
-    hidden: function() {
-      return !this.getSettings().allowInsertRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ROW_BELOW, {
-  value: {
-    key: ROW_BELOW,
-    name: 'Insert row below',
-    callback: function(key, selection) {
-      this.alter('insert_row', selection.end.row + 1);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.countRows() >= this.getSettings().maxRows) {
-        return true;
-      }
-      var rowCount = this.countRows();
-      var entireColumnSelection = [0, selected[1], rowCount - 1, selected[1]];
-      return (entireColumnSelection.join(',') === selected.join(',')) && rowCount > 1;
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, COLUMN_LEFT, {
-  value: {
-    key: COLUMN_LEFT,
-    name: 'Insert column on the left',
-    callback: function(key, selection) {
-      this.alter('insert_col', selection.start.col);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected) {
-        return true;
-      }
-      if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      var onlyOneColumn = this.countCols() == 1;
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertColumn;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, COLUMN_RIGHT, {
-  value: {
-    key: COLUMN_RIGHT,
-    name: 'Insert column on the right',
-    callback: function(key, selection) {
-      this.alter('insert_col', selection.end.col + 1);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected) {
-        return true;
-      }
-      if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      var onlyOneColumn = this.countCols() == 1;
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
-    },
-    hidden: function() {
-      return !this.getSettings().allowInsertColumn;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, CLEAR_COLUMN, {
-  value: {
-    key: CLEAR_COLUMN,
+    submenu: {items: [{
+        key: (KEY + ":left"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Left';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htLeft') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htLeft';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":center"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Center';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htCenter') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htCenter';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":right"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Right';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htRight') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htRight';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":justify"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Justify';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htJustify') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'horizontal';
+          var alignment = 'htJustify';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {name: SEPARATOR}, {
+        key: (KEY + ":top"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Top';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htTop') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htTop';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":middle"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Middle';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htMiddle') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htMiddle';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }, {
+        key: (KEY + ":bottom"),
+        name: function() {
+          var $__2 = this;
+          var label = 'Bottom';
+          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+            var className = $__2.getCellMeta(row, col).className;
+            if (className && className.indexOf('htBottom') !== -1) {
+              return true;
+            }
+          }));
+          if (hasClass) {
+            label = markLabelAsSelected(label);
+          }
+          return label;
+        },
+        callback: function() {
+          var $__2 = this;
+          var range = this.getSelectedRange();
+          var stateBefore = getAlignmentClasses(range, (function(row, col) {
+            return $__2.getCellMeta(row, col).className;
+          }));
+          var type = 'vertical';
+          var alignment = 'htBottom';
+          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
+          align(range, type, alignment, (function(row, col) {
+            return $__2.getCellMeta(row, col);
+          }));
+          this.render();
+        },
+        disabled: false
+      }]}
+  };
+}
+
+//# 
+},{"separator":85,"utils":87}],76:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  clearColumnItem: {get: function() {
+      return clearColumnItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'clear_column';
+function clearColumnItem() {
+  return {
+    key: KEY,
     name: 'Clear column',
     callback: function(key, selection) {
       var column = selection.start.col;
@@ -14372,44 +15878,34 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REMOVE_ROW, {
-  value: {
-    key: REMOVE_ROW,
-    name: 'Remove row',
+  };
+}
+
+//# 
+},{"utils":87}],77:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  columnLeftItem: {get: function() {
+      return columnLeftItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'col_left';
+function columnLeftItem() {
+  return {
+    key: KEY,
+    name: 'Insert column on the left',
     callback: function(key, selection) {
-      var amount = selection.end.row - selection.start.row + 1;
-      this.alter('remove_row', selection.start.row, amount);
+      this.alter('insert_col', selection.start.col);
     },
     disabled: function() {
       var selected = getValidSelection(this);
-      if (!selected || this.selection.selectedHeader.cols) {
-        return true;
-      }
-      var entireColumnSelection = [0, selected[1], this.countRows() - 1, selected[1]];
-      return entireColumnSelection.join(',') === selected.join(',');
-    },
-    hidden: function() {
-      return !this.getSettings().allowRemoveRow;
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REMOVE_COLUMN, {
-  value: {
-    key: REMOVE_COLUMN,
-    name: 'Remove column',
-    callback: function(key, selection) {
-      var amount = selection.end.col - selection.start.col + 1;
-      this.alter('remove_col', selection.start.col, amount);
-    },
-    disabled: function() {
-      var selected = getValidSelection(this);
-      if (!selected || this.selection.selectedHeader.rows) {
+      if (!selected) {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
@@ -14417,51 +15913,81 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       }
       var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') == selected.join(',');
-      return (selected[1] < 0 || rowSelected);
+      var onlyOneColumn = this.countCols() === 1;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
     hidden: function() {
-      return !this.getSettings().allowRemoveColumn;
+      return !this.getSettings().allowInsertColumn;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, UNDO, {
-  value: {
-    key: UNDO,
-    name: 'Undo',
-    callback: function() {
-      this.undo();
+  };
+}
+
+//# 
+},{"utils":87}],78:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  columnRightItem: {get: function() {
+      return columnRightItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'col_right';
+function columnRightItem() {
+  return {
+    key: KEY,
+    name: 'Insert column on the right',
+    callback: function(key, selection) {
+      this.alter('insert_col', selection.end.col + 1);
     },
     disabled: function() {
-      return this.undoRedo && !this.undoRedo.isUndoAvailable();
-    }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, REDO, {
-  value: {
-    key: REDO,
-    name: 'Redo',
-    callback: function() {
-      this.redo();
+      var selected = getValidSelection(this);
+      if (!selected) {
+        return true;
+      }
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+      var rowSelected = entireRowSelection.join(',') == selected.join(',');
+      var onlyOneColumn = this.countCols() === 1;
+      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
-    disabled: function() {
-      return this.undoRedo && !this.undoRedo.isRedoAvailable();
+    hidden: function() {
+      return !this.getSettings().allowInsertColumn;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, READ_ONLY, {
-  value: {
-    key: READ_ONLY,
+  };
+}
+
+//# 
+},{"utils":87}],79:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  readOnlyItem: {get: function() {
+      return readOnlyItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var $__0 = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}),
+    checkSelectionConsistency = $__0.checkSelectionConsistency,
+    markLabelAsSelected = $__0.markLabelAsSelected;
+var KEY = 'make_read_only';
+function readOnlyItem() {
+  return {
+    key: KEY,
     name: function() {
-      var $__3 = this;
+      var $__1 = this;
       var label = 'Read only';
       var atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-        return $__3.getCellMeta(row, col).readOnly;
+        return $__1.getCellMeta(row, col).readOnly;
       }));
       if (atLeastOneReadOnly) {
         label = markLabelAsSelected(label);
@@ -14469,256 +15995,225 @@ var _predefinedItems = ($__4 = {}, Object.defineProperty($__4, SEPARATOR, {
       return label;
     },
     callback: function() {
-      var $__3 = this;
+      var $__1 = this;
       var range = this.getSelectedRange();
       var atLeastOneReadOnly = checkSelectionConsistency(range, (function(row, col) {
-        return $__3.getCellMeta(row, col).readOnly;
+        return $__1.getCellMeta(row, col).readOnly;
       }));
       range.forAll((function(row, col) {
-        $__3.getCellMeta(row, col).readOnly = atLeastOneReadOnly ? false : true;
+        $__1.setCellMeta(row, col, 'readOnly', atLeastOneReadOnly ? false : true);
       }));
       this.render();
     },
     disabled: function() {
-      return this.getSelectedRange() ? false : true;
+      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
     }
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), Object.defineProperty($__4, ALIGNMENT, {
-  value: {
-    key: ALIGNMENT,
-    name: 'Alignment',
-    disabled: function() {
-      return this.getSelectedRange() ? false : true;
-    },
-    submenu: {items: [{
-        key: (ALIGNMENT + ":left"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Left';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htLeft') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htLeft';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":center"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Center';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htCenter') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htCenter';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":right"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Right';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htRight') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htRight';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":justify"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Justify';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htJustify') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'horizontal';
-          var alignment = 'htJustify';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {name: SEPARATOR}, {
-        key: (ALIGNMENT + ":top"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Top';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htTop') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htTop';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":middle"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Middle';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htMiddle') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htMiddle';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }, {
-        key: (ALIGNMENT + ":bottom"),
-        name: function() {
-          var $__3 = this;
-          var label = 'Bottom';
-          var hasClass = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
-            var className = $__3.getCellMeta(row, col).className;
-            if (className && className.indexOf('htBottom') !== -1) {
-              return true;
-            }
-          }));
-          if (hasClass) {
-            label = markLabelAsSelected(label);
-          }
-          return label;
-        },
-        callback: function() {
-          var $__3 = this;
-          var range = this.getSelectedRange();
-          var stateBefore = getAlignmentClasses(range, (function(row, col) {
-            return $__3.getCellMeta(row, col).className;
-          }));
-          var type = 'vertical';
-          var alignment = 'htBottom';
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          align(range, type, alignment, (function(row, col) {
-            return $__3.getCellMeta(row, col);
-          }));
-          this.render();
-        },
-        disabled: false
-      }]}
-  },
-  configurable: true,
-  enumerable: true,
-  writable: true
-}), $__4);
+  };
+}
 
 //# 
-},{"helpers/number":51,"helpers/object":52,"utils":73}],73:[function(_dereq_,module,exports){
+},{"utils":87}],80:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  redoItem: {get: function() {
+      return redoItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = 'redo';
+function redoItem() {
+  return {
+    key: KEY,
+    name: 'Redo',
+    callback: function() {
+      this.redo();
+    },
+    disabled: function() {
+      return this.undoRedo && !this.undoRedo.isRedoAvailable();
+    }
+  };
+}
+
+//# 
+},{}],81:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  removeColumnItem: {get: function() {
+      return removeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'remove_col';
+function removeColumnItem() {
+  return {
+    key: KEY,
+    name: 'Remove column',
+    callback: function(key, selection) {
+      var amount = selection.end.col - selection.start.col + 1;
+      this.alter('remove_col', selection.start.col, amount);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      var totalColumns = this.countCols();
+      return !selected || this.selection.selectedHeader.rows || this.selection.selectedHeader.corner || !this.isColumnModificationAllowed() || !totalColumns;
+    },
+    hidden: function() {
+      return !this.getSettings().allowRemoveColumn;
+    }
+  };
+}
+
+//# 
+},{"utils":87}],82:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  removeRowItem: {get: function() {
+      return removeRowItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'remove_row';
+function removeRowItem() {
+  return {
+    key: KEY,
+    name: 'Remove row',
+    callback: function(key, selection) {
+      var amount = selection.end.row - selection.start.row + 1;
+      this.alter('remove_row', selection.start.row, amount);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      var totalRows = this.countRows();
+      return !selected || this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowRemoveRow;
+    }
+  };
+}
+
+//# 
+},{"utils":87}],83:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  rowAboveItem: {get: function() {
+      return rowAboveItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'row_above';
+function rowAboveItem() {
+  return {
+    key: KEY,
+    name: 'Insert row above',
+    callback: function(key, selection) {
+      this.alter('insert_row', selection.start.row);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowInsertRow;
+    }
+  };
+}
+
+//# 
+},{"utils":87}],84:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  rowBelowItem: {get: function() {
+      return rowBelowItem;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_utils__;
+var getValidSelection = ($___46__46__47_utils__ = _dereq_("utils"), $___46__46__47_utils__ && $___46__46__47_utils__.__esModule && $___46__46__47_utils__ || {default: $___46__46__47_utils__}).getValidSelection;
+var KEY = 'row_below';
+function rowBelowItem() {
+  return {
+    key: KEY,
+    name: 'Insert row below',
+    callback: function(key, selection) {
+      this.alter('insert_row', selection.end.row + 1);
+    },
+    disabled: function() {
+      var selected = getValidSelection(this);
+      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+    },
+    hidden: function() {
+      return !this.getSettings().allowInsertRow;
+    }
+  };
+}
+
+//# 
+},{"utils":87}],85:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  separatorItem: {get: function() {
+      return separatorItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = '---------';
+function separatorItem() {
+  return {name: KEY};
+}
+
+//# 
+},{}],86:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  KEY: {get: function() {
+      return KEY;
+    }},
+  undoItem: {get: function() {
+      return undoItem;
+    }},
+  __esModule: {value: true}
+});
+var KEY = 'undo';
+function undoItem() {
+  return {
+    key: KEY,
+    name: 'Undo',
+    callback: function() {
+      this.undo();
+    },
+    disabled: function() {
+      return this.undoRedo && !this.undoRedo.isUndoAvailable();
+    }
+  };
+}
+
+//# 
+},{}],87:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   normalizeSelection: {get: function() {
@@ -14767,10 +16262,10 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
-    $__predefinedItems__;
+    $__predefinedItems_47_separator__;
 var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var hasClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).hasClass;
-var SEPARATOR = ($__predefinedItems__ = _dereq_("predefinedItems"), $__predefinedItems__ && $__predefinedItems__.__esModule && $__predefinedItems__ || {default: $__predefinedItems__}).SEPARATOR;
+var SEPARATOR = ($__predefinedItems_47_separator__ = _dereq_("predefinedItems/separator"), $__predefinedItems_47_separator__ && $__predefinedItems_47_separator__.__esModule && $__predefinedItems_47_separator__ || {default: $__predefinedItems_47_separator__}).KEY;
 function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
@@ -14909,7 +16404,7 @@ function filterSeparators(items) {
 }
 
 //# 
-},{"helpers/array":42,"helpers/dom/element":46,"predefinedItems":72}],74:[function(_dereq_,module,exports){
+},{"helpers/array":42,"helpers/dom/element":46,"predefinedItems/separator":85}],88:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ContextMenuCopyPaste: {get: function() {
@@ -14917,20 +16412,20 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_browser__,
+var $___46__46__47__95_base__,
+    $__zeroclipboard__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_plugins__,
-    $___46__46__47__95_base__,
-    $__zeroclipboard__;
-var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+    $___46__46__47_contextMenu_47_predefinedItems__;
+var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
+var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
 var removeClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).removeClass;
 var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
-var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
+var SEPARATOR = ($___46__46__47_contextMenu_47_predefinedItems__ = _dereq_("contextMenu/predefinedItems"), $___46__46__47_contextMenu_47_predefinedItems__ && $___46__46__47_contextMenu_47_predefinedItems__.__esModule && $___46__46__47_contextMenu_47_predefinedItems__ || {default: $___46__46__47_contextMenu_47_predefinedItems__}).SEPARATOR;
 var ContextMenuCopyPaste = function ContextMenuCopyPaste(hotInstance) {
   $traceurRuntime.superConstructor($ContextMenuCopyPaste).call(this, hotInstance);
   this.eventManager = new EventManager(this);
@@ -14991,14 +16486,20 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   onAfterContextMenuDefaultOptions: function(defaultOptions) {
     defaultOptions.items.unshift({
       key: 'copy',
-      name: 'Copy'
+      name: 'Copy',
+      disabled: function() {
+        return this.selection.selectedHeader.corner;
+      }
     }, {
       key: 'paste',
       name: 'Paste',
       callback: function() {
         this.copyPaste.triggerPaste();
+      },
+      disabled: function() {
+        return this.selection.selectedHeader.corner;
       }
-    }, Handsontable.plugins.ContextMenu.SEPARATOR);
+    }, {name: SEPARATOR});
   },
   onAfterContextMenuShow: function() {
     var $__7 = this;
@@ -15019,6 +16520,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeCurrentClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
       if (element) {
@@ -15030,6 +16534,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeZeroClipboardClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
       if (element) {
@@ -15043,7 +16550,7 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":59,"zeroclipboard":undefined}],75:[function(_dereq_,module,exports){
+},{"_base":61,"contextMenu/predefinedItems":74,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":60,"zeroclipboard":undefined}],89:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CopyPastePlugin: {get: function() {
@@ -15248,7 +16755,7 @@ Handsontable.hooks.register('modifyCopyableRange');
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"SheetClip":"SheetClip","browser":23,"copyPaste":"copyPaste","helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/number":51,"helpers/unicode":55,"plugins":59}],76:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"SheetClip":"SheetClip","browser":23,"copyPaste":"copyPaste","helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/number":51,"helpers/unicode":55,"plugins":60}],90:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_plugins__,
@@ -15496,6 +17003,9 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   defaultOptions.items.push({
     key: 'borders',
     name: 'Borders',
+    disabled: function() {
+      return this.selection.selectedHeader.corner;
+    },
     submenu: {items: [{
         key: 'borders:top',
         name: function() {
@@ -15509,8 +17019,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'top');
           prepareBorder.call(this, this.getSelectedRange(), 'top', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:right',
         name: function() {
@@ -15524,8 +17033,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'right');
           prepareBorder.call(this, this.getSelectedRange(), 'right', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:bottom',
         name: function() {
@@ -15539,8 +17047,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'bottom');
           prepareBorder.call(this, this.getSelectedRange(), 'bottom', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:left',
         name: function() {
@@ -15554,8 +17061,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         callback: function() {
           var hasBorder = checkSelectionBorders(this, 'left');
           prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
-        },
-        disabled: false
+        }
       }, {
         key: 'borders:no_borders',
         name: 'Remove border(s)',
@@ -15587,7 +17093,7 @@ Handsontable.hooks.add('afterInit', function() {
 Handsontable.CustomBorders = CustomBorders;
 
 //# 
-},{"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"plugins":59}],77:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"browser":23,"plugins":60}],91:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DragToScroll: {get: function() {
@@ -15677,7 +17183,71 @@ Handsontable.hooks.add('afterOnCellCornerMouseDown', function() {
 Handsontable.plugins.DragToScroll = DragToScroll;
 
 //# 
-},{"browser":23,"eventManager":41,"plugins":59}],78:[function(_dereq_,module,exports){
+},{"browser":23,"eventManager":41,"plugins":60}],92:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  freezeColumnItem: {get: function() {
+      return freezeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+function freezeColumnItem(manualColumnFreezePlugin) {
+  return {
+    key: 'freeze_column',
+    name: 'Freeze this column',
+    callback: function() {
+      var selectedColumn = this.getSelectedRange().from.col;
+      manualColumnFreezePlugin.freezeColumn(selectedColumn);
+      this.render();
+      this.view.wt.wtOverlays.adjustElementsSize(true);
+    },
+    hidden: function() {
+      var selection = this.getSelectedRange();
+      var hide = false;
+      if (selection === void 0) {
+        hide = true;
+      } else if ((selection.from.col !== selection.to.col) || (selection.from.col <= this.getSettings().fixedColumnsLeft - 1)) {
+        hide = true;
+      }
+      return hide;
+    }
+  };
+}
+
+//# 
+},{}],93:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  unfreezeColumnItem: {get: function() {
+      return unfreezeColumnItem;
+    }},
+  __esModule: {value: true}
+});
+function unfreezeColumnItem(manualColumnFreezePlugin) {
+  return {
+    key: 'unfreeze_column',
+    name: 'Unfreeze this column',
+    callback: function() {
+      var selectedColumn = this.getSelectedRange().from.col;
+      manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
+      this.render();
+      this.view.wt.wtOverlays.adjustElementsSize(true);
+    },
+    hidden: function() {
+      var selection = this.getSelectedRange();
+      var hide = false;
+      if (selection === void 0) {
+        hide = true;
+      } else if ((selection.from.col !== selection.to.col) || selection.from.col >= this.getSettings().fixedColumnsLeft) {
+        hide = true;
+      }
+      return hide;
+    }
+  };
+}
+
+//# 
+},{}],94:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnFreeze: {get: function() {
@@ -15687,14 +17257,25 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__95_base__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $__contextMenuItem_47_freezeColumn__,
+    $__contextMenuItem_47_unfreezeColumn__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var freezeColumnItem = ($__contextMenuItem_47_freezeColumn__ = _dereq_("contextMenuItem/freezeColumn"), $__contextMenuItem_47_freezeColumn__ && $__contextMenuItem_47_freezeColumn__.__esModule && $__contextMenuItem_47_freezeColumn__ || {default: $__contextMenuItem_47_freezeColumn__}).freezeColumnItem;
+var unfreezeColumnItem = ($__contextMenuItem_47_unfreezeColumn__ = _dereq_("contextMenuItem/unfreezeColumn"), $__contextMenuItem_47_unfreezeColumn__ && $__contextMenuItem_47_unfreezeColumn__.__esModule && $__contextMenuItem_47_unfreezeColumn__ || {default: $__contextMenuItem_47_unfreezeColumn__}).unfreezeColumnItem;
+var privatePool = new WeakMap();
 var ManualColumnFreeze = function ManualColumnFreeze(hotInstance) {
   $traceurRuntime.superConstructor($ManualColumnFreeze).call(this, hotInstance);
-  this.manualColumnMovePlugin = null;
+  privatePool.set(this, {
+    moveByFreeze: false,
+    afterFirstUse: false
+  });
   this.frozenColumnsBasePositions = [];
+  this.manualColumnMovePlugin = void 0;
 };
 var $ManualColumnFreeze = ManualColumnFreeze;
 ($traceurRuntime.createClass)(ManualColumnFreeze, {
@@ -15702,126 +17283,177 @@ var $ManualColumnFreeze = ManualColumnFreeze;
     return !!this.hot.getSettings().manualColumnFreeze;
   },
   enablePlugin: function() {
-    var $__3 = this;
+    var $__6 = this;
     if (this.enabled) {
       return;
     }
-    this.addHook('modifyCol', (function(col) {
-      return $__3.onModifyCol(col);
+    this.addHook('afterContextMenuDefaultOptions', (function(options) {
+      return $__6.addContextMenuEntry(options);
     }));
-    this.addHook('afterContextMenuDefaultOptions', (function(defaultOptions) {
-      return $__3.addContextMenuEntry(defaultOptions);
+    this.addHook('afterInit', (function() {
+      return $__6.onAfterInit();
+    }));
+    this.addHook('beforeColumnMove', (function(rows, target) {
+      return $__6.onBeforeColumnMove(rows, target);
     }));
     $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "enablePlugin").call(this);
   },
-  init: function() {
-    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "init").call(this);
-    this.fixedColumnsCount = this.hot.getSettings().fixedColumnsLeft;
+  disablePlugin: function() {
+    var priv = privatePool.get(this);
+    priv.afterFirstUse = false;
+    priv.moveByFreeze = false;
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "disablePlugin").call(this);
   },
-  getManualColumnMovePlugin: function() {
+  updatePlugin: function() {
+    this.disablePlugin();
+    this.enablePlugin();
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "updatePlugin").call(this);
+  },
+  freezeColumn: function(column) {
+    var priv = privatePool.get(this);
+    var settings = this.hot.getSettings();
+    if (!priv.afterFirstUse) {
+      priv.afterFirstUse = true;
+    }
+    if (settings.fixedColumnsLeft === this.hot.countCols() || column <= settings.fixedColumnsLeft - 1) {
+      return;
+    }
+    priv.moveByFreeze = true;
+    if (column !== this.getMovePlugin().columnsMapper.getValueByIndex(column)) {
+      this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
+    }
+    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
+  },
+  unfreezeColumn: function(column) {
+    var priv = privatePool.get(this);
+    var settings = this.hot.getSettings();
+    if (!priv.afterFirstUse) {
+      priv.afterFirstUse = true;
+    }
+    if (settings.fixedColumnsLeft <= 0 || (column > settings.fixedColumnsLeft - 1)) {
+      return;
+    }
+    var returnCol = this.getBestColumnReturnPosition(column);
+    priv.moveByFreeze = true;
+    settings.fixedColumnsLeft--;
+    this.getMovePlugin().moveColumn(column, returnCol + 1);
+  },
+  getMovePlugin: function() {
     if (!this.manualColumnMovePlugin) {
       this.manualColumnMovePlugin = this.hot.getPlugin('manualColumnMove');
     }
     return this.manualColumnMovePlugin;
   },
-  onModifyCol: function(column) {
-    if (this.getManualColumnMovePlugin().isEnabled()) {
-      return column;
-    }
-    return this.getLogicalColumnIndex(column);
-  },
-  addContextMenuEntry: function(defaultOptions) {
-    var _this = this;
-    defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, {
-      key: 'freeze_column',
-      name: function() {
-        var selectedColumn = _this.hot.getSelected()[1];
-        if (selectedColumn > _this.fixedColumnsCount - 1) {
-          return 'Freeze this column';
-        } else {
-          return 'Unfreeze this column';
-        }
-      },
-      disabled: function() {
-        var selection = _this.hot.getSelected();
-        return selection[1] !== selection[3];
-      },
-      callback: function() {
-        var selectedColumn = _this.hot.getSelected()[1];
-        if (selectedColumn > _this.fixedColumnsCount - 1) {
-          _this.freezeColumn(selectedColumn);
-        } else {
-          _this.unfreezeColumn(selectedColumn);
-        }
-      }
-    });
-  },
-  freezeColumn: function(column) {
-    if (column <= this.fixedColumnsCount - 1) {
-      return;
-    }
-    if (column !== this.getLogicalColumnIndex(column)) {
-      this.frozenColumnsBasePositions[this.fixedColumnsCount] = column;
-    }
-    this.changeColumnPositions(column, this.fixedColumnsCount);
-    this.addFixedColumn();
-    this.hot.view.wt.wtOverlays.leftOverlay.refresh();
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
-  },
-  unfreezeColumn: function(column) {
-    if (column > this.fixedColumnsCount - 1) {
-      return;
-    }
-    var returnCol = this.getBestColumnReturnPosition(column);
-    this.changeColumnPositions(column, returnCol);
-    this.removeFixedColumn();
-    this.hot.view.wt.wtOverlays.leftOverlay.refresh();
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
-  },
-  addFixedColumn: function() {
-    this.hot.updateSettings({fixedColumnsLeft: this.fixedColumnsCount + 1});
-    this.fixedColumnsCount++;
-  },
-  removeFixedColumn: function() {
-    this.hot.updateSettings({fixedColumnsLeft: this.fixedColumnsCount - 1});
-    this.fixedColumnsCount--;
-  },
   getBestColumnReturnPosition: function(column) {
-    var i = this.fixedColumnsCount;
-    var j = this.getLogicalColumnIndex(i);
+    var movePlugin = this.getMovePlugin();
+    var settings = this.hot.getSettings();
+    var i = settings.fixedColumnsLeft;
+    var j = movePlugin.columnsMapper.getValueByIndex(i);
     var initialCol;
     if (this.frozenColumnsBasePositions[column] == null) {
-      initialCol = this.getLogicalColumnIndex(column);
+      initialCol = movePlugin.columnsMapper.getValueByIndex(column);
       while (j < initialCol) {
         i++;
-        j = this.getLogicalColumnIndex(i);
+        j = movePlugin.columnsMapper.getValueByIndex(i);
       }
     } else {
       initialCol = this.frozenColumnsBasePositions[column];
       this.frozenColumnsBasePositions[column] = void 0;
       while (j <= initialCol) {
         i++;
-        j = this.getLogicalColumnIndex(i);
+        j = movePlugin.columnsMapper.getValueByIndex(i);
       }
       i = j;
     }
     return i - 1;
   },
-  getVisibleColumnIndex: function(column) {
-    return this.getManualColumnMovePlugin().getVisibleColumnIndex(column);
+  addContextMenuEntry: function(options) {
+    options.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, freezeColumnItem(this), unfreezeColumnItem(this));
   },
-  getLogicalColumnIndex: function(column) {
-    return this.getManualColumnMovePlugin().getLogicalColumnIndex(column);
+  onAfterInit: function() {
+    if (!this.getMovePlugin().isEnabled()) {
+      this.getMovePlugin().enablePlugin();
+    }
   },
-  changeColumnPositions: function(sourceColumn, destinationColumn) {
-    this.getManualColumnMovePlugin().changeColumnPositions(sourceColumn, destinationColumn);
+  onBeforeColumnMove: function(rows, target) {
+    var priv = privatePool.get(this);
+    if (priv.afterFirstUse && !priv.moveByFreeze) {
+      var frozenLen = this.hot.getSettings().fixedColumnsLeft;
+      var disallowMoving = target < frozenLen;
+      if (!disallowMoving) {
+        arrayEach(rows, (function(value, index, array) {
+          if (value < frozenLen) {
+            disallowMoving = true;
+            return false;
+          }
+        }));
+      }
+      if (disallowMoving) {
+        return false;
+      }
+    }
+    if (priv.moveByFreeze) {
+      priv.moveByFreeze = false;
+    }
+  },
+  destroy: function() {
+    $traceurRuntime.superGet(this, $ManualColumnFreeze.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('manualColumnFreeze', ManualColumnFreeze);
 
 //# 
-},{"_base":60,"browser":23,"plugins":59}],79:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"contextMenuItem/freezeColumn":92,"contextMenuItem/unfreezeColumn":93,"helpers/array":42,"plugins":60}],95:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  ColumnsMapper: {get: function() {
+      return ColumnsMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_mixins_47_arrayMapper__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+var arrayMapper = ($___46__46__47__46__46__47_mixins_47_arrayMapper__ = _dereq_("mixins/arrayMapper"), $___46__46__47__46__46__47_mixins_47_arrayMapper__ && $___46__46__47__46__46__47_mixins_47_arrayMapper__.__esModule && $___46__46__47__46__46__47_mixins_47_arrayMapper__ || {default: $___46__46__47__46__46__47_mixins_47_arrayMapper__}).arrayMapper;
+var arrayFilter = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayFilter;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
+var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
+var ColumnsMapper = function ColumnsMapper(manualColumnMove) {
+  this.manualColumnMove = manualColumnMove;
+};
+($traceurRuntime.createClass)(ColumnsMapper, {
+  createMap: function(length) {
+    var $__5 = this;
+    var originLength = length === void 0 ? this._arrayMap.length : length;
+    this._arrayMap.length = 0;
+    rangeEach(originLength - 1, (function(itemIndex) {
+      $__5._arrayMap[itemIndex] = itemIndex;
+    }));
+  },
+  destroy: function() {
+    this._arrayMap = null;
+  },
+  moveColumn: function(from, to) {
+    var indexToMove = this._arrayMap[from];
+    this._arrayMap[from] = null;
+    this._arrayMap.splice(to, 0, indexToMove);
+  },
+  clearNull: function() {
+    this._arrayMap = arrayFilter(this._arrayMap, (function(i) {
+      return i !== null;
+    }));
+  }
+}, {});
+mixin(ColumnsMapper, arrayMapper);
+;
+Handsontable.utils.ManualColumnMoveColumnsMapper = ColumnsMapper;
+
+//# 
+},{"browser":23,"helpers/array":42,"helpers/number":51,"helpers/object":52,"mixins/arrayMapper":56}],96:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnMove: {get: function() {
@@ -15831,50 +17463,52 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__95_base_46_js__,
     $___46__46__47__46__46__47_browser__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_number__,
     $___46__46__47__46__46__47_eventManager__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_event__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $__columnsMapper__,
+    $__ui_47_backlight__,
+    $__ui_47_guideline__;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__2.addClass,
-    hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
-var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__3.arrayEach,
-    arrayMap = $__3.arrayMap;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__3.addClass,
+    removeClass = $__3.removeClass,
+    offset = $__3.offset;
 var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__6 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__6.pageX,
-    pageY = $__6.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var ColumnsMapper = ($__columnsMapper__ = _dereq_("columnsMapper"), $__columnsMapper__ && $__columnsMapper__.__esModule && $__columnsMapper__ || {default: $__columnsMapper__}).ColumnsMapper;
+var BacklightUI = ($__ui_47_backlight__ = _dereq_("ui/backlight"), $__ui_47_backlight__ && $__ui_47_backlight__.__esModule && $__ui_47_backlight__ || {default: $__ui_47_backlight__}).BacklightUI;
+var GuidelineUI = ($__ui_47_guideline__ = _dereq_("ui/guideline"), $__ui_47_guideline__ && $__ui_47_guideline__.__esModule && $__ui_47_guideline__ || {default: $__ui_47_guideline__}).GuidelineUI;
 var privatePool = new WeakMap();
+var CSS_PLUGIN = 'ht__manualColumnMove';
+var CSS_SHOW_UI = 'show-ui';
+var CSS_ON_MOVING = 'on-moving--columns';
+var CSS_AFTER_SELECTION = 'after-selection--columns';
 var ManualColumnMove = function ManualColumnMove(hotInstance) {
-  var $__8 = this;
   $traceurRuntime.superConstructor($ManualColumnMove).call(this, hotInstance);
   privatePool.set(this, {
-    guideClassName: 'manualColumnMoverGuide',
-    handleClassName: 'manualColumnMover',
-    startOffset: null,
-    pressed: null,
-    startCol: null,
-    endCol: null,
-    currentCol: null,
-    startX: null,
-    startY: null
+    columnsToMove: [],
+    countCols: 0,
+    fixedColumns: 0,
+    pressed: void 0,
+    disallowMoving: void 0,
+    target: {
+      eventPageX: void 0,
+      coords: void 0,
+      TD: void 0,
+      col: void 0
+    }
   });
-  this.guideElement = null;
-  this.handleElement = null;
-  this.currentTH = null;
-  this.columnPositions = [];
+  this.removedColumns = [];
+  this.columnsMapper = new ColumnsMapper(this);
   this.eventManager = eventManagerObject(this);
-  this.addHook('init', (function() {
-    return $__8.onInit();
-  }));
+  this.backlight = new BacklightUI(hotInstance);
+  this.guideline = new GuidelineUI(hotInstance);
 };
 var $ManualColumnMove = ManualColumnMove;
 ($traceurRuntime.createClass)(ManualColumnMove, {
@@ -15882,285 +17516,515 @@ var $ManualColumnMove = ManualColumnMove;
     return !!this.hot.getSettings().manualColumnMove;
   },
   enablePlugin: function() {
-    var $__8 = this;
-    var priv = privatePool.get(this);
-    var initialSettings = this.hot.getSettings().manualColumnMove;
-    var loadedManualColumnPositions = this.loadManualColumnPositions();
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-    this.addHook('modifyCol', (function(col) {
-      return $__8.onModifyCol(col);
+    var $__10 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('beforeOnCellMouseDown', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations);
     }));
-    this.addHook('unmodifyCol', (function(col) {
-      return $__8.onUnmodifyCol(col);
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('afterScrollVertically', (function() {
+      return $__10.onAfterScrollVertically();
+    }));
+    this.addHook('modifyCol', (function(row, source) {
+      return $__10.onModifyCol(row, source);
+    }));
+    this.addHook('beforeRemoveCol', (function(index, amount) {
+      return $__10.onBeforeRemoveCol(index, amount);
     }));
     this.addHook('afterRemoveCol', (function(index, amount) {
-      return $__8.onAfterRemoveCol(index, amount);
+      return $__10.onAfterRemoveCol(index, amount);
     }));
     this.addHook('afterCreateCol', (function(index, amount) {
-      return $__8.onAfterCreateCol(index, amount);
+      return $__10.onAfterCreateCol(index, amount);
+    }));
+    this.addHook('unmodifyCol', (function(column) {
+      return $__10.onUnmodifyCol(column);
     }));
     this.registerEvents();
-    if (typeof loadedManualColumnPositions != 'undefined') {
-      this.columnPositions = loadedManualColumnPositions;
-    } else if (Array.isArray(initialSettings)) {
-      this.columnPositions = initialSettings;
-    } else if (!initialSettings || this.columnPositions === void 0) {
-      this.columnPositions = [];
-    }
+    addClass(this.hot.rootElement, CSS_PLUGIN);
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "enablePlugin").call(this);
   },
   updatePlugin: function() {
     this.disablePlugin();
     this.enablePlugin();
+    this.onAfterPluginsInitialized();
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "updatePlugin").call(this);
   },
   disablePlugin: function() {
-    var pluginSetting = this.hot.getSettings().manualColumnMove;
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.columnPositions = [];
+    var pluginSettings = this.hot.getSettings().manualColumnMove;
+    if (Array.isArray(pluginSettings)) {
+      this.columnsMapper.clearMap();
     }
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
+    this.unregisterEvents();
+    this.backlight.destroy();
+    this.guideline.destroy();
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "disablePlugin").call(this);
   },
+  moveColumn: function(column, target) {
+    this.moveColumns([column], target);
+  },
+  moveColumns: function(columns, target) {
+    var $__10 = this;
+    var priv = privatePool.get(this);
+    var beforeColumnHook = this.hot.runHooks('beforeColumnMove', columns, target);
+    priv.disallowMoving = !beforeColumnHook;
+    if (beforeColumnHook !== false) {
+      arrayEach(columns, (function(column, index, array) {
+        array[index] = $__10.columnsMapper.getValueByIndex(column);
+      }));
+      arrayEach(columns, (function(column, index) {
+        var actualPosition = $__10.columnsMapper.getIndexByValue(column);
+        if (actualPosition !== target) {
+          $__10.columnsMapper.moveColumn(actualPosition, target + index);
+        }
+      }));
+      this.columnsMapper.clearNull();
+    }
+    this.hot.runHooks('afterColumnMove', columns, target);
+  },
+  changeSelection: function(startColumn, endColumn) {
+    var selection = this.hot.selection;
+    var lastRowIndex = this.hot.countRows() - 1;
+    selection.setRangeStartOnly(new WalkontableCellCoords(0, startColumn));
+    selection.setRangeEnd(new WalkontableCellCoords(lastRowIndex, endColumn), false);
+  },
+  getColumnsWidth: function(from, to) {
+    var width = 0;
+    for (var i = from; i < to; i++) {
+      var columnWidth = 0;
+      if (i < 0) {
+        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+      } else {
+        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      }
+      width += columnWidth;
+    }
+    return width;
+  },
+  initialSettings: function() {
+    var pluginSettings = this.hot.getSettings().manualColumnMove;
+    if (Array.isArray(pluginSettings)) {
+      this.moveColumns(pluginSettings, 0);
+    } else if (pluginSettings !== void 0) {
+      var persistentState = this.persistentStateLoad();
+      if (persistentState.length) {
+        this.moveColumns(persistentState, 0);
+      }
+    }
+  },
+  isFixedColumnsLeft: function(column) {
+    return column < this.hot.getSettings().fixedColumnsLeft;
+  },
+  persistentStateSave: function() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+  },
+  persistentStateLoad: function() {
+    var storedState = {};
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+    return storedState.value ? storedState.value : [];
+  },
+  prepareColumnsToMoving: function(start, end) {
+    var selectedColumns = [];
+    rangeEach(start, end, (function(i) {
+      selectedColumns.push(i);
+    }));
+    return selectedColumns;
+  },
+  refreshPositions: function() {
+    var priv = privatePool.get(this);
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
+    var wtTable = this.hot.view.wt.wtTable;
+    var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    var scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
+    var tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
+    var mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
+    var hiderWidth = wtTable.hider.offsetWidth;
+    var tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
+    var backlightElemMarginLeft = this.backlight.getOffset().left;
+    var backlightElemWidth = this.backlight.getSize().width;
+    var rowHeaderWidth = 0;
+    if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
+      if (priv.coordsColumn < priv.countCols) {
+        priv.coordsColumn++;
+      }
+    }
+    if (priv.hasRowHeaders) {
+      rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
+    }
+    if (this.isFixedColumnsLeft(priv.coordsColumn)) {
+      tdOffsetLeft += scrollLeft;
+    }
+    tdOffsetLeft += rowHeaderWidth;
+    if (priv.coordsColumn < 0) {
+      if (priv.fixedColumns > 0) {
+        priv.target.col = 0;
+      } else {
+        priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      }
+    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
+      var newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
+      priv.target.col = newCoordsCol + 1;
+      tdOffsetLeft += priv.target.TD.offsetWidth;
+      if (priv.target.col > lastVisible) {
+        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
+      }
+    } else {
+      priv.target.col = priv.coordsColumn;
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+        this.hot.scrollViewportTo(void 0, firstVisible - 1);
+      }
+    }
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      this.hot.scrollViewportTo(void 0, firstVisible - 1);
+    }
+    var backlightLeft = mouseOffsetLeft;
+    var guidelineLeft = tdOffsetLeft;
+    if (mouseOffsetLeft + backlightElemWidth + backlightElemMarginLeft >= hiderWidth) {
+      backlightLeft = hiderWidth - backlightElemWidth - backlightElemMarginLeft;
+    } else if (mouseOffsetLeft + backlightElemMarginLeft < tbodyOffsetLeft + rowHeaderWidth) {
+      backlightLeft = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginLeft);
+    }
+    if (tdOffsetLeft >= hiderWidth - 1) {
+      guidelineLeft = hiderWidth - 1;
+    } else if (guidelineLeft === 0) {
+      guidelineLeft = 1;
+    } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
+      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
+    }
+    this.backlight.setPosition(null, backlightLeft);
+    this.guideline.setPosition(null, guidelineLeft);
+  },
   registerEvents: function() {
-    var $__8 = this;
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(event) {
-      return $__8.onMouseOver(event);
+    var $__10 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__10.onMouseMove(event);
     }));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(event) {
-      return $__8.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(window, 'mousemove', (function(event) {
-      return $__8.onMouseMove(event);
-    }));
-    this.eventManager.addEventListener(window, 'mouseup', (function(event) {
-      return $__8.onMouseUp(event);
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__10.onMouseUp();
     }));
   },
   unregisterEvents: function() {
     this.eventManager.clear();
   },
-  saveManualColumnPositions: function() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnPositions', this.columnPositions);
-  },
-  loadManualColumnPositions: function() {
-    var storedState = {};
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnPositions', storedState);
-    return storedState.value;
-  },
-  completeSettingsArray: function() {
-    var $__8 = this;
-    var columnCount = this.hot.countCols();
-    if (this.columnPositions.length === columnCount) {
+  onBeforeOnCellMouseDown: function(event, coords, TD, blockCalculations) {
+    var wtTable = this.hot.view.wt.wtTable;
+    var isHeaderSelection = this.hot.selection.selectedHeader.cols;
+    var selection = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    var isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
+      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
       return;
     }
-    rangeEach(0, columnCount - 1, (function(i) {
-      if ($__8.columnPositions.indexOf(i) === -1) {
-        $__8.columnPositions.push(i);
-      }
-    }));
-  },
-  setupHandlePosition: function(TH) {
-    var priv = privatePool.get(this);
-    var col = this.hot.view.wt.wtTable.getCoords(TH).col;
-    this.currentTH = TH;
-    if (col >= 0) {
-      var box = this.currentTH.getBoundingClientRect();
-      priv.currentCol = col;
-      priv.startOffset = box.left;
-      this.handleElement.style.top = box.top + 'px';
-      this.handleElement.style.left = priv.startOffset + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    var guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    var backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
-  },
-  refreshHandlePosition: function(TH, delta) {
-    var box = TH.getBoundingClientRect();
-    var handleWidth = 6;
-    if (delta > 0) {
-      this.handleElement.style.left = (box.left + box.width - handleWidth) + 'px';
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.col, to.col);
+    var end = Math.max(from.col, to.col);
+    if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
+      blockCalculations.column = true;
+      priv.pressed = true;
+      priv.target.eventPageX = event.pageX;
+      priv.coordsColumn = coords.col;
+      priv.target.TD = TD;
+      priv.target.col = coords.col;
+      priv.columnsToMove = this.prepareColumnsToMoving(start, end);
+      priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
+      priv.countCols = this.hot.countCols();
+      priv.fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+      priv.rootElementOffset = offset(this.hot.rootElement).left;
+      var countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
+      var topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+      var fixedColumns = coords.col < priv.fixedColumns;
+      var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+      var wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
+      var mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+      var leftOffset = Math.abs(this.getColumnsWidth(start, coords.col) + mouseOffset);
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
+      this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
+      this.backlight.setOffset(null, leftOffset * -1);
+      addClass(this.hot.rootElement, CSS_ON_MOVING);
     } else {
-      this.handleElement.style.left = box.left + 'px';
-    }
-  },
-  setupGuidePosition: function() {
-    var box = this.currentTH.getBoundingClientRect();
-    var priv = privatePool.get(this);
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-    this.guideElement.style.width = box.width + 'px';
-    this.guideElement.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
-    this.guideElement.style.top = this.handleElement.style.top;
-    this.guideElement.style.left = priv.startOffset + 'px';
-    this.hot.rootElement.appendChild(this.guideElement);
-  },
-  refreshGuidePosition: function(diff) {
-    var priv = privatePool.get(this);
-    this.guideElement.style.left = priv.startOffset + diff + 'px';
-  },
-  hideHandleAndGuide: function() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  },
-  checkColumnHeader: function(element) {
-    if (element != this.hot.rootElement) {
-      var parent = element.parentNode;
-      if (parent.tagName === 'THEAD') {
-        return true;
-      }
-      return this.checkColumnHeader(parent);
-    }
-    return false;
-  },
-  createPositionData: function(len) {
-    var positionArr = this.columnPositions;
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (function(i) {
-        positionArr[i] = i;
-      }));
-    }
-  },
-  getTHFromTargetElement: function(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
-      }
-    }
-    return null;
-  },
-  changeColumnPositions: function(columnIndex, destinationIndex) {
-    var maxLength = Math.max(columnIndex, destinationIndex);
-    if (maxLength > this.columnPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-    this.columnPositions.splice(destinationIndex, 0, this.columnPositions.splice(columnIndex, 1)[0]);
-  },
-  getVisibleColumnIndex: function(column) {
-    if (column > this.columnPositions.length - 1) {
-      this.createPositionData(column);
-    }
-    return this.columnPositions.indexOf(column);
-  },
-  getLogicalColumnIndex: function(column) {
-    return this.columnPositions[column];
-  },
-  onMouseOver: function(event) {
-    var priv = privatePool.get(this);
-    if (this.checkColumnHeader(event.target)) {
-      var th = this.getTHFromTargetElement(event.target);
-      if (th) {
-        if (priv.pressed) {
-          var col = this.hot.view.wt.wtTable.getCoords(th).col;
-          if (col >= 0) {
-            priv.endCol = col;
-            this.refreshHandlePosition(th, priv.endCol - priv.startCol);
-          }
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  },
-  onMouseDown: function(event) {
-    var priv = privatePool.get(this);
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startX = pageX(event);
-      this.setupGuidePosition();
-      priv.pressed = this.hot;
-      priv.startCol = priv.currentCol;
-      priv.endCol = priv.currentCol;
+      removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+      priv.pressed = false;
+      priv.columnsToMove.length = 0;
     }
   },
   onMouseMove: function(event) {
     var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageX(event) - priv.startX);
-    }
-  },
-  onMouseUp: function(event) {
-    var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-      this.createPositionData(this.hot.countCols());
-      this.changeColumnPositions(priv.startCol, priv.endCol);
-      Handsontable.hooks.run(this.hot, 'beforeColumnMove', priv.startCol, priv.endCol);
-      this.hot.forceFullRender = true;
-      this.hot.view.render();
-      this.saveManualColumnPositions();
-      Handsontable.hooks.run(this.hot, 'afterColumnMove', priv.startCol, priv.endCol);
-      this.setupHandlePosition(this.currentTH);
-    }
-  },
-  onModifyCol: function(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
-    return this.getLogicalColumnIndex(col);
-  },
-  onUnmodifyCol: function(col) {
-    if (typeof this.getVisibleColumnIndex(col) == -1) {
-      this.createPositionData(col + 1);
-    }
-    return this.getVisibleColumnIndex(col);
-  },
-  onAfterRemoveCol: function(index, amount) {
-    if (!this.isEnabled()) {
+    if (!priv.pressed) {
       return;
     }
-    var rmindx;
-    var colpos = this.columnPositions;
-    rmindx = colpos.splice(index, amount);
-    colpos = arrayMap(colpos, function(value, index) {
-      var i,
-          newpos = value;
-      arrayEach(rmindx, (function(elem, index) {
-        if (value > elem) {
-          newpos--;
-        }
-      }));
-      return newpos;
-    });
-    this.columnPositions = colpos;
+    if (event.realTarget === this.backlight.element) {
+      var width = this.backlight.getSize().width;
+      this.backlight.setSize(0);
+      setTimeout(function() {
+        this.backlight.setPosition(width);
+      });
+    }
+    priv.target.eventPageX = event.pageX;
+    this.refreshPositions();
+  },
+  onBeforeOnCellMouseOver: function(event, coords, TD, blockCalculations) {
+    var selectedRange = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selectedRange || !priv.pressed) {
+      return;
+    }
+    if (priv.columnsToMove.indexOf(coords.col) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOW_UI);
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOW_UI);
+    }
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.coordsColumn = coords.col;
+    priv.target.TD = TD;
+  },
+  onMouseUp: function() {
+    var priv = privatePool.get(this);
+    priv.coordsColumn = void 0;
+    priv.pressed = false;
+    priv.backlightWidth = 0;
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    if (this.hot.selection.selectedHeader.cols) {
+      addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+    }
+    if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {
+      return;
+    }
+    this.moveColumns(priv.columnsToMove, priv.target.col);
+    this.persistentStateSave();
+    this.hot.render();
+    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    if (!priv.disallowMoving) {
+      var selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
+      var selectionEnd = this.columnsMapper.getIndexByValue(priv.columnsToMove[priv.columnsToMove.length - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
+    priv.columnsToMove.length = 0;
+  },
+  onAfterScrollVertically: function() {
+    var wtTable = this.hot.view.wt.wtTable;
+    var headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
+    var scrollTop = wtTable.holder.scrollTop;
+    var posTop = headerHeight + scrollTop;
+    this.backlight.setPosition(posTop);
+    this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
   },
   onAfterCreateCol: function(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-    var colpos = this.columnPositions;
-    if (!colpos.length) {
-      return;
-    }
-    var addindx = [];
-    rangeEach(0, amount - 1, (function(i) {
-      addindx.push(index + i);
-    }));
-    if (index >= colpos.length) {
-      colpos.concat(addindx);
-    } else {
-      colpos = arrayMap(colpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-      colpos.splice.apply(colpos, [index, 0].concat(addindx));
-    }
-    this.columnPositions = colpos;
+    this.columnsMapper.shiftItems(index, amount);
   },
-  onInit: function() {
-    this.completeSettingsArray();
+  onBeforeRemoveCol: function(index, amount) {
+    var $__10 = this;
+    this.removedColumns.length = 0;
+    if (index !== false) {
+      rangeEach(index, index + amount - 1, (function(removedIndex) {
+        $__10.removedColumns.push($__10.hot.runHooks('modifyCol', removedIndex, $__10.pluginName));
+      }));
+    }
+  },
+  onAfterRemoveCol: function(index, amount) {
+    this.columnsMapper.unshiftItems(this.removedColumns);
+  },
+  onModifyCol: function(column, source) {
+    if (source !== this.pluginName) {
+      var columnInMapper = this.columnsMapper.getValueByIndex(column);
+      column = columnInMapper === null ? column : columnInMapper;
+    }
+    return column;
+  },
+  onUnmodifyCol: function(column) {
+    var indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+    return column;
+  },
+  onAfterPluginsInitialized: function() {
+    var countCols = this.hot.countCols();
+    var columnsMapperLen = this.columnsMapper._arrayMap.length;
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+    } else if (columnsMapperLen < countCols) {
+      var diff = countCols - columnsMapperLen;
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+    } else if (columnsMapperLen > countCols) {
+      var maxIndex = countCols - 1;
+      var columnsToRemove = [];
+      arrayEach(this.columnsMapper._arrayMap, (function(value, index, array) {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      }));
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
+  },
+  destroy: function() {
+    this.backlight.destroy();
+    this.guideline.destroy();
+    $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
-registerPlugin('manualColumnMove', ManualColumnMove);
+registerPlugin('ManualColumnMove', ManualColumnMove);
 Handsontable.hooks.register('beforeColumnMove');
 Handsontable.hooks.register('afterColumnMove');
 Handsontable.hooks.register('unmodifyCol');
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],80:[function(_dereq_,module,exports){
+},{"_base.js":61,"browser":23,"columnsMapper":95,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/number":51,"plugins":60,"ui/backlight":98,"ui/guideline":99}],97:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BaseUI: {get: function() {
+      return BaseUI;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47__46__46__47_helpers_47_number__;
+var isNumeric = ($___46__46__47__46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_number__}).isNumeric;
+var STATE_INITIALIZED = 0;
+var STATE_BUILT = 1;
+var STATE_APPENDED = 2;
+var UNIT = 'px';
+var BaseUI = function BaseUI(hotInstance) {
+  this.hot = hotInstance;
+  this._element = null;
+  this.state = STATE_INITIALIZED;
+};
+($traceurRuntime.createClass)(BaseUI, {
+  appendTo: function(wrapper) {
+    wrapper.appendChild(this._element);
+    this.state = STATE_APPENDED;
+  },
+  build: function() {
+    this._element = document.createElement('div');
+    this.state = STATE_BUILT;
+  },
+  destroy: function() {
+    if (this.isAppended()) {
+      this._element.parentElement.removeChild(this._element);
+    }
+    this._element = null;
+    this.state = STATE_INITIALIZED;
+  },
+  isAppended: function() {
+    return this.state === STATE_APPENDED;
+  },
+  isBuilt: function() {
+    return this.state >= STATE_BUILT;
+  },
+  setPosition: function(top, left) {
+    if (isNumeric(top)) {
+      this._element.style.top = top + UNIT;
+    }
+    if (isNumeric(left)) {
+      this._element.style.left = left + UNIT;
+    }
+  },
+  getPosition: function() {
+    return {
+      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+    };
+  },
+  setSize: function(width, height) {
+    if (isNumeric(width)) {
+      this._element.style.width = width + UNIT;
+    }
+    if (isNumeric(height)) {
+      this._element.style.height = height + UNIT;
+    }
+  },
+  getSize: function() {
+    return {
+      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+    };
+  },
+  setOffset: function(top, left) {
+    if (isNumeric(top)) {
+      this._element.style.marginTop = top + UNIT;
+    }
+    if (isNumeric(left)) {
+      this._element.style.marginLeft = left + UNIT;
+    }
+  },
+  getOffset: function() {
+    return {
+      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+    };
+  }
+}, {});
+;
+
+//# 
+},{"helpers/number":51}],98:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BacklightUI: {get: function() {
+      return BacklightUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
+var BacklightUI = function BacklightUI(hotInstance) {
+  $traceurRuntime.superConstructor($BacklightUI).call(this, hotInstance);
+};
+var $BacklightUI = BacklightUI;
+($traceurRuntime.createClass)(BacklightUI, {build: function() {
+    $traceurRuntime.superGet(this, $BacklightUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":97,"helpers/dom/element":46}],99:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  GuidelineUI: {get: function() {
+      return GuidelineUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
+var GuidelineUI = function GuidelineUI(hotInstance) {
+  $traceurRuntime.superConstructor($GuidelineUI).call(this, hotInstance);
+};
+var $GuidelineUI = GuidelineUI;
+($traceurRuntime.createClass)(GuidelineUI, {build: function() {
+    $traceurRuntime.superGet(this, $GuidelineUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":97,"helpers/dom/element":46}],100:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualColumnResize: {get: function() {
@@ -16181,7 +18045,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerHeight = $__2.outerHeight;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16228,6 +18093,9 @@ var $ManualColumnResize = ManualColumnResize;
     this.addHook('beforeStretchingColumnWidth', (function(stretchedWidth, column) {
       return $__8.onBeforeStretchingColumnWidth(stretchedWidth, column);
     }));
+    this.addHook('beforeColumnResize', (function(currentColumn, newSize, isDoubleClick) {
+      return $__8.onBeforeColumnResize(currentColumn, newSize, isDoubleClick);
+    }));
     if (typeof loadedManualColumnWidths != 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
@@ -16266,6 +18134,7 @@ var $ManualColumnResize = ManualColumnResize;
     }
     this.currentTH = TH;
     var col = this.hot.view.wt.wtTable.getCoords(TH).col;
+    var headerHeight = outerHeight(this.currentTH);
     if (col >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentCol = col;
@@ -16294,6 +18163,7 @@ var $ManualColumnResize = ManualColumnResize;
       this.startWidth = parseInt(box.width, 10);
       this.handle.style.top = box.top + 'px';
       this.handle.style.left = this.startOffset + this.startWidth + 'px';
+      this.handle.style.height = headerHeight + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16301,11 +18171,14 @@ var $ManualColumnResize = ManualColumnResize;
     this.handle.style.left = this.startOffset + this.currentWidth + 'px';
   },
   setupGuidePosition: function() {
+    var handleHeight = parseInt(outerHeight(this.handle), 10);
+    var handleBottomPosition = parseInt(this.handle.style.top, 10) + handleHeight;
+    var maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
-    this.guide.style.top = this.handle.style.top;
+    this.guide.style.top = handleBottomPosition + 'px';
     this.guide.style.left = this.handle.style.left;
-    this.guide.style.height = this.hot.view.maximumVisibleElementHeight(0) + 'px';
+    this.guide.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -16489,13 +18362,16 @@ var $ManualColumnResize = ManualColumnResize;
       width = stretchedWidth;
     }
     return width;
+  },
+  onBeforeColumnResize: function() {
+    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('manualColumnResize', ManualColumnResize);
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],81:[function(_dereq_,module,exports){
+},{"_base.js":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":60}],101:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowMove: {get: function() {
@@ -16505,46 +18381,50 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__95_base_46_js__,
     $___46__46__47__46__46__47_browser__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_number__,
     $___46__46__47__46__46__47_eventManager__,
-    $___46__46__47__46__46__47_helpers_47_dom_47_event__,
-    $___46__46__47__46__46__47_plugins__;
+    $___46__46__47__46__46__47_plugins__,
+    $__rowsMapper__,
+    $__ui_47_backlight__,
+    $__ui_47_guideline__;
 var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46__46__47__95_base_46_js__ && $___46__46__47__95_base_46_js__.__esModule && $___46__46__47__95_base_46_js__ || {default: $___46__46__47__95_base_46_js__}).default;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__2.addClass,
-    hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
-var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__3.arrayEach,
-    arrayMap = $__3.arrayMap;
+var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__3.addClass,
+    removeClass = $__3.removeClass,
+    offset = $__3.offset;
 var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
-var $__6 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
-    pageX = $__6.pageX,
-    pageY = $__6.pageY;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
+var RowsMapper = ($__rowsMapper__ = _dereq_("rowsMapper"), $__rowsMapper__ && $__rowsMapper__.__esModule && $__rowsMapper__ || {default: $__rowsMapper__}).RowsMapper;
+var BacklightUI = ($__ui_47_backlight__ = _dereq_("ui/backlight"), $__ui_47_backlight__ && $__ui_47_backlight__.__esModule && $__ui_47_backlight__ || {default: $__ui_47_backlight__}).BacklightUI;
+var GuidelineUI = ($__ui_47_guideline__ = _dereq_("ui/guideline"), $__ui_47_guideline__ && $__ui_47_guideline__.__esModule && $__ui_47_guideline__ || {default: $__ui_47_guideline__}).GuidelineUI;
 var privatePool = new WeakMap();
+var CSS_PLUGIN = 'ht__manualRowMove';
+var CSS_SHOW_UI = 'show-ui';
+var CSS_ON_MOVING = 'on-moving--rows';
+var CSS_AFTER_SELECTION = 'after-selection--rows';
 var ManualRowMove = function ManualRowMove(hotInstance) {
   $traceurRuntime.superConstructor($ManualRowMove).call(this, hotInstance);
   privatePool.set(this, {
-    guideClassName: 'manualRowMoverGuide',
-    handleClassName: 'manualRowMover',
-    startOffset: null,
-    pressed: null,
-    startRow: null,
-    endRow: null,
-    currentRow: null,
-    startX: null,
-    startY: null
+    rowsToMove: [],
+    pressed: void 0,
+    disallowMoving: void 0,
+    target: {
+      eventPageY: void 0,
+      coords: void 0,
+      TD: void 0,
+      row: void 0
+    }
   });
-  this.guideElement = null;
-  this.handleElement = null;
-  this.currentTH = null;
-  this.rowPositions = [];
+  this.removedRows = [];
+  this.rowsMapper = new RowsMapper(this);
   this.eventManager = eventManagerObject(this);
+  this.backlight = new BacklightUI(hotInstance);
+  this.guideline = new GuidelineUI(hotInstance);
 };
 var $ManualRowMove = ManualRowMove;
 ($traceurRuntime.createClass)(ManualRowMove, {
@@ -16552,274 +18432,538 @@ var $ManualRowMove = ManualRowMove;
     return !!this.hot.getSettings().manualRowMove;
   },
   enablePlugin: function() {
-    var $__8 = this;
-    var priv = privatePool.get(this);
-    var initialSettings = this.hot.getSettings().manualRowMove;
-    var loadedManualRowPositions = this.loadManualRowPositions();
-    this.handleElement = document.createElement('DIV');
-    this.handleElement.className = priv.handleClassName;
-    this.guideElement = document.createElement('DIV');
-    this.guideElement.className = priv.guideClassName;
-    this.addHook('modifyRow', (function(row) {
-      return $__8.onModifyRow(row);
+    var $__10 = this;
+    if (this.enabled) {
+      return;
+    }
+    this.addHook('beforeOnCellMouseDown', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('beforeOnCellMouseOver', (function(event, coords, TD, blockCalculations) {
+      return $__10.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations);
+    }));
+    this.addHook('afterScrollHorizontally', (function() {
+      return $__10.onAfterScrollHorizontally();
+    }));
+    this.addHook('modifyRow', (function(row, source) {
+      return $__10.onModifyRow(row, source);
+    }));
+    this.addHook('beforeRemoveRow', (function(index, amount) {
+      return $__10.onBeforeRemoveRow(index, amount);
     }));
     this.addHook('afterRemoveRow', (function(index, amount) {
-      return $__8.onAfterRemoveRow(index, amount);
+      return $__10.onAfterRemoveRow(index, amount);
     }));
     this.addHook('afterCreateRow', (function(index, amount) {
-      return $__8.onAfterCreateRow(index, amount);
+      return $__10.onAfterCreateRow(index, amount);
     }));
-    this.addHook('init', (function() {
-      return $__8.onInit();
+    this.addHook('beforeColumnSort', (function(column, order) {
+      return $__10.onBeforeColumnSort(column, order);
+    }));
+    this.addHook('unmodifyRow', (function(row) {
+      return $__10.onUnmodifyRow(row);
     }));
     this.registerEvents();
-    if (typeof loadedManualRowPositions != 'undefined') {
-      this.rowPositions = loadedManualRowPositions;
-    } else if (Array.isArray(initialSettings)) {
-      this.rowPositions = initialSettings;
-    } else if (!initialSettings || this.rowPositions === void 0) {
-      this.rowPositions = [];
-    }
+    addClass(this.hot.rootElement, CSS_PLUGIN);
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "enablePlugin").call(this);
   },
   updatePlugin: function() {
     this.disablePlugin();
     this.enablePlugin();
+    this.onAfterPluginsInitialized();
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "updatePlugin").call(this);
   },
   disablePlugin: function() {
-    var pluginSetting = this.hot.getSettings().manualRowMove;
-    if (Array.isArray(pluginSetting)) {
-      this.unregisterEvents();
-      this.rowPositions = [];
+    var pluginSettings = this.hot.getSettings().manualRowMove;
+    if (Array.isArray(pluginSettings)) {
+      this.rowsMapper.clearMap();
     }
+    removeClass(this.hot.rootElement, CSS_PLUGIN);
+    this.unregisterEvents();
+    this.backlight.destroy();
+    this.guideline.destroy();
     $traceurRuntime.superGet(this, $ManualRowMove.prototype, "disablePlugin").call(this);
   },
+  moveRow: function(row, target) {
+    this.moveRows([row], target);
+  },
+  moveRows: function(rows, target) {
+    var $__10 = this;
+    var priv = privatePool.get(this);
+    var beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
+    priv.disallowMoving = beforeMoveHook === false;
+    if (!priv.disallowMoving) {
+      arrayEach(rows, (function(row, index, array) {
+        array[index] = $__10.rowsMapper.getValueByIndex(row);
+      }));
+      arrayEach(rows, (function(row, index) {
+        var actualPosition = $__10.rowsMapper.getIndexByValue(row);
+        if (actualPosition !== target) {
+          $__10.rowsMapper.moveRow(actualPosition, target + index);
+        }
+      }));
+      this.rowsMapper.clearNull();
+    }
+    this.hot.runHooks('afterRowMove', rows, target);
+  },
+  changeSelection: function(startRow, endRow) {
+    var selection = this.hot.selection;
+    var lastColIndex = this.hot.countCols() - 1;
+    selection.setRangeStartOnly(new WalkontableCellCoords(startRow, 0));
+    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
+  },
+  getRowsHeight: function(from, to) {
+    var height = 0;
+    for (var i = from; i < to; i++) {
+      var rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+      height += rowHeight;
+    }
+    return height;
+  },
+  initialSettings: function() {
+    var pluginSettings = this.hot.getSettings().manualRowMove;
+    if (Array.isArray(pluginSettings)) {
+      this.moveRows(pluginSettings, 0);
+    } else if (pluginSettings !== void 0) {
+      var persistentState = this.persistentStateLoad();
+      if (persistentState.length) {
+        this.moveRows(persistentState, 0);
+      }
+    }
+  },
+  isFixedRowTop: function(row) {
+    return row < this.hot.getSettings().fixedRowsTop;
+  },
+  isFixedRowBottom: function(row) {
+    return row > this.hot.getSettings().fixedRowsBottom;
+  },
+  persistentStateSave: function() {
+    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+  },
+  persistentStateLoad: function() {
+    var storedState = {};
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
+    return storedState.value ? storedState.value : [];
+  },
+  prepareRowsToMoving: function() {
+    var selection = this.hot.getSelectedRange();
+    var selectedRows = [];
+    if (!selection) {
+      return selectedRows;
+    }
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.row, to.row);
+    var end = Math.max(from.row, to.row);
+    rangeEach(start, end, (function(i) {
+      selectedRows.push(i);
+    }));
+    return selectedRows;
+  },
+  refreshPositions: function() {
+    var priv = privatePool.get(this);
+    var coords = priv.target.coords;
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
+    var fixedRows = this.hot.getSettings().fixedRowsTop;
+    var countRows = this.hot.countRows();
+    if (coords.row < fixedRows && firstVisible > 0) {
+      this.hot.scrollViewportTo(firstVisible - 1);
+    }
+    if (coords.row >= lastVisible && lastVisible < countRows) {
+      this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
+    }
+    var wtTable = this.hot.view.wt.wtTable;
+    var TD = priv.target.TD;
+    var rootElementOffset = offset(this.hot.rootElement);
+    var tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    var mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
+    var hiderHeight = wtTable.hider.offsetHeight;
+    var tbodyOffsetTop = wtTable.TBODY.offsetTop;
+    var backlightElemMarginTop = this.backlight.getOffset().top;
+    var backlightElemHeight = this.backlight.getSize().height;
+    if ((rootElementOffset.top + wtTable.holder.offsetHeight) < priv.target.eventPageY) {
+      priv.target.coords.row++;
+    }
+    if (this.isFixedRowTop(coords.row)) {
+      tdOffsetTop += wtTable.holder.scrollTop;
+    }
+    if (coords.row < 0) {
+      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+      priv.target.row = coords.row + 1;
+      tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
+    } else {
+      priv.target.row = coords.row;
+    }
+    var backlightTop = mouseOffsetTop;
+    var guidelineTop = tdOffsetTop;
+    if (mouseOffsetTop + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
+      backlightTop = hiderHeight - backlightElemHeight - backlightElemMarginTop;
+    } else if (mouseOffsetTop + backlightElemMarginTop < tbodyOffsetTop) {
+      backlightTop = tbodyOffsetTop + Math.abs(backlightElemMarginTop);
+    }
+    if (tdOffsetTop >= hiderHeight - 1) {
+      guidelineTop = hiderHeight - 1;
+    }
+    var topOverlayHeight = 0;
+    if (this.hot.view.wt.wtOverlays.topOverlay) {
+      topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
+    }
+    if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
+      this.hot.scrollViewportTo(coords.row);
+    }
+    this.backlight.setPosition(backlightTop);
+    this.guideline.setPosition(guidelineTop);
+  },
   registerEvents: function() {
-    var $__8 = this;
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (function(event) {
-      return $__8.onMouseOver(event);
+    var $__10 = this;
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', (function(event) {
+      return $__10.onMouseMove(event);
     }));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (function(event) {
-      return $__8.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(window, 'mousemove', (function(event) {
-      return $__8.onMouseMove(event);
-    }));
-    this.eventManager.addEventListener(window, 'mouseup', (function(event) {
-      return $__8.onMouseUp(event);
+    this.eventManager.addEventListener(document.documentElement, 'mouseup', (function() {
+      return $__10.onMouseUp();
     }));
   },
   unregisterEvents: function() {
     this.eventManager.clear();
   },
-  saveManualRowPositions: function() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowPositions', this.rowPositions);
+  onBeforeColumnSort: function(column, order) {
+    var priv = privatePool.get(this);
+    priv.disallowMoving = order !== void 0;
   },
-  loadManualRowPositions: function() {
-    var storedState = {};
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowPositions', storedState);
-    return storedState.value;
-  },
-  completeSettingsArray: function() {
-    var $__8 = this;
-    var rowCount = this.hot.countRows();
-    if (this.rowPositions.length === rowCount) {
+  onBeforeOnCellMouseDown: function(event, coords, TD, blockCalculations) {
+    var wtTable = this.hot.view.wt.wtTable;
+    var isHeaderSelection = this.hot.selection.selectedHeader.rows;
+    var selection = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
+      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
       return;
     }
-    rangeEach(0, rowCount - 1, (function(i) {
-      if ($__8.rowPositions.indexOf(i) === -1) {
-        $__8.rowPositions.push(i);
-      }
-    }));
-  },
-  setupHandlePosition: function(TH) {
-    var priv = privatePool.get(this);
-    var row = this.hot.view.wt.wtTable.getCoords(TH).row;
-    this.currentTH = TH;
-    if (row >= 0) {
-      var box = this.currentTH.getBoundingClientRect();
-      priv.currentRow = row;
-      priv.startOffset = box.top;
-      this.handleElement.style.top = priv.startOffset + 'px';
-      this.handleElement.style.left = box.left + 'px';
-      this.hot.rootElement.appendChild(this.handleElement);
+    var guidelineIsNotReady = this.guideline.isBuilt() && !this.guideline.isAppended();
+    var backlightIsNotReady = this.backlight.isBuilt() && !this.backlight.isAppended();
+    if (guidelineIsNotReady && backlightIsNotReady) {
+      this.guideline.appendTo(wtTable.hider);
+      this.backlight.appendTo(wtTable.hider);
     }
-  },
-  refreshHandlePosition: function(TH, delta) {
-    var box = TH.getBoundingClientRect();
-    var handleHeight = 6;
-    if (delta > 0) {
-      this.handleElement.style.top = (box.top + box.height - handleHeight) + 'px';
+    var $__12 = selection,
+        from = $__12.from,
+        to = $__12.to;
+    var start = Math.min(from.row, to.row);
+    var end = Math.max(from.row, to.row);
+    if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
+      blockCalculations.row = true;
+      priv.pressed = true;
+      priv.target.eventPageY = event.pageY;
+      priv.target.coords = coords;
+      priv.target.TD = TD;
+      priv.rowsToMove = this.prepareRowsToMoving();
+      var leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
+      this.backlight.setPosition(null, leftPos);
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
+      addClass(this.hot.rootElement, CSS_ON_MOVING);
+      this.refreshPositions();
     } else {
-      this.handleElement.style.top = box.top + 'px';
-    }
-  },
-  setupGuidePosition: function() {
-    var box = this.currentTH.getBoundingClientRect();
-    var priv = privatePool.get(this);
-    addClass(this.handleElement, 'active');
-    addClass(this.guideElement, 'active');
-    this.guideElement.style.height = box.height + 'px';
-    this.guideElement.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
-    this.guideElement.style.top = priv.startOffset + 'px';
-    this.guideElement.style.left = this.handleElement.style.left;
-    this.hot.rootElement.appendChild(this.guideElement);
-  },
-  refreshGuidePosition: function(diff) {
-    var priv = privatePool.get(this);
-    this.guideElement.style.top = priv.startOffset + diff + 'px';
-  },
-  hideHandleAndGuide: function() {
-    removeClass(this.handleElement, 'active');
-    removeClass(this.guideElement, 'active');
-  },
-  checkRowHeader: function(element) {
-    if (element != this.hot.rootElement) {
-      var parent = element.parentNode;
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-      return this.checkRowHeader(parent);
-    }
-    return false;
-  },
-  createPositionData: function(len) {
-    var positionArr = this.rowPositions;
-    if (positionArr.length < len) {
-      rangeEach(positionArr.length, len - 1, (function(i) {
-        positionArr[i] = i;
-      }));
-    }
-  },
-  getTHFromTargetElement: function(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
-        return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
-      }
-    }
-    return null;
-  },
-  changeRowPositions: function(rowIndex, destinationIndex) {
-    var maxLength = Math.max(rowIndex, destinationIndex);
-    if (maxLength > this.rowPositions.length - 1) {
-      this.createPositionData(maxLength + 1);
-    }
-    this.rowPositions.splice(destinationIndex, 0, this.rowPositions.splice(rowIndex, 1)[0]);
-  },
-  getVisibleRowIndex: function(row) {
-    if (row > this.rowPositions.length - 1) {
-      this.createPositionData(row);
-    }
-    return this.rowPositions.indexOf(row);
-  },
-  getLogicalRowIndex: function(row) {
-    return this.rowPositions[row];
-  },
-  onMouseOver: function(event) {
-    var priv = privatePool.get(this);
-    if (this.checkRowHeader(event.target)) {
-      var th = this.getTHFromTargetElement(event.target);
-      if (th) {
-        if (priv.pressed) {
-          priv.endRow = this.hot.view.wt.wtTable.getCoords(th).row;
-          this.refreshHandlePosition(th, priv.endRow - priv.startRow);
-        } else {
-          this.setupHandlePosition(th);
-        }
-      }
-    }
-  },
-  onMouseDown: function(event) {
-    var priv = privatePool.get(this);
-    if (hasClass(event.target, priv.handleClassName)) {
-      priv.startY = pageY(event);
-      this.setupGuidePosition();
-      priv.pressed = this.hot;
-      priv.startRow = priv.currentRow;
-      priv.endRow = priv.currentRow;
+      removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+      priv.pressed = false;
+      priv.rowsToMove.length = 0;
     }
   },
   onMouseMove: function(event) {
     var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.refreshGuidePosition(pageY(event) - priv.startY);
-    }
-  },
-  onMouseUp: function(event) {
-    var priv = privatePool.get(this);
-    if (priv.pressed) {
-      this.hideHandleAndGuide();
-      priv.pressed = false;
-      this.createPositionData(this.hot.countRows());
-      this.changeRowPositions(priv.startRow, priv.endRow);
-      Handsontable.hooks.run(this.hot, 'beforeRowMove', priv.startRow, priv.endRow);
-      this.hot.forceFullRender = true;
-      this.hot.view.render();
-      this.saveManualRowPositions();
-      Handsontable.hooks.run(this.hot, 'afterRowMove', priv.startRow, priv.endRow);
-      this.setupHandlePosition(this.currentTH);
-    }
-  },
-  onModifyRow: function(row) {
-    if (typeof this.getVisibleRowIndex(row) === 'undefined') {
-      this.createPositionData(row + 1);
-    }
-    return this.getLogicalRowIndex(row);
-  },
-  onAfterRemoveRow: function(index, amount) {
-    if (!this.isEnabled()) {
+    if (!priv.pressed) {
       return;
     }
-    var rmindx;
-    var rowpos = this.rowPositions;
-    rmindx = rowpos.splice(index, amount);
-    rowpos = arrayMap(rowpos, function(value, index) {
-      var newpos = value;
-      arrayEach(rmindx, (function(elem, index) {
-        if (value > elem) {
-          newpos--;
-        }
-      }));
-      return newpos;
-    });
-    this.rowPositions = rowpos;
+    if (event.realTarget === this.backlight.element) {
+      var height = this.backlight.getSize().height;
+      this.backlight.setSize(null, 0);
+      setTimeout(function() {
+        this.backlight.setPosition(null, height);
+      });
+    }
+    priv.target.eventPageY = event.pageY;
+    this.refreshPositions();
+  },
+  onBeforeOnCellMouseOver: function(event, coords, TD, blockCalculations) {
+    var selectedRange = this.hot.getSelectedRange();
+    var priv = privatePool.get(this);
+    if (!selectedRange || !priv.pressed) {
+      return;
+    }
+    if (priv.rowsToMove.indexOf(coords.row) > -1) {
+      removeClass(this.hot.rootElement, CSS_SHOW_UI);
+    } else {
+      addClass(this.hot.rootElement, CSS_SHOW_UI);
+    }
+    blockCalculations.row = true;
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+    priv.target.coords = coords;
+    priv.target.TD = TD;
+  },
+  onMouseUp: function() {
+    var priv = privatePool.get(this);
+    priv.pressed = false;
+    priv.backlightHeight = 0;
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    if (this.hot.selection.selectedHeader.rows) {
+      addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
+    }
+    if (priv.rowsToMove.length < 1) {
+      return;
+    }
+    var target = priv.target.row;
+    this.moveRows(priv.rowsToMove, target);
+    this.persistentStateSave();
+    this.hot.render();
+    if (!priv.disallowMoving) {
+      var selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+      var selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
+    priv.rowsToMove.length = 0;
+  },
+  onAfterScrollHorizontally: function() {
+    var wtTable = this.hot.view.wt.wtTable;
+    var headerWidth = wtTable.getColumnWidth(-1);
+    var scrollLeft = wtTable.holder.scrollLeft;
+    var posLeft = headerWidth + scrollLeft;
+    this.backlight.setPosition(null, posLeft);
+    this.backlight.setSize(wtTable.hider.offsetWidth - posLeft);
   },
   onAfterCreateRow: function(index, amount) {
-    if (!this.isEnabled()) {
-      return;
-    }
-    var rowpos = this.rowPositions;
-    if (!rowpos.length) {
-      return;
-    }
-    var addindx = [];
-    for (var i = 0; i < amount; i++) {
-      addindx.push(index + i);
-    }
-    if (index >= rowpos.length) {
-      rowpos.concat(addindx);
-    } else {
-      rowpos = arrayMap(rowpos, function(value, ind) {
-        return (value >= index) ? (value + amount) : value;
-      });
-      rowpos.splice.apply(rowpos, [index, 0].concat(addindx));
-    }
-    this.rowPositions = rowpos;
+    this.rowsMapper.shiftItems(index, amount);
   },
-  onInit: function() {
-    this.completeSettingsArray();
+  onBeforeRemoveRow: function(index, amount) {
+    var $__10 = this;
+    this.removedRows.length = 0;
+    if (index !== false) {
+      rangeEach(index, index + amount - 1, (function(removedIndex) {
+        $__10.removedRows.push($__10.hot.runHooks('modifyRow', removedIndex, $__10.pluginName));
+      }));
+    }
+  },
+  onAfterRemoveRow: function(index, amount) {
+    this.rowsMapper.unshiftItems(this.removedRows);
+  },
+  onModifyRow: function(row, source) {
+    if (source !== this.pluginName) {
+      row = this.rowsMapper.getValueByIndex(row);
+    }
+    return row;
+  },
+  onUnmodifyRow: function(row) {
+    return this.rowsMapper.getIndexByValue(row);
+  },
+  onAfterPluginsInitialized: function() {
+    if (this.rowsMapper._arrayMap.length === 0) {
+      this.rowsMapper.createMap(this.hot.countSourceRows() || this.hot.getSettings().startRows);
+    }
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
+  },
+  destroy: function() {
+    this.backlight.destroy();
+    this.guideline.destroy();
+    $traceurRuntime.superGet(this, $ManualRowMove.prototype, "destroy").call(this);
   }
 }, {}, BasePlugin);
 ;
 registerPlugin('ManualRowMove', ManualRowMove);
 Handsontable.hooks.register('beforeRowMove');
 Handsontable.hooks.register('afterRowMove');
+Handsontable.hooks.register('unmodifyRow');
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],82:[function(_dereq_,module,exports){
+},{"_base.js":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/number":51,"plugins":60,"rowsMapper":102,"ui/backlight":104,"ui/guideline":105}],102:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  RowsMapper: {get: function() {
+      return RowsMapper;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47__46__46__47_browser__,
+    $___46__46__47__46__46__47_mixins_47_arrayMapper__,
+    $___46__46__47__46__46__47_helpers_47_array__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_number__;
+var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+var arrayMapper = ($___46__46__47__46__46__47_mixins_47_arrayMapper__ = _dereq_("mixins/arrayMapper"), $___46__46__47__46__46__47_mixins_47_arrayMapper__ && $___46__46__47__46__46__47_mixins_47_arrayMapper__.__esModule && $___46__46__47__46__46__47_mixins_47_arrayMapper__ || {default: $___46__46__47__46__46__47_mixins_47_arrayMapper__}).arrayMapper;
+var arrayFilter = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayFilter;
+var mixin = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).mixin;
+var rangeEach = ($___46__46__47__46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47__46__46__47_helpers_47_number__ && $___46__46__47__46__46__47_helpers_47_number__.__esModule && $___46__46__47__46__46__47_helpers_47_number__ || {default: $___46__46__47__46__46__47_helpers_47_number__}).rangeEach;
+var RowsMapper = function RowsMapper(manualRowMove) {
+  this.manualRowMove = manualRowMove;
+};
+($traceurRuntime.createClass)(RowsMapper, {
+  createMap: function(length) {
+    var $__5 = this;
+    var originLength = length === void 0 ? this._arrayMap.length : length;
+    this._arrayMap.length = 0;
+    rangeEach(originLength - 1, (function(itemIndex) {
+      $__5._arrayMap[itemIndex] = itemIndex;
+    }));
+  },
+  destroy: function() {
+    this._arrayMap = null;
+  },
+  moveRow: function(from, to) {
+    var indexToMove = this._arrayMap[from];
+    this._arrayMap[from] = null;
+    this._arrayMap.splice(to, 0, indexToMove);
+  },
+  clearNull: function() {
+    this._arrayMap = arrayFilter(this._arrayMap, (function(i) {
+      return i !== null;
+    }));
+  }
+}, {});
+mixin(RowsMapper, arrayMapper);
+;
+Handsontable.utils.ManualRowMoveRowsMapper = RowsMapper;
+
+//# 
+},{"browser":23,"helpers/array":42,"helpers/number":51,"helpers/object":52,"mixins/arrayMapper":56}],103:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BaseUI: {get: function() {
+      return BaseUI;
+    }},
+  __esModule: {value: true}
+});
+var STATE_INITIALIZED = 0;
+var STATE_BUILT = 1;
+var STATE_APPENDED = 2;
+var UNIT = 'px';
+var BaseUI = function BaseUI(hotInstance) {
+  this.hot = hotInstance;
+  this._element = null;
+  this.state = STATE_INITIALIZED;
+};
+($traceurRuntime.createClass)(BaseUI, {
+  appendTo: function(wrapper) {
+    wrapper.appendChild(this._element);
+    this.state = STATE_APPENDED;
+  },
+  build: function() {
+    this._element = document.createElement('div');
+    this.state = STATE_BUILT;
+  },
+  destroy: function() {
+    if (this.isAppended()) {
+      this._element.parentElement.removeChild(this._element);
+    }
+    this._element = null;
+    this.state = STATE_INITIALIZED;
+  },
+  isAppended: function() {
+    return this.state === STATE_APPENDED;
+  },
+  isBuilt: function() {
+    return this.state >= STATE_BUILT;
+  },
+  setPosition: function(top, left) {
+    if (top) {
+      this._element.style.top = top + UNIT;
+    }
+    if (left) {
+      this._element.style.left = left + UNIT;
+    }
+  },
+  getPosition: function() {
+    return {
+      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+    };
+  },
+  setSize: function(width, height) {
+    if (width) {
+      this._element.style.width = width + UNIT;
+    }
+    if (height) {
+      this._element.style.height = height + UNIT;
+    }
+  },
+  getSize: function() {
+    return {
+      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+    };
+  },
+  setOffset: function(top, left) {
+    if (top) {
+      this._element.style.marginTop = top + UNIT;
+    }
+    if (left) {
+      this._element.style.marginLeft = left + UNIT;
+    }
+  },
+  getOffset: function() {
+    return {
+      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+    };
+  }
+}, {});
+;
+
+//# 
+},{}],104:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  BacklightUI: {get: function() {
+      return BacklightUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualRowMove--backlight';
+var BacklightUI = function BacklightUI(hotInstance) {
+  $traceurRuntime.superConstructor($BacklightUI).call(this, hotInstance);
+};
+var $BacklightUI = BacklightUI;
+($traceurRuntime.createClass)(BacklightUI, {build: function() {
+    $traceurRuntime.superGet(this, $BacklightUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":103,"helpers/dom/element":46}],105:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  GuidelineUI: {get: function() {
+      return GuidelineUI;
+    }},
+  __esModule: {value: true}
+});
+var $___95_base__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var BaseUI = ($___95_base__ = _dereq_("_base"), $___95_base__ && $___95_base__.__esModule && $___95_base__ || {default: $___95_base__}).BaseUI;
+var addClass = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}).addClass;
+var CSS_CLASSNAME = 'ht__manualRowMove--guideline';
+var GuidelineUI = function GuidelineUI(hotInstance) {
+  $traceurRuntime.superConstructor($GuidelineUI).call(this, hotInstance);
+};
+var $GuidelineUI = GuidelineUI;
+($traceurRuntime.createClass)(GuidelineUI, {build: function() {
+    $traceurRuntime.superGet(this, $GuidelineUI.prototype, "build").call(this);
+    addClass(this._element, CSS_CLASSNAME);
+  }}, {}, BaseUI);
+;
+
+//# 
+},{"_base":103,"helpers/dom/element":46}],106:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ManualRowResize: {get: function() {
@@ -16840,7 +18984,8 @@ var BasePlugin = ($___46__46__47__95_base_46_js__ = _dereq_("_base.js"), $___46_
 var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__2.addClass,
     hasClass = $__2.hasClass,
-    removeClass = $__2.removeClass;
+    removeClass = $__2.removeClass,
+    outerWidth = $__2.outerWidth;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var $__4 = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}),
     pageX = $__4.pageX,
@@ -16919,6 +19064,7 @@ var $ManualRowResize = ManualRowResize;
     var $__8 = this;
     this.currentTH = TH;
     var row = this.hot.view.wt.wtTable.getCoords(TH).row;
+    var headerWidth = outerWidth(this.currentTH);
     if (row >= 0) {
       var box = this.currentTH.getBoundingClientRect();
       this.currentRow = row;
@@ -16947,6 +19093,7 @@ var $ManualRowResize = ManualRowResize;
       this.startHeight = parseInt(box.height, 10);
       this.handle.style.left = box.left + 'px';
       this.handle.style.top = this.startOffset + this.startHeight + 'px';
+      this.handle.style.width = headerWidth + 'px';
       this.hot.rootElement.appendChild(this.handle);
     }
   },
@@ -16954,11 +19101,14 @@ var $ManualRowResize = ManualRowResize;
     this.handle.style.top = this.startOffset + this.currentHeight + 'px';
   },
   setupGuidePosition: function() {
+    var handleWidth = parseInt(outerWidth(this.handle), 10);
+    var handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    var maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = this.handle.style.left;
-    this.guide.style.width = this.hot.view.maximumVisibleElementWidth(0) + 'px';
+    this.guide.style.left = handleRightPosition + 'px';
+    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
     this.hot.rootElement.appendChild(this.guide);
   },
   refreshGuidePosition: function() {
@@ -17130,7 +19280,7 @@ var $ManualRowResize = ManualRowResize;
 registerPlugin('manualRowResize', ManualRowResize);
 
 //# 
-},{"_base.js":60,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":59}],83:[function(_dereq_,module,exports){
+},{"_base.js":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/number":51,"plugins":60}],107:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MergeCells: {get: function() {
@@ -17464,7 +19614,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
       this.render();
     },
     disabled: function() {
-      return false;
+      return this.selection.selectedHeader.corner;
     }
   });
 };
@@ -17615,7 +19765,7 @@ var isMultipleSelection = function(isMultiple) {
   }
   return isMultiple;
 };
-function afterAutofillApplyValues(select, drag) {
+function modifyAutofillRange(select, drag) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (!mergeCellsSetting || this.selection.isMultiple()) {
     return;
@@ -17662,7 +19812,7 @@ Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContex
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 Handsontable.hooks.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
 Handsontable.hooks.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
-Handsontable.hooks.add('afterAutofillApplyValues', afterAutofillApplyValues);
+Handsontable.hooks.add('modifyAutofillRange', modifyAutofillRange);
 Handsontable.hooks.add('afterCreateCol', onAfterCreateCol);
 Handsontable.hooks.add('afterRemoveCol', onAfterRemoveCol);
 Handsontable.hooks.add('afterCreateRow', onAfterCreateRow);
@@ -17670,7 +19820,7 @@ Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 Handsontable.MergeCells = MergeCells;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/table":20,"browser":23,"helpers/dom/event":47,"plugins":59}],84:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/table":20,"browser":23,"helpers/dom/event":47,"plugins":60}],108:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MultipleSelectionHandles: {get: function() {
@@ -17961,7 +20111,7 @@ var $MultipleSelectionHandles = MultipleSelectionHandles;
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
 
 //# 
-},{"_base":60,"browser":23,"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"plugins":59}],85:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"plugins":60}],109:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataObserver: {get: function() {
@@ -18016,7 +20166,7 @@ mixin(DataObserver, localHooks);
 ;
 
 //# 
-},{"../../helpers/object":52,"../../mixins/localHooks":56,"jsonpatch":"jsonpatch","utils":87}],86:[function(_dereq_,module,exports){
+},{"../../helpers/object":52,"../../mixins/localHooks":57,"jsonpatch":"jsonpatch","utils":111}],110:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   ObserveChanges: {get: function() {
@@ -18162,7 +20312,7 @@ var $ObserveChanges = ObserveChanges;
 registerPlugin('observeChanges', ObserveChanges);
 
 //# 
-},{"_base":60,"browser":23,"dataObserver":85,"helpers/array":42,"jsonpatch":"jsonpatch","plugins":59}],87:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"dataObserver":109,"helpers/array":42,"jsonpatch":"jsonpatch","plugins":60}],111:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   cleanPatches: {get: function() {
@@ -18221,7 +20371,7 @@ function parsePath(path) {
 }
 
 //# 
-},{"../../helpers/array":42}],88:[function(_dereq_,module,exports){
+},{"../../helpers/array":42}],112:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   HandsontablePersistentState: {get: function() {
@@ -18335,7 +20485,7 @@ Handsontable.hooks.add('beforeInit', htPersistentState.init);
 Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
 
 //# 
-},{"browser":23,"plugins":59}],89:[function(_dereq_,module,exports){
+},{"browser":23,"plugins":60}],113:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
@@ -18445,7 +20595,7 @@ Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
 
 //# 
-},{"browser":23,"helpers/dom/element":46,"renderers":92}],90:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/dom/element":46,"renderers":116}],114:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TouchScroll: {get: function() {
@@ -18560,7 +20710,7 @@ var $TouchScroll = TouchScroll;
 registerPlugin('touchScroll', TouchScroll);
 
 //# 
-},{"_base":60,"browser":23,"helpers/dom/element":46,"plugins":59}],91:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"helpers/dom/element":46,"plugins":60}],115:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_array__,
@@ -18580,52 +20730,61 @@ Handsontable.UndoRedo = function(instance) {
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
-  instance.addHook('afterChange', function(changes, origin) {
-    if (changes) {
-      var action = new Handsontable.UndoRedo.ChangeAction(changes);
-      plugin.done(action);
+  instance.addHook('afterChange', function(changes, source) {
+    if (changes && source !== 'undo' && source !== 'redo') {
+      plugin.done(new Handsontable.UndoRedo.ChangeAction(changes));
     }
   });
-  instance.addHook('afterCreateRow', function(index, amount, createdAutomatically) {
-    if (createdAutomatically) {
+  instance.addHook('afterCreateRow', function(index, amount, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
       return;
     }
     var action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
     plugin.done(action);
   });
-  instance.addHook('beforeRemoveRow', function(index, amount) {
-    var originalData = plugin.instance.getSourceData();
-    index = (originalData.length + index) % originalData.length;
-    var removedData = originalData.slice(index, index + amount);
-    var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
-    plugin.done(action);
-  });
-  instance.addHook('afterCreateCol', function(index, amount, createdAutomatically) {
-    if (createdAutomatically) {
+  instance.addHook('beforeRemoveRow', function(index, amount, logicRows, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
       return;
     }
-    var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
-    plugin.done(action);
+    var originalData = plugin.instance.getSourceDataArray();
+    index = (originalData.length + index) % originalData.length;
+    var removedData = deepClone(originalData.slice(index, index + amount));
+    plugin.done(new Handsontable.UndoRedo.RemoveRowAction(index, removedData));
   });
-  instance.addHook('beforeRemoveCol', function(index, amount) {
-    var originalData = plugin.instance.getData();
+  instance.addHook('afterCreateCol', function(index, amount, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
+      return;
+    }
+    plugin.done(new Handsontable.UndoRedo.CreateColumnAction(index, amount));
+  });
+  instance.addHook('beforeRemoveCol', function(index, amount, logicColumns, source) {
+    if (source === 'undo' || source === 'redo' || source === 'auto') {
+      return;
+    }
+    var originalData = plugin.instance.getSourceDataArray();
     index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     var removedData = [];
     var headers = [];
     var indexes = [];
-    rangeEach(0, originalData.length - 1, (function(i) {
-      removedData[i] = originalData[i].slice(index, index + amount);
+    rangeEach(originalData.length - 1, (function(i) {
+      var column = [];
+      var origRow = originalData[i];
+      rangeEach(index, index + (amount - 1), (function(j) {
+        column.push(origRow[instance.runHooks('modifyCol', j)]);
+      }));
+      removedData.push(column);
     }));
-    rangeEach(0, amount - 1, (function(i) {
+    rangeEach(amount - 1, (function(i) {
       indexes.push(instance.runHooks('modifyCol', index + i));
     }));
     if (Array.isArray(instance.getSettings().colHeaders)) {
-      rangeEach(0, amount - 1, (function(i) {
+      rangeEach(amount - 1, (function(i) {
         headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
       }));
     }
     var manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-    var action = new Handsontable.UndoRedo.RemoveColumnAction(indexes, removedData, headers, manualColumnMovePlugin ? manualColumnMovePlugin.columnPositions : []);
+    var columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
+    var action = new Handsontable.UndoRedo.RemoveColumnAction(index, indexes, removedData, headers, columnsMap);
     plugin.done(action);
   });
   instance.addHook('beforeCellAlignment', function(stateBefore, range, type, alignment) {
@@ -18634,6 +20793,12 @@ Handsontable.UndoRedo = function(instance) {
   });
   instance.addHook('beforeFilter', function(formulaStacks) {
     plugin.done(new Handsontable.UndoRedo.FiltersAction(formulaStacks));
+  });
+  instance.addHook('beforeRowMove', function(movedRows, target) {
+    if (movedRows === false) {
+      return;
+    }
+    plugin.done(new Handsontable.UndoRedo.RowMoveAction(movedRows, target));
   });
 };
 Handsontable.UndoRedo.prototype.done = function(action) {
@@ -18645,23 +20810,37 @@ Handsontable.UndoRedo.prototype.done = function(action) {
 Handsontable.UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
     var action = this.doneActions.pop();
+    var actionClone = deepClone(action);
+    var instance = this.instance;
+    var continueAction = instance.runHooks('beforeUndo', actionClone);
+    if (continueAction === false) {
+      return;
+    }
     this.ignoreNewActions = true;
     var that = this;
     action.undo(this.instance, function() {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
+    instance.runHooks('afterUndo', actionClone);
   }
 };
 Handsontable.UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
     var action = this.undoneActions.pop();
+    var actionClone = deepClone(action);
+    var instance = this.instance;
+    var continueAction = instance.runHooks('beforeRedo', actionClone);
+    if (continueAction === false) {
+      return;
+    }
     this.ignoreNewActions = true;
     var that = this;
     action.redo(this.instance, function() {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
     });
+    instance.runHooks('afterRedo', actionClone);
   }
 };
 Handsontable.UndoRedo.prototype.isUndoAvailable = function() {
@@ -18679,6 +20858,7 @@ Handsontable.UndoRedo.Action.prototype.undo = function() {};
 Handsontable.UndoRedo.Action.prototype.redo = function() {};
 Handsontable.UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
+  this.actionType = 'change';
 };
 inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
@@ -18691,14 +20871,14 @@ Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCal
   }
   instance.addHookOnce('afterChange', undoneCallback);
   instance.setDataAtRowProp(data, null, null, 'undo');
-  for (var i = 0,
-      len = data.length; i < len; i++) {
-    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
-      instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
+  for (var i$__6 = 0,
+      len$__7 = data.length; i$__6 < len$__7; i$__6++) {
+    if (instance.getSettings().minSpareRows && data[i$__6][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+      instance.alter('remove_row', parseInt(data[i$__6][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
     }
-    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
-      instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
+    if (instance.getSettings().minSpareCols && data[i$__6][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+      instance.alter('remove_col', parseInt(data[i$__6][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
     }
   }
@@ -18715,6 +20895,7 @@ Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishC
 Handsontable.UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_row';
 };
 inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
@@ -18724,40 +20905,94 @@ Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance, undone
     this.index -= minSpareRows;
   }
   instance.addHookOnce('afterRemoveRow', undoneCallback);
-  instance.alter('remove_row', this.index, this.amount);
+  instance.alter('remove_row', this.index, this.amount, 'undo');
 };
 Handsontable.UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateRow', redoneCallback);
-  instance.alter('insert_row', this.index + 1, this.amount);
+  instance.alter('insert_row', this.index, this.amount, 'redo');
 };
 Handsontable.UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
   this.data = data;
+  this.actionType = 'remove_row';
 };
 inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
-  var spliceArgs = [this.index, 0];
-  Array.prototype.push.apply(spliceArgs, this.data);
-  Array.prototype.splice.apply(instance.getSourceData(), spliceArgs);
+  instance.alter('insert_row', this.index, this.data.length, 'undo');
   instance.addHookOnce('afterRender', undoneCallback);
-  instance.render();
+  instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'undo');
 };
 Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);
-  instance.alter('remove_row', this.index, this.data.length);
+  instance.alter('remove_row', this.index, this.data.length, 'redo');
 };
 Handsontable.UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
   this.amount = amount;
+  this.actionType = 'insert_col';
 };
 inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) {
   instance.addHookOnce('afterRemoveCol', undoneCallback);
-  instance.alter('remove_col', this.index, this.amount);
+  instance.alter('remove_col', this.index, this.amount, 'undo');
 };
 Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateCol', redoneCallback);
-  instance.alter('insert_col', this.index + 1, this.amount);
+  instance.alter('insert_col', this.index, this.amount, 'redo');
+};
+Handsontable.UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
+  this.index = index;
+  this.indexes = indexes;
+  this.data = data;
+  this.amount = this.data[0].length;
+  this.headers = headers;
+  this.columnPositions = columnPositions.slice(0);
+  this.actionType = 'remove_col';
+};
+inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
+  var $__5 = this;
+  var row;
+  var ascendingIndexes = this.indexes.slice(0).sort();
+  var sortByIndexes = (function(elem, j, arr) {
+    return arr[$__5.indexes.indexOf(ascendingIndexes[j])];
+  });
+  var sortedData = [];
+  rangeEach(this.data.length - 1, (function(i) {
+    sortedData[i] = arrayMap($__5.data[i], sortByIndexes);
+  }));
+  var sortedHeaders = [];
+  sortedHeaders = arrayMap(this.headers, sortByIndexes);
+  var changes = [];
+  Handsontable.hooks.run(instance, 'beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'undo');
+  rangeEach(this.data.length - 1, (function(i) {
+    row = instance.getSourceDataAtRow(i);
+    rangeEach(ascendingIndexes.length - 1, (function(j) {
+      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
+      changes.push([i, ascendingIndexes[j], null, sortedData[i][j]]);
+    }));
+  }));
+  if (instance.getPlugin('formulas')) {
+    instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
+  }
+  if (typeof this.headers !== 'undefined') {
+    rangeEach(sortedHeaders.length - 1, (function(j) {
+      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
+    }));
+  }
+  if (instance.getPlugin('manualColumnMove')) {
+    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
+  }
+  instance.addHookOnce('afterRender', undoneCallback);
+  Handsontable.hooks.run(instance, 'afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'undo');
+  if (instance.getPlugin('formulas')) {
+    instance.getPlugin('formulas').recalculateFull();
+  }
+  instance.render();
+};
+Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
+  instance.addHookOnce('afterRemoveCol', redoneCallback);
+  instance.alter('remove_col', this.index, this.amount, 'redo');
 };
 Handsontable.UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -18786,50 +21021,9 @@ Handsontable.UndoRedo.CellAlignmentAction.prototype.redo = function(instance, un
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
-Handsontable.UndoRedo.RemoveColumnAction = function(indexes, data, headers, columnPositions) {
-  this.indexes = indexes;
-  this.data = data;
-  this.amount = this.data[0].length;
-  this.headers = headers;
-  this.columnPositions = columnPositions.slice(0);
-};
-inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
-Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
-  var $__5 = this;
-  var row;
-  var ascendingIndexes = this.indexes.slice(0).sort();
-  var sortByIndexes = (function(elem, j, arr) {
-    return arr[$__5.indexes.indexOf(ascendingIndexes[j])];
-  });
-  var sortedData = [];
-  rangeEach(0, this.data.length - 1, (function(i) {
-    sortedData[i] = arrayMap($__5.data[i], sortByIndexes);
-  }));
-  var sortedHeaders = [];
-  sortedHeaders = arrayMap(this.headers, sortByIndexes);
-  rangeEach(0, this.data.length - 1, (function(i) {
-    row = instance.getSourceDataAtRow(i);
-    rangeEach(0, ascendingIndexes.length - 1, (function(j) {
-      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
-    }));
-  }));
-  if (typeof this.headers != 'undefined') {
-    rangeEach(0, sortedHeaders.length - 1, (function(j) {
-      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
-    }));
-  }
-  if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnPositions = this.columnPositions;
-  }
-  instance.addHookOnce('afterRender', undoneCallback);
-  instance.render();
-};
-Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
-  instance.addHookOnce('afterRemoveCol', redoneCallback);
-  instance.alter('remove_col', instance.runHooks('unmodifyCol', this.indexes[0]), this.amount);
-};
 Handsontable.UndoRedo.FiltersAction = function(formulaStacks) {
   this.formulaStacks = formulaStacks;
+  this.actionType = 'filter';
 };
 inherit(Handsontable.UndoRedo.FiltersAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
@@ -18843,6 +21037,35 @@ Handsontable.UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCa
   instance.addHookOnce('afterRender', redoneCallback);
   filters.formulaCollection.importAllFormulas(this.formulaStacks);
   filters.filter();
+};
+Handsontable.UndoRedo.RowMoveAction = function(movedRows, target) {
+  this.rows = movedRows.slice();
+  this.target = target;
+};
+inherit(Handsontable.UndoRedo.RowMoveAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
+  var manualRowMove = instance.getPlugin('manualRowMove');
+  instance.addHookOnce('afterRender', undoneCallback);
+  var mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  var newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  var newRows = [];
+  var rowsLen = this.rows.length + mod;
+  for (var i = mod; i < rowsLen; i++) {
+    newRows.push(this.target + i);
+  }
+  manualRowMove.moveRows(newRows.slice(), newTarget);
+  instance.render();
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(this.rows[0], 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+};
+Handsontable.UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
+  var manualRowMove = instance.getPlugin('manualRowMove');
+  instance.addHookOnce('afterRender', redoneCallback);
+  manualRowMove.moveRows(this.rows.slice(), this.target);
+  instance.render();
+  var startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
+  instance.selection.setRangeStartOnly(new WalkontableCellCoords(startSelection, 0));
+  instance.selection.setRangeEnd(new WalkontableCellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
 };
 function init() {
   var instance = this;
@@ -18908,9 +21131,13 @@ function removeExposedUndoRedoMethods(instance) {
 }
 Handsontable.hooks.add('afterInit', init);
 Handsontable.hooks.add('afterUpdateSettings', init);
+Handsontable.hooks.register('beforeUndo');
+Handsontable.hooks.register('afterUndo');
+Handsontable.hooks.register('beforeRedo');
+Handsontable.hooks.register('afterRedo');
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/event":47,"helpers/number":51,"helpers/object":52}],92:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/array":42,"helpers/dom/event":47,"helpers/number":51,"helpers/object":52}],116:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   registerRenderer: {get: function() {
@@ -18960,7 +21187,7 @@ function hasRenderer(rendererName) {
 ;
 
 //# 
-},{"browser":23,"helpers/string":54}],93:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/string":54}],117:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   cellDecorator: {get: function() {
@@ -19001,7 +21228,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('base', cellDecorator);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],94:[function(_dereq_,module,exports){
+},{"helpers/dom/element":46,"renderers":116}],118:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   autocompleteRenderer: {get: function() {
@@ -19035,7 +21262,11 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER) {
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var WRAPPER = clonableWRAPPER.cloneNode(true);
   var ARROW = clonableARROW.cloneNode(true);
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  if (cellProperties.allowHtml) {
+    getRenderer('html').apply(this, arguments);
+  } else {
+    getRenderer('text').apply(this, arguments);
+  }
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');
   if (!TD.firstChild) {
@@ -19058,7 +21289,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 registerRenderer('autocomplete', autocompleteRenderer);
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"eventManager":41,"helpers/dom/element":46,"renderers":92}],95:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"eventManager":41,"helpers/dom/element":46,"renderers":116}],119:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   checkboxRenderer: {get: function() {
@@ -19071,6 +21302,7 @@ var $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_eventManager__,
     $___46__46__47_renderers__,
     $___46__46__47_helpers_47_unicode__,
+    $___46__46__47_helpers_47_function__,
     $___46__46__47_helpers_47_dom_47_event__;
 var $__0 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
     empty = $__0.empty,
@@ -19081,16 +21313,17 @@ var EventManager = ($___46__46__47_eventManager__ = _dereq_("eventManager"), $__
 var $__3 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
     getRenderer = $__3.getRenderer,
     registerRenderer = $__3.registerRenderer;
-var KEY_CODES = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}).KEY_CODES;
-var $__5 = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47_helpers_47_dom_47_event__ && $___46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47_helpers_47_dom_47_event__}),
-    stopPropagation = $__5.stopPropagation,
-    stopImmediatePropagation = $__5.stopImmediatePropagation,
-    isImmediatePropagationStopped = $__5.isImmediatePropagationStopped;
+var isKey = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $___46__46__47_helpers_47_unicode__ && $___46__46__47_helpers_47_unicode__.__esModule && $___46__46__47_helpers_47_unicode__ || {default: $___46__46__47_helpers_47_unicode__}).isKey;
+var partial = ($___46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47_helpers_47_function__ && $___46__46__47_helpers_47_function__.__esModule && $___46__46__47_helpers_47_function__ || {default: $___46__46__47_helpers_47_function__}).partial;
+var $__6 = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $___46__46__47_helpers_47_dom_47_event__ && $___46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47_helpers_47_dom_47_event__}),
+    stopImmediatePropagation = $__6.stopImmediatePropagation,
+    isImmediatePropagationStopped = $__6.isImmediatePropagationStopped;
 var isListeningKeyDownEvent = new WeakMap();
 var isCheckboxListenerAdded = new WeakMap();
 var BAD_VALUE_CLASS = 'htBadValue';
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var eventManager = new EventManager(instance);
+  getRenderer('base').apply(this, arguments);
+  var eventManager = registerEvents(instance);
   var input = createInput();
   var labelOptions = cellProperties.label;
   var badValue = false;
@@ -19133,47 +21366,55 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (badValue) {
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
-  if (!isCheckboxListenerAdded.has(instance)) {
-    if (cellProperties.readOnly) {
-      eventManager.addEventListener(instance.rootElement, 'click', preventDefault);
-    } else {
-      eventManager.addEventListener(instance.rootElement, 'mouseup', (function(event) {
-        return onMouseUp(event, instance);
-      }));
-      eventManager.addEventListener(instance.rootElement, 'change', (function(event) {
-        return onChange(event, instance);
-      }));
-    }
-    isCheckboxListenerAdded.set(instance, true);
-  }
   if (!isListeningKeyDownEvent.has(instance)) {
     isListeningKeyDownEvent.set(instance, true);
     instance.addHook('beforeKeyDown', onBeforeKeyDown);
   }
   function onBeforeKeyDown(event) {
-    var allowedKeys = [KEY_CODES.SPACE, KEY_CODES.ENTER, KEY_CODES.DELETE, KEY_CODES.BACKSPACE];
-    if (allowedKeys.indexOf(event.keyCode) !== -1 && !isImmediatePropagationStopped(event)) {
+    var toggleKeys = 'SPACE|ENTER';
+    var switchOffKeys = 'DELETE|BACKSPACE';
+    var isKeyCode = partial(isKey, event.keyCode);
+    if (isKeyCode((toggleKeys + "|" + switchOffKeys)) && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(function() {
         stopImmediatePropagation(event);
         event.preventDefault();
       });
     }
-    if (event.keyCode === KEY_CODES.SPACE || event.keyCode === KEY_CODES.ENTER) {
+    if (isKeyCode(toggleKeys)) {
       toggleSelected();
     }
-    if (event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.BACKSPACE) {
+    if (isKeyCode(switchOffKeys)) {
       toggleSelected(false);
     }
   }
   function toggleSelected() {
     var checked = arguments[0] !== (void 0) ? arguments[0] : null;
-    eachSelectedCheckboxCell(function(checkboxes) {
-      for (var i = 0,
-          len = checkboxes.length; i < len; i++) {
-        if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
-          return;
+    eachSelectedCheckboxCell(function() {
+      if (arguments.length > 1) {
+        var row$__7 = arguments[0];
+        var col$__8 = arguments[1];
+        var cellProperties$__9 = arguments[2];
+        if (cellProperties$__9.checkedTemplate) {
+          var dataAtCell = instance.getDataAtCell(row$__7, col$__8);
+          if (checked === null) {
+            if (dataAtCell === cellProperties$__9.checkedTemplate) {
+              instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.uncheckedTemplate);
+            } else if (dataAtCell === cellProperties$__9.uncheckedTemplate) {
+              instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.checkedTemplate);
+            }
+          } else {
+            instance.setDataAtCell(row$__7, col$__8, cellProperties$__9.uncheckedTemplate);
+          }
         }
-        toggleCheckbox(checkboxes[i], checked);
+      } else {
+        var checkboxes = arguments[0];
+        for (var i = 0,
+            len = checkboxes.length; i < len; i++) {
+          if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
+            return;
+          }
+          toggleCheckbox(checkboxes[i], checked);
+        }
       }
     });
   }
@@ -19195,15 +21436,39 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     var bottomRight = selRange.getBottomRightCorner();
     for (var row = topLeft.row; row <= bottomRight.row; row++) {
       for (var col = topLeft.col; col <= bottomRight.col; col++) {
+        var cellProperties$__10 = instance.getCellMeta(row, col);
+        if (cellProperties$__10.type !== 'checkbox') {
+          return;
+        }
         var cell = instance.getCell(row, col);
-        var cellProperties$__6 = instance.getCellMeta(row, col);
-        var checkboxes = cell.querySelectorAll('input[type=checkbox]');
-        if (checkboxes.length > 0 && !cellProperties$__6.readOnly) {
-          callback(checkboxes);
+        if (cell == null) {
+          callback(row, col, cellProperties$__10);
+        } else {
+          var checkboxes = cell.querySelectorAll('input[type=checkbox]');
+          if (checkboxes.length > 0 && !cellProperties$__10.readOnly) {
+            callback(checkboxes);
+          }
         }
       }
     }
   }
+}
+function registerEvents(instance) {
+  var eventManager = isCheckboxListenerAdded.get(instance);
+  if (!eventManager) {
+    eventManager = new EventManager(instance);
+    eventManager.addEventListener(instance.rootElement, 'click', (function(event) {
+      return onClick(event, instance);
+    }));
+    eventManager.addEventListener(instance.rootElement, 'mouseup', (function(event) {
+      return onMouseUp(event, instance);
+    }));
+    eventManager.addEventListener(instance.rootElement, 'change', (function(event) {
+      return onChange(event, instance);
+    }));
+    isCheckboxListenerAdded.set(instance, eventManager);
+  }
+  return eventManager;
 }
 function createInput() {
   var input = document.createElement('input');
@@ -19219,14 +21484,21 @@ function createLabel(text) {
   label.appendChild(document.createTextNode(text));
   return label.cloneNode(true);
 }
-function preventDefault(event) {
-  if (isCheckboxInput(event.target)) {
-    event.preventDefault();
-  }
-}
 function onMouseUp(event, instance) {
-  if (isCheckboxInput(event.target)) {
-    setTimeout(instance.listen, 10);
+  if (!isCheckboxInput(event.target)) {
+    return;
+  }
+  setTimeout(instance.listen, 10);
+}
+function onClick(event, instance) {
+  if (!isCheckboxInput(event.target)) {
+    return false;
+  }
+  var row = parseInt(event.target.getAttribute('data-row'), 10);
+  var col = parseInt(event.target.getAttribute('data-col'), 10);
+  var cellProperties = instance.getCellMeta(row, col);
+  if (cellProperties.readOnly) {
+    event.preventDefault();
   }
 }
 function onChange(event, instance) {
@@ -19236,7 +21508,23 @@ function onChange(event, instance) {
   var row = parseInt(event.target.getAttribute('data-row'), 10);
   var col = parseInt(event.target.getAttribute('data-col'), 10);
   var cellProperties = instance.getCellMeta(row, col);
-  instance.setDataAtCell(row, col, event.target.checked ? (cellProperties.checkedTemplate || true) : (cellProperties.uncheckedTemplate || false));
+  if (!cellProperties.readOnly) {
+    var newCheckboxValue = null;
+    if (event.target.checked) {
+      if (cellProperties.checkedTemplate === void 0) {
+        newCheckboxValue = true;
+      } else {
+        newCheckboxValue = cellProperties.checkedTemplate;
+      }
+    } else {
+      if (cellProperties.uncheckedTemplate === void 0) {
+        newCheckboxValue = false;
+      } else {
+        newCheckboxValue = cellProperties.uncheckedTemplate;
+      }
+    }
+    instance.setDataAtCell(row, col, newCheckboxValue);
+  }
 }
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
@@ -19245,7 +21533,7 @@ function isCheckboxInput(element) {
 registerRenderer('checkbox', checkboxRenderer);
 
 //# 
-},{"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/string":54,"helpers/unicode":55,"renderers":92}],96:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/function":49,"helpers/string":54,"helpers/unicode":55,"renderers":116}],120:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   htmlRenderer: {get: function() {
@@ -19270,7 +21558,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('html', htmlRenderer);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],97:[function(_dereq_,module,exports){
+},{"helpers/dom/element":46,"renderers":116}],121:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   numericRenderer: {get: function() {
@@ -19278,23 +21566,29 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__numeral__,
-    $___46__46__47_helpers_47_dom_47_element__,
+var $__numbro__,
     $___46__46__47_renderers__,
     $___46__46__47_helpers_47_number__;
-var numeral = ($__numeral__ = _dereq_("numeral"), $__numeral__ && $__numeral__.__esModule && $__numeral__ || {default: $__numeral__}).default;
-var addClass = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}).addClass;
-var $__2 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
-    getRenderer = $__2.getRenderer,
-    registerRenderer = $__2.registerRenderer;
+var numbro = ($__numbro__ = _dereq_("numbro"), $__numbro__ && $__numbro__.__esModule && $__numbro__ || {default: $__numbro__}).default;
+var $__1 = ($___46__46__47_renderers__ = _dereq_("renderers"), $___46__46__47_renderers__ && $___46__46__47_renderers__.__esModule && $___46__46__47_renderers__ || {default: $___46__46__47_renderers__}),
+    getRenderer = $__1.getRenderer,
+    registerRenderer = $__1.registerRenderer;
 var isNumeric = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).isNumeric;
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (isNumeric(value)) {
     if (typeof cellProperties.language !== 'undefined') {
-      numeral.language(cellProperties.language);
+      numbro.culture(cellProperties.language);
     }
-    value = numeral(value).format(cellProperties.format || '0');
-    addClass(TD, 'htNumeric');
+    value = numbro(value).format(cellProperties.format || '0');
+    var className = cellProperties.className || '';
+    var classArr = className.length ? className.split(' ') : [];
+    if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+      classArr.push('htRight');
+    }
+    if (classArr.indexOf('htNumeric') < 0) {
+      classArr.push('htNumeric');
+    }
+    cellProperties.className = classArr.join(' ');
   }
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
@@ -19302,7 +21596,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('numeric', numericRenderer);
 
 //# 
-},{"helpers/dom/element":46,"helpers/number":51,"numeral":"numeral","renderers":92}],98:[function(_dereq_,module,exports){
+},{"helpers/number":51,"numbro":undefined,"renderers":116}],122:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   passwordRenderer: {get: function() {
@@ -19329,7 +21623,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('password', passwordRenderer);
 
 //# 
-},{"helpers/dom/element":46,"renderers":92}],99:[function(_dereq_,module,exports){
+},{"helpers/dom/element":46,"renderers":116}],123:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   textRenderer: {get: function() {
@@ -19372,7 +21666,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 registerRenderer('text', textRenderer);
 
 //# 
-},{"helpers/dom/element":46,"helpers/mixed":50,"renderers":92}],100:[function(_dereq_,module,exports){
+},{"helpers/dom/element":46,"helpers/mixed":50,"renderers":116}],124:[function(_dereq_,module,exports){
 // jscs:disable
 /* jshint ignore:start */
 (function(global) {
@@ -19389,9 +21683,6 @@ registerRenderer('text', textRenderer);
   var $getOwnPropertyDescriptor = $Object.getOwnPropertyDescriptor;
   var $getOwnPropertyNames = $Object.getOwnPropertyNames;
   var $keys = $Object.keys;
-  var $hasOwnProperty = $Object.prototype.hasOwnProperty;
-  var $preventExtensions = Object.preventExtensions;
-  var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
   function nonEnum(value) {
     return {
@@ -19494,14 +21785,6 @@ registerRenderer('text', textRenderer);
     getOwnHashObject(object);
     return $freeze.apply(this, arguments);
   }
-  function preventExtensions(object) {
-    getOwnHashObject(object);
-    return $preventExtensions.apply(this, arguments);
-  }
-  function seal(object) {
-    getOwnHashObject(object);
-    return $seal.apply(this, arguments);
-  }
   freeze(SymbolValue.prototype);
   function isSymbolString(s) {
     return symbolValues[s] || privateNames[s];
@@ -19510,21 +21793,6 @@ registerRenderer('text', textRenderer);
     if (isShimSymbol(name))
       return name[symbolInternalProperty];
     return name;
-  }
-  function removeSymbolKeys(array) {
-    var rv = [];
-    for (var i = 0; i < array.length; i++) {
-      if (!isSymbolString(array[i])) {
-        rv.push(array[i]);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyNames(object) {
-    return removeSymbolKeys($getOwnPropertyNames(object));
-  }
-  function keys(object) {
-    return removeSymbolKeys($keys(object));
   }
   function getOwnPropertySymbols(object) {
     var rv = [];
@@ -19537,31 +21805,8 @@ registerRenderer('text', textRenderer);
     }
     return rv;
   }
-  function getOwnPropertyDescriptor(object, name) {
-    return $getOwnPropertyDescriptor(object, toProperty(name));
-  }
-  function hasOwnProperty(name) {
-    return $hasOwnProperty.call(this, toProperty(name));
-  }
   function getOption(name) {
     return global.traceur && global.traceur.options[name];
-  }
-  function defineProperty(object, name, descriptor) {
-    if (isShimSymbol(name)) {
-      name = name[symbolInternalProperty];
-    }
-    $defineProperty(object, name, descriptor);
-    return object;
-  }
-  function polyfillObject(Object) {
-    $defineProperty(Object, 'defineProperty', {value: defineProperty});
-    $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
-    $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
-    $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
-    $defineProperty(Object, 'freeze', {value: freeze});
-    $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
-    $defineProperty(Object, 'seal', {value: seal});
-    $defineProperty(Object, 'keys', {value: keys});
   }
   function exportStar(object) {
     for (var i = 1; i < arguments.length; i++) {
@@ -19609,7 +21854,6 @@ registerRenderer('text', textRenderer);
     polyfillSymbol(global, Symbol);
     global.Reflect = global.Reflect || {};
     global.Reflect.global = global.Reflect.global || global;
-    polyfillObject(global.Object);
   }
   setupGlobals(global);
   global.$traceurRuntime = {
@@ -19777,7 +22021,7 @@ registerRenderer('text', textRenderer);
 })();
 /* jshint ignore:end */
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],125:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   TableView: {get: function() {
@@ -19787,6 +22031,7 @@ Object.defineProperties(exports, {
 });
 var $__browser__,
     $__helpers_47_dom_47_element__,
+    $__helpers_47_object__,
     $__eventManager__,
     $__helpers_47_dom_47_event__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
@@ -19802,17 +22047,21 @@ var $__1 = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $__
     hasClass = $__1.hasClass,
     isChildOf = $__1.isChildOf,
     isInput = $__1.isInput,
-    isOutsideInput = $__1.isOutsideInput;
+    isOutsideInput = $__1.isOutsideInput,
+    removeClass = $__1.removeClass;
+var createObjectPropListener = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).createObjectPropListener;
 var eventManagerObject = ($__eventManager__ = _dereq_("eventManager"), $__eventManager__ && $__eventManager__.__esModule && $__eventManager__ || {default: $__eventManager__}).eventManager;
-var $__3 = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__}),
-    stopPropagation = $__3.stopPropagation,
-    isImmediatePropagationStopped = $__3.isImmediatePropagationStopped;
+var $__4 = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__}),
+    stopPropagation = $__4.stopPropagation,
+    isImmediatePropagationStopped = $__4.isImmediatePropagationStopped,
+    isRightClick = $__4.isRightClick,
+    isLeftClick = $__4.isLeftClick;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = _dereq_("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
 var Walkontable = ($__3rdparty_47_walkontable_47_src_47_core__ = _dereq_("3rdparty/walkontable/src/core"), $__3rdparty_47_walkontable_47_src_47_core__ && $__3rdparty_47_walkontable_47_src_47_core__.__esModule && $__3rdparty_47_walkontable_47_src_47_core__ || {default: $__3rdparty_47_walkontable_47_src_47_core__}).Walkontable;
 Handsontable.TableView = TableView;
 function TableView(instance) {
-  var $__7 = this;
+  var $__8 = this;
   var that = this;
   this.eventManager = eventManagerObject(instance);
   this.instance = instance;
@@ -19870,6 +22119,7 @@ function TableView(instance) {
     }
   });
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+    var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
@@ -19895,7 +22145,8 @@ function TableView(instance) {
         next = next.parentNode;
       }
     }
-    if (that.settings.outsideClickDeselects) {
+    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ? that.settings.outsideClickDeselects(originalTarget) : that.settings.outsideClickDeselects;
+    if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
       instance.destroyEditor();
@@ -19944,6 +22195,7 @@ function TableView(instance) {
     }
   }), new WalkontableSelection({
     className: 'highlight',
+    highlightHeaderClassName: that.settings.currentHeaderClassName,
     highlightRowClassName: that.settings.currentRowClassName,
     highlightColumnClassName: that.settings.currentColClassName
   }), new WalkontableSelection({
@@ -19964,7 +22216,7 @@ function TableView(instance) {
     externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
     table: table,
     preventOverflow: (function() {
-      return $__7.settings.preventOverflow;
+      return $__8.settings.preventOverflow;
     }),
     stretchH: function() {
       return that.settings.stretchH;
@@ -20015,89 +22267,159 @@ function TableView(instance) {
       var cellProperties = that.instance.getCellMeta(row, col);
       var prop = that.instance.colToProp(col);
       var value = that.instance.getDataAtRowProp(row, prop);
-      Handsontable.hooks.run(that.instance, 'beforeRenderer', TD, row, col, prop, value, cellProperties);
+      if (that.instance.hasHook('beforeValueRender')) {
+        value = that.instance.runHooks('beforeValueRender', value);
+      }
+      that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
       that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
+      that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
     },
     selections: selections,
     hideBorderOnMouseDownOver: function() {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      var colspanOffset;
-      var TR = TD.parentNode;
-      var THEAD = TR.parentNode;
-      var headerLevel;
-      var headerColspan;
+      var blockCalculations = {
+        row: false,
+        column: false,
+        cells: false
+      };
       instance.listen();
       that.activeWt = wt;
       isMouseDown = true;
-      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD);
-      if (!isImmediatePropagationStopped(event)) {
-        if (event.button === 2 && instance.selection.inInSelection(coords)) {
-          var nothing = 1;
-        } else if (event.shiftKey) {
-          if (coords.row >= 0 && coords.col >= 0) {
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseDown', event, coords, TD, blockCalculations);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      var actualSelection = instance.getSelectedRange();
+      var selection = instance.selection;
+      var selectedHeader = selection.selectedHeader;
+      if (event.shiftKey && actualSelection) {
+        if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
+          selection.setSelectedHeaders(false, false);
+          selection.setRangeEnd(coords);
+        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
+          selection.setSelectedHeaders(false, false);
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
+        } else if (selectedHeader.cols && coords.row < 0 && !blockCalculations.column) {
+          selection.setRangeEnd(new WalkontableCellCoords(actualSelection.to.row, coords.col));
+        } else if (selectedHeader.rows && coords.col < 0 && !blockCalculations.row) {
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, actualSelection.to.col));
+        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) || (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
+          selection.setSelectedHeaders(true, false);
+          selection.setRangeStartOnly(new WalkontableCellCoords(actualSelection.from.row, 0));
+          selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) || (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
+          selection.setSelectedHeaders(false, true);
+          selection.setRangeStartOnly(new WalkontableCellCoords(0, actualSelection.from.col));
+          selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        }
+      } else {
+        var doNewSelection = true;
+        if (actualSelection) {
+          var $__9 = actualSelection,
+              from = $__9.from,
+              to = $__9.to;
+          var coordsNotInSelection = !selection.inInSelection(coords);
+          if (coords.row < 0 && selectedHeader.cols) {
+            var start = Math.min(from.col, to.col);
+            var end = Math.max(from.col, to.col);
+            doNewSelection = (coords.col < start || coords.col > end);
+          } else if (coords.col < 0 && selectedHeader.rows) {
+            var start$__10 = Math.min(from.row, to.row);
+            var end$__11 = Math.max(from.row, to.row);
+            doNewSelection = (coords.row < start$__10 || coords.row > end$__11);
+          } else {
+            doNewSelection = coordsNotInSelection;
+          }
+        }
+        var rightClick = isRightClick(event);
+        var leftClick = isLeftClick(event) || event.type === 'touchstart';
+        if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
+          selection.setSelectedHeaders(false, true);
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setRangeStartOnly(new WalkontableCellCoords(0, coords.col));
+            selection.setRangeEnd(new WalkontableCellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+          }
+        } else if (coords.col < 0 && coords.row >= 0 && !blockCalculations.row) {
+          selection.setSelectedHeaders(true, false);
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setRangeStartOnly(new WalkontableCellCoords(coords.row, 0));
+            selection.setRangeEnd(new WalkontableCellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
+          }
+        } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
+          if (leftClick || (rightClick && doNewSelection)) {
+            selection.setSelectedHeaders(false, false);
+            selection.setRangeStart(coords);
+          }
+        } else if (coords.col < 0 && coords.row < 0) {
+          coords.row = 0;
+          coords.col = 0;
+          selection.setSelectedHeaders(false, false, true);
+          selection.setRangeStart(coords);
+        }
+      }
+      if (selection.selectedHeader.rows) {
+        removeClass(instance.rootElement, 'ht__selection--columns');
+        addClass(instance.rootElement, 'ht__selection--rows');
+      } else if (selection.selectedHeader.cols) {
+        removeClass(instance.rootElement, 'ht__selection--rows');
+        addClass(instance.rootElement, 'ht__selection--columns');
+      } else {
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+      }
+      Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+      that.activeWt = that.wt;
+    },
+    onCellMouseOver: function(event, coords, TD, wt) {
+      var blockCalculations = {
+        row: false,
+        column: false,
+        cell: false
+      };
+      that.activeWt = wt;
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+      if (event.button === 0 && isMouseDown) {
+        if (coords.row >= 0 && coords.col >= 0) {
+          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+          } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
           }
         } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
-            if (coords.row < 0) {
-              headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
-              headerColspan = instance.getHeaderColspan(coords.col, headerLevel);
-              instance.selection.setSelectedHeaders(false, true);
-              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col + Math.max(0, headerColspan - 1));
-            }
-            if (coords.col < 0) {
-              instance.selection.setSelectedHeaders(true, false);
-              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
-            }
-          } else {
-            coords.row = coords.row < 0 ? 0 : coords.row;
-            coords.col = coords.col < 0 ? 0 : coords.col;
-            instance.selection.setSelectedHeaders(false, false);
-            instance.selection.setRangeStart(coords);
-          }
-        }
-        Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
-        that.activeWt = that.wt;
-      }
-    },
-    onCellMouseOver: function(event, coords, TD, wt) {
-      that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) {
-        if (isMouseDown) {
-          instance.selection.setRangeEnd(coords);
-        }
-      } else {
-        if (isMouseDown) {
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-          }
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
+          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col), false);
+          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1), false);
+          } else if (!blockCalculations.cell) {
+            instance.selection.setRangeEnd(coords);
           }
         }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
+    onCellMouseUp: function(event, coords, TD, wt) {
+      that.activeWt = wt;
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseUp', event, coords, TD);
+      Handsontable.hooks.run(instance, 'afterOnCellMouseUp', event, coords, TD);
+      that.activeWt = that.wt;
+    },
     onCellCornerMouseDown: function(event) {
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
     },
-    beforeDraw: function(force) {
-      that.beforeRender(force);
+    onCellCornerDblClick: function(event) {
+      event.preventDefault();
+      Handsontable.hooks.run(instance, 'afterOnCellCornerDblClick', event);
+    },
+    beforeDraw: function(force, skipRender) {
+      that.beforeRender(force, skipRender);
     },
     onDraw: function(force) {
       that.onDraw(force);
@@ -20119,6 +22441,9 @@ function TableView(instance) {
     },
     onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
       return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
+    },
+    onModifyRowHeaderWidth: function(rowHeaderWidth) {
+      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
     },
     viewportRowCalculatorOverride: function(calc) {
       var rows = instance.countRows();
@@ -20160,7 +22485,8 @@ function TableView(instance) {
       return that.settings.rowHeaderWidth;
     },
     columnHeaderHeight: function() {
-      return that.settings.columnHeaderHeight;
+      var columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
+      return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
   };
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);
@@ -20196,23 +22522,26 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
     return true;
   }
+  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
+    return true;
+  }
   return false;
 };
 TableView.prototype.isSelectedOnlyCell = function() {
-  var $__8 = this.instance.getSelected() || [],
-      row = $__8[0],
-      col = $__8[1],
-      rowEnd = $__8[2],
-      colEnd = $__8[3];
+  var $__9 = this.instance.getSelected() || [],
+      row = $__9[0],
+      col = $__9[1],
+      rowEnd = $__9[2],
+      colEnd = $__9[3];
   return row !== void 0 && row === rowEnd && col === colEnd;
 };
 TableView.prototype.isCellEdited = function() {
   var activeEditor = this.instance.getActiveEditor();
   return activeEditor && activeEditor.isOpened();
 };
-TableView.prototype.beforeRender = function(force) {
+TableView.prototype.beforeRender = function(force, skipRender) {
   if (force) {
-    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender);
+    Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender, skipRender);
   }
 };
 TableView.prototype.onDraw = function(force) {
@@ -20277,7 +22606,16 @@ TableView.prototype.appendColHeader = function(col, TH) {
   Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };
 TableView.prototype.updateCellHeader = function(element, index, content) {
-  if (index > -1) {
+  var renderedIndex = index;
+  var parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+  if (element.parentNode) {
+    if (hasClass(element, 'colHeader')) {
+      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+    } else if (hasClass(element, 'rowHeader')) {
+      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+    }
+  }
+  if (renderedIndex > -1) {
     fastInnerHTML(element, content(index));
   } else {
     fastInnerText(element, String.fromCharCode(160));
@@ -20304,7 +22642,7 @@ TableView.prototype.destroy = function() {
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/core":7,"3rdparty/walkontable/src/selection":18,"browser":23,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47}],102:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/core":7,"3rdparty/walkontable/src/selection":18,"browser":23,"eventManager":41,"helpers/dom/element":46,"helpers/dom/event":47,"helpers/object":52}],126:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   GhostTable: {get: function() {
@@ -20334,6 +22672,7 @@ var GhostTable = function GhostTable(hotInstance) {
   this.rows = [];
   this.columns = [];
   this.samples = null;
+  this.settings = {useHeaders: true};
 };
 ($traceurRuntime.createClass)(GhostTable, {
   addRow: function(row, samples) {
@@ -20352,6 +22691,19 @@ var GhostTable = function GhostTable(hotInstance) {
     this.container.container.appendChild(this.table.fragment);
     rowObject.table = this.table.table;
   },
+  addColumnHeadersRow: function(samples) {
+    if (this.hot.getColHeader(0) != null) {
+      var rowObject = {row: -1};
+      this.rows.push(rowObject);
+      this.container = this.createContainer(this.hot.rootElement.className);
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tHead.appendChild(this.createColumnHeadersRow());
+      this.container.container.appendChild(this.table.fragment);
+      rowObject.table = this.table.table;
+    }
+  },
   addColumn: function(column, samples) {
     if (this.rows.length) {
       throw new Error('Doesn\'t support multi-dimensional table');
@@ -20363,7 +22715,7 @@ var GhostTable = function GhostTable(hotInstance) {
     this.columns.push(columnObject);
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
-    if (this.hot.getColHeader(column) !== null) {
+    if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -20386,11 +22738,32 @@ var GhostTable = function GhostTable(hotInstance) {
       callback(column.col, outerWidth(column.table));
     }));
   },
+  setSettings: function(settings) {
+    this.settings = settings;
+  },
+  setSetting: function(name, value) {
+    if (!this.settings) {
+      this.settings = {};
+    }
+    this.settings[name] = value;
+  },
+  getSettings: function() {
+    return this.settings;
+  },
+  getSetting: function(name) {
+    if (this.settings) {
+      return this.settings[name];
+    } else {
+      return null;
+    }
+  },
   createColGroupsCol: function() {
     var $__6 = this;
     var d = document;
     var fragment = d.createDocumentFragment();
-    fragment.appendChild(this.createColElement(-1));
+    if (this.hot.hasRowHeaders()) {
+      fragment.appendChild(this.createColElement(-1));
+    }
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         fragment.appendChild($__6.createColElement(string.col));
@@ -20403,10 +22776,10 @@ var GhostTable = function GhostTable(hotInstance) {
     var d = document;
     var fragment = d.createDocumentFragment();
     var th = d.createElement('th');
-    if (this.hot.getRowHeader(row) !== null) {
+    if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
+      fragment.appendChild(th);
     }
-    fragment.appendChild(th);
     this.samples.forEach((function(sample) {
       arrayEach(sample.strings, (function(string) {
         var column = string.col;
@@ -20417,6 +22790,25 @@ var GhostTable = function GhostTable(hotInstance) {
         var td = d.createElement('td');
         renderer($__6.hot, td, row, column, $__6.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
+      }));
+    }));
+    return fragment;
+  },
+  createColumnHeadersRow: function() {
+    var $__6 = this;
+    var d = document;
+    var fragment = d.createDocumentFragment();
+    if (this.hot.hasRowHeaders()) {
+      var th = d.createElement('th');
+      this.hot.view.appendColHeader(-1, th);
+      fragment.appendChild(th);
+    }
+    this.samples.forEach((function(sample) {
+      arrayEach(sample.strings, (function(string) {
+        var column = string.col;
+        var th = d.createElement('th');
+        $__6.hot.view.appendColHeader(column, th);
+        fragment.appendChild(th);
       }));
     }));
     return fragment;
@@ -20443,6 +22835,7 @@ var GhostTable = function GhostTable(hotInstance) {
   },
   clean: function() {
     this.rows.length = 0;
+    this.rows[-1] = void 0;
     this.columns.length = 0;
     if (this.samples) {
       this.samples.clear();
@@ -20530,7 +22923,7 @@ var GhostTable = function GhostTable(hotInstance) {
 Handsontable.utils.GhostTable = GhostTable;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],103:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],127:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   Interval: {get: function() {
@@ -20539,28 +22932,20 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_browser__,
-    $___46__46__47_helpers_47_feature__,
-    $___46__46__47_helpers_47_array__,
-    $___46__46__47_helpers_47_object__,
-    $___46__46__47_helpers_47_number__,
-    $___46__46__47_helpers_47_mixed__;
+    $___46__46__47_helpers_47_feature__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var $__1 = ($___46__46__47_helpers_47_feature__ = _dereq_("helpers/feature"), $___46__46__47_helpers_47_feature__ && $___46__46__47_helpers_47_feature__.__esModule && $___46__46__47_helpers_47_feature__ || {default: $___46__46__47_helpers_47_feature__}),
     requestAnimationFrame = $__1.requestAnimationFrame,
     cancelAnimationFrame = $__1.cancelAnimationFrame;
-var arrayEach = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).arrayEach;
-var objectEach = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).objectEach;
-var rangeEach = ($___46__46__47_helpers_47_number__ = _dereq_("helpers/number"), $___46__46__47_helpers_47_number__ && $___46__46__47_helpers_47_number__.__esModule && $___46__46__47_helpers_47_number__ || {default: $___46__46__47_helpers_47_number__}).rangeEach;
-var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
 var Interval = function Interval(func, delay) {
-  var $__6 = this;
+  var $__2 = this;
   this.timer = null;
   this.func = func;
   this.delay = parseDelay(delay);
   this.stopped = true;
   this._then = null;
   this._callback = (function() {
-    return $__6.__callback();
+    return $__2.__callback();
   });
 };
 var $Interval = Interval;
@@ -20607,7 +22992,91 @@ function parseDelay(delay) {
 Handsontable.utils.Interval = Interval;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/feature":48,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],104:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/feature":48}],128:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperties(exports, {
+  registerIdentity: {get: function() {
+      return registerIdentity;
+    }},
+  getTranslator: {get: function() {
+      return getTranslator;
+    }},
+  __esModule: {value: true}
+});
+var $___46__46__47_browser__,
+    $___46__46__47_helpers_47_object__;
+var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
+var isObject = ($___46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47_helpers_47_object__ && $___46__46__47_helpers_47_object__.__esModule && $___46__46__47_helpers_47_object__ || {default: $___46__46__47_helpers_47_object__}).isObject;
+var RecordTranslator = function RecordTranslator(hot) {
+  this.hot = hot;
+};
+($traceurRuntime.createClass)(RecordTranslator, {
+  toVisualRow: function(row) {
+    return this.hot.runHooks('unmodifyRow', row);
+  },
+  toVisualColumn: function(column) {
+    return this.hot.runHooks('unmodifyCol', column);
+  },
+  toVisual: function(row, column) {
+    var result;
+    if (isObject(row)) {
+      result = {
+        row: this.toVisualRow(row.row),
+        column: this.toVisualColumn(row.column)
+      };
+    } else {
+      result = [this.toVisualRow(row), this.toVisualColumn(column)];
+    }
+    return result;
+  },
+  toPhysicalRow: function(row) {
+    return this.hot.runHooks('modifyRow', row);
+  },
+  toPhysicalColumn: function(column) {
+    return this.hot.runHooks('modifyCol', column);
+  },
+  toPhysical: function(row, column) {
+    var result;
+    if (isObject(row)) {
+      result = {
+        row: this.toPhysicalRow(row.row),
+        column: this.toPhysicalColumn(row.column)
+      };
+    } else {
+      result = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
+    }
+    return result;
+  }
+}, {});
+var identities = new WeakMap();
+var translatorSingletons = new WeakMap();
+function registerIdentity(identity, hot) {
+  identities.set(identity, hot);
+}
+function getTranslator(identity) {
+  var singleton;
+  if (!(identity instanceof Handsontable.Core)) {
+    if (!identities.has(identity)) {
+      throw Error('Record translator was not registered for this object identity');
+    }
+    identity = identities.get(identity);
+  }
+  if (translatorSingletons.has(identity)) {
+    singleton = translatorSingletons.get(identity);
+  } else {
+    singleton = new RecordTranslator(identity);
+    translatorSingletons.set(identity, singleton);
+  }
+  return singleton;
+}
+Handsontable.utils.RecordTranslator = RecordTranslator;
+Handsontable.utils.RecordTranslatorUtils = {
+  registerIdentity: registerIdentity,
+  getTranslator: getTranslator
+};
+
+//# 
+},{"browser":23,"helpers/object":52}],129:[function(_dereq_,module,exports){
 "use strict";
 var $__8;
 Object.defineProperties(exports, {
@@ -20637,6 +23106,7 @@ var SamplesGenerator = function SamplesGenerator(dataFactory) {
   this.samples = null;
   this.dataFactory = dataFactory;
   this.customSampleCount = null;
+  this.allowDuplicates = false;
 };
 var $SamplesGenerator = SamplesGenerator;
 ($traceurRuntime.createClass)(SamplesGenerator, ($__8 = {}, Object.defineProperty($__8, "getSampleCount", {
@@ -20645,6 +23115,20 @@ var $SamplesGenerator = SamplesGenerator;
       return this.customSampleCount;
     }
     return $SamplesGenerator.SAMPLE_COUNT;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__8, "setSampleCount", {
+  value: function(sampleCount) {
+    this.customSampleCount = sampleCount;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__8, "setAllowDuplicates", {
+  value: function(allowDuplicates) {
+    this.allowDuplicates = allowDuplicates;
   },
   configurable: true,
   enumerable: true,
@@ -20714,7 +23198,7 @@ var $SamplesGenerator = SamplesGenerator;
       var sample = samples.get(length);
       if (sample.needed) {
         var duplicate = sampledValues.indexOf(value) > -1;
-        if (!duplicate) {
+        if (!duplicate || $__6.allowDuplicates) {
           var computedKey = type === 'row' ? 'col' : 'row';
           sample.strings.push(($__8 = {}, Object.defineProperty($__8, "value", {
             value: value,
@@ -20744,13 +23228,20 @@ var $SamplesGenerator = SamplesGenerator;
 Handsontable.utils.SamplesGenerator = SamplesGenerator;
 
 //# 
-},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],105:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/number":51,"helpers/object":52}],130:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $___46__46__47_helpers_47_mixed__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
 Handsontable.AutocompleteValidator = function(value, callback) {
+  if (value == null) {
+    value = '';
+  }
+  if (this.allowEmpty && value === '') {
+    callback(true);
+    return;
+  }
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
       this.source(value, process(value, callback));
@@ -20763,15 +23254,11 @@ Handsontable.AutocompleteValidator = function(value, callback) {
 };
 function process(value, callback) {
   var originalVal = value;
-  var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
   return function(source) {
     var found = false;
     for (var s = 0,
         slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
-        found = true;
-        break;
-      } else if (lowercaseVal === stringify(source[s]).toLowerCase()) {
         found = true;
         break;
       }
@@ -20781,7 +23268,7 @@ function process(value, callback) {
 }
 
 //# 
-},{"browser":23,"helpers/mixed":50}],106:[function(_dereq_,module,exports){
+},{"browser":23,"helpers/mixed":50}],131:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $__moment__,
@@ -20797,7 +23284,7 @@ Handsontable.DateValidator = function(value, callback) {
   if (value == null) {
     value = '';
   }
-  var isValidDate = moment(new Date(value)).isValid();
+  var isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
   var isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
   if (this.allowEmpty && value === '') {
     isValidDate = true;
@@ -20812,7 +23299,9 @@ Handsontable.DateValidator = function(value, callback) {
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) {
       var correctedValue = correctFormat(value, this.dateFormat);
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');
+      var row = this.instance.runHooks('unmodifyRow', this.row);
+      var column = this.instance.runHooks('unmodifyCol', this.col);
+      this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
     } else {
       valid = false;
@@ -20821,21 +23310,20 @@ Handsontable.DateValidator = function(value, callback) {
   callback(valid);
 };
 var correctFormat = function correctFormat(value, dateFormat) {
-  var date = moment(getNormalizedDate(value));
-  var year = date.format('YYYY');
-  var yearNow = moment().format('YYYY');
-  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
-    if (!value.match(new RegExp(year))) {
-      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
-    }
-  } else if (year.length > 4) {
-    date.year((date.year() + '').substr(0, 4));
+  var dateFromDate = moment(getNormalizedDate(value));
+  var dateFromMoment = moment(value, dateFormat);
+  var isAlphanumeric = value.search(/[A-z]/g) > -1;
+  var date;
+  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) || !dateFromMoment.isValid() || isAlphanumeric) {
+    date = dateFromDate;
+  } else {
+    date = dateFromMoment;
   }
   return date.format(dateFormat);
 };
 
 //# 
-},{"../helpers/date":45,"browser":23,"editors":29,"moment":undefined}],107:[function(_dereq_,module,exports){
+},{"../helpers/date":45,"browser":23,"editors":29,"moment":undefined}],132:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__;
 var Handsontable = ($___46__46__47_browser__ = _dereq_("browser"), $___46__46__47_browser__ && $___46__46__47_browser__.__esModule && $___46__46__47_browser__ || {default: $___46__46__47_browser__}).default;
@@ -20853,7 +23341,7 @@ Handsontable.NumericValidator = function(value, callback) {
 };
 
 //# 
-},{"browser":23}],108:[function(_dereq_,module,exports){
+},{"browser":23}],133:[function(_dereq_,module,exports){
 "use strict";
 var $___46__46__47_browser__,
     $__moment__;
@@ -20887,7 +23375,9 @@ Handsontable.TimeValidator = function(value, callback) {
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) {
       var correctedValue = date.format(timeFormat);
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'timeValidator');
+      var row = this.instance.runHooks('unmodifyRow', this.row);
+      var column = this.instance.runHooks('unmodifyCol', this.col);
+      this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
     } else {
       valid = false;
@@ -21171,6 +23661,7 @@ function autoResize() {
         observe(el, 'paste', delayedResize);
         observe(el, 'drop', delayedResize);
         observe(el, 'keydown', delayedResize);
+        observe(el, 'focus', resize);
       }
 
       resize();
@@ -21190,6 +23681,7 @@ function autoResize() {
       unObserve(el, 'paste', delayedResize);
       unObserve(el, 'drop', delayedResize);
       unObserve(el, 'keydown', delayedResize);
+      unObserve(el, 'focus', resize);
     },
     resize: resize
   };
@@ -21771,11 +24263,76 @@ CopyPasteClass.prototype.hasBeenDestroyed = function() {
 })(typeof exports != 'undefined' && typeof global != 'undefined' ? global : window);
 
 },{}],"jsonpatch":[function(_dereq_,module,exports){
-// json-patch-duplex.js 0.3.6
-// (c) 2013 Joachim Wester
-// MIT license
+/*!
+ * https://github.com/Starcounter-Jack/JSON-Patch
+ * json-patch-duplex.js version: 0.5.7
+ * (c) 2013 Joachim Wester
+ * MIT license
+ */
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var OriginalError = Error;
 var jsonpatch;
 (function (jsonpatch) {
+    var _objectKeys = function (obj) {
+        if (_isArray(obj)) {
+            var keys = new Array(obj.length);
+            for (var k = 0; k < keys.length; k++) {
+                keys[k] = "" + k;
+            }
+            return keys;
+        }
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
+            }
+        }
+        return keys;
+    };
+    function _equals(a, b) {
+        switch (typeof a) {
+            case 'undefined': //backward compatibility, but really I think we should return false
+            case 'boolean':
+            case 'string':
+            case 'number':
+                return a === b;
+            case 'object':
+                if (a === null)
+                    return b === null;
+                if (_isArray(a)) {
+                    if (!_isArray(b) || a.length !== b.length)
+                        return false;
+                    for (var i = 0, l = a.length; i < l; i++)
+                        if (!_equals(a[i], b[i]))
+                            return false;
+                    return true;
+                }
+                var bKeys = _objectKeys(b);
+                var bLength = bKeys.length;
+                if (_objectKeys(a).length !== bLength)
+                    return false;
+                for (var i = 0; i < bLength; i++)
+                    if (!_equals(a[i], b[i]))
+                        return false;
+                return true;
+            default:
+                return false;
+        }
+    }
+    /* We use a Javascript hash to store each
+     function. Each hash entry (property) uses
+     the operation identifiers specified in rfc6902.
+     In this way, we can map each patch operation
+     to its dedicated function in efficient way.
+     */
+    /* The operations applicable to an object */
     var objOps = {
         add: function (obj, key) {
             obj[key] = this.value;
@@ -21809,13 +24366,13 @@ var jsonpatch;
             return true;
         },
         test: function (obj, key) {
-            return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+            return _equals(obj[key], this.value);
         },
         _get: function (obj, key) {
             this.value = obj[key];
         }
     };
-
+    /* The operations applicable to an array. Many are the same as for the object */
     var arrOps = {
         add: function (arr, i) {
             arr.splice(i, 0, this.value);
@@ -21834,14 +24391,49 @@ var jsonpatch;
         test: objOps.test,
         _get: objOps._get
     };
-
+    /* The operations applicable to object root. Many are the same as for the object */
+    var rootOps = {
+        add: function (obj) {
+            rootOps.remove.call(this, obj);
+            for (var key in this.value) {
+                if (this.value.hasOwnProperty(key)) {
+                    obj[key] = this.value[key];
+                }
+            }
+            return true;
+        },
+        remove: function (obj) {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    objOps.remove.call(this, obj, key);
+                }
+            }
+            return true;
+        },
+        replace: function (obj) {
+            apply(obj, [
+                { op: "remove", path: this.path }
+            ]);
+            apply(obj, [
+                { op: "add", path: this.path, value: this.value }
+            ]);
+            return true;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: function (obj) {
+            return (JSON.stringify(obj) === JSON.stringify(this.value));
+        },
+        _get: function (obj) {
+            this.value = obj;
+        }
+    };
     var observeOps = {
         add: function (patches, path) {
             var patch = {
                 op: "add",
                 path: path + escapePathComponent(this.name),
-                value: this.object[this.name]
-            };
+                value: this.object[this.name] };
             patches.push(patch);
         },
         'delete': function (patches, path) {
@@ -21860,49 +24452,39 @@ var jsonpatch;
             patches.push(patch);
         }
     };
-
     function escapePathComponent(str) {
-        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) {
+        if (str.indexOf('/') === -1 && str.indexOf('~') === -1)
             return str;
-        }
-
         return str.replace(/~/g, '~0').replace(/\//g, '~1');
     }
-
     function _getPathRecursive(root, obj) {
         var found;
         for (var key in root) {
             if (root.hasOwnProperty(key)) {
                 if (root[key] === obj) {
                     return escapePathComponent(key) + '/';
-                } else if (typeof root[key] === 'object') {
+                }
+                else if (typeof root[key] === 'object') {
                     found = _getPathRecursive(root[key], obj);
-                    /* jshint ignore:start */
                     if (found != '') {
                         return escapePathComponent(key) + '/' + found;
                     }
-                    /* jshint ignore:end */
                 }
             }
         }
         return '';
     }
-
     function getPath(root, obj) {
         if (root === obj) {
             return '/';
         }
         var path = _getPathRecursive(root, obj);
         if (path === '') {
-            throw new Error("Object not found in root");
+            throw new OriginalError("Object not found in root");
         }
         return '/' + path;
     }
-
     var beforeDict = [];
-    /* jshint ignore:start */
-    jsonpatch.intervals;
-    /* jshint ignore:end */
     var Mirror = (function () {
         function Mirror(obj) {
             this.observers = [];
@@ -21910,7 +24492,6 @@ var jsonpatch;
         }
         return Mirror;
     })();
-
     var ObserverInfo = (function () {
         function ObserverInfo(callback, observer) {
             this.callback = callback;
@@ -21918,7 +24499,6 @@ var jsonpatch;
         }
         return ObserverInfo;
     })();
-
     function getMirror(obj) {
         for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
             if (beforeDict[i].obj === obj) {
@@ -21926,14 +24506,6 @@ var jsonpatch;
             }
         }
     }
-    function removeMirror(obj) {
-        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-            if (beforeDict[i] === obj) {
-              beforeDict.splice(i, 1);
-            }
-        }
-    }
-
     function getObserverFromMirror(mirror, callback) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].callback === callback) {
@@ -21941,188 +24513,116 @@ var jsonpatch;
             }
         }
     }
-
     function removeObserverFromMirror(mirror, observer) {
         for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
             if (mirror.observers[j].observer === observer) {
                 mirror.observers.splice(j, 1);
-
-                if (!mirror.observers.length) {
-                    removeMirror(mirror);
-                }
                 return;
             }
         }
     }
-
     function unobserve(root, observer) {
-        generate(observer);
-        if (Object.observe) {
-            _unobserve(observer, root);
-        } else {
-            clearTimeout(observer.next);
-        }
-
-        var mirror = getMirror(root);
-        removeObserverFromMirror(mirror, observer);
+        observer.unobserve();
     }
     jsonpatch.unobserve = unobserve;
-
+    function deepClone(obj) {
+        if (typeof obj === "object") {
+            return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+        }
+        else {
+            return obj; //no need to clone primitives
+        }
+    }
     function observe(obj, callback) {
         var patches = [];
         var root = obj;
         var observer;
         var mirror = getMirror(obj);
-
         if (!mirror) {
             mirror = new Mirror(obj);
             beforeDict.push(mirror);
-        } else {
+        }
+        else {
             observer = getObserverFromMirror(mirror, callback);
         }
-
         if (observer) {
             return observer;
         }
-
-        if (Object.observe) {
-            observer = function (arr) {
-                //This "refresh" is needed to begin observing new object properties
-                _unobserve(observer, obj);
-                _observe(observer, obj);
-
-                var a = 0, alen = arr.length;
-                /* jshint ignore:start */
-                while (a < alen) {
-                    if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
-                        var type = arr[a].type;
-
-                        switch (type) {
-                            case 'new':
-                                type = 'add';
-                                break;
-
-                            case 'deleted':
-                                type = 'delete';
-                                break;
-
-                            case 'updated':
-                                type = 'update';
-                                break;
-                        }
-
-                        observeOps[type].call(arr[a], patches, getPath(root, arr[a].object));
-                    }
-                    a++;
-                }
-                /* jshint ignore:end */
-
-                if (patches) {
-                    if (callback) {
-                        callback(patches);
-                    }
-                }
-                observer.patches = patches;
-                patches = [];
-            };
-        } else {
-            observer = {};
-
-            mirror.value = JSON.parse(JSON.stringify(obj));
-
-            if (callback) {
-                //callbacks.push(callback); this has no purpose
-                observer.callback = callback;
-                observer.next = null;
-                var intervals = this.intervals || [100, 1000, 10000, 60000];
-                var currentInterval = 0;
-
-                var dirtyCheck = function () {
-                    generate(observer);
-                };
-                var fastCheck = function () {
-                    clearTimeout(observer.next);
-                    observer.next = setTimeout(function () {
-                        dirtyCheck();
-                        currentInterval = 0;
-                        observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                    }, 0);
-                };
-                var slowCheck = function () {
-                    dirtyCheck();
-                    if (currentInterval == intervals.length) {
-                        currentInterval = intervals.length - 1;
-                    }
-                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                };
-                if (typeof window !== 'undefined') {
-                    if (window.addEventListener) {
-                        window.addEventListener('mousedown', fastCheck);
-                        window.addEventListener('mouseup', fastCheck);
-                        window.addEventListener('keydown', fastCheck);
-                    } else {
-                        window.attachEvent('onmousedown', fastCheck);
-                        window.attachEvent('onmouseup', fastCheck);
-                        window.attachEvent('onkeydown', fastCheck);
-                    }
-                }
-                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        observer = {};
+        mirror.value = deepClone(obj);
+        if (callback) {
+            observer.callback = callback;
+            observer.next = null;
+            var intervals = this.intervals || [100, 1000, 10000, 60000];
+            if (intervals.push === void 0) {
+                throw new OriginalError("jsonpatch.intervals must be an array");
             }
+            var currentInterval = 0;
+            var dirtyCheck = function () {
+                generate(observer);
+            };
+            var fastCheck = function () {
+                clearTimeout(observer.next);
+                observer.next = setTimeout(function () {
+                    dirtyCheck();
+                    currentInterval = 0;
+                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+                }, 0);
+            };
+            var slowCheck = function () {
+                dirtyCheck();
+                if (currentInterval == intervals.length)
+                    currentInterval = intervals.length - 1;
+                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+            };
+            if (typeof window !== 'undefined') {
+                if (window.addEventListener) {
+                    window.addEventListener('mousedown', fastCheck);
+                    window.addEventListener('mouseup', fastCheck);
+                    window.addEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.attachEvent('onmousedown', fastCheck);
+                    document.documentElement.attachEvent('onmouseup', fastCheck);
+                    document.documentElement.attachEvent('onkeydown', fastCheck);
+                }
+            }
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
         }
         observer.patches = patches;
         observer.object = obj;
-
+        observer.unobserve = function () {
+            generate(observer);
+            clearTimeout(observer.next);
+            removeObserverFromMirror(mirror, observer);
+            if (typeof window !== 'undefined') {
+                if (window.removeEventListener) {
+                    window.removeEventListener('mousedown', fastCheck);
+                    window.removeEventListener('mouseup', fastCheck);
+                    window.removeEventListener('keydown', fastCheck);
+                }
+                else {
+                    document.documentElement.detachEvent('onmousedown', fastCheck);
+                    document.documentElement.detachEvent('onmouseup', fastCheck);
+                    document.documentElement.detachEvent('onkeydown', fastCheck);
+                }
+            }
+        };
         mirror.observers.push(new ObserverInfo(callback, observer));
-
-        return _observe(observer, obj);
+        return observer;
     }
     jsonpatch.observe = observe;
-
-    /// Listen to changes on an object tree, accumulate patches
-    function _observe(observer, obj) {
-        if (Object.observe) {
-            Object.observe(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _observe(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
-    function _unobserve(observer, obj) {
-        if (Object.observe) {
-            Object.unobserve(obj, observer);
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if (v && typeof (v) === "object") {
-                        _unobserve(observer, v);
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
     function generate(observer) {
-        if (Object.observe) {
-            Object.deliverChangeRecords(observer);
-        } else {
-            var mirror;
-            for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if (beforeDict[i].obj === observer.object) {
-                    mirror = beforeDict[i];
-                    break;
-                }
+        var mirror;
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === observer.object) {
+                mirror = beforeDict[i];
+                break;
             }
-            if (mirror) {
-                _generate(mirror.value, observer.object, observer.patches, "");
-            }
+        }
+        _generate(mirror.value, observer.object, observer.patches, "");
+        if (observer.patches.length) {
+            apply(mirror.value, observer.patches);
         }
         var temp = observer.patches;
         if (temp.length > 0) {
@@ -22134,899 +24634,263 @@ var jsonpatch;
         return temp;
     }
     jsonpatch.generate = generate;
-
-    var _objectKeys;
-    if (Object.keys) {
-        _objectKeys = Object.keys;
-    } else {
-        _objectKeys = function (obj) {
-            var keys = [];
-            for (var o in obj) {
-                if (obj.hasOwnProperty(o)) {
-                    keys.push(o);
-                }
-            }
-            return keys;
-        };
-    }
-
     // Dirty check if obj is different from mirror, generate patches and update mirror
     function _generate(mirror, obj, patches, path) {
         var newKeys = _objectKeys(obj);
         var oldKeys = _objectKeys(mirror);
         var changed = false;
         var deleted = false;
-
+        //if ever "move" operation is implemented here, make sure this test runs OK: "should not generate the same patch twice (move)"
         for (var t = oldKeys.length - 1; t >= 0; t--) {
             var key = oldKeys[t];
             var oldVal = mirror[key];
             if (obj.hasOwnProperty(key)) {
                 var newVal = obj[key];
-                if (oldVal instanceof Object) {
+                if (typeof oldVal == "object" && oldVal != null && typeof newVal == "object" && newVal != null) {
                     _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
-                } else {
+                }
+                else {
                     if (oldVal != newVal) {
                         changed = true;
-                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: newVal });
-                        mirror[key] = newVal;
+                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal) });
                     }
                 }
-            } else {
+            }
+            else {
                 patches.push({ op: "remove", path: path + "/" + escapePathComponent(key) });
-                delete mirror[key];
-                deleted = true;
+                deleted = true; // property has been deleted
             }
         }
-
         if (!deleted && newKeys.length == oldKeys.length) {
             return;
         }
-
         for (var t = 0; t < newKeys.length; t++) {
             var key = newKeys[t];
             if (!mirror.hasOwnProperty(key)) {
-                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: obj[key] });
-                mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key]) });
             }
         }
     }
-
     var _isArray;
     if (Array.isArray) {
         _isArray = Array.isArray;
-    } else {
+    }
+    else {
         _isArray = function (obj) {
             return obj.push && typeof obj.length === 'number';
         };
     }
-
+    //3x faster than cached /^\d+$/.test(str)
+    function isInteger(str) {
+        var i = 0;
+        var len = str.length;
+        var charCode;
+        while (i < len) {
+            charCode = str.charCodeAt(i);
+            if (charCode >= 48 && charCode <= 57) {
+                i++;
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
     /// Apply a json-patch operation on an object tree
-    function apply(tree, patches) {
-        var result = false, p = 0, plen = patches.length, patch;
+    function apply(tree, patches, validate) {
+        var result = false, p = 0, plen = patches.length, patch, key;
         while (p < plen) {
             patch = patches[p];
-
-            // Find the object
-            var keys = patch.path.split('/');
-            var obj = tree;
-            var t = 1;
-            var len = keys.length;
-            while (true) {
-                if (_isArray(obj)) {
-                    var index = parseInt(keys[t], 10);
-                    t++;
-                    if (t >= len) {
-                        result = arrOps[patch.op].call(patch, obj, index, tree);
-                        break;
-                    }
-                    obj = obj[index];
-                } else {
-                    var key = keys[t];
-                    if (key.indexOf('~') != -1) {
-                        key = key.replace(/~1/g, '/').replace(/~0/g, '~');
-                    }
-                    t++;
-                    if (t >= len) {
-                        result = objOps[patch.op].call(patch, obj, key, tree);
-                        break;
-                    }
-                    obj = obj[key];
-                }
-            }
             p++;
+            // Find the object
+            var path = patch.path || "";
+            var keys = path.split('/');
+            var obj = tree;
+            var t = 1; //skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+            var len = keys.length;
+            var existingPathFragment = undefined;
+            while (true) {
+                key = keys[t];
+                if (validate) {
+                    if (existingPathFragment === undefined) {
+                        if (obj[key] === undefined) {
+                            existingPathFragment = keys.slice(0, t).join('/');
+                        }
+                        else if (t == len - 1) {
+                            existingPathFragment = patch.path;
+                        }
+                        if (existingPathFragment !== undefined) {
+                            this.validator(patch, p - 1, tree, existingPathFragment);
+                        }
+                    }
+                }
+                t++;
+                if (key === undefined) {
+                    if (t >= len) {
+                        result = rootOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                if (_isArray(obj)) {
+                    if (key === '-') {
+                        key = obj.length;
+                    }
+                    else {
+                        if (validate && !isInteger(key)) {
+                            throw new JsonPatchError("Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index", "OPERATION_PATH_ILLEGAL_ARRAY_INDEX", p - 1, patch.path, patch);
+                        }
+                        key = parseInt(key, 10);
+                    }
+                    if (t >= len) {
+                        if (validate && patch.op === "add" && key > obj.length) {
+                            throw new JsonPatchError("The specified index MUST NOT be greater than the number of elements in the array", "OPERATION_VALUE_OUT_OF_BOUNDS", p - 1, patch.path, patch);
+                        }
+                        result = arrOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                else {
+                    if (key && key.indexOf('~') != -1)
+                        key = key.replace(/~1/g, '/').replace(/~0/g, '~'); // escape chars
+                    if (t >= len) {
+                        result = objOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                obj = obj[key];
+            }
         }
         return result;
     }
     jsonpatch.apply = apply;
+    function compare(tree1, tree2) {
+        var patches = [];
+        _generate(tree1, tree2, patches, '');
+        return patches;
+    }
+    jsonpatch.compare = compare;
+    var JsonPatchError = (function (_super) {
+        __extends(JsonPatchError, _super);
+        function JsonPatchError(message, name, index, operation, tree) {
+            _super.call(this, message);
+            this.message = message;
+            this.name = name;
+            this.index = index;
+            this.operation = operation;
+            this.tree = tree;
+        }
+        return JsonPatchError;
+    })(OriginalError);
+    jsonpatch.JsonPatchError = JsonPatchError;
+    jsonpatch.Error = JsonPatchError;
+    /**
+     * Recursively checks whether an object has any undefined values inside.
+     */
+    function hasUndefined(obj) {
+        if (obj === undefined) {
+            return true;
+        }
+        if (typeof obj == "array" || typeof obj == "object") {
+            for (var i in obj) {
+                if (hasUndefined(obj[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Validates a single operation. Called from `jsonpatch.validate`. Throws `JsonPatchError` in case of an error.
+     * @param {object} operation - operation object (patch)
+     * @param {number} index - index of operation in the sequence
+     * @param {object} [tree] - object where the operation is supposed to be applied
+     * @param {string} [existingPathFragment] - comes along with `tree`
+     */
+    function validator(operation, index, tree, existingPathFragment) {
+        if (typeof operation !== 'object' || operation === null || _isArray(operation)) {
+            throw new JsonPatchError('Operation is not an object', 'OPERATION_NOT_AN_OBJECT', index, operation, tree);
+        }
+        else if (!objOps[operation.op]) {
+            throw new JsonPatchError('Operation `op` property is not one of operations defined in RFC-6902', 'OPERATION_OP_INVALID', index, operation, tree);
+        }
+        else if (typeof operation.path !== 'string') {
+            throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
+        }
+        else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
+            throw new JsonPatchError('Operation `from` property is not present (applicable in `move` and `copy` operations)', 'OPERATION_FROM_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && operation.value === undefined) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_REQUIRED', index, operation, tree);
+        }
+        else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && hasUndefined(operation.value)) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED', index, operation, tree);
+        }
+        else if (tree) {
+            if (operation.op == "add") {
+                var pathLen = operation.path.split("/").length;
+                var existingPathLen = existingPathFragment.split("/").length;
+                if (pathLen !== existingPathLen + 1 && pathLen !== existingPathLen) {
+                    throw new JsonPatchError('Cannot perform an `add` operation at the desired path', 'OPERATION_PATH_CANNOT_ADD', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'replace' || operation.op === 'remove' || operation.op === '_get') {
+                if (operation.path !== existingPathFragment) {
+                    throw new JsonPatchError('Cannot perform the operation at a path that does not exist', 'OPERATION_PATH_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+            else if (operation.op === 'move' || operation.op === 'copy') {
+                var existingValue = { op: "_get", path: operation.from, value: undefined };
+                var error = jsonpatch.validate([existingValue], tree);
+                if (error && error.name === 'OPERATION_PATH_UNRESOLVABLE') {
+                    throw new JsonPatchError('Cannot perform the operation from a path that does not exist', 'OPERATION_FROM_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+        }
+    }
+    jsonpatch.validator = validator;
+    /**
+     * Validates a sequence of operations. If `tree` parameter is provided, the sequence is additionally validated against the object tree.
+     * If error is encountered, returns a JsonPatchError object
+     * @param sequence
+     * @param tree
+     * @returns {JsonPatchError|undefined}
+     */
+    function validate(sequence, tree) {
+        try {
+            if (!_isArray(sequence)) {
+                throw new JsonPatchError('Patch sequence must be an array', 'SEQUENCE_NOT_AN_ARRAY');
+            }
+            if (tree) {
+                tree = JSON.parse(JSON.stringify(tree)); //clone tree so that we can safely try applying operations
+                apply.call(this, tree, sequence, true);
+            }
+            else {
+                for (var i = 0; i < sequence.length; i++) {
+                    this.validator(sequence[i], i);
+                }
+            }
+        }
+        catch (e) {
+            if (e instanceof JsonPatchError) {
+                return e;
+            }
+            else {
+                throw e;
+            }
+        }
+    }
+    jsonpatch.validate = validate;
 })(jsonpatch || (jsonpatch = {}));
-
 if (typeof exports !== "undefined") {
     exports.apply = jsonpatch.apply;
     exports.observe = jsonpatch.observe;
     exports.unobserve = jsonpatch.unobserve;
     exports.generate = jsonpatch.generate;
+    exports.compare = jsonpatch.compare;
+    exports.validate = jsonpatch.validate;
+    exports.validator = jsonpatch.validator;
+    exports.JsonPatchError = jsonpatch.JsonPatchError;
+    exports.Error = jsonpatch.Error;
 }
 
-},{}],"numeral":[function(_dereq_,module,exports){
-/*!
- * numeral.js
- * version : 1.5.3
- * author : Adam Draper
- * license : MIT
- * http://adamwdraper.github.com/Numeral-js/
- */
-
-(function () {
-
-    /************************************
-        Constants
-    ************************************/
-
-    var numeral,
-        VERSION = '1.5.3',
-        // internal storage for language config files
-        languages = {},
-        currentLanguage = 'en',
-        zeroFormat = null,
-        defaultFormat = '0,0',
-        // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports);
-
-
-    /************************************
-        Constructors
-    ************************************/
-
-
-    // Numeral prototype object
-    function Numeral (number) {
-        this._value = number;
-    }
-
-    /**
-     * Implementation of toFixed() that treats floats more like decimals
-     *
-     * Fixes binary rounding issues (eg. (0.615).toFixed(2) === '0.61') that present
-     * problems for accounting- and finance-related software.
-     */
-    function toFixed (value, precision, roundingFunction, optionals) {
-        var power = Math.pow(10, precision),
-            optionalsRegExp,
-            output;
-
-        //roundingFunction = (roundingFunction !== undefined ? roundingFunction : Math.round);
-        // Multiply up by precision, round accurately, then divide and use native toFixed():
-        output = (roundingFunction(value * power) / power).toFixed(precision);
-
-        if (optionals) {
-            optionalsRegExp = new RegExp('0{1,' + optionals + '}$');
-            output = output.replace(optionalsRegExp, '');
-        }
-
-        return output;
-    }
-
-    /************************************
-        Formatting
-    ************************************/
-
-    // determine what type of formatting we need to do
-    function formatNumeral (n, format, roundingFunction) {
-        var output;
-
-        // figure out what kind of format we are dealing with
-        if (format.indexOf('$') > -1) { // currency!!!!!
-            output = formatCurrency(n, format, roundingFunction);
-        } else if (format.indexOf('%') > -1) { // percentage
-            output = formatPercentage(n, format, roundingFunction);
-        } else if (format.indexOf(':') > -1) { // time
-            output = formatTime(n, format);
-        } else { // plain ol' numbers or bytes
-            output = formatNumber(n._value, format, roundingFunction);
-        }
-
-        // return string
-        return output;
-    }
-
-    // revert to number
-    function unformatNumeral (n, string) {
-        var stringOriginal = string,
-            thousandRegExp,
-            millionRegExp,
-            billionRegExp,
-            trillionRegExp,
-            suffixes = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            bytesMultiplier = false,
-            power;
-
-        if (string.indexOf(':') > -1) {
-            n._value = unformatTime(string);
-        } else {
-            if (string === zeroFormat) {
-                n._value = 0;
-            } else {
-                if (languages[currentLanguage].delimiters.decimal !== '.') {
-                    string = string.replace(/\./g,'').replace(languages[currentLanguage].delimiters.decimal, '.');
-                }
-
-                // see if abbreviations are there so that we can multiply to the correct number
-                thousandRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.thousand + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                millionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.million + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                billionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.billion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-                trillionRegExp = new RegExp('[^a-zA-Z]' + languages[currentLanguage].abbreviations.trillion + '(?:\\)|(\\' + languages[currentLanguage].currency.symbol + ')?(?:\\))?)?$');
-
-                // see if bytes are there so that we can multiply to the correct number
-                for (power = 0; power <= suffixes.length; power++) {
-                    bytesMultiplier = (string.indexOf(suffixes[power]) > -1) ? Math.pow(1024, power + 1) : false;
-
-                    if (bytesMultiplier) {
-                        break;
-                    }
-                }
-
-                // do some math to create our number
-                n._value = ((bytesMultiplier) ? bytesMultiplier : 1) * ((stringOriginal.match(thousandRegExp)) ? Math.pow(10, 3) : 1) * ((stringOriginal.match(millionRegExp)) ? Math.pow(10, 6) : 1) * ((stringOriginal.match(billionRegExp)) ? Math.pow(10, 9) : 1) * ((stringOriginal.match(trillionRegExp)) ? Math.pow(10, 12) : 1) * ((string.indexOf('%') > -1) ? 0.01 : 1) * (((string.split('-').length + Math.min(string.split('(').length-1, string.split(')').length-1)) % 2)? 1: -1) * Number(string.replace(/[^0-9\.]+/g, ''));
-
-                // round if we are talking about bytes
-                n._value = (bytesMultiplier) ? Math.ceil(n._value) : n._value;
-            }
-        }
-        return n._value;
-    }
-
-    function formatCurrency (n, format, roundingFunction) {
-        var symbolIndex = format.indexOf('$'),
-            openParenIndex = format.indexOf('('),
-            minusSignIndex = format.indexOf('-'),
-            space = '',
-            spliceIndex,
-            output;
-
-        // check for space before or after currency
-        if (format.indexOf(' $') > -1) {
-            space = ' ';
-            format = format.replace(' $', '');
-        } else if (format.indexOf('$ ') > -1) {
-            space = ' ';
-            format = format.replace('$ ', '');
-        } else {
-            format = format.replace('$', '');
-        }
-
-        // format the number
-        output = formatNumber(n._value, format, roundingFunction);
-
-        // position the symbol
-        if (symbolIndex <= 1) {
-            if (output.indexOf('(') > -1 || output.indexOf('-') > -1) {
-                output = output.split('');
-                spliceIndex = 1;
-                if (symbolIndex < openParenIndex || symbolIndex < minusSignIndex){
-                    // the symbol appears before the "(" or "-"
-                    spliceIndex = 0;
-                }
-                output.splice(spliceIndex, 0, languages[currentLanguage].currency.symbol + space);
-                output = output.join('');
-            } else {
-                output = languages[currentLanguage].currency.symbol + space + output;
-            }
-        } else {
-            if (output.indexOf(')') > -1) {
-                output = output.split('');
-                output.splice(-1, 0, space + languages[currentLanguage].currency.symbol);
-                output = output.join('');
-            } else {
-                output = output + space + languages[currentLanguage].currency.symbol;
-            }
-        }
-
-        return output;
-    }
-
-    function formatPercentage (n, format, roundingFunction) {
-        var space = '',
-            output,
-            value = n._value * 100;
-
-        // check for space before %
-        if (format.indexOf(' %') > -1) {
-            space = ' ';
-            format = format.replace(' %', '');
-        } else {
-            format = format.replace('%', '');
-        }
-
-        output = formatNumber(value, format, roundingFunction);
-
-        if (output.indexOf(')') > -1 ) {
-            output = output.split('');
-            output.splice(-1, 0, space + '%');
-            output = output.join('');
-        } else {
-            output = output + space + '%';
-        }
-
-        return output;
-    }
-
-    function formatTime (n) {
-        var hours = Math.floor(n._value/60/60),
-            minutes = Math.floor((n._value - (hours * 60 * 60))/60),
-            seconds = Math.round(n._value - (hours * 60 * 60) - (minutes * 60));
-        return hours + ':' + ((minutes < 10) ? '0' + minutes : minutes) + ':' + ((seconds < 10) ? '0' + seconds : seconds);
-    }
-
-    function unformatTime (string) {
-        var timeArray = string.split(':'),
-            seconds = 0;
-        // turn hours and minutes into seconds and add them all up
-        if (timeArray.length === 3) {
-            // hours
-            seconds = seconds + (Number(timeArray[0]) * 60 * 60);
-            // minutes
-            seconds = seconds + (Number(timeArray[1]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[2]);
-        } else if (timeArray.length === 2) {
-            // minutes
-            seconds = seconds + (Number(timeArray[0]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[1]);
-        }
-        return Number(seconds);
-    }
-
-    function formatNumber (value, format, roundingFunction) {
-        var negP = false,
-            signed = false,
-            optDec = false,
-            abbr = '',
-            abbrK = false, // force abbreviation to thousands
-            abbrM = false, // force abbreviation to millions
-            abbrB = false, // force abbreviation to billions
-            abbrT = false, // force abbreviation to trillions
-            abbrForce = false, // force abbreviation
-            bytes = '',
-            ord = '',
-            abs = Math.abs(value),
-            suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            min,
-            max,
-            power,
-            w,
-            precision,
-            thousands,
-            d = '',
-            neg = false;
-
-        // check if number is zero and a custom zero format has been set
-        if (value === 0 && zeroFormat !== null) {
-            return zeroFormat;
-        } else {
-            // see if we should use parentheses for negative number or if we should prefix with a sign
-            // if both are present we default to parentheses
-            if (format.indexOf('(') > -1) {
-                negP = true;
-                format = format.slice(1, -1);
-            } else if (format.indexOf('+') > -1) {
-                signed = true;
-                format = format.replace(/\+/g, '');
-            }
-
-            // see if abbreviation is wanted
-            if (format.indexOf('a') > -1) {
-                // check if abbreviation is specified
-                abbrK = format.indexOf('aK') >= 0;
-                abbrM = format.indexOf('aM') >= 0;
-                abbrB = format.indexOf('aB') >= 0;
-                abbrT = format.indexOf('aT') >= 0;
-                abbrForce = abbrK || abbrM || abbrB || abbrT;
-
-                // check for space before abbreviation
-                if (format.indexOf(' a') > -1) {
-                    abbr = ' ';
-                    format = format.replace(' a', '');
-                } else {
-                    format = format.replace('a', '');
-                }
-
-                if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
-                    // trillion
-                    abbr = abbr + languages[currentLanguage].abbreviations.trillion;
-                    value = value / Math.pow(10, 12);
-                } else if (abs < Math.pow(10, 12) && abs >= Math.pow(10, 9) && !abbrForce || abbrB) {
-                    // billion
-                    abbr = abbr + languages[currentLanguage].abbreviations.billion;
-                    value = value / Math.pow(10, 9);
-                } else if (abs < Math.pow(10, 9) && abs >= Math.pow(10, 6) && !abbrForce || abbrM) {
-                    // million
-                    abbr = abbr + languages[currentLanguage].abbreviations.million;
-                    value = value / Math.pow(10, 6);
-                } else if (abs < Math.pow(10, 6) && abs >= Math.pow(10, 3) && !abbrForce || abbrK) {
-                    // thousand
-                    abbr = abbr + languages[currentLanguage].abbreviations.thousand;
-                    value = value / Math.pow(10, 3);
-                }
-            }
-
-            // see if we are formatting bytes
-            if (format.indexOf('b') > -1) {
-                // check for space before
-                if (format.indexOf(' b') > -1) {
-                    bytes = ' ';
-                    format = format.replace(' b', '');
-                } else {
-                    format = format.replace('b', '');
-                }
-
-                for (power = 0; power <= suffixes.length; power++) {
-                    min = Math.pow(1024, power);
-                    max = Math.pow(1024, power+1);
-
-                    if (value >= min && value < max) {
-                        bytes = bytes + suffixes[power];
-                        if (min > 0) {
-                            value = value / min;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // see if ordinal is wanted
-            if (format.indexOf('o') > -1) {
-                // check for space before
-                if (format.indexOf(' o') > -1) {
-                    ord = ' ';
-                    format = format.replace(' o', '');
-                } else {
-                    format = format.replace('o', '');
-                }
-
-                ord = ord + languages[currentLanguage].ordinal(value);
-            }
-
-            if (format.indexOf('[.]') > -1) {
-                optDec = true;
-                format = format.replace('[.]', '.');
-            }
-
-            w = value.toString().split('.')[0];
-            precision = format.split('.')[1];
-            thousands = format.indexOf(',');
-
-            if (precision) {
-                if (precision.indexOf('[') > -1) {
-                    precision = precision.replace(']', '');
-                    precision = precision.split('[');
-                    d = toFixed(value, (precision[0].length + precision[1].length), roundingFunction, precision[1].length);
-                } else {
-                    d = toFixed(value, precision.length, roundingFunction);
-                }
-
-                w = d.split('.')[0];
-
-                if (d.split('.')[1].length) {
-                    d = languages[currentLanguage].delimiters.decimal + d.split('.')[1];
-                } else {
-                    d = '';
-                }
-
-                if (optDec && Number(d.slice(1)) === 0) {
-                    d = '';
-                }
-            } else {
-                w = toFixed(value, null, roundingFunction);
-            }
-
-            // format number
-            if (w.indexOf('-') > -1) {
-                w = w.slice(1);
-                neg = true;
-            }
-
-            if (thousands > -1) {
-                w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' + languages[currentLanguage].delimiters.thousands);
-            }
-
-            if (format.indexOf('.') === 0) {
-                w = '';
-            }
-
-            return ((negP && neg) ? '(' : '') + ((!negP && neg) ? '-' : '') + ((!neg && signed) ? '+' : '') + w + d + ((ord) ? ord : '') + ((abbr) ? abbr : '') + ((bytes) ? bytes : '') + ((negP && neg) ? ')' : '');
-        }
-    }
-
-    /************************************
-        Top Level Functions
-    ************************************/
-
-    numeral = function (input) {
-        if (numeral.isNumeral(input)) {
-            input = input.value();
-        } else if (input === 0 || typeof input === 'undefined') {
-            input = 0;
-        } else if (!Number(input)) {
-            input = numeral.fn.unformat(input);
-        }
-
-        return new Numeral(Number(input));
-    };
-
-    // version number
-    numeral.version = VERSION;
-
-    // compare numeral object
-    numeral.isNumeral = function (obj) {
-        return obj instanceof Numeral;
-    };
-
-    // This function will load languages and then set the global language.  If
-    // no arguments are passed in, it will simply return the current global
-    // language key.
-    numeral.language = function (key, values) {
-        if (!key) {
-            return currentLanguage;
-        }
-
-        if (key && !values) {
-            if(!languages[key]) {
-                throw new Error('Unknown language : ' + key);
-            }
-            currentLanguage = key;
-        }
-
-        if (values || !languages[key]) {
-            loadLanguage(key, values);
-        }
-
-        return numeral;
-    };
-
-    // This function provides access to the loaded language data.  If
-    // no arguments are passed in, it will simply return the current
-    // global language object.
-    numeral.languageData = function (key) {
-        if (!key) {
-            return languages[currentLanguage];
-        }
-
-        if (!languages[key]) {
-            throw new Error('Unknown language : ' + key);
-        }
-
-        return languages[key];
-    };
-
-    numeral.language('en', {
-        delimiters: {
-            thousands: ',',
-            decimal: '.'
-        },
-        abbreviations: {
-            thousand: 'k',
-            million: 'm',
-            billion: 'b',
-            trillion: 't'
-        },
-        ordinal: function (number) {
-            var b = number % 10;
-            return (~~ (number % 100 / 10) === 1) ? 'th' :
-                (b === 1) ? 'st' :
-                (b === 2) ? 'nd' :
-                (b === 3) ? 'rd' : 'th';
-        },
-        currency: {
-            symbol: '$'
-        }
-    });
-
-    numeral.zeroFormat = function (format) {
-        zeroFormat = typeof(format) === 'string' ? format : null;
-    };
-
-    numeral.defaultFormat = function (format) {
-        defaultFormat = typeof(format) === 'string' ? format : '0.0';
-    };
-
-    numeral.validate = function(val, culture) {
-
-        var _decimalSep,
-          _thousandSep,
-          _currSymbol,
-          _valArray,
-          _abbrObj,
-          _thousandRegEx,
-          languageData,
-          temp;
-
-        //coerce val to string
-        if (typeof val !== 'string') {
-            val += '';
-            if (console.warn) {
-                console.warn('Numeral.js: Value is not string. It has been co-erced to: ', val);
-            }
-        }
-
-        //trim whitespaces from either sides
-        val = val.trim();
-
-
-        //if val is empty return false
-        if (val === '') {
-            return false;
-        }
-
-        //replace the initial '+' or '-' sign if present
-        val = val.replace(/^[+-]?/, '');
-
-
-        //get the decimal and thousands separator from numeral.languageData
-        try {
-            //check if the culture is understood by numeral. if not, default it to current language
-            languageData = numeral.languageData(culture);
-        } catch (e) {
-            languageData = numeral.languageData(numeral.language());
-        }
-
-        //setup the delimiters and currency symbol based on culture/language
-        _currSymbol = languageData.currency.symbol;
-        _abbrObj = languageData.abbreviations;
-        _decimalSep = languageData.delimiters.decimal;
-        if (languageData.delimiters.thousands === '.') {
-            _thousandSep = '\\.';
-        } else {
-            _thousandSep = languageData.delimiters.thousands;
-        }
-
-        //validating currency symbol
-        temp = val.match(/^[^\d\.\,]+/);
-        if (temp !== null) {
-            //chuck the currency symbol away
-            val = val.substr(1);
-            if (temp[0] !== _currSymbol) {
-                return false;
-            }
-        }
-
-        //validating abbreviation symbol
-        temp = val.match(/[^\d]+$/);
-        if (temp !== null) {
-            val = val.slice(0, - 1);
-            if (temp[0] !== _abbrObj.thousand && temp[0] !== _abbrObj.million && temp[0] !== _abbrObj.billion && temp[0] !== _abbrObj.trillion) {
-                return false;
-            }
-        }
-
-        //if val is just digits the return true
-        if ( !! val.match(/^\d+$/)) {
-            return true;
-        }
-        _thousandRegEx = new RegExp(_thousandSep + '{2}');
-
-        if (!val.match(/[^\d.,]/g)) {
-            _valArray = val.split(_decimalSep);
-            if (_valArray.length > 2) {
-                return false;
-            } else {
-                if (_valArray.length < 2) {
-                    return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx));
-                } else {
-                    // for values without leading zero eg. .984
-                    if (_valArray[0] === '') {
-                        return ( !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    } else if (_valArray[0].length === 1) {
-                        return ( !! _valArray[0].match(/^\d+$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    } else {
-                        return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx) && !! _valArray[1].match(/^\d+$/));
-                    }
-                }
-            }
-        }
-
-        return false;
-    };
-
-    /************************************
-        Helpers
-    ************************************/
-
-    function loadLanguage(key, values) {
-        languages[key] = values;
-    }
-
-    /************************************
-        Floating-point helpers
-    ************************************/
-
-    // The floating-point helper functions and implementation
-    // borrows heavily from sinful.js: http://guipn.github.io/sinful.js/
-
-    /**
-     * Array.prototype.reduce for browsers that don't support it
-     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#Compatibility
-     */
-    if ('function' !== typeof Array.prototype.reduce) {
-        Array.prototype.reduce = function (callback, opt_initialValue) {
-            'use strict';
-
-            if (null === this || 'undefined' === typeof this) {
-                // At the moment all modern browsers, that support strict mode, have
-                // native implementation of Array.prototype.reduce. For instance, IE8
-                // does not support strict mode, so this check is actually useless.
-                throw new TypeError('Array.prototype.reduce called on null or undefined');
-            }
-
-            if ('function' !== typeof callback) {
-                throw new TypeError(callback + ' is not a function');
-            }
-
-            var index,
-                value,
-                length = this.length >>> 0,
-                isValueSet = false;
-
-            if (1 < arguments.length) {
-                value = opt_initialValue;
-                isValueSet = true;
-            }
-
-            for (index = 0; length > index; ++index) {
-                if (this.hasOwnProperty(index)) {
-                    if (isValueSet) {
-                        value = callback(value, this[index], index, this);
-                    } else {
-                        value = this[index];
-                        isValueSet = true;
-                    }
-                }
-            }
-
-            if (!isValueSet) {
-                throw new TypeError('Reduce of empty array with no initial value');
-            }
-
-            return value;
-        };
-    }
-
-
-    /**
-     * Computes the multiplier necessary to make x >= 1,
-     * effectively eliminating miscalculations caused by
-     * finite precision.
-     */
-    function multiplier(x) {
-        var parts = x.toString().split('.');
-        if (parts.length < 2) {
-            return 1;
-        }
-        return Math.pow(10, parts[1].length);
-    }
-
-    /**
-     * Given a variable number of arguments, returns the maximum
-     * multiplier that must be used to normalize an operation involving
-     * all of them.
-     */
-    function correctionFactor() {
-        var args = Array.prototype.slice.call(arguments);
-        return args.reduce(function (prev, next) {
-            var mp = multiplier(prev),
-                mn = multiplier(next);
-        return mp > mn ? mp : mn;
-        }, -Infinity);
-    }
-
-
-    /************************************
-        Numeral Prototype
-    ************************************/
-
-
-    numeral.fn = Numeral.prototype = {
-
-        clone : function () {
-            return numeral(this);
-        },
-
-        format : function (inputString, roundingFunction) {
-            return formatNumeral(this,
-                  inputString ? inputString : defaultFormat,
-                  (roundingFunction !== undefined) ? roundingFunction : Math.round
-              );
-        },
-
-        unformat : function (inputString) {
-            if (Object.prototype.toString.call(inputString) === '[object Number]') {
-                return inputString;
-            }
-            return unformatNumeral(this, inputString ? inputString : defaultFormat);
-        },
-
-        value : function () {
-            return this._value;
-        },
-
-        valueOf : function () {
-            return this._value;
-        },
-
-        set : function (value) {
-            this._value = Number(value);
-            return this;
-        },
-
-        add : function (value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr, currI, O) {
-                return accum + corrFactor * curr;
-            }
-            this._value = [this._value, value].reduce(cback, 0) / corrFactor;
-            return this;
-        },
-
-        subtract : function (value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr, currI, O) {
-                return accum - corrFactor * curr;
-            }
-            this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;
-            return this;
-        },
-
-        multiply : function (value) {
-            function cback(accum, curr, currI, O) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) * (curr * corrFactor) /
-                    (corrFactor * corrFactor);
-            }
-            this._value = [this._value, value].reduce(cback, 1);
-            return this;
-        },
-
-        divide : function (value) {
-            function cback(accum, curr, currI, O) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) / (curr * corrFactor);
-            }
-            this._value = [this._value, value].reduce(cback);
-            return this;
-        },
-
-        difference : function (value) {
-            return Math.abs(numeral(this._value).subtract(value).value());
-        }
-
-    };
-
-    /************************************
-        Exposing Numeral
-    ************************************/
-
-    // CommonJS module is defined
-    if (hasModule) {
-        module.exports = numeral;
-    }
-
-    /*global ender:false */
-    if (typeof ender === 'undefined') {
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `numeral` as a global object via a string identifier,
-        // for Closure Compiler 'advanced' mode
-        this['numeral'] = numeral;
-    }
-
-    /*global define:false */
-    if (typeof define === 'function' && define.amd) {
-        define([], function () {
-            return numeral;
-        });
-    }
-}).call(window);
-
-},{}]},{},[23,61,63,62,64,85,86,87,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,88,89,90,91,105,106,107,108,94,95,96,97,98,99,31,35,32,33,40,34,36,37,38,39])(23)
+},{}]},{},[23,62,64,65,63,66,109,110,111,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,98,99,100,101,102,104,105,106,107,108,112,113,114,115,130,131,132,133,118,119,120,121,122,123,31,35,32,33,40,34,36,37,38,39])(23)
 });

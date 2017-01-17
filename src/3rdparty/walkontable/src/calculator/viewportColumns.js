@@ -100,7 +100,10 @@ class WalkontableViewportColumnsCalculator {
         this.startColumn = i;
       }
 
-      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + viewportWidth) {
+      // +1 pixel for row header width compensation for horizontal scroll > 0
+      let compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+
+      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn == null) {
           this.startColumn = i;
         }

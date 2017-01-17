@@ -70,6 +70,7 @@ class WalkontableSettings {
       //callbacks
       onCellMouseDown: null,
       onCellMouseOver: null,
+      onCellMouseUp: null,
 
       //    onCellMouseOut: null,
       onCellDblClick: null,
@@ -83,6 +84,7 @@ class WalkontableSettings {
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: (width) => width,
+      onModifyRowHeaderWidth: null,
 
       //constants
       scrollbarWidth: 10,
@@ -91,7 +93,8 @@ class WalkontableSettings {
       renderAllRows: false,
       groups: false,
       rowHeaderWidth: null,
-      columnHeaderHeight: null
+      columnHeaderHeight: null,
+      headerClassName: null
     };
 
     // reference to settings

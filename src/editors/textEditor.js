@@ -238,6 +238,14 @@ TextEditor.prototype.getEditedCell = function() {
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
 
+TextEditor.prototype.refreshValue = function() {
+  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  this.originalValue = sourceData;
+
+  this.setValue(sourceData);
+  this.refreshDimensions();
+};
+
 TextEditor.prototype.refreshDimensions = function() {
   if (this.state !== Handsontable.EditorState.EDITING) {
     return;
@@ -254,7 +262,10 @@ TextEditor.prototype.refreshDimensions = function() {
       containerOffset = offset(this.instance.rootElement),
       scrollableContainer = getScrollableElement(this.TD),
       totalRowsCount = this.instance.countRows(),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+
+    // If colHeaders is disabled, cells in the first row have border-top
+      editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
+      editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
       settings = this.instance.getSettings(),

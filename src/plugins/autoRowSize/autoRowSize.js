@@ -37,6 +37,9 @@ import {isPercentValue} from './../../helpers/string';
  * ...
  * ```
  *
+ * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row height. Note, that this might have
+ * a negative impact on performance.
+ *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example
@@ -86,7 +89,17 @@ class AutoRowSize extends BasePlugin {
      *
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    this.samplesGenerator = new SamplesGenerator((row, col) => {
+      if (row >= 0) {
+        return this.hot.getDataAtCell(row, col);
+
+      } else if (row === -1) {
+        return this.hot.getColHeader(col);
+
+      } else {
+        return null;
+      }
+    });
     /**
      * `true` if only the first calculation was performed.
      *
@@ -121,12 +134,7 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    let setting = this.hot.getSettings().autoRowSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.customSampleCount = parseInt(samplingRatio, 10);
-    }
+    this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
@@ -136,6 +144,7 @@ class AutoRowSize extends BasePlugin {
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
+    this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
     super.enablePlugin();
   }
 
@@ -147,7 +156,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate rows height.
+   * Calculate a given rows height.
    *
    * @param {Number|Object} rowRange Row range object.
    * @param {Number|Object} colRange Column range object.
@@ -160,6 +169,13 @@ class AutoRowSize extends BasePlugin {
     if (typeof colRange === 'number') {
       colRange = {from: colRange, to: colRange};
     }
+
+    if (this.hot.getColHeader(0) !== null) {
+      const samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+
+      this.ghostTable.addColumnHeadersRow(samples.get(-1));
+    }
+
     rangeEach(rowRange.from, rowRange.to, (row) => {
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
@@ -176,7 +192,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate all rows height.
+   * Calculate the height of all the rows.
    *
    * @param {Object|Number} colRange Column range object.
    */
@@ -227,6 +243,25 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Set the sampling options.
+   *
+   * @private
+   */
+  setSamplingOptions() {
+    let setting = this.hot.getSettings().autoRowSize;
+    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
+
+    if (allowSampleDuplicates) {
+      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
+    }
+  }
+
+  /**
    * Recalculate all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
@@ -260,7 +295,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get calculated row height.
+   * Get the calculated row height.
    *
    * @param {Number} row Row index.
    * @param {Number} [defaultHeight] Default row height. It will be pick up if no calculated height found.
@@ -277,7 +312,16 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get first visible row.
+   * Get the calculated column header height.
+   *
+   * @returns {Number|undefined}
+   */
+  getColumnHeaderHeight() {
+    return this.heights[-1];
+  }
+
+  /**
+   * Get the first visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */
@@ -295,7 +339,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get last visible row.
+   * Get the last visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */
@@ -317,6 +361,7 @@ class AutoRowSize extends BasePlugin {
    */
   clearCache() {
     this.heights.length = 0;
+    this.heights[-1] = void 0;
   }
 
   /**

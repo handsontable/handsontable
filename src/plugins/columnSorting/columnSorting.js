@@ -1,4 +1,5 @@
 import Handsontable from './../../browser';
+import moment from 'moment';
 import {
     addClass,
     closest,
@@ -76,13 +77,14 @@ class ColumnSorting extends BasePlugin {
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
       this.enableObserveChangesPlugin();
     }
-    this.bindColumnSortingAfterClick();
 
     this.addHook('afterTrimRow', (row) => this.sort());
     this.addHook('afterUntrimRow', (row) => this.sort());
     this.addHook('modifyRow', (row) => this.translateRow(row));
+    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
+    this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow.apply(_this, arguments);
     });
@@ -179,11 +181,11 @@ class ColumnSorting extends BasePlugin {
     }
     this.updateOrderClass();
     this.updateSortIndicator();
-    this.hot.render();
-
-    this.saveSortingState();
 
     Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+
+    this.hot.render();
+    this.saveSortingState();
   }
 
   /**
@@ -233,49 +235,6 @@ class ColumnSorting extends BasePlugin {
     this.sortOrderClass = orderClass;
   }
 
-  /**
-   * Bind the events for column sorting.
-   */
-  bindColumnSortingAfterClick() {
-    if (this.bindedSortEvent) {
-      return;
-    }
-    let eventManager = eventManagerObject(this.hot),
-        _this = this;
-
-    this.bindedSortEvent = true;
-    eventManager.addEventListener(this.hot.rootElement, 'click', (e) => {
-      if (hasClass(e.target, 'columnSorting')) {
-        let col = getColumn(e.target);
-
-        // reset order state on every new column header click
-        if (col !== this.lastSortedColumn) {
-          this.hot.sortOrder = true;
-        }
-        this.lastSortedColumn = col;
-
-        this.sortByColumn(col);
-      }
-    });
-
-    function countRowHeaders() {
-      let tr = _this.hot.view.TBODY.querySelector('tr');
-      let length = 1;
-
-      if (tr) {
-        /*jshint -W020 */
-        length = tr.querySelectorAll('th').length;
-      }
-
-      return length;
-    }
-
-    function getColumn(target) {
-      let TH = closest(target, 'TH');
-      return _this.hot.view.wt.wtTable.getFirstRenderedColumn() + index(TH) - countRowHeaders();
-    }
-  }
-
   enableObserveChangesPlugin() {
     let _this = this;
 
@@ -291,9 +250,10 @@ class ColumnSorting extends BasePlugin {
    * Default sorting algorithm.
    *
    * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The comparing function.
    */
-  defaultSort(sortOrder) {
+  defaultSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -313,8 +273,13 @@ class ColumnSorting extends BasePlugin {
       }
       if (isNaN(a[1]) && !isNaN(b[1])) {
         return sortOrder ? 1 : -1;
+
       } else if (!isNaN(a[1]) && isNaN(b[1])) {
         return sortOrder ? -1 : 1;
+
+      } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
+        a[1] = parseFloat(a[1]);
+        b[1] = parseFloat(b[1]);
       }
       if (a[1] < b[1]) {
         return sortOrder ? -1 : 1;
@@ -322,16 +287,18 @@ class ColumnSorting extends BasePlugin {
       if (a[1] > b[1]) {
         return sortOrder ? 1 : -1;
       }
+
       return 0;
     };
   }
 
   /**
    * Date sorting algorithm
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  dateSort(sortOrder) {
+  dateSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -343,13 +310,20 @@ class ColumnSorting extends BasePlugin {
         return -1;
       }
 
-      var aDate = new Date(a[1]);
-      var bDate = new Date(b[1]);
+      var aDate = moment(a[1], columnMeta.dateFormat);
+      var bDate = moment(b[1], columnMeta.dateFormat);
 
-      if (aDate < bDate) {
+      if (!aDate.isValid()) {
+        return 1;
+      }
+      if (!bDate.isValid()) {
+        return -1;
+      }
+
+      if (bDate.isAfter(aDate)) {
         return sortOrder ? -1 : 1;
       }
-      if (aDate > bDate) {
+      if (bDate.isBefore(aDate)) {
         return sortOrder ? 1 : -1;
       }
 
@@ -360,10 +334,11 @@ class ColumnSorting extends BasePlugin {
   /**
    * Numeric sorting algorithm.
    *
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending)
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+   * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  numericSort(sortOrder) {
+  numericSort(sortOrder, columnMeta) {
     return function(a, b) {
       let parsedA = parseFloat(a[1]);
       let parsedB = parseFloat(b[1]);
@@ -407,7 +382,16 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
 
-    for (let i = 0, ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
+    let nrOfRows;
+    const emptyRows = this.hot.countEmptyRows();
+
+    if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
+      nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
+    } else {
+      nrOfRows = this.hot.countRows() - emptyRows;
+    }
+
+    for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
@@ -429,7 +413,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
+    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
     for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
@@ -489,6 +473,10 @@ class ColumnSorting extends BasePlugin {
    * @param {Element} TH TH HTML element.
    */
   getColHeader(col, TH) {
+    if (col < 0 || !TH.parentNode) {
+      return false;
+    }
+
     let headerLink = TH.querySelector('.colHeader');
     let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;
@@ -588,6 +576,30 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.saveSortingState();
+  }
+
+  /**
+   * `onAfterOnCellMouseDown` hook callback.
+   *
+   * @private
+   * @param {Event} event Event which are provided by hook.
+   * @param {WalkontableCellCoords} coords Coords of the selected cell.
+   */
+  onAfterOnCellMouseDown(event, coords) {
+    if (coords.row > -1) {
+      return;
+    }
+
+    if (hasClass(event.realTarget, 'columnSorting')) {
+      // reset order state on every new column header click
+      if (coords.col !== this.lastSortedColumn) {
+        this.hot.sortOrder = true;
+      }
+
+      this.lastSortedColumn = coords.col;
+
+      this.sortByColumn(coords.col);
+    }
   }
 }
 
