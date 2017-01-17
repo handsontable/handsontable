@@ -1197,13 +1197,13 @@ var Walkontable = function Walkontable(settings) {
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
+      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
     } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay.clone) {
+      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
     }
@@ -4470,9 +4470,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Wed Jan 11 2017 12:04:33 GMT+0100 (CET)';
+Handsontable.buildDate = 'Tue Jan 17 2017 13:30:27 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.30.0';
+Handsontable.version = '0.30.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -4732,9 +4732,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       switch (action) {
         case 'insert_row':
-          if (instance.getSettings().maxRows === instance.countSourceRows()) {
+          var numberOfSourceRows = instance.countSourceRows();
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
+          index = (isDefined(index)) ? index : numberOfSourceRows;
           delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
           if (delta) {
