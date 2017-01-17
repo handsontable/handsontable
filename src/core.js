@@ -138,9 +138,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       switch (action) {
         case 'insert_row':
 
-          if (instance.getSettings().maxRows === instance.countSourceRows()) {
+          const numberOfSourceRows = instance.countSourceRows();
+
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
+
+          index = (isDefined(index)) ? index : numberOfSourceRows;
+
           delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
 

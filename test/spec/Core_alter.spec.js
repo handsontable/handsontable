@@ -577,6 +577,67 @@ describe('Core_alter', function () {
       expect(getHtCore().find('tr:last td:eq(0)').html()).toEqual('');
     });
 
+    it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', function () {
+      var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        td.style.backgroundColor = 'green';
+      };
+
+      handsontable({
+        data: [
+          [0, "a", true],
+          [1,"b", false],
+          [2, "c", true],
+          [3, "d", true]
+        ],
+        cell: [
+          {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true}
+        ],
+        columns: [
+          {type: 'numeric'},
+          {type: 'text'},
+          {type: 'checkbox'}
+        ]
+      });
+
+      alter('insert_row');
+
+      expect(getCellMeta(1, 0).renderer).not.toBe(greenRenderer);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+
+      expect(getCellMeta(4, 0).renderer).not.toBe(greenRenderer);
+      expect(getCellMeta(4, 0).readOnly).toBe(false);
+    });
+
+    it('should add new row which respect defined type of cells after executing `insert_row`', function () {
+      handsontable({
+        data: [
+          [0, "a", true],
+          [1,"b", false],
+          [2, "c", true],
+          [3, "d", true]
+        ],
+        cell: [
+          {row: 0, col: 0, type: 'text'}
+        ],
+        columns: [
+          {type: 'numeric'},
+          {type: 'text'},
+          {type: 'checkbox'}
+        ]
+      });
+
+      alter('insert_row');
+
+      // added row
+
+      expect(getCellMeta(4, 0).type).toEqual('numeric');
+      expect(getDataAtCell(4, 0)).toEqual(null);
+
+      expect(getCellMeta(4, 2).type).toEqual('checkbox');
+      expect(getDataAtCell(4, 2)).toEqual(null);
+    });
+
     it('should insert the amount of rows at given index', function () {
       handsontable({
         data: [
