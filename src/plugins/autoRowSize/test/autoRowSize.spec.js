@@ -40,6 +40,65 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row)', function (done) {
+    var row = ["This is very long text which will break this cell"];
+    var data = [];
+    var nrOfRows = 200;
+    var columnWidth = 100;
+
+    for (var i = 0; i < nrOfRows; i += 1) {
+      data.push(row);
+    }
+
+    handsontable({
+      data: data,
+      colWidths: function () {
+        return columnWidth;
+      },
+      autoRowSize: true
+    });
+
+    var oldHeight = $('#testContainer')[0].scrollHeight;
+
+    setTimeout(function () {
+      var newHeight = $('#testContainer')[0].scrollHeight;
+      expect(oldHeight).toBeLessThan(newHeight);
+      done();
+    }, 200);
+  });
+
+  it('should draw scrollbar correctly (proper height) after calculation when autoColumnSize option is set (CSS -> td element height set)', function (done) {
+    var cellHeightInPx = 100;
+    var nrOfRows = 200;
+    var nrOfColumns = 100;
+
+    var css = '.handsontable table td { height: ' + cellHeightInPx + 'px }',
+      head = document.head,
+      style = document.createElement('style');
+
+    style.type = 'text/css';
+
+    if (style.styleSheet){
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+
+    $(head).append(style);
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+      autoRowSize: true
+    });
+
+    setTimeout(function () {
+      var newHeight = $('#testContainer')[0].scrollHeight;
+      expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+      style.remove();
+      done();
+    }, 200);
+  });
+
   it('should correctly detect row height when table is hidden on init (display: none)', function (done) {
     this.$container.css('display', 'none');
     var hot = handsontable({

@@ -448,6 +448,7 @@ class AutoRowSize extends BasePlugin {
       setTimeout(() => {
         if (this.hot) {
           this.recalculateAllRowsHeight();
+          this.hot.render();
         }
       }, 0);
     }
