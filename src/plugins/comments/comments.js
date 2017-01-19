@@ -295,7 +295,10 @@ class Comments extends BasePlugin {
    * Get comment from a cell at the predefined range.
    */
   getComment() {
+    const row = this.range.from.row;
+    const column = this.range.from.col;
 
+    return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
@@ -305,7 +308,7 @@ class Comments extends BasePlugin {
    * @param {Number} column Column index.
    */
   getCommentAtCell(row, column) {
-
+    return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
