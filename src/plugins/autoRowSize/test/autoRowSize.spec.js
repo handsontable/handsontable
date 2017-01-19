@@ -72,7 +72,7 @@ describe('AutoRowSize', function () {
     var nrOfRows = 200;
     var nrOfColumns = 100;
 
-    var css = '.handsontable table td { height: ' + cellHeightInPx + 'px }',
+    var css = '.handsontable table td { height: ' + cellHeightInPx + 'px !important }',
       head = document.head,
       style = document.createElement('style');
 
@@ -93,8 +93,10 @@ describe('AutoRowSize', function () {
 
     setTimeout(function () {
       var newHeight = $('#testContainer')[0].scrollHeight;
+
       expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
-      style.remove();
+
+      $(style).remove();
       done();
     }, 200);
   });
