@@ -240,6 +240,7 @@ class AutoRowSize extends BasePlugin {
     } else {
       this.inProgress = false;
     }
+    this.hot.view.wt.wtOverlays.adjustElementsSize(false);
   }
 
   /**
@@ -448,7 +449,6 @@ class AutoRowSize extends BasePlugin {
       setTimeout(() => {
         if (this.hot) {
           this.recalculateAllRowsHeight();
-          this.hot.render();
         }
       }, 0);
     }
