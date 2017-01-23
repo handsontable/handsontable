@@ -17,10 +17,12 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
     addClass(TD, cellProperties.readOnlyCellClassName);
   }
 
-  if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-    addClass(TD, cellProperties.invalidCellClassName);
-  } else {
-    removeClass(TD, cellProperties.invalidCellClassName);
+  if (cellProperties.allowInvalid) {
+    if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
+      addClass(TD, cellProperties.invalidCellClassName);
+    } else {
+      removeClass(TD, cellProperties.invalidCellClassName);
+    }
   }
 
   if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {
