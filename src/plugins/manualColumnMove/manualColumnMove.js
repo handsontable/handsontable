@@ -193,6 +193,7 @@ class ManualColumnMove extends BasePlugin {
       this.columnsMapper.clearNull();
     }
 
+    this.persistentStateSave();
     this.hot.runHooks('afterColumnMove', columns, target);
   }
 
@@ -287,7 +288,7 @@ class ManualColumnMove extends BasePlugin {
   persistentStateLoad() {
     let storedState = {};
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnMove', storedState);
 
     return storedState.value ? storedState.value : [];
   }
@@ -571,7 +572,6 @@ class ManualColumnMove extends BasePlugin {
     }
 
     this.moveColumns(priv.columnsToMove, priv.target.col);
-    this.persistentStateSave();
     this.hot.render();
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 

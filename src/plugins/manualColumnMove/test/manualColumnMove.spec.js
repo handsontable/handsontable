@@ -25,6 +25,32 @@ describe('manualColumnMove', function () {
     });
   });
 
+  describe('persistentState', function() {
+    it('should load data from cache after initialization of new Handsontable instance', function (done) {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      var dataAt0_2Cell = getDataAtCell(0, 2);
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+      hot.destroy();
+      this.$container.remove();
+      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(dataAt0_2Cell);
+      done();
+    });
+  });
+
   describe('updateSettings', function() {
     it("should be enabled after specifying it in updateSettings config", function () {
       handsontable({
