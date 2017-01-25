@@ -40,8 +40,8 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
-  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row)', function (done) {
-    var row = ["This is very long text which will break this cell"];
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', function (done) {
+    var row = ["This is very long text which will break this cell text into two lines"];
     var data = [];
     var nrOfRows = 200;
     var columnWidth = 100;
@@ -58,47 +58,120 @@ describe('AutoRowSize', function () {
       autoRowSize: true
     });
 
-    var oldHeight = $('#testContainer')[0].scrollHeight;
+    var oldHeight = spec().$container[0].scrollHeight;
 
     setTimeout(function () {
-      var newHeight = $('#testContainer')[0].scrollHeight;
+      var newHeight = spec().$container[0].scrollHeight;
       expect(oldHeight).toBeLessThan(newHeight);
       done();
     }, 200);
   });
 
-  it('should draw scrollbar correctly (proper height) after calculation when autoColumnSize option is set (CSS -> td element height set)', function (done) {
+  describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', function () {
     var cellHeightInPx = 100;
-    var nrOfRows = 200;
-    var nrOfColumns = 100;
+    var nrOfRows = null;
+    var nrOfColumns = 200, style;
 
-    var css = '.handsontable table td { height: ' + cellHeightInPx + 'px !important }',
-      head = document.head,
+    var SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
+    var CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
+
+    beforeEach(function () {
+      if (!this.$container) {
+        this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      }
+
+      var css = '.handsontable table td { height: ' + cellHeightInPx + 'px !important }',
+        head = document.head;
+
       style = document.createElement('style');
+      style.type = 'text/css';
 
-    style.type = 'text/css';
+      if (style.styleSheet) {
+        style.styleSheet.cssText = css;
+      } else {
+        style.appendChild(document.createTextNode(css));
+      }
 
-    if (style.styleSheet){
-      style.styleSheet.cssText = css;
-    } else {
-      style.appendChild(document.createTextNode(css));
-    }
-
-    $(head).append(style);
-
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
-      autoRowSize: true
+      $(head).append(style);
     });
 
-    setTimeout(function () {
-      var newHeight = $('#testContainer')[0].scrollHeight;
+    afterEach(function () {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
 
-      expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+      if (style) {
+        $(style).remove();
+      }
+    });
 
-      $(style).remove();
-      done();
-    }, 200);
+    it('(SYNC_CALCULATION_LIMIT - 1 rows)', function (done) {
+      nrOfRows = SYNC_CALCULATION_LIMIT - 1;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        autoRowSize: true
+      });
+
+      setTimeout(function () {
+        var newHeight = spec().$container[0].scrollHeight;
+
+        expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+        done();
+      }, 200);
+    });
+
+    it('(SYNC_CALCULATION_LIMIT + 1 rows)', function (done) {
+      nrOfRows = SYNC_CALCULATION_LIMIT + 1;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        autoRowSize: true
+      });
+
+      setTimeout(function () {
+        var newHeight = spec().$container[0].scrollHeight;
+
+        expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+        done();
+      }, 200);
+    });
+
+
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', function (done) {
+
+      nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        autoRowSize: true
+      });
+
+      setTimeout(function () {
+        var newHeight = spec().$container[0].scrollHeight;
+
+        expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+        done();
+      }, 200);
+    });
+
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', function (done) {
+
+      nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        autoRowSize: true
+      });
+
+      setTimeout(function () {
+        var newHeight = spec().$container[0].scrollHeight;
+
+        expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
+        done();
+      }, 200);
+    });
   });
 
   it('should correctly detect row height when table is hidden on init (display: none)', function (done) {

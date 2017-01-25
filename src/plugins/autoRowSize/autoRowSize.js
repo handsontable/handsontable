@@ -239,8 +239,8 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
     }
-    this.hot.view.wt.wtOverlays.adjustElementsSize(false);
   }
 
   /**
