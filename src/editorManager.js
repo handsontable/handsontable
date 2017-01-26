@@ -121,6 +121,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+        selection.setSelectedHeaders(false, false, false);
         moveSelectionDown(event.shiftKey);
 
         event.preventDefault();
@@ -131,6 +132,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+        selection.setSelectedHeaders(false, false, false);
         moveSelectionRight(event.shiftKey);
 
         event.preventDefault();
@@ -141,6 +143,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+        selection.setSelectedHeaders(false, false, false);
         moveSelectionLeft(event.shiftKey);
 
         event.preventDefault();
@@ -148,6 +151,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.TAB:
+        selection.setSelectedHeaders(false, false, false);
         var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
 
         if (event.shiftKey) {
@@ -185,6 +189,7 @@ function EditorManager(instance, priv, selection) {
           if (activeEditor && activeEditor.state !== Handsontable.EditorState.WAITING) {
             _this.closeEditorAndSaveChanges(ctrlDown);
           }
+          selection.setSelectedHeaders(false, false, false);
           moveSelectionAfterEnter(event.shiftKey);
 
         } else {
@@ -195,6 +200,7 @@ function EditorManager(instance, priv, selection) {
               activeEditor.enableFullEditMode();
             }
           } else {
+            selection.setSelectedHeaders(false, false, false);
             moveSelectionAfterEnter(event.shiftKey);
           }
         }
@@ -210,6 +216,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.HOME:
+        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
           rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
         } else {
@@ -220,6 +227,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.END:
+        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
           rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
         } else {
@@ -230,12 +238,14 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.PAGE_UP:
+        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(-instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page up the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_DOWN:
+        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page down the window
         stopPropagation(event);
