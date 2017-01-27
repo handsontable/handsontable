@@ -354,7 +354,7 @@ describe('manualColumnMove', function () {
       ];
 
       // unfortunately couse of security rules, we can't simulate native mechanism (e.g. CTRL+C -> CTRL+V)
-      hot.setDataAtCell(changesSet, void 0, void 0, 'paste');
+      hot.setDataAtCell(changesSet, void 0, void 0, 'CopyPaste.paste');
       expect(hot.countCols()).toEqual(8)
     })
   });

@@ -64,7 +64,8 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
-   * @param {String} source Is one of the strings: `"alter", "edit", "populateFromArray", "loadData", "autofill", "paste"`.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterChange',
 
@@ -155,7 +156,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeCreateCol
    * @param {Number} index Represents the index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'beforeCreateCol',
 
@@ -165,7 +167,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterCreateCol
    * @param {Number} index Represents the index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterCreateCol',
 
@@ -176,7 +179,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeCreateRow
    * @param {Number} index Represents the index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'beforeCreateRow',
 
@@ -186,7 +190,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterCreateRow
    * @param {Number} index Represents the index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterCreateRow',
 
@@ -442,7 +447,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtCell
    * @since 0.28.0
    * @param {Array} changes An array of changes in format `[[row, col, oldValue, value], ...]`.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterSetDataAtCell',
 
@@ -452,7 +458,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtRowProp
    * @since 0.28.0
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
-   * @param {String} [source] String that identifies source of method call.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterSetDataAtRowProp',
 
@@ -476,7 +483,8 @@ const REGISTERED_HOOKS = [
    * @param {*} value The value in question.
    * @param {Number} row Row index.
    * @param {String|Number} prop Property name / column index.
-   * @param {String} source Source string.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterValidate',
 
@@ -518,7 +526,8 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeChange
    * @param {Array} changes 2D array containing information about each of the edited cells.
-   * @param {String} source The name of a source of changes.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    * @example
    * ```js
    * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
@@ -560,7 +569,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeChangeRender
    * @since 0.11
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
-   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'beforeChangeRender',
 
@@ -695,7 +705,8 @@ const REGISTERED_HOOKS = [
    * @param {*} value Value of the cell.
    * @param {Number} row Row index.
    * @param {String|Number} prop Property name / column index.
-   * @param {String} source Information about the context of calling the function.
+   * @param {String} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   'beforeValidate',
 
