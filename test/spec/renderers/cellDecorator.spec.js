@@ -99,4 +99,23 @@ describe('CellDecorator', function () {
 
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual("nowrap");
   });
+
+
+  it('should not add cell `htInvalid` class when trying to add not proper value', function (done) {
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+        {data: 'salary', type: 'numeric', allowInvalid: false}
+      ]
+    });
+
+    setDataAtCell(0, 2, 'non-numeric value');
+
+    setTimeout(function() {
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      done();
+    }, 200);
+  });
 });

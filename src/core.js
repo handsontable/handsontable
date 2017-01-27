@@ -1006,6 +1006,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1);         // cancel the change
                 cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellProperties.row, cellProperties.col);
+                removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
