@@ -1,4 +1,5 @@
 import {empty, addClass, hasClass} from './../helpers/dom/element';
+import {isDefined} from './../helpers/mixed';
 import {equalsIgnoreCase} from './../helpers/string';
 import {EventManager} from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
@@ -78,6 +79,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   TD.appendChild(input);
 
+  cellProperties.badValue = badValue;
+
   if (badValue) {
     TD.appendChild(document.createTextNode('#bad-value#'));
   }
@@ -105,70 +108,145 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       });
     }
     if (isKeyCode(toggleKeys)) {
-      toggleSelected();
+      mapValuesOfSelectedCheckboxes(getToggledCheckboxValue);
     }
     if (isKeyCode(switchOffKeys)) {
-      toggleSelected(false);
+      mapValuesOfSelectedCheckboxes(getNotCheckedCheckboxValue);
     }
   }
 
   /**
-   * Toggle checkbox checked property
+   * Get reversed checkbox value
    *
    * @private
-   * @param {Boolean} [checked=null]
+   * @param{Object} cellProperties Object containing the cell's properties.
+   * @param {*} value cell's data
+   * @returns {Boolean|*}
    */
-  function toggleSelected(checked = null) {
-    eachSelectedCheckboxCell(function() {
-      if (arguments.length > 1) {
-        let row = arguments[0];
-        let col = arguments[1];
-        let cellProperties = arguments[2];
+  function getReversedCheckboxValue(cellProperties, value) {
+    const checkedTemplate = isDefined(cellProperties.checkedTemplate) ? cellProperties.checkedTemplate : true;
+    const uncheckedTemplate = isDefined(cellProperties.uncheckedTemplate) ? cellProperties.uncheckedTemplate : false;
 
-        if (cellProperties.checkedTemplate) {
-          let dataAtCell = instance.getDataAtCell(row, col);
+    if (value === checkedTemplate) {
+      return uncheckedTemplate;
+    } else {
+      return checkedTemplate;
+    }
+  }
 
-          if (checked === null) {
-            if (dataAtCell === cellProperties.checkedTemplate) {
-              instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
+  /**
+   * Get toggled checkbox value. If checkbox is not writable get original value,
+   * otherwise get reversed value.
+   *
+   * @private
+   * @param {Object} cellProperties Object containing the cell's properties.
+   * @param {*} value cell's data
+   * @returns {Boolean|*}
+   */
+  function getToggledCheckboxValue(cellProperties, value) {
+    if (cellProperties.readOnly === true || cellProperties.badValue === true) {
+      return value;
+    } else {
+      return getReversedCheckboxValue(cellProperties, value);
+    }
+  }
 
-            } else if (dataAtCell === cellProperties.uncheckedTemplate) {
-              instance.setDataAtCell(row, col, cellProperties.checkedTemplate);
-            }
+  /**
+   * Get not checked checkbox value.
+   *
+   * @private
+   * @param {Object} cellProperties Object containing the cell's properties.
+   * @returns {Boolean|*}
+   */
+  function getNotCheckedCheckboxValue(cellProperties) {
+    return cellProperties.uncheckedTemplate;
+  }
 
-          } else {
-            instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
-          }
+  /**
+   * Get checkboxes values after applying map function
+   *
+   * @private
+   * @param {WalkontableCellCoords} topLeftCorner coordinates of top left corner of selection
+   * @param {WalkontableCellCoords} bottomRightCorner coordinates of bottom right corner of selection
+   * @param {Array} selectionData selected cells data
+   * @param {Function} mapValueFunction function mapping value of selected cells data
+   * @returns {Object.<Boolean, Array>} object containing information if new data differ and set of new values
+   */
+  function getMappedCheckboxesValues(topLeftCorner, bottomRightCorner, selectionData, mapValueFunction) {
+    const checkboxesValues = [];
+    let shouldChange = false;
+
+    for (let row = topLeftCorner.row; row <= bottomRightCorner.row; row += 1) {
+      const rowCheckboxesValues = [];
+      checkboxesValues.push(rowCheckboxesValues);
+
+      for (let col = topLeftCorner.col; col <= bottomRightCorner.col; col += 1) {
+        const cellProperties = instance.getCellMeta(row, col);
+
+        // all selected cells must be checkboxes
+
+        if (cellProperties.type !== 'checkbox') {
+          return { shouldChange: false };
         }
 
-      } else {
-        let checkboxes = arguments[0];
+        const relativeRowIndex = row - topLeftCorner.row;
+        const relativeColIndex = col - topLeftCorner.col;
+        const dataAtRowAndColFromSelection = selectionData[relativeRowIndex][relativeColIndex];
 
-        for (let i = 0, len = checkboxes.length; i < len; i++) {
-          // Block changing checked property on toggle keys (SPACE and ENTER)
-          if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
-            return;
+        const newValue = mapValueFunction(cellProperties, dataAtRowAndColFromSelection);
+        rowCheckboxesValues.push(newValue);
+
+        if (shouldChange === false) {
+          if (newValue !== dataAtRowAndColFromSelection) {
+            shouldChange = true;
           }
-          toggleCheckbox(checkboxes[i], checked);
         }
       }
-    });
+    }
+
+    return { shouldChange, checkboxesValues };
   }
 
   /**
-   * Toggle checkbox element.
+   * Get selection coordinates
    *
    * @private
-   * @param {HTMLInputElement} checkbox
-   * @param {Boolean} [checked=null]
+   * @returns {[{WalkontableCellCoords},{WalkontableCellCoords}]}
    */
-  function toggleCheckbox(checkbox, checked = null) {
-    if (checked === null) {
-      checkbox.checked = !checkbox.checked;
-    } else {
-      checkbox.checked = checked;
+  function getSelectionCoordinates() {
+    const selRange = instance.getSelectedRange();
+    return [selRange.getTopLeftCorner(), selRange.getBottomRightCorner()];
+  }
+
+  /**
+   * Apply function which change value of selected checkboxes
+   *
+   * @private
+   * @param {Function} mapValueFunction
+   */
+  function mapValuesOfSelectedCheckboxes(mapValueFunction) {
+    const [topLeftCorner, bottomRightCorner] = getSelectionCoordinates();
+    const selectionData = instance.getData(
+      topLeftCorner.row,
+      topLeftCorner.col,
+      bottomRightCorner.row,
+      bottomRightCorner.col
+    );
+    const mappedCheckboxesValues = getMappedCheckboxesValues(
+      topLeftCorner,
+      bottomRightCorner,
+      selectionData,
+      mapValueFunction
+    );
+    const shouldChange = mappedCheckboxesValues.shouldChange;
+
+    if (shouldChange !== false) {
+      instance.populateFromArray(
+        topLeftCorner.row,
+        topLeftCorner.col,
+        mappedCheckboxesValues.checkboxesValues
+      );
     }
-    eventManager.fireEvent(checkbox, 'change');
   }
 
   /**
@@ -225,7 +303,6 @@ function registerEvents(instance) {
     eventManager = new EventManager(instance);
     eventManager.addEventListener(instance.rootElement, 'click', (event) => onClick(event, instance));
     eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
 
     isCheckboxListenerAdded.set(instance, eventManager);
   }
@@ -295,45 +372,6 @@ function onClick(event, instance) {
 
   if (cellProperties.readOnly) {
     event.preventDefault();
-  }
-}
-
-/**
- * `change` callback.
- *
- * @param {Event} event `change` event.
- * @param {Object} instance Handsontable instance.
- * @param {Object} cellProperties Reference to cell properties.
- * @returns {Boolean}
- */
-function onChange(event, instance) {
-  if (!isCheckboxInput(event.target)) {
-    return false;
-  }
-
-  const row = parseInt(event.target.getAttribute('data-row'), 10);
-  const col = parseInt(event.target.getAttribute('data-col'), 10);
-  const cellProperties = instance.getCellMeta(row, col);
-
-  if (!cellProperties.readOnly) {
-    let newCheckboxValue = null;
-
-    if (event.target.checked) {
-      if (cellProperties.checkedTemplate === void 0) {
-        newCheckboxValue = true;
-      } else {
-        newCheckboxValue = cellProperties.checkedTemplate;
-      }
-
-    } else {
-      if (cellProperties.uncheckedTemplate === void 0) {
-        newCheckboxValue = false;
-      } else {
-        newCheckboxValue = cellProperties.uncheckedTemplate;
-      }
-    }
-
-    instance.setDataAtCell(row, col, newCheckboxValue);
   }
 }
 
