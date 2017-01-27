@@ -102,7 +102,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const isKeyCode = partial(isKey, event.keyCode);
 
     if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
-      eachSelectedCheckboxCell(function() {
+      eachDOMCheckboxFromSelection(function() {
         stopImmediatePropagation(event);
         event.preventDefault();
       });
@@ -166,8 +166,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * Get checkboxes values after applying map function
    *
    * @private
-   * @param {WalkontableCellCoords} topLeftCorner coordinates of top left corner of selection
-   * @param {WalkontableCellCoords} bottomRightCorner coordinates of bottom right corner of selection
+   * @param {WalkontableCellCoords} topLeftCorner coordinates of top left corner from selection
+   * @param {WalkontableCellCoords} bottomRightCorner coordinates of bottom right corner from selection
    * @param {Array} selectionData selected cells data
    * @param {Function} mapValueFunction function mapping value of selected cells data
    * @returns {Object.<Boolean, Array>} object containing information if new data differ and set of new values
@@ -211,11 +211,16 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * Get selection coordinates
    *
    * @private
-   * @returns {[{WalkontableCellCoords},{WalkontableCellCoords}]}
+   * @returns [{WalkontableCellCoords},{WalkontableCellCoords}]
    */
   function getSelectionCoordinates() {
     const selRange = instance.getSelectedRange();
-    return [selRange.getTopLeftCorner(), selRange.getBottomRightCorner()];
+
+    if (selRange) {
+      return [selRange.getTopLeftCorner(), selRange.getBottomRightCorner()];
+    } else {
+      return [null, null];
+    }
   }
 
   /**
@@ -250,38 +255,27 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
 
   /**
-   * Call callback for each found selected cell with checkbox type.
+   * Call callback for each cell with checkbox from selection.
    *
    * @private
    * @param {Function} callback
    */
-  function eachSelectedCheckboxCell(callback) {
-    const selRange = instance.getSelectedRange();
+  function eachDOMCheckboxFromSelection(callback) {
+    const [topLeftCorner, bottomRightCorner] = getSelectionCoordinates();
 
-    if (!selRange) {
+    if (topLeftCorner === null) {
       return;
     }
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
 
-    for (let row = topLeft.row; row <= bottomRight.row; row++) {
-      for (let col = topLeft.col; col <= bottomRight.col; col++) {
-        let cellProperties = instance.getCellMeta(row, col);
-
-        if (cellProperties.type !== 'checkbox') {
-          return;
-        }
+    for (let row = topLeftCorner.row; row <= bottomRightCorner.row; row += 1) {
+      for (let col = topLeftCorner.col; col <= bottomRightCorner.col; col += 1) {
 
         let cell = instance.getCell(row, col);
 
-        if (cell == null) {
+        if (cell) {
+          const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-          callback(row, col, cellProperties);
-
-        } else {
-          let checkboxes = cell.querySelectorAll('input[type=checkbox]');
-
-          if (checkboxes.length > 0 && !cellProperties.readOnly) {
+          if (checkboxes.length > 0) {
             callback(checkboxes);
           }
         }
@@ -303,6 +297,7 @@ function registerEvents(instance) {
     eventManager = new EventManager(instance);
     eventManager.addEventListener(instance.rootElement, 'click', (event) => onClick(event, instance));
     eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
 
     isCheckboxListenerAdded.set(instance, eventManager);
   }
@@ -372,6 +367,45 @@ function onClick(event, instance) {
 
   if (cellProperties.readOnly) {
     event.preventDefault();
+  }
+}
+
+/**
+ * `change` callback.
+ *
+ * @param {Event} event `change` event.
+ * @param {Object} instance Handsontable instance.
+ * @param {Object} cellProperties Reference to cell properties.
+ * @returns {Boolean}
+ */
+function onChange(event, instance) {
+  if (!isCheckboxInput(event.target)) {
+    return false;
+  }
+
+  const row = parseInt(event.target.getAttribute('data-row'), 10);
+  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  const cellProperties = instance.getCellMeta(row, col);
+
+  if (!cellProperties.readOnly) {
+    let newCheckboxValue = null;
+
+    if (event.target.checked) {
+      if (cellProperties.checkedTemplate === void 0) {
+        newCheckboxValue = true;
+      } else {
+        newCheckboxValue = cellProperties.checkedTemplate;
+      }
+
+    } else {
+      if (cellProperties.uncheckedTemplate === void 0) {
+        newCheckboxValue = false;
+      } else {
+        newCheckboxValue = cellProperties.uncheckedTemplate;
+      }
+    }
+
+    instance.setDataAtCell(row, col, newCheckboxValue);
   }
 }
 
