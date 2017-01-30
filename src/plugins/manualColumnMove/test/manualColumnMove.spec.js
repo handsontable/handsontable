@@ -34,8 +34,11 @@ describe('manualColumnMove', function () {
       });
 
       var dataAt0_2Cell = getDataAtCell(0, 2);
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
 
-      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+      manualColumnMovePlugin.moveColumn(2, 0);
+      manualColumnMovePlugin.persistentStateSave();
+
       hot.destroy();
       this.$container.remove();
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
