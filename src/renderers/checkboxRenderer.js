@@ -131,7 +131,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     for (let row = topLeft.row; row <= bottomRight.row; row += 1) {
       for (let col = topLeft.col; col <= bottomRight.col; col += 1) {
-
         const cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type !== 'checkbox') {
@@ -142,15 +141,11 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           continue;
         }
 
-        const cell = instance.getCell(row, col);
-
-        if (cell) {
-          const checkboxes = cell.querySelectorAll('input[type=checkbox]');
-          const checkbox = checkboxes[0];
-
-          if (hasClass(checkbox, BAD_VALUE_CLASS) && uncheckCheckbox === false) {
-            continue;
-          }
+        if (typeof cellProperties.checkedTemplate === 'undefined') {
+          cellProperties.checkedTemplate = true;
+        }
+        if (typeof cellProperties.uncheckedTemplate === 'undefined') {
+          cellProperties.uncheckedTemplate = false;
         }
 
         const dataAtCell = instance.getDataAtCell(row, col);
@@ -159,7 +154,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           if (dataAtCell === cellProperties.checkedTemplate) {
             changes.push([row, col, cellProperties.uncheckedTemplate]);
 
-          } else {
+          } else if ([cellProperties.uncheckedTemplate, null, void 0].indexOf(dataAtCell) !== -1) {
             changes.push([row, col, cellProperties.checkedTemplate]);
           }
 
@@ -168,7 +163,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         }
       }
     }
-    instance.setDataAtCell(changes);
+
+    if (changes.length > 0) {
+      instance.setDataAtCell(changes);
+    }
   }
 
   /**

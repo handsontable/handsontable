@@ -212,36 +212,44 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false, true],[true, false],[true, true]]);
   });
 
-  it("should change checkboxes values for cells with defined `checkedTemplate` and `uncheckedTemplate` cell properties", function () {
+
+  it("should change checkboxes values properly when data contains null or/and undefined", function () {
     handsontable({
-      data: [['checked'], ['unchecked']],
+      data: [[null], [undefined]],
       colHeaders: true,
       columns: [
         {
           type: 'checkbox'
         }
-      ],
-      cells: function () {
-        var cellProperties = {};
-
-        cellProperties.uncheckedTemplate = 'unchecked';
-        cellProperties.checkedTemplate = 'checked';
-
-        return cellProperties;
-      }
+      ]
     });
 
     selectCell(0, 0, 1, 0);
-
     keyDown('space');
 
-    var checkboxes = this.$container.find(':checkbox');
+    expect(getDataAtCol(0)).toEqual([true, true]);
 
-    expect(checkboxes.eq(0).prop('checked')).toBe(false);
-    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    selectCell(0, 0, 1, 0);
+    keyDown('space');
 
-    expect(getDataAtCell(0, 0)).toEqual('unchecked');
-    expect(getDataAtCell(1, 0)).toEqual('checked');
+    expect(getDataAtCol(0)).toEqual([false, false]);
+  });
+
+  it("should change checkboxes values for cells below the viewport (hot initialized by startRows) #4037", function () {
+    handsontable({
+      startRows: 200,
+      colHeaders: true,
+      columns: [
+        {
+          type: 'checkbox'
+        }
+      ]
+    });
+
+    selectCell(0, 0, 199, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(199, 0)).toEqual(true);
   });
 
   it("should reverse checkboxes state after hitting space, when multiple cells are selected", function () {
