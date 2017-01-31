@@ -266,10 +266,10 @@ class ColumnSorting extends BasePlugin {
         return 0;
       }
       if (a[1] === null || a[1] === '') {
-        return 1;
+        return sortOrder ? -1 : 1;
       }
       if (b[1] === null || b[1] === '') {
-        return -1;
+        return sortOrder ? 1 : -1;
       }
       if (isNaN(a[1]) && !isNaN(b[1])) {
         return sortOrder ? 1 : -1;
@@ -304,10 +304,10 @@ class ColumnSorting extends BasePlugin {
         return 0;
       }
       if (a[1] === null || a[1] === '') {
-        return 1;
+        return sortOrder ? -1 : 1;
       }
       if (b[1] === null || b[1] === '') {
-        return -1;
+        return sortOrder ? 1 : -1;
       }
 
       var aDate = moment(a[1], columnMeta.dateFormat);
@@ -340,8 +340,15 @@ class ColumnSorting extends BasePlugin {
    */
   numericSort(sortOrder, columnMeta) {
     return function(a, b) {
-      let parsedA = parseFloat(a[1]);
-      let parsedB = parseFloat(b[1]);
+      const parsedA = parseFloat(a[1]);
+      const parsedB = parseFloat(b[1]);
+
+      if (a[1] === null || a[1] === '') {
+        return sortOrder ? -1 : 1;
+      }
+      if (b[1] === null || b[1] === '') {
+        return sortOrder ? 1 : -1;
+      }
 
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
@@ -383,12 +390,11 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.length = 0;
 
     let nrOfRows;
-    const emptyRows = this.hot.countEmptyRows();
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
       nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
     } else {
-      nrOfRows = this.hot.countRows() - emptyRows;
+      nrOfRows = this.hot.countRows();
     }
 
     for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
