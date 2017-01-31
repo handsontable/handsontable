@@ -79,12 +79,12 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
 
     updateSettings({colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text']});
 
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([226, 235, 263]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', function () {
@@ -98,7 +98,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
 
     updateSettings({colHeaders: 'Identifier Longer text'});
 
@@ -117,7 +117,7 @@ describe('AutoColumnSize', function () {
       ]
     });
 
-    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
 
     updateSettings({
       colHeaders: function(index) {
@@ -126,7 +126,7 @@ describe('AutoColumnSize', function () {
     });
 
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([226, 235, 263]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function () {
@@ -173,7 +173,7 @@ describe('AutoColumnSize', function () {
       ],
     });
 
-    expect([174, 182, 183, 208]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([174, 182, 183, 208, 213]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
