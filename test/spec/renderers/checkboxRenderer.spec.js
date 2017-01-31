@@ -139,6 +139,8 @@ describe('CheckboxRenderer', function () {
 //    });
     keyDown('space');
 
+    checkboxes = this.$container.find(':checkbox');
+
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
@@ -168,6 +170,8 @@ describe('CheckboxRenderer', function () {
     selectCell(0, 0);
 
     keyDown('space');
+
+    checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
@@ -208,6 +212,38 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false, true],[true, false],[true, true]]);
   });
 
+  it("should change checkboxes values for cells with defined `checkedTemplate` and `uncheckedTemplate` cell properties", function () {
+    handsontable({
+      data: [['checked'], ['unchecked']],
+      colHeaders: true,
+      columns: [
+        {
+          type: 'checkbox'
+        }
+      ],
+      cells: function () {
+        var cellProperties = {};
+
+        cellProperties.uncheckedTemplate = 'unchecked';
+        cellProperties.checkedTemplate = 'checked';
+
+        return cellProperties;
+      }
+    });
+
+    selectCell(0, 0, 1, 0);
+
+    keyDown('space');
+
+    var checkboxes = this.$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+
+    expect(getDataAtCell(0, 0)).toEqual('unchecked');
+    expect(getDataAtCell(1, 0)).toEqual('checked');
+  });
+
   it("should reverse checkboxes state after hitting space, when multiple cells are selected", function () {
     var hot = handsontable({
       data  :  [[true],[false],[true]],
@@ -236,10 +272,8 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([[false],[true],[false]]);
-    expect(afterChangeCallback.calls.count()).toEqual(3);
-    expect(afterChangeCallback.calls.argsFor(0)[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
-    expect(afterChangeCallback.calls.argsFor(1)[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
-    expect(afterChangeCallback.calls.argsFor(2)[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it("should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd", function () {
@@ -270,10 +304,8 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([[false],[true],[false]]);
-    expect(afterChangeCallback.calls.count()).toEqual(3);
-    expect(afterChangeCallback.calls.argsFor(0)[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
-    expect(afterChangeCallback.calls.argsFor(1)[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
-    expect(afterChangeCallback.calls.argsFor(2)[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it("should open cell editors of cell that does not have checkboxRenderer (#1199)", function () {
@@ -340,6 +372,8 @@ describe('CheckboxRenderer', function () {
 
     keyDown('enter');
 
+    checkboxes = this.$container.find(':checkbox');
+
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
@@ -373,6 +407,8 @@ describe('CheckboxRenderer', function () {
     selectCell(0, 0);
 
     keyDown('enter');
+
+    checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
@@ -408,6 +444,8 @@ describe('CheckboxRenderer', function () {
 
     keyDown('enter');
 
+    checkboxes = this.$container.find(':checkbox');
+
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
@@ -438,6 +476,8 @@ describe('CheckboxRenderer', function () {
     keyDown('delete');
     selectCell(0, 1);
     keyDown('delete');
+
+    checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);
@@ -470,6 +510,8 @@ describe('CheckboxRenderer', function () {
     keyDown('backspace');
     selectCell(0, 1);
     keyDown('backspace');
+
+    checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);

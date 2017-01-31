@@ -105,70 +105,70 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       });
     }
     if (isKeyCode(toggleKeys)) {
-      toggleSelected();
+      changeCheckboxState();
     }
     if (isKeyCode(switchOffKeys)) {
-      toggleSelected(false);
+      changeCheckboxState(true);
     }
   }
 
   /**
-   * Toggle checkbox checked property
+   * Change checkbox checked property
    *
    * @private
-   * @param {Boolean} [checked=null]
+   * @param {Boolean} [uncheckCheckbox=false]
    */
-  function toggleSelected(checked = null) {
-    eachSelectedCheckboxCell(function() {
-      if (arguments.length > 1) {
-        let row = arguments[0];
-        let col = arguments[1];
-        let cellProperties = arguments[2];
+  function changeCheckboxState(uncheckCheckbox = false) {
+    const selRange = instance.getSelectedRange();
+    const changes = [];
 
-        if (cellProperties.checkedTemplate) {
-          let dataAtCell = instance.getDataAtCell(row, col);
+    if (!selRange) {
+      return;
+    }
 
-          if (checked === null) {
-            if (dataAtCell === cellProperties.checkedTemplate) {
-              instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
 
-            } else if (dataAtCell === cellProperties.uncheckedTemplate) {
-              instance.setDataAtCell(row, col, cellProperties.checkedTemplate);
-            }
+    for (let row = topLeft.row; row <= bottomRight.row; row += 1) {
+      for (let col = topLeft.col; col <= bottomRight.col; col += 1) {
+
+        const cellProperties = instance.getCellMeta(row, col);
+
+        if (cellProperties.type !== 'checkbox') {
+          return;
+        }
+
+        if (cellProperties.readOnly === true) {
+          continue;
+        }
+
+        const cell = instance.getCell(row, col);
+
+        if (cell) {
+          const checkboxes = cell.querySelectorAll('input[type=checkbox]');
+          const checkbox = checkboxes[0];
+
+          if (hasClass(checkbox, BAD_VALUE_CLASS) && uncheckCheckbox === false) {
+            continue;
+          }
+        }
+
+        const dataAtCell = instance.getDataAtCell(row, col);
+
+        if (uncheckCheckbox === false) {
+          if (dataAtCell === cellProperties.checkedTemplate) {
+            changes.push([row, col, cellProperties.uncheckedTemplate]);
 
           } else {
-            instance.setDataAtCell(row, col, cellProperties.uncheckedTemplate);
+            changes.push([row, col, cellProperties.checkedTemplate]);
           }
-        }
 
-      } else {
-        let checkboxes = arguments[0];
-
-        for (let i = 0, len = checkboxes.length; i < len; i++) {
-          // Block changing checked property on toggle keys (SPACE and ENTER)
-          if (hasClass(checkboxes[i], BAD_VALUE_CLASS) && checked === null) {
-            return;
-          }
-          toggleCheckbox(checkboxes[i], checked);
+        } else {
+          changes.push([row, col, cellProperties.uncheckedTemplate]);
         }
       }
-    });
-  }
-
-  /**
-   * Toggle checkbox element.
-   *
-   * @private
-   * @param {HTMLInputElement} checkbox
-   * @param {Boolean} [checked=null]
-   */
-  function toggleCheckbox(checkbox, checked = null) {
-    if (checked === null) {
-      checkbox.checked = !checkbox.checked;
-    } else {
-      checkbox.checked = checked;
     }
-    eventManager.fireEvent(checkbox, 'change');
+    instance.setDataAtCell(changes);
   }
 
   /**
