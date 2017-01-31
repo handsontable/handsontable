@@ -105,10 +105,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       });
     }
     if (isKeyCode(toggleKeys)) {
-      changeCheckboxState();
+      changeSelectedCheckboxesState();
     }
     if (isKeyCode(switchOffKeys)) {
-      changeCheckboxState(true);
+      changeSelectedCheckboxesState(true);
     }
   }
 
@@ -118,7 +118,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @private
    * @param {Boolean} [uncheckCheckbox=false]
    */
-  function changeCheckboxState(uncheckCheckbox = false) {
+  function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = instance.getSelectedRange();
     const changes = [];
 
