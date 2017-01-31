@@ -439,8 +439,6 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onAfterLoadData() {
-    this.cachedColumnHeaders = this.hot.getColHeader();
-
     if (this.hot.view) {
       this.recalculateAllColumnsWidth();
     } else {
