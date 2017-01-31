@@ -54,17 +54,79 @@ describe('AutoColumnSize', function () {
     expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
-  it('should correctly detect column width with colHeaders', function () {
+  it('should correctly detect column widths with colHeaders', function () {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: ['Identifier Longer text'],
       columns: [
-        {data: 'id'}
+        {data: 'id'},
+        {data: 'name'},
       ]
     });
 
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+  });
+
+  it('should correctly detect column widths after update colHeaders when headers were passed as an array', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colHeaders: true,
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+      ]
+    });
+
+    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+
+    updateSettings({colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text']});
+
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([226, 235, 263]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+  });
+
+  it('should correctly detect column widths after update colHeaders when headers were passed as a string', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colHeaders: true,
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+      ]
+    });
+
+    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+
+    updateSettings({colHeaders: 'Identifier Longer text'});
+
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+  });
+
+  it('should correctly detect column widths after update colHeaders when headers were passed as a function', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colHeaders: true,
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+      ]
+    });
+
+    expect([50, 51]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+
+    updateSettings({
+      colHeaders: function(index) {
+        return index === 0 ? 'Identifier Longer text' : 'Identifier Longer and longer text';
+      },
+    });
+
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([226, 235, 263]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function () {
@@ -94,6 +156,24 @@ describe('AutoColumnSize', function () {
     });
 
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+  });
+
+  it('should correctly detect column widths after update columns.title', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      columns: [
+        {data: 'id', title: 'Identifier'}
+      ]
+    });
+
+    updateSettings({
+      columns: [
+        {data: 'id', title: 'Identifier with longer text'},
+      ],
+    });
+
+    expect([174, 182, 183, 208]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684

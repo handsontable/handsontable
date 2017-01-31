@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter} from './../../helpers/array';
+import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
 import {GhostTable} from './../../utils/ghostTable';
@@ -9,6 +9,8 @@ import {registerPlugin} from './../../plugins';
 import {SamplesGenerator} from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
 import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns';
+
+const privatePool = new WeakMap();
 
 /**
  * @plugin AutoColumnSize
@@ -69,6 +71,16 @@ class AutoColumnSize extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
+    privatePool.set(this, {
+      /**
+       * Cached column header names. It is used to diff current column headers with previous state and detect which
+       * columns width should be updated.
+       *
+       * @private
+       * @type {Array}
+       */
+      cachedColumnHeaders: [],
+    });
     /**
      * Cached columns widths.
      *
@@ -132,7 +144,20 @@ class AutoColumnSize extends BasePlugin {
 
     this.addHook('beforeRender', (force) => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
+    this.addHook('afterInit', () => this.onAfterInit());
     super.enablePlugin();
+  }
+
+  /**
+   * Update plugin state.
+   */
+  updatePlugin() {
+    const changedColumns = this.findColumnsWhereHeaderWasChanged();
+
+    if (changedColumns.length) {
+      this.clearCache(changedColumns);
+    }
+    super.updatePlugin();
   }
 
   /**
@@ -156,6 +181,7 @@ class AutoColumnSize extends BasePlugin {
     if (typeof rowRange === 'number') {
       rowRange = {from: rowRange, to: rowRange};
     }
+
     rangeEach(colRange.from, colRange.to, (col) => {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
@@ -337,10 +363,44 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Clear cached widths.
+   * Collects all columns which titles has been changed in comparison to the previous state.
+   *
+   * @returns {Array} It returns an array of physical column indexes.
    */
-  clearCache() {
-    this.widths.length = 0;
+  findColumnsWhereHeaderWasChanged() {
+    const columnHeaders = this.hot.getColHeader();
+    const {cachedColumnHeaders} = privatePool.get(this);
+
+    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
+      const cachedColumnsLength = cachedColumnHeaders.length;
+
+      if (cachedColumnsLength - 1 < physicalColumn || cachedColumnHeaders[physicalColumn] !== columnTitle) {
+        acc.push(physicalColumn);
+      }
+      if (cachedColumnsLength - 1 < physicalColumn) {
+        cachedColumnHeaders.push(columnTitle);
+      } else {
+        cachedColumnHeaders[physicalColumn] = columnTitle;
+      }
+
+      return acc;
+    }, []);
+
+    return changedColumns;
+  }
+
+  /**
+   * Clear cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
+   * Otherwise whole cache will be cleared.
+   *
+   * @param {Array} [columns=[]] List of column indexes (physical indexes) to clear.
+   */
+  clearCache(columns = []) {
+    if (columns.length) {
+      arrayEach(columns, (physicalIndex) => this.widths[physicalIndex] = void 0);
+    } else {
+      this.widths.length = 0;
+    }
   }
 
   /**
@@ -379,6 +439,8 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onAfterLoadData() {
+    this.cachedColumnHeaders = this.hot.getColHeader();
+
     if (this.hot.view) {
       this.recalculateAllColumnsWidth();
     } else {
@@ -398,7 +460,9 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    arrayEach(changes, (data) => this.widths[this.hot.propToCol(data[1])] = void 0);
+    const changedColumns = arrayMap(changes, ([row, column]) => this.hot.propToCol(column));
+
+    this.clearCache(changedColumns);
   }
 
   /**
@@ -417,6 +481,15 @@ class AutoColumnSize extends BasePlugin {
     }
 
     return size;
+  }
+
+  /**
+   * On after Handsontable init fill plugin with all necessary values.
+   *
+   * @private
+   */
+  onAfterInit() {
+    privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
   }
 
   /**
