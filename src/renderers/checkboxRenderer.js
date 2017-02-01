@@ -120,7 +120,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = instance.getSelectedRange();
-    const changes = [];
 
     if (!selRange) {
       return;
@@ -128,6 +127,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
+    const changes = [];
 
     for (let row = topLeft.row; row <= bottomRight.row; row += 1) {
       for (let col = topLeft.col; col <= bottomRight.col; col += 1) {
