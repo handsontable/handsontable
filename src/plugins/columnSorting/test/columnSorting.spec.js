@@ -372,13 +372,11 @@ describe('ColumnSorting', function() {
 
       hot.sort(2, true); // ASC
 
-      expect(hot.getDataAtRow(0)).toEqual(["Citroen", "C4 Coupe null", null, 8330]);
-      expect(hot.getDataAtRow(1)).toEqual(["Citroen", "C4 Coupe empty", "", 8330]);
-      expect(hot.getDataAtRow(2)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-      expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
-      expect(hot.getDataAtRow(4)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
-      expect(hot.getDataAtRow(5)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
-      expect(hot.getDataAtRow(6)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
+      expect(hot.getDataAtRow(0)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
+      expect(hot.getDataAtRow(1)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
+      expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
+      expect(hot.getDataAtRow(3)).toEqual(["Audi", "A4 Avant", "11/19/2011", 33900]);
+      expect(hot.getDataAtRow(4)).toEqual(["Citroen", "C4 Coupe", "12/01/2008", 8330]);
 
       hot.sort(2, false); // DESC
 
@@ -387,8 +385,6 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
       expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
       expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-      expect(hot.getDataAtRow(5)).toEqual(["Citroen", "C4 Coupe null", null, 8330]);
-      expect(hot.getDataAtRow(6)).toEqual(["Citroen", "C4 Coupe empty", "", 8330]);
     });
   });
 
@@ -1308,8 +1304,8 @@ describe('ColumnSorting', function() {
     });
 
     this.sortByColumn(1);
-    expect(getDataAtCol(0)).toEqual([2, 3, 5, 4, 1, null]);
-    expect(getDataAtCol(1)).toEqual(["", "", "Jane", "Sid", "Ted", null]);
+    expect(getDataAtCol(0)).toEqual([5, 4, 1, 2, 3, null]);
+    expect(getDataAtCol(1)).toEqual(["Jane", "Sid", "Ted", "", "", null]);
 
     this.sortByColumn(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
@@ -1701,7 +1697,7 @@ describe('ColumnSorting', function() {
     });
 
     this.sortByColumn(0);
-    expect(getDataAtCol(0)).toEqual([null, null, "-5", "10", "12", "1000"]);
+    expect(getDataAtCol(0)).toEqual(["-5", "10", "12", "1000", null, null]);
 
     this.sortByColumn(0);
     expect(getDataAtCol(0)).toEqual(["1000", "12", "10", "-5", null, null]);
@@ -1746,7 +1742,7 @@ describe('ColumnSorting', function() {
     });
 
     this.sortByColumn(0);
-    expect(getDataAtCol(0)).toEqual([null, null, null, "-127", "-10.67", "-4.1", "-0.01", "0.0561", "1000"]);
+    expect(getDataAtCol(0)).toEqual(["-127", "-10.67", "-4.1", "-0.01", "0.0561", "1000", null, null, null]);
 
     this.sortByColumn(0);
     expect(getDataAtCol(0)).toEqual(["1000", "0.0561", "-0.01", "-4.1", "-10.67", "-127", null, null, null]);

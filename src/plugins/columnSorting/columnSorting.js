@@ -1,11 +1,11 @@
 import Handsontable from './../../browser';
 import moment from 'moment';
 import {
-    addClass,
-    closest,
-    hasClass,
-    index,
-    removeClass,
+  addClass,
+  closest,
+  hasClass,
+  index,
+  removeClass,
 } from './../../helpers/dom/element';
 import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
 import {eventManager as eventManagerObject} from './../../eventManager';
@@ -239,11 +239,11 @@ class ColumnSorting extends BasePlugin {
     let _this = this;
 
     this.hot._registerTimeout(
-        setTimeout(function() {
-          _this.hot.updateSettings({
-            observeChanges: true
-          });
-        }, 0));
+      setTimeout(function() {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
   }
 
   /**
@@ -254,10 +254,6 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
-    const isEmpty = function(value) {
-      return value === null || value === '';
-    };
-
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -269,17 +265,11 @@ class ColumnSorting extends BasePlugin {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (isEmpty(a[1])) {
-        if (isEmpty(b[1])) {
-          return 0;
-        }
-        return sortOrder ? -1 : 1;
+      if (a[1] === null || a[1] === '') {
+        return 1;
       }
-      if (isEmpty(b[1])) {
-        if (isEmpty(a[1])) {
-          return 0;
-        }
-        return sortOrder ? 1 : -1;
+      if (b[1] === null || b[1] === '') {
+        return -1;
       }
       if (isNaN(a[1]) && !isNaN(b[1])) {
         return sortOrder ? 1 : -1;
@@ -309,25 +299,15 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
-    const isEmpty = function(value) {
-      return value === null || value === '';
-    };
-
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (isEmpty(a[1])) {
-        if (isEmpty(b[1])) {
-          return 0;
-        }
-        return sortOrder ? -1 : 1;
+      if (a[1] === null || a[1] === '') {
+        return 1;
       }
-      if (isEmpty(b[1])) {
-        if (isEmpty(a[1])) {
-          return 0;
-        }
-        return sortOrder ? 1 : -1;
+      if (b[1] === null || b[1] === '') {
+        return -1;
       }
 
       var aDate = moment(a[1], columnMeta.dateFormat);
@@ -359,26 +339,9 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   numericSort(sortOrder, columnMeta) {
-    const isEmpty = function(value) {
-      return value === null || value === '';
-    };
-
     return function(a, b) {
-      const parsedA = parseFloat(a[1]);
-      const parsedB = parseFloat(b[1]);
-
-      if (isEmpty(a[1])) {
-        if (isEmpty(b[1])) {
-          return 0;
-        }
-        return sortOrder ? -1 : 1;
-      }
-      if (isEmpty(b[1])) {
-        if (isEmpty(a[1])) {
-          return 0;
-        }
-        return sortOrder ? 1 : -1;
-      }
+      let parsedA = parseFloat(a[1]);
+      let parsedB = parseFloat(b[1]);
 
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
@@ -414,17 +377,18 @@ class ColumnSorting extends BasePlugin {
     }
 
     let colMeta,
-        sortFunction;
+      sortFunction;
 
     this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
 
     let nrOfRows;
+    const emptyRows = this.hot.countEmptyRows();
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
       nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
     } else {
-      nrOfRows = this.hot.countRows();
+      nrOfRows = this.hot.countRows() - emptyRows;
     }
 
     for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
