@@ -10,7 +10,7 @@ export function removeColumnItem() {
     callback: function(key, selection) {
       let amount = selection.end.col - selection.start.col + 1;
 
-      this.alter('remove_col', selection.start.col, amount);
+      this.alter('remove_col', selection.start.col, amount, 'ContextMenu.removeColumn');
 
     },
     disabled: function() {

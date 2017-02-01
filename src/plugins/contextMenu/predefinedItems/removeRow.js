@@ -10,7 +10,7 @@ export function removeRowItem() {
     callback: function(key, selection) {
       let amount = selection.end.row - selection.start.row + 1;
 
-      this.alter('remove_row', selection.start.row, amount);
+      this.alter('remove_row', selection.start.row, amount, 'ContextMenu.removeRow');
     },
     disabled: function() {
       const selected = getValidSelection(this);
