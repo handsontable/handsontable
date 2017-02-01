@@ -254,6 +254,10 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
+    const isEmpty = function(value) {
+      return value === null || value === '';
+    };
+
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -265,10 +269,16 @@ class ColumnSorting extends BasePlugin {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
+          return 0;
+        }
         return sortOrder ? -1 : 1;
       }
-      if (b[1] === null || b[1] === '') {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
+          return 0;
+        }
         return sortOrder ? 1 : -1;
       }
       if (isNaN(a[1]) && !isNaN(b[1])) {
@@ -299,14 +309,24 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
+    const isEmpty = function(value) {
+      return value === null || value === '';
+    };
+
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
+          return 0;
+        }
         return sortOrder ? -1 : 1;
       }
-      if (b[1] === null || b[1] === '') {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
+          return 0;
+        }
         return sortOrder ? 1 : -1;
       }
 
@@ -339,14 +359,24 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   numericSort(sortOrder, columnMeta) {
+    const isEmpty = function(value) {
+      return value === null || value === '';
+    };
+
     return function(a, b) {
       const parsedA = parseFloat(a[1]);
       const parsedB = parseFloat(b[1]);
 
-      if (a[1] === null || a[1] === '') {
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
+          return 0;
+        }
         return sortOrder ? -1 : 1;
       }
-      if (b[1] === null || b[1] === '') {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
+          return 0;
+        }
         return sortOrder ? 1 : -1;
       }
 

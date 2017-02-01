@@ -387,8 +387,8 @@ describe('ColumnSorting', function() {
       expect(hot.getDataAtRow(2)).toEqual(["BMW", "320i Coupe", "07/24/2011", 30500]);
       expect(hot.getDataAtRow(3)).toEqual(["Opel", "Astra", "02/02/2004", 7000]);
       expect(hot.getDataAtRow(4)).toEqual(["Mercedes", "A 160", "01/14/2006", 6999.9999]);
-      expect(hot.getDataAtRow(5)).toEqual(["Citroen", "C4 Coupe empty", "", 8330]);
-      expect(hot.getDataAtRow(6)).toEqual(["Citroen", "C4 Coupe null", null, 8330]);
+      expect(hot.getDataAtRow(5)).toEqual(["Citroen", "C4 Coupe null", null, 8330]);
+      expect(hot.getDataAtRow(6)).toEqual(["Citroen", "C4 Coupe empty", "", 8330]);
     });
   });
 
