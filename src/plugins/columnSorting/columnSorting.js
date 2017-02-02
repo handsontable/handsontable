@@ -8,6 +8,7 @@ import {
     removeClass,
 } from './../../helpers/dom/element';
 import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
+import {isEmpty} from './../../helpers/mixed';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -254,10 +255,6 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
-    const isNullOrEmptyString = function(value) {
-      return value === null || value === '';
-    };
-
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -270,14 +267,14 @@ class ColumnSorting extends BasePlugin {
         return 0;
       }
 
-      if (isNullOrEmptyString(a[1])) {
-        if (isNullOrEmptyString(b[1])) {
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
           return 0;
         }
         return 1;
       }
-      if (isNullOrEmptyString(b[1])) {
-        if (isNullOrEmptyString(a[1])) {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
           return 0;
         }
         return -1;
@@ -311,24 +308,20 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
-    const isNullOrEmptyString = function(value) {
-      return value === null || value === '';
-    };
-
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
 
-      if (isNullOrEmptyString(a[1])) {
-        if (isNullOrEmptyString(b[1])) {
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
           return 0;
         }
         return 1;
       }
 
-      if (isNullOrEmptyString(b[1])) {
-        if (isNullOrEmptyString(a[1])) {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
           return 0;
         }
         return -1;
@@ -368,7 +361,7 @@ class ColumnSorting extends BasePlugin {
       const parsedB = parseFloat(b[1]);
 
       // Watch out when changing this part of code!
-      // Check below returns 0 when comparing empty strings with nulls (as expected)
+      // Check below returns 0 when comparing empty string, null, undefined (as expected)
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
       }

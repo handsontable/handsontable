@@ -46,3 +46,12 @@ export function isDefined(variable) {
 export function isUndefined(variable) {
   return typeof variable === 'undefined';
 }
+
+/**
+ * Check if given variable is null, empty string or undefined
+ * @param variable
+ * @returns {Boolean}
+ */
+export function isEmpty(variable) {
+  return variable === null || variable === '' || isUndefined(variable);
+}
