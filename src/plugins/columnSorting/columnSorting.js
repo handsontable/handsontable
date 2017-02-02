@@ -254,6 +254,10 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
+    const isNullOrEmptyString = function(value) {
+      return value === null || value === '';
+    };
+
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -265,12 +269,20 @@ class ColumnSorting extends BasePlugin {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+
+      if (isNullOrEmptyString(a[1])) {
+        if (isNullOrEmptyString(b[1])) {
+          return 0;
+        }
         return 1;
       }
-      if (b[1] === null || b[1] === '') {
+      if (isNullOrEmptyString(b[1])) {
+        if (isNullOrEmptyString(a[1])) {
+          return 0;
+        }
         return -1;
       }
+
       if (isNaN(a[1]) && !isNaN(b[1])) {
         return sortOrder ? 1 : -1;
 
@@ -299,14 +311,26 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
+    const isNullOrEmptyString = function(value) {
+      return value === null || value === '';
+    };
+
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+
+      if (isNullOrEmptyString(a[1])) {
+        if (isNullOrEmptyString(b[1])) {
+          return 0;
+        }
         return 1;
       }
-      if (b[1] === null || b[1] === '') {
+
+      if (isNullOrEmptyString(b[1])) {
+        if (isNullOrEmptyString(a[1])) {
+          return 0;
+        }
         return -1;
       }
 
@@ -340,9 +364,11 @@ class ColumnSorting extends BasePlugin {
    */
   numericSort(sortOrder, columnMeta) {
     return function(a, b) {
-      let parsedA = parseFloat(a[1]);
-      let parsedB = parseFloat(b[1]);
+      const parsedA = parseFloat(a[1]);
+      const parsedB = parseFloat(b[1]);
 
+      // Watch out when changing this part of code!
+      // Check below returns 0 when comparing empty strings with nulls (as expected)
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
       }

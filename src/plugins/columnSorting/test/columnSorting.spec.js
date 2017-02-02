@@ -220,7 +220,27 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
   });
 
+  it('defaultSort comparing function shouldn\'t change order when comparing empty strings with nulls', function () {
+    var hot = handsontable({});
+    var defaultSort = hot.getPlugin('columnSorting').defaultSort;
+
+    expect(defaultSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+  });
+
   describe('data type: date', function() {
+    it('dateSort comparing function shouldn\'t change order when comparing empty strings with nulls', function () {
+      var hot = handsontable({});
+      var dateSort = hot.getPlugin('columnSorting').dateSort;
+
+      expect(dateSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+      expect(dateSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+    });
+
     it('should sort date columns (MM/DD/YYYY)', function () {
       var hot = handsontable({
         data: [
@@ -457,6 +477,16 @@ describe('ColumnSorting', function() {
     this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
+  });
+
+  it('numericSort comparing function shouldn\'t change order when comparing empty strings with nulls', function () {
+    var hot = handsontable({});
+    var numericSort = hot.getPlugin('columnSorting').numericSort;
+
+    expect(numericSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(numericSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
   });
 
   it('should sort table with multiple row headers', function() {
