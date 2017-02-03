@@ -7,7 +7,7 @@ import {
     index,
     removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
+import {arrayEach, arrayMap, arrayReduce, arraySortByMergeSort} from './../../helpers/array';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -413,7 +413,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
+    arraySortByMergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
     for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
