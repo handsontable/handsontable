@@ -220,7 +220,93 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
   });
 
+  it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+    var hot = handsontable({});
+    var defaultSort = hot.getPlugin('columnSorting').defaultSort;
+
+    expect(defaultSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+  });
+
+  it('should place empty strings, null and undefined values at proper position (stability of comparing function)', function () {
+    var hot = handsontable({
+      data: [
+        [null, "George Washington"],
+        [undefined, "John Adams"],
+        [null, "Thomas Jefferson"],
+        ['', "James Madison"],
+        ['', "James Monroe"],
+        [6, "John Quincy Adams"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [9, "William Henry Harrison"],
+        [10, "John Tyler"]
+      ],
+      columnSorting: true
+    });
+
+    hot.sort(0, true); // ASC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+
+    hot.sort(0, false); // DESC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Tyler",
+      "William Henry Harrison",
+      "Martin Van Buren",
+      "Andrew Jackson",
+      "John Quincy Adams",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+  });
+
   describe('data type: date', function() {
+    it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+      var hot = handsontable({});
+      var dateSort = hot.getPlugin('columnSorting').dateSort;
+
+      expect(dateSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+    });
+
     it('should sort date columns (MM/DD/YYYY)', function () {
       var hot = handsontable({
         data: [
@@ -457,6 +543,24 @@ describe('ColumnSorting', function() {
     this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
+  });
+
+  it('numericSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+    var hot = handsontable({});
+    var numericSort = hot.getPlugin('columnSorting').numericSort;
+
+    expect(numericSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
   });
 
   it('should sort table with multiple row headers', function() {

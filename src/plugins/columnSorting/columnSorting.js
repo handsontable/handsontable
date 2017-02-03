@@ -8,6 +8,7 @@ import {
     removeClass,
 } from './../../helpers/dom/element';
 import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
+import {isEmpty} from './../../helpers/mixed';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -265,12 +266,20 @@ class ColumnSorting extends BasePlugin {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
+          return 0;
+        }
         return 1;
       }
-      if (b[1] === null || b[1] === '') {
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
+          return 0;
+        }
         return -1;
       }
+
       if (isNaN(a[1]) && !isNaN(b[1])) {
         return sortOrder ? 1 : -1;
 
@@ -303,10 +312,18 @@ class ColumnSorting extends BasePlugin {
       if (a[1] === b[1]) {
         return 0;
       }
-      if (a[1] === null || a[1] === '') {
+
+      if (isEmpty(a[1])) {
+        if (isEmpty(b[1])) {
+          return 0;
+        }
         return 1;
       }
-      if (b[1] === null || b[1] === '') {
+
+      if (isEmpty(b[1])) {
+        if (isEmpty(a[1])) {
+          return 0;
+        }
         return -1;
       }
 
@@ -340,9 +357,11 @@ class ColumnSorting extends BasePlugin {
    */
   numericSort(sortOrder, columnMeta) {
     return function(a, b) {
-      let parsedA = parseFloat(a[1]);
-      let parsedB = parseFloat(b[1]);
+      const parsedA = parseFloat(a[1]);
+      const parsedB = parseFloat(b[1]);
 
+      // Watch out when changing this part of code!
+      // Check below returns 0 when comparing empty string, null, undefined (as expected)
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
       }
