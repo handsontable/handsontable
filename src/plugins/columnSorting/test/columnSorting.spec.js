@@ -258,22 +258,20 @@ describe('ColumnSorting', function() {
     hot.sort(0, true); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
-        "John Quincy Adams",
-        "Andrew Jackson",
-        "Martin Van Buren",
-        "William Henry Harrison",
-        "John Tyler",
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler",
 
-        "George Washington",
-        "John Adams",
-        "Thomas Jefferson",
-        "James Madison",
-        "James Monroe",
-      ]
-    );
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
 
     hot.sort(0, false); // DESC
-
 
     expect(hot.getDataAtCol(1)).toEqual([
       "John Tyler",
