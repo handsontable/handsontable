@@ -49,7 +49,7 @@ export function isUndefined(variable) {
 
 /**
  * Check if given variable is null, empty string or undefined
- * @param variable
+ * @param variable Variable to check.
  * @returns {Boolean}
  */
 export function isEmpty(variable) {
