@@ -111,7 +111,7 @@ class LinkedList {
    * Remove data from the linked list.
    *
    * @param {Object} data Data which should be removed.
-   * @return {Boolean} Returns true if data has been removed.
+   * @returns {Boolean} Returns true if data has been removed.
    */
   remove(data) {
     if (this.first === null) {
@@ -155,7 +155,7 @@ class LinkedList {
   /**
    * Check if linked list contains cycle.
    *
-   * @return {Boolean} Returns true if linked list contains cycle.
+   * @returns {Boolean} Returns true if linked list contains cycle.
    */
   hasCycle() {
     let fast = this.first;
@@ -184,7 +184,7 @@ class LinkedList {
   /**
    * Return last node from the linked list.
    *
-   * @return {NodeStructure} Last node.
+   * @returns {NodeStructure} Last node.
    */
   pop() {
     if (this.last === null) {
@@ -193,13 +193,14 @@ class LinkedList {
 
     let temp = this.last;
     this.last = this.last.prev;
+
     return temp;
   };
 
   /**
    * Return first node from the linked list.
    *
-   * @return {NodeStructure} First node.
+   * @returns {NodeStructure} First node.
    */
   shift() {
     if (this.first === null) {

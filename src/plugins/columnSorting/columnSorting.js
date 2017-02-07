@@ -7,11 +7,11 @@ import {
     index,
     removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayMap, arrayReduce, arraySortByMergeSort} from './../../helpers/array';
+import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
-import {mergeSort} from './../../utils/sort/mergeSort';
+import {mergeSort} from './../../utils/sortingAlgorithms/mergeSort';
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');

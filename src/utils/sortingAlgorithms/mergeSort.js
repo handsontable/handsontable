@@ -12,6 +12,7 @@ import Handsontable from './../../browser';
 /**
  * Specifies a function that defines the sort order. The array is sorted according to each
  * character's Unicode code point value, according to the string conversion of each element.
+ *
  * @param a {*} first compared element.
  * @param b {*} second compared element.
  * @returns {Number}

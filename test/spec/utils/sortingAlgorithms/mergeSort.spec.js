@@ -24,6 +24,14 @@ describe('mergeSort', function() {
     expect(mergeSort([3, 40, 100, 2000])).toEqual([100, 2000, 3, 40]);
   });
 
+  it('should not change the order when such comparator is provided', function() {
+    var compareFunction = function() {
+      return 0;
+    };
+
+    expect(mergeSort([1, 2, 11, 3], compareFunction)).toEqual([1, 2, 11, 3]);
+  });
+
   it('should sort the numbers in ascending order when such comparator is provided', function() {
     var compareFunction = function(a, b) {
       return a - b;
