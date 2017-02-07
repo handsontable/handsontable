@@ -11,6 +11,7 @@ import {arrayEach, arrayMap, arrayReduce, arraySortByMergeSort} from './../../he
 import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
+import {mergeSort} from './../../utils/sort/mergeSort';
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');
@@ -413,7 +414,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    arraySortByMergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
+    mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
     for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {

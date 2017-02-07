@@ -1,4 +1,3 @@
-
 export function to2dArray(arr) {
   var i = 0,
     ilen = arr.length;
@@ -247,62 +246,4 @@ export function arrayIncludes(array, searchElement, fromIndex) {
     k++;
   }
   return false;
-}
-
-const defaultCompareFunction = function(a, b) {
-  // sort lexically
-
-  const leftValue = a.toString();
-  const rightValue = b.toString();
-
-  if (leftValue === rightValue) {
-    return 0;
-  } else if (leftValue < rightValue) {
-    return -1;
-  } else {
-    return 1;
-  }
-};
-
-// Implementation from stackoverflow (by user Kevin) changed a little bit and refactored.
-// http://stackoverflow.com/questions/1427608/fast-stable-sorting-algorithm-implementation-in-javascript
-
-export function arraySortByMergeSort(array, compareFunction = defaultCompareFunction) {
-  const length = array.length;
-  const middle = Math.floor(length / 2);
-
-  if (length < 2) {
-    return array;
-  }
-
-  return merge(
-    arraySortByMergeSort(array.slice(0, middle), compareFunction),
-    arraySortByMergeSort(array.slice(middle, length), compareFunction),
-    compareFunction,
-    array
-  );
-}
-
-function merge(left, right, compareFunction, resultArray) {
-  resultArray.length = 0;
-
-  while (left.length > 0 || right.length > 0) {
-    if (left.length > 0 && right.length > 0) {
-      if (compareFunction(left[0], right[0]) <= 0) {
-        resultArray.push(left[0]);
-        left = left.slice(1);
-      } else {
-        resultArray.push(right[0]);
-        right = right.slice(1);
-      }
-    } else if (left.length > 0) {
-      resultArray.push(left[0]);
-      left = left.slice(1);
-    } else if (right.length > 0) {
-      resultArray.push(right[0]);
-      right = right.slice(1);
-    }
-  }
-
-  return resultArray;
 }
